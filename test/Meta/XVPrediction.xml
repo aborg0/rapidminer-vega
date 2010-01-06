@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process version="4.0beta2">
+
+  <operator name="Root" class="Process">
+      <operator name="ExampleSetGenerator" class="ExampleSetGenerator">
+          <parameter key="local_random_seed"	value="98"/>
+          <parameter key="number_examples"	value="50"/>
+          <parameter key="number_of_attributes"	value="1"/>
+          <parameter key="target_function"	value="triangular function"/>
+      </operator>
+      <operator name="XVPrediction" class="XVPrediction">
+          <parameter key="leave_one_out"	value="true"/>
+          <operator name="LinearRegression" class="LinearRegression">
+              <parameter key="feature_selection"	value="greedy"/>
+          </operator>
+          <operator name="OperatorChain" class="OperatorChain">
+              <operator name="ModelApplier" class="ModelApplier">
+                  <list key="application_parameters">
+                  </list>
+                  <parameter key="keep_model"	value="true"/>
+              </operator>
+              <operator name="ExampleSetWriter" class="ExampleSetWriter">
+                  <parameter key="attribute_description_file"	value="../../test/samples/testingExampleSet.aml"/>
+                  <parameter key="example_set_file"	value="../../test/samples/testingExampleSet.dat"/>
+              </operator>
+          </operator>
+      </operator>
+      <operator name="ExampleSource" class="ExampleSource">
+          <parameter key="attributes"	value="../../test/samples/testingExampleSet.aml"/>
+      </operator>
+  </operator>
+
+</process>

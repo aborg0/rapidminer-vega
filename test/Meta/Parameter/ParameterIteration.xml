@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process version="4.0">
+
+  <operator name="Root" class="Process">
+      <operator name="ParameterIteration" class="ParameterIteration">
+          <parameter key="keep_output"	value="true"/>
+          <list key="parameters">
+            <parameter key="ExampleSetGenerator.number_examples"	value="100,150,200"/>
+            <parameter key="ExampleSetGenerator.target_function"	value="sum,random"/>
+          </list>
+          <operator name="ExampleSetGenerator" class="ExampleSetGenerator">
+              <parameter key="number_examples"	value="200"/>
+              <parameter key="target_function"	value="polynomial"/>
+          </operator>
+      </operator>
+  </operator>
+
+</process>

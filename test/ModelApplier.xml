@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<experiment version="4.0beta">
+
+  <operator name="Root" class="Process">
+      <operator name="ExampleSetGenerator" class="ExampleSetGenerator">
+          <parameter key="local_random_seed"	value="5468"/>
+          <parameter key="number_examples"	value="3"/>
+          <parameter key="number_of_attributes"	value="2"/>
+          <parameter key="target_function"	value="sum classification"/>
+      </operator>
+      <operator name="DefaultLearner" class="DefaultLearner">
+          <parameter key="keep_example_set"	value="true"/>
+      </operator>
+      <operator name="ModelApplier" class="ModelApplier">
+          <list key="application_parameters">
+          </list>
+          <parameter key="keep_model"	value="true"/>
+      </operator>
+  </operator>
+
+</experiment>

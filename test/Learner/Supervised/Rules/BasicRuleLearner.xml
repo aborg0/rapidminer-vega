@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process version="4.0beta2">
+
+  <operator name="Root" class="Process">
+      <operator name="ExampleSetGenerator" class="ExampleSetGenerator">
+          <parameter key="local_random_seed"	value="98"/>
+          <parameter key="number_examples"	value="25"/>
+          <parameter key="number_of_attributes"	value="2"/>
+          <parameter key="target_function"	value="gaussian mixture clusters"/>
+      </operator>
+      <operator name="Numeric2Binominal" class="Numeric2Binominal">
+          <parameter key="max"	value="2.0"/>
+          <parameter key="min"	value="-10.0"/>
+      </operator>
+      <operator name="XVPrediction" class="XVPrediction">
+          <operator name="BasicRuleLearner" class="BasicRuleLearner">
+          </operator>
+          <operator name="OperatorChain" class="OperatorChain">
+              <operator name="ModelApplier" class="ModelApplier">
+                  <list key="application_parameters">
+                  </list>
+              </operator>
+          </operator>
+      </operator>
+  </operator>
+
+</process>

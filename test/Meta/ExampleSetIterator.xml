@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process version="4.0beta2">
+
+  <operator name="Root" class="Process">
+      <operator name="ExampleSetGenerator" class="ExampleSetGenerator">
+          <parameter key="local_random_seed"	value="1981"/>
+          <parameter key="number_of_attributes"	value="2"/>
+          <parameter key="target_function"	value="sum"/>
+      </operator>
+      <operator name="ExampleSetGenerator (2)" class="ExampleSetGenerator">
+          <parameter key="target_function"	value="sum"/>
+      </operator>
+      <operator name="ExampleSetIterator" class="ExampleSetIterator">
+          <operator name="Numeric2Binominal" class="Numeric2Binominal">
+              <parameter key="min"	value="-100.0"/>
+          </operator>
+      </operator>
+  </operator>
+
+</process>

@@ -1,0 +1,290 @@
+\chapter{Integrating \rapidminer into your application}
+\label{sec:integrating_rapidminer}
+
+\rapidminer can easily be invoked from other Java applications. 
+You can both read process configurations from xml
+\java{File}s or \java{Reader}s, or you can construct \java{Process}es
+by starting with an empty process and adding \java{Operator}s
+to the created \java{Process} in a tree-like manner. Of course you can also
+create single operators and apply them to some input objects, e.g. learning a
+model or performing a single preprocessing step. However, the creation of
+processes allows \rapidminer to handle the data management and process
+traversal. If the operators are created without beeing part of an process,
+the developer must ensure the correct usage of the single operators himself.
+
+
+\section{Initializing \rapidminer}
+
+Before \rapidminer can be used (especially before any operator can be created),
+\rapidminer has to be properly initialized.
+The method 
+\begin{center}
+\java{RapidMiner.init()}
+\end{center}
+must be invoked before the \java{OperatorService} can be used to create operators. 
+Several other initialization methods for \rapidminer exist, please make sure that you 
+invoke at least one of these. If you want to configure the initialization of \rapidminer
+you might want to use the method
+\begin{center}
+\begin{verbatim}
+RapidMiner.init(InputStream operatorsXMLStream, 
+			    File pluginDir, 
+			    boolean addWekaOperators, 
+			    boolean searchJDBCInLibDir, 
+			    boolean searchJDBCInClasspath, 
+			    boolean addPlugins)
+\end{verbatim}
+\end{center}
+Setting some of the properties to false (e.g. the loading of database drivers or of 
+the Weka operators might drastically improve the needed runtime during start-up. 
+If you even want to use only a subset of all available operators you can provide a 
+stream to a reduced operator description (operators.xml). If the parameter
+\java{operatorsXMLStream} is null, just all core operators are used. Please
+refer to the API documentation for more details on the initialization of \rapidminer.
+
+You can also use the simple method \java{RapidMiner.init()} and configure the 
+settings via this list of environment variables:
+\begin{itemize}
+\item \texttt{rapidminer.init.operators} (file name)
+\item \texttt{rapidminer.init.plugins.location} (directory name)
+\item \texttt{rapidminer.init.weka} (boolean)
+\item \texttt{rapidminer.init.jdbc.lib} (boolean)
+\item \texttt{rapidminer.init.jdbc.classpath} (boolean)
+\item \texttt{rapidminer.init.plugins} (boolean)
+\end{itemize}
+
+
+	 
+\section{Creating Operators}
+
+It is important that operators are
+created using one of the \java{createOperator(...)} methods of
+\begin{center}
+\java{com.rapidminer.tools.OperatorService}
+\end{center} 
+Table~\ref{tab:op:operator_creation} shows the different factory methods for
+operators which are provided by OperatorService. Please note that few operators
+have to be added to a process in order to properly work. Please refer 
+to section \ref{sec:single_operators} for more details on using single operators and 
+adding them to a process.
+
+
+\newcolumntype{Y}{>{\small\raggedright\arraybackslash}X}
+\newcolumntype{Z}{>{\small\tt\raggedright\arraybackslash}X}
+\renewcommand{\tabularxcolumn}[1]{p{#1}}
+\begin{table}[htbp]
+  \begin{tabularx}{\linewidth}{|Z|Y|}
+    \hline
+    \textbf{Method}                  & \textbf{Description} \\
+    \hline\hline
+    createOperator(String name)      & Use this method for the creation of an
+    operator from its name. The name is the name which is defined
+    in the \filename{operators.xml} file and displayed in the GUI. \\
+    \hline
+    createOperator(Operator\-Description description) & Use this method for the creation of an
+    operator whose OperatorDescription is already known. Please refer to the
+    \rapidminer API. \\
+    \hline
+    createOperator(Class clazz) & Use this method for the creation of an
+    operator whose Class is known. This is the recommended method for the
+    creation of operators since it can be ensured during compile time
+    that everything is correct. However, some operators exist which do not 
+    depend on a particular class (e.g. the learners derivced from the Weka
+    library) and in these cases one of the other methods must be used. \\
+    \hline
+  \end{tabularx}
+  \caption[Operator factory methods of OperatorService]{These methods should
+    be used to create operators. In this way it is ensured that the operators
+    can be added to processes and properly used.}
+  \label{tab:op:operator_creation}
+\end{table}
+
+
+
+
+\section{Creating a complete process}
+
+Figure~\ref{fig:createops} shows a detailed example for the \rapidminer API to create
+operators and setting its parameters.
+
+\javafile{createops.jav}{createops}{Creation of new operators and setting up
+  an process from your application}{Creation of new operators and
+  process setup}
+
+We can simply create a new process setup via \java{new Process()} and
+add operators to the created process. The root of the process' operator tree 
+is queried by \java{process.getRootOperator()}. Operators are added like children to a
+parent tree. For each operator you have to
+\begin{enumerate}
+\item create the operator with help of the OperatorService,
+\item set the necessary parameters,
+\item add the operator at the correct position of the operator tree of the process.
+\end{enumerate}
+
+After the process was created you can start the process via
+\begin{center}
+\java{process.run()}. 
+\end{center}
+If you want to provide some initial input you can also use the method
+\begin{center}
+\java{process.run(IOContainer)}.
+\end{center}
+If you want to use a log file you should set the parameter \java{logfile}
+of the process root operator like this 
+\begin{center}
+\java{process.getRootOperator().setParameter(
+ProcessRootOperator.PARAMETER\_LOGFILE, 
+filename
+)}
+\end{center}
+before the run method is invoked. If you want also to keep the global 
+logging messages in a file, i.e. those logging messages which are not associated 
+to a single process, you should also invoke the method
+\begin{center}
+\java{LogService.initGlobalLogging(
+OutputStream out, 
+int logVerbosity
+)}
+\end{center}
+before the run method is invoked.
+
+
+If you have already defined a process configuration file, for example
+with help of the graphical user interface, another very simple way of
+creating a process setup exists. Figure~\ref{fig:rapidminer_from_external} shows how
+a process can be read from a process configuration file. 
+Just creating a process from a file (or stream) is a very simple way to 
+perform processes which were created with the graphical user interface 
+beforehand.
+
+
+\javafile{RapidMinerFromExternal.jav}{rapidminer_from_external}{Using complete \rapidminer
+  processes from external programs}{Using a \rapidminer process from external
+  programs}
+
+As it was said before, please ensure that \rapidminer was properly initialized by one of the 
+init methods presented above.
+
+
+
+\section{Using single operators}
+\label{sec:single_operators}
+
+The creation of a \java{Process} object is the intended way of performing a complete
+data mining process within your application. For small processes like a
+single learning or preprocessing step, the creation of a complete process
+object might include a lot of overhead. In these cases you can easily manage the
+data flow yourself and create and use single operators.
+
+The data flow is managed via the class \java{IOContainer} (see section
+\ref{sec:io_container}). Just create the operators you want to use, set
+necessary parameters and invoke the method \java{apply(IOContainer)}. 
+The result is again an \java{IOContainer} which can deliver the desired output
+object. Figure~\ref{fig:rapidminer_from_external2} shows a small programm which loads
+some training data, learns a model, and applies it to an unseen data set.
+
+\javafile{RapidMinerFromExternal2.jav}{rapidminer_from_external2}{Using single \rapidminer
+  operators from external programs}{Using \rapidminer operators from external
+  programs}
+
+Please note that using an operator without an surrounding process is only
+supported for operators not directly depending on others in an process
+configuration. This is true for almost all operators available in \rapidminer. There
+are, however, some exceptions: some of the meta optimization operators (e.g. 
+the parameter optimization operators) and the ProcessLog operator only work
+if they are part of the same process of which the operators should be optimized 
+or logged respectively. The same applies for the MacroDefinition operator which
+also can only be properly used if it is embedded in a \java{Process}. Hence, 
+those operators cannot be used without a Process and an error will occur.
+
+Please note also that the method 
+\begin{center}
+\java{RapidMiner.init()}
+\end{center}
+or any other \java{init()} taking some parameters must be invoked before the 
+\java{OperatorService} can be used to create operators (see above).
+
+
+\section{\rapidminer as a library}
+
+If \rapidminer is separately installed and your program uses the \rapidminer classes
+you can just adapt the examples given above. However, you might also want
+to integrate \rapidminer into your application so that users do not have to download
+and install \rapidminer themself. In that case you have to consider that
+\begin{enumerate}
+\item \rapidminer needs a \filename{rapidminerrc} file in \filename{rapidminer.home/etc}
+  directory
+\item \rapidminer might search for some library files located in the directory
+  \filename{rapidminer.home/lib}.
+\end{enumerate}
+For the Weka jar file, you can define a
+system property named \java{rapidminer.weka.jar} which defines where the Weka jar
+file is located. This is especially useful if your application already
+contains Weka. However, you can also just omit all of the library jar files,
+if you do not need their functionality in your application. 
+\rapidminer will then just work without this additional functionality, for example,
+it simply does not provide the Weka learners if the weka.jar library was omitted.
+
+
+
+\section{Transform data for \rapidminer}
+
+Often it is the case that you already have some data in your application on which 
+some operators should be applied. In this case, it would be very annoying to write
+your data into a file, load it into \rapidminer with an ExampleSource operator and apply
+other operators to the resulting ExampleSet. It would therefore be a nice feature
+if it would be possible to directly use your own application data as input. 
+This section describes the basic ideas for this approach.
+
+As we have seen in Section \ref{sec:data_core}, all data is stored in a central data 
+table (called \java{ExampleTable}) and one or more views on this table (called \java{ExampleSet}s) 
+can be created and will be used by operators. Figure \ref{fig:creating_example_tables} 
+shows how this central \java{ExampleTable} can be created. 
+
+\javafile{creatingexampletables.jav}{creating_example_tables}{The complete code for creating a memory based ExampleTable}{The complete code for creating a memory based ExampleTable}
+
+First of all, a list containing
+all attributes must be created. Each \java{Attribute} represents a column in the final example 
+table. We assume that the method \java{getMyNumOfAttributes()} returns the number of regular 
+attributes. We also assume that all regular attribute have numerical type. We create
+all attributes with help of the class \java{AttributeFactory} and add them to the attribute list. 
+
+For example tables, it does not matter if a specific column (attribute) is a 
+special attribute like a classification label or just a regular attribute which is used
+for learning. We therefore just create a nominal classification label and add it to
+the attribute list, too.
+
+After all attributes were added, the example table can be created. In this example we create a 
+\java{MemoryExampleTable} which will keep all data in the main memory. The attribute list is given
+to the constructor of the example table. One can think of this list as a description of the
+column meta data or column headers. At this point of time, the complete table is empty, i.e.
+it does not contain any data rows.
+
+The next step will be to fill the created table with data. Therefore, we create a DataRow 
+object for each of the \java{getMyNumOfRows()} data rows and add it to the table. 
+We create a simple double array
+and fill it with the values from your application. In this example, we assume that the method
+\java{getMyValue(d,a)} will deliver the value for the $a$-th attribute of the $d$-th data row.
+Please note that the order of values and the order of attributes added to the attribute list
+must be the same!
+
+For the label attribute, which is a nominal classification value, we have to map the \java{String}
+delivered by \java{getMyClassification(d)} to a proper double value. This is done with the method
+\java{mapString(String)} of \java{Attribute}. This method will ensure that following mappings 
+will always produce the same double indices for equal strings.
+
+The last thing in the loop is to add a newly created \java{DoubleArrayDataRow} to the example table. 
+Please note that only MemoryExampleTable provide a method \java{addDataRow(DataRow)}, other
+example tables might have to initialized in other ways.
+
+
+The last thing which must be done is to produce a view on this example table. Such views are called
+\java{ExampleSet} in \rapidminer. The creation of these views is done by the method 
+\java{createCompleteExampleSet(label, null, null, null)}. The resulting example set
+can be encapsulated in a \java{IOContainer} and given to operators.
+
+\paragraph{Remark:}
+Since Attribute, DataRow, ExampleTable, and ExampleSet are all interfaces, you can of course implement
+one or several of these interfaces in order to directly support \rapidminer with data even without
+creating a MemoryExampleTable.
+

@@ -1,0 +1,181 @@
+\section{Input/Ouput operators}
+\label{sec:inoutoperators}
+
+In this section operators are described which provide functionalty to
+read or write data and results respectively. 
+
+
+\operator{ExampleSource}
+
+\begin{opin}
+\item none
+\end{opin}
+
+\begin{opout}
+\item[ExampleSet:] the example set which is generated from the data in
+  the given file
+\end{opout}
+
+
+\begin{parameters}
+\reqpar[attributes] filename for the attribute {XML} file, see
+  section \ref{sec:inputfiles}
+\optpar[separator\_chars] the characters given by this string are
+  separators between the values. Default values are all whitespace
+  characters and ','
+\optpar[ignore\_chars] the characters given by this string are ignored
+  by the operator
+\optpar[comment\_chars] lines beginning with these characters will be
+  ignored by the operator
+\optpar[max\_examples] the maximum number of examples to read from the
+  file, default: -1 (read all examples)
+\end{parameters}
+
+\opdescr This operator reads an example set from one or several
+files. You can specify several delimiter characters and characters that 
+will be ignored totally. Additionally, comment characters can be given. 
+The characters " and ' quote intermediate text. The default values of the 
+\op{ExampleSource} operator can probably be used for most commonly used text file data formats.
+
+
+\operator{DatabaseExampleSource}
+
+\begin{opin}
+\item none
+\end{opin}
+
+\begin{opout}
+\item[ExampleSet:] the example set read from the database
+\end{opout}
+
+\begin{parameters}
+\reqpar[attributes] filename for the attribute {XML} file, see
+  section \ref{sec:inputfiles}
+\reqpar[query\_file] a file containing the {SQL} query
+\optpar[sample\_size] the maximum number of examples to read from the
+  database
+\end{parameters}
+
+\opdescr This operator reads an example set from an {SQL} database.
+
+
+
+\operator{ExampleSetWriter}
+
+\begin{opin}
+\item[ExampleSet:] the example set to be written to a file
+\end{opin}
+
+\begin{opout}
+\item[ExampleSet:] the example set which has been written to a file
+\end{opout}
+
+\begin{parameters}
+\reqpar[example\_set\_file] name of the file the example set is to be written to
+\end{parameters}
+
+\opdescr This operator writes the values of all examples and labels of the
+example set into a file. Every line represents one example and
+is written in the following form:
+\begin{center}
+\texttt{[value1 value2\ldots valueN] label1\ldots labelN}.
+\end{center}
+
+
+\operator{AttributeSetWriter}
+
+\begin{opin}
+\item[ExampleSet:] the attributes of this example set will be written
+  to the given file
+\end{opin}
+
+\begin{opout}
+\item [ExampleSet:] the input example set is returned
+\end{opout}
+
+
+\begin{parameters}
+\reqpar[attribute\_set\_file] name of the file the attributes are to be written to
+\end{parameters}
+
+\opdescr This operator writes all attributes of an example set to a file. Each line holds the
+construction description of one attribute. 
+
+
+\operator{ModelLoader}
+
+\begin{opin}
+\item none
+\end{opin}
+
+\begin{opout}
+\item[Model:] the loaded model
+\end{opout}
+
+\begin{parameters}
+\reqpar[model\_file] name of the file containing the model
+\end{parameters}
+
+\opdescr This operator loads a model from the given file, which has been written by a
+learning operator (see section \ref{sec:op:Learner}). Afterwards, the
+model is passed on and can be used by subsequent operators.
+
+
+\operator{ResultWriter}
+
+\begin{opin}
+\item none
+\end{opin}
+
+\begin{opout}
+\item none
+\end{opout}
+
+\opdescr This simple operator can be used at any position in an
+\op{OperatorChain}. It writes all results of the input objects into
+the result file and simply returns the objects. 
+
+
+
+\operator{ProcessLog}
+
+\begin{opin}
+\item none
+\end{opin}
+
+\begin{opout}
+\item none
+\end{opout}
+
+\begin{parameters}
+\reqpar[filename] name of the output file
+\reqpar[log] in this group you specify the values of the parameters
+  which should be looked up by the operator
+\end{parameters}
+
+\opdescr This operator saves almost arbitrary data to a given file and
+is therefore more powerful than the simple \op{ResultWriter}
+operator. All parameters in the group \parval{log} are interpreted as
+follows: The key determines the column name in the log file. The value
+specifies where to get the value from. All values can be registered in
+the \para{log} parameter group by 
+\begin{center}
+\texttt{operator}.\textit{opName}.\texttt{\{parameter$|$value\}}.\textit{name}
+\end{center}
+and are described in the values list in each operator section. 
+
+{\em Example:}
+\parval{operator.GA.value.generation} looks up the operator with the
+name "GA" and then searches for the current value of the field
+\parval{generation}. Or \parval{operator.SVMLearner.parameter.C} logs
+the value of the parameter \parval{C} of the SVMLearner.
+
+{\em Hint:} 
+If you want to sort the output in some way, try the following trick:
+Specify the columns in decreasing order (the output will presumably
+respect this). Then use a Unix command like "sort" or any other tool
+to sort the output.
+
+
+
+

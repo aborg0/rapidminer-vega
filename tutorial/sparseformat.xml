@@ -1,0 +1,8 @@
+<operator name="SparseFormatExampleSource" class="SparseFormatExampleSource">
+  <parameter key="dimension"      value="1000"/>
+  <parameter key="attribute_file" value="mydata.dat"/>
+  <parameter key="format"         value="xy"/>
+  <list key="prefix_map">
+    <parameter key="w"	value="weight"/>
+  </list>
+</operator>

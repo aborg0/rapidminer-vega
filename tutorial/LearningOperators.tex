@@ -1,0 +1,387 @@
+\section{Machine learning algorithms}
+
+
+Acquiring knowledge is fundamental for the development of intelligent
+systems. The operators described in this section were designed to
+automatically discover hypotheses to be used for future
+decisions. They can learn models from the given data and apply them to
+new data to predict a label for each observation in an unpredicted
+example set.
+
+
+
+\absoperator{Learner}
+
+\newcommand{\learnerio}{
+\begin{opin}
+\item[ExampleSet:] the training example set
+\end{opin}
+
+\begin{opout}
+\item[Model:] the learned model
+\end{opout}
+}
+\learnerio
+
+\begin{parameters}
+\optpar[model\_file] name of the file that the \op{Learner} writes the learned model into
+\end{parameters}
+
+\opdescr A \op{Learner} is an operator that encapsulates the learning
+step of a machine learning method. This can be an external program or
+realised within \rapidminer.
+
+
+\absoperator{ModelApplier}
+
+\newcommand{\applierio}{
+\begin{opin}
+\item[ExampleSet:] the examples to which the \ioobj{model} is applied to
+\item[Model:] the model for predicting the labels of the examples
+\end{opin}
+
+\begin{opout}
+\item[ExampleSet:] the example set with predicted labels
+\end{opout}
+}
+\applierio
+
+\opdescr A \op{ModelApplier} predicts the labels of an example set by
+means of a previously learned model.
+
+
+
+\operator[Learner]{SVMLearner}
+
+\learnerio
+
+\begin{parameters}
+\optpar[model\_file] the \op{Learner} writes the learned model into
+this file
+\reqpar[C] the SVM complexity constant ({\em capacity constant}) 
+\reqpar[epsilon] the {SVM} insensitivity constant
+\reqpar[type] the type of the {SVM} kernel; 
+legal values are 
+\parval{dot} (linear kernel), 
+\parval{polynomial}, 
+\parval{radial} ({RBF} kernel), 
+\parval{neural} (sigmoidal kernel) or 
+\parval{anova}
+\optpar[degree] only needed for \parval{polynomial} or \parval{anova} kernel
+\optpar[gamma] only needed for \parval{radial} or \parval{anova} kernel
+\optpar[a] only needed for \parval{neural} kernel
+\optpar[b] only needed for \parval{neural} kernel
+\optpar[pattern] use SVM for pattern recognition (classification); 
+if this value is not given, the SVM will be used for regression, which is the default.
+\optpar[weighted\_examples] if the value of this parameter is true, 
+a weight for each example will be used by the SVM. If this parameter is not specified, 
+the SVM automatically uses weights if and only if they are given in the example set.
+\end{parameters}
+
+
+\opdescr The \op{SVMLearner} encapsulates an external implementation of Vladimir Vapnik's
+Support Vector Machine (SVM) \cite{Vapnik/98a}, the mySVM learning algorithm by 
+Stefan R\"uping\footnote{\texttt{http://www-ai.cs.uni-dortmund.de/SOFTWARE/MYSVM/}}. 
+   The path to the program should be given by the global parameter {\em rapidminer.mysvm.learncommand}
+(see section \ref{sec:globalsettings} for download and parameter settings information). 
+   It supports pattern recognition, regression, and distribution estimation. 
+Additionally, each instance can be weighted for learning. 
+For a more extensive description, especially concerning the parameters,
+please consult \cite{Rueping/2000a} and \cite{Vapnik/98a}.
+
+
+
+\operator[ModelApplier]{SVMApplier}
+
+\applierio
+
+\begin{parameters}
+\reqpar[C] the SVM complexity constant ({\em capacity constant}) 
+\reqpar[epsilon] SVM insensitivity constant
+\reqpar[type] the type of the SVM kernel; 
+legal values can be 
+\parval{dot} (linear kernel),
+\parval{polynomial}, 
+\parval{radial} ({RBF} kernel), 
+\parval{neural} (sigmoidal kernel) or 
+\parval{anova}
+\optpar[degree] only needed for \parval{polynomial} or \parval{anova} kernel
+\optpar[gamma] only needed for \parval{radial} or \parval{anova} kernel
+\optpar[a] only needed for \parval{neural} kernel
+\optpar[b] only needed for \parval{neural} kernel
+\optpar[pattern] use SVM for pattern recognition (classification); 
+if this value is not given, the SVM will be used for regression, which is the default.
+\optpar[weighted\_examples] if the value of this parameter is true, 
+a weight for each example will be used by the SVM. If this parameter is not specified, 
+the SVM automatically uses weights if and only if they are given in the example set.
+\end{parameters}
+
+\opdescr The \op{SVMApplier} encapsulates an external implementation of the 
+SVM, the mySVM applier algorithm by Stefan R\"uping. 
+   The \op{SVMApplier} can use a model learned by a \op{SVMLearner} to predict
+the labels of examples.
+   The path to the program should be given by the global parameter 
+{\em rapidminer.mysvm.learncommand} (see section \ref{sec:globalsettings} for 
+download and parameter settings information). 
+   The model (i.e. the calculated hyperplane) is used to predict the labels
+of the example set. For a more extensive description, especially concerning
+the parameters, please consult \cite{Rueping/2000a} and \cite{Vapnik/98a}.
+
+
+
+
+\operator[Learner]{SVMLightLearner}
+
+\learnerio
+
+\begin{parameters}
+\optpar[model\_file] name of the file into which the \op{Learner} writes the learned model
+\reqpar[kernel\_type] type of the \SVMlight\ kernel
+(\parval{linear}, 
+\parval{polynomial}, 
+\parval{RBF}, or
+\parval{sigmoid}). 
+The default value for the kernel type is
+\parval{linear}.
+\optpar[additional\_parameters] other parameters for the \SVMlight,
+written like in the \SVMlight\ command line, and passed directly like this to \SVMlight.
+\end{parameters}
+
+\opdescr \SVMlight\ is an implementation of Vladimir Vapnik's Support Vector Machine\cite{Vapnik/98a} for
+pattern recognition (classification) by Thorsten Joachims\footnote{\texttt{http://svmlight.joachims.org}}.
+% \footnote{\texttt{http://www-ai.cs.uni-dortmund.de/SOFTWARE/SVM\_LIGHT/}}.
+The algorithm has scalable memory requirements and can handle problems with many thousands of support vectors efficiently.  
+This learner writes the training set into a file and calls the native version of the \SVMlight\
+which must be given by the global parameter {\em rapidminer.svmlight.learncommand} 
+(see section \ref{sec:globalsettings} for download and parameter settings information). 
+It works fine for classification problems with two classes. If you need
+more than two classes, you should use the \op{MultiClassLearner} described in section 
+\ref{sec:op:MultiClassLearner}. For a more extensive description,
+especially concerning the parameters, please consult \cite{Joachims/99a}.
+
+
+
+
+\operator[ModelApplier]{SVMLightApplier}
+
+\applierio
+
+\begin{parameters}
+\reqpar[kernel\_type] type of the \SVMlight\ kernel
+(\parval{linear}, 
+\parval{polynomial}, 
+\parval{RBF}, or
+\parval{sigmoid}). 
+The default value is \parval{linear}
+\optpar[additional\_parameters] other parameters for the \SVMlight,
+written like in the \SVMlight\ command line, and passed directly like this to \SVMlight.
+\end{parameters}
+
+\opdescr This model applier calls the native version of the
+\SVMlight\ model applier by Thorsten Joachims \cite{Joachims/99a},
+whose path must be given by the global parameter {\em rapidminer.svmlight.applycommand} 
+(see section \ref{sec:globalsettings} for download and parameter settings
+information).
+This operator predicts the labels of the given \ioobj{ExampleSet}.
+
+
+
+
+\operator[Learner]{C45Learner}
+
+\learnerio
+
+\begin{parameters}
+\optpar[model\_file] name of the file the \op{Learner} writes the learned model into
+\optpar[s] force subsetting  of  all  tests   based   on discrete
+attributes  with more than two values.
+\optpar[p] probabilistic  thresholds  used  for  continuous attributes
+\optpar[g] use the gain criterion  to  select  tests. The default uses
+the gain ratio criterion.
+\optpar[m] In all tests, at least two branches must contain a  minimum
+number of objects (default 2). This option allows to alter the minimum
+number.
+\optpar[c] sets the pruning confidence level (default 25\%)
+\end{parameters}
+
+\opdescr \op{C45Learner} wraps the C4.5-algorithm by Quinlan \cite{Quinlan/93b}.
+It learns a decision tree, which it then transforms into a set of rules. 
+It uses the external implementation whose path should be specified using the
+global parameter {\em rapidminer.c45.learncommand} 
+(see section \ref{sec:globalsettings} for download and parameter settings information) 
+and delivers a \ioobj{RuleSet} as model.
+
+
+
+\operator[ModelApplier]{RuleSetApplier}
+
+\applierio
+
+\opdescr The \op{RuleSetApplier} requires a \ioobj{RuleSet} model as input
+(like the one learned by a \op{C45Learner}) and predicts the labels of
+the given example set.
+
+
+
+\operator[Learner]{ID3Learner}
+
+\learnerio
+
+\begin{parameters}
+\optpar[model\_file] name of the file the \op{Learner} writes the learned model into
+\end{parameters}
+
+\opdescr \op{ID3Learner} is an internal learner based on Quinlan's \cite{Quinlan/93b} 
+ID3 decision tree induction algorithm. 
+It is a simple classification learner which can
+only handle nominal attribute values and delivers a decision tree as model.
+
+The operator identifies the best attribute using the information gain criterion in each iteration step. 
+Then it divides the example set according to the values of the specified attribute. 
+This is done recursively until all examples of a created subset belong to the
+same class and this fact holds for all created example subsets.
+
+
+\operator[ID3Learner]{DecisionTreeLearner}
+
+\learnerio
+
+\begin{parameters}
+\optpar[model\_file] name of the file the \op{Learner} writes the learned model into
+\end{parameters}
+
+\opdescr \op{DecisionTreeLearner} is also an internal learner, based on
+the \op{ID3Learner}. It can handle both nominal and numeric
+attributes, but can not process incomplete examples or prune the learned tree
+afterwards. The \op{DecisionTreeLearner} merges the subsets that are divided
+by one attribute and belong to the same class afterwards.
+
+The operator identifies the best attribute using the information gain
+criterion in each iteration step. 
+Then it divides the example set according to the values of the specified attribute. 
+This is done recursively until all examples of a created subset belong to the
+same class and this fact holds for all created example subsets.
+ 
+
+
+\operator[ModelApplier]{DecisionTreeApplier}
+
+\applierio
+
+\opdescr The \op{DecisionTreeApplier} is an internal model applier for decision
+trees of the \op{ID3Learner} described in section \ref{sec:op:ID3Learner} or the 
+\op{DecisionTreeLearner} in section \ref{sec:op:DecisionTreeLearner}. 
+With a suitable model (i.e. decision tree) the operator can predict the
+labels of the given example set.
+
+
+
+\operator[Learner]{NeuralNetLearner}
+
+\learnerio
+
+\begin{parameters}
+\optpar[model\_file] name of the file the \op{Learner} writes the learned model into
+\optpar[hidden\_layer] number of neurons in the hidden layer. The default value is 10.
+\optpar[lambda] approximation increment. The default value is 0.05.
+\end{parameters}
+
+\opdescr The operator learns a simple neural net which consists of an input layer,
+a hidden layer and an output layer. The output layer appends an additional 1 to the input vector. 
+This operator is included in \rapidminer\ and can be used directly like the other internal operators. 
+%
+The current version of this operator is limited to linear functions.
+
+
+
+\operator[ModelApplier]{NeuralNetApplier}
+
+\applierio
+
+\opdescr This operator applies a neural net learned by the \op{NeuralNetLearner} and
+delivers an example set with labeled examples.
+
+
+
+\operator{MultiClassLearner}
+
+\begin{opin}
+\item[ExampleSet] the learning example set
+\end{opin}
+
+\begin{opout}
+\item[Model] the learned model
+\end{opout}
+
+\begin{innerops}
+\item The inner operator must take an \ioobj{ExampleSet} as input and return a 
+  learned \ioobj{Model}. Right now only the \op{SVMlightLearner} is allowed as
+  inner operator.
+\end{innerops}
+
+\begin{parameters}
+\optpar[model\_file] name of the file the \op{Learner} writes the learned model into
+\end{parameters}
+
+\opdescr A \op{MultiClassLearner} contains a classification learner
+which only differentiates between two classes. In many problems the data is
+classified into more than two classes and therefore every occuring
+class must be delimited against each other class. 
+
+The operator iterates over the classes which occur in the given data and
+the inner learner is used to learn a model which discriminates if the
+examples belong to the current class or not. Every learning step
+delivers a model and all models are combined into a
+\ioobj{MultiModel}. This \ioobj{MultiModel} can be used by the \op{MultiModelApplier}
+described in section \ref{sec:op:MultiModelApplier}.
+
+
+
+\operator[ModelApplier]{MultiModelApplier}
+
+\applierio
+
+\begin{innerops}
+\item The inner operator must take an \ioobj{ExampleSet} and a
+  \ioobj{Model} as input and must return an \ioobj{ExampleSet} as output. 
+Up to now, only the \op{SVMLightApplier} is allowed as inner operator.
+\end{innerops}
+
+\opdescr A \op{MultiModelApplier} contains a classification applier
+which only differentiates between two classes. For predicting the labels of
+the given example set all models are iterated, for each example, and the classification
+with the greatest confidence is chosen.
+
+
+
+
+\operator[Learner]{WekaLearner}
+
+\learnerio
+
+\begin{parameters}
+\reqpar[weka\_learner\_name] the fully qualified {WEKA} classname 
+of the {WEKA} classifier/learner to be used, e.g. \texttt{weka.classifiers.Id3}
+\optpar All parameters from the group \para{weka\_parameters} are
+assumed to be key-value pairs that are passed to the classifier/learner. 
+The leading dash in front of the parameter name must not be part of the key!
+\optpar[model\_file] name of the file the \op{Learner} writes the learned model into
+\end{parameters}
+
+\opdescr This operator can wrap all classifiers from the Weka
+package. The classifier type can be selected by a parameter. 
+See the Weka javadoc for descriptions
+(\texttt{http://www.cs.waikato.ac.nz/ml/weka/}) and consult section
+\ref{sec:globalsettings} for download and parameter settings information.
+
+
+
+
+\operator[ModelApplier]{WekaApplier}
+
+\applierio
+
+\opdescr This operator applies a Weka model. 
+See the Weka javadoc (\url{http://www.cs.waikato.ac.nz/ml/weka/}) 
+and consult section \ref{sec:globalsettings} for \linebreak download and 
+parameter settings information.

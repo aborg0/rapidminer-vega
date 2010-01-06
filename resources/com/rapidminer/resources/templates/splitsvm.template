@@ -1,0 +1,4 @@
+Split Label at Average for SVM
+This templates loads a data set, normalizes the numerical label and discretizes it into a "negative" and "positive" class representing sub- and super-average values. Finally, an SVM is applied.
+splitsvm.xml
+Retrieve.repository_entry

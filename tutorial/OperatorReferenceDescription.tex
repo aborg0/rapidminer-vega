@@ -1,0 +1,68 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%  RapidMiner Operator Reference (alone)
+%%
+%%  File:     $Id: OperatorReferenceDescription.tex,v 2.2 2007-05-28 14:33:55 ingomierswa Exp $
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass{operatorreference}
+%\usepackage[ps2pdf,bookmarks=true,bookmarksnumbered=true,colorlinks]{hyperref}
+
+\makeindex
+
+%%  =====  Titelseite  =====
+%%{\Huge
+\title{
+  {\Huge RapidMiner 4.0beta}
+}
+
+
+\address{
+  Rapid-I\\
+  Mierswa \& Klinkenberg GbR\\
+  In der Oeverscheidt 18\\
+  44149 Dortmund, Germany\\
+  \http rapid-i.com/
+}
+
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+%%  =====  Eingebundene Abschnitte  =====
+%%
+
+\chapter{Notes}
+
+This document contains the description of all operators of \rapidminer as
+they can be used within proprietary products after purchasing a license from Rapid-I. 
+However, please note the following:
+
+\begin{itemize}
+\item The operators that are derived from the Weka machine learning
+  library are \emph{not} part of the proprietary version of \rapidminer. If
+  you want to use those operators, you have to chose one of the native
+  \rapidminer learners instead. Please ask for guidance if it not clear to
+  which operators this apply.
+\item The functionality of the described operators is guaranteed according to
+  the publicly available JUnit tests which are part of the \rapidminer CVS.
+\end{itemize}
+
+
+\input{OperatorReference}
+
+\begin{appendix}
+
+\input{RegularExpressions}
+
+\end{appendix}
+
+%%  =====  Literaturverzeichnis  =====
+%%
+%\bibliographystyle{plain} 
+%\bibliography{RapidMinerTutorial}
+
+\printindex
+
+\end{document}

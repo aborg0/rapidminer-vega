@@ -1,0 +1,46 @@
+\chapter{Operator reference}
+\label{sec:operatorreference}
+
+This chapter describes the built-in operators that come with
+\rapidminer. Each operator section is subdivided into several parts:
+\begin{enumerate}
+\item The group and the icon of the operator.
+\item An enumeration of the required input and the generated output
+  objects. The input objects are usually consumed by the operator and
+  are not part of the output. In some cases this behaviour can be changed by
+  using a parameter \parval{keep\_\ldots}. Operators may also receive more
+  input objects than required. In that case the unused input objects will be
+  appended to the output and can be used by the next operator.
+\item The parameters that can be used to configure the
+  operator. Ranges and default values are specified. Required parameters
+  are indicated by bullets (\textbullet) and optional parameters are
+  indicated by an open bullet (\textopenbullet)
+\item A list of values that can be logged using the
+  \op{ProcessLog} operator (see page \pageref{sec:op:ProcessLog}).
+\item If the operator represents a learning scheme, the capabilities
+  of the learner are described. The learning capapabilities of most meta
+  learning schemes depend on the inner learner.
+\item If the operator represents an operator chain a short description of the
+  required inner operators is given.
+\item A short and a long textual description of the operator.
+\end{enumerate}
+
+The reference is divided into sections according to the operator groups known
+from the graphical user interface. Within each section operators are
+alphabetically listed.
+
+% Notice that some operators extend the functionality of other
+% operators. This is indicated by the word \textit{extends}. In this
+% case, the operator inherits its parent's input and output classes,
+% parameters, and values. Actually all operators extend \op{Operator} or
+% \op{OperatorChain} but this is not indicated. 
+
+% Some of the operators are \textit{abstract} and can not be used. They
+% only serve as a superclass for other operators that have a common
+% behavior or purpose. Abstract classes are set \textit{italic}.
+
+\pagebreak
+
+
+
+\input{OperatorsGenerated}

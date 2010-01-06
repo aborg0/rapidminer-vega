@@ -1,0 +1,26 @@
+<operator name="Global" class="Process">
+  <parameter key="logfile"         value="advanced3.log"/>
+
+  <operator name="Input" class="ExampleSource">
+    <parameter key="attributes" value="polynomial_unlabeled.aml"/>
+  </operator>
+
+  <operator name="AttributeWeightsLoader" class="AttributeWeightsLoader">
+        <parameter key="attribute_weights_file"	value="selected_attributes.wgt"/>
+    </operator>
+    
+    <operator name="AttributeWeightSelection" class="AttributeWeightSelection">
+        <parameter key="weight"	value="0.0"/>
+        <parameter key="weight_relation"	value="greater"/>
+    </operator>
+
+  <operator name="ModelLoader" class="ModelLoader">
+    <parameter key="model_file" value="model.mod"/>
+  </operator> 
+
+  <operator name="Applier" class="ModelApplier"/>
+
+  <operator class="ExampleSetWriter" name="ExampleSetWriter">
+    <parameter key="example_set_file" value="polynom.labelled.dat"/>
+  </operator>
+</operator> 

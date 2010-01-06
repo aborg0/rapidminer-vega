@@ -1,0 +1,39 @@
+# This file contains all information that is needed to use a database as the
+# source of examples to learn from or to predict on. Comment lines start with '#'.
+# The name of this query file must be given in the configuration file with
+# key "query_file" (as a parameter for DatabaseExampleSource).
+# Each item of information must be given in one line, in the following format:
+#
+# <keyword = "value">
+#
+# Necessary information (MUST be included in this file):
+#
+# - JDBC database driver. Keyword: driver
+# - database URL prefix (without database name appended). Keyword: urlprefix
+# - database name. Keyword: databasename
+# - user name. Keyword: username
+# - user password. Keyword: password
+# - SQL query with which to extract the examples from the database. Keyword: query
+#
+# Optional information, but strongly recommended to be included:
+#
+# - name of the database column that is to become the label. Keyword: labelname
+# - possible values in this column as blank-separated string, starting with the 
+#   positive label. Keyword: classes
+#
+
+<driver = "oracle.jdbc.driver.OracleDriver">
+
+<urlprefix = "jdbc:oracle:thin:@kiste:1521:">
+
+<databasename = "mmart">
+
+<username = "werbistdu">
+
+<password = "volldaspasswort">
+
+<query = "SELECT FROM WHERE">
+
+<labelname = "spaltenname">
+
+<classes = "1 0">

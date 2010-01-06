@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process version="4.0beta2">
+
+  <operator name="Root" class="Process">
+      <operator name="ExampleSetGenerator" class="ExampleSetGenerator">
+          <parameter key="attributes_lower_bound"	value="0.0"/>
+          <parameter key="local_random_seed"	value="1517"/>
+          <parameter key="number_examples"	value="50"/>
+          <parameter key="number_of_attributes"	value="2"/>
+          <parameter key="target_function"	value="gaussian mixture clusters"/>
+      </operator>
+      <operator name="W-FarthestFirst" class="W-FarthestFirst">
+      </operator>
+      <operator name="ClusterModel2ExampleSet" class="ClusterModel2ExampleSet">
+          <parameter key="keep_cluster_model"	value="false"/>
+      </operator>
+  </operator>
+
+</process>

@@ -1,0 +1,35 @@
+<attributeset default_source="golf.dat">
+  <attribute
+    name       ="Outlook"
+    sourcecol  ="1"
+    valuetype  ="nominal"
+    blocktype  ="single_value"
+    classes    ="rain overcast sunny"
+  />
+  <attribute
+    name       ="Temperature"
+    sourcecol  ="2"
+    valuetype  ="integer"
+    blocktype  ="single_value"
+  />
+  <attribute
+    name       ="Humidity"
+    sourcecol  ="3"
+    valuetype  ="integer"
+    blocktype  ="single_value"
+  />
+  <attribute
+    name       ="Wind"
+    sourcecol  ="4"
+    valuetype  ="nominal"
+    blocktype  ="single_value"
+    classes    ="true false"
+  />
+  <label
+    name       ="Play"
+    sourcecol  ="5"
+    valuetype  ="nominal"
+    blocktype  ="single_value"
+    classes    ="yes no"
+  />
+</attributeset>

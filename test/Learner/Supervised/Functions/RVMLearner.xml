@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process version="4.0beta2">
+
+  <operator name="Root" class="Process">
+      <operator name="ExampleSetGenerator" class="ExampleSetGenerator">
+          <parameter key="local_random_seed"	value="1981"/>
+          <parameter key="number_examples"	value="5"/>
+          <parameter key="number_of_attributes"	value="4"/>
+          <parameter key="target_function"	value="polynomial classification"/>
+      </operator>
+      <operator name="RVMLearner" class="RVMLearner">
+          <parameter key="rvm_type"	value="Classification-RVM"/>
+      </operator>
+  </operator>
+
+</process>

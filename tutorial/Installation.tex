@@ -1,0 +1,284 @@
+\chapter{Installation and starting notes}
+
+\section{Download}
+The latest version of \rapidminer is available on the \rapidminer homepage:
+\begin{quote}
+  \rapidminerurl.
+  \index{URL}
+  \index{homepage}
+\end{quote}
+%
+The \rapidminer homepage also contains this document, the \rapidminer javadoc, example
+datasets, plugins, and example configuration files.
+
+\section{Installation}
+\index{installation}
+\label{sec:installation}
+
+
+This section describes the installation of \rapidminer on your machine. You may
+install \rapidminer for all users of your system or for your own account 
+locally.
+
+Basically, there are two different ways of installing \rapidminer:
+\begin{itemize}
+\item Installation of a Windows executable
+\item Installation of a Java version (any platform)
+\end{itemize}
+
+Both ways are described below. More information about the installation 
+of \rapidminer can be found at \rapidminerurl.
+
+
+\subsection{Installing the Windows executable}
+
+Just perform a double click on the downloaded file 
+\begin{verbatim}
+     rapidminer-XXX-install.exe
+\end{verbatim}
+and follow the installation instructions. As a result, there will be
+a new menu entry in the Windows startmenu. \rapidminer is started by clicking
+on this entry.
+
+
+\subsection{Installing the Java version (any platform)}
+
+\rapidminer\ is completely written in Java, which makes it run on
+almost every platform. Therefore it requires a Java Runtime
+Environment (JRE) version 5.0 (aka 1.5.0) or 
+higher to be installed properly. The runtime environment JRE is available at
+\url{http://java.sun.com/}. It must be installed before \rapidminer can be installed.
+
+In order to install \rapidminer, choose an installation directory and
+unzip the downloaded archive using WinZIP or tar or similar programs:
+\begin{verbatim}
+> unzip rapidminer-XXX-bin.zip
+\end{verbatim}
+for the binary version or
+\begin{verbatim}
+> unzip rapidminer-XXX-src.zip
+\end{verbatim}
+for the version containing both the binaries and the sources.
+This will create the \rapidminer home directory which contains the files
+listed in table~\ref{tab:rapidminer_files}.
+
+\begin{table}[hbtp]
+  \begin{tabular}{ll}
+    \hline
+    \filename{etc/}                &       Configuration files\\
+    \filename{lib/}                &       Java libraries and jar files\\
+    \filename{lib/rapidminer.jar}  &       The core \rapidminer java archive\\
+    \filename{lib/plugins}         &       Plugin files (Java archives)\\
+    \filename{licenses/}           &       The GPL for \rapidminer and library licenses\\
+    \filename{resources/}          &       Resource files (source version only)\\
+    \filename{sample/}             &       Some sample processes and data\\
+    \filename{scripts/}            &       Executables\\
+    \filename{scripts/rapidminer}        & The commandline Unix startscript\\
+    \filename{scripts/rapidminer.bat}    & The commandline Windows startscript\\
+    \filename{scripts/RapidMinerGUI}     & The GUI Unix startscript\\
+    \filename{scripts/RapidMinerGUI.bat} & The GUI Windows startscript\\
+    \filename{src/}                &       Java source files (source version only)\\
+    \filename{INSTALL}             &       Installation notes\\
+    \filename{README}              &       Readme files for used libraries\\
+    \filename{CHANGES}             &       Changes from previous versions\\
+    \filename{LICENSE}             &       The GPL\\
+    \hline
+  \end{tabular}
+  \caption{The \rapidminer directory structure.}
+  \label{tab:rapidminer_files}
+\end{table}
+
+
+\section{Starting \rapidminer}
+
+If you have used the Windows installation executable, you can start \rapidminer just
+as any other Windows program by selecting the corresponding menu item from the
+start menu.
+
+On some operating systems you can start \rapidminer by double-clicking
+the file \filename{rapidminer.jar} in the \filename{lib} subdirectory of \rapidminer. If
+that does not work, you can type
+\commandline{java -jar rapidminer.jar} on the command prompt. You can also use
+the startscripts \filename{scripts/rapidminer} (commandline version) or
+\filename{scripts/RapidMinerGUI} (graphical user interface version) for
+Unix or \filename{scripts/\-rapidminer.bat} and \filename{scripts/\-RapidMinerGUI.bat} for
+Windows.
+
+If you intend to make frequent use of the commandline version of
+\rapidminer, you might want to modify your local startup scripts adding the
+\filename{scripts} directory to your \commandline{PATH}
+environment variable. If you decide to do so, you can start a
+process by typing \commandline{rapidminer <processfile>} from anywhere
+on your system. If you intend to make frequent use of the GUI, you
+might want to create a desktop link or a start menu item to
+\filename{scripts/RapidMinerGUI} or \filename{scripts/RapidMinerGUI.bat}. Please refer to
+your window manager documentation on information about this. Usually
+it is sufficient to drag the icon onto the desktop and choose "`Create
+link"' or something similar.
+
+Congratulations: \rapidminer\ is now installed. In order to check if \rapidminer\ is
+correctly working, you can go to the \filename{sample} subdirectory
+and test your installation by invoking \rapidminer on the file
+\filename{Empty.xml} which contains the simplest process setup that can
+be conducted with \rapidminer. In order to do so, type
+\begin{verbatim}
+cd sample
+rapidminer Empty.xml
+\end{verbatim}
+The contents of the file \filename{Empty.xml} is shown in
+figure~\ref{fig:installation}. 
+\examplefile{installtest.xml}{installation}{Installation test}
+
+Though this process does, as you might guess, nothing,
+you should see the message ``Process finished successfully'' after 
+a few moments if everything goes well. Otherwise
+the words "Process not successful" or another error message can be
+read. In this case something is wrong with the installation.
+Please refer to the Installation section of our website \rapidminerurl{} for further
+installation details and for pictures describing the installation
+process. 
+
+
+\section{Memory Usage}
+\label{sec:memory_usage}
+\index{memory}
+
+Since performing complex data mining tasks and machine learning methods on 
+huge data sets might need a lot of main memory, it might be that \rapidminer stops
+a running process with a note that the size of the main memory was not 
+sufficient. In many cases, things are not as worse at this might sound at
+a first glance. Java does not use the complete amount of available memory 
+per default and memory must be explicitely allowed to be used by Java.
+
+On the installation page of our web site \rapidminerurl{} you can find a description 
+how the amount of memory usable by \rapidminer can be increased. This is, by the way, 
+not necessary for the Windows executable of \rapidminer since the amount of available 
+memory is automatically calculated and properly set in this case.
+
+
+
+\section{Plugins}
+\label{sec:plugins_installing}
+\index{plugins!installing}
+
+In order to install \rapidminer plugins, it is sufficient to copy them to the
+\filename{lib/plugins} subdirectory of the \rapidminer installation
+directory. \rapidminer scans all \filename{jar} files in this directory. In
+case a plugin comes in an archive containing more than a single 
+\filename{jar} file (maybe documentation or samples), please only
+put the \filename{jar} file into the \filename{lib/plugins} directory and
+refer to the plugin documentation about what to do with the other
+files. For an introduction of how to create your own plugin, please
+refer to section~\ref{sec:plugins_packaging} of this tutorial.
+
+For Windows systems, there might also be an executable installer ending on
+.exe which can be used to automatically install the plugin into the correct
+directory. In both cases the plugin will become available after the next start
+of \rapidminer.
+
+
+ 
+
+\section{General settings}
+\label{sec:globalsettings}
+\index{settings}
+
+During the start up process of \rapidminer you can see a list of configuration
+files that are checked for settings. These are the files \filename{rapidminerrc} and
+\filename{rapidminerrc.OS} where OS is the name of your operating system,
+e.g. ``Linux'' or ``Windows 2000''. Four locations are scanned in
+the following order
+\begin{enumerate}
+\item The \rapidminer home directory (the directory in which it is installed.)
+\item The directory \filename{.rapidminer} in your home directory.
+\item The current working directory.
+\item Finally, the file specified by the java property
+  \para{rapidminer.rcfile} is read. Properties can be passed to java by
+  using the \commandline{-D} option: 
+  \begin{verbatim}
+java -Drapidminer.rcfile=/my/rapidminer/rcfile -jar rapidminer.jar
+  \end{verbatim}
+\end{enumerate}
+Parameters in the home directory can override global parameters.
+The most important options are listed in table \ref{tab:rapidminerrc_options} and take the
+form \para{key=value}. Comments start with a \#. Users that are
+familiar with the Java language recognize this file format as the Java
+property file format.
+
+A convenient dialog for setting these properties is available in the file menu
+of the GUI version of \rapidminer.
+
+\begin{table}[htbp]
+  \newcolumntype{Y}{>{\small\raggedright\arraybackslash}X}
+  \newcolumntype{Z}{>{\small\tt\raggedright\arraybackslash}l}
+  \renewcommand{\tabularxcolumn}[1]{p{#1}}
+  \begin{tabularx}{\linewidth}{|Z|Y|}
+    \hline
+    \textbf{Key}               & \textbf{Description} \\
+    \hline\hline
+    rapidminer.general.capabilities.warn &  indicates if only a warning should be shown if a learner does not have sufficient capabilities \\
+    rapidminer.general.randomseed     & the default random seed \\
+    \hline
+    rapidminer.tools.sendmail.command&  the sendmail command to use for sending notification emails \\
+    rapidminer.tools.gnuplot.command &  the full path to the gnuplot executable (for GUI only) \\
+    rapidminer.tools.editor          &  external editor for Java source code \\
+    \hline
+    rapidminer.gui.attributeeditor.rowlimit & limit number of examples in attribute editor (for performance reasons) \\
+    rapidminer.gui.beep.success      &  beeps on process success \\
+    rapidminer.gui.beep.error        &  beeps on error \\
+    rapidminer.gui.beep.breakpoint   &  beeps on reaching a breakpoint \\
+    rapidminer.gui.processinfo.show & indicates if some information should be displayed after process loading \\
+    %rapidminer.gui.messageviewer.highlight.errors & color for errors in the message viewer \\
+    %rapidminer.gui.messageviewer.highlight.warnings & color for warnings in the message viewer \\
+    %rapidminer.gui.messageviewer.rowlimit & limit number of lines in message viewer (for performance reasons) \\
+    rapidminer.gui.plaf          & the pluggable look and feel; may be {\tt system}, {\tt cross\_{}platform}, or classname \\
+    rapidminer.gui.plotter.colors.classlimit & limits the number of nominal values for colorized plotters, e.g. color histograms \\
+    rapidminer.gui.plotter.legend.classlimit & limits the number of nominal values for plotter legends \\
+    rapidminer.gui.plotter.matrixplot.size & the pixel size of plotters used in matrix plots \\
+    rapidminer.gui.plotter.rows.maximum & limits the sample size of data points used for plotting \\
+    rapidminer.gui.undolist.size & limit for number of states in the undo list \\
+    rapidminer.gui.update.check & indicates if automatic update checks should be performed \\
+    %rapidminer.gui.xml.highlight.main  & color for main keywords in the XML editor \\
+    %rapidminer.gui.xml.highlight.other & color for other keywords in the XML editor \\
+    %rapidminer.gui.xml.highlight.quote & color for quoted text in the XML editor \\
+    \hline
+  \end{tabularx}
+  \caption{The most important rapidminerrc options.}
+  \label{tab:rapidminerrc_options}
+\end{table}
+
+
+
+\section{External Programs}
+
+The properties discussed in the last section are used to determine the
+behavior of the \rapidminer core. Additionally to this, plugins can require names
+and paths of executables used for special learning methods and
+external tools. These paths are also defined as properties. The possibility of
+using external programs such as machine learning methods is discussed in the
+operator reference (chapter \ref{sec:operatorreference}). These programs must
+have been properly installed and must be executable without \rapidminer, before they 
+can be used in any \rapidminer process setup. By making use of the
+\filename{rapidminerrc.OS} file, paths can be set in a platform dependent
+manner.
+
+
+\section{Database Access}
+\label{sec:database_access}
+\index{settings}
+\index{jdbc}
+
+It is very simple to access your data from a database management system like 
+Oracle, Microsoft SQL Server, PostgreSQL, or mySQL. \rapidminer supports a wide range
+of systems without any additional effort. If your database management system is 
+not natively supported, you simply have to add the JDBC driver for your system to 
+the directory \filename{lib/jdbc} or to your CLASSPATH variable.
+
+If you want to ease the access to your database even further, you might think of 
+defining some basic properties and description in the file
+\begin{center} 
+\filename{resources/jdbc\_properties.xml}
+\end{center}
+although this is not necessary to work on your databases and basically only eases
+the usage of the database wizard for the convenient connection to your database
+and query creation.

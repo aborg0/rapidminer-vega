@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process version="4.0beta2">
+
+  <operator name="Root" class="Process">
+      <operator name="AttributeWeightsLoader" class="AttributeWeightsLoader">
+          <parameter key="attribute_weights_file"	value="../samples/attribute_weights_file.wgt"/>
+      </operator>
+      <operator name="IOConsumer" class="IOConsumer">
+          <parameter key="io_object"	value="AttributeWeights"/>
+      </operator>
+  </operator>
+
+</process>

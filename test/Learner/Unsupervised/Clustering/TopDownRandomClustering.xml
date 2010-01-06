@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process version="4.0beta2">
+
+  <operator name="Root" class="Process">
+      <operator name="ExampleSetGenerator" class="ExampleSetGenerator">
+          <parameter key="local_random_seed"	value="98"/>
+          <parameter key="number_examples"	value="50"/>
+          <parameter key="number_of_attributes"	value="1"/>
+          <parameter key="target_function"	value="triangular function"/>
+      </operator>
+      <operator name="TopDownRandomClustering" class="TopDownRandomClustering">
+      </operator>
+  </operator>
+
+</process>

@@ -1,0 +1,74 @@
+/*
+ *  RapidMiner
+ *
+ *  Copyright (C) 2001-2009 by Rapid-I and the contributors
+ *
+ *  Complete list of developers available at our web site:
+ *
+ *       http://rapid-i.com
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program.  If not, see http://www.gnu.org/licenses/.
+ */
+package com.rapidminer.gui.tools.dialogs.wizards.dataimport;
+
+import java.io.File;
+
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileFilter;
+
+import com.rapidminer.gui.tools.ExtendedJFileChooser;
+import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard;
+import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
+
+/**
+ * 
+ * @author Tobias Malbrecht
+ */
+public class FileSelectionWizardStep extends WizardStep {
+
+	private final JFileChooser fileChooser;
+	
+	public FileSelectionWizardStep(AbstractWizard parent, FileFilter ... fileFilters) {
+		super("select_file");
+		this.fileChooser = SwingTools.createFileChooser("", null, false, fileFilters);
+		fileChooser.setControlButtonsAreShown(false);
+		if (fileChooser instanceof ExtendedJFileChooser) {
+			((ExtendedJFileChooser) fileChooser).addChangeListener(parent);
+		}
+	}
+	
+	@Override
+	protected boolean canGoBack() {
+		return false;
+	}
+
+	@Override
+	protected boolean canProceed() {
+		if (fileChooser instanceof ExtendedJFileChooser) {
+			return ((ExtendedJFileChooser) fileChooser).isFileSelected();
+		}
+		return true;
+	}
+
+	@Override
+	protected JComponent getComponent() {
+		return fileChooser;
+	}
+	
+	public File getSelectedFile() {
+		return fileChooser.getSelectedFile();
+	}
+}

@@ -1,0 +1,580 @@
+\chapter{First steps}
+\label{sec:first_steps}
+
+This chapter describes some basic concepts of \rapidminer. In the description, we assume that 
+most of the processes are performed in batch mode (or command line mode). Of course you can also use \rapidminer in the
+Graphical User Interface mode which is more convenient and offers a large
+amount of additional features. A short documentation of the GUI mode
+is separately available in the download section of the \rapidminer website.
+\rapidminer provides an online tutorial which also describes the usage of the
+GUI mode and the basic concepts of machine learning with \rapidminer.
+Probably, you will not need to read all sections of this tutorial after making the
+online tutorial and reading the short GUI manual. However, you should at least
+read this section to get a first idea about some of the \rapidminer concepts.
+
+All examples described in this tutorial are part of the sample directories of
+\rapidminer. Although only few of these examples are discussed here, you should take
+a look at all of them since they will give you some helpful hints. We
+suggest that you start approximately the first half of the process definitions in each
+of the sample directories in the order the directories are named, i.e. first
+the first half of directory \filename{01\_IO}, then the first half of \filename{02\_Learner} and so
+on. After this round, you should again start with the first directory and
+perform the second half of the process setups. This way the more complicated
+processes will be performed after you had a look at almost all of the simple
+building blocks and operators.
+
+\section{First example}
+\label{sec:firstexample}
+\index{example processes!simple}
+
+
+Let us start with a simple example \filename{03\_XValidation\_Numerical.xml} which
+you can find in the \filename{04\_Validation} subdirectory. This example process loads an example set
+from a file, generates a model using a support vector machine (SVM)
+and evaluates the performance of the SVM on this dataset by estimating
+the expected absolute and squared error by means of a ten-fold
+cross-validation. In the following we will describe what the
+parameters mean without going into detail too much. We will describe
+the used operators later in this section.
+
+\examplefileshort{simpleexample.xml}{simpleexample}{Simple example
+  configuration file. This is the \filename{03\_XValidation\_Numerical.xml} sample process}{Simple example
+  configuration file}
+
+But first of all let's start the process. We assume that your
+current folder contains the file \filename{03\_XValidation\_Numerical.xml} (see
+figure \ref{fig:simpleexample}). Now start \rapidminer by typing
+\begin{verbatim}
+rapidminer 03_XValidation_Numerical.xml
+\end{verbatim}
+or by opening that file with the
+GUI and pressing the start button. After a short while you should
+read the words ``Process finished successfully''. Congratulations,
+you just made your first \rapidminer process. If you read ``Process
+not successful'' instead, something went wrong. In either case you
+should get some information messages on your console (using \rapidminer in batch mode) or
+in the message viewer (GUI mode). In the latter case it should give
+you information about what went wrong. All kinds of debug messages as
+well as information messages and results like the calculated relative
+error are written to this output. Have a look at it now.
+
+The log message starts with the process tree and contains a lot of
+warnings, because most of the parameters are not set. Don't panic,
+reasonable default values are used for all of them. At the end, you will
+find the process tree again. The number in squared brackets
+following each operator gives the number of times the operator was
+applied. It is one for the outer operators and ten within the ten-fold
+cross-validation. Every time an operator is applied a message is written
+to the log messages indicating its input objects (like example sets and
+models). When the operator terminates its application it writes the
+output to the log stream again. You can find the average performance
+estimated by the cross-validation close to the end of the messages.
+
+Taking a look at the process tree in the log messages once again, you
+will quickly understand how the configuration file is structured. 
+There is one \tag{operator} tag for each operator specifying its 
+name and class. Names must be unique and have the only purpose of 
+distinguishing between instances of the same class.
+Operator chains like the cross-validation chain may contain one 
+or more inner operators. Parameters can be specified in the form of
+key-value pairs using a \tag{parameter} tag.
+
+We will now focus on the operators without going into detail too
+much. If you are interested in the the operator classes, their input
+and output objects, parameters, and possible inner operators you may
+consult the reference section of this tutorial 
+(chapter \ref{sec:operatorreference}). 
+
+The outermost operator called ''Root'' is a
+\op{Process} operator, a subclass of a simple \op{OperatorChain}. An
+operator chain works in a very simple manner. It applies its inner
+operators successively passing their respective output to the next
+inner operator. The output of an operator chain is the output of the
+last inner operator. While usual operator chains do not take any
+parameters, this  particular operator chain (being the outermost
+operator) has some parameters that are important for the process as
+a whole, e.g. the name of the log file (\para{logfile}) and the name
+of the directory for temporary files ({\para{temp\_dir}).
+
+The \op{ExampleSource} operator loads an example set from a file. An
+additional file containing the attribute descriptions is
+specified (\filename{data/polynomial.xml}). References to the actual data
+files are specified in this file as well (see section
+\ref{sec:inputfiles} for a description of the files). Then the resulting
+example set is passed to the cross-validation chain.
+
+The \op{XValidation} evaluates the learning method by splitting 
+the input example set into ten subsets $S_{1},\ldots,S_{10}$. 
+The inner operators are applied ten times.  In run number $i$ the
+first inner operator, which is a \op{LibSVMLearner}, generates a model
+using the training set $\bigcup_{j \neq i} S_{j}$. The second inner
+operator, an evaluation chain, evaluates this model by applying it to
+the remaining test set $S_{i}$. The \op{ModelApplier} predicts labels
+for the test set and the \op{PerformanceEvaluator} compares them to
+the real labels. Afterwards the absolute and squared errors are
+calculated. Finally the cross-validation chain returns the average
+absolute and squared errors over the ten runs and their variances.
+
+The processing of \rapidminer operator trees is similar to a depth first search of
+normal trees. In contrast to this usual way of traversing a tree, \rapidminer allows
+loops during the run (each learning child is used 10 times, the applier chain
+is used 10 times, too). Additionally, inner nodes may perform some operations
+before they pass the output of the first children to the next child. The
+traversal through a \rapidminer operator tree containing leaf operators and simple
+operator chains only is actually equivalent to the usual depth first search
+traversal.
+
+
+
+\section{Process configuration files}
+\index{configuration file}
+\label{configuration_file}
+
+Process configuration files are XML documents containing only four types
+of tags (extension: \filename{.xml}). If you use the GUI version of \rapidminer, you can display the
+configuration file by clicking on the XML tab. Process files define
+the process tree consisting of operators and the parameters for
+these operators. Parameters are single values or
+lists of values. Descriptions can be used to comment your operators.
+
+\subsection*{$<$operator$>$}
+The \tag{operator} tag represents one instance of an operator
+class. Exactly two attributes must be present:
+\begin{description}
+\item [name:] A unique name identifying this particular operator instance
+\item [class:] The operator class. See the operator reference (chapter
+\ref{sec:operatorreference}) for a list of operators.
+\end{description}
+For instance, an operator tag for an operator that reads an example
+set from a file might look like this:\smallskip
+
+\begin{lstlisting}[style=rapidminerxmlstyle]{}
+<operator name="MyExampleSource" class="ExampleSource">
+</operator>
+\end{lstlisting}
+
+\noindent
+If \tag{class} is a subclass of \op{OperatorChain}, then nested
+operators may be contained within the opening and closing
+tag.
+
+
+\subsection*{$<$parameter$>$ and $<$list$>$}
+As discussed above, a parameter can have a single value or a set of
+values. For single value parameters the \tag{<parameter>} tag is used. The
+attributes of the \tag{<parameter>} tag are as follows:
+\begin{description}
+\item[key:] The unique name of the parameter.
+\item[value:] The value of the parameter. 
+\end{description}
+
+In order to specify a filename for the example above, there might be used the
+following parameter:
+\bigskip
+
+\begin{lstlisting}[style=rapidminerxmlstyle]{}
+<operator name="MyExampleSource" class="ExampleSource">
+  <parameter key="attributes" value="myexamples.dat"/>
+</operator>
+\end{lstlisting}
+
+If the parameter accepts a list of values, the \tag{<list>} tag must be
+used. The list must have a \tag{key} attribute, just as the
+\tag{<parameter>} tag. The elements of the list are specified by nested
+\tag{<parameter>} tags, e.g. in case of a \op{FeatureGeneration}
+operator (see section \ref{sec:op:FeatureGeneration}).
+\bigskip
+
+\begin{lstlisting}[style=rapidminerxmlstyle]{}
+<list key="functions">
+  <parameter key="sum"     value="+(a1,a2)"/>
+  <parameter key="product" value="*(a3,a4)"/>
+  <parameter key="nested"  value="+(*(a1,a3),a4)"/>
+</list>
+\end{lstlisting}
+
+
+
+\subsection*{$<$description$>$}
+All operators can have an inner tag named \tag{<description>}. It has
+only one attribute named \tag{text}. This attribute contains a comment
+for the enclosing operator. If the root operator of the process has
+an inner description tag, the text is displayed after loading the
+process setup.
+
+\begin{lstlisting}[style=rapidminerxmlstyle]{}
+<operator name="MyExampleSource" class="ExampleSource">
+  <description text="Loads the data from file." />
+</operator>
+\end{lstlisting}
+
+
+\section{Parameter Macros}
+\label{parameter_macros}
+
+All text based parameters might contain so called macrors which will be replaced
+by \rapidminer during runtime. For example, you can write a learned model into a file 
+with the operator \op{ModelWriter} (see \ref{sec:op:ModelWriter}). If you want to do
+this for each learned model in a cross validation run, each model would be overwritten
+by the next one. How can this be prevented?
+
+To save all models for each iteration in an own file, you need parameter macros.
+In a parameter value, the character '\%' has a special meaning. Parameter values 
+are expanded as follows:
+
+  \begin{description}
+  \item[\%\{a\}] is replaced by the number of times the operator was
+  applied.
+  \item[\%\{b\}] is replaced by the number of times the operator was
+  applied plus one, i.e. $\%\textrm{a} + 1$. This is a shortcut for \%p[1].
+  \item[\%\{p[number]\}] is replaced by the number of times the operator was
+  applied plus the given number, i.e. $\%\textrm{a} + number$.
+  \item[\%\{t\}] is replaced by the system time.
+  \item[\%\{n\}] is replaced by the name of the operator.
+  \item[\%\{c\}] is replaced by the class of the operator.
+  \item[\%\{\%\}] becomes \%.
+  \item[\%\{process\_name\}] becomes the name of the process file (without path and extension).
+  \item[\%\{process\_file\}] becomes the name of the process file (with extension).
+  \item[\%\{process\_path\}] becomes the path of the process file.
+  \end{description}
+
+For example to enumerate your files with ascending numbers, please use the following
+value for the \tag{key} \para{model-file}: 
+
+\begin{lstlisting}[style=rapidminerxmlstyle]{}
+<operator name="ModelWriter" class="ModelWriter">
+  <parameter key="model_file"	value="model_%{a}.mod"/>
+</operator>
+\end{lstlisting}
+
+The macro \%\{a\} will be replaced by the number of times the operator was applied, 
+in case of model write after the learner of a 10-fold cross validation it will hence
+be replaced by the numbers 1 to 10.
+
+You can also define own macros with help of the \op{MacroDefinition} operator 
+(see \ref{sec:op:MacroDefinition}).
+
+
+
+\section{File formats}
+\label{sec:inputfiles}
+
+\rapidminer can read a number of input files. Apart from data files it can
+read and write models, parameter sets and attribute sets. Generally, \rapidminer
+is able to read all files it generates. Some of the file formats are
+less important for the user, since they are mainly used for intermediate
+results. The most important file formats are those for ``examples'' or
+``instances''. These data sets are provided by the user and almost all
+processes contain an operator that reads them.
+
+
+\subsection{Data files and the attribute description file}
+\label{attribute_description_file}
+
+If the data files are in the popular arff format (extension:
+\filename{.arff}), which provides some meta data,
+they can be read by the \refop{ArffExampleSource}. Other operators for
+special file formats are also available. Additionally, data can be read from a
+data base using the \refop{DatabaseExampleSource}. In that case, meta data is
+read from the data base as well.
+
+The \op{ExampleSource} operator allows for a variety of other file formats in
+which instances are separated by newline characters. It is the main data input
+operator for \rapidminer. Comment characters can be 
+specified arbitrarily and attributes can be spread
+over several files. This is especially useful in cases where attribute data and
+the label are kept in different files.
+
+Sparse data files can be read using the
+\op{SparseFormat\-ExampleSource}. We call data sparse if almost all values are
+equal to a default, e.g. zero.
+
+The \op{ExampleSource} (for dense data) and some sparse formats
+need an attribute description file (extension: \filename{.aml}) in order to
+retrieve meta data about the instances. This file is a simple XML document
+defining the properties of the attributes (like their name and range) and
+their source files. The data may be spread over several files. Therefore, the
+actual data files do not have to be specified as a parameter of
+the input operator.
+
+The outer tag must be an \tag{<attributeset>} tag. 
+The only attribute of this tag may be \tag{default\_source=}\para{filename}.
+This file will be used as a default file if it is not specified
+explicitly with the attribute.
+
+The inner tags can be any number of \tag{<attribute>} tags plus at
+most one tag for each special attribute. The most frequently used
+special attributes are \tag{<label>}, \tag{<weight>}, \tag{<id>}, and \tag{<cluster>}. 
+Note that arbitrary names for special attributes may be
+used. Though the set of special attributes used by the core \rapidminer
+operators is limited to the ones mentioned above, plugins or
+any other additional operators may use more special attributes. Please
+refer to the operator documentation to learn more about the specific
+special attributes used or generated by these operators.
+
+The following XML attributes may be set to specify the properties of
+the \rapidminer attribute declared by the corresponding XML tag 
+(mandatory XML attributes are set in italic font):
+\begin{description}
+\item[\textit{name:}] The unique name of the attribute.
+\item[sourcefile:] The name of the file containing the data.
+  If this name is not specified, the default file is used (specified for
+  the parent \tag{attributeset} tag).
+\item[\textit{sourcecol:}] The column within this file (numbering starts
+  at 1). Can be omitted for sparse data file formats.
+\item[sourcecol\_end:] If this parameter is set, its value must be
+  greater than the value of \tag{sourcecol}. In that case,
+  $sourcecol-sourcecol\_end$ attributes are generated with the same
+  properties. Their names are generated by appending numbers to the
+  value of \tag{name}. If the \tag{blocktype} is
+  \parval{value\_series}, then \parval{value\_series\_start} and
+  \parval{value\_series\_end} respectively are used for the first and
+  last attribute blocktype in the series.
+\item[\textit{valuetype:}] One out of \parval{nominal}, \parval{numeric},
+  \parval{integer}, \parval{real}, \parval{ordered}, \parval{binominal},
+  \parval{polynominal}, and \parval{file\_path}
+\item[blocktype:] One out of \parval{single\_value},
+  \parval{value\_series}, \parval{value\_series\_start},
+  \parval{value\_series\_end}, \parval{interval},
+  \parval{interval\_start}, and \parval{interval\_end}.
+\end{description}
+
+Each \textit{nominal} attribute, i.e. each attribute with a nominal (binominal, polynominal) 
+value type definition, should define the possible values with help of inner tags 
+\begin{center}
+\tag{<value>}nominal\_value\_1\tag{</value>} \\
+\tag{<value>}nominal\_value\_2\tag{</value>} \\
+\ldots
+\end{center}
+
+See figure \ref{fig:attributefile} for an example attribute
+description file. 
+For classification learners that can handle only binary classifications 
+(e.g. ``yes'' and ``no'') the first defined value in the list of nominal values
+is assumed to be the negative label. That includes the classification ``yes''
+is not necessarily the positive label (depending on the order). This is important,
+for example, for the calculation of some performance measurements like
+precision and recall.
+
+\examplefile{attributes.xml}{attributefile}{An example attribute set description file in XML syntax.}
+
+\textit{Note:} Omitting the inner value tags for nominal attributes
+will usually \textit{seem} to work (and indeed, in many cases no problems might
+occur) but since the internal representation of nominal values depend on this
+definition it might happend that the nominal values of learned models do not fit 
+the given data set. Since this might lead to drastically reduced prediction accuracies
+you should always define the nominal values for nominal attributes.
+
+\textit{Note:} You do not need to specify a label
+attribute in cases where you only want to predict a label with a learned
+model. Simply describe the attributes in the same manner as in the learning
+process setup, the label attribute can be omitted.
+
+
+\subsubsection{Dense data files}
+\index{attribute set description file}
+The data files are in a very simple format (extension: \filename{.dat}). By default,
+comments start with \#. When a comment character is encountered, the
+rest of the line is discarded. Empty lines -- after comment removal
+-- are ignored. If the data is spread over several files, a non empty
+line is read from every file. If the end of one of the files is
+reached, reading stops. The lines are split into tokens that are 
+whitespace separated by default, separated by a comma, or separated by semicolon. The number of the tokens are mapped to
+the \tag{sourcecol} attributes specified in the attribute description
+file. Additional or other separators can be specified as a regular expression
+using the respective parameters of the \refop{ExampleSource}. 
+The same applies for comment characters.
+
+
+\subsubsection{Sparse data files}
+\label{sec:sparse_format}
+If almost all of the entries in a data file are zero or have a default nominal
+value, it may be well suitable to use a \refop{SparseFormatExampleSource}. This
+operator can read an attribute description file as described above. If the
+\para{attribute\_description\_file} parameter is supplied, the attribute
+descriptions are read from this file and the \tag{default\_source} is used as
+the single data file. The \tag{sourcecol} and \tag{sourcefile} attributes are
+ignored. If the \para{attribute\_description\_file} parameter is not supplied,
+the data is read from the file \para{data\_file} and attributes are generated
+with default value types. Regular attributes are supposed to be real numbers
+and the label is supposed to be nominal. In that case, the \para{dimension}
+parameter, which specifies the number of regular attributes, must be set.
+
+Comments in the data file start with a '\#'-character, empty lines are
+ignored. Lines are split into whitespace separated tokens of the form
+\filecont{index:value} where \para{value} is the attribute value,
+i.e. a number or a string, and \para{index} is either an index number
+referencing a regular attribute or a prefix for a special attribute
+defined by the parameter list \para{prefix\_map} of the
+\op{SparseFormatExampleSource}. Please note that index counting starts with 1.
+
+
+The \op{SparseFormatExampleSource} parameter \para{format} specifies
+the way labels are read.
+\begin{description}
+\item[xy] The label is the last token in the line.
+\item[yx] The label is the first token in the line.
+\item[prefix] The label is treated like all other special attributes.
+\item[separate\_file] The label is read from a separate file. In that case,
+  parameter \para{label\_file} must be set.
+\item[no\_label] The example set is unlabeled.
+\end{description}
+
+All attributes that are not found in a line are supposed to have default
+values. The default value for numerical data is 0, the default vallue for nominal
+attributes is the first string specified by the \tag{classes} attribute in the
+attribute description file.
+
+\paragraph{Example} Suppose you have a sparse file which looks like
+this:
+\begin{verbatim}
+w:1.0 5:1   305:5 798:1 yes
+w:0.2 305:2 562:1       yes
+w:0.8 49:1  782:1 823:2 no
+...
+\end{verbatim}
+You may want each example to have a special attribute ``weight'', a
+nominal label taking the values ``yes'' and ``no'', and 1\,000 regular
+numerical attributes. Most of them are 0. The best way to read this
+file, is to use a \op{SparseFormatExampleSource} and set the parameter
+value of \para{format} to \parval{xy} (since the label is the last
+token in each line) and use a \para{prefix\_map} that maps the prefix
+``w'' to the attribute ``weight''. See figure~\ref{fig:sparse_format}
+for a configuration file.
+\examplefile{sparseformat.xml}{sparse_format}{Configuration of a \op{SparseFormatExampleSource}}
+
+
+
+\subsection{Model files}
+\index{model file}
+Model files contain the models generated by learning operators in 
+previous \rapidminer runs (extension: \filename{.mod}). Models can be written to a file by using the operator
+\op{ModelWriter}. They can be read by using a \op{ModelLoader} and applied
+by using a \op{ModelApplier}.
+
+
+
+\subsection{Attribute construction files}
+\label{sec:attributegenerationfiles}
+\index{attribute set description file}
+An \op{AttributeConstructionsWriter} writes an attribute set to a text file
+(extension: \filename{.att}). 
+Later, this file can be used by an \op{AttributeConstructionsLoader} operator
+to generate the same set of attributes in another process and/or
+for another set of data.
+
+The attribute generation files can be generated by hand as well. Every
+line is of the form
+ 
+\begin{lstlisting}[style=rapidminerxmlstyle]{}
+<attribute name="attribute_name" construction="generation_description"/>
+\end{lstlisting}
+
+The generation description is defined by functions, with prefix-order
+notation. The functions can be nested as well. An example
+of a nested generation description might be: $f(g(a), h(b), c)$. See
+page \ref{sec:op:FeatureGeneration} for a reference of the available
+functions.
+
+Example of an attribute constructions file:
+
+\begin{lstlisting}[style=rapidminerxmlstyle]{}
+<constructions version="4.0">
+    <attribute name="a2" construction="a2"/>
+    <attribute name="gensym8" construction="*(*(a1, a2), a3)"/>
+    <attribute name="gensym32" construction="*(a2, a2)"/>
+    <attribute name="gensym4" construction="*(a1, a2)"/>
+    <attribute name="gensym19" construction="*(a2, *(*(a1, a2), a3))"/>
+</constructions>
+\end{lstlisting}
+
+
+
+
+\subsection{Parameter set files}
+\label{sec:parameter_set_files}
+For example, the \op{GridParameterOptimization} operator generates a set of optimal
+parameters for a particular task (extension: \filename{.par}). Since parameters of several
+operators can be optimized at once, each line of the parameter set
+files is of the form
+\begin{verbatim}
+OperatorName.parameter_name = value
+\end{verbatim}
+These files can be generated by hand as well and can be read by a
+\op{ParameterSetLoader} and set by a \op{ParameterSetter}.
+
+
+\subsection{Attribute weight files}
+\label{sec:attribute_weight_files}
+All operators for feature weighting and selection generate a set of feature
+weights (extension: \filename{.wgt}). Attribute selection is seen as attribute weighting which allows more
+flexible operators. 
+For each attribute the weight is stored, where a weight of 0 means
+that the attribute was not used at all. For writing the files to a
+file the operator \op{AttributeWeightsWriter} can be used. In such a
+weights file each line is of the form
+\begin{verbatim}
+<weight name="attribute_name" value="weight"/>
+\end{verbatim}
+These files can be generated by hand as well and can be read by an
+\op{AttributeWeightsLoader} and used on example sets with the operator
+\op{AttributeWeightsApplier}. They can also be read and adapted with the
+\op{InteractiveAttributeWeighting} operator.
+Feature operators like forward selection, genetic algorithms and the weighting
+operators can deliver an example set with the selection / weighting already
+applied or the original example set (optional). In the latter case the weights
+can adapted and changed before they are applied.
+
+Example of an attribute weight file:
+\begin{lstlisting}[style=rapidminerxmlstyle]{}
+<attributeweights version="4.0">
+    <weight name="a1" value="0.8"/>
+    <weight name="a2" value="1.0"/>
+    <weight name="a3" value="0.0"/>
+    <weight name="a4" value="0.5"/>
+    <weight name="a5" value="0.0"/>
+</attributeweights>
+\end{lstlisting}
+
+
+\section{File format summary}
+
+Table \ref{tab:file_extension} summarizes all file formats and the
+corresponding file extensions.
+
+\begin{table}[htbp]
+  \newcolumntype{Y}{>{\small\raggedright\arraybackslash}X}
+  \newcolumntype{Z}{>{\small\tt\raggedright\arraybackslash}l}
+  \renewcommand{\tabularxcolumn}[1]{p{#1}}
+  \begin{tabularx}{\linewidth}{|Z|Y|}
+    \hline
+    \textbf{Extension}               & \textbf{Description} \\
+    \hline
+    \filename{.aml} & attribute description file (standard XML meta data format) \\
+    \filename{.arff}& attribute relation file format (known from Weka) \\
+    \filename{.att} & attribute set file \\
+    \filename{.bib} & BibTeX data file format \\
+    \filename{.clm} & cluster model file (clustering plugin) \\
+    \filename{.cms} & cluster model set file (clustering plugin) \\
+    \filename{.cri} & population criteria file \\
+    \filename{.csv} & comma separated values data file format \\
+    \filename{.dat} & (dense) data files \\
+    \filename{.ioc} & IOContainer file format \\
+    \filename{.log} & log file / process log file \\
+    \filename{.mat} & matrix file (clustering plugin) \\
+    \filename{.mod} & model file \\
+    \filename{.obf} & obfuscation map\\
+    \filename{.par} & parameter set file \\
+    \filename{.per} & performance file \\
+    \filename{.res} & results file \\
+    \filename{.sim} & similarity matrix file (clustering plugin) \\
+    \filename{.thr} & threshold file \\
+    \filename{.wgt} & attribute weight file \\
+    \filename{.wls} & word list file (word vector tool plugin) \\
+    \filename{.xrff}& extended attribute relation file format (known from Weka) \\
+    \hline
+  \end{tabularx}
+  \caption{The most important file formats for \rapidminer.}
+  \label{tab:file_extension}
+\end{table}
+

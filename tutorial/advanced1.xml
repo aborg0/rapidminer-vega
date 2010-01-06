@@ -1,0 +1,27 @@
+<operator name="Global" class="Process">
+  <parameter key="logfile"       value="advanced1.log"/>
+
+  <operator name="Input" class="ExampleSource">
+    <parameter key="attributes" value="data/polynomial.aml"/>
+  </operator>
+
+  <operator name="BackwardElimination" class="FeatureSelection">
+    <parameter key="selection_direction" value="backward"/>
+
+    <operator name="XVal" class="XValidation">
+      <parameter key="number_of_validations" value="5"/>
+	
+      <operator name="Learner" class="LibSVMLearner">
+        <parameter key="kernel_type" value="poly"/>
+        <parameter key="C"           value="1000.0"/>
+        <parameter key="svm_type"    value="epsilon-SVR"/>
+      </operator>
+      <operator name="ApplierChain" class="OperatorChain">
+        <operator name="Applier" class="ModelApplier"/>
+        <operator name="Evaluator" class="PerformanceEvaluator">
+          <parameter key="squared_error" value="true"/>
+        </operator>
+      </operator>
+    </operator>
+  </operator> 
+</operator> 

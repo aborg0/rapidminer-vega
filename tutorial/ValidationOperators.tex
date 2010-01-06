@@ -1,0 +1,287 @@
+\section{Validation and performance evaluation}
+
+When applying a model to a real-world problem, one usually wants to
+rely on a statistically significant estimation of its
+performance. There are several ways to measure this performance
+by comparing predicted label and true label. This can of course
+only be done if the latter is known. The usual way to estimate
+performance is therefore, to split the labelled dataset into a
+training set and a test set, which can be used for performance
+estimation. The operators in this section realise different ways of
+evaluating the performance of a model and splitting the dataset into
+training and test set.
+
+
+
+\operator{PerformanceEvaluator}
+
+\begin{opin}
+\item[ExampleSet:] a labelled example set with true labels and predicted labels
+\end{opin}
+
+\begin{opout}
+\item[PerformanceVector:] a list of performance criteria and their values
+\end{opout}
+
+\begin{parameters}
+\reqpar[criteria\_list] possible performance criteria are
+  \parval{absolute error}, 
+  \parval{scaled error}, 
+  \parval{squared error},
+  \parval{relative error}, 
+  \parval{classification\_error},\linebreak
+  \parval{accuracy}, 
+  \parval{precision}, 
+  \parval{recall}, and
+  \parval{fallout}.
+\optpar[skip\_undefined\_labels] boolean value which indicates whether
+  examples should be skipped if their label or predicted label is undefined
+\end{parameters}
+
+\begin{values}
+\val any of the performance criteria specified by the parameter 
+  \para{criteria\_list} (may be specified)
+\end{values}
+
+\opdescr This operator evaluates a learning method 
+by comparing the predicted labels of an example set with its true labels. 
+Errors are counted, summed up, and finally the average of each criterion over all examples is computed. 
+There are several commonly used criteria available as the list above shows. Some or all of them can be selected.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\absoperator{ValidationChain}
+\newcommand{\validationchaindata}{
+\begin{innerops}
+\item Training: The first inner operator expects a training \ioobj{ExampleSet} as input. 
+  Usually this operator is a learner which returns a \ioobj{Model}
+\item Test: The second inner operator must be able to handle the
+  output of the first inner operator plus a test \ioobj{ExampleSet}
+  and return a \ioobj{PerformanceVector}. 
+  Usually this operator is a chain that contains a \op{Model\-Applier} and a \op{PerformanceEvaluator}.
+\end{innerops}
+
+\begin{opin}
+\item[ExampleSet:] the data set to be used to evaluate the learning algorithm
+\end{opin}
+
+\begin{opout}
+\item [PerformanceVector:] list of performance criteria for the evaluation
+\end{opout}
+}
+\validationchaindata
+
+\newcommand{\validationchainvalues}{
+\val[performance] value of the first performance criterion in the performance vector
+}
+\begin{values}
+\validationchainvalues
+\end{values}
+
+\opdescr There are several ways of validating the performance of
+learning methods on a given data set. All validation chains in \rapidminer\ 
+inherit from this operator and have common inner operators, input and
+output. All of them split the \ioobj{ExampleSet} into training and
+test set(s), train one or more \ioobj{Model}s and evaluate them. They
+differ in the way they split up the \ioobj{ExampleSet}.
+
+
+
+
+
+\operator[ValidationChain]{FixedSplitValidationChain}
+
+\validationchaindata
+
+\begin{parameters}
+\reqpar[training\_set\_size] the exact number of examples to be used for learning 
+\end{parameters}
+
+\begin{values}
+\validationchainvalues
+\end{values}
+
+\opdescr A \op{FixedSplitValidationChain} splits up the example set at a
+fixed point, i.e. after a specific number of examples, into a training
+and a test set, and evaluates the model. The examples are not shuffled, 
+i.e. their order is not changed.
+
+
+
+
+\operator[ValidationChain]{RandomSplitValidationChain}
+
+\validationchaindata
+
+\begin{parameters}
+\reqpar[split\_ratio] relative size of the training set in comparison to the complete example set, 
+i.e. the size of the fraction of the input example set to the use for training ($\in [0,1]$, default: 0.7).
+\end{parameters}
+
+\begin{values}
+\validationchainvalues
+\end{values}
+
+\opdescr This operator evaluates the performance of an enclosed learning algorithm on a given data set $L$. 
+This is done by randomly splitting up the example set into a training set (holding $split\_ratio \cdot |L|$ examples) 
+and generating a model. The model is then evaluated using the remaining $(1-split\_ratio) \cdot |L|$ examples.
+
+
+
+\operator[ValidationChain]{XValidation}
+
+\validationchaindata
+
+\begin{parameters}
+\reqpar[number\_of\_validations] the number of subsets into which
+the example set should be partioned ($\in [2,\infty]$, default value: 10)
+\end{parameters}
+
+\begin{values}
+\validationchainvalues
+\val[variance] variance of this performance criterion
+\val[validation] the number of the current validation
+\end{values}
+
+\opdescr This operator evaluates the performance of an enclosed
+learning algorithm on a given data set $L$. A k-fold cross-validation
+is done by splitting up the example set into $k=number\_of\_validations$ disjoint subsets $L_{i}$. 
+Then $k$ models $M_{j}$ are generated using
+$\bigcup_{1\le i \le k,i\neq j}L_{i}$ as training data and evaluating
+them on $L_{i}$. The average values of the performance criteria and their variances are calculated.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\absoperator{MethodValidationChain}
+
+\newcommand{\methodvalidationdata}{
+\begin{opin}
+\item[ExampleSet:] the input example set to be used for the evaluation of a feature selection/generation method
+\end{opin}
+
+\begin{opout}
+\item[PerformanceVector:]
+\item[AttributeVector:]
+\end{opout}
+
+\begin{innerops}
+\item The first inner operator should be a \op{FeatureOperator} 
+(see p. \pageref{sec:op:FeatureOperator}) or a similar method
+  which returns a modified \ioobj{ExampleSet}.
+\item The second inner operator, usually a learner, must be able to handle an \ioobj{ExampleSet}.
+\item The third inner operator must be able to handle an \ioobj{ExampleSet} plus the output of
+  the second inner operator, usually an applier plus \op{PerformanceEvaluator}, and return a \ioobj{PerformanceVector}.
+\end{innerops}
+}
+\methodvalidationdata
+
+\newcommand{\methodvalidationchainvalues}{
+\val[performance] value of the first performance criterion in the
+  performance vector
+}
+\begin{values}
+\methodvalidationchainvalues
+\end{values}
+
+\opdescr Similar to a \op{ValidationChain} (see p. \pageref{sec:op:ValidationChain}), 
+this operator evaluates the performance of an algorithm, 
+but while the first evaluates a learning algorithm, 
+the latter evaluates a feature selection method. 
+
+The input \ioobj{ExampleSet} is split up into training and test
+set. The first inner operator (the feature selection method) operates
+on the training set. It may return an example set with modified,
+deselected or newly generated attributes. The second operator should
+be a learner which generates a model on another copy of the training
+set \textit{using the new attributes}. The third operator must
+evaluate this model by using the remaining test set.
+
+
+
+
+\operator[MethodValidationChain]{RandomSplitMethodValidationChain}
+\methodvalidationdata
+
+\begin{parameters}
+\reqpar[split\_ratio] relative size of the training set in comparison to the complete example set, 
+i.e. the size of the fraction of the input example set to the use for training ($\in [0,1]$, default: 0.7). 
+\end{parameters}
+
+\begin{values}
+\methodvalidationchainvalues
+\end{values}
+
+\opdescr Splits the example set according to the description given for the
+normal \op{RandomSplitValidationChain} (see
+p. \pageref{sec:op:RandomSplitValidationChain}) and evaluates the inner
+method as described in section \ref{sec:op:MethodValidationChain}.
+
+
+
+
+\operator[MethodValidationChain]{MethodXValidation}
+\methodvalidationdata
+
+\begin{parameters}
+\reqpar[number\_of\_validations] ($\in [0,\infty]$, default: 10)
+\end{parameters}
+
+\begin{values}
+\methodvalidationchainvalues
+\val[variance] variance of this performance criterion
+\val[validation] the number of the current validation
+\end{values}
+
+\opdescr Splits the example set according to the description given for the
+normal \op{XValidation} (see
+p. \pageref{sec:op:XValidation}) and evaluates the inner
+method as described in section \ref{sec:op:MethodValidationChain}.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+\operator{ParameterOptimization}
+
+\begin{innerops}
+\item An arbitrary number of inner operators. The last of them must
+  return a \ioobj{PerformanceVector}, whose first value is used for the performance optimization.
+\end{innerops}
+
+\begin{opin}
+\item any
+\end{opin}
+
+\begin{opout}
+\item [ResultObject:] An object that can only be used for logging
+  purposes. A \op{ResultWriter} (see p. \ref{sec:op:ResultWriter})
+  will print the optimal parameter set
+\end{opout}
+
+\begin{parameters}
+\optpar[operator] name of an operator chain (default: this
+\op{ParameterOptimizationOperator} itself)
+\end{parameters}
+
+\opdescr This operator repeatedly executes its inner operators with changing parameter values. 
+If the \para{operator} holds some inner operators with a total of $n$ parameters, 
+each of which having $p_i$ parameter values. 
+There are $\prod_{i=1}^{n}p_i$ ways of assigning these values to the corresponding parameters. 
+The \op{ParameterOptimizationOperator} finds an optimal combination by
+trying all these combinations, applying its inner operators on the cloned objects, 
+and selecting a combination that optimizes the value of the first performance criterion 
+in the performance vector returned by the inner operator.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

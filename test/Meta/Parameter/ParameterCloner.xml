@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process version="4.0">
+
+  <operator name="Root" class="Process">
+      <operator name="ParameterCloner" class="ParameterCloner">
+          <list key="name_map">
+            <parameter key="source.number_examples"	value="target.number_examples"/>
+          </list>
+      </operator>
+      <operator name="source" class="ExampleSetGenerator">
+          <parameter key="local_random_seed"	value="98"/>
+          <parameter key="number_examples"	value="2"/>
+          <parameter key="number_of_attributes"	value="2"/>
+          <parameter key="target_function"	value="sum classification"/>
+      </operator>
+      <operator name="target" class="ExampleSetGenerator">
+          <parameter key="local_random_seed"	value="2001"/>
+          <parameter key="number_examples"	value="1"/>
+          <parameter key="number_of_attributes"	value="3"/>
+          <parameter key="target_function"	value="sum classification"/>
+      </operator>
+  </operator>
+
+</process>

@@ -1,0 +1,24 @@
+\section{Feature weighting, selection, and generation algorithms}
+\label{sec:reference_feature}
+
+Data preprocessing is an important means for improving the performance
+of a machine learning algorithm. Transforming the input data into a
+more suitable form can greatly enhance both efficiency and prediction
+accuracy. The operators in this section can generate new attributes from the
+original ones, e.g. by multiplying two numerical attributes. Even more
+important, it can find an optimal feature (sub) set automatically.
+
+Feature selection and generation algorithms try to find a set of input
+attributes that is optimal with respect to a given performance
+criterion, learning method, and dataset. All feature selection and
+generation algorithms have one inner operator that evaluates an
+\ioobj{ExampleSet} by creating a \ioobj{PerformanceVector}. See
+section \ref{sec:advanced_feature_selection} for an example. There are different
+strategies which attribute combination is evaluated next depending
+on the combinations already seen. 
+
+Deterministic algorithms like backward elimination try to improve the
+performance by starting with the complete attribute set and switching
+them off until no performance gain is observed. Randomized strategies
+like genetic algorithms use operators like mutation and crossover to
+generate a new ``population'' of attribute sets.

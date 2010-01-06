@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process version="4.0beta2">
+
+  <operator name="Root" class="Process">
+      <operator name="ExampleSetGenerator" class="ExampleSetGenerator">
+          <parameter key="number_of_attributes"	value="4"/>
+          <parameter key="target_function"	value="polynomial"/>
+      </operator>
+      <operator name="RandomOptimizer" class="RandomOptimizer">
+          <parameter key="iterations"	value="5"/>
+          <operator name="LinearRegression" class="LinearRegression">
+              <parameter key="keep_example_set"	value="true"/>
+          </operator>
+          <operator name="ModelApplier" class="ModelApplier">
+              <list key="application_parameters">
+              </list>
+          </operator>
+          <operator name="SimplePerformance" class="SimplePerformance">
+              <parameter key="keep_example_set"	value="true"/>
+          </operator>
+      </operator>
+  </operator>
+
+</process>

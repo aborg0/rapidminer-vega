@@ -1,0 +1,20 @@
+<operator name="Root" class="Process">
+  <parameter key="logfile" value="XValidation.log"/>
+  <operator name="Input" class="ExampleSource">
+    <parameter key="attributes" value="../data/polynomial.aml"/>
+  </operator>
+  <operator name="XVal" class="XValidation">
+    <operator name="Training" class="LibSVMLearner">
+      <parameter key="svm_type" value="epsilon-SVR"/>
+      <parameter key="kernel_type" value="poly"/>
+      <parameter key="C" value="1000.0"/>
+    </operator>
+    <operator name="ApplierChain" class="OperatorChain">
+      <operator name="Test" class="ModelApplier">
+      </operator>
+      <operator name="Evaluation" class="PerformanceEvaluator">
+        <parameter key="squared_error"	value="true"/>
+      </operator>
+    </operator>
+  </operator>
+</operator>

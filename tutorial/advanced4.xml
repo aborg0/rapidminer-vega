@@ -1,0 +1,42 @@
+<operator name="Global" class="Process">
+  <parameter key="logfile"         value="advanced4.log"/>
+
+  <operator name="Input" class="ExampleSource">
+    <parameter key="attributes" value="data/polynomial.aml"/>
+  </operator>
+
+  <operator name="GridParameterOptimization" class="ParameterOptimization">
+
+    <list key="parameters">
+      <parameter key="Learner.epsilon" value="0.01,0.03,0.05,0.075,0.1"/>
+      <parameter key="Learner.degree"  value="1,2,3,4"/>
+    </list>
+
+    <operator name="Validation" class="SimpleValidation">
+      <parameter key="split_ratio" value="0.5"/>
+
+      <operator name="Learner" class="LibSVMLearner">
+        <parameter key="kernel_type"  value="poly"/>
+      </operator>
+      <operator name="ApplierChain" class="OperatorChain">
+        <operator name="Applier" class="ModelApplier"/>
+        <operator name="Evaluator" class="PerformanceEvaluator">
+          <parameter key="absolute_error"	value="true"/>
+          <parameter key="main_criterion" value="absolute_error"/>
+        </operator>
+      </operator>
+    </operator>
+
+    <operator name="ProcessLog" class="ProcessLog">
+      <parameter key="filename" value="svm_degree_epsilon.log"/>
+        <list key="log">
+          <parameter key="degree"	
+	             value="operator.Learner.parameter.degree"/>
+          <parameter key="epsilon"	
+	             value="operator.Learner.parameter.epsilon"/>
+          <parameter key="absolute"	
+                     value="operator.Validation.value.performance"/>
+        </list>
+    </operator>
+  </operator>
+</operator> 

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process version="4.0beta2">
+
+  <operator name="Root" class="Process">
+      <operator name="ExampleSetGenerator" class="ExampleSetGenerator">
+          <parameter key="local_random_seed"	value="1981"/>
+          <parameter key="number_examples"	value="3"/>
+          <parameter key="target_function"	value="sum"/>
+      </operator>
+      <operator name="JMySVMLearner" class="JMySVMLearner">
+      </operator>
+  </operator>
+
+</process>

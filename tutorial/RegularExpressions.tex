@@ -1,0 +1,165 @@
+\chapter{Regular expressions}
+\label{sec:regular_expressions}
+
+Regular expressions are a way to describe a set of strings based on common
+characteristics shared by each string in the set. They can be used as a tool
+to search, edit or manipulate text or data. Regular expressions range from
+being simple to quite complex, but once you understand the basics of how
+they're constructed, you'll be able to understand any regular expression.
+
+In \rapidminer several parameters use regular expressions, e.g. for the definition
+of the column separators for the ExampleSource operator or for the feature
+names of the FeatureNameFilter. This chapter gives an
+overview of all regular expression constructs available in \rapidminer. These are
+the same as the usual regular expressions available in Java. Further
+information can be found at
+\begin{center}
+\url{http://java.sun.com/docs/books/tutorial/extra/regex/index.html}.
+\end{center}
+
+
+
+\section{Summary of regular-expression constructs}
+
+
+\begin{longtable}{|p{3cm}|p{8cm}|}
+
+\hline
+ & \\
+\textbf{Construct} & \textbf{Matches} \\
+ & \\
+\hline
+\endhead
+
+\hline
+\endfoot
+
+\multicolumn{2}{|l|}{\textbf{}}\\
+\multicolumn{2}{|l|}{\textbf{Characters}}\\
+\hline
+x &	The character x \\
+$\backslash$$\backslash$ & The backslash character \\
+$\backslash$0n & The character with octal value 0n (0 $<$= n $<$= 7) \\
+$\backslash$0nn & The character with octal value 0nn (0 $<$= n $<$= 7) \\
+$\backslash$0mnn & The character with octal value 0mnn (0 $<$= m $<$= 3, 0 $<$= n $<$= 7) \\
+$\backslash$xhh & The character with hexadecimal value 0xhh \\
+$\backslash$uhhhh & The character with hexadecimal value 0xhhhh \\
+$\backslash$t & The tab character ('$\backslash$u0009') \\
+$\backslash$n & The newline (line feed) character ('$\backslash$u000A') \\
+$\backslash$r &	The carriage-return character ('$\backslash$u000D') \\
+$\backslash$f &	The form-feed character ('$\backslash$u000C') \\
+$\backslash$a &	The alert (bell) character ('$\backslash$u0007') \\
+$\backslash$e &	The escape character ('$\backslash$u001B') \\
+$\backslash$cx & The control character corresponding to x \\
+\hline
+\multicolumn{2}{|l|}{\textbf{}}\\
+\multicolumn{2}{|l|}{\textbf{Character classes}}\\
+\hline
+{[}abc{{]}}& a, b, or c (simple class) \\
+{[}\textasciicircum abc{{]}} & Any character except a, b, or c (negation) \\
+{[}a-zA-Z{]} & a through z or A through Z, inclusive (range) \\
+{[}a-d{[}m-p{]}{]} & a through d, or m through p: {[}a-dm-p{]} (union) \\
+{[}a-z\&\&{[}def{]}{]} & d, e, or f (intersection) \\
+{[}a-z\&\&{[}\textasciicircum bc{]}{]} & a through z, except for b and c: {[}ad-z{]} (subtraction) \\
+{[}a-z\&\&{[}\textasciicircum m-p{]}{]} & a through z, and not m through p: {[}a-lq-z{]}(subtraction) \\
+\hline
+\multicolumn{2}{|l|}{\textbf{}}\\
+\multicolumn{2}{|l|}{\textbf{Predefined character classes}}\\
+\hline
+. & Any character (may or may not match line terminators) \\
+$\backslash$d &	A digit: {[}0-9{]} \\
+$\backslash$D &	A non-digit: {[}\textasciicircum0-9{]} \\
+$\backslash$s &	A whitespace character: {[} $\backslash$t$\backslash$n$\backslash$x0B$\backslash$f$\backslash$r{]} \\
+$\backslash$S &	A non-whitespace character: {[}\textasciicircum$\backslash$s{]} \\
+$\backslash$w &	A word character: {[}a-zA-Z\_0-9{]} \\
+$\backslash$W &	A non-word character: {[}\textasciicircum$\backslash$w{]} \\
+\hline
+\multicolumn{2}{|l|}{\textbf{}}\\
+\multicolumn{2}{|l|}{\textbf{POSIX character classes (US-ASCII only)}}\\
+\hline
+$\backslash$p\{Lower\} & A lower-case alphabetic character: {[}a-z{]} \\
+$\backslash$p\{Upper\} & An upper-case alphabetic character: {[}A-Z{]} \\
+$\backslash$p\{ASCII\} & All ASCII: {[}$\backslash$x00-$\backslash$x7F{]} \\
+$\backslash$p\{Alpha\} & An alphabetic character:{[}$\backslash$p\{Lower\}$\backslash$p\{Upper\}{]} \\
+$\backslash$p\{Digit\} & A decimal digit: {[}0-9{]} \\
+$\backslash$p\{Alnum\} & An alphanumeric  character:{[}$\backslash$p\{Alpha\}$\backslash$p\{Digit\}{]} \\
+$\backslash$p\{Punct\} & Punctuation: One of !"\#\$\%\&'()*+,-./:;$<$=$>$?@{[}$\backslash${]}\textasciicircum\_ $\grave{}$\{|\}$\sim$ \\
+$\backslash$p\{Graph\} & A visible character: {[}$\backslash$p\{Alnum\}$\backslash$p\{Punct\}{]} \\
+$\backslash$p\{Print\} & A printable character: {[}$\backslash$p\{Graph\}{]} \\
+$\backslash$p\{Blank\} & A space or a tab: {[} $\backslash$t{]} \\
+$\backslash$p\{Cntrl\} & A control character:  {[}$\backslash$x00-$\backslash$x1F$\backslash$x7F{]} \\
+$\backslash$p\{XDigit\} & A hexadecimal digit: {[}0-9a-fA-F{]} \\
+$\backslash$p\{Space\} & A whitespace character: {[}  $\backslash$t$\backslash$n$\backslash$x0B$\backslash$f$\backslash$r{]} \\
+\hline
+\multicolumn{2}{|l|}{\textbf{}}\\
+\multicolumn{2}{|l|}{\textbf{Classes for Unicode blocks and categories}}\\
+\hline 
+$\backslash$p\{InGreek\} & A character in the Greek block (simple block) \\
+$\backslash$p\{Lu\} & An uppercase letter (simple category) \\
+$\backslash$p\{Sc\} & A currency symbol \\
+$\backslash$P\{InGreek\} & Any character except one in the Greek block (negation) \\
+{[}$\backslash$p\{L\}\&\&{[}\textasciicircum$\backslash$p\{Lu\}{]}{]} & Any letter except an uppercase letter (subtraction) \\
+\hline
+\multicolumn{2}{|l|}{\textbf{}}\\
+\multicolumn{2}{|l|}{\textbf{Boundary matchers}}\\
+\hline 
+\textasciicircum & The beginning of a line \\
+\$ & The end of a line \\
+$\backslash$b &	A word boundary \\
+$\backslash$B &	A non-word boundary \\
+$\backslash$A &	The beginning of the input \\
+$\backslash$G &	The end of the previous match \\
+$\backslash$Z &	The end of the input but for the final terminator, if any \\
+$\backslash$z &	The end of the input \\
+\hline
+\multicolumn{2}{|l|}{\textbf{}}\\
+\multicolumn{2}{|l|}{\textbf{Greedy quantifiers}}\\
+\hline  
+X? & X, once or not at all \\
+X* & X, zero or more times \\
+X+ & X, one or more times \\
+X\{n\} & X, exactly n times \\
+X\{n,\} & X, at least n times \\
+X\{n,m\} & X, at least n but not more than m times \\
+\hline
+\multicolumn{2}{|l|}{\textbf{}}\\
+\multicolumn{2}{|l|}{\textbf{Reluctant quantifiers}}\\
+\hline   
+X?? &	X, once or not at all \\
+X*? &	X, zero or more times \\
+X+? &	X, one or more times \\
+X\{n\}? &	X, exactly n times \\
+X\{n,\}? & X, at least n times \\
+X\{n,m\}? & X, at least n but not more than m times \\
+\hline
+\multicolumn{2}{|l|}{\textbf{Logical operators}}\\
+\hline    
+XY & X followed by Y \\
+X|Y & Either X or Y \\
+(X) & X, as a capturing group \\
+\hline
+\multicolumn{2}{|l|}{\textbf{}}\\
+\multicolumn{2}{|l|}{\textbf{Back references}}\\
+\hline 
+$\backslash$n & Whatever the $n$-th capturing group matched \\
+\hline
+\multicolumn{2}{|l|}{\textbf{}}\\
+\multicolumn{2}{|l|}{\textbf{Quotation}}\\
+\hline    
+$\backslash$ & Nothing, but quotes the following character \\
+$\backslash$Q & Nothing, but quotes all characters until $\backslash$E \\
+$\backslash$E & Nothing, but ends quoting started by $\backslash$Q \\
+\hline
+\multicolumn{2}{|l|}{\textbf{}}\\
+\multicolumn{2}{|l|}{\textbf{Special constructs (non-capturing)}}\\
+\hline    
+(?:X) & X, as a non-capturing group \\
+(?idmsux-idmsux) & Nothing, but turns match flags on - off \\
+(?idmsux-idmsux:X) & X, as a non-capturing group with the given flags on - off \\
+(?=X) & X, via zero-width positive lookahead \\
+(?!X) & X, via zero-width negative lookahead \\
+(?$<$=X) & X, via zero-width positive lookbehind \\
+(?$<$!X) & X, via zero-width negative lookbehind \\
+(?$>$X) & X, as an independent, non-capturing group \\
+\hline
+\end{longtable}

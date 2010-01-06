@@ -1,0 +1,6 @@
+Apply to Test Set
+Load a training set and a test set from different sources and apply a generated kNN model.
+ats.xml
+Load Test Set.repository_entry
+Load Training Set.repository_entry
+k-NN.k

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process version="4.0beta2">
+
+  <operator name="Root" class="Process">
+      <operator name="ExampleSetGenerator" class="ExampleSetGenerator">
+          <parameter key="attributes_lower_bound"	value="0.0"/>
+          <parameter key="attributes_upper_bound"	value="1.0"/>
+          <parameter key="datamanagement"	value="double_sparse_array"/>
+          <parameter key="local_random_seed"	value="1981"/>
+          <parameter key="target_function"	value="transactions dataset"/>
+      </operator>
+      <operator name="Numeric2Binominal" class="Numeric2Binominal">
+      </operator>
+      <operator name="FPGrowth" class="FPGrowth">
+          <parameter key="min_support"	value="0.1"/>
+      </operator>
+  </operator>
+
+</process>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process version="4.0">
+
+  <operator name="Root" class="Process">
+      <operator name="ExampleSetGenerator" class="ExampleSetGenerator">
+          <parameter key="target_function"	value="polynomial"/>
+      </operator>
+      <operator name="QuadraticParameterOptimization" class="QuadraticParameterOptimization">
+          <list key="parameters">
+            <parameter key="JMySVMLearner.C"	value="[1;10;1]"/>
+            <parameter key="JMySVMLearner.kernel_gamma"	value="[1;10;1]"/>
+          </list>
+          <operator name="SimpleValidation" class="SimpleValidation">
+              <operator name="JMySVMLearner" class="JMySVMLearner">
+                  <parameter key="C"	value="5.684763360108624"/>
+                  <parameter key="kernel_gamma"	value="4.9656335893781645"/>
+              </operator>
+              <operator name="OperatorChain" class="OperatorChain">
+                  <operator name="ModelApplier" class="ModelApplier">
+                      <list key="application_parameters">
+                      </list>
+                  </operator>
+                  <operator name="RegressionPerformance" class="RegressionPerformance">
+                      <parameter key="absolute_error"	value="true"/>
+                  </operator>
+              </operator>
+          </operator>
+      </operator>
+  </operator>
+
+</process>

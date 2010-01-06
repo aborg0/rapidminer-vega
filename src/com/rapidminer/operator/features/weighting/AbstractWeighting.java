@@ -1,0 +1,134 @@
+/*
+ *  RapidMiner
+ *
+ *  Copyright (C) 2001-2009 by Rapid-I and the contributors
+ *
+ *  Complete list of developers available at our web site:
+ *
+ *       http://rapid-i.com
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program.  If not, see http://www.gnu.org/licenses/.
+ */
+package com.rapidminer.operator.features.weighting;
+
+import java.util.List;
+
+import com.rapidminer.example.AttributeWeights;
+import com.rapidminer.example.ExampleSet;
+import com.rapidminer.operator.Operator;
+import com.rapidminer.operator.OperatorDescription;
+import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.learner.CapabilityCheck;
+import com.rapidminer.operator.learner.CapabilityProvider;
+import com.rapidminer.operator.ports.InputPort;
+import com.rapidminer.operator.ports.OutputPort;
+import com.rapidminer.operator.ports.metadata.AttributeMetaData;
+import com.rapidminer.operator.ports.metadata.CapabilityPrecondition;
+import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
+import com.rapidminer.operator.ports.metadata.ExampleSetPassThroughRule;
+import com.rapidminer.operator.ports.metadata.GenerateNewMDRule;
+import com.rapidminer.operator.ports.metadata.SetRelation;
+import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeBoolean;
+import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.Tools;
+
+/**
+ * This is an abstract superclass for RapidMiner weighting operators. New weighting 
+ * schemes should extend this class to support the same normalization parameter as 
+ * other weighting operators.
+ * 
+ * @author Helge Homburg
+ */
+public abstract class AbstractWeighting extends Operator implements CapabilityProvider {
+
+	private InputPort exampleSetInput = getInputPorts().createPort("example set");
+	private OutputPort weightsOutput = getOutputPorts().createPort("weights");
+	private OutputPort exampleSetOutput = getOutputPorts().createPort("example set");
+
+	/** The parameter name for &quot;Activates the normalization of all weights.&quot; */
+	public static final String PARAMETER_NORMALIZE_WEIGHTS = "normalize_weights";
+
+	public AbstractWeighting(OperatorDescription description) {
+		super(description);
+		if (isExampleSetMandatory())
+			exampleSetInput.addPrecondition(new CapabilityPrecondition(this, exampleSetInput));
+
+		getTransformer().addRule(new GenerateNewMDRule(weightsOutput, AttributeWeights.class));
+		getTransformer().addRule(new ExampleSetPassThroughRule(exampleSetInput, exampleSetOutput, SetRelation.EQUAL) {
+			@Override
+			public ExampleSetMetaData modifyExampleSet(ExampleSetMetaData metaData) throws UndefinedParameterError {
+				boolean normalizedWeights = getParameterAsBoolean(PARAMETER_NORMALIZE_WEIGHTS);
+				for (AttributeMetaData amd: metaData.getAllAttributes()) {
+					if (!amd.isSpecial() && amd.isNumerical()) {
+						if (normalizedWeights)
+							amd.setValueSetRelation(SetRelation.SUBSET);
+						else	
+							amd.setValueSetRelation(SetRelation.UNKNOWN);
+					}
+				}
+				return super.modifyExampleSet(metaData);
+			}
+		});
+	}
+
+	protected abstract AttributeWeights calculateWeights(ExampleSet exampleSet) throws OperatorException;
+
+	/** Helper method for anonymous instances of this class. 
+	 */
+	public AttributeWeights doWork(ExampleSet exampleSet) throws OperatorException {
+		exampleSetInput.receive(exampleSet);
+
+		// check capabilities and produce errors if they are not fulfilled
+		CapabilityCheck check = new CapabilityCheck(this, Tools.booleanValue(System.getProperty(PROPERTY_RAPIDMINER_GENERAL_CAPABILITIES_WARN), true) || onlyWarnForNonSufficientCapabilities());
+		check.checkLearnerCapabilities(this, exampleSet);
+
+		doWork();
+		return weightsOutput.getData();
+	}
+
+	@Override
+	public void doWork() throws OperatorException {
+		ExampleSet exampleSet = exampleSetInput.getData();
+		AttributeWeights weights = calculateWeights(exampleSet);
+		if (getParameterAsBoolean(PARAMETER_NORMALIZE_WEIGHTS)) {
+			weights.normalize();
+		}
+		exampleSetOutput.deliver(exampleSet);
+		weightsOutput.deliver(weights);		
+	}
+
+	public InputPort getExampleSetInputPort() {
+		return exampleSetInput;
+	}
+
+	public OutputPort getWeightsOutputPort() {
+		return weightsOutput;
+	}
+
+	@Override
+	public List<ParameterType> getParameterTypes() {
+		List<ParameterType> list = super.getParameterTypes();
+		list.add(new ParameterTypeBoolean(PARAMETER_NORMALIZE_WEIGHTS, "Activates the normalization of all weights.", true, false));
+		return list;
+	}
+
+	protected boolean isExampleSetMandatory() {
+		return true;
+	}
+
+	protected boolean onlyWarnForNonSufficientCapabilities() {
+		return false;
+	}
+}

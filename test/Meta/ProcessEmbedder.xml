@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process version="4.0beta2">
+
+  <operator name="Root" class="Process">
+      <operator name="ProcessEmbedder" class="ProcessEmbedder">
+          <parameter key="process_file"	value="../Learner/Supervised/Lazy/DefaultLearner.xml"/>
+      </operator>
+  </operator>
+
+</process>

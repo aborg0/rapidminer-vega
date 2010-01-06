@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process version="4.0beta2">
+
+  <operator name="Root" class="Process">
+      <operator name="ExampleSetGenerator" class="ExampleSetGenerator">
+          <parameter key="local_random_seed"	value="1981"/>
+          <parameter key="number_of_attributes"	value="3"/>
+          <parameter key="target_function"	value="sum classification"/>
+      </operator>
+      <operator name="IOMultiplier" class="IOMultiplier">
+          <parameter key="io_object"	value="ExampleSet"/>
+      </operator>
+      <operator name="PartialExampleSetLearner" class="PartialExampleSetLearner">
+          <parameter key="fraction"	value="0.1"/>
+          <parameter key="sampling_type"	value="linear sampling"/>
+          <operator name="OperatorChain" class="OperatorChain">
+              <operator name="ID3Numerical" class="ID3Numerical">
+                  <parameter key="keep_example_set"	value="true"/>
+              </operator>
+              <operator name="ModelApplier" class="ModelApplier">
+                  <list key="application_parameters">
+                  </list>
+                  <parameter key="keep_model"	value="true"/>
+              </operator>
+              <operator name="ExampleSetWriter" class="ExampleSetWriter">
+                  <parameter key="attribute_description_file"	value="../../test/samples/PartialExampleSetLearner_samples.aml"/>
+                  <parameter key="example_set_file"	value="../../test/samples/PartialExampleSetLearner_samples.dat"/>
+              </operator>
+          </operator>
+      </operator>
+      <operator name="ExampleSource" class="ExampleSource">
+          <parameter key="attributes"	value="../../test/samples/PartialExampleSetLearner_samples.aml"/>
+      </operator>
+  </operator>
+
+</process>

@@ -1,0 +1,356 @@
+\section{Feature selection and generation}
+\label{sec:featuregeneration}
+Data preprocessing is an important means for improving the performance
+of a machine learning algorithm. Transforming the input data into a
+more suitable form can greatly enhance both efficiency and prediction
+accuracy. The following operators can generate new attributes from the
+original ones, e.g. by multiplying two numerical attributes. Even more
+important, it can find an optimal feature set automatically.
+
+
+\absoperator{FeatureOperator}
+\newcommand{\featureoperatorio}{
+\begin{innerops}
+\item Validation: This operator must evaluate an \ioobj{ExampleSet}
+  that it receives as input and return a
+  \ioobj{PerformanceVector}. Usually this operator is a
+  \op{ValidationChain} (see p. \pageref{sec:op:ValidationChain}).
+\end{innerops}
+
+\begin{opin}
+\item[ExampleSet:] the input example set represented by the original feature set
+\end{opin}
+
+\begin{opout}
+\item [ExampleSet:] the example set represented by an optimal feature set
+\item [PerformanceVector:] the performance of the inner operators on the example set 
+represented by the selected optimal feature set
+\end{opout}
+}
+\featureoperatorio
+
+\begin{parameters}
+\optpar[remove\_unused] Usually feature selection algorithms will
+produce an example set with irrelevant attributes switched off. If
+this parameter is set to true (default), the unused attributes will be
+entirely removed.
+\end{parameters}
+
+\newcommand{\featureoperatorvalues}{
+\val[generation] number of the the current generation 
+(in case of multi-generation feature transformation methods like EAs) 
+\val[best] the performance of the best individual over all generations
+\val[performance] the performance of the best individual in the current generation
+}
+\begin{values}
+\featureoperatorvalues
+\end{values}
+
+\opdescr This operator is the superclass of all feature selection and 
+generation operators. Feature selection and generation algorithms try
+to find a set of input attributes that is optimal with respect to a
+given performance criterion, learning method, and dataset.
+
+All feature selection and generation algorithms have one inner
+operator that evaluates an \ioobj{ExampleSet} by creating a
+\ioobj{PerformanceVector}. See section \ref{sec:advanced} for an example.
+
+
+
+
+
+
+
+\operator[FeatureOperator]{BruteForce}
+
+\featureoperatorio
+
+\begin{parameters}
+\optpar[remove\_unused] If this parameter is set to true (default),
+the unused attributes will be entirely removed when the algorithm terminates.
+\end{parameters}
+
+\begin{values}
+\featureoperatorvalues
+\end{values}
+
+\opdescr This operator performs an exhaustive search over all
+combinations of attributes. Hence, it is very slow, but it is the only
+feature selection algorithm that is {\em guaranteed} to find the optimal feature set.
+
+
+
+
+\operator[FeatureOperator]{FeatureSelection}
+
+\featureoperatorio
+
+\begin{parameters}
+\optpar[selection\_direction] \parval{forward} or \parval{backward}
+\optpar[keep\_best] use the $n$ best individuals for initialising the
+next generation (default=1)
+\optpar[generations\_without\_improval] terminate after $n$
+unsuccessful generations (default=1)
+\optpar[remove\_unused] If this parameter is set to true (default),
+the unused attributes will be entirely removed when the algorithm
+terminates.
+\end{parameters}
+
+\begin{values}
+\featureoperatorvalues
+\end{values}
+
+\opdescr This operator covers the two well-known feature selection
+algorithms \techterm{forward selection} and \techterm{backward
+  elimination}. Let us assume there are $n$ attributes.
+\begin{description}
+  \item[Forward selection:] The initial generation has $n$ attribute sets, 
+    each having one different attribute switched on. As long as the performance
+    increases, a new generation is created by selecting the best
+    individual and making as many copies as there are unused
+    attributes. In each of the copies one additional attribute is 
+    switched on.
+  \item[Backward elimination:] The first generation has 1 attribute set
+    having all $n$ attributes switched on. As long as the performance
+    increases, a new generation is created by selecting the best
+    individual and making as many copies as there are attributes used in
+    this individual. In each of this copy one of the used attributes is
+    switched off.
+\end{description}
+
+
+
+
+
+\operator[FeatureOperator]{GeneticAlgorithm}
+
+\featureoperatorio
+
+\newcommand{\gaparameters}{
+\reqpar[population\_size] the fixed number of individuals in one generation.
+\reqpar[maximum\_number\_of\_generations] performance independent stop
+criterion (terminate after $n$ generations).
+\optpar[generations\_without\_improval] performance dependent stop
+criterion (terminate after $n$ generations without performance improvement).
+\optpar[keep\_best\_individual] set to true for elitist selection
+(always keep the best individual). The default value is false.
+\reqpar[p\_initialize] initial probability $\in [0..1]$ for a single
+feature of a first generation individual to be switched on.
+\reqpar[p\_mutation] mutation probability $\in [0,1]$. The default value is 0.05.
+\reqpar[p\_crossover] probability for a single feature to be selected
+for crossover $\in [0..1]$. 
+\optpar[crossover\_type] can be {\tt one\_point} or {\tt uniform}. 
+\optpar[remove\_unused] Usually feature selection algorithms 
+produce an example set with irrelevant attributes switched off. If
+this parameter is set to true (default), the unused attributes will be
+entirely removed.
+}
+
+\begin{parameters}
+\gaparameters
+\end{parameters}
+
+\begin{values}
+\featureoperatorvalues
+\end{values}
+
+\opdescr If there are many attributes from which to select an
+optimal subset the search space quickly grows too large to
+exhaustively evaluate all attribute sets. A genetic algorithm can be
+used to represent attribute sets as single individuals and evolve them
+in a probabilistic approach to create good feature representations for
+the learning task at hand. In our case one may consider the
+individuals as a vector of flags that are set to true if the
+corresponding attribute is used and to false if it is unused.
+
+A genetic algorithm operates in cycles, the so called generations. Each 
+generation contains a fixed number of individuals. The first
+generation is initialised randomly. As long as no stopping criterion
+is complied with, certain operations are performed on the current
+population:
+\begin{description}
+\item[Mutation:] With a given probability, the selection flag of a feature is flipped. 
+This is done for all features of all individuals.
+\item[Crossover:] With a given probability two individuals are selected
+  and their information is combined. This can be done in two ways: In
+  case of the so called ``one-point-crossover'', both feature vectors
+  are cut at a fixed, randomly chosen split point; then the beginning of
+  the first individual is joined with the end of the second and vice
+  versa. In case of the so called ``uniform-crossover'', for each of the
+  features the respective selection flags of both individuals are
+  either swapped or not.
+\item[Evaluation:] All individuals are evaluated by applying the inner
+  operator to them. From the performance vector a fitness is calculated.
+\item[Selection:] Finally the best $n$ individuals are selected. This is
+  done using the roulette wheel method. Imagine a roulette wheel with
+  $n$ partitions of a size proportional to the fitness of the corresponding individual. 
+  The ball is rolled $n$ times selecting those $n$
+  individuals in whose partition the ball stopped and copying them
+  into the next generation.
+\end{description}
+
+
+\operator[GeneticAlgorithm]{GeneratingGeneticAlgorithm}
+
+\featureoperatorio
+
+\newcommand{\ggaparameters}{
+\gaparameters
+\reqpar[p\_generate] the probability for a single individual to be
+selected for generating new attributes.
+\optpar[max\_number\_of\_new\_attributes] upper bound for the number of
+newly generated attributes for an individual in one generation.
+\optpar[reciprocal\_value] set to true in order to allow the generation of
+reciprocal values.
+\optpar[function\_characteristica] set to true in order to allow generation of
+function characteristics (local maximum, two turning points). To be
+applicable, a value series must be given that contains exactly one
+maximum and two turning points.
+\optpar[use\_plus] set to true in order to allow the generation of
+the sum of two attributes.
+\optpar[use\_diff] set to true in order to allow the generation of
+the difference of two attribute.
+\optpar[use\_mult] set to true in order to allow the generation of
+the product of two attributes.
+\optpar[use\_div] set to true in order to allow the generation of
+the quotient of two attributes.
+}
+
+\begin{parameters}
+\ggaparameters
+\end{parameters}
+
+\opdescr This operator is an extension of the described
+\op{GeneticAlgorithm}. In addition to the GA, this operator also generates new
+features in the mutation step. With a given probability for each
+individual, up to a given number of new features are appended to the
+feature vectors, e.g. by multiplying two of the numeric features. Hence,
+the length of the individuals (the length of the used/unused-vectors)
+can vary.
+
+
+
+
+\operator[GeneratingGeneticAlgorithm]{DirectedGeneratingGeneticAlgorithm}
+
+\featureoperatorio
+
+\begin{parameters}
+\ggaparameters
+\optpar[type] type of problem. The type may be {\em classification}, {\em regression} or
+{\em auto} (determines type automatically). {\em Auto} is the default value. 
+\optpar[gain\_ratio] a boolean parameter which specifies, if the gain
+ratio criterion should be used. The default value is true.
+\optpar[epsilon] the range of variation of the attribute values which
+is used for identifying the information gain for regression problems,
+the default value is 0.1.
+\optpar[use\_predicted\_label] determines if the true value of the
+label or a predicted label should be used for regression information
+gain. The default value is false.
+\optpar[lower\_mutation\_bound] lower bound for the mutation probability
+distribution which is generated from the information gain values.
+\optpar[upper\_mutation\_bound] lower bound for the mutation probability
+distribution which is generated from the information gain values.
+\optpar[lower\_generation\_bound] lower bound for the generation probability
+distribution which is generated from the information gain values.
+\optpar[upper\_generation\_bound] lower bound for the generation probability
+distribution which is generated from the information gain values.
+\end{parameters}
+ 
+\opdescr By using a generating genetic algorithm, which generates new
+attributes and does not only select them, it can happen that many
+irrelevant attributes are generated. In addition, these individuals
+can be randomly generated and deleted several times.
+
+It is probably a good idea to make the generating genetic algorithm smarter 
+by using an information gain criterion to decide, which
+attribute should be selected or should be used to generate another
+one. With the new regression information gain criterion this is also 
+possible for regression problems.
+
+The information gain value is computed for each attribute. Then the more 
+informative attributes will be preferably selected and used for 
+generating new attributes. The underlying assumption is that it is 
+better to generate new attributes from the informative ones.
+
+
+
+\operator[GeneticAlgorithm]{YAGGA}
+
+\featureoperatorio
+
+\begin{parameters}
+\gaparameters
+\reqpar[reciprocal\_value] set to true in order to allow the generation of
+reciprocal values.
+\reqpar[function\_characteristica] set to true in order to allow generation of
+function characteristics (local maximum, two turning points). To be
+applicable, a value series must be given that contains exactly one
+maximum and two turning points.
+\reqpar[use\_plus] set to true in order to allow the generation of
+the sum of two attributes.
+\reqpar[use\_diff] set to true in order to allow the generation of
+the difference of two attribute.
+\reqpar[use\_mult] set to true in order to allow the generation of
+the product of two attributes.
+\reqpar[use\_div] set to true in order to allow the generation of
+the quotient of two attributes.
+\end{parameters}
+
+\opdescr YAGGA is an acronym for Yet Another Generating Genetic
+Algorithm. Its approach to generating new attributes differs from the
+original one. The (generating) mutation can do one of the following
+things with different probabilities:
+\begin{itemize}
+\item Probability $p/4$: add a newly generated attribute to the feature vector.
+\item Probability $p/4$: add a randomly chosen original attribute to the feature vector.
+\item Probability $p/2$: remove a randomly chosen attribute from the feature vector.
+\end{itemize}
+Thus it is guaranteed that the length of the feature vector can both
+grow and shrink. On average it will keep its original length, unless
+longer or shorter individuals prove to have a better fitness. The
+used/unused-vector is no longer used.
+
+
+
+\operator{FeatureGeneration}
+
+\featureoperatorio
+
+\begin{parameters}
+  \optpar[filename] generate all attributes listed in this file.
+  You can use a file generated by a \op{AttributeSetWriter}
+  (p. \pageref{sec:op:AttributeSetWriter}) for this purpose. 
+  See page \pageref{sec:attributegenerationfiles} for details.
+  \optpar[reciprocal\_value] generate all reciprocal values.
+  \optpar[function\_characteristica] generate the function
+characteristics of all value series (maximum and two turning points).
+\end{parameters}
+
+\opdescr This operator can be used for data preprocessing. It
+generates a new set of attributes from the original data. It can
+either generate all possible attributes of a certain type or generate
+only attributes listed in a file.
+
+
+
+
+\operator{MissingValueReplenishment}
+
+\begin{parameters}
+\reqpar All parameters in the group \parval{columns} are interpreted
+as follows: The key gives the number of the column, the value is one
+of ``minimum'', ``maximum'', and ``average''.\\[1.5ex]
+Example: \tag{<parameter group="columns" key="1" value="average"/>}
+\end{parameters}
+
+\begin{opin}
+  \item[ExampleSet:] the original data containing undefined attributes.
+\end{opin}
+
+\begin{opout}
+  \item [ExampleSet:] the example set without undefined attributes.
+\end{opout}
+
+\opdescr This operator replaces undefined attributes by the minimum,
+maximum, or average of the column.

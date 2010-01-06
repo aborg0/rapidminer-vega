@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<process version="5.0">
+  <context>
+    <input/>
+    <output/>
+    <macros/>
+  </context>
+  <operator activated="true" class="process" expanded="true" name="Root">
+    <description>&lt;p&gt; Usually much time of data mining is spent to preprocess the data. RapidMiner offers several operators to read your data from many different sources and also operators to process your data and ease learning. &lt;/p&gt; &lt;p&gt; In many applications the data contains missing values. One of the available preprocessing operators replaces them with the average / min / max of the attribute. Other operators can also handle infinite values. &lt;/p&gt; &lt;p&gt; Try the following: &lt;ul&gt; &lt;li&gt;Select the Input operator. The property table on the right side shows the parameters of this operator. Press the &amp;quot;Edit&amp;quot; button of the &amp;quot;attributes&amp;quot; parameter. The attribute editor shows a sample of the data. Please note the question marks which represents unknown data. Close the attribute editor. By the way, the attribute editor can also be used to create attribute description files (.aml) for data sets.&lt;/li&gt; &lt;li&gt;Use a breakpoint after the Input operator and run the process. Compare the data before and after the preprocessing.&lt;/li&gt; &lt;li&gt;The Output operator writes the data back into a file. You can look into this file with an arbitrary text editor. Please refer to the RapidMiner Tutorial for further information about using the ExampleSetWriter.&lt;/li&gt; &lt;/ul&gt; &lt;/p&gt;</description>
+    <parameter key="logverbosity" value="3"/>
+    <parameter key="random_seed" value="2001"/>
+    <parameter key="send_mail" value="1"/>
+    <parameter key="process_duration_for_mail" value="30"/>
+    <parameter key="encoding" value="SYSTEM"/>
+    <process expanded="true" height="584" width="300">
+      <operator activated="true" class="retrieve" expanded="true" height="60" name="Retrieve" width="90" x="45" y="30">
+        <parameter key="repository_entry" value="../../data/Labor-Negotiations"/>
+      </operator>
+      <operator activated="true" class="replace_missing_values" expanded="true" height="94" name="Preprocessing" width="90" x="180" y="30">
+        <parameter key="return_preprocessing_model" value="false"/>
+        <parameter key="create_view" value="false"/>
+        <parameter key="attribute_filter_type" value="all"/>
+        <parameter key="attribute" value="shift-differential"/>
+        <parameter key="use_except_expression" value="false"/>
+        <parameter key="value_type" value="numeric"/>
+        <parameter key="use_value_type_exception" value="false"/>
+        <parameter key="except_value_type" value="11"/>
+        <parameter key="block_type" value="0"/>
+        <parameter key="use_block_type_exception" value="false"/>
+        <parameter key="except_block_type" value="8"/>
+        <parameter key="invert_selection" value="false"/>
+        <parameter key="include_special_attributes" value="false"/>
+        <parameter key="default" value="average"/>
+        <list key="columns">
+          <parameter key="wage-inc-1st" value="minimum"/>
+          <parameter key="wage-inc-3rd" value="maximum"/>
+        </list>
+      </operator>
+      <connect from_op="Retrieve" from_port="output" to_op="Preprocessing" to_port="example set input"/>
+      <connect from_op="Preprocessing" from_port="example set output" to_port="result 1"/>
+      <portSpacing port="source_input 1" spacing="0"/>
+      <portSpacing port="sink_result 1" spacing="0"/>
+      <portSpacing port="sink_result 2" spacing="0"/>
+    </process>
+  </operator>
+</process>

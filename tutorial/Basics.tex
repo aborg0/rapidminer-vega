@@ -1,0 +1,100 @@
+\chapter{Basics}
+
+
+\section{What is machine learning?}
+\index{machine learning}
+
+\rapidminer\ is a machine learning tool. This section will introduce you
+briefly to the very basic concepts of machine learning and the
+purposes of this tool. If you already know what machine learning,
+cross validation, and feature selection are, you can skip this
+chapter.
+
+The problem we focus on, is, given a set of observations, to generate a
+hypothesis, which facilitates certain predictions about future
+(i.\,e. unknown) observations. In our case observations are sets of
+attributes. An example: Assume your favorite hobby is cooking, and you
+invite your friends regularly in order to taste your newly invented
+recipes. You are not yet entirely sure about how much of the
+individual spices and herbs to add to your meal, but you already
+noticed that there might be a correlation between the spices and how
+much of the food your guests are willing to eat. So you decide to
+set up a little table with the columns salt, pepper, basil, garlic,
+and the amount of food remaining in the pot. After some nice parties
+you have gathered some rows in your table. Now you want to be able to
+predict how much your friends are going to like a certain combination
+of spices and herbs without letting them actually taste it. This is
+what machine learning can do for you.
+
+In technical terms the spices and herbs are called
+\techterm{attributes} (or \techterm{features}), and the quality of the
+meal (which you want to predict) is called the
+\techterm{label}. Together one row in the table forms an
+\techterm{example}. The function computing the label from a set of
+attributes is called the \techterm{model} or \techterm{hypothesis}.
+
+There is a bunch of ways to represent models, among which are
+rule lists, decision trees, neural nets, and hyper planes. There are
+even more algorithms that can "learn" those models, e.\,g. ID3 and
+C4.5 for decision trees, backpropagation for neural nets, and support
+vector machines for hyper planes.
+
+Usually one is interested in the performance of a model before using
+it. In most cases the performance can only be estimated by testing it and
+computing the error. One simple way to do this is to divide the
+example set into two subsets: the training set and the test set. The training
+set is used to generate the model, and the test set is used to evaluate
+it by comparing the model's predictions to the true labels. Thus
+differences can be computed and summed up in order to calculate the
+absolute, relative or squared error. A more reliable method is the so
+called \techterm{k-fold cross validation} which is explained in section
+\ref{sec:firstexample}.
+
+You may also want to find out whether the attributes are relevant at
+all. You can use feature selection algorithms that repeatedly generate
+models using modified example sets containing only a subset of the
+attributes. A result of such an algorithm might be that the best
+performance is achieved by completely omitting the basil column. (In that case you
+should check carefully if you maybe have mistaken some dry leaves for
+the basil.)
+
+These lines are of course only a rough overview. If you are interested
+in details, you make take a look at \cite{Mitchell/97b} and the operator reference
+(chapter \ref{sec:operatorreference}).
+
+
+
+
+
+\section{The concept of operators and nested chains}
+\index{nested chain}
+\index{operator}
+\index{chain}
+
+Processes set up with \rapidminer are nested operator chains represented in
+a tree-like structure. Operators take a set of input objects, modify
+them and return a set of output objects. Those objects might be
+example sets, performance vectors, and much more. Figure \ref{xval}
+shows a simple example. The outermost operator is an
+\op{OperatorChain} which sequentially applies its inner operators. The
+first of them is an instance of \op{ExampleSource} which loads a set
+of labeled examples from a file. They are then passed to a
+\op{SimpleValidationChain} which splits it up into a training and a
+test set. The \op{SVMLearner} uses the training set for the generation
+of a model which can then be used by the \op{SVMApplier} to label the
+test set. Finally the \op{PerformanceEvaluator} compares the generated
+and the actual labels and returns a performance vector which is the
+result of the three enclosing operator chains.
+
+\begin{figure}[htp]
+  \begin{center}
+%%    \epsfig{file=figures/SimpleValidationChain.eps} 
+  \end{center}
+  \caption{Simple Example}
+  \label{xval}
+\end{figure}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

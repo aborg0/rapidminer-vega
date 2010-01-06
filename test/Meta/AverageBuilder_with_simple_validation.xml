@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process version="4.0">
+
+  <operator name="Root" class="Process">
+      <operator name="ExampleSetGenerator" class="ExampleSetGenerator">
+          <parameter key="target_function"	value="sum classification"/>
+      </operator>
+      <operator name="SimpleValidation" class="SimpleValidation">
+          <parameter key="keep_example_set"	value="true"/>
+          <parameter key="sampling_type"	value="linear sampling"/>
+          <operator name="DecisionTree" class="DecisionTree">
+          </operator>
+          <operator name="OperatorChain" class="OperatorChain">
+              <operator name="ModelApplier" class="ModelApplier">
+                  <list key="application_parameters">
+                  </list>
+              </operator>
+              <operator name="Performance" class="Performance">
+              </operator>
+          </operator>
+      </operator>
+      <operator name="SimpleValidation (2)" class="SimpleValidation">
+          <parameter key="sampling_type"	value="linear sampling"/>
+          <operator name="RuleLearner" class="RuleLearner">
+          </operator>
+          <operator name="OperatorChain (2)" class="OperatorChain">
+              <operator name="ModelApplier (2)" class="ModelApplier">
+                  <list key="application_parameters">
+                  </list>
+              </operator>
+              <operator name="Performance (2)" class="Performance">
+              </operator>
+          </operator>
+      </operator>
+      <operator name="AverageBuilder" class="AverageBuilder">
+      </operator>
+  </operator>
+
+</process>

@@ -1,0 +1,62 @@
+\section{Cluster algorithms}
+
+In case that the example set has no label attribute, unsupervised
+learning methods can be applied. Clustering algorithms segment the
+example space according to a given distance measure.
+
+
+
+\absoperator{Clusterer}
+
+\newcommand{\clusterio}{
+\begin{opin}
+\item[ExampleSet:] the example set to be clustered
+\end{opin}
+
+\begin{opout}
+\item[Model:] the learned cluster model
+\item[ExampleSet:] the clustered example set
+\end{opout}
+}
+\clusterio
+
+\begin{parameters}
+\optpar[cluster\_file] name of the file the \op{Clusterer} writes the learned cluster model into
+\end{parameters}
+
+\opdescr \op{Clusterer} is the abstract superclass of all clusterer
+operators. Values are assigned to the cluster attributes of the examples.
+
+
+
+\operator[Clusterer]{WekaClusterer}
+
+\clusterio
+
+\begin{parameters}
+\reqpar[weka\_clusterer\_name] fully qualified WEKA classname of the WEKA clusterer to be used, 
+e.g. \texttt{weka.clusterers.EM} for the expectation maximization approach
+\optpar All parameters from the group \para{weka\_parameters} are
+assumed to be key-value pairs that are passed to the classifier. The
+leading dash in front of the parameter name must not be part of the key!
+\optpar[cluster\_file] name of the file the \op{Clusterer} writes the learned model into
+\end{parameters}
+
+\opdescr This operator can wrap all clusterers from the Weka clusterers
+package. The clusterer type can be selected by a parameter. 
+See the Weka javadoc for descriptions of the clusteres types 
+that are available (\url{http://www.cs.waikato.ac.nz/ml/weka/}).
+
+
+
+\operator[OperatorChain]{ClusterWrapper}
+
+\begin{opin}
+\item[ExampleSet] a clustered example set
+\end{opin}
+
+\begin{opout}
+\item none
+\end{opout}
+
+\opdescr This operator applies its inner operators once for each cluster.

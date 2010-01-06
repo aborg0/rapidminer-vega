@@ -1,0 +1,5 @@
+Feature Selection
+Applies a feature selection (forward or backward, as specified by the user) on the given data, using a k-Nearest Neighbours algorithm.
+fs.xml
+Retrieve.repository_entry
+FS.selection_direction

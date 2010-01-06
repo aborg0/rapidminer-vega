@@ -1,0 +1,20 @@
+<operators>
+
+  <!-- Your own operator factory -->
+  <factory class = "my.new.operators.OperatorFactory" />
+
+  <!-- Your own Operators -->
+  <operator 
+    name        = "MyExampleSetWriter" 
+    class       = "my.new.operators.ExampleSetWriter"
+    description = "Writes example set into file."
+    group       = "MyOps"/>
+
+  <operator 
+    name        = "MyPreprocessing"    
+    class       = "my.new.operators.GenericPreprocessing"
+    description = "Best preprocessing for my purpose."
+    deprecation = "Please use the default preprocessing instead."
+    group       = "MyOps"/>
+
+</operators>

@@ -1,0 +1,277 @@
+/*
+ *  RapidMiner
+ *
+ *  Copyright (C) 2001-2009 by Rapid-I and the contributors
+ *
+ *  Complete list of developers available at our web site:
+ *
+ *       http://rapid-i.com
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program.  If not, see http://www.gnu.org/licenses/.
+ */
+package com.rapidminer.repository.gui;
+
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
+
+import javax.swing.SwingUtilities;
+import javax.swing.event.EventListenerList;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
+
+import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.repository.Entry;
+import com.rapidminer.repository.Folder;
+import com.rapidminer.repository.Repository;
+import com.rapidminer.repository.RepositoryException;
+import com.rapidminer.repository.RepositoryListener;
+import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.Observable;
+import com.rapidminer.tools.Observer;
+
+/** Model representing {@link Entry}s as a tree.
+ * 
+ * @author Simon Fischer
+ *
+ */
+public class RepositoryTreeModel implements TreeModel {
+
+	private final RepositoryManager root;
+
+	private final EventListenerList listeners = new EventListenerList();
+
+	private final RepositoryListener repositoryListener = new RepositoryListener() {
+		private TreeModelEvent makeChangeEvent(Entry entry) {
+			TreePath path = getPathTo(entry.getContainingFolder());
+			int index;
+			if (entry instanceof Repository) {
+				index = RepositoryManager.getInstance().getRepositories().indexOf(entry);
+			} else {
+				index = getIndexOfChild(entry.getContainingFolder(), entry);
+			}
+			return new TreeModelEvent(RepositoryTreeModel.this, path, new int[] { index }, new Object[] { entry });
+		}
+		@Override
+		public void entryAdded(Entry newEntry, Folder parent) {
+			TreeModelEvent e = makeChangeEvent(newEntry);
+			for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
+				l.treeNodesInserted(e);
+			}				
+		}
+		@Override
+		public void entryRemoved(Entry removedEntry, Folder parent, int index) {
+			TreePath path = getPathTo(parent);
+			TreeModelEvent e = new TreeModelEvent(RepositoryTreeModel.this, path, new int[] { index }, new Object[] { removedEntry });
+			for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
+				l.treeNodesRemoved(e);
+			}
+		}		
+		@Override
+		public void entryRenamed(Entry entry) {
+			TreeModelEvent e = makeChangeEvent(entry);				
+			for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
+				l.treeNodesChanged(e);
+			}				
+		}
+		@Override
+		public void folderRefreshed(Folder folder) {
+			TreeModelEvent e = makeChangeEvent(folder);				
+			for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
+				l.treeStructureChanged(e);
+			}				
+		}
+	};
+	
+	public RepositoryTreeModel(final RepositoryManager root) {
+		this.root = root;
+		for (Repository repository : root.getRepositories()) {
+			repository.addRepositoryListener(repositoryListener);
+		}
+		root.addObserver(new Observer<Repository>() {
+			@Override
+			public void update(Observable<Repository> observable, Repository arg) {
+				for (Repository repository : root.getRepositories()) {
+					repository.removeRepositoryListener(repositoryListener);
+					repository.addRepositoryListener(repositoryListener);
+				}
+				TreeModelEvent e = new TreeModelEvent(this, new TreePath(root));
+				for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
+					l.treeStructureChanged(e);
+				}
+			}			
+		}, true);
+	}
+
+	TreePath getPathTo(Entry entry) {	
+		if (entry == null) {
+			return new TreePath(root);
+		}
+		if (entry.getContainingFolder() == null) {
+			return new TreePath(root).pathByAddingChild(entry);
+		} else {
+			return getPathTo(entry.getContainingFolder()).pathByAddingChild(entry);		
+		}
+	}
+
+	@Override
+	public void addTreeModelListener(TreeModelListener l) {
+		listeners.add(TreeModelListener.class, l);
+	}
+
+	@Override
+	public void removeTreeModelListener(TreeModelListener l) {
+		listeners.remove(TreeModelListener.class, l);
+	}
+
+	@Override
+	public Object getChild(Object parent, int index) {
+		if (parent instanceof RepositoryManager) {
+			return ((RepositoryManager)parent).getRepositories().get(index);
+		} else if (parent instanceof Folder) {			
+			Folder folder = (Folder)parent;
+			if (folder.willBlock()) {
+				unblock(folder);
+				return "Pending...";
+			} else {
+				try {
+					int numFolders = folder.getSubfolders().size();
+					if (index < numFolders) {
+						return folder.getSubfolders().get(index);
+					} else {
+						return folder.getDataEntries().get(index - numFolders);
+					}
+				} catch (RepositoryException e) {
+					LogService.getRoot().log(Level.WARNING, "Cannot get children of "+folder.getName()+": "+e, e);
+					return null;
+				}
+			}
+		} else {
+			return null;
+		}
+	}
+
+	private final Set<Folder> pendingFolders = new HashSet<Folder>();
+
+	/** Asynchronously fetches data from the folder so it
+	 *  will no longer block and then notifies listeners on the EDT. */
+	private void unblock(final Folder folder) {
+		if (pendingFolders.contains(folder)) {
+			return;
+		} 
+		pendingFolders.add(folder);
+
+		new Thread("wait-for-"+folder.getName()) {
+			@Override
+			public void run() {			
+
+				final List<Entry> children = new LinkedList<Entry>();
+				try {
+					children.addAll(folder.getSubfolders()); // this may take some time				
+					children.addAll(folder.getDataEntries()); // this may take some time
+				} catch (RepositoryException e) {
+					SwingTools.showSimpleErrorMessage("error_fetching_folder_contents_from_server", e);
+				}
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						TreeModelEvent removeEvent = new TreeModelEvent(RepositoryTreeModel.this, getPathTo(folder), new int[] {0}, new Object[] { "Pending..." });					
+						for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
+							l.treeNodesRemoved(removeEvent);
+						}
+
+						int index[] = new int[children.size()];	
+						for (int i = 0; i < index.length; i++) {
+							index[i] = i;
+						}
+						Object[] childArray = children.toArray();				
+						TreeModelEvent insertEvent = new TreeModelEvent(RepositoryTreeModel.this, getPathTo(folder), index, childArray);					
+						for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
+							l.treeNodesInserted(insertEvent);
+						}		
+					}
+				});
+			}
+		}.start();
+
+	}
+
+	@Override
+	public int getChildCount(Object parent) {
+		if (parent instanceof RepositoryManager) {
+			return ((RepositoryManager)parent).getRepositories().size();
+		} else if (parent instanceof Folder) {
+			Folder folder = (Folder)parent;
+			if (folder.willBlock()) {
+				unblock(folder);
+				return 1; // "Pending...."
+			} else {				
+				try {
+					return folder.getSubfolders().size() + folder.getDataEntries().size();
+				} catch (RepositoryException e) {
+					LogService.getRoot().log(Level.WARNING, "Cannot get child count for "+folder.getName()+": "+e, e);
+					return 0;
+				}
+			}
+		} else {
+			return 0;
+		}
+	}
+
+	@Override
+	public int getIndexOfChild(Object parent, Object child) {
+		if (parent instanceof RepositoryManager) {
+			return ((RepositoryManager)parent).getRepositories().indexOf(child);			
+		} else if (parent instanceof Folder) {
+			Folder folder = (Folder)parent;
+			try {
+				if (child instanceof Folder) {
+					return folder.getSubfolders().indexOf(child);
+				} else if (child instanceof Entry) {
+					return folder.getDataEntries().indexOf(child) + folder.getSubfolders().size();
+				} else {
+					return -1;
+				}	
+			} catch (RepositoryException e) {
+				LogService.getRoot().log(Level.WARNING, "Cannot get child index for "+folder.getName()+": "+e, e);
+				return -1;
+			}
+		} else {
+			return -1;
+		}
+	}
+
+	@Override
+	public Object getRoot() {		
+		return root;
+	}
+
+	@Override
+	public boolean isLeaf(Object node) {
+		return !(node instanceof Folder) && !(node instanceof RepositoryManager);
+	}
+
+	@Override
+	public void valueForPathChanged(TreePath path, Object newValue) {
+		try {
+			((Entry)path.getLastPathComponent()).rename(newValue.toString());
+		} catch (Exception e) {
+			SwingTools.showSimpleErrorMessage("error_rename", e, e.toString());
+		}
+	}
+}

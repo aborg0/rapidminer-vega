@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process version="4.0">
+
+  <operator name="Root" class="Process">
+      <description text="#ylt#table#ygt# #ylt#tr#ygt# #ylt#td#ygt# This experiment introduces another very important operator for almost all  RapidMiner experiments: the PerformanceEvaluator operator. #ylt#/td#ygt# #ylt#td#ygt# #ylt#icon#ygt# groups/24/validation #ylt#/icon#ygt# #ylt#/td#ygt# #ylt#/tr#ygt# #ylt#/table#ygt# #ylt#p#ygt# This operator expects an input example set with both a true and a predicted  label attribute. The PerformanceEvaluator calculates one or more performance  measures (performance criteria) and delivers them as PerformanceVector.   #ylt#/p#ygt# #ylt#p#ygt# Such a performance vector can be used as estimation of a learner prediction  accuracy (int this experiment it simply calculates the training error which  usually isn't a good idea) or as fitness for an outer optimization scheme.   #ylt#/p#ygt# "/>
+      <operator name="ExampleSetGenerator" class="ExampleSetGenerator">
+          <parameter key="local_random_seed"	value="1981"/>
+          <parameter key="target_function"	value="polynomial"/>
+      </operator>
+      <operator name="EvolutionaryParameterOptimization" class="EvolutionaryParameterOptimization">
+          <list key="parameters">
+            <parameter key="JMySVMLearner.C"	value="0:100"/>
+            <parameter key="JMySVMLearner.kernel_gamma"	value="0:10"/>
+          </list>
+          <operator name="JMySVMLearner" class="JMySVMLearner">
+              <parameter key="C"	value="50.116252170645296"/>
+              <parameter key="keep_example_set"	value="true"/>
+              <parameter key="kernel_degree"	value="3.0"/>
+              <parameter key="kernel_gamma"	value="0.31799662967756753"/>
+              <parameter key="kernel_type"	value="radial"/>
+          </operator>
+          <operator name="ModelApplier" class="ModelApplier">
+              <list key="application_parameters">
+              </list>
+          </operator>
+          <operator name="RegressionPerformance" class="RegressionPerformance">
+              <parameter key="absolute_error"	value="true"/>
+              <parameter key="skip_undefined_labels"	value="false"/>
+          </operator>
+      </operator>
+  </operator>
+
+</process>

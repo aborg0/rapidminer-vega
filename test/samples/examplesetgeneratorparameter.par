@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameterset version="4.0">
+    <parameter operator="ExampleSetGenerator" key="number_examples" value="1"/>
+</parameterset>
