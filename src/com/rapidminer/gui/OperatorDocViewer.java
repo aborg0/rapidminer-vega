@@ -48,6 +48,7 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.Parameters;
 import com.rapidminer.parameter.conditions.ParameterCondition;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.RMUrlHandler;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.documentation.ExampleProcess;
 import com.vlsolutions.swing.docking.DockKey;
@@ -74,15 +75,17 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 		add(scrollPane, BorderLayout.CENTER);
 		setSelection(Collections.<Operator>emptyList());
 		editor.installDefaultStylesheet();
-		
+
 		getEditor().addHyperlinkListener(new HyperlinkListener() {			
 			@Override
 			public void hyperlinkUpdate(HyperlinkEvent e) {
 				if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-					if (e.getDescription().startsWith("show_example_")) {
-						int index = Integer.parseInt(e.getDescription().substring("show_example_".length()));
-						ExampleProcess example = getDisplayedOperator().getOperatorDescription().getOperatorDocumentation().getExamples().get(index);
-						RapidMinerGUI.getMainFrame().setProcess(example.getProcess(), true);
+					if (!RMUrlHandler.handleUrl(e.getDescription())) {
+						if (e.getDescription().startsWith("show_example_")) {
+							int index = Integer.parseInt(e.getDescription().substring("show_example_".length()));
+							ExampleProcess example = getDisplayedOperator().getOperatorDescription().getOperatorDocumentation().getExamples().get(index);
+							RapidMinerGUI.getMainFrame().setProcess(example.getProcess(), true);
+						}
 					}
 				}
 			}
@@ -116,7 +119,7 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 			if (resource != null) {
 				buf.append("<img src=\"" + resource + "\"/>");
 			}
-			
+
 			buf.append("</td><td style=\"padding-left:4px;\">"); 
 			buf.append("<h2>" + descr.getName() + "</h2>");
 			buf.append("</td></tr></table>");
@@ -156,11 +159,11 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 						buf.append("<i>");
 					}
 					//if (type.isOptional()) {
-						buf.append(makeParameterHeader(type));					
+					buf.append(makeParameterHeader(type));					
 					//} else {
-						//buf.append("<strong>");
-						//buf.append(makeParameterHeader(type));
-						//buf.append("</strong>");
+					//buf.append("<strong>");
+					//buf.append(makeParameterHeader(type));
+					//buf.append("</strong>");
 					//}
 					if (type.isExpert()) {
 						buf.append("</i>");
@@ -193,7 +196,7 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 				}
 				buf.append("</dl>");
 			}
-			
+
 			if (!descr.getOperatorDocumentation().getExamples().isEmpty()) {
 				buf.append("<h4>Examples</h4><ul>");
 				int i = 0;
@@ -280,7 +283,7 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 	@Override
 	public void processUpdated(Process process) {
 	}
-	
+
 	public static OperatorDocViewer instantiate() {
 		if ("true".equals(System.getProperty(RapidMiner.PROPERTY_DEVELOPER_MODE))) {
 			return new OperatorDocEditor();

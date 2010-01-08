@@ -103,6 +103,17 @@ public class WelcomeScreen extends JPanel implements Dockable {
 	
 	private static final long serialVersionUID = -6916236648023490473L;
 
+	protected static final String PROXY_HELP = "<p>We urgently recommend to provide proxy settings since they affect the functionality "+
+		"of RapidMiner in various ways. Amongst others, Internet connectivity is required for</p><ul>"+
+		"<li>updating RapidMiner via the Update Server,</li>"+
+		"<li>installing numerous RapidMiner extensions,</li>"+
+		"<li>Web crawling and Web content mining (RapidMiner Web Extension),</li>"+
+		"<li>sharing processes via the RapidMiner Community Extension,</li>"+
+		"<li>accessing remote repositories,</li>"+
+		"<li>getting online help, and</li>"+
+		"<li>displaying the RapidMiner news page.</li></ul>"+
+		"<p>Specifying the respective settings in the preferences takes effect immediately without restarting RapidMiner.</p>";
+
 	private final JList recentFileList;
 
 	private final MainFrame mainFrame;
@@ -220,7 +231,7 @@ public class WelcomeScreen extends JPanel implements Dockable {
 		*/
 		
 
-		final JEditorPane newsPane = new ExtendedHTMLJEditorPane("text/html", "<html><body><h1>RapidMiner News</h1><p>Downloading news. If news don't show up, check your Internet connection and proxy settings in the <a href=\""+RMUrlHandler.PREFERENCES_URL+"\">Preferences</a> under \"System\".</body></html>");
+		final JEditorPane newsPane = new ExtendedHTMLJEditorPane("text/html", "<html><body><h1>RapidMiner News</h1><p>Downloading news. If news don't show up, check your Internet connection and proxy settings in the <a href=\""+RMUrlHandler.PREFERENCES_URL+"\">Preferences</a> under \"System\"."+PROXY_HELP+"</body></html>");
 		((ExtendedHTMLJEditorPane) newsPane).installDefaultStylesheet();
 		//newsPane.setText("<html><body><h1>RapidMiner News</h1><p>Downloading news. If news don't show up, check your Internet connection and proxy settings in the preferences.</body></html>");
 		new Thread("Load News") {
@@ -229,7 +240,7 @@ public class WelcomeScreen extends JPanel implements Dockable {
 					newsPane.setPage(new URL("http://news.rapidminer.com/"));
 				} catch (IOException e2) {
 					LogService.getRoot().log(Level.INFO, "Cannot download news: "+e2, e2);
-					newsPane.setText("<html><body><h1>RapidMiner News</h1><p>Cannot download news. Internet connection may be down. If your Internet connection is up, please check your proxy settings in the <a href=\""+RMUrlHandler.PREFERENCES_URL+"\">preferences</a> under \"System\".</body></html>");
+					newsPane.setText("<html><body><h1>RapidMiner News</h1><p>Cannot download news. Internet connection may be down. If your Internet connection is up, please check your proxy settings in the <a href=\""+RMUrlHandler.PREFERENCES_URL+"\">preferences</a> under \"System\"."+PROXY_HELP+"</body></html>");
 //					newsPane = new ExtendedHTMLJEditorPane("text/html", "<html><body><h1>RapidMiner News</h1><p>Cannot download news. Internet connection may be down. If your Internet connection is up, please check your proxy settings in the preferences.</body></html>");
 				}				
 			}

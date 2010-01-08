@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="windows-1252" standalone="no"?>
 <operatorHelp lang="en_EN">
    <group>
-      <key />
+      <key/>
       <name>Core</name>
    </group>
    <group>
@@ -124,7 +124,7 @@
       <name>Sort by Pareto Rank</name>
       <synopsis>This operator sorts the given example set according a set of attributes such that
          dominated examples will be sorted after non-dominated examples.</synopsis>
-      <help />
+      <help/>
       <key>sort_by_pareto_rank</key>
    </operator>
    <operator>
@@ -867,15 +867,16 @@
   </operator>
 	<operator>
 		<name>Recall</name>
-		<synopsis>This operators retrieves an objects of the specified type
-			which was previously stored into the process object storage.
-		</synopsis>
-		<help>This operator can be used to retrieve the IOObject which was
-			previously stored under the specified name. In order to store an
-			object to make it again accessible, you can use the operator
-			&lt;i&gt;IOStorageOperator&lt;/i&gt;. The combination of those two
-			operator can be used to build complex processes where an input object
-			is used in completely different parts or loops of processes.</help>
+		<synopsis>
+    This operators retrieves an objects stored by the &lt;i&gt;Remember&lt;/i&gt; operator.
+  </synopsis>
+		<help>
+    This operator can be used to retrieve the object which was previously 
+    stored under the specified name by a &lt;i&gt;Remember&lt;/i&gt; operator. The 
+    combination of those two operator can be used to build complex processes 
+    where an input object is used in completely different parts or loops of 
+    processes.
+  </help>
 	<key>recall</key>
   </operator>
 	<operator>
@@ -946,7 +947,7 @@
         &lt;/p&gt;
         &lt;p&gt;
         It detects rare / exceptional / suspicious cases with respect group of similar cases.
-        The main key factors of computing COF are the probability of the instance�s class among its neighbors�s classes, the deviation of the 
+        The main key factors of computing COF are the probability of the instanceÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢s class among its neighborsÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢s classes, the deviation of the 
         instance from the instances of the same class, and the distance between the instance and its k neighbors.
         &lt;/p&gt;
         &lt;p&gt;
@@ -2106,8 +2107,16 @@
 	<operator>
 		<name>Multiply</name>
 		<synopsis>This operators multiplies its input object.</synopsis>
-		<help>This operator copies its input to all connected output ports.
-		</help>
+		<help>
+    This operator copies its input to all connected output ports. As more 
+    ports are connected, more copies are generated. Note that in RapidMiner, 
+    the underlying data of &lt;i&gt;example sets&lt;/i&gt; is never copied (unless using a &lt;i&gt;Materialize 
+    Data&lt;/i&gt; operator). Therefore, copying objects is cheap. Only references 
+    to attributes are copied. When attributes are changed or added to one 
+    example set, this change is invisible to the other copies. However, if &lt;i&gt;data&lt;/i&gt; 
+    is modified in one thread of the process flow, it is also modified in the 
+    other copies.
+  </help>
 	<key>multiply</key>
   </operator>
 	<operator>
@@ -3145,7 +3154,39 @@
 	<operator>
 		<name>Retrieve</name>
 		<synopsis>Reads an IOObject from the data repository.</synopsis>
-		<help/>
+		<help>
+    This operator can be used to access the repositories introduced in 
+    RapidMiner 5. It should replace all file access. The single parameter 
+    &amp;quot;repository_entry&amp;quot; references an entry in the repository which will be 
+    returned as the output of this operator.
+
+
+Repository locations are resolved relative to the repository folder containing 
+    the current process. Folders in the repository are separated by a forward 
+    slash (/), a &amp;quot;..&amp;quot; references the parent folder. A leading forward slash 
+    references the root folder of the repository containing the current 
+    process. A leading double forward slash is interpreted as an absolute path 
+    starting with the name of a repository.
+
+    &lt;ul&gt;
+      &lt;li&gt;
+        &amp;quot;MyData&amp;quot; looks up an entry &amp;quot;MyData&amp;quot; in the same folder as the current 
+        process.
+      &lt;/li&gt;
+      &lt;li&gt;
+        &amp;quot;../input/MyData looks up an entry &amp;quot;MyData&amp;quot; located in a folder 
+        &amp;quot;input&amp;quot; next to the folder containing the current process.
+      &lt;/li&gt;
+      &lt;li&gt;
+        &amp;quot;/data/Model&amp;quot; looks up an entry &amp;quot;Model&amp;quot; in a top-level folder &amp;quot;data&amp;quot; 
+        in the repository holding the current process
+      &lt;/li&gt;
+      &lt;li&gt;
+        &amp;quot;//Samples/data/Iris&amp;quot; looks up the Iris data set in the &amp;quot;Samples&amp;quot; 
+        repository.
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  </help>
 	<key>retrieve</key>
   </operator>
 	<operator>
@@ -3281,17 +3322,18 @@
   </operator>
 	<operator>
 		<name>Remember</name>
-		<synopsis>This operators stores one of the input objects of the
-			specified type into the process object storage.</synopsis>
-		<help>This operator can be used to store the given IOObject into the
-			process under the specified name (the IOObject will be
-			&amp;quot;hidden&amp;quot; and can not be directly accessed by
-			following operators. In order to retrieve the stored object and make
-			it again accessible, you can use the operator
-			&lt;i&gt;IORetrievalOperator&lt;/i&gt;. The combination of those two
-			operators can be used to build complex processes where an input
-			object is used in completely different parts or loops of processes.
-		</help>
+		<synopsis>
+    Stores an objects in the process' object store.
+  </synopsis>
+		<help>
+    This operator can be used to store the input object into the process under 
+    the specified name. It can later be restored by subsequent operators by 
+    using the &lt;i&gt;Recall&lt;/i&gt; operator by referencing this name. There is no 
+    scoping mechanism in RapidMiner processes. Objects can be retrieved from 
+    operators in all nesting levels. The combination of those two operators 
+    can be used to build complex processes where an input object is used in 
+    completely different parts or loops of processes.
+  </help>
 	<key>remember</key>
   </operator>
 	<operator>
@@ -3424,12 +3466,14 @@
   </operator>
 	<operator>
 		<name>Process</name>
-		<synopsis>The root operator chain, which needs to be the outer most
-			operator of any process.</synopsis>
+		<synopsis>
+    The root operator which is the outer most operator of every process.
+  </synopsis>
 		<help>
-    Each process must contain exactly one operator of this class and it must 
-    be the root operator of the process. The only purpose of this operator is 
-    to provide some parameters that have global relevance.
+    Each process must contain exactly one operator of this class, and it must 
+    be the root operator of the process. This operator provides a set of 
+    parameters that are of global relevance to the process like logging and 
+    initialization parameters of the random number generator.
   </help>
 	<key>process</key>
   </operator>
@@ -3558,30 +3602,37 @@
 
 	<operator>
 		<name>Branch</name>
-		<synopsis>This operator provides a conditional execution of operators.
-		</synopsis>
-		<help>&lt;p&gt;This operator provides a conditional execution of parts
-			of processes. It has to have two OperatorChains as children. The
-			first chain is processed if the specified condition is true, the
-			second one is processed if it is false (if-then-else). The second
-			chain may be omitted (if-then). In this case, this operator has only
-			one inner operator.&lt;/p&gt; &lt;p&gt; If the condition
-			&amp;quot;attribute_value_filter&amp;quot; is used, the same
-			attribute value conditions already known from the
-			&lt;i&gt;ExampleFilter&lt;/i&gt; operator can be used. In addition to
-			the known attribute value relation format (e.g.
-			&amp;quot;att1&amp;gt;=0.7&amp;quot;), this operator expects an
-			additional definition for the used example which cam be added in
-			&amp;quot;[&amp;quot; and &amp;quot;]&amp;quot; after the attribute
-			value condition. The following values are possible: &lt;ul&gt;
-			&lt;li&gt;a fixed number, e.g. &amp;quot;att1&amp;gt;0.7
-			[7]&amp;quot; meaning that the value for attribute
-			&amp;quot;att1&amp;quot; for the example 7 must be greater than
-			0.7&lt;/li&gt; &lt;li&gt;the wildcard &amp;quot;*&amp;quot; meaning
-			that the attribute value condition must be fulfilled for all
-			examples, e.g. &amp;quot;att4&amp;lt;=5 [*]&amp;quot;&lt;/li&gt;
-			&lt;li&gt;no example definition, meaning the same as the wildcard
-			definition [*]&lt;/li&gt; &lt;/ul&gt; &lt;/p&gt;</help>
+		<synopsis>
+    This operator provides a conditional execution of subprocesses.
+  </synopsis>
+		<help>
+    &lt;p&gt;
+      This operator executes one of its two subprocesses based on a condition. 
+      The first subprocess is executed if the specified condition is true, the 
+      second one is executed if it is false (if-then-else). 
+    &lt;/p&gt;
+    &lt;p&gt;
+      If the condition &amp;quot;attribute_value_filter&amp;quot; is used, the same attribute 
+      value conditions already known from the &lt;i&gt;ExampleFilter&lt;/i&gt; operator 
+      can be used. In addition to the known attribute value relation format 
+      (e.g. &amp;quot;att1&amp;gt;=0.7&amp;quot;), this operator expects an additional definition for 
+      the used example which cam be added in &amp;quot;[&amp;quot; and &amp;quot;]&amp;quot; after the attribute 
+      value condition. The following values are possible:
+    &lt;/p&gt;
+    &lt;ul&gt;
+      &lt;li&gt;
+        a fixed number, e.g. &amp;quot;att1&amp;gt;0.7 [7]&amp;quot; meaning that the value for 
+        attribute &amp;quot;att1&amp;quot; for the example 7 must be greater than 0.7
+      &lt;/li&gt;
+      &lt;li&gt;
+        the wildcard &amp;quot;*&amp;quot; meaning that the attribute value condition must be 
+        fulfilled for all examples, e.g. &amp;quot;att4&amp;lt;=5 [*]&amp;quot;
+      &lt;/li&gt;
+      &lt;li&gt;
+        no example definition, meaning the same as the wildcard definition [*]
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  </help>
 	<key>branch</key>
   </operator>
 	<operator>
@@ -5184,14 +5235,57 @@
   </operator>
 	<operator>
 		<name>Decision Tree</name>
-		<synopsis>Learns a pruned decision tree which can handle both
-			numerical and nominal attributes.</synopsis>
-		<help>&lt;p&gt;This operator learns decision trees from both nominal
-			and numerical data. Decision trees are powerful classification
-			methods which often can also easily be understood. This decision tree
-			learner works similar to Quinlan's C4.5 or CART.&lt;/p&gt;
-			&lt;p&gt;The actual type of the tree is determined by the criterion,
-			e.g. using gain_ratio or Gini for CART / C4.5.&lt;/p&gt;</help>
+		<synopsis>
+    &lt;p&gt;
+      Generates decision trees to classify nominal data.
+    &lt;/p&gt;
+  </synopsis>
+		<help>
+    &lt;p&gt;
+      This operator learns decision trees from both nominal and numerical 
+      data. Decision trees are powerful classification methods which often can 
+      also easily be understood. In order to classify an example, the tree is 
+      traversed bottom-down. Every node in a decision tree is labelled with an 
+      attribute. The example's value for this attribute determines which of 
+      the outcoming edges is taken. For nominal attributes, we have one 
+      outgoing edge per possible attribute value, and for numerical attribtues 
+      the outgoing edges are labelled with disjoint ranges.
+    &lt;/p&gt;
+    &lt;p&gt;
+      
+    &lt;/p&gt;
+    &lt;p&gt;
+      This decision tree learner works similar to Quinlan's C4.5 or CART. 
+      Roughly speaking, the tree induction algorithm works as follows. 
+      Whenever a new node is created at a certain stage, an attribute is 
+      picked to maximise the discriminative power of that node with respect to 
+      the examples assigned to the particular subtree. This discriminative 
+      power is measured by a criterion which can be selected by the user 
+      (information gain, gain ratio, gini index, etc.).
+    &lt;/p&gt;
+    &lt;p&gt;
+      
+    &lt;/p&gt;
+    &lt;p&gt;
+      The algorithm stops in various cases:
+    &lt;/p&gt;
+    &lt;ul&gt;
+      &lt;li&gt;
+        No attribute reaches a certain threshold (minimum_gain).
+      &lt;/li&gt;
+      &lt;li&gt;
+        The maximal depth is reached.
+      &lt;/li&gt;
+      &lt;li&gt;
+        There are less than a certain number of examples 
+        (minimal_size_for_split) in the current subtree.
+      &lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;p&gt;
+      Finally, the tree is pruned, i.e. leaves that do not add to the 
+      discriminative power of the whole tree are removed.
+    &lt;/p&gt;
+  </help>
 	<key>decision_tree</key>
   </operator>
 		<operator>
@@ -7647,6 +7741,20 @@
 <operator>
     <key>loop_collection</key>
     <name>Loop Collection</name>
+  <synopsis>
+    Iterates over a collection of objects.
+  </synopsis>
+    <help>
+    The subprocess of this operator is executed once for every entry in the 
+    input collection. If &amp;quot;unfold&amp;quot; is checked, the input list is flattened, 
+    i.e. nested collections are replaced by their entries. The outputs of the 
+    iterations are grouped into collections again. Since the inner subprocess 
+    can have multiple results, the output of the &lt;i&gt;Loop Collection&lt;/i&gt; 
+    operator consits of multiple collections, one for each result of the 
+    subprocess.&lt;br/&gt;
+    Objects can be grouped into a collection using the
+    &lt;a href="rm://opdoc/collect"&gt;Collect&lt;/a&gt; operator.
+  </help>
   </operator>
   <operator>
     <key>write_document</key>
@@ -7664,6 +7772,16 @@
   <operator>
     <key>select</key>
     <name>Select</name>
+  <synopsis>
+    Selects a single entry from an object collection.
+  </synopsis>
+    <help>
+    Selects the index-th entry from a collection of objects. If unfold is 
+    checked, the index refers to the index in the flattened list, i.e. the 
+    list obtained from the input list by replacing all nested collections by 
+    their elements. Objects can be grouped into a collection using the
+    &lt;a href="rm://opdoc/collect"&gt;Collect&lt;/a&gt; operator.
+  </help>
   </operator>
   <operator>
     <key>flatten_collection</key>
@@ -7672,6 +7790,19 @@
   <operator>
     <key>collect</key>
     <name>Collect</name>
+  <synopsis>
+    Joins multiple input objects to a single collection.
+  </synopsis>
+    <help>
+    This operator joins a variable number of input objects to a single 
+    collection. If the input objects are collections themselves and the 
+    &amp;quot;unfold&amp;quot; parameter is checked, the output will be the union of the 
+    elements of all input collections. After mergin objects into a collection, 
+    the &lt;a href="rm://opdoc/loop_collection"&gt;Loop Collection&lt;/a&gt; operator can be used to iterate over this 
+    collection. The &lt;a href="rm://opdoc/select"&gt;Select&lt;/a&gt; operator can be used to retrieve a certain 
+    element of the collection.&lt;br/&gt;
+	Note: In the process layout view, collections are indicated by double lines.
+  </help>
   </operator>
 <group>
     <key>deprecated</key>
@@ -7969,4 +8100,9 @@
     <key>text_processing.transformation</key>
     <name>Transformation</name>
   </group>
+<operator>
+    <key>dummy</key>
+    <name>dummy</name>
+    <help>Operator's description is missing in referenced OperatorDoc.</help>
+  </operator>
 </operatorHelp>

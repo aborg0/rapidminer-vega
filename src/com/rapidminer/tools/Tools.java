@@ -179,6 +179,37 @@ public class Tools {
 	public static Calendar getPreferredCalendar() {
 		return Calendar.getInstance(getPreferredTimeZone(), Locale.getDefault());
 	}
+	
+	/**
+	 * Formats the value according to the given valueType. The value must be
+	 * an object of type String for nominal values, an object of type Date for
+	 * date_time values or of type Double for numerical values.
+	 * 
+	 * @param value
+	 * @param valueType
+	 * @return value as string
+	 */
+	public static String format(Object value, int valueType) {
+		if (value == null) {
+			return "?";
+		}
+		if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.NOMINAL)) {
+			return (String) value;
+		}
+		if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.NUMERICAL)) {
+			return formatIntegerIfPossible((Double) value);
+		}
+		if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.DATE)) {
+			return formatDate((Date) value);
+		}
+		if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.TIME)) {
+			return formatTime((Date) value);
+		}
+		if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.DATE_TIME)) {
+			return formatDateTime((Date) value);
+		}
+		return "?";
+	}
 
 	/**
 	 * Returns a formatted string of the given number (percent format with two

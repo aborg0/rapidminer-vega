@@ -141,6 +141,8 @@ public class Plugin {
 
 	private String prefix;
 
+	private boolean disabled = false;
+
 	/** The collection of all plugins. */
 	private static List<Plugin> allPlugins = new LinkedList<Plugin>();
 
@@ -354,6 +356,9 @@ public class Plugin {
 	}
 
 	public void registerOperators() {
+		if (disabled) {
+			LogService.getRoot().warning("Plugin "+getName()+" disabled due to previous errors. Not registering operators.");
+		}
 		InputStream in = null;
 		// trying normal plugins
 		if (pluginResourceOperators != null) {
@@ -404,12 +409,9 @@ public class Plugin {
 		}
 	}
 	
-	/** Register all things delivered with this plugin. */
-	public void registerDescriptions() {
-		// registering renderers
-		if (pluginResourceObjects != null)
-			RendererService.init(name, this.classLoader.getResource(pluginResourceObjects), this.classLoader);
-		
+	/** Register all things delivered with this plugin. 
+	 * @throws PluginException */
+	public void registerDescriptions() throws PluginException {
 		// registering settings for internationalization
 		if (pluginErrorDescriptions != null)
 			I18N.registerErrorBundle(ResourceBundle.getBundle(pluginErrorDescriptions, Locale.getDefault(), this.classLoader));
@@ -417,6 +419,16 @@ public class Plugin {
 			I18N.registerGUIBundle(ResourceBundle.getBundle(pluginGUIDescriptions, Locale.getDefault(), this.classLoader));
 		if (pluginUserErrorDescriptions != null)
 			I18N.registerUserErrorMessagesBundle(ResourceBundle.getBundle(pluginUserErrorDescriptions, Locale.getDefault(), this.classLoader));
+
+		// registering renderers
+		if (pluginResourceObjects != null) {
+			URL resource = this.classLoader.getResource(pluginResourceObjects);
+			if (resource != null) {
+				RendererService.init(name, resource, this.classLoader);				
+			} else {
+				throw new PluginException("Cannot find io object descriptor '"+pluginResourceObjects+"' for plugin "+getName()+".");
+			}
+		}
 		
 		// registering parse rules
 		if (pluginParseRules != null) {
@@ -424,7 +436,7 @@ public class Plugin {
 			if (resource != null) {
 				XMLImporter.importParseRules(resource, this);
 			} else {
-				LogService.getRoot().warning("Cannot find parse rules '"+pluginParseRules+"' for plugin "+getName()+".");
+				throw new PluginException("Cannot find parse rules '"+pluginParseRules+"' for plugin "+getName()+".");
 			}
 		}
 		
@@ -548,11 +560,12 @@ public class Plugin {
 	 */
 	private static void registerAllPluginDescriptions(File pluginDir, boolean showWarningForNonPluginJars) {
 		findPlugins(pluginDir, showWarningForNonPluginJars);
-		Iterator i = allPlugins.iterator();
+		Iterator<Plugin> i = allPlugins.iterator();
 		while (i.hasNext()) {
-			Plugin plugin = (Plugin) i.next();
+			Plugin plugin = i.next();
 			if (!plugin.checkDependencies(allPlugins)) {
 				LogService.getRoot().warning("Cannot register operators from '" + plugin.getName() + "': Dependencies not fulfilled! This plugin needs a RapidMiner version " + plugin.getNecessaryRapidMinerVersion() + " and the following plugins:" + Tools.getLineSeparator() + plugin.getPluginDependencies());
+				plugin.disabled = true;
 				i.remove();
 			}
 		}
@@ -560,7 +573,14 @@ public class Plugin {
 		if (allPlugins.size() > 0) {
 			i = allPlugins.iterator();
 			while (i.hasNext()) {
-				((Plugin) i.next()).registerDescriptions();
+				Plugin plugin = i.next();
+				try {
+					plugin.registerDescriptions();
+				} catch (Exception e) {
+					LogService.getRoot().log(Level.WARNING, "Error initializing plugin: "+ e, e);
+					i.remove();
+					plugin.disabled = true;
+				}
 			}
 		}
 	}
@@ -569,8 +589,9 @@ public class Plugin {
 	 * Registers all operators from the plugins previously found by a call of registerAllPluginDescriptions
 	 */
 	public static void registerAllPluginOperators() {
-		for (Plugin plugin: allPlugins)
+		for (Plugin plugin: allPlugins) {
 			plugin.registerOperators();
+		}
 	}
 
 	

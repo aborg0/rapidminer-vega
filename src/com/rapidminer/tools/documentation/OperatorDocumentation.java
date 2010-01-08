@@ -134,7 +134,7 @@ public class OperatorDocumentation {
 	public void setSynopsis(String text) {			
 		this.synopsis = text;
 		if (element != null) {
-			XMLTools.setTagContents(element, "synopsis", documentation);
+			XMLTools.setTagContents(element, "synopsis", text);
 		}
 	}
 	

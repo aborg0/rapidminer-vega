@@ -53,6 +53,8 @@ import com.rapidminer.tools.math.container.Range;
  *  @author Tobias Malbrecht
  */
 public abstract class AbstractDataReader extends AbstractExampleSource {
+	
+	private static final int PREVIEW_LINES = 1000;
 
 	protected abstract class DataSet {
 		public abstract boolean next();
@@ -119,7 +121,7 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 	}
 
 	protected boolean forceGuessingStop() {
-		return (rowCount >= 1000);
+		return (rowCount >= PREVIEW_LINES);
 	}
 
 	private boolean isMetaDataGuessComplete() {
@@ -213,6 +215,9 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 							}
 						}
 						values[i] = number;
+						if (valueSets.get(i).size() <= 2) {
+							valueSets.get(i).add(number.toString());
+						}
 						continue;
 					} else {
 						canParseDouble[i] = false;
@@ -250,6 +255,9 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 						if (maxValues[i] < date.getTime()) {
 							maxValues[i] = date.getTime(); 
 						}
+						if (valueSets.get(i).size() <= 2) {
+							valueSets.get(i).add(date.toString());
+						}
 						continue;
 					} else {
 						canParseDate[i] = false;
@@ -258,6 +266,9 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 				String string = set.getString(i);
 				if (string != null && !string.isEmpty()) {
 					values[i] = string;
+					if (valueSets.get(i).size() <= 2) {
+						valueSets.get(i).add(string);
+					}
 				} else {
 					numberOfMissings[i]++;
 					continue;
@@ -375,10 +386,10 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 					continue;
 				}
 				// TODO save value type guessing might be better
-//				if (valueSets.get(i).size() <= 2) {
-//					valueTypes[i] = Ontology.BINOMINAL;
-//					continue;
-//				}
+				if (valueSets.get(i).size() <= 2) {
+					valueTypes[i] = Ontology.BINOMINAL;
+					continue;
+				}
 				valueTypes[i] = Ontology.NOMINAL;
 			}
 		}

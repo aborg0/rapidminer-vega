@@ -206,19 +206,6 @@ public class CSVDataReader extends AbstractDataReader {
 		types.add(new ParameterTypeString(PARAMETER_COLUMN_SEPARATORS, "Column separators for data files (regular expression)", ",\\s*|;\\s*|\\s+"));
 		types.addAll(StrictDecimalFormat.getParameterTypes(this));
 		types.addAll(DateParser.getParameterTypes(this));
-
-//		type = new ParameterTypeString(PARAMETER_LABEL_NAME, "Name of the label attribute (if empty, the column defined by label_column will be used)", true);
-//		type.setExpert(false);
-//		types.add(type);
-//		type = new ParameterTypeInt(PARAMETER_LABEL_COLUMN, "Column number of the label attribute (only used if label_name is empty; 0 = none; negative values are counted from the last column)", Integer.MIN_VALUE, Integer.MAX_VALUE, 0);
-//		type.setExpert(false);
-//		types.add(type);
-//		types.add(new ParameterTypeString(PARAMETER_ID_NAME, "Name of the id attribute (if empty, the column defined by id_column will be used)", true));
-//		types.add(new ParameterTypeInt(PARAMETER_ID_COLUMN, "Column number of the id attribute (only used if id_name is empty; 0 = none; negative values are counted from the last column)", Integer.MIN_VALUE, Integer.MAX_VALUE, 0));
-//		types.add(new ParameterTypeString(PARAMETER_WEIGHT_NAME, "Name of the weight attribute (if empty, the column defined by weight_column will be used)", true));
-//		types.add(new ParameterTypeInt(PARAMETER_WEIGHT_COLUMN, "Column number of the weight attribute (only used if weight_name is empty; 0 = none, negative values are counted from the last column)", Integer.MIN_VALUE, Integer.MAX_VALUE, 0));
-//		types.add(new ParameterTypeDouble(PARAMETER_SAMPLE_RATIO, "The fraction of the data set which should be read (1 = all; only used if sample_size = -1)", 0.0d, 1.0d, 1.0d));
-//		types.add(new ParameterTypeInt(PARAMETER_SAMPLE_SIZE, "The exact number of samples which should be read (-1 = use sample ratio; if not -1, sample_ratio will not have any effect)", -1, Integer.MAX_VALUE, -1));
 		return types;
 	}
 }

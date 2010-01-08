@@ -238,7 +238,7 @@ public class OperatorDocBundle extends ResourceBundle {
 			}
 
 			File sourceFile = ParameterService.getSourceResourceFile(this.resourceName);
-			if (!sourceFile.exists()) {
+			if ((sourceFile == null) || !sourceFile.exists()) {
 				LogService.getRoot().info("Cannot save resource to file "+sourceFile+": File does not exist. Saving resources only works with development builds of RapidMiner.");
 			} else {
 				LogService.getRoot().info("Saving operator help bundle to "+sourceFile);

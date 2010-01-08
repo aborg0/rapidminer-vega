@@ -8,6 +8,7 @@
 	<property name="lib" location="lib" />
 	<property name="pluginslib" location="lib/plugins" />
 	<property name="build" location="build" />
+	<property name="installation.dir" location="installation" />
 	<property name="javadoc" location="javadoc" />
 	<property name="scripts" location="scripts" />
 	<property name="resources" location="resources" />
@@ -619,5 +620,63 @@
 </javadoc>
 </target>
 
+<!-- *********** RPM build *********** -->
+
+
+  <property file="build.rpm.properties" />
+  
+  <target name="rpm-prepare">
+
+    <delete dir="${rpm.dir}" />
+    
+    <mkdir dir="${rpm.dir}"/>
+    <mkdir dir="${rpm.build.dir}"/>
+    <mkdir dir="${rpm.buildroot.dir}"/>
+    <mkdir dir="${rpm.sources.dir}"/>
+    <mkdir dir="${rpm.specs.dir}"/>
+    <mkdir dir="${rpm.rpms.dir}"/>
+    <mkdir dir="${rpm.srpms.dir}"/>
+    
+    <mkdir dir="${rpm.sources.rapidminer.dir}" />
+    
+    <copy todir="${rpm.sources.rapidminer.dir}/lib">
+      <fileset dir="${lib}"/>
+    </copy>
+    <copy todir="${rpm.sources.rapidminer.dir}/scripts">
+      <fileset dir="${scripts}"> 
+	<exclude name="*.bat" />
+      </fileset>
+      
+    </copy>
+    <copy todir="${rpm.sources.rapidminer.dir}">
+      <fileset dir="${rpm.installation.dir}">
+	<exclude name="${rpm.spec.file}" />
+      </fileset>
+    </copy>
+    
+    <copy file="${rpm.installation.dir}/${rpm.spec.file}" todir="${rpm.specs.dir}"/>
+    <replace file="${rpm.specs.dir}/${rpm.spec.file}" token="%{_version-from-ant}" value="${rapidminer.version}.${rapidminer.revision}"/>
+
+   
+    <tar destfile="${rpm.sources.dir}/${rpm.rapidminer.tar}" basedir="${rpm.sources.dir}" />
+    <gzip destfile="${rpm.sources.dir}/${rpm.rapidminer.tar.gz}" src="${rpm.sources.dir}/${rpm.rapidminer.tar}"/>
+    
+    <delete file="${rpm.sources.dir}/${rpm.rapidminer.tar}" />
+  
+    
+  </target>
+  
+  <target name="rpm-build" depends="createJar,rpm-prepare" description="Builds a RPM package. Works only on linux computer with rpm installed">
+    <rpm
+        specFile="rapidminer.spec"
+        topDir="${rpm.dir}"
+	command="-ba"
+        cleanBuildDir="false"
+        failOnError="true"/>
+  
+    <copy todir="${rpm.dir}/">
+	<fileset dir="${rpm.dir}/RPMS/noarch/" />
+    </copy>
+  </target>
 
 </project>

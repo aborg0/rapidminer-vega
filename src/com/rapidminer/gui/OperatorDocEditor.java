@@ -29,17 +29,25 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JMenu;
 import javax.swing.JToolBar;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLEditorKit;
 
 import com.rapidminer.Process;
+import com.rapidminer.gui.operatormenu.OperatorMenu;
 import com.rapidminer.gui.tools.ExtendedJToolBar;
 import com.rapidminer.gui.tools.ResourceAction;
+import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.documentation.OperatorDocumentation;
 
 
@@ -58,27 +66,37 @@ public class OperatorDocEditor extends OperatorDocViewer {
 
 	private final List<Action> editActions = new LinkedList<Action>();
 	
+	
+	private final Action clearAction = new ResourceAction(true, "operatorhelp.clear") {
+		private static final long serialVersionUID = 1L;
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			getEditor().setText("<html><head></head><body></body></html>");
+			getEditor().requestFocus();
+		}		
+	};
+	
 	private final Action applyChanges = new ResourceAction(true, "operatorhelp.apply_changes") {
 		private static final long serialVersionUID = 1L;
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			if (editWhat != null) {
+				String strippedHtml = stripHtmlFrame(getEditor().getText());
 				if (editWhat.equals("edit_description")) {
 					OperatorDocumentation doc = getDisplayedOperator().getOperatorDescription().getOperatorDocumentation();
 					if (doc != null) {
-						doc.setDocumentation(stripHtmlFrame(getEditor().getText()));
+						doc.setDocumentation(strippedHtml);
 					}
 				} else if (editWhat.equals("edit_synopsis")) {
 					OperatorDocumentation doc = getDisplayedOperator().getOperatorDescription().getOperatorDocumentation();
 					if (doc != null) {
-						doc.setSynopsis(stripHtmlFrame(getEditor().getText()));
+						doc.setSynopsis(strippedHtml);
 					}
 				} else if (editWhat.startsWith("edit_parameter_")) {
 				}
 				setEditEnabled(false);
 				showHelptext();
-			}
-			
+			}			
 		}
 	};
 	
@@ -112,6 +130,30 @@ public class OperatorDocEditor extends OperatorDocViewer {
 		}
 	};
 	
+	private final Action insertOpLink = new ResourceAction(true, "operatorhelp.insert_operator_link") {
+		private static final long serialVersionUID = 1L;
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			JMenu menu = new OperatorMenu("test", false) {
+				private static final long serialVersionUID = 1L;
+				@Override
+				public void performAction(OperatorDescription description) {
+					try {
+						String link = "<a href=\"rm://opdoc/"+description.getKey()+"\">"+description.getName()+"</a>";
+						((HTMLEditorKit)getEditor().getEditorKit()).insertHTML((HTMLDocument) getEditor().getDocument(), getEditor().getCaretPosition(), link, 0, 0, null);
+					} catch (Exception e) {
+						LogService.getRoot().log(Level.WARNING, "Error inserting link: "+e.toString(), e);
+					}
+				}
+			};
+			menu.getPopupMenu().show(insertOpLinkButton, 0, insertOpLinkButton.getHeight());
+		}		
+	};
+	private final JButton insertOpLinkButton = new JButton(insertOpLink);
+	{
+		insertOpLinkButton.setText(null);
+	}
+	
 	private String editWhat;
 		
 	public OperatorDocEditor() {
@@ -123,6 +165,8 @@ public class OperatorDocEditor extends OperatorDocViewer {
 		toolBar.add(applyChanges);
 		toolBar.add(discardChanges);
 		toolBar.addSeparator();
+		toolBar.add(clearAction);
+		toolBar.add(insertOpLinkButton);
 
 		Map<String,Action> actionMap = new HashMap<String,Action>();
 		for (final Action action : getEditor().getActions()) {
@@ -211,7 +255,11 @@ public class OperatorDocEditor extends OperatorDocViewer {
 		}
 
 		if (initialText != null) {
-			getEditor().setText("<html>"+initialText+"</html>");
+			if (initialText.startsWith("<html>")) {
+				getEditor().setText(initialText);
+			} else {
+				getEditor().setText("<html><head></head><body>"+initialText+"</body></html>");
+			}
 			getEditor().setEditable(true);
 			setEditEnabled(true);
 			getEditor().requestFocus(true);
