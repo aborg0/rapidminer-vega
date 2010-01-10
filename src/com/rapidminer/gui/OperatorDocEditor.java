@@ -222,7 +222,7 @@ public class OperatorDocEditor extends OperatorDocViewer {
 
 	@Override
 	protected String makeParameterHeader(ParameterType type) {
-		return  super.makeParameterHeader(type) + "<small><a href=\"edit_parameter_"+type.getKey()+"\">(edit)</a></small>";
+		return super.makeParameterHeader(type) + " <small><a href=\"edit_parameter_"+type.getKey()+"\">(edit)</a></small>";
 	}
 
 	/** Enables/disables all actions for editing HTML text.*/

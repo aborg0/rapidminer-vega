@@ -95,7 +95,9 @@ public class UpdateManager {
 		try {
 			File managedDir = new File(ParameterService.getPluginDir(), "managed");
 			if (!managedDir.exists()) {
-				managedDir.mkdirs();
+				if (!managedDir.mkdirs()) {
+					throw new IOException("Cannot create directory "+managedDir);
+				}
 			}
 			for (PackageDescriptor desc : downloadList) {
 				String urlString = service.getDownloadURL(desc.getPackageId(), desc.getVersion(), desc.getPlatformName());
