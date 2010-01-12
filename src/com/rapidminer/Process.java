@@ -751,8 +751,9 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 
 			return result;
 		} catch (OperatorException e) {
-			if (e instanceof ProcessStoppedException) {				
-				UsageStatistics.getInstance().count(((ProcessStoppedException)e).getOperator(), OperatorStatisticsValue.STOPPED);
+			if (e instanceof ProcessStoppedException) {	
+				Operator op = getOperator(((ProcessStoppedException)e).getOperatorName());
+				UsageStatistics.getInstance().count(op, OperatorStatisticsValue.STOPPED);
 			} else {				
 				UsageStatistics.getInstance().count(getCurrentOperator(), OperatorStatisticsValue.FAILURE);
 				if (e instanceof UserError) {

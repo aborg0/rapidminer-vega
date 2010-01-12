@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Calendar;
@@ -58,7 +57,6 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
-import org.freehep.util.io.ReaderInputStream;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -140,8 +138,8 @@ public class XMLTools {
 		return BUILDER.parse(in);
 	}
 
-	public static Document parse(Reader reader) throws SAXException, IOException {
-		return parse(new ReaderInputStream(reader));
+	public static Document parse(File file) throws SAXException, IOException {
+		return BUILDER.parse(file);	
 	}
 
 	public static String toString(Document document, Charset encoding) throws XMLException {

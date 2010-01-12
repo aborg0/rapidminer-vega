@@ -109,9 +109,8 @@
 
 	<target name="createJar" depends="clean, build" description="Generate the lib/rapidminer.jar file">
 		<echo message="Creating jar..." />
-		<pathconvert pathsep=" " property="manifest.classpath" refid="rm.classpath">
+		<pathconvert pathsep=" " property="manifest.classpath" refid="rm.classpath" dirsep="/">
 			<map from="${lib}/" to="" />
-			<map from="${lib}/freehep/" to="" />
 		</pathconvert>
 		<echo message="Manifest Classpath: ${manifest.classpath}" />
 		<jar jarfile="${lib}/rapidminer.jar" update="true">

@@ -32,14 +32,21 @@ public class ProcessStoppedException extends OperatorException {
 
 	private static final long serialVersionUID = 8299515313202467747L;
 
-	private final Operator op;
+	private transient final Operator op;
+	private String opName;
 	
 	public ProcessStoppedException(Operator o) {
 		super("Process stopped in " + o.getName());
 		this.op = o;
+		this.opName = op.getName();
 	}
 	
 	public Operator getOperator() {
 		return op;
 	}
+	
+	public String getOperatorName() {
+		return opName;
+	}
+
 }

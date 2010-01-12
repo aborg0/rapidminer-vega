@@ -386,10 +386,10 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 					continue;
 				}
 				// TODO save value type guessing might be better
-				if (valueSets.get(i).size() <= 2) {
-					valueTypes[i] = Ontology.BINOMINAL;
-					continue;
-				}
+//				if (valueSets.get(i).size() <= 2) {
+//					valueTypes[i] = Ontology.BINOMINAL;
+//					continue;
+//				}
 				valueTypes[i] = Ontology.NOMINAL;
 			}
 		}

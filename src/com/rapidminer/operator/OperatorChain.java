@@ -144,6 +144,11 @@ public abstract class OperatorChain extends Operator {
 	@Override
 	public Operator cloneOperator(String name, boolean forParallelExcecution) {
 		OperatorChain clone = (OperatorChain) super.cloneOperator(name, forParallelExcecution);		
+		if (areSubprocessesExtendable()) {
+			while (clone.getNumberOfSubprocesses() < getNumberOfSubprocesses()) {
+				clone.addSubprocess(clone.getNumberOfSubprocesses());
+			}
+		}
 		for (int i = 0; i < subprocesses.length; i++) {
 			clone.subprocesses[i].cloneExecutionUnitFrom(this.subprocesses[i], forParallelExcecution);
 		}		

@@ -23,7 +23,6 @@
 package com.rapid_i.deployment.update.client;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Collection;
@@ -205,7 +204,7 @@ public class ManagedExtension {
 		try {
 			File file = new File(getUserExtensionsDir(), "extensions.xml");
 			if (file.exists()) {
-				parse(XMLTools.parse(new FileInputStream(file)), true);
+				parse(XMLTools.parse(file), true);
 			}
 		} catch (Exception e) {
 			LogService.getRoot().log(Level.WARNING, "Failed to read local extension state: "+e, e);
@@ -213,7 +212,7 @@ public class ManagedExtension {
 		try {
 			File file = new File(getGlobalExtensionsDir(), "extensions.xml");
 			if (file.exists()) {
-				parse(XMLTools.parse(new FileInputStream(file)), false);
+				parse(XMLTools.parse(file), false);
 			}
 		} catch (Exception e) {
 			LogService.getRoot().log(Level.WARNING, "Failed to read global extension state: "+e, e);
