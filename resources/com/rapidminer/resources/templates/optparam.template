@@ -1,0 +1,4 @@
+Optimize Parameters
+This process optimizes the parameter C of a Support Vector Machine for a given input data set. The best parameter value, the performance, and the correspongind model is returned.
+optparam.xml
+Retrieve.repository_entry

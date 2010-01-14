@@ -41,11 +41,11 @@ import javax.swing.JTable;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
+import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeDatabaseTable;
-import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
@@ -56,16 +56,16 @@ import com.rapidminer.tools.jdbc.connection.DatabaseConnectionService;
  * @author Tobias Malbrecht
  */
 public class DatabaseTableValueCellEditor extends AbstractCellEditor implements PropertyValueCellEditor {
-	
+
 	private static final long serialVersionUID = -771727412083431607L;
-	
+
 	class DatabaseTableComboBoxModel extends AbstractListModel implements ComboBoxModel, Serializable {
 		private static final long serialVersionUID = -2984664300141879731L;
-		
+
 		private String lastURL = null;
-		
+
 		private LinkedList<Object> list = new LinkedList<Object>();
-		
+
 		private Object selected = null;
 
 		public boolean updateModel() {
@@ -74,42 +74,51 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 				final ConnectionEntry entry = connectionProvider.getConnectionEntry();
 				if (entry != null && (lastURL == null || !lastURL.equals(entry.getURL()))) {
 					lastURL = entry.getURL();
-					Thread t = new Thread() { 
+					ProgressThread t = new ProgressThread("fetching_database_tables") { 
 						@Override
 						public void run() {
-							list.clear();
-							DatabaseHandler handler = null;
+							getProgressListener().setTotal(100);
+							getProgressListener().setCompleted(10);
 							try {
-								handler = DatabaseConnectionService.connect(entry);
-							} catch (SQLException e1) {
-							}
+								list.clear();
+								DatabaseHandler handler = null;
+								try {
+									handler = DatabaseConnectionService.connect(entry);
+								} catch (SQLException e1) {
+								}
 
-							if (handler != null) {
-								Map<String, List<ColumnIdentifier>> tableMap;
-								try {
-									tableMap = handler.getAllTableMetaData();
-									list.addAll(tableMap.keySet());
-								} catch (SQLException e) {
-									// TODO: appropriate error message
-									SwingTools.showVerySimpleErrorMessage("Retrieval of table names failed");
-								}
-								try {
-									handler.disconnect();
-								} catch (SQLException e) {
-								}
-							}
-							if (model.getSize() == 0) {
-								setSelectedItem(null);
-							} else {
-								if (selected != null) {
-									setSelectedItem(selected);
-								} else {
-									if (model.getSize() > 0) {
-										setSelectedItem(model.getElementAt(0));
+								getProgressListener().setCompleted(40);
+
+								if (handler != null) {
+									Map<String, List<ColumnIdentifier>> tableMap;
+									try {
+										tableMap = handler.getAllTableMetaData();
+										list.addAll(tableMap.keySet());
+										getProgressListener().setCompleted(70);
+									} catch (SQLException e) {
+										// TODO: appropriate error message
+										SwingTools.showVerySimpleErrorMessage("Retrieval of table names failed");
+									}
+									try {
+										handler.disconnect();
+									} catch (SQLException e) {
 									}
 								}
+								if (model.getSize() == 0) {
+									setSelectedItem(null);
+								} else {
+									if (selected != null) {
+										setSelectedItem(selected);
+									} else {
+										if (model.getSize() > 0) {
+											setSelectedItem(model.getElementAt(0));
+										}
+									}
+								}
+								fireContentsChanged(this, 0, list.size() - 1);
+							} finally {
+								getProgressListener().complete();
 							}
-							fireContentsChanged(this, 0, list.size() - 1);
 						}
 					};
 					t.start();
@@ -134,10 +143,10 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 
 		@Override
 		public Object getElementAt(int index) {
-	        if (index >= 0 && index < list.size()) {
-	        	return list.get(index);
-	        }
-	        return null;
+			if (index >= 0 && index < list.size()) {
+				return list.get(index);
+			}
+			return null;
 		}
 
 		@Override
@@ -189,24 +198,24 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 	private DatabaseTableComboBoxModel model = new DatabaseTableComboBoxModel();
 
 	private JComboBox comboBox = new DatabaseTableComboBox();
-	
+
 	private Operator operator;
 
 	private ParameterType type;
-	
+
 	private ConnectionProvider connectionProvider;
-	
+
 	public DatabaseTableValueCellEditor(final ParameterTypeDatabaseTable type) {
 		this.type = type;
 		comboBox.setToolTipText(type.getDescription());
 	}
-	
+
 	private String getValue() {
 		String value = null;
-		try {
-			value = operator.getParameterAsString(type.getKey());
-		} catch (UndefinedParameterError e1) {
-		}
+		//		try {
+		value = operator.getParameters().getParameterOrNull(type.getKey());
+		//		} catch (UndefinedParameterError e1) {
+		//		}
 		return value;
 	}
 

@@ -87,6 +87,7 @@ public class UpdateListPanel extends JPanel {
 
 	private final Map<PackageDescriptor,Boolean> selectionMap = new HashMap<PackageDescriptor,Boolean>();
 	private final Map<PackageDescriptor,List<Dependency>> dependencyMap = new HashMap<PackageDescriptor,List<Dependency>>();
+	/** Read the comment of {@link #isPurchased(PackageDescriptor)}. */
 	private final Set<String> purchasedPackages = new HashSet<String>();
 
 	private final UpdateDialog updateDialog;
@@ -203,9 +204,10 @@ public class UpdateListPanel extends JPanel {
 			b.append("<br/>Depends on: "+descriptor.getDependencies());
 		}
 		b.append("<p>").append(descriptor.getDescription()).append("</p>");
+		// Before you are shocked, read the comment of isPurchased() :-)
 		if (UpdateManager.COMMERCIAL_LICENSE_NAME.equals(descriptor.getLicenseName())) {
 			if (isPurchased(descriptor)) {
-				b.append("<p>You have purchased this package. However, you cannot install this extension with this pre-release of RapidMiner. Please upgrade first.</p>");
+				b.append("<p>You have purchased this package. However, you cannot install this extension with this version of RapidMiner. Please upgrade first.</p>");
 			} else {
 				try {
 					b.append("<p><a href="+UpdateManager.getUpdateServerURL("/shop/"+descriptor.getPackageId()).toString()+">Order this extension.</a></p><p>You cannot install this extension with this pre-release of RapidMiner. Please upgrade first.</p>");
@@ -313,6 +315,12 @@ public class UpdateListPanel extends JPanel {
 		}	
 	}
 
+	/**
+	 * Currently, this is an unused feature. There are no extensions that can be purchased. 
+	 * Don't be afraid, RapidMiner is, and will always be, open source and free.
+	 * However, future extensions like connectors to SAP or other data sources requiring proprietary
+	 * drivers with expensive license fees may only be available on a commercial basis, for obvious reasons :-)
+	 */
 	public boolean isPurchased(PackageDescriptor desc) {
 		return purchasedPackages.contains(desc.getPackageId());
 	}

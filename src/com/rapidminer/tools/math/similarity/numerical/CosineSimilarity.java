@@ -50,9 +50,11 @@ public class CosineSimilarity extends SimilarityMeasure {
 				sum2 += v2 * v2;
 			}
 		}
-		if ((sum1 > 0) && (sum2 > 0))
-			return sum / (Math.sqrt(sum1) * Math.sqrt(sum2));
-		else
+		if ((sum1 > 0) && (sum2 > 0)) {
+			double result = sum / (Math.sqrt(sum1) * Math.sqrt(sum2));
+			// result can be > 1 (or -1) due to rounding errors for equal vectors, but must be between -1 and 1
+			return Math.min(Math.max(result, -1d), 1d); 
+		} else
 			return Double.NaN;
 	}
 	@Override
