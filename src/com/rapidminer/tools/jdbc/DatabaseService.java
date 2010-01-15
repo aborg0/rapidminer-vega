@@ -125,7 +125,7 @@ public class DatabaseService {
 			}
 		}
 		
-		File globalJDBCFile = ParameterService.getGlobalConfigFile("rapidminerrc");
+		File globalJDBCFile = ParameterService.getGlobalConfigFile("jdbc_properties.xml");
 		if (globalJDBCFile != null) {
 			loadJDBCProperties(globalJDBCFile);
 		}
