@@ -23,6 +23,7 @@
 package com.rapidminer.operator.learner.functions.kernel.jmysvm.svm;
 
 import java.util.Iterator;
+import java.util.logging.Level;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.operator.Operator;
@@ -38,6 +39,7 @@ import com.rapidminer.operator.learner.functions.kernel.jmysvm.util.MinHeap;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.RandomGenerator;
+import com.rapidminer.tools.WrapperLoggingHandler;
 
 /**
  * Abstract base class for all SVMs
@@ -119,18 +121,20 @@ public abstract class SVM implements SVMInterface {
 
 	protected QuadraticProblem qp;
 
-    private Operator paramOperator;
-    
-    private RandomGenerator randomGenerator;
-    
-	public SVM() {}
+	private Operator paramOperator;
+
+	private RandomGenerator randomGenerator;
+
+	public SVM() {
+	}
 
 	/**
 	 * class constructor. Throws an operator exception if a non-optional
 	 * parameter was not set and has no default value.
 	 */
-	public SVM(Operator paramOperator, Kernel new_kernel, SVMExamples new_examples, com.rapidminer.example.ExampleSet rapidMinerExamples, RandomGenerator randomGenerator) throws UndefinedParameterError {
-        this.paramOperator = paramOperator;
+	public SVM(Operator paramOperator, Kernel new_kernel, SVMExamples new_examples, com.rapidminer.example.ExampleSet rapidMinerExamples, RandomGenerator randomGenerator)
+			throws UndefinedParameterError {
+		this.paramOperator = paramOperator;
 		the_examples = new_examples;
 		this.randomGenerator = randomGenerator;
 		max_iterations = paramOperator.getParameterAsInt(AbstractMySVMLearner.PARAMETER_MAX_ITERATIONS);
@@ -210,7 +214,8 @@ public abstract class SVM implements SVMInterface {
 			this.C = 0.0d;
 			for (int i = 0; i < examples_total; i++) {
 				this.C += the_kernel.calculate_K(i, i);
-			};
+			}
+			;
 			this.C = examples_total / this.C;
 			logln(3, "C set to " + this.C);
 		}
@@ -267,24 +272,29 @@ public abstract class SVM implements SVMInterface {
 					logln(2, "***** Checking convergence for all variables");
 					reset_shrinked();
 					converged = convergence();
-				};
+				}
+				;
 
 				if (converged) {
 					logln(1, "*** Convergence");
 					break M;
-				};
+				}
+				;
 
 				// set variables free again
 				shrink_const += 10;
 				target_count = 0;
 				for (int i = 0; i < examples_total; i++) {
 					at_bound[i] = 0;
-				};
-			};
+				}
+				;
+			}
+			;
 			shrink();
 			calculate_working_set();
 			update_working_set();
-		};
+		}
+		;
 
 		int i;
 		if ((iteration >= max_iterations) && (!converged)) {
@@ -292,8 +302,10 @@ public abstract class SVM implements SVMInterface {
 			if (shrinked) {
 				// set sums for all variables for statistics
 				reset_shrinked();
-			};
-		};
+			}
+			;
+		}
+		;
 
 		// calculate b
 		double new_b = 0;
@@ -305,8 +317,10 @@ public abstract class SVM implements SVMInterface {
 			} else if ((alphas[i] + cPos[i] > is_zero) && (alphas[i] < -is_zero)) {
 				new_b += ys[i] - sum[i] + epsilon_pos;
 				new_b_count++;
-			};
-		};
+			}
+			;
+		}
+		;
 
 		if (new_b_count > 0) {
 			the_examples.set_b(new_b / new_b_count);
@@ -316,8 +330,10 @@ public abstract class SVM implements SVMInterface {
 				if ((alphas[i] < is_zero) && (alphas[i] > -is_zero)) {
 					new_b += ys[i] - sum[i];
 					new_b_count++;
-				};
-			};
+				}
+				;
+			}
+			;
 			if (new_b_count > 0) {
 				the_examples.set_b(new_b / new_b_count);
 			} else {
@@ -325,10 +341,13 @@ public abstract class SVM implements SVMInterface {
 				for (i = 0; i < examples_total; i++) {
 					new_b += ys[i] - sum[i];
 					new_b_count++;
-				};
+				}
+				;
 				the_examples.set_b(new_b / new_b_count);
-			};
-		};
+			}
+			;
+		}
+		;
 
 		// if(verbosity>= 2){
 		logln(2, "Done training: " + iteration + " iterations.");
@@ -341,9 +360,11 @@ public abstract class SVM implements SVMInterface {
 				now_target_dummy += epsilon_pos;
 			} else {
 				now_target_dummy -= epsilon_neg;
-			};
+			}
+			;
 			now_target += alphas[i] * now_target_dummy;
-		};
+		}
+		;
 		logln(2, "Target function: " + now_target);
 		// };
 		// };
@@ -375,7 +396,8 @@ public abstract class SVM implements SVMInterface {
 		for (i = 0; i < examples_total; i++) {
 			if (lambda(i) < min_lambda) {
 				min_lambda = lambda(i);
-			};
+			}
+			;
 			y = ys[i];
 			prediction = sum[i] + b;
 			mae += Math.abs(y - prediction);
@@ -385,14 +407,18 @@ public abstract class SVM implements SVMInterface {
 				countpos++;
 			} else if (y > prediction + epsilon_neg) {
 				countneg++;
-			};
+			}
+			;
 			if (alpha != 0) {
 				svs++;
 				if ((alpha == cPos[i]) || (alpha == -cNeg[i])) {
 					bsv++;
-				};
-			};
-		};
+				}
+				;
+			}
+			;
+		}
+		;
 		mae /= examples_total;
 		mse /= examples_total;
 		min_lambda = -min_lambda;
@@ -415,8 +441,10 @@ public abstract class SVM implements SVMInterface {
 			alpha = alphas[i];
 			for (j = 0; j < dim; j++) {
 				w[j] += alpha * x[j];
-			};
-		};
+			}
+			;
+		}
+		;
 		// double[] Exp = the_examples.Exp;
 		// double[] Dev = the_examples.Dev;
 		// if(Exp != null){
@@ -434,11 +462,13 @@ public abstract class SVM implements SVMInterface {
 		// logln(2," ");
 		for (j = 0; j < dim; j++) {
 			logln(2, "w[" + j + "] = " + w[j]);
-		};
+		}
+		;
 		logln(2, "b = " + b);
 		if (dim == 1) {
 			logln(2, "y = " + w[0] + "*x+" + b);
-		};
+		}
+		;
 		// };
 	};
 
@@ -502,20 +532,24 @@ public abstract class SVM implements SVMInterface {
 		int i;
 		for (i = 0; i < working_set_size; i++) {
 			qp.l[i] = 0; // -is_zero;
-		};
+		}
+		;
 
 		if (quadraticLossPos) {
 			for (i = 0; i < cPos.length; i++)
 				cPos[i] = Double.MAX_VALUE;
-		};
+		}
+		;
 		if (quadraticLossNeg) {
 			for (i = 0; i < cNeg.length; i++)
 				cNeg[i] = Double.MAX_VALUE;
-		};
+		}
+		;
 
 		for (i = 0; i < examples_total; i++) {
 			alphas[i] = 0.0;
-		};
+		}
+		;
 
 		lambda_WS = 0;
 		to_shrink = 0;
@@ -550,18 +584,24 @@ public abstract class SVM implements SVMInterface {
 						at_bound[i] = at_bound[last_pos];
 						if (last_pos <= working_set_size) {
 							break;
-						};
-					};
-				};
+						}
+						;
+					}
+					;
+				}
+				;
 				to_shrink = 0;
 				shrinked = true;
 				if (last_pos < examples_total) {
 					examples_total = last_pos;
 					the_kernel.set_examples_size(examples_total);
-				};
-			};
+				}
+				;
+			}
+			;
 			logln(4, "shrinked to " + examples_total + " variables");
-		};
+		}
+		;
 	};
 
 	/**
@@ -578,7 +618,8 @@ public abstract class SVM implements SVMInterface {
 		for (i = old_ex_tot; i < examples_total; i++) {
 			sum[i] = 0;
 			at_bound[i] = 0;
-		};
+		}
+		;
 		double alpha;
 		double[] kernel_row;
 		for (i = 0; i < examples_total; i++) {
@@ -587,9 +628,12 @@ public abstract class SVM implements SVMInterface {
 				kernel_row = the_kernel.get_row(i);
 				for (j = old_ex_tot; j < examples_total; j++) {
 					sum[j] += alpha * kernel_row[j];
-				};
-			};
-		};
+				}
+				;
+			}
+			;
+		}
+		;
 		sum_alpha = 0;
 		shrinked = false;
 		logln(5, "Resetting shrinked from " + old_ex_tot + " to " + examples_total);
@@ -609,8 +653,10 @@ public abstract class SVM implements SVMInterface {
 			alpha_sum += alpha;
 			if (((alpha > is_zero) && (alpha - cNeg[i] < -is_zero)) || ((alpha < -is_zero) && (alpha + cPos[i] > is_zero))) {
 				SVcount++;
-			};
-		};
+			}
+			;
+		}
+		;
 		if (SVcount > 0) {
 			// project
 			alpha_sum /= SVcount;
@@ -618,9 +664,12 @@ public abstract class SVM implements SVMInterface {
 				alpha = alphas[i];
 				if (((alpha > is_zero) && (alpha - cNeg[i] < -is_zero)) || ((alpha < -is_zero) && (alpha + cPos[i] > is_zero))) {
 					alphas[i] -= alpha_sum;
-				};
-			};
-		};
+				}
+				;
+			}
+			;
+		}
+		;
 	};
 
 	/**
@@ -635,7 +684,8 @@ public abstract class SVM implements SVMInterface {
 			working_set_size = parameters_working_set_size;
 			if (working_set_size > examples_total)
 				working_set_size = examples_total;
-		};
+		}
+		;
 
 		heap_min.init(working_set_size / 2);
 		heap_max.init(working_set_size / 2 + working_set_size % 2);
@@ -653,16 +703,19 @@ public abstract class SVM implements SVMInterface {
 				the_nabla = nabla(i);
 				if (is_alpha_neg(i)) {
 					sort_value = -the_nabla; // - : maximum inconsistency
-												// approach
+					// approach
 				} else {
 					sort_value = the_nabla;
-				};
+				}
+				;
 				// add to heaps
 				heap_min.add(sort_value, i);
 				heap_max.add(sort_value, i);
-			};
+			}
+			;
 			i++;
-		};
+		}
+		;
 
 		int[] new_ws = heap_min.get_values();
 		working_set_size = 0;
@@ -671,14 +724,16 @@ public abstract class SVM implements SVMInterface {
 		for (i = 0; i < j; i++) {
 			working_set[working_set_size] = new_ws[i];
 			working_set_size++;
-		};
+		}
+		;
 		pos = working_set_size;
 		new_ws = heap_max.get_values();
 		j = heap_max.size();
 		for (i = 0; i < j; i++) {
 			working_set[working_set_size] = new_ws[i];
 			working_set_size++;
-		};
+		}
+		;
 		if ((!heap_min.empty()) && (!heap_max.empty())) {
 			if (heap_min.top_value() >= heap_max.top_value()) {
 				// there could be the same values in the min- and maxheap,
@@ -690,7 +745,8 @@ public abstract class SVM implements SVMInterface {
 					j = pos;
 					while ((j < working_set_size) && (working_set[j] != working_set[i])) {
 						j++;
-					};
+					}
+					;
 					if (j < working_set_size) {
 						// working_set[i] equals working_set[j]
 						// remove j from WS
@@ -698,10 +754,14 @@ public abstract class SVM implements SVMInterface {
 						working_set_size--;
 					} else {
 						i++;
-					};
-				};
-			};
-		};
+					}
+					;
+				}
+				;
+			}
+			;
+		}
+		;
 
 		if (target_count > 0) {
 			// convergence error on last iteration?
@@ -719,20 +779,26 @@ public abstract class SVM implements SVMInterface {
 				if (is_alpha_neg(pos_abs)) {
 					if (alpha - cNeg[pos_abs] < -is_zero) {
 						bounded_pos = false;
-					};
+					}
+					;
 					if (alpha > is_zero) {
 						bounded_neg = false;
-					};
+					}
+					;
 				} else {
 					if (alpha + cNeg[pos_abs] > is_zero) {
 						bounded_neg = false;
-					};
+					}
+					;
 					if (alpha < -is_zero) {
 						bounded_pos = false;
-					};
-				};
+					}
+					;
+				}
+				;
 				pos++;
-			};
+			}
+			;
 			if (bounded_pos) {
 				// all alphas are at upper bound
 				// need alpha that can be moved upward
@@ -746,23 +812,31 @@ public abstract class SVM implements SVMInterface {
 							if (lambda(pos_abs) < max_lambda) {
 								max_lambda = lambda(pos_abs);
 								max_pos = pos_abs;
-							};
-						};
+							}
+							;
+						}
+						;
 					} else {
 						if (alpha < -is_zero) {
 							if (lambda(pos_abs) < max_lambda) {
 								max_lambda = lambda(pos_abs);
 								max_pos = pos_abs;
-							};
-						};
-					};
-				};
+							}
+							;
+						}
+						;
+					}
+					;
+				}
+				;
 				if (max_pos < examples_total) {
 					if (working_set_size < parameters_working_set_size) {
 						working_set_size++;
-					};
+					}
+					;
 					working_set[working_set_size - 1] = max_pos;
-				};
+				}
+				;
 			} else if (bounded_neg) {
 				// all alphas are at lower bound
 				// need alpha that can be moved downward
@@ -776,25 +850,35 @@ public abstract class SVM implements SVMInterface {
 							if (lambda(pos_abs) < max_lambda) {
 								max_lambda = lambda(pos_abs);
 								max_pos = pos_abs;
-							};
-						};
+							}
+							;
+						}
+						;
 					} else {
 						if (alpha + cNeg[pos_abs] > is_zero) {
 							if (lambda(pos_abs) < max_lambda) {
 								max_lambda = lambda(pos_abs);
 								max_pos = pos_abs;
-							};
-						};
-					};
-				};
+							}
+							;
+						}
+						;
+					}
+					;
+				}
+				;
 				if (max_pos < examples_total) {
 					if (working_set_size < parameters_working_set_size) {
 						working_set_size++;
-					};
+					}
+					;
 					working_set[working_set_size - 1] = max_pos;
-				};
-			};
-		};
+				}
+				;
+			}
+			;
+		}
+		;
 
 		if ((working_set_size < parameters_working_set_size) && (working_set_size < examples_total)) {
 			// use full working set
@@ -807,20 +891,26 @@ public abstract class SVM implements SVMInterface {
 					if (working_set[i] == pos) {
 						ok = 0;
 						i = working_set_size;
-					};
-				};
+					}
+					;
+				}
+				;
 				if (1 == ok) {
 					working_set[working_set_size] = pos;
 					working_set_size++;
-				};
+				}
+				;
 				pos = (pos + 1) % examples_total;
-			};
-		};
+			}
+			;
+		}
+		;
 
 		int ipos;
 		for (ipos = 0; ipos < working_set_size; ipos++) {
 			which_alpha[ipos] = is_alpha_neg(working_set[ipos]);
-		};
+		}
+		;
 	};
 
 	/**
@@ -852,12 +942,15 @@ public abstract class SVM implements SVMInterface {
 					// one of i and j positive, one negative
 					(qp.H)[pos_i * working_set_size + pos_j] = -kernel_row[j];
 					(qp.H)[pos_j * working_set_size + pos_i] = -kernel_row[j];
-				};
-			};
+				}
+				;
+			}
+			;
 			for (pos_j = 0; pos_j < working_set_size; pos_j++) {
 				j = working_set[pos_j];
 				sum_WS += alphas[j] * kernel_row[j];
-			};
+			}
+			;
 			// set main diagonal
 			(qp.H)[pos_i * working_set_size + pos_i] = kernel_row[i];
 
@@ -876,26 +969,34 @@ public abstract class SVM implements SVMInterface {
 				(qp.c)[pos_i] = -ys[i] + epsilon_neg + sum[i] - sum_WS;
 				primal[pos_i] = alphas[i];
 				(qp.u)[pos_i] = cNeg[i];
-			};
-		};
+			}
+			;
+		}
+		;
 		if (quadraticLossNeg) {
 			for (pos_i = 0; pos_i < working_set_size; pos_i++) {
 				i = working_set[pos_i];
 				if (my_which_alpha[pos_i]) {
 					(qp.H)[pos_i * (working_set_size + 1)] += 1 / cNeg[i];
 					(qp.u)[pos_i] = Double.MAX_VALUE;
-				};
-			};
-		};
+				}
+				;
+			}
+			;
+		}
+		;
 		if (quadraticLossPos) {
 			for (pos_i = 0; pos_i < working_set_size; pos_i++) {
 				i = working_set[pos_i];
 				if (!my_which_alpha[pos_i]) {
 					(qp.H)[pos_i * (working_set_size + 1)] += 1 / cPos[i];
 					(qp.u)[pos_i] = Double.MAX_VALUE;
-				};
-			};
-		};
+				}
+				;
+			}
+			;
+		}
+		;
 	};
 
 	/**
@@ -913,7 +1014,8 @@ public abstract class SVM implements SVMInterface {
 		for (i = 0; i < examples_total; i++) {
 			sum[i] = 0;
 			at_bound[i] = 0;
-		};
+		}
+		;
 
 		// first working set is random
 		j = 0;
@@ -924,10 +1026,12 @@ public abstract class SVM implements SVMInterface {
 				which_alpha[i] = true;
 			} else {
 				which_alpha[i] = false;
-			};
+			}
+			;
 			i++;
 			j++;
-		};
+		}
+		;
 		update_working_set();
 	};
 
@@ -958,7 +1062,8 @@ public abstract class SVM implements SVMInterface {
 				the_new_alpha = primal[pos_i];
 			} else {
 				the_new_alpha = -primal[pos_i];
-			};
+			}
+			;
 			// next three statements: keep this order!
 			i = working_set[pos_i];
 			alpha_diff = the_new_alpha - alphas[i];
@@ -969,9 +1074,12 @@ public abstract class SVM implements SVMInterface {
 				kernel_row = the_kernel.get_row(i);
 				for (j = examples_total - 1; j >= 0; j--) {
 					my_sum[j] += alpha_diff * kernel_row[j];
-				};
-			};
-		};
+				}
+				;
+			}
+			;
+		}
+		;
 	};
 
 	/**
@@ -1001,8 +1109,10 @@ public abstract class SVM implements SVMInterface {
 				// alpha = nabla
 				the_lambda_eq += nabla(i); // all_ys[i]+epsilon_pos-sum[i];
 				total++;
-			};
-		};
+			}
+			;
+		}
+		;
 
 		logln(4, "lambda_eq = " + (the_lambda_eq / total));
 		if (total > 0) {
@@ -1011,7 +1121,8 @@ public abstract class SVM implements SVMInterface {
 			// keep WS lambda_eq
 			lambda_eq = lambda_WS; // (lambda_eq+4*lambda_WS)/5;
 			logln(4, "*** no SVs in convergence(), lambda_eq = " + lambda_eq + ".");
-		};
+		}
+		;
 
 		if (target_count > 2) {
 			// estimate lambda from WS
@@ -1026,14 +1137,18 @@ public abstract class SVM implements SVMInterface {
 						lambda_eq = -nabla(i);
 					} else {
 						lambda_eq = nabla(i);
-					};
+					}
+					;
 					logln(5, "set lambda_eq to nabla(" + i + "): " + lambda_eq);
-				};
+				}
+				;
 			} else {
 				lambda_eq = lambda_WS;
 				logln(5, "Re-calculated lambda_eq from WS: " + lambda_eq);
-			};
-		};
+			}
+			;
+		}
+		;
 
 		// check linear constraint
 		if (java.lang.Math.abs(alpha_sum + sum_alpha) > convergence_epsilon) {
@@ -1041,7 +1156,8 @@ public abstract class SVM implements SVMInterface {
 			logln(4, "No convergence: equality constraint violated: |" + (alpha_sum + sum_alpha) + "| >> 0");
 			project_to_constraint();
 			result = false;
-		};
+		}
+		;
 
 		i = 0;
 		while ((i < examples_total) && (result != false)) {
@@ -1049,8 +1165,10 @@ public abstract class SVM implements SVMInterface {
 				i++;
 			} else {
 				result = false;
-			};
-		};
+			}
+			;
+		}
+		;
 
 		return result;
 	};
@@ -1071,7 +1189,8 @@ public abstract class SVM implements SVMInterface {
 			result = -java.lang.Math.abs(nabla(i) + lambda_eq);
 		} else {
 			result = -java.lang.Math.abs(nabla(i) - lambda_eq);
-		};
+		}
+		;
 		// default = not at bound
 
 		alpha = alphas[i];
@@ -1081,18 +1200,21 @@ public abstract class SVM implements SVMInterface {
 			if (alpha - cNeg[i] >= -is_zero) {
 				// upper bound active
 				result = -lambda_eq - nabla(i);
-			};
+			}
+			;
 		} else if (alpha >= -is_zero) {
 			// lower bound active
 			if (is_alpha_neg(i)) {
 				result = nabla(i) + lambda_eq;
 			} else {
 				result = nabla(i) - lambda_eq;
-			};
+			}
+			;
 		} else if (alpha + cPos[i] <= is_zero) {
 			// upper bound active
 			result = lambda_eq - nabla(i);
-		};
+		}
+		;
 		return result;
 	};
 
@@ -1109,7 +1231,8 @@ public abstract class SVM implements SVMInterface {
 					to_shrink++;
 			} else {
 				at_bound[i] = 0;
-			};
+			}
+			;
 		} else if ((alpha <= is_zero) && (alpha >= -is_zero)) {
 			// lower bound active
 			if (the_lambda >= 0) {
@@ -1118,7 +1241,8 @@ public abstract class SVM implements SVMInterface {
 					to_shrink++;
 			} else {
 				at_bound[i] = 0;
-			};
+			}
+			;
 		} else if (alpha + cPos[i] <= is_zero) {
 			// alpha at upper bound
 			if (the_lambda >= 0) {
@@ -1127,14 +1251,17 @@ public abstract class SVM implements SVMInterface {
 					to_shrink++;
 			} else {
 				at_bound[i] = 0;
-			};
+			}
+			;
 		} else {
 			// not at bound
 			at_bound[i] = 0;
-		};
+		}
+		;
 		if ((the_lambda >= feasible_epsilon) || (at_bound[i] >= shrink_const)) {
 			is_feasible = false;
-		};
+		}
+		;
 		return is_feasible;
 	}
 
@@ -1149,14 +1276,15 @@ public abstract class SVM implements SVMInterface {
 	 *            Message test
 	 */
 	protected void logln(int level, String message) {
-        if (paramOperator != null)
-            paramOperator.getLog().log(message, RAPID_MINER_VERBOSITY[level - 1]);
-        else
-            LogService.getGlobal().log(message, RAPID_MINER_VERBOSITY[level - 1]);
+		Level mappedLevel = WrapperLoggingHandler.LEVELS[RAPID_MINER_VERBOSITY[level - 1]];
+		if (paramOperator != null)
+			paramOperator.getLogger().log(mappedLevel, message);
+		else
+			LogService.getRoot().log(mappedLevel, message);
 	}
 
 	protected void logWarning(String message) {
-        paramOperator.getLog().log(message, LogService.WARNING);
+		paramOperator.getLogger().warning(message);
 	}
 
 	/**
@@ -1172,7 +1300,8 @@ public abstract class SVM implements SVMInterface {
 			sVMExample = to_predict.get_example(i);
 			prediction = predict(sVMExample);
 			to_predict.set_y(i, prediction);
-		};
+		}
+		;
 		logln(4, "Prediction generated");
 	};
 
@@ -1195,8 +1324,10 @@ public abstract class SVM implements SVMInterface {
 				sv_index = the_examples.index[i];
 				sv_att = the_examples.atts[i];
 				the_sum += alpha * the_kernel.calculate_K(sv_index, sv_att, sVMExample.index, sVMExample.att);
-			};
-		};
+			}
+			;
+		}
+		;
 		return the_sum;
 	};
 
@@ -1212,20 +1343,24 @@ public abstract class SVM implements SVMInterface {
 			tsum = 0;
 			for (j = 0; j < the_examples.count_examples(); j++) {
 				tsum += alphas[j] * the_kernel.calculate_K(i, j);
-			};
+			}
+			;
 			if (Math.abs(tsum - sum[i]) > is_zero) {
 				logln(1, "ERROR: sum[" + i + "] off by " + (tsum - sum[i]));
 				// throw(new Exception("ERROR: sum["+i+"] off by
 				// "+(tsum-sum[i])));
 				// System.exit(1);
-			};
-		};
+			}
+			;
+		}
+		;
 		if (Math.abs(s + sum_alpha) > is_zero) {
 			logln(1, "ERROR: sum_alpha is off by " + (s + sum_alpha));
 			// throw(new Exception("ERROR: sum_alpha is off by
 			// "+(s+sum_alpha)));
 			// System.exit(1);
-		};
+		}
+		;
 	};
 
 	/**
@@ -1261,23 +1396,29 @@ public abstract class SVM implements SVMInterface {
 					xi = 0;
 				} else {
 					xi = 1 - prediction;
-				};
+				}
+				;
 				if (2 * alpha * r_delta + xi >= 1) {
 					estim_pos++;
-				};
+				}
+				;
 				total_pos++;
 			} else {
 				if (prediction < -1) {
 					xi = 0;
 				} else {
 					xi = 1 + prediction;
-				};
+				}
+				;
 				if (2 * (-alpha) * r_delta + xi >= 1) {
 					estim_neg++;
-				};
+				}
+				;
 				total_neg++;
-			};
-		};
+			}
+			;
+		}
+		;
 
 		double[] result = new double[3];
 

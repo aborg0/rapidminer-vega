@@ -208,6 +208,7 @@
             <zipfileset dir="./" prefix="${extension.name.long}">
                 <include name="etc/**/*" />
                 <include name="lib/**/*" />
+            	<include name="licenses/**/*" />
                 <include name="resources/**/*" />
                 <include name="INSTALL.txt" />
                 <include name="LICENSE.txt" />

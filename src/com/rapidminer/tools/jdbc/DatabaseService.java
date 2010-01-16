@@ -45,6 +45,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.rapidminer.RapidMiner;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
@@ -125,15 +126,19 @@ public class DatabaseService {
 			}
 		}
 		
-		File globalJDBCFile = ParameterService.getGlobalConfigFile("jdbc_properties.xml");
-		if (globalJDBCFile != null) {
-			loadJDBCProperties(globalJDBCFile);
-		}
+		if (RapidMiner.getExecutionMode().canAccessFilesystem()) {
+			File globalJDBCFile = ParameterService.getGlobalConfigFile("jdbc_properties.xml");
+			if (globalJDBCFile != null) {
+				loadJDBCProperties(globalJDBCFile);
+			}
 
 
-		File userProperties = ParameterService.getUserConfigFile("jdbc_properties.xml");
-		if ((userProperties!= null) && userProperties.exists()) {
-			loadJDBCProperties(userProperties);
+			File userProperties = ParameterService.getUserConfigFile("jdbc_properties.xml");
+			if ((userProperties!= null) && userProperties.exists()) {
+				loadJDBCProperties(userProperties);
+			}
+		} else {
+			LogService.getRoot().config("Ignoring jdbc_properties.xml files in execution mode "+RapidMiner.getExecutionMode()+".");
 		}
 	}
 

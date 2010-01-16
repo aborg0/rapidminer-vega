@@ -572,6 +572,7 @@ public class DatabaseHandler {
 			case Types.BLOB:
 			case Types.CLOB:
 				return Ontology.STRING;
+				
 			case Types.CHAR:
 			case Types.VARCHAR:
 			case Types.BINARY:

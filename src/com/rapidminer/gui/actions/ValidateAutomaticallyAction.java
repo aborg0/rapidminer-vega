@@ -26,6 +26,7 @@ import java.awt.event.ActionEvent;
 
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.operator.ports.Port;
+import com.rapidminer.tools.ParameterService;
 
 /** Determines whether the process setup is validated automatically on any update.
  * 
@@ -34,9 +35,11 @@ import com.rapidminer.operator.ports.Port;
  */
 public class ValidateAutomaticallyAction extends ToggleAction {
 
+	private static final String PROPERTY_VALIDATE_AUTOMATICALLY = "rapidminer.gui.validate_automatically";
+
 	public ValidateAutomaticallyAction() {
 		super(false, "validate_automatically");
-		setSelected(true);
+		setSelected(!"false".equals(System.getProperty(PROPERTY_VALIDATE_AUTOMATICALLY)));
 	}
 
 	private static final long serialVersionUID = 1L;
@@ -49,5 +52,6 @@ public class ValidateAutomaticallyAction extends ToggleAction {
 			RapidMinerGUI.getMainFrame().getProcess().getRootOperator().clear(Port.CLEAR_ALL_ERRORS | Port.CLEAR_ALL_METADATA);
 			RapidMinerGUI.getMainFrame().fireProcessUpdated();
 		}
+		ParameterService.writePropertyIntoMainUserConfigFile(PROPERTY_VALIDATE_AUTOMATICALLY, Boolean.toString(isSelected()));
 	}
 }

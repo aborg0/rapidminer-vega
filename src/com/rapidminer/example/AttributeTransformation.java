@@ -22,12 +22,14 @@
  */
 package com.rapidminer.example;
 
+import java.io.Serializable;
+
 
 /** This interface is used to define on-the-fly transformations in data views. 
  * 
  *  @author Ingo Mierswa
  */
-public interface AttributeTransformation {
+public interface AttributeTransformation extends Serializable {
 
 	public Object clone();
 	

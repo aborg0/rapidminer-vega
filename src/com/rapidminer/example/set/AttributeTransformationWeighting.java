@@ -36,7 +36,9 @@ import com.rapidminer.example.AttributeWeights;
  */
 public class AttributeTransformationWeighting implements AttributeTransformation {
 
-//	/** Lightweight immutable clone of the AttributeWeights. */
+	private static final long serialVersionUID = 1L;
+	
+	//	/** Lightweight immutable clone of the AttributeWeights. */
 //	private Map<String,Double> weights;
 //	
 	private AttributeWeights attributeWeights;

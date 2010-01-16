@@ -34,7 +34,20 @@
 			<include name="*.jar" />
 		</fileset>
 		<fileset dir="${lib}/freehep">
-			<include name="*.jar" />
+			<!-- We list these explicitly since the ordering is important. 
+			     Using *.jar may resultin IllegalAccessError at runtime. -->
+			<include name="freehep-export-2.0.3.jar" />
+			<include name="freehep-graphics2d-2.0.jar" />
+			<include name="freehep-graphicsio-2.0.jar" />
+			<include name="freehep-graphicsio-emf-2.0.jar" />
+			<include name="freehep-graphicsio-pdf-2.0.jar" />
+			<include name="freehep-graphicsio-ps-2.0.jar" />
+			<include name="freehep-graphicsio-svg-2.0.jar" />
+			<include name="freehep-graphicsio-swf-2.0.jar" />
+			<include name="freehep-io-2.0.1.jar" />
+			<include name="freehep-swing-2.0.2.jar" />
+			<include name="freehep-util-2.0.1.jar" />
+			<include name="freehep-xml-2.0.1.jar" />			
 		</fileset>
 		<fileset dir="${lib}/jdbc">
 			<include name="*.jar" />

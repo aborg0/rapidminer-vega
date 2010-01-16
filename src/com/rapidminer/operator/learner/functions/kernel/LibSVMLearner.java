@@ -183,8 +183,9 @@ public class LibSVMLearner extends AbstractKernelBasedLearner {
 			return true;
 		if (lc == OperatorCapability.BINOMINAL_LABEL) {
 			try {
-				if (getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_NU_SVC || 
-						getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_C_SVC) {
+				if ((getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_NU_SVC) || 
+						(getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_C_SVC) || 
+						(getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_ONE_CLASS)) {
 					return true;
 				}
 			} catch (UndefinedParameterError e) {
@@ -194,7 +195,9 @@ public class LibSVMLearner extends AbstractKernelBasedLearner {
 
 		if (lc == com.rapidminer.operator.OperatorCapability.POLYNOMINAL_LABEL) {
 			try {
-				if (getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_NU_SVC || getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_C_SVC)
+				if ((getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_NU_SVC) ||
+						(getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_C_SVC) ||
+						(getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_ONE_CLASS))
 					return true;
 			} catch (UndefinedParameterError e) {
 			}

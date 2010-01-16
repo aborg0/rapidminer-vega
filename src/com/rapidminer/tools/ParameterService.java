@@ -200,7 +200,11 @@ public class ParameterService {
 		return properties;
 	}
 
-	public static void writeProperties(Properties properties, File file) {		
+	public static void writeProperties(Properties properties, File file) {
+		if (!RapidMiner.getExecutionMode().canAccessFilesystem()) {
+			LogService.getRoot().config("Ignoring request to save properties file in execution mode "+RapidMiner.getExecutionMode()+".");
+			return;
+		}
 		PrintWriter out = null;
 		try {
 			out = new PrintWriter(new FileWriter(getMainUserConfigFile()));
@@ -228,6 +232,10 @@ public class ParameterService {
 	}
 
 	public static void writePropertyIntoMainUserConfigFile(String key, String value) {
+		if (!RapidMiner.getExecutionMode().canAccessFilesystem()) {
+			LogService.getRoot().config("Ignoring request to save properties file in execution mode "+RapidMiner.getExecutionMode()+".");
+			return;
+		}
 		// read old configuration
 		Properties userProperties = readPropertyFile(getMainUserConfigFile());
 
