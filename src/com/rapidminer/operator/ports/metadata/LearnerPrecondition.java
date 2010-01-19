@@ -22,17 +22,15 @@
  */
 package com.rapidminer.operator.ports.metadata;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.rapidminer.example.Attributes;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
-import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorDescription;
-import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.learner.CapabilityProvider;
 import com.rapidminer.operator.learner.PredictionModel;
 import com.rapidminer.operator.learner.meta.Binary2MultiClassLearner;
@@ -40,10 +38,8 @@ import com.rapidminer.operator.learner.meta.ClassificationByRegression;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.Port;
-import com.rapidminer.operator.ports.quickfix.ChangeAttributeRoleQuickFix;
 import com.rapidminer.operator.ports.quickfix.OperatorInsertionQuickFix;
 import com.rapidminer.operator.ports.quickfix.QuickFix;
-import com.rapidminer.operator.preprocessing.discretization.AbstractDiscretizationOperator;
 import com.rapidminer.tools.OperatorService;
 /**
  * @author Simon Fischer
@@ -61,60 +57,66 @@ public class LearnerPrecondition extends CapabilityPrecondition {
 		super.makeAdditionalChecks(metaData);
 	}
 
-	@Override
-	protected void checkLabelPreconditions(ExampleSetMetaData metaData) {
-		// label
-		//check if needs label
-		// TODO: This checks if it is supported, but not if it is required. This test will break if we add a new label type
-		// because it will then be incomplete.
-		if (capabilityProvider.supportsCapability(OperatorCapability.BINOMINAL_LABEL) || capabilityProvider.supportsCapability(OperatorCapability.POLYNOMINAL_LABEL) || capabilityProvider.supportsCapability(OperatorCapability.NUMERICAL_LABEL)) {
-			switch (metaData.hasSpecial(Attributes.LABEL_NAME)) {
-			case UNKNOWN:
-				getInputPort().addError(new SimpleMetaDataError(Severity.WARNING, getInputPort(), Collections.singletonList(new ChangeAttributeRoleQuickFix(getInputPort(), Attributes.LABEL_NAME, "change_attribute_role", Attributes.LABEL_NAME)), "special_unknown", new Object[] { Attributes.LABEL_NAME }));
-				break;
-			case NO:
-				getInputPort().addError(new SimpleMetaDataError(Severity.ERROR, getInputPort(), Collections.singletonList(new ChangeAttributeRoleQuickFix(getInputPort(), Attributes.LABEL_NAME, "change_attribute_role", Attributes.LABEL_NAME)), "special_missing", new Object[] { Attributes.LABEL_NAME }));
-				break;
-			case YES:		
-				AttributeMetaData label = metaData.getLabelMetaData();		
-				List<QuickFix> fixes = new LinkedList<QuickFix>();
-				if (label.isNominal()) {
-					if (capabilityProvider.supportsCapability(OperatorCapability.NUMERICAL_LABEL)) {
-						fixes.add(createClassificationByRegression());
-					}
-
-					if (label.isBinominal()) {
-						if (!capabilityProvider.supportsCapability(OperatorCapability.BINOMINAL_LABEL)) {
-							createLearnerError(OperatorCapability.BINOMINAL_LABEL.getDescription(), fixes);
-						}
-					} else {
-						if (!capabilityProvider.supportsCapability(OperatorCapability.POLYNOMINAL_LABEL)) {
-							if (capabilityProvider.supportsCapability(OperatorCapability.BINOMINAL_LABEL)) {
-								fixes.add(constructBinominal2MulticlassLearner());
-								//fixes.add(constructNominal2Binominal(label.getName()));
-								if ((label.getValueSetRelation() == SetRelation.EQUAL) &&
-										(label.getValueSet().size() == 2)) {
-									fixes.add(createToBinominalFix(label.getName()));
-								}
-							}
-							createLearnerError(OperatorCapability.POLYNOMINAL_LABEL.getDescription(), fixes);						
-						}
-					}
-				} else if (label.isNumerical() && !capabilityProvider.supportsCapability(OperatorCapability.NUMERICAL_LABEL)) {
-					createLearnerError(OperatorCapability.NUMERICAL_LABEL.getDescription(), AbstractDiscretizationOperator.createDiscretizationFixes(getInputPort(), label.getName()));
-				}		
-			}
-		}
-	}
+//	@Override
+//	protected void checkLabelPreconditions(ExampleSetMetaData metaData) {
+//		// label
+//		//check if needs label
+//		// TODO: This checks if it is supported, but not if it is required. This test will break if we add a new label type
+//		// because it will then be incomplete.
+//		if (capabilityProvider.supportsCapability(OperatorCapability.BINOMINAL_LABEL) || capabilityProvider.supportsCapability(OperatorCapability.POLYNOMINAL_LABEL) || capabilityProvider.supportsCapability(OperatorCapability.NUMERICAL_LABEL)) {
+//			switch (metaData.hasSpecial(Attributes.LABEL_NAME)) {
+//			case UNKNOWN:
+//				getInputPort().addError(new SimpleMetaDataError(Severity.WARNING, getInputPort(), Collections.singletonList(new ChangeAttributeRoleQuickFix(getInputPort(), Attributes.LABEL_NAME, "change_attribute_role", Attributes.LABEL_NAME)), "special_unknown", new Object[] { Attributes.LABEL_NAME }));
+//				break;
+//			case NO:
+//				getInputPort().addError(new SimpleMetaDataError(Severity.ERROR, getInputPort(), Collections.singletonList(new ChangeAttributeRoleQuickFix(getInputPort(), Attributes.LABEL_NAME, "change_attribute_role", Attributes.LABEL_NAME)), "special_missing", new Object[] { Attributes.LABEL_NAME }));
+//				break;
+//			case YES:		
+//				AttributeMetaData label = metaData.getLabelMetaData();		
+//				List<QuickFix> fixes = new LinkedList<QuickFix>();
+//				if (label.isNominal()) {
+//					if (capabilityProvider.supportsCapability(OperatorCapability.NUMERICAL_LABEL)) {
+//						fixes.add(createClassificationByRegression());
+//					}
+//
+//					if (label.isBinominal()) {
+//						if (!capabilityProvider.supportsCapability(OperatorCapability.BINOMINAL_LABEL)) {
+//							createLearnerError(OperatorCapability.BINOMINAL_LABEL.getDescription(), fixes);
+//						}
+//					} else {
+//						if (!capabilityProvider.supportsCapability(OperatorCapability.POLYNOMINAL_LABEL)) {
+//							if (capabilityProvider.supportsCapability(OperatorCapability.BINOMINAL_LABEL)) {
+//								fixes.add(constructBinominal2MulticlassLearner());
+//								//fixes.add(constructNominal2Binominal(label.getName()));
+//								if ((label.getValueSetRelation() == SetRelation.EQUAL) &&
+//										(label.getValueSet().size() == 2)) {
+//									fixes.add(createToBinominalFix(label.getName()));
+//								}
+//							}
+//							createLearnerError(OperatorCapability.POLYNOMINAL_LABEL.getDescription(), fixes);						
+//						}
+//					}
+//				} else if (label.isNumerical() && !capabilityProvider.supportsCapability(OperatorCapability.NUMERICAL_LABEL)) {
+//					createLearnerError(OperatorCapability.NUMERICAL_LABEL.getDescription(), AbstractDiscretizationOperator.createDiscretizationFixes(getInputPort(), label.getName()));
+//				}		
+//			}
+//		}
+//	}
 	
-	private QuickFix createClassificationByRegression() {
+	/**
+	 * This method has to return a collection of quick fixes which are appropriate when regression is supported and
+	 * the data needs classification. 
+	 */
+	@Override
+	protected Collection<QuickFix> getFixesForClassificationWhenRegressionSupported() {
 		Operator learner = getInputPort().getPorts().getOwner().getOperator();
 		OperatorDescription ods[] = OperatorService.getOperatorDescriptions(ClassificationByRegression.class);
 		String name = null;
 		if (ods.length > 0) {
 			name = ods[0].getName();
 		}
-		return new OperatorInsertionQuickFix("insert_classification_by_regression_learner", new Object[] { name , learner.getOperatorDescription().getName() }, 3, getInputPort()) {
+		
+		QuickFix fix = new OperatorInsertionQuickFix("insert_classification_by_regression_learner", new Object[] { name , learner.getOperatorDescription().getName() }, 3, getInputPort()) {
 			@Override
 			public void apply() {
 				List<Port> toUnlock = new LinkedList<Port>();
@@ -183,16 +185,23 @@ public class LearnerPrecondition extends CapabilityPrecondition {
 				return null;
 			}
 		};
+		
+		return Collections.singletonList(fix);
 	}
 
-	private QuickFix constructBinominal2MulticlassLearner() {
+	/**
+	 * This has to return a list of appropriate quick fixes in the case, that
+	 * only binominal labels are supported but the data contains polynomials.
+	 */
+	@Override
+	protected Collection<QuickFix> getFixesForPolynomialClassificationWhenBinominalSupported() {
 		Operator learner = getInputPort().getPorts().getOwner().getOperator();
 		OperatorDescription ods[] = OperatorService.getOperatorDescriptions(Binary2MultiClassLearner.class);
 		String name = null;
 		if (ods.length > 0) {
 			name = ods[0].getName();
 		}
-		return new OperatorInsertionQuickFix("insert_binominal_to_multiclass_learner", new Object[] { name, learner.getOperatorDescription().getName() }, 8, getInputPort()) {
+		QuickFix fix = new OperatorInsertionQuickFix("insert_binominal_to_multiclass_learner", new Object[] { name, learner.getOperatorDescription().getName() }, 8, getInputPort()) {
 			@Override
 			public void apply() {
 				List<Port> toUnlock = new LinkedList<Port>();
@@ -261,6 +270,7 @@ public class LearnerPrecondition extends CapabilityPrecondition {
 				return null;
 			}
 		};
+		return Collections.singletonList(fix);
 	}
 
 }

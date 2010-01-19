@@ -293,6 +293,111 @@ public class AttributeMetaData implements Serializable {
 		return buf.toString();
 	}
 
+	public String getDescriptionAsTableRow() {
+		StringBuilder b = new StringBuilder();
+		b.append("<tr><td>");
+		String role2 = getRole();
+		if (role2 == null) {
+			role2 = "-";
+		}
+		b.append(role2).append("</td><td>");
+		b.append(getName()).append("</td><td>");
+		b.append(Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(getValueType())).append("</td><td>");
+
+		if (valueSetRelation != SetRelation.UNKNOWN) {
+			if (isNominal()) {
+				b.append(valueSetRelation + " {");
+				boolean first = true;
+				String mode = getMode();
+				int index = 0;
+				for (String value : valueSet) {
+					index++;
+					if (first) {
+						first = false;
+					} else {
+						b.append(", ");
+					}
+
+					if (index >= 10) {
+						b.append("...");
+						break;
+					}
+
+					boolean isMode = value.equals(mode);					
+					if (isMode) {
+						b.append("<span style=\"text-decoration:underline\">");
+					}
+					b.append(value);
+					if (isMode) {
+						b.append("</span>");
+					}
+				}
+				b.append("}");
+			}
+			if (isNumerical()) {
+				b.append(valueSetRelation + " [");
+				if (getValueRange() != null) {
+					b.append(Tools.formatNumber(getValueRange().getLower(), 3));
+					b.append("...");
+					b.append(Tools.formatNumber(getValueRange().getUpper(), 3));
+					b.append("]");
+				}
+				if (getMean().isKnown()) {
+					b.append("; mean ");
+					b.append(getMean().toString());
+				}
+			}
+			if (valueRange != null &&
+				Ontology.ATTRIBUTE_VALUE_TYPE.isA(getValueType(), Ontology.DATE_TIME) &&
+				!Double.isInfinite(getValueRange().getLower()) &&
+				!Double.isInfinite(getValueRange().getUpper())) {
+				b.append(valueSetRelation + " [");
+				switch (getValueType()) {
+				case Ontology.DATE:
+					b.append(Tools.formatDate(new Date((long) getValueRange().getLower())));
+					b.append("...");
+					b.append(Tools.formatDate(new Date((long) getValueRange().getUpper())));
+					b.append("]");
+					break;
+				case Ontology.TIME:
+					b.append(Tools.formatTime(new Date((long) getValueRange().getLower())));
+					b.append("...");
+					b.append(Tools.formatTime(new Date((long) getValueRange().getUpper())));
+					b.append("]");
+					break;
+				case Ontology.DATE_TIME:
+					b.append(Tools.formatDateTime(new Date((long) getValueRange().getLower())));
+					b.append("...");
+					b.append(Tools.formatDateTime(new Date((long) getValueRange().getUpper())));
+					b.append("]");
+					break;
+				}
+			}
+		} else {
+			if (isNominal())
+				b.append("values unkown");
+			else
+				b.append("range unknown");
+		}
+		b.append("</td><td>");
+		
+		switch (containsMissingValues()) {
+		case NO: 
+			b.append("no missing values"); 
+			break;
+		case YES:
+			b.append(numberOfMissingValues.toString());
+			b.append(" missing values");
+			break;
+		case UNKNOWN:
+			b.append("may contain missing values");			
+			break;
+		}		
+
+		b.append("</td></tr>");
+		return b.toString();
+	}
+
 	@Override
 	public AttributeMetaData clone() {
 		return new AttributeMetaData(this);

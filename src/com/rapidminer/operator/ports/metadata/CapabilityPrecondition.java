@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator.ports.metadata;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -126,41 +127,80 @@ public class CapabilityPrecondition extends ExampleSetPrecondition {
 		//check if needs label
 		// TODO: This checks if it is supported, but not if it is required. This test will break if we add a new label type
 		// because it will then be incomplete.
-		if (capabilityProvider.supportsCapability(OperatorCapability.BINOMINAL_LABEL) || capabilityProvider.supportsCapability(OperatorCapability.POLYNOMINAL_LABEL) || capabilityProvider.supportsCapability(OperatorCapability.NUMERICAL_LABEL)) {
-			switch (metaData.hasSpecial(Attributes.LABEL_NAME)) {
-			case UNKNOWN:
-				getInputPort().addError(new SimpleMetaDataError(Severity.WARNING, getInputPort(), Collections.singletonList(new ChangeAttributeRoleQuickFix(getInputPort(), Attributes.LABEL_NAME, "change_attribute_role", Attributes.LABEL_NAME)), "unknown_special", new Object[] { Attributes.LABEL_NAME }));
-				break;
-			case NO:
-				getInputPort().addError(new SimpleMetaDataError(Severity.ERROR, getInputPort(), Collections.singletonList(new ChangeAttributeRoleQuickFix(getInputPort(), Attributes.LABEL_NAME, "change_attribute_role", Attributes.LABEL_NAME)), "special_missing", new Object[] { Attributes.LABEL_NAME }));
-				break;
-			case YES:		
-				AttributeMetaData label = metaData.getLabelMetaData();		
-				if (label.isNominal()) {
-					if (label.isBinominal()) {
-						if (!capabilityProvider.supportsCapability(OperatorCapability.BINOMINAL_LABEL)) {
-							List<QuickFix> fixes = new LinkedList<QuickFix>();
-							createLearnerError(OperatorCapability.BINOMINAL_LABEL.getDescription(), fixes);
+		if (!capabilityProvider.supportsCapability(OperatorCapability.NO_LABEL)) {
+			// if it supports no label it's simply irrelevant if label is present.
+			if (capabilityProvider.supportsCapability(OperatorCapability.ONE_CLASS_LABEL) || capabilityProvider.supportsCapability(OperatorCapability.BINOMINAL_LABEL) || capabilityProvider.supportsCapability(OperatorCapability.POLYNOMINAL_LABEL) || capabilityProvider.supportsCapability(OperatorCapability.NUMERICAL_LABEL)) {
+				switch (metaData.hasSpecial(Attributes.LABEL_NAME)) {
+				case UNKNOWN:
+					getInputPort().addError(new SimpleMetaDataError(Severity.WARNING, getInputPort(), Collections.singletonList(new ChangeAttributeRoleQuickFix(getInputPort(), Attributes.LABEL_NAME, "change_attribute_role", Attributes.LABEL_NAME)), "special_unknown", new Object[] { Attributes.LABEL_NAME }));
+					break;
+				case NO:
+					getInputPort().addError(new SimpleMetaDataError(Severity.ERROR, getInputPort(), Collections.singletonList(new ChangeAttributeRoleQuickFix(getInputPort(), Attributes.LABEL_NAME, "change_attribute_role", Attributes.LABEL_NAME)), "special_missing", new Object[] { Attributes.LABEL_NAME }));
+					break;
+				case YES:		
+					AttributeMetaData label = metaData.getLabelMetaData();		
+					List<QuickFix> fixes = new LinkedList<QuickFix>();
+					if (label.isNominal()) {
+						if (capabilityProvider.supportsCapability(OperatorCapability.NUMERICAL_LABEL)) {
+							fixes.addAll(getFixesForClassificationWhenRegressionSupported());
 						}
-					} else {
-						if (!capabilityProvider.supportsCapability(OperatorCapability.POLYNOMINAL_LABEL)) {
-							List<QuickFix> fixes = new LinkedList<QuickFix>();
-							if (capabilityProvider.supportsCapability(OperatorCapability.BINOMINAL_LABEL)) {
-								fixes.add(createToBinominalFix(label.getName()));
+						if (capabilityProvider.supportsCapability(OperatorCapability.ONE_CLASS_LABEL) && !capabilityProvider.supportsCapability(OperatorCapability.BINOMINAL_LABEL) && !capabilityProvider.supportsCapability(OperatorCapability.POLYNOMINAL_LABEL)) {
+							// if it only supports one class label
+							if (label.getValueSet().size() > 1 && label.getValueSetRelation() != SetRelation.UNKNOWN) {
+								createError(Severity.ERROR, "one_class_label_invalid", label.getValueSetRelation().toString() + " " + label.getValueSet().size());
 							}
-							if (capabilityProvider.supportsCapability(OperatorCapability.NUMERICAL_LABEL)) {
-								fixes.add(createToNumericalFix(label.getName()));
+						} else {
+							// if it supports two or more classes
+							if (label.getValueSet().size() == 1 && label.getValueSetRelation() == SetRelation.EQUAL) {
+								createError(Severity.ERROR, "no_polynomial_label");
+
+							} else {
+								// if two or more classes are present
+								if (label.isBinominal()) {
+									if (!capabilityProvider.supportsCapability(OperatorCapability.BINOMINAL_LABEL)) {
+										createLearnerError(OperatorCapability.BINOMINAL_LABEL.getDescription(), fixes);
+									}
+								} else {
+									if (!capabilityProvider.supportsCapability(OperatorCapability.POLYNOMINAL_LABEL)) {
+										if (capabilityProvider.supportsCapability(OperatorCapability.BINOMINAL_LABEL)) {
+											fixes.addAll(getFixesForPolynomialClassificationWhenBinominalSupported());
+											if ((label.getValueSetRelation() == SetRelation.EQUAL) &&
+													(label.getValueSet().size() == 2)) {
+												fixes.add(createToBinominalFix(label.getName()));
+											}
+										}
+										if (capabilityProvider.supportsCapability(OperatorCapability.NUMERICAL_LABEL)) {
+											fixes.add(createToNumericalFix(label.getName()));
+										}
+										createLearnerError(OperatorCapability.POLYNOMINAL_LABEL.getDescription(), fixes);						
+									}
+								}
 							}
-							createLearnerError(OperatorCapability.POLYNOMINAL_LABEL.getDescription(), fixes);						
 						}
-					}
-				} else if (label.isNumerical() && !capabilityProvider.supportsCapability(OperatorCapability.NUMERICAL_LABEL)) {
-					createLearnerError(OperatorCapability.NUMERICAL_LABEL.getDescription(), AbstractDiscretizationOperator.createDiscretizationFixes(getInputPort(), label.getName()));
-				}		
+					} else if (label.isNumerical() && !capabilityProvider.supportsCapability(OperatorCapability.NUMERICAL_LABEL)) {
+						createLearnerError(OperatorCapability.NUMERICAL_LABEL.getDescription(), AbstractDiscretizationOperator.createDiscretizationFixes(getInputPort(), label.getName()));
+					}		
+				}
 			}
 		}
 	}
+	
+	/**
+	 * This method has to return a collection of quick fixes which are appropriate when regression is supported and
+	 * the data needs classification. 
+	 */
+	protected Collection<QuickFix> getFixesForClassificationWhenRegressionSupported() {
+		return Collections.emptyList();
+	}
 
+	/**
+	 * This has to return a list of appropriate quick fixes in the case, that
+	 * only binominal labels are supported but the data contains polynomials.
+	 */
+	protected Collection<QuickFix> getFixesForPolynomialClassificationWhenBinominalSupported() {
+		return Collections.emptyList();
+	}
+	
 	/** Creates a quickfix to convert to nominal. 
 	 *  @param labelName If null, regular attributes will be converted. Otherwise the special attribute with the given name will be converted. */
 	protected QuickFix createToBinominalFix(final String labelName) {

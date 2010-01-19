@@ -141,7 +141,7 @@ public class ExampleSetMetaData extends MetaData {
 			}
 			buf.append(attributeMetaData.size());
 			buf.append(" attribute" + (attributeMetaData.size() != 1 ? "s" : "") + ": ");			
-			buf.append("<ul>");
+			buf.append("<table><thead><tr><th>Role</th><th>Name</th><th>Type</th><th>Range</th><th>Missings</th></tr></thead><tbody>");
 			//boolean first = true;
 			for (AttributeMetaData amd : attributeMetaData.values()) {
 				//				if (!first) {
@@ -149,11 +149,9 @@ public class ExampleSetMetaData extends MetaData {
 				//				} else {
 				//					first = false;
 				//				}
-				buf.append("<li>");
-				buf.append(amd.getDescription());
-				buf.append("</li>");
+				buf.append(amd.getDescriptionAsTableRow());
 			}
-			buf.append("</ul>");			
+			buf.append("</tbody></table>");			
 		}		
 		return buf.toString();
 	}

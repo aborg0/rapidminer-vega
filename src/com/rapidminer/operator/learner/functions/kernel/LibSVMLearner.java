@@ -61,14 +61,11 @@ import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
 
 /**
- * Applies the <a href="http://www.csie.ntu.edu.tw/~cjlin/libsvm">libsvm</a>
- * learner by Chih-Chung Chang and Chih-Jen Lin. The SVM is a powerful method
- * for both classification and regression. This operator supports the SVM types
- * <code>C-SVC</code> and <code>nu-SVC</code> for classification tasks and
- * <code>epsilon-SVR</code> and <code>nu-SVR</code> for regression tasks.
- * Supports also multiclass learning and probability estimation based on Platt
- * scaling for proper confidence values after applying the learned model on a
- * classification data set.
+ * Applies the <a href="http://www.csie.ntu.edu.tw/~cjlin/libsvm">libsvm</a> learner by Chih-Chung Chang and Chih-Jen
+ * Lin. The SVM is a powerful method for both classification and regression. This operator supports the SVM types
+ * <code>C-SVC</code> and <code>nu-SVC</code> for classification tasks and <code>epsilon-SVR</code> and
+ * <code>nu-SVR</code> for regression tasks. Supports also multiclass learning and probability estimation based on Platt
+ * scaling for proper confidence values after applying the learned model on a classification data set.
  * 
  * @rapidminer.index SVM
  * @rapidminer.reference Chang/Lin/2001a
@@ -76,7 +73,10 @@ import com.rapidminer.parameter.conditions.EqualTypeCondition;
  */
 public class LibSVMLearner extends AbstractKernelBasedLearner {
 
-	/** The parameter name for &quot;SVM for classification (C-SVC, nu-SVC), regression (epsilon-SVR, nu-SVR) and distribution estimation (one-class)&quot; */
+	/**
+	 * The parameter name for &quot;SVM for classification (C-SVC, nu-SVC), regression (epsilon-SVR, nu-SVR) and
+	 * distribution estimation (one-class)&quot;
+	 */
 	public static final String PARAMETER_SVM_TYPE = "svm_type";
 
 	/** The parameter name for &quot;The type of the kernel functions&quot; */
@@ -85,7 +85,10 @@ public class LibSVMLearner extends AbstractKernelBasedLearner {
 	/** The parameter name for &quot;The degree for a polynomial kernel function.&quot; */
 	public static final String PARAMETER_DEGREE = "degree";
 
-	/** The parameter name for &quot;The parameter gamma for polynomial, rbf, and sigmoid kernel functions (0 means 1/#attributes).&quot; */
+	/**
+	 * The parameter name for &quot;The parameter gamma for polynomial, rbf, and sigmoid kernel functions (0 means
+	 * 1/#attributes).&quot;
+	 */
 	public static final String PARAMETER_GAMMA = "gamma";
 
 	/** The parameter name for &quot;The parameter coef0 for polynomial and sigmoid kernel functions.&quot; */
@@ -106,7 +109,11 @@ public class LibSVMLearner extends AbstractKernelBasedLearner {
 	/** The parameter name for &quot;Tolerance of loss function of epsilon-SVR.&quot; */
 	public static final String PARAMETER_P = "p";
 
-	/** The parameter name for &quot;The weights w for all classes (first column: class name, second column: weight), i.e. set the parameters C of each class w * C (empty: using 1 for all classes where the weight was not defined).&quot; */
+	/**
+	 * The parameter name for &quot;The weights w for all classes (first column: class name, second column: weight),
+	 * i.e. set the parameters C of each class w * C (empty: using 1 for all classes where the weight was not
+	 * defined).&quot;
+	 */
 	public static final String PARAMETER_CLASS_WEIGHTS = "class_weights";
 
 	/** The parameter name for &quot;Whether to use the shrinking heuristics.&quot; */
@@ -120,27 +127,23 @@ public class LibSVMLearner extends AbstractKernelBasedLearner {
 
 	/*
 	 * What to do for a new LibSVM version (current version 2.84):
-	 * ----------------------------------------------------------
-	 *  - remove all System.out / System.err statements 
-	 *  - make some fields public of svm_model (nr_class, l, nSV, label etc.) 
-	 *  - replace Math.random() by RandomGenerator.getGlobalRandomGenerator().nextDouble() in svm.java
-	 *  - add labelValues to model and in train of Svm class
-	 *  - calculation of C for C=0 in checkParameters
-	 *  - add method getGenericKernel
+	 * ---------------------------------------------------------- - remove all System.out / System.err statements - make
+	 * some fields public of svm_model (nr_class, l, nSV, label etc.) - replace Math.random() by
+	 * RandomGenerator.getGlobalRandomGenerator().nextDouble() in svm.java - add labelValues to model and in train of
+	 * Svm class - calculation of C for C=0 in checkParameters - add method getGenericKernel
 	 */
 
 	/** The different SVM types implemented by the LibSVM package. */
 	public static final String[] SVM_TYPES = { "C-SVC", "nu-SVC", "one-class", "epsilon-SVR", "nu-SVR" };
 
-	public static final int SVM_TYPE_C_SVC     = 0;
-	public static final int SVM_TYPE_NU_SVC    = 1;
+	public static final int SVM_TYPE_C_SVC = 0;
+	public static final int SVM_TYPE_NU_SVC = 1;
 	public static final int SVM_TYPE_ONE_CLASS = 2;
-	public static final int SVM_TYPE_EPS_SVR   = 3;
-	public static final int SVM_TYPE_NU_SVR    = 4;
+	public static final int SVM_TYPE_EPS_SVR = 3;
+	public static final int SVM_TYPE_NU_SVR = 4;
 
 	/** The different kernel types implemented by the LibSVM package. */
 	public static final String[] KERNEL_TYPES = { "linear", "poly", "rbf", "sigmoid", "precomputed" };
-
 
 	public LibSVMLearner(OperatorDescription description) {
 		super(description);
@@ -158,68 +161,54 @@ public class LibSVMLearner extends AbstractKernelBasedLearner {
 							AttributeMetaData label = emd.getLabelMetaData();
 							if (label.isNominal()) {
 								if (getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_NU_SVR || getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_EPS_SVR) {
-									getExampleSetInputPort().addError(new SimpleMetaDataError(Severity.ERROR, getExampleSetInputPort(), 
-											Collections.singletonList(new CategorySelectionQuickFix(LibSVMLearner.this, PARAMETER_SVM_TYPE, new String[] {SVM_TYPES[SVM_TYPE_C_SVC], SVM_TYPES[SVM_TYPE_NU_SVC], SVM_TYPES[SVM_TYPE_ONE_CLASS]}, SVM_TYPES[getParameterAsInt(PARAMETER_SVM_TYPE)], "Select appropriate " + PARAMETER_SVM_TYPE + " for " + OperatorCapability.POLYNOMINAL_LABEL)), 
-											"parameters.cannot_handle", OperatorCapability.POLYNOMINAL_LABEL, PARAMETER_SVM_TYPE, SVM_TYPES[getParameterAsInt(PARAMETER_SVM_TYPE)]));
+									getExampleSetInputPort().addError(
+											new SimpleMetaDataError(Severity.ERROR, getExampleSetInputPort(), Collections.singletonList(new CategorySelectionQuickFix(LibSVMLearner.this, PARAMETER_SVM_TYPE, new String[] { SVM_TYPES[SVM_TYPE_C_SVC], SVM_TYPES[SVM_TYPE_NU_SVC], SVM_TYPES[SVM_TYPE_ONE_CLASS] }, SVM_TYPES[getParameterAsInt(PARAMETER_SVM_TYPE)],
+													"Select appropriate " + PARAMETER_SVM_TYPE + " for " + OperatorCapability.POLYNOMINAL_LABEL)), "parameters.cannot_handle", OperatorCapability.POLYNOMINAL_LABEL, PARAMETER_SVM_TYPE, SVM_TYPES[getParameterAsInt(PARAMETER_SVM_TYPE)]));
 								}
-							} else if (label.isNumerical()){
+							} else if (label.isNumerical()) {
 								if (getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_NU_SVC || getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_C_SVC) {
-									getExampleSetInputPort().addError(new SimpleMetaDataError(Severity.ERROR, getExampleSetInputPort(), 
-											Collections.singletonList(new CategorySelectionQuickFix(LibSVMLearner.this, PARAMETER_SVM_TYPE, new String[] {SVM_TYPES[SVM_TYPE_NU_SVR], SVM_TYPES[SVM_TYPE_EPS_SVR]}, SVM_TYPES[getParameterAsInt(PARAMETER_SVM_TYPE)], "Select appropriate " + PARAMETER_SVM_TYPE + " for " + OperatorCapability.NUMERICAL_LABEL)), 
-											"parameters.cannot_handle", OperatorCapability.NUMERICAL_LABEL, PARAMETER_SVM_TYPE, SVM_TYPES[getParameterAsInt(PARAMETER_SVM_TYPE)]));
+									getExampleSetInputPort().addError(
+											new SimpleMetaDataError(Severity.ERROR, getExampleSetInputPort(), Collections.singletonList(new CategorySelectionQuickFix(LibSVMLearner.this, PARAMETER_SVM_TYPE, new String[] { SVM_TYPES[SVM_TYPE_NU_SVR], SVM_TYPES[SVM_TYPE_EPS_SVR] }, SVM_TYPES[getParameterAsInt(PARAMETER_SVM_TYPE)], "Select appropriate "
+													+ PARAMETER_SVM_TYPE + " for " + OperatorCapability.NUMERICAL_LABEL)), "parameters.cannot_handle", OperatorCapability.NUMERICAL_LABEL, PARAMETER_SVM_TYPE, SVM_TYPES[getParameterAsInt(PARAMETER_SVM_TYPE)]));
 								}
 							}
-						} catch (UndefinedParameterError e) {}
-					}					
+						} catch (UndefinedParameterError e) {
+						}
+					}
 				}
 			}
 		});
 	}
 
 	public boolean supportsCapability(OperatorCapability lc) {
-		if (lc == com.rapidminer.operator.OperatorCapability.NUMERICAL_ATTRIBUTES)
-			return true;
-		if (lc == OperatorCapability.FORMULA_PROVIDER)
-			return true;
-		if (lc == OperatorCapability.BINOMINAL_LABEL) {
-			try {
-				if ((getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_NU_SVC) || 
-						(getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_C_SVC) || 
-						(getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_ONE_CLASS)) {
+		try {
+			int type = getParameterAsInt(PARAMETER_SVM_TYPE);
+			switch (lc) {
+			case NUMERICAL_ATTRIBUTES:
+			case FORMULA_PROVIDER:
+				return true;
+			case BINOMINAL_LABEL:
+			case POLYNOMINAL_LABEL:
+				if (type == SVM_TYPE_NU_SVC || type == SVM_TYPE_C_SVC)
 					return true;
-				}
-			} catch (UndefinedParameterError e) {
-			}
-			return false;
-		}
-
-		if (lc == com.rapidminer.operator.OperatorCapability.POLYNOMINAL_LABEL) {
-			try {
-				if ((getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_NU_SVC) ||
-						(getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_C_SVC) ||
-						(getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_ONE_CLASS))
+				break;
+			case ONE_CLASS_LABEL:
+				if (type == SVM_TYPE_ONE_CLASS)
 					return true;
-			} catch (UndefinedParameterError e) {
-			}
-			return false;
-		}
-		if (lc == com.rapidminer.operator.OperatorCapability.NUMERICAL_LABEL) {
-			try {
-				if (getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_NU_SVR || getParameterAsInt(PARAMETER_SVM_TYPE) == SVM_TYPE_EPS_SVR)
+				break;
+			case NUMERICAL_LABEL:
+				if (type == SVM_TYPE_NU_SVR || type == SVM_TYPE_EPS_SVR)
 					return true;
-//				getExampleSetInputPort().addError(new SimpleMetaDataError(Severity.ERROR, getExampleSetInputPort(), 
-//						Collections.singletonList(new CategorySelectionQuickFix(this, PARAMETER_SVM_TYPE, new String[] {SVM_TYPES[SVM_TYPE_NU_SVR], SVM_TYPES[SVM_TYPE_EPS_SVR]}, SVM_TYPES[getParameterAsInt(PARAMETER_SVM_TYPE)], "Select appropriate " + PARAMETER_SVM_TYPE + " for " + OperatorCapability.NUMERICAL_LABEL)), 
-//						"parameters.cannot_handle", OperatorCapability.NUMERICAL_LABEL, PARAMETER_SVM_TYPE, SVM_TYPES[getParameterAsInt(PARAMETER_SVM_TYPE)]));
-			} catch (UndefinedParameterError e) {
+				break;
 			}
-			return false;
+		} catch (UndefinedParameterError e) {
 		}
 		return false;
 	}
 
 	/**
-	 * Creates a data node row for the LibSVM (sparse format, i.e. each node
-	 * keeps the index and the value if not default).
+	 * Creates a data node row for the LibSVM (sparse format, i.e. each node keeps the index and the value if not
+	 * default).
 	 */
 	protected static svm_node[] makeNodes(Example e, FastExample2SparseTransform ripper) {
 		int[] nonDefaultIndices = ripper.getNonDefaultAttributeIndices(e);
@@ -234,8 +223,11 @@ public class LibSVMLearner extends AbstractKernelBasedLearner {
 		return nodeArray;
 	}
 
-	/** Creates a support vector problem for the LibSVM. 
-	 * @throws UserError */
+	/**
+	 * Creates a support vector problem for the LibSVM.
+	 * 
+	 * @throws UserError
+	 */
 	private svm_problem getProblem(ExampleSet exampleSet) throws UserError {
 		log("Creating LibSVM problem.");
 		FastExample2SparseTransform ripper = new FastExample2SparseTransform(exampleSet);
@@ -259,9 +251,8 @@ public class LibSVMLearner extends AbstractKernelBasedLearner {
 	}
 
 	/**
-	 * Creates a LibSVM parameter object based on the user defined parameters.
-	 * If gamma is set to zero, it will be overwritten by 1 divided by the
-	 * number of attributes.
+	 * Creates a LibSVM parameter object based on the user defined parameters. If gamma is set to zero, it will be
+	 * overwritten by 1 divided by the number of attributes.
 	 */
 	private svm_parameter getParameters(ExampleSet exampleSet) throws OperatorException {
 		svm_parameter params = new svm_parameter();
@@ -326,11 +317,9 @@ public class LibSVMLearner extends AbstractKernelBasedLearner {
 		}
 
 		// check if svm type fits problem type
-		Attribute label = exampleSet.getAttributes().getLabel();	
+		Attribute label = exampleSet.getAttributes().getLabel();
 		if (label.isNominal()) {
-			if ((params.svm_type != SVM_TYPE_C_SVC) && 
-					(params.svm_type != SVM_TYPE_NU_SVC) &&
-					(params.svm_type != SVM_TYPE_ONE_CLASS)) {
+			if ((params.svm_type != SVM_TYPE_C_SVC) && (params.svm_type != SVM_TYPE_NU_SVC) && (params.svm_type != SVM_TYPE_ONE_CLASS)) {
 				throw new UserError(this, 102, SVM_TYPES[params.svm_type], label.getName());
 			}
 
@@ -339,10 +328,9 @@ public class LibSVMLearner extends AbstractKernelBasedLearner {
 				throw new UserError(this, 118, label.getName(), label.getMapping().size() + "", 1 + " for one-class svm");
 			}
 		} else {
-			if ((params.svm_type != SVM_TYPE_EPS_SVR) && 
-					(params.svm_type != SVM_TYPE_NU_SVR)) {
-				throw new UserError(this, 101, SVM_TYPES[params.svm_type], label.getName());	
-			}		
+			if ((params.svm_type != SVM_TYPE_EPS_SVR) && (params.svm_type != SVM_TYPE_NU_SVR)) {
+				throw new UserError(this, 101, SVM_TYPES[params.svm_type], label.getName());
+			}
 		}
 
 		svm_problem problem = getProblem(exampleSet);
@@ -373,7 +361,7 @@ public class LibSVMLearner extends AbstractKernelBasedLearner {
 		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_KERNEL_TYPE, KERNEL_TYPES, false, 1, 2, 3));
 		types.add(type);
 
-		type =  new ParameterTypeDouble(PARAMETER_COEF0, "The parameter coef0 for polynomial and sigmoid kernel functions.", Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 0);
+		type = new ParameterTypeDouble(PARAMETER_COEF0, "The parameter coef0 for polynomial and sigmoid kernel functions.", Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 0);
 		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_KERNEL_TYPE, KERNEL_TYPES, false, 1, 4));
 		types.add(type);
 
@@ -394,9 +382,8 @@ public class LibSVMLearner extends AbstractKernelBasedLearner {
 		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_SVM_TYPE, SVM_TYPES, false, 3));
 		types.add(type);
 
-		types.add(new ParameterTypeList(PARAMETER_CLASS_WEIGHTS, "The weights w for all classes (first column: class name, second column: weight), i.e. set the parameters C of each class w * C (empty: using 1 for all classes where the weight was not defined).", 
-				new ParameterTypeString("class_name", "The class name."),
-				new ParameterTypeDouble("weight", "The weight for this class.", 0.0d, Double.POSITIVE_INFINITY, 1.0d)));
+		types.add(new ParameterTypeList(PARAMETER_CLASS_WEIGHTS, "The weights w for all classes (first column: class name, second column: weight), i.e. set the parameters C of each class w * C (empty: using 1 for all classes where the weight was not defined).", new ParameterTypeString("class_name", "The class name."), new ParameterTypeDouble("weight",
+				"The weight for this class.", 0.0d, Double.POSITIVE_INFINITY, 1.0d)));
 		types.add(new ParameterTypeBoolean(PARAMETER_SHRINKING, "Whether to use the shrinking heuristics.", true));
 		type = new ParameterTypeBoolean(PARAMETER_CALCULATE_CONFIDENCES, "Indicates if proper confidence values should be calculated.", false);
 		type.setExpert(false);

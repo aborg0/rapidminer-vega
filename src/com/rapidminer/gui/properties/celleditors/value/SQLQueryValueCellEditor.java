@@ -80,7 +80,7 @@ public class SQLQueryValueCellEditor extends AbstractCellEditor implements Prope
 				if (operator != null) {
 					String query = null;
 					try {
-						query = operator.getParameter(type.getKey());
+						query = operator.getParameters().getParameter(type.getKey());
 					} catch (UndefinedParameterError e1) {
 					}
 					if (query != null) {

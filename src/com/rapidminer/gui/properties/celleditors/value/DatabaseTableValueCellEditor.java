@@ -212,10 +212,7 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 
 	private String getValue() {
 		String value = null;
-		//		try {
 		value = operator.getParameters().getParameterOrNull(type.getKey());
-		//		} catch (UndefinedParameterError e1) {
-		//		}
 		return value;
 	}
 

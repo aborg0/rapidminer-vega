@@ -41,7 +41,7 @@ import org.w3c.dom.Element;
 
 import com.rapid_i.repository.wsimport.EntryResponse;
 import com.rapid_i.repository.wsimport.RepositoryService;
-import com.rapid_i.repository.wsimport.RepositoryServiceService;
+import com.rapid_i.repository.wsimport.RepositoryService_Service;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.repository.BlobEntry;
@@ -138,7 +138,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	private URL getWSDLUrl() {
 		try {
-			return new URL(baseUrl, "RepositoryServiceService?wsdl");
+			return new URL(baseUrl, "RepositoryService?wsdl");
 		} catch (MalformedURLException e) {
 			// cannot happen
 			LogService.getRoot().log(Level.WARNING, "Cannot create web service url: "+e, e);
@@ -254,8 +254,8 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		}
 		if (repositoryService == null){
 			try {
-				RepositoryServiceService serviceService = new RepositoryServiceService(getWSDLUrl(), 
-						new QName("http://service.web.rapidrepository.com/", "RepositoryServiceService"));
+				RepositoryService_Service serviceService = new RepositoryService_Service(getWSDLUrl(), 
+						new QName("http://service.web.rapidrepository.com/", "RepositoryService"));
 				repositoryService = serviceService.getRepositoryServicePort();
 			} catch (Exception e) {
 				offline = true;

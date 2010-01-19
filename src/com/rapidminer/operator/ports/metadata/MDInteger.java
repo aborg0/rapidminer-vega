@@ -89,9 +89,9 @@ public class MDInteger extends MDNumber<Integer> {
 	@Override
 	public String toString() {
 		switch (getRelation()) {
-		case EQUAL: return "=" + getValue();
-		case AT_LEAST: return "\u2265" + getNumber();
-		case AT_MOST: return "\u2264" + getNumber();
+		case EQUAL: return "= " + getValue();
+		case AT_LEAST: return "\u2265 " + getNumber();
+		case AT_MOST: return "\u2264 " + getNumber();
 		case UNKNOWN:
 		default:
 			return "?";

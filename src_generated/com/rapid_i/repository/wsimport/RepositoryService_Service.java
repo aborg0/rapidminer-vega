@@ -16,29 +16,29 @@ import javax.xml.ws.WebServiceFeature;
  * Generated source version: 2.1
  * 
  */
-@WebServiceClient(name = "RepositoryServiceService", targetNamespace = "http://service.web.rapidrepository.com/", wsdlLocation = "http://localhost:8080/RapidRepositoryWeb/RepositoryServiceService?wsdl")
-public class RepositoryServiceService
+@WebServiceClient(name = "RepositoryService", targetNamespace = "http://service.web.rapidrepository.com/", wsdlLocation = "http://localhost:8080/RapidRepositoryWeb/RepositoryService?wsdl")
+public class RepositoryService_Service
     extends Service
 {
 
-    private final static URL REPOSITORYSERVICESERVICE_WSDL_LOCATION;
+    private final static URL REPOSITORYSERVICE_WSDL_LOCATION;
 
     static {
         URL url = null;
         try {
-            url = new URL("http://localhost:8080/RapidRepositoryWeb/RepositoryServiceService?wsdl");
+            url = new URL("http://localhost:8080/RapidRepositoryWeb/RepositoryService?wsdl");
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
-        REPOSITORYSERVICESERVICE_WSDL_LOCATION = url;
+        REPOSITORYSERVICE_WSDL_LOCATION = url;
     }
 
-    public RepositoryServiceService(URL wsdlLocation, QName serviceName) {
+    public RepositoryService_Service(URL wsdlLocation, QName serviceName) {
         super(wsdlLocation, serviceName);
     }
 
-    public RepositoryServiceService() {
-        super(REPOSITORYSERVICESERVICE_WSDL_LOCATION, new QName("http://service.web.rapidrepository.com/", "RepositoryServiceService"));
+    public RepositoryService_Service() {
+        super(REPOSITORYSERVICE_WSDL_LOCATION, new QName("http://service.web.rapidrepository.com/", "RepositoryService"));
     }
 
     /**

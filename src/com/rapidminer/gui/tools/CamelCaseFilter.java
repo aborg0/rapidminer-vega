@@ -54,6 +54,7 @@ public class CamelCaseFilter {
 			try {
 	        	this.pattern = Pattern.compile(regexp.toString());
 			} catch (PatternSyntaxException e) {
+				this.pattern = null;
 				// TODO: maybe other handling than NoOp?
 				// can happen only if regexp special chars in filter string
 			}
@@ -65,7 +66,7 @@ public class CamelCaseFilter {
 		if (string == null) {
 			return false;
 		} else {
-			return string.toLowerCase().contains(filterString) || pattern.matcher(string).matches();
+			return string.toLowerCase().contains(filterString) || ((pattern != null) && pattern.matcher(string).matches());
 		}
 	}
 	

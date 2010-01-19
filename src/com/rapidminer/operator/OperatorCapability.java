@@ -37,6 +37,8 @@ public enum OperatorCapability {
 	POLYNOMINAL_LABEL("polynominal label"),
 	BINOMINAL_LABEL("binominal label"),
 	NUMERICAL_LABEL("numerical label"),
+	ONE_CLASS_LABEL("one class label"),
+	NO_LABEL("unlabeled"),
 	UPDATABLE("updatable"),
     WEIGHTED_EXAMPLES("weighted examples"),
     FORMULA_PROVIDER("formula provider"),
@@ -52,6 +54,7 @@ public enum OperatorCapability {
 		return description;
 	}
 	
+	@Override
 	public String toString() {
 		return description;
 	}

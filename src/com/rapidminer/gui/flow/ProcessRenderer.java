@@ -3010,7 +3010,7 @@ public class ProcessRenderer extends JPanel {
 	/** Connects two operators and enables them. */
 	private void connect(OutputPort out, InputPort in) {
 		out.connectTo(in);
-		Operator inOp = out.getPorts().getOwner().getOperator();
+		Operator inOp = in.getPorts().getOwner().getOperator();
 		if (!inOp.isEnabled()) {
 			inOp.setEnabled(true);
 		}

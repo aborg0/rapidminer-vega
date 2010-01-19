@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.actions.Actions;
 import com.rapidminer.gui.actions.ToggleAction;
 import com.rapidminer.operator.Operator;
@@ -42,64 +43,74 @@ import com.rapidminer.operator.ports.metadata.CompatibilityLevel;
  * @author Ingo Mierswa, Tobias Malbrecht
  */
 public class ToggleActivationItem extends ToggleAction {
-	 
+
 	private static final long serialVersionUID = -7020868989225535479L;
 
 	private final Actions actions;
-	
+
 	{
 		setCondition(ROOT_SELECTED, DISALLOWED);
 		setCondition(OPERATOR_SELECTED, MANDATORY);
 		setCondition(PARENT_ENABLED, MANDATORY);
 	}
-	
+
 	public ToggleActivationItem(final Actions actions) {
 		super(true, "enable_operator");
 		this.actions = actions; 
 	}
-	
+
 	public void actionToggled(ActionEvent e) {
 		for (Operator op : actions.getSelectedOperators()) {
 			op.setEnabled(!op.isEnabled());
-			if (!op.isEnabled()) {
-				List<Port> toUnlock = new LinkedList<Port>();
-				try {
-					// disconnect and pass through
-					List<OutputPort> sources = new LinkedList<OutputPort>();
-					for (InputPort in : op.getInputPorts().getAllPorts()) {
-						if (in.isConnected()) {
-							sources.add(in.getSource());
-							toUnlock.add(in.getSource());
-							in.getSource().lock();
-						}
-					}
-					op.getInputPorts().disconnectAll();
-
-					List<InputPort> destinations = new LinkedList<InputPort>();
-					for (OutputPort out : op.getOutputPorts().getAllPorts()) {
-						if (out.isConnected()) {
-							destinations.add(out.getDestination());
-							toUnlock.add(out.getDestination());
-							out.getDestination().lock();
-						}
-					}
-					op.getOutputPorts().disconnectAll();
-				
-					for (OutputPort source : sources) {
-						Iterator<InputPort> i = destinations.iterator();
-						while (i.hasNext()) {
-							InputPort dest = i.next();
-							if ((source.getMetaData() != null) && dest.isInputCompatible(source.getMetaData(), CompatibilityLevel.PRE_VERSION_5)) {
-								source.connectTo(dest);
-								break;
+		}
+		if (!"false".equals(System.getProperty(RapidMinerGUI.PROPERTY_DISCONNECT_ON_DISABLE))) {
+			for (Operator op : actions.getSelectedOperators()) {
+				if (!op.isEnabled()) {
+					List<Port> toUnlock = new LinkedList<Port>();
+					try {
+						// disconnect and pass through
+						List<OutputPort> sources = new LinkedList<OutputPort>();
+						for (InputPort in : op.getInputPorts().getAllPorts()) {
+							if (in.isConnected() && in.getSource().getPorts().getOwner().getOperator().isEnabled()) {
+								sources.add(in.getSource());
+								toUnlock.add(in.getSource());
+								in.getSource().lock();
 							}
 						}
-					}
-				} finally {
-					for (Port port : toUnlock) {
-						port.unlock();
-					}
-				}					
+						for (OutputPort in : sources) {
+							in.disconnect();
+						}
+						//op.getInputPorts().disconnectAll();
+
+						List<InputPort> destinations = new LinkedList<InputPort>();
+						for (OutputPort out : op.getOutputPorts().getAllPorts()) {
+							if (out.isConnected() && out.getDestination().getPorts().getOwner().getOperator().isEnabled()) {
+								destinations.add(out.getDestination());
+								toUnlock.add(out.getDestination());
+								out.getDestination().lock();
+							}
+						}
+						for (InputPort in : destinations) {
+							in.getSource().disconnect();
+						}
+						//op.getOutputPorts().disconnectAll();
+
+						for (OutputPort source : sources) {
+							Iterator<InputPort> i = destinations.iterator();
+							while (i.hasNext()) {
+								InputPort dest = i.next();
+								if ((source.getMetaData() != null) && dest.isInputCompatible(source.getMetaData(), CompatibilityLevel.PRE_VERSION_5)) {
+									source.connectTo(dest);
+									break;
+								}
+							}
+						}
+					} finally {
+						for (Port port : toUnlock) {
+							port.unlock();
+						}
+					}					
+				}
 			}
 		}
 	}

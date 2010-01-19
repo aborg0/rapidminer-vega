@@ -79,7 +79,7 @@ public class Perspective {
 		}
 	}
 
-	private File getFile() {
+	File getFile() {
 		return ParameterService.getUserConfigFile("vlperspective-"+(isUserDefined()?"user-":"predefined-")+name+".xml");
 	}
 	

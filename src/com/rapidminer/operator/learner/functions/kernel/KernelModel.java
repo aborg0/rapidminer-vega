@@ -82,6 +82,8 @@ public abstract class KernelModel extends PredictionModel {
 	/** Returns a string representation of this model. */
 	@Override
 	public String toString() {
+		String[] attributeNames = com.rapidminer.example.Tools.getRegularAttributeNames(getTrainingHeader());
+		
 		StringBuffer result = new StringBuffer();
 		result.append("Total number of Support Vectors: " + getNumberOfSupportVectors() + Tools.getLineSeparator());
 		result.append("Bias (offset): " + Tools.formatNumber(getBias()) + Tools.getLineSeparators(2));
@@ -103,7 +105,7 @@ public abstract class KernelModel extends PredictionModel {
 			}
 			if (showWeights) {
 				for (int j = 0; j < w.length; j++) {
-					result.append("w[" + attributeConstructions[j] + "] = " + Tools.formatNumber(w[j]) + Tools.getLineSeparator());
+					result.append("w[" + attributeNames[j] + (!attributeNames[j].equals(attributeConstructions[j])? " = " + attributeConstructions[j] : "")+ "] = " + Tools.formatNumber(w[j]) + Tools.getLineSeparator());
 				}
 			}
 		} else {
@@ -113,6 +115,8 @@ public abstract class KernelModel extends PredictionModel {
 	}
 
 	public DataTable createWeightsTable() {
+		String[] attributeNames = com.rapidminer.example.Tools.getRegularAttributeNames(getTrainingHeader());
+		
 		SimpleDataTable weightTable = new SimpleDataTable("Kernel Model Weights", new String[] { "Attribute", "Weight" } );
 		if ((!getLabel().isNominal()) || (getLabel().getMapping().size() == 2)) {
 			double[] w = new double[getNumberOfAttributes()];
@@ -132,7 +136,7 @@ public abstract class KernelModel extends PredictionModel {
 			}
 			if (showWeights) {
 				for (int j = 0; j < w.length; j++) {
-					int nameIndex = weightTable.mapString(0, attributeConstructions[j]);
+					int nameIndex = weightTable.mapString(0, attributeNames[j]);
 					weightTable.add(new SimpleDataTableRow(new double[] { nameIndex, w[j]}));
 				}
 				return weightTable;

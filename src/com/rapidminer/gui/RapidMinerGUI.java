@@ -105,6 +105,8 @@ public class RapidMinerGUI extends RapidMiner {
 	public static final String PROPERTY_GEOMETRY_DIVIDER_GROUPSELECTION = "rapidminer.gui.geometry.divider.groupselection";
 
 	public static final String PROPERTY_EXPERT_MODE                     = "rapidminer.gui.expertmode";
+	
+	public static final String PROPERTY_DISCONNECT_ON_DISABLE           = "rapidminer.gui.disconnect_on_disable";
 
 	// --- Properties ---
 
@@ -145,6 +147,8 @@ public class RapidMinerGUI extends RapidMiner {
 		
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(RapidMinerGUI.PROPERTY_TRANSFER_USAGESTATS, "Allow RapidMiner to transfer RapidMiner operator usage statistics?", RapidMinerGUI.PROPERTY_TRANSFER_USAGESTATS_ANSWERS, UsageStatsTransmissionDialog.ASK));
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(RapidMinerGUI.PROPERTY_ADD_BREAKPOINT_RESULTS_TO_HISTORY, "Should results produced at breakpoints be added to the result history?", false));
+		
+		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(RapidMinerGUI.PROPERTY_DISCONNECT_ON_DISABLE, "Should operators be disconnected upon disabling them?", true));
 		
 		// UPDATE
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(com.rapid_i.deployment.update.client.UpdateManager.PARAMETER_UPDATE_INCREMENTALLY, "Download (small) patches rather than complete installation archives?", true));
