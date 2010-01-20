@@ -70,24 +70,23 @@ public class HyperModel extends PredictionModel {
 
 	@Override
 	public String toString() {
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 
 		result.append("Support Vector 1:" + Tools.getLineSeparator());
 		for (int i = 0; i < this.coefficientNames.length; i++) {
-			result.append(coefficientNames[i] + " = " + Tools.formatNumber(this.x1[i]) + Tools.getLineSeparator());
+			result.append(coefficientNames[i]).append(" = ").append(Tools.formatNumber(this.x1[i])).append(Tools.getLineSeparator());
 		}
-		result.append(Tools.getLineSeparator() + "Support Vector 2:" + Tools.getLineSeparator());
+		result.append(Tools.getLineSeparator()).append("Support Vector 2:").append(Tools.getLineSeparator());
 		for (int i = 0; i < this.coefficientNames.length; i++) {
 			result.append(this.coefficientNames[i] + " = " + Tools.formatNumber(this.x2[i]) + Tools.getLineSeparator());
 		}
 
-		result.append(Tools.getLineSeparator() + "Bias (offset): " + Tools.formatNumber(this.bias) + Tools.getLineSeparators(2));
+		result.append(Tools.getLineSeparator()).append("Bias (offset): ").append(Tools.formatNumber(this.bias)).append(Tools.getLineSeparators(2));
 
-		result.append("Coefficients:" + Tools.getLineSeparator());
+		result.append("Coefficients:").append(Tools.getLineSeparator());
 		for (int j = 0; j < w.length; j++) {
-			result.append("w(" + this.coefficientNames[j] + ") = " + Tools.formatNumber(this.w[j]) + Tools.getLineSeparator());
+			result.append("w(").append(this.coefficientNames[j]).append(") = ").append(Tools.formatNumber(this.w[j])).append(Tools.getLineSeparator());
 		}
-
 		return result.toString();
 	}
 

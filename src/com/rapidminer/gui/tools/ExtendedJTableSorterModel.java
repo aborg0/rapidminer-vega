@@ -103,7 +103,7 @@ public class ExtendedJTableSorterModel extends AbstractTableModel {
 
 		private static final long serialVersionUID = -5769752125995885597L;
 
-		public int compare(T o1, T o2) {
+		public int compare(T o1, T o2) {			
             return o1.compareTo(o2);
         }
     }
@@ -343,7 +343,8 @@ public class ExtendedJTableSorterModel extends AbstractTableModel {
             this.modelIndex = index;
         }
 
-        @SuppressWarnings("unchecked") public int compareTo(Object o) {
+        //@SuppressWarnings("unchecked") 
+        public int compareTo(Object o) {
             int row1 = modelIndex;
             int row2 = ((Row) o).modelIndex;
 

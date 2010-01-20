@@ -70,6 +70,7 @@ import com.rapidminer.operator.UnknownParameterInformation;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ports.Port;
 import com.rapidminer.report.ReportStream;
+import com.rapidminer.repository.RepositoryAccessor;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.AbstractObservable;
 import com.rapidminer.tools.LogService;
@@ -1001,11 +1002,15 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	/** Resolves a repository location relative to {@link #getRepositoryLocation()}. */
 	public RepositoryLocation resolveRepositoryLocation(String loc) throws UserError {
 		if (RepositoryLocation.isAbsolute(loc)) {
-			return new RepositoryLocation(loc);
+			RepositoryLocation repositoryLocation = new RepositoryLocation(loc);
+			repositoryLocation.setAccessor(getRepositoryAccessor());
+			return repositoryLocation;
 		}
 		RepositoryLocation repositoryLocation = getRepositoryLocation();
 		if (repositoryLocation != null) {
-			return new RepositoryLocation(repositoryLocation.parent(), loc);
+			RepositoryLocation repositoryLocation2 = new RepositoryLocation(repositoryLocation.parent(), loc);
+			repositoryLocation2.setAccessor(getRepositoryAccessor());			
+			return repositoryLocation2;
 		} else {
 			throw new UserError(null, 317, loc); 
 		}
@@ -1119,5 +1124,9 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	 *  not known to the process itself has changed. */
 	public void updateNotify() {
 		fireUpdate(this);
+	}
+
+	public RepositoryAccessor getRepositoryAccessor() {
+		return null;
 	}
 }

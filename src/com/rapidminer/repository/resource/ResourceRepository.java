@@ -90,6 +90,6 @@ public class ResourceRepository extends ResourceFolder implements Repository {
 	
 	@Override
 	public Entry locate(String entry) throws RepositoryException {
-		return RepositoryManager.locate(this, entry, false);
+		return RepositoryManager.getInstance(null).locate(this, entry, false);
 	}
 }

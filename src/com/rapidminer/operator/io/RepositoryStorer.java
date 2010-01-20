@@ -51,7 +51,7 @@ public class RepositoryStorer extends AbstractWriter<IOObject> {
 	public IOObject write(IOObject ioobject) throws OperatorException {
 		try {
 			RepositoryLocation location = getParameterAsRepositoryLocation(PARAMETER_REPOSITORY_ENTRY); 
-			return RepositoryManager.getInstance().store(ioobject, location, this);
+			return RepositoryManager.getInstance(null).store(ioobject, location, this);
 		} catch (RepositoryException e) {
 			throw new UserError(this, e, 315, getParameterAsString(PARAMETER_REPOSITORY_ENTRY), e.getMessage());
 		}	

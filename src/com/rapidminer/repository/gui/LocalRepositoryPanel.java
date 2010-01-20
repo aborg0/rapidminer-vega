@@ -112,7 +112,7 @@ public class LocalRepositoryPanel extends JPanel {
 			alias = file.getName();
 		}
 		try {
-			RepositoryManager.getInstance().addRepository(new LocalRepository(alias, file));
+			RepositoryManager.getInstance(null).addRepository(new LocalRepository(alias, file));
 		} catch (RepositoryException e) {
 			SwingTools.showSimpleErrorMessage("cannot_create_repository", e);
 		}

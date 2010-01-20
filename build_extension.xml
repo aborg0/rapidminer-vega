@@ -140,10 +140,10 @@
         <ant antfile="${rm.dir}/build.xml" target="createJar" dir="${rm.dir}" inheritall="false" inheritrefs="false" />
     </target>
 
-    <target name="createJar" depends="clean, build" description="Generate the jar file">
+    <target name="createJar" depends="clean, build" unless="lock.isJared" description="Generate the jar file">
         <echo message="Creating jar..." />
         <delete file="${release.targetDir}/${release.name}" />
-        <pathconvert pathsep=" " property="manifest.classpath" refid="build.libraries">
+        <pathconvert pathsep=" " property="manifest.classpath" refid="build.libraries" dirsep="/">
             <map from="${build.lib}/" to="" />
         </pathconvert>
         <echo message="Manifest Classpath: ${manifest.classpath}" />
@@ -153,7 +153,7 @@
             <fileset dir="${build.lib}" includes="**/*.jar" />
         </unjar>
 
-        <jar jarfile="${release.targetDir}/${release.name}" update="true">
+        <jar jarfile="${release.targetDir}/${release.name}" update="false">
             <fileset dir="${build.build}" includes="**/*" />
             <fileset dir="${release.targetDir}/libfiles"  excludes="META-INF/*" >
             	<include name="**/*" />
@@ -163,9 +163,9 @@
             <metainf dir="${build.resources}" includes="ABOUT.NFO" />
 
             <manifest>
-                <attribute name="Implementation-Vendor" value="Rapid-I" />
+                <attribute name="Implementation-Vendor" value="${extension.vendor}" />
                 <attribute name="Implementation-Title" value="${extension.name}" />
-                <attribute name="Implementation-URL" value="http://www.rapid-i.com" />
+                <attribute name="Implementation-URL" value="${extension.url}" />
                 <attribute name="Implementation-Version" value="${extension.longversion}" />            	
             	<attribute name="Specification-Title" value="${extension.name}" />
             	<attribute name="Specification-Version" value="${extension.longversion}" />
@@ -188,6 +188,8 @@
         </jar>
 
         <delete dir="${release.targetDir}/libfiles" />
+    	
+    	<property name="lock.isJared" value="true" />
     </target>
 
     <target name="install" depends="createJar">
@@ -242,7 +244,7 @@ Name "${extension.name.long}"
         </exec>
     </target>
 
-    <target name="release.makeAll" depends="build, clean" description="This target releases all available platform versions">
+    <target name="release.makeAll" depends="clean, build" description="This target releases all available platform versions">
         <echo message="Releasing all versions..." />
         <property name="release.isMultiple" value="true" />
         <antcall target="release.makePlatformIndependent" />

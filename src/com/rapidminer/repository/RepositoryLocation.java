@@ -42,6 +42,7 @@ public class RepositoryLocation {
 	
 	private String repositoryName;
 	private String[] path;
+	private RepositoryAccessor accessor;
 	
 	
 	/** Constructs a RepositoryLocation from a string of the form
@@ -146,7 +147,7 @@ public class RepositoryLocation {
 	
 	/** Returns the repository associated with this location. */
 	public Repository getRepository() {
-		return RepositoryManager.getInstance().getRepository(repositoryName);		
+		return RepositoryManager.getInstance(getAccessor()).getRepository(repositoryName);		
 	}
 
 	/** Returns the name of the repository associated with this location. */
@@ -256,5 +257,13 @@ public class RepositoryLocation {
 	@Override
 	public int hashCode() {
 		return toString().hashCode();
+	}
+
+	public void setAccessor(RepositoryAccessor accessor) {
+		this.accessor = accessor;
+	}
+
+	public RepositoryAccessor getAccessor() {
+		return accessor;
 	}
 }

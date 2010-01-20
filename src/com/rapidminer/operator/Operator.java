@@ -1255,10 +1255,14 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		String loc = getParameter(key);
 		Process process = getProcess();
 		if (process != null) {
-			return process.resolveRepositoryLocation(loc);
+			RepositoryLocation result = process.resolveRepositoryLocation(loc);
+			result.setAccessor(process.getRepositoryAccessor());
+			return result;
 		} else {
 			if (RepositoryLocation.isAbsolute(loc)) {
-				return new RepositoryLocation(loc);
+				RepositoryLocation result = new RepositoryLocation(loc);
+				result.setAccessor(process.getRepositoryAccessor());
+				return result;
 			} else {
 				return null;
 			}

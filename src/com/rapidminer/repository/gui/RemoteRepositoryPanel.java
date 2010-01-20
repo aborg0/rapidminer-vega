@@ -136,7 +136,7 @@ public class RemoteRepositoryPanel extends JPanel {
 				Repository repository = new RemoteRepository(url, finalAlias, userField.getText(), passwordField.getPassword());
 				getProgressListener().setCompleted(90);
 				if (repository != null) {
-					RepositoryManager.getInstance().addRepository(repository);
+					RepositoryManager.getInstance(null).addRepository(repository);
 				}
 				getProgressListener().setCompleted(100);
 				getProgressListener().complete();

@@ -404,7 +404,7 @@ public final class ProcessRootOperator extends OperatorChain {
 						getLogger().warning("Nothing to store at "+location+": No results produced at "+port.getSpec()+".");
 					} else {
 						try {
-							RepositoryManager.getInstance().store(data, location, this);
+							RepositoryManager.getInstance(null).store(data, location, this);
 //							Entry entry = location.locateEntry();
 //							if (entry == null) {
 //								String childName = location.getName();

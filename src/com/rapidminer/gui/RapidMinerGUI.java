@@ -216,7 +216,7 @@ public class RapidMinerGUI extends RapidMiner {
 		RapidMiner.splashMessage("icons");
 		SwingTools.loadIcons();
 
-		RepositoryManager.getInstance().createRepositoryIfNoneIsDefined();
+		RepositoryManager.getInstance(null).createRepositoryIfNoneIsDefined();
 		
 		RapidMiner.splashMessage("create_frame");
 		SwingUtilities.invokeAndWait(new Runnable() {

@@ -25,6 +25,7 @@ package com.rapidminer.operator.io;
 import java.util.List;
 import java.util.logging.Level;
 
+import com.rapidminer.Process;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;

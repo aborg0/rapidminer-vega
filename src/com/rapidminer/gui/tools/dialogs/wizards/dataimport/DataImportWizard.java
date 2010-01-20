@@ -79,7 +79,7 @@ public class DataImportWizard extends AbstractWizard {
 				
 				l.setCompleted(55);
 				try {
-					RepositoryManager.getInstance().store(exampleSet, location, null);
+					RepositoryManager.getInstance(null).store(exampleSet, location, null);
 					l.setCompleted(95);
 				} catch (RepositoryException ex) {
 					SwingTools.showSimpleErrorMessage("cannot_store_obj_at_location", ex, repositoryLocationPath);

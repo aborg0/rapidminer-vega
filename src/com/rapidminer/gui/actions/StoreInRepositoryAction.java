@@ -62,7 +62,7 @@ public class StoreInRepositoryAction extends ResourceAction {
 				return;
 			}
 			try {
-				RepositoryManager.getInstance().store(object, location, null);
+				RepositoryManager.getInstance(null).store(object, location, null);
 			} catch (RepositoryException ex) {
 				SwingTools.showSimpleErrorMessage("cannot_store_obj_at_location", ex, loc);
 			}			

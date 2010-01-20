@@ -281,16 +281,20 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 								values[i] = resultSet.getTimestamp(i + 1);
 							} else if (metaData.getColumnType(i + 1) == Types.CLOB) {
 								Clob clob = resultSet.getClob(i + 1);
-								Reader reader = clob.getCharacterStream();
-								BufferedReader in = new BufferedReader(reader);
-								String line = null;
-								try {
-									StringBuffer buffer = new StringBuffer();
-									while ((line = in.readLine()) != null) {
-										buffer.append(line + "\n");
+								if (clob != null) {
+									Reader reader = clob.getCharacterStream();
+									BufferedReader in = new BufferedReader(reader);
+									String line = null;
+									try {
+										StringBuffer buffer = new StringBuffer();
+										while ((line = in.readLine()) != null) {
+											buffer.append(line + "\n");
+										}
+										values[i] = buffer.toString();
+									} catch (IOException e) {
+										values[i] = null;
 									}
-									values[i] = buffer.toString();
-								} catch (IOException e) {
+								} else {
 									values[i] = null;
 								}
 							} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(DatabaseDataReader.getValueType(metaData.getColumnType(i + 1)), Ontology.NOMINAL)) {

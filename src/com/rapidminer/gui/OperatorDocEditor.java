@@ -45,6 +45,7 @@ import com.rapidminer.Process;
 import com.rapidminer.gui.operatormenu.OperatorMenu;
 import com.rapidminer.gui.tools.ExtendedJToolBar;
 import com.rapidminer.gui.tools.ResourceAction;
+import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.tools.LogService;
@@ -155,6 +156,8 @@ public class OperatorDocEditor extends OperatorDocViewer {
 	}
 	
 	private String editWhat;
+
+	private boolean isEditing = false;
 		
 	public OperatorDocEditor() {
 		final JToolBar toolBar = new ExtendedJToolBar();
@@ -227,6 +230,7 @@ public class OperatorDocEditor extends OperatorDocViewer {
 
 	/** Enables/disables all actions for editing HTML text.*/
 	private void setEditEnabled(boolean enabled) {
+		isEditing = enabled;
 		getEditor().getCaret().setVisible(enabled);
 		applyChanges.setEnabled(enabled);
 		discardChanges.setEnabled(enabled);
@@ -267,6 +271,23 @@ public class OperatorDocEditor extends OperatorDocViewer {
 		}
 	}
 	
+	@Override
+	public void setSelection(List<Operator> selection) {
+		if (isEditing) {
+			// Don't disturb me. I am editing.
+		} else {
+			super.setSelection(selection);
+		}
+	}
+
+	@Override
+	public void setDisplayedOperator(Operator operator) {
+		if (isEditing) {
+			// Don't disturb me. I am editing.
+		} else {
+			super.setDisplayedOperator(operator);
+		}
+	}
 	private static String stripHtmlFrame(String html) {
 		int bodyStart = html.indexOf("<body>");
 		if (bodyStart != -1) {

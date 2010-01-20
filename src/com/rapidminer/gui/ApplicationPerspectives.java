@@ -300,6 +300,7 @@ public abstract class ApplicationPerspectives {
 		}
 		if (found != null) {
 			workspaceButtonGroup.remove(found);
+			workspaceMenuGroup.remove(found);
 			if (workspaceToolBar != null) {
 				workspaceToolBar.remove(found);
 			}

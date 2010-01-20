@@ -189,7 +189,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	
 	@Override
 	public Entry locate(String string) throws RepositoryException {
-		Entry firstTry = RepositoryManager.locate(this, string, true);
+		Entry firstTry = RepositoryManager.getInstance(null).locate(this, string, true);
 		if (firstTry != null) {
 			return firstTry;
 		}
@@ -325,6 +325,6 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	@Override
 	public void delete() {
-		RepositoryManager.getInstance().removeRepository(this);
+		RepositoryManager.getInstance(null).removeRepository(this);
 	}
 }

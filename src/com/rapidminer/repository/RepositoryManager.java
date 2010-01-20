@@ -24,8 +24,10 @@ package com.rapidminer.repository;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -63,29 +65,58 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 
 	private static RepositoryManager instance;
 	private static final Object INSTANCE_LOCK = new Object();
+	private static Repository sampleRepository;
+	private static final Map<RepositoryAccessor,RepositoryManager> CACHED_MANAGERS = new HashMap<RepositoryAccessor,RepositoryManager>();
+	private static final List<RepositoryFactory> FACTORIES = new LinkedList<RepositoryFactory>();
+	
 	private final List<Repository> repositories = new LinkedList<Repository>();
-
-	private Repository sampleRepository;
-
-	public static RepositoryManager getInstance() {
+	
+	public static RepositoryManager getInstance(RepositoryAccessor repositoryAccessor) {
 		synchronized (INSTANCE_LOCK) {
 			if (instance == null) {
 				init();
 			}
+			if (repositoryAccessor != null) {
+				RepositoryManager manager = CACHED_MANAGERS.get(repositoryAccessor);
+				if (manager == null) {
+					manager = new RepositoryManager(instance);
+					for (RepositoryFactory factory : FACTORIES) {
+						for (Repository repos : factory.createRepositoriesFor(repositoryAccessor)) {
+							manager.repositories.add(repos);
+						}
+					}
+					CACHED_MANAGERS.put(repositoryAccessor, manager);
+				}
+				return manager;
+			}
 		}
 		return instance;
-	}
+	}	
 
+	private RepositoryManager(RepositoryManager cloned) {
+		this.repositories.addAll(cloned.repositories); 
+	}
+	
 	private RepositoryManager() {
-		sampleRepository = new ResourceRepository("Samples", "/"+Tools.RESOURCE_PREFIX+"samples");
+		if (sampleRepository == null) {
+			sampleRepository = new ResourceRepository("Samples", "/"+Tools.RESOURCE_PREFIX+"samples");
+		}
 		repositories.add(sampleRepository);
 		load();
 	}
 
 	public static void init() {
-		instance = new RepositoryManager();		
+		synchronized (INSTANCE_LOCK) {
+			instance = new RepositoryManager();
+		}
 	}
 
+	public static void registerFactory(RepositoryFactory factory) {
+		synchronized (INSTANCE_LOCK) {
+			FACTORIES.add(factory);	
+		}		
+	}
+	
 	public void addRepository(Repository repository) {
 		LOGGER.config("Adding repository "+repository.getName());
 		repositories.add(repository);
@@ -238,7 +269,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 	}
 
 	/** Copies an entry to a given destination folder. */
-	public static void copy(RepositoryLocation source, Folder destination, ProgressListener l) throws RepositoryException {
+	public void copy(RepositoryLocation source, Folder destination, ProgressListener l) throws RepositoryException {
 		Entry entry = source.locateEntry();
 		if (entry == null) {
 			throw new RepositoryException("No such entry: "+source);
@@ -274,7 +305,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 	}
 	
 	/** Moves an entry to a given destination folder. */
-	public static void move(RepositoryLocation source, Folder destination, ProgressListener l) throws RepositoryException {
+	public void move(RepositoryLocation source, Folder destination, ProgressListener l) throws RepositoryException {
 		Entry entry = source.locateEntry();
 		if (entry == null) {
 			throw new RepositoryException("No such entry: "+source);
@@ -304,7 +335,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 	 *  to a more expensive solution when this fails.
 	 *  
 	 */
-	public static Entry locate(Repository repository, String path, boolean failIfBlocks) throws RepositoryException {
+	public Entry locate(Repository repository, String path, boolean failIfBlocks) throws RepositoryException {
 		if (path.startsWith(""+RepositoryLocation.SEPARATOR)) {
 			path = path.substring(1);
 		}

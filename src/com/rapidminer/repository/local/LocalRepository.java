@@ -115,7 +115,7 @@ public class LocalRepository extends SimpleFolder implements Repository {
 
 	@Override
 	public Entry locate(String entry) throws RepositoryException {
-		return RepositoryManager.locate(this, entry, false);
+		return RepositoryManager.getInstance(null).locate(this, entry, false);
 	}
 
 	@Override
@@ -151,7 +151,7 @@ public class LocalRepository extends SimpleFolder implements Repository {
 
 	@Override
 	public void delete() {
-		RepositoryManager.getInstance().removeRepository(this);
+		RepositoryManager.getInstance(null).removeRepository(this);
 	}
 }
 

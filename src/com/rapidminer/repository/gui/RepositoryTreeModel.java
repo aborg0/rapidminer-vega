@@ -62,7 +62,7 @@ public class RepositoryTreeModel implements TreeModel {
 			TreePath path = getPathTo(entry.getContainingFolder());
 			int index;
 			if (entry instanceof Repository) {
-				index = RepositoryManager.getInstance().getRepositories().indexOf(entry);
+				index = RepositoryManager.getInstance(null).getRepositories().indexOf(entry);
 			} else {
 				index = getIndexOfChild(entry.getContainingFolder(), entry);
 			}

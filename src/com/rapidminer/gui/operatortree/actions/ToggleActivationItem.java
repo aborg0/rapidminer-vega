@@ -101,6 +101,7 @@ public class ToggleActivationItem extends ToggleAction {
 								InputPort dest = i.next();
 								if ((source.getMetaData() != null) && dest.isInputCompatible(source.getMetaData(), CompatibilityLevel.PRE_VERSION_5)) {
 									source.connectTo(dest);
+									i.remove();
 									break;
 								}
 							}

@@ -138,17 +138,17 @@ public class RunRemoteDialog extends ButtonDialog {
 		final JButton okButton = makeOkButton();
 		final JButton cancelButton = makeCancelButton();
 		
-		repositoryBox.setModel(new DefaultComboBoxModel(RepositoryManager.getInstance().getRemoteRepositories().toArray()));
+		repositoryBox.setModel(new DefaultComboBoxModel(RepositoryManager.getInstance(null).getRemoteRepositories().toArray()));
 		repositoryBox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				okButton.setEnabled(repositoryBox.getSelectedItem() != null);
 			}
 		});
-		RepositoryManager.getInstance().addObserver(new Observer<Repository>() {
+		RepositoryManager.getInstance(null).addObserver(new Observer<Repository>() {
 			@Override
 			public void update(Observable<Repository> observable, Repository arg) {
-				repositoryBox.setModel(new DefaultComboBoxModel(RepositoryManager.getInstance().getRemoteRepositories().toArray()));
+				repositoryBox.setModel(new DefaultComboBoxModel(RepositoryManager.getInstance(null).getRemoteRepositories().toArray()));
 				if ((arg != null) && (arg instanceof RemoteRepository)) {
 					repositoryBox.setSelectedItem(arg);
 				}

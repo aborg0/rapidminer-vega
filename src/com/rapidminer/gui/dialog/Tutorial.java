@@ -148,7 +148,7 @@ public class Tutorial extends ButtonDialog implements WindowListener {
 		Process process;
 		try {
 			RepositoryLocation loc = new RepositoryLocation(RepositoryLocation.REPOSITORY_PREFIX+
-					RepositoryManager.getInstance().getSampleRepository().getName()+
+					RepositoryManager.getInstance(null).getSampleRepository().getName()+
 					RepositoryLocation.SEPARATOR + "processes" + RepositoryLocation.SEPARATOR + processName);
 			process = new RepositoryProcessLocation(loc).load(null);
 			//process = new Process(Tutorial.class.getResourceAsStream(resourceId));			

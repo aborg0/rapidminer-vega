@@ -311,7 +311,7 @@ public class RepositoryTree extends JTree {
 	}
 	
 	public RepositoryTree(Dialog owner) {
-		super(new RepositoryTreeModel(RepositoryManager.getInstance()));
+		super(new RepositoryTreeModel(RepositoryManager.getInstance(null)));
 
 		allActions.add(OPEN_ACTION);
 		allActions.add(STORE_PROCESS_ACTION);
@@ -408,9 +408,9 @@ public class RepositoryTree extends JTree {
 								public void run() {
 									try {
 										if (ts.isDrop() && (ts.getDropAction() == MOVE)) {
-											RepositoryManager.move(loc, (Folder)droppedOn, getProgressListener());
+											RepositoryManager.getInstance(null).move(loc, (Folder)droppedOn, getProgressListener());
 										} else {
-											RepositoryManager.copy(loc, (Folder)droppedOn, getProgressListener());
+											RepositoryManager.getInstance(null).copy(loc, (Folder)droppedOn, getProgressListener());
 										}
 									} catch (RepositoryException e) {
 										SwingTools.showSimpleErrorMessage("error_in_copy_repository_entry", e, loc.toString(), e.getMessage());
