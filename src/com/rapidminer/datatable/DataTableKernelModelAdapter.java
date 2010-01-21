@@ -181,7 +181,7 @@ public class DataTableKernelModelAdapter extends AbstractDataTable {
 			if (KernelModelRow2DataTableRowWrapper.SPECIAL_COLUMN_NAMES[i].equals(name))
 				return i;
 		if (name.startsWith("attribute")) {
-			return Integer.parseInt(name.substring("attribute".length())) - 1;
+			return Integer.parseInt(name.substring("attribute".length())) + KernelModelRow2DataTableRowWrapper.NUMBER_OF_SPECIAL_COLUMNS - 1;
 		}
 		return -1;
 	}

@@ -639,8 +639,11 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		clearReportStreams();
 		clearMacros();
 		clearStorage();
-		AttributeFactory.resetNameCounters();
-
+		if (getExecutionMode() != ExecutionMode.ONLY_DIRTY) {
+			getRootOperator().clear(Port.CLEAR_DATA);
+		}
+		AttributeFactory.resetNameCounters();		
+		
 		getLogger().fine("Process initialised.");
 	}
 
