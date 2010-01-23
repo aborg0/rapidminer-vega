@@ -24,7 +24,6 @@ package com.rapidminer.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -59,6 +58,7 @@ import com.rapidminer.gui.actions.AboutAction;
 import com.rapidminer.gui.actions.Actions;
 import com.rapidminer.gui.actions.AnovaCalculatorAction;
 import com.rapidminer.gui.actions.AutoWireAction;
+import com.rapidminer.gui.actions.BrowseAction;
 import com.rapidminer.gui.actions.CheckForJDBCDriversAction;
 import com.rapidminer.gui.actions.ExitAction;
 import com.rapidminer.gui.actions.ExportProcessAction;
@@ -523,8 +523,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
 
-		// file menu
-		JMenu fileMenu = new ResourceMenu("file");
+		fileMenu = new ResourceMenu("file");
 		fileMenu.add(NEW_ACTION);
 		fileMenu.add(OPEN_ACTION);
 		fileMenu.add(OPEN_TEMPLATE_ACTION);
@@ -675,19 +674,12 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 //			}
 //			
 //		});
-		helpMenu.add(new ResourceAction("support") {
-			private static final long serialVersionUID = 1L;
-			{
-				setCondition(EDIT_IN_PROGRESS, DONT_CARE);
-			}
-			public void actionPerformed(ActionEvent e) {
-				try {
-					Desktop.getDesktop().browse(new URI("http://rapid-i.com/content/view/60/89/lang,en/"));
-				} catch (Exception e1) {
-					SwingTools.showSimpleErrorMessage("cannot_open_browser", e1);
-				}
-			}
-		});
+		helpMenu.add(new BrowseAction("help_support", URI.create("http://rapid-i.com/content/view/60/89/lang,en/")));
+		helpMenu.add(new BrowseAction("help_videotutorials", URI.create("http://rapid-i.com/content/view/189/198/")));
+		helpMenu.add(new BrowseAction("help_forum", URI.create("http://forum.rapid-i.com")));
+		helpMenu.add(new BrowseAction("help_wiki", URI.create("http://wiki.rapid-i.com")));
+		
+		
 		helpMenu.addSeparator();		
 		//helpMenu.add(CHECK_FOR_UPDATES_ACTION);
 		helpMenu.add(ExtensionDialog.MANAGE_EXTENSIONS);
@@ -1294,6 +1286,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	private List<Operator> selectedOperators = Collections.emptyList();
 
 	private final JMenu toolsMenu;
+	private final JMenu fileMenu;
 	
 	public List<Operator> getSelectedOperators() {
 		return selectedOperators;
@@ -1396,5 +1389,9 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	
 	public JMenu getToolsMenu() {
 		return toolsMenu;
+	}
+
+	public JMenu getFileMenu() {
+		return fileMenu;
 	}
 }

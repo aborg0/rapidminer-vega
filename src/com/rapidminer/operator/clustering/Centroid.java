@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator.clustering;
 
+import java.io.Serializable;
 import java.util.Collection;
 
 import com.rapidminer.tools.Tools;
@@ -32,8 +33,10 @@ import com.rapidminer.tools.Tools;
  * 
  * @author Sebastian Land
  */
-public class Centroid {
+public class Centroid implements Serializable {
 	
+	private static final long serialVersionUID = 1L;
+
 	private double[] centroid;
 
 	private double[] centroidSum;

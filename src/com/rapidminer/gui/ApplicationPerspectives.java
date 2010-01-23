@@ -303,12 +303,13 @@ public abstract class ApplicationPerspectives {
 			workspaceMenuGroup.remove(found);
 			if (workspaceToolBar != null) {
 				workspaceToolBar.remove(found);
+				workspaceToolBar.revalidate();
 			}
 		}		
-		perspectives.remove(p);
+		perspectives.remove(p.getName());
 		p.delete();
-		if (current == p) {
-			showPerspective(perspectives.get(0).getName());
+		if ((current == p) && !perspectives.isEmpty()) {			
+			showPerspective(perspectives.values().iterator().next().getName());
 		}
 	}
 

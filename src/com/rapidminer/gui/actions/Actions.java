@@ -177,15 +177,23 @@ public class Actions implements ProcessEditor {
 		final Operator op = getFirstSelectedOperator();
 		final boolean singleSelection = getSelectedOperators().size() == 1;
 
+		if (op != null && !singleSelection) {
+			if (!(op instanceof ProcessRootOperator) &&
+					(op.getParent() != null) && op.getParent().isEnabled()) {
+				// enable / disable operator
+				menu.add(TOGGLE_ACTIVATION_ITEM.createMultipleActivationItem());				
+			}			
+		}
+		
 		if (op != null && singleSelection) {
 			menu.add(INFO_OPERATOR_ACTION);
 
 			if (!(op instanceof ProcessRootOperator) &&
-				(op.getParent() != null) && op.getParent().isEnabled()) {
+					(op.getParent() != null) && op.getParent().isEnabled()) {
 				// enable / disable operator
 				menu.add(TOGGLE_ACTIVATION_ITEM.createMenuItem());				
 			}
-			
+
 			if (renameAction != null) {
 				menu.add(renameAction);
 			} else {

@@ -36,6 +36,7 @@ import com.rapidminer.operator.ports.metadata.GenerateNewMDRule;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeString;
+import com.rapidminer.parameter.UndefinedParameterError;
 
 /**
  * <p>This operator creates a transition graph from the given example set.
@@ -82,6 +83,13 @@ public class TransitionGraphOperator extends Operator {
 	public void doWork() throws OperatorException {
 		ExampleSet exampleSet = exampleSetInput.getData();
 
+		TransitionGraph transitionGraph = createTransitionGraph(exampleSet);
+
+		exampleSetOutput.deliver(exampleSet);
+		graphOutput.deliver(transitionGraph);
+	}
+
+	public TransitionGraph createTransitionGraph(ExampleSet exampleSet) throws UndefinedParameterError, UserError {
 		String sourceAttribute = getParameterAsString(PARAMETER_SOURCE_ATTRIBUTE);
 		if (exampleSet.getAttributes().get(sourceAttribute) == null) {
 			throw new UserError(this, 111, sourceAttribute);
@@ -118,9 +126,7 @@ public class TransitionGraphOperator extends Operator {
 			nodeDescription = getParameterAsString(PARAMETER_NODE_DESCRIPTION);
 
 		TransitionGraph transitionGraph = new TransitionGraph(exampleSet, sourceAttribute, targetAttribute, strengthAttribute, typeAttribute, nodeDescription);
-
-		exampleSetOutput.deliver(exampleSet);
-		graphOutput.deliver(transitionGraph);
+		return transitionGraph;
 	}
 
 	@Override

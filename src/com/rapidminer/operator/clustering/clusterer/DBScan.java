@@ -33,9 +33,11 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Tools;
 import com.rapidminer.example.table.AttributeFactory;
+import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.clustering.ClusterModel;
+import com.rapidminer.operator.learner.CapabilityProvider;
 import com.rapidminer.operator.ports.metadata.DistanceMeasurePrecondition;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeDouble;
@@ -49,7 +51,7 @@ import com.rapidminer.tools.math.similarity.DistanceMeasures;
  * This operator provides the DBScan cluster algorithm. If no id attribute is present, the operator will create one.
  * @author Sebastian Land
  */
-public class DBScan extends RMAbstractClusterer {
+public class DBScan extends RMAbstractClusterer implements CapabilityProvider {
 
 	private static final String PARAMETER_EPSILON = "epsilon";
 
@@ -61,6 +63,34 @@ public class DBScan extends RMAbstractClusterer {
 		super(description);
 		
 		getExampleSetInputPort().addPrecondition(new DistanceMeasurePrecondition(getExampleSetInputPort(), this));
+	}
+	
+	@Override
+	public boolean supportsCapability(OperatorCapability capability) {
+		int measureType = DistanceMeasures.MIXED_MEASURES_TYPE;
+		try {
+			measureType = measureHelper.getSelectedMeasureType();
+		} catch (Exception e) {
+			
+		}
+		switch (capability) {
+		case BINOMINAL_ATTRIBUTES:
+		case POLYNOMINAL_ATTRIBUTES:
+			return (measureType == DistanceMeasures.MIXED_MEASURES_TYPE) ||
+			(measureType == DistanceMeasures.NOMINAL_MEASURES_TYPE);
+		case NUMERICAL_ATTRIBUTES:
+			return (measureType == DistanceMeasures.MIXED_MEASURES_TYPE) ||
+			(measureType == DistanceMeasures.DIVERGENCES_TYPE) ||
+			(measureType == DistanceMeasures.NUMERICAL_MEASURES_TYPE);
+		case POLYNOMINAL_LABEL:
+		case BINOMINAL_LABEL:
+		case NUMERICAL_LABEL:
+		case WEIGHTED_EXAMPLES:
+		case MISSING_VALUES:
+			return true;
+		default:
+			return false;
+		}
 	}
 
 	@Override

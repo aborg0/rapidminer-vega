@@ -31,9 +31,11 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Tools;
 import com.rapidminer.example.table.AttributeFactory;
+import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.clustering.ClusterModel;
+import com.rapidminer.operator.learner.CapabilityProvider;
 import com.rapidminer.operator.learner.functions.kernel.jmysvm.examples.SVMExample;
 import com.rapidminer.operator.learner.functions.kernel.jmysvm.kernel.Kernel;
 import com.rapidminer.operator.learner.functions.kernel.jmysvm.kernel.KernelDot;
@@ -54,7 +56,7 @@ import com.rapidminer.tools.Ontology;
  * 
  * @author Stefan Rueping, Ingo Mierswa, Michael Wurst, Sebastian Land
  */
-public class SVClustering extends RMAbstractClusterer {
+public class SVClustering extends RMAbstractClusterer implements CapabilityProvider {
 
 	public static final String MIN_PTS_NAME = "min_pts";
 
@@ -117,14 +119,13 @@ public class SVClustering extends RMAbstractClusterer {
 		super(description);
 	}
 
-
 	@Override
 	public ClusterModel generateClusterModel(ExampleSet exampleSet) throws OperatorException {		 
 		// checking and creating ids if necessary
 		Tools.checkAndCreateIds(exampleSet);
 
 		// additional checks
-		Tools.onlyNonMissingValues(exampleSet, "AgglomerativeClustering");
+		Tools.onlyNonMissingValues(exampleSet, "SVClustering");
 		Tools.isNonEmpty(exampleSet);
 
 		// creating kernel
@@ -262,6 +263,17 @@ public class SVClustering extends RMAbstractClusterer {
 		}
 	}
 
+	@Override
+	public boolean supportsCapability(OperatorCapability capability) {
+		switch (capability) {
+		case BINOMINAL_ATTRIBUTES:
+		case POLYNOMINAL_ATTRIBUTES:
+			return false;
+		default:
+			return true;
+		}
+	}
+	
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();

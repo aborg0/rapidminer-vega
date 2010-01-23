@@ -32,12 +32,15 @@ import com.rapidminer.example.set.ConditionedExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
+import com.rapidminer.operator.ports.metadata.MDInteger;
 import com.rapidminer.operator.preprocessing.AbstractDataProcessing;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.ParameterTypeStringCategory;
+import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.EqualStringCondition;
 
 
@@ -92,6 +95,15 @@ public class ExampleFilter extends AbstractDataProcessing {
 	@Override
 	public ExampleSetMetaData modifyMetaData(ExampleSetMetaData emd) {
 		emd.getNumberOfExamples().reduceByUnknownAmount();
+		try {
+			if (getParameterAsString(PARAMETER_CONDITION_CLASS).equals(
+					ConditionedExampleSet.KNOWN_CONDITION_NAMES[ConditionedExampleSet.CONDITION_NO_MISSING_ATTRIBUTES])) {
+				for (AttributeMetaData amd : emd.getAllAttributes()) {
+					amd.setNumberOfMissingValues(new MDInteger(0));
+				}
+			}
+		} catch (UndefinedParameterError e) {
+		}
 		return emd;
 	}
 	

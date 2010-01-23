@@ -349,8 +349,8 @@ public class Parameters extends AbstractObservable<String> implements Cloneable,
 
 	/** Returns true iff the parameter value was explicitly set (as opposed to
 	 *  {@link #isSet(String)} which also takes into account a possible default value. */
-	public boolean isSpecified(String oldAttributeName) {
-		return keyToValueMap.containsKey(oldAttributeName);
+	public boolean isSpecified(String key) {
+		return keyToValueMap.containsKey(key);
 	}
 
 	public void copyFrom(Parameters parameters) {

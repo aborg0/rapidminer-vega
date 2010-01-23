@@ -31,11 +31,13 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Tools;
 import com.rapidminer.example.table.AttributeFactory;
+import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.clustering.CentroidClusterModel;
 import com.rapidminer.operator.clustering.ClusterModel;
+import com.rapidminer.operator.learner.CapabilityProvider;
 import com.rapidminer.operator.ports.metadata.DistanceMeasurePrecondition;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeInt;
@@ -51,7 +53,7 @@ import com.rapidminer.tools.math.similarity.DistanceMeasures;
  * 
  * @author Sebastian Land
  */
-public class KMedoids extends RMAbstractClusterer {
+public class KMedoids extends RMAbstractClusterer implements CapabilityProvider {
 
 	/** The parameter name for &quot;the maximal number of clusters&quot; */
 	public static final String PARAMETER_K = "k";
@@ -71,6 +73,34 @@ public class KMedoids extends RMAbstractClusterer {
 		super(description);
 		
 		getExampleSetInputPort().addPrecondition(new DistanceMeasurePrecondition(getExampleSetInputPort(), this));
+	}
+
+	@Override
+	public boolean supportsCapability(OperatorCapability capability) {
+		int measureType = DistanceMeasures.MIXED_MEASURES_TYPE;
+		try {
+			measureType = measureHelper.getSelectedMeasureType();
+		} catch (Exception e) {
+			
+		}
+		switch (capability) {
+		case BINOMINAL_ATTRIBUTES:
+		case POLYNOMINAL_ATTRIBUTES:
+			return (measureType == DistanceMeasures.MIXED_MEASURES_TYPE) ||
+			(measureType == DistanceMeasures.NOMINAL_MEASURES_TYPE);
+		case NUMERICAL_ATTRIBUTES:
+			return (measureType == DistanceMeasures.MIXED_MEASURES_TYPE) ||
+			(measureType == DistanceMeasures.DIVERGENCES_TYPE) ||
+			(measureType == DistanceMeasures.NUMERICAL_MEASURES_TYPE);
+		case POLYNOMINAL_LABEL:
+		case BINOMINAL_LABEL:
+		case NUMERICAL_LABEL:
+		case WEIGHTED_EXAMPLES:
+		case MISSING_VALUES:
+			return true;
+		default:
+			return false;
+		}
 	}
 
 	@Override
