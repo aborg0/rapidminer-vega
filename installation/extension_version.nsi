@@ -1,4 +1,4 @@
 
-                !define SHORT_VERSION 5.0
-                !define LONG_VERSION 5.0.000.0
+                !define SHORT_VERSION ${extension.version}.${extension.revision}
+                !define LONG_VERSION ${extension.version}.${extension.revision}.${extension.update}.0
             

@@ -16,12 +16,12 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;extension base="{http://service.web.rapidrepository.com/}response">
  *       &lt;sequence>
- *         &lt;element name="location" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="latestRevision" type="{http://www.w3.org/2001/XMLSchema}int"/>
- *         &lt;element name="user" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="type" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="size" type="{http://www.w3.org/2001/XMLSchema}int"/>
  *         &lt;element name="date" type="{http://www.w3.org/2001/XMLSchema}long"/>
+ *         &lt;element name="latestRevision" type="{http://www.w3.org/2001/XMLSchema}int"/>
+ *         &lt;element name="location" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="size" type="{http://www.w3.org/2001/XMLSchema}int"/>
+ *         &lt;element name="type" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="user" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/extension>
  *   &lt;/complexContent>
@@ -32,23 +32,55 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "entryResponse", propOrder = {
-    "location",
+    "date",
     "latestRevision",
-    "user",
-    "type",
+    "location",
     "size",
-    "date"
+    "type",
+    "user"
 })
 public class EntryResponse
     extends Response
 {
 
-    protected String location;
-    protected int latestRevision;
-    protected String user;
-    protected String type;
-    protected int size;
     protected long date;
+    protected int latestRevision;
+    protected String location;
+    protected int size;
+    protected String type;
+    protected String user;
+
+    /**
+     * Gets the value of the date property.
+     * 
+     */
+    public long getDate() {
+        return date;
+    }
+
+    /**
+     * Sets the value of the date property.
+     * 
+     */
+    public void setDate(long value) {
+        this.date = value;
+    }
+
+    /**
+     * Gets the value of the latestRevision property.
+     * 
+     */
+    public int getLatestRevision() {
+        return latestRevision;
+    }
+
+    /**
+     * Sets the value of the latestRevision property.
+     * 
+     */
+    public void setLatestRevision(int value) {
+        this.latestRevision = value;
+    }
 
     /**
      * Gets the value of the location property.
@@ -75,43 +107,19 @@ public class EntryResponse
     }
 
     /**
-     * Gets the value of the latestRevision property.
+     * Gets the value of the size property.
      * 
      */
-    public int getLatestRevision() {
-        return latestRevision;
+    public int getSize() {
+        return size;
     }
 
     /**
-     * Sets the value of the latestRevision property.
+     * Sets the value of the size property.
      * 
      */
-    public void setLatestRevision(int value) {
-        this.latestRevision = value;
-    }
-
-    /**
-     * Gets the value of the user property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getUser() {
-        return user;
-    }
-
-    /**
-     * Sets the value of the user property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setUser(String value) {
-        this.user = value;
+    public void setSize(int value) {
+        this.size = value;
     }
 
     /**
@@ -139,35 +147,27 @@ public class EntryResponse
     }
 
     /**
-     * Gets the value of the size property.
+     * Gets the value of the user property.
      * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
      */
-    public int getSize() {
-        return size;
+    public String getUser() {
+        return user;
     }
 
     /**
-     * Sets the value of the size property.
+     * Sets the value of the user property.
      * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
      */
-    public void setSize(int value) {
-        this.size = value;
-    }
-
-    /**
-     * Gets the value of the date property.
-     * 
-     */
-    public long getDate() {
-        return date;
-    }
-
-    /**
-     * Sets the value of the date property.
-     * 
-     */
-    public void setDate(long value) {
-        this.date = value;
+    public void setUser(String value) {
+        this.user = value;
     }
 
 }

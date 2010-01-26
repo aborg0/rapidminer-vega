@@ -674,7 +674,7 @@
 </target>
 
 
-<target name="wsimport.repository" description="Import the wsdl description of the Image Mining Web Service.">
+<target name="wsimport.repository" description="Import the WSDL description of the Repository Web Service.">
 <mkdir dir="${src_generated}" />
 <exec executable="wsimport" dir="${basedir}">
 <arg value="-Xdebug" />
@@ -689,5 +689,18 @@
 <arg value="-extension" />
 <arg value="http://localhost:8080/RapidRepositoryWeb/RepositoryService?wsdl" />
 </exec>
+	<exec executable="wsimport" dir="${basedir}">
+	<arg value="-Xdebug" />
+	<arg value="-keep" />
+	<arg value="-p" />
+	<arg value="com.rapid_i.repository.wsimport" />
+	<arg value="-s" />
+	<arg file="${src_generated}" />
+	<!--arg value="-d"/>
+			   <arg file="${build}"/ -->
+	<arg value="-Xnocompile" />
+	<arg value="-extension" />
+	<arg value="http://localhost:8080/RapidRepositoryWeb/ProcessService?wsdl" />
+	</exec>
 </target>
 </project>

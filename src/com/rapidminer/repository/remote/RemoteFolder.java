@@ -71,7 +71,7 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 
 	@Override
 	public Folder createFolder(String name) throws RepositoryException {
-		EntryResponse response = getRepository().getService().makeFolder(getPath(), name);
+		EntryResponse response = getRepository().getRepositoryService().makeFolder(getPath(), name);
 		if (response.getStatus() != RepositoryConstants.OK) {
 			throw new RepositoryException(response.getErrorMessage());
 		}
@@ -86,7 +86,7 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 	
 	@Override
 	public BlobEntry createBlobEntry(String name) throws RepositoryException {
-		EntryResponse response = getRepository().getService().createBlob(getPath(), name);
+		EntryResponse response = getRepository().getRepositoryService().createBlob(getPath(), name);
 		RemoteBlobEntry newBlob= new RemoteBlobEntry(response, this, getRepository());
 		if (this.entries != null) {				
 			entries.add(newBlob);			
@@ -111,7 +111,7 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 			if ((entries == null) || (folders == null)) {
 				FolderContentsResponse response;				
 				String path = getPath();				
-				response = getRepository().getService().getFolderContents(path);				
+				response = getRepository().getRepositoryService().getFolderContents(path);				
 				entries = new LinkedList<DataEntry>();
 				folders = new LinkedList<Folder>();				
 				if (response.getStatus() != RepositoryConstants.OK) {
@@ -186,7 +186,7 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 	public IOObjectEntry createIOObjectEntry(String name, IOObject ioobject, Operator callingOperator, ProgressListener l) throws RepositoryException {
 		RepositoryLocation loc = new RepositoryLocation(getLocation(), name);
 		RemoteIOObjectEntry.storeData(ioobject, loc.getPath(), getRepository(), l);
-		EntryResponse response = getRepository().getService().getEntry(loc.getPath());
+		EntryResponse response = getRepository().getRepositoryService().getEntry(loc.getPath());
 		if (response.getStatus() != 0) {
 			throw new RepositoryException(response.getErrorMessage());
 		}
@@ -201,11 +201,11 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 	@Override
 	public ProcessEntry createProcessEntry(String name, String processXML) throws RepositoryException {
 		RepositoryLocation loc = new RepositoryLocation(getLocation(), name);
-		Response response = getRepository().getService().storeProcess(loc.getPath(), processXML);
+		Response response = getRepository().getRepositoryService().storeProcess(loc.getPath(), processXML);
 		if (response.getStatus() != 0) {
 			throw new RepositoryException(response.getErrorMessage());
 		}
-		EntryResponse entryResponse = getRepository().getService().getEntry(loc.getPath());
+		EntryResponse entryResponse = getRepository().getRepositoryService().getEntry(loc.getPath());
 		if (entryResponse.getStatus() != 0) {
 			throw new RepositoryException(entryResponse.getErrorMessage());
 		}

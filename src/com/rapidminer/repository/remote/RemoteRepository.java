@@ -30,6 +30,8 @@ import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -40,6 +42,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.rapid_i.repository.wsimport.EntryResponse;
+import com.rapid_i.repository.wsimport.ProcessService;
+import com.rapid_i.repository.wsimport.ProcessService_Service;
 import com.rapid_i.repository.wsimport.RepositoryService;
 import com.rapid_i.repository.wsimport.RepositoryService_Service;
 import com.rapidminer.RapidMiner;
@@ -86,10 +90,11 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	private final String username;
 	private char[] password;
 	private RepositoryService repositoryService;
+	private ProcessService processService;
 	private final EventListenerList listeners = new EventListenerList();
 
 	private static final Map<URL,WeakReference<RemoteRepository>> ALL_REPOSITORIES = new HashMap<URL,WeakReference<RemoteRepository>>();
-	private static final Object MAP_LOCK = new Object(); 	
+	private static final Object MAP_LOCK = new Object();
 
 	private boolean offline = false; 
 	
@@ -97,7 +102,14 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		GlobalAuthenticator.register(new GlobalAuthenticator.URLAuthenticator() {
 			@Override
 			public PasswordAuthentication getAuthentication(URL url) {			
-				WeakReference<RemoteRepository> reposRef = ALL_REPOSITORIES.get(url);
+				WeakReference<RemoteRepository> reposRef = null;// = ALL_REPOSITORIES.get(url);
+				for (Map.Entry<URL, WeakReference<RemoteRepository>> entry : ALL_REPOSITORIES.entrySet()) {
+					if (url.toString().startsWith(entry.getKey().toString())) {
+						reposRef = entry.getValue();
+						break;
+					}
+				}
+				
 				if (reposRef == null) {
 					return null;
 				}
@@ -132,13 +144,23 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	
 	private static void register(RemoteRepository remoteRepository) {
 		synchronized (MAP_LOCK) {
-			ALL_REPOSITORIES.put(remoteRepository.getWSDLUrl(), new WeakReference<RemoteRepository>(remoteRepository));
+			ALL_REPOSITORIES.put(remoteRepository.baseUrl, new WeakReference<RemoteRepository>(remoteRepository));
 		}
 	}
 
-	private URL getWSDLUrl() {
+	private URL getRepositoryServiceWSDLUrl() {
 		try {
 			return new URL(baseUrl, "RepositoryService?wsdl");
+		} catch (MalformedURLException e) {
+			// cannot happen
+			LogService.getRoot().log(Level.WARNING, "Cannot create web service url: "+e, e);
+			return null;
+		}
+	}
+	
+	private URL getProcessServiceWSDLUrl() {
+		try {
+			return new URL(baseUrl, "ProcessService?wsdl");
 		} catch (MalformedURLException e) {
 			// cannot happen
 			LogService.getRoot().log(Level.WARNING, "Cannot create web service url: "+e, e);
@@ -198,7 +220,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			string = "/" + string;
 		}
 		
-		EntryResponse response = getService().getEntry(string);
+		EntryResponse response = getRepositoryService().getEntry(string);
 		if (response.getStatus() != RepositoryConstants.OK) {
 			if (response.getStatus() == RepositoryConstants.NO_SUCH_ENTRY) {
 				return null;
@@ -248,13 +270,13 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		}
 	}
 
-	public RepositoryService getService() throws RepositoryException {
+	public RepositoryService getRepositoryService() throws RepositoryException {
 		if (offline) {
 			throw new RepositoryException("Repository "+getName()+" is offline. Connect first.");
 		}
 		if (repositoryService == null){
 			try {
-				RepositoryService_Service serviceService = new RepositoryService_Service(getWSDLUrl(), 
+				RepositoryService_Service serviceService = new RepositoryService_Service(getRepositoryServiceWSDLUrl(), 
 						new QName("http://service.web.rapidrepository.com/", "RepositoryService"));
 				repositoryService = serviceService.getRepositoryServicePort();
 			} catch (Exception e) {
@@ -265,7 +287,25 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		}
 		return repositoryService;
 	}
-	
+
+	public ProcessService getProcessService() throws RepositoryException {
+//		if (offline) {
+//			throw new RepositoryException("Repository "+getName()+" is offline. Connect first.");
+//		}
+		if (processService == null){
+			try {
+				ProcessService_Service serviceService = new ProcessService_Service(getProcessServiceWSDLUrl(), 
+						new QName("http://service.web.rapidrepository.com/", "ProcessService"));
+				processService = serviceService.getProcessServicePort();
+			} catch (Exception e) {
+				offline = true;
+				password = null;
+				throw new RepositoryException("Cannot connect to "+baseUrl+": "+e, e);				
+			}
+		}
+		return processService;
+	}
+
 	@Override
 	public String getDescription() {
 		return "Remote repository at "+baseUrl;
@@ -327,4 +367,57 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	public void delete() {
 		RepositoryManager.getInstance(null).removeRepository(this);
 	}
+
+	public static List<RemoteRepository> getAll() {
+		List<RemoteRepository> result = new LinkedList<RemoteRepository>();
+		for (WeakReference<RemoteRepository> ref : ALL_REPOSITORIES.values()) {
+			RemoteRepository rep = ref.get();
+			if (ref != null) {
+				result.add(rep);
+			}
+		}
+		return result;
+	}
+	
+	public boolean isConnected() {
+		return !offline;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((alias == null) ? 0 : alias.hashCode());
+		result = prime * result + ((baseUrl == null) ? 0 : baseUrl.hashCode());
+		result = prime * result + ((username == null) ? 0 : username.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		RemoteRepository other = (RemoteRepository) obj;
+		if (alias == null) {
+			if (other.alias != null)
+				return false;
+		} else if (!alias.equals(other.alias))
+			return false;
+		if (baseUrl == null) {
+			if (other.baseUrl != null)
+				return false;
+		} else if (!baseUrl.equals(other.baseUrl))
+			return false;
+		if (username == null) {
+			if (other.username != null)
+				return false;
+		} else if (!username.equals(other.username))
+			return false;
+		return true;
+	}	
+	
 }

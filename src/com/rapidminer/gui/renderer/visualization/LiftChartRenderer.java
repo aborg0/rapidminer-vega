@@ -48,19 +48,12 @@ public class LiftChartRenderer extends AbstractRenderer {
 		LiftParetoChart paretoChartInformation = (LiftParetoChart)renderable;
 		PlotterConfigurationModel settings = new PlotterConfigurationModel(PlotterConfigurationModel.PARETO_PLOT, paretoChartInformation.getLiftChartData());
 		Plotter plotter = settings.getPlotter();
-		//plotter.setAxis(0, 0);		
 		settings.setParameterAsString(ParetoChartPlotter.PARAMETER_SUFFIX_AXIS + PlotterAdapter.transformParameterName(plotter.getAxisName(0)), settings.getDataTable().getColumnName(0));
-		//plotter.setPlotColumn(1, true);
-		settings.setParameterAsString(ParetoChartPlotter.PARAMETER_PLOT_COLUMNS, settings.getDataTable().getColumnName(1));
-		//plotter.setCountValue(paretoChartInformation.getTargetValue());
+		settings.setParameterAsString(ParetoChartPlotter.PARAMETER_PLOT_COLUMN, settings.getDataTable().getColumnName(1));
 		settings.setParameterAsString(ParetoChartPlotter.PARAMETER_COUNT_VALUE, paretoChartInformation.getTargetValue());
-		//plotter.setSortingDirection(ParetoChartPlotter.KEYS_DESCENDING);
 		settings.setParameterAsInt(ParetoChartPlotter.PARAMETER_SORTING_DIRECTION, ParetoChartPlotter.KEYS_DESCENDING);
-		//plotter.setShowBarLabels(paretoChartInformation.showBarLabels());
 		settings.setParameterAsBoolean(ParetoChartPlotter.PARAMETER_SHOW_BAR_LABELS, paretoChartInformation.showBarLabels());
-		//plotter.setShowCumulativeLabels(paretoChartInformation.showCumulativeLabels());
 		settings.setParameterAsBoolean(ParetoChartPlotter.PARAMETER_SHOW_CUMULATIVE_LABELS, paretoChartInformation.showCumulativeLabels());
-		//plotter.setRotateLabels(paretoChartInformation.rotateLabels());
 		settings.setParameterAsBoolean(ParetoChartPlotter.PARAMETER_ROTATE_LABELS, paretoChartInformation.rotateLabels());		
         return plotter;
 	}

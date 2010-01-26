@@ -768,4 +768,8 @@ public class Plugin {
 	public String getExtensionId() {
 		return extensionId;
 	}
+
+	public static File getPluginLocation() {
+		return new File(System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS_LOCATION));
+	}
 }

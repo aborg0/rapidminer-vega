@@ -72,6 +72,7 @@ public class ResultTab extends JPanel implements Dockable {
 		this.dockKey = new DockKey(id, "Result "+id);
 		this.dockKey.setDockGroup(MainFrame.DOCK_GROUP_RESULTS);
 		this.dockKey.setName(id);
+		this.dockKey.setFloatEnabled(true);
 		label = makeStandbyLabel();
 		add(label, BorderLayout.NORTH);
 	}

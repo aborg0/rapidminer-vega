@@ -6,7 +6,6 @@ import javax.jws.WebParam;
 import javax.jws.WebResult;
 import javax.jws.WebService;
 import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.ws.RequestWrapper;
 import javax.xml.ws.ResponseWrapper;
 
@@ -133,59 +132,5 @@ public interface RepositoryService {
         String parentLocation,
         @WebParam(name = "subfolderName", targetNamespace = "")
         String subfolderName);
-
-    /**
-     * 
-     * @param processLocation
-     * @param executionTime
-     * @return
-     *     returns com.rapid_i.repository.wsimport.ExecutionResponse
-     */
-    @WebMethod
-    @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "executeProcessSimple", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.ExecuteProcessSimple")
-    @ResponseWrapper(localName = "executeProcessSimpleResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.ExecuteProcessSimpleResponse")
-    public ExecutionResponse executeProcessSimple(
-        @WebParam(name = "processLocation", targetNamespace = "")
-        String processLocation,
-        @WebParam(name = "executionTime", targetNamespace = "")
-        XMLGregorianCalendar executionTime);
-
-    /**
-     * 
-     * @param processLocation
-     * @param start
-     * @param cronExpression
-     * @param end
-     * @return
-     *     returns com.rapid_i.repository.wsimport.ExecutionResponse
-     */
-    @WebMethod
-    @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "executeProcessCron", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.ExecuteProcessCron")
-    @ResponseWrapper(localName = "executeProcessCronResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.ExecuteProcessCronResponse")
-    public ExecutionResponse executeProcessCron(
-        @WebParam(name = "processLocation", targetNamespace = "")
-        String processLocation,
-        @WebParam(name = "cronExpression", targetNamespace = "")
-        String cronExpression,
-        @WebParam(name = "start", targetNamespace = "")
-        XMLGregorianCalendar start,
-        @WebParam(name = "end", targetNamespace = "")
-        XMLGregorianCalendar end);
-
-    /**
-     * 
-     * @param triggerName
-     * @return
-     *     returns com.rapid_i.repository.wsimport.Response
-     */
-    @WebMethod
-    @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "cancelTrigger", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.CancelTrigger")
-    @ResponseWrapper(localName = "cancelTriggerResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.CancelTriggerResponse")
-    public Response cancelTrigger(
-        @WebParam(name = "triggerName", targetNamespace = "")
-        String triggerName);
 
 }

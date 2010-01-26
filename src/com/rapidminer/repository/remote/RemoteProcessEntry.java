@@ -43,7 +43,7 @@ public class RemoteProcessEntry extends RemoteDataEntry implements ProcessEntry 
 	private void ensureLoaded() throws RepositoryException {
 		synchronized (lock) {
 			if (xml == null) {
-				ProcessContentsResponse response = getRepository().getService().getProcessContents(getPath(), 0);
+				ProcessContentsResponse response = getRepository().getRepositoryService().getProcessContents(getPath(), 0);
 				if (response.getStatus() != RepositoryConstants.OK) {
 					xml = "Cannot fetch process: "+response.getErrorMessage();
 					getLogger().warning("Cannot fetch process: "+response.getErrorMessage());
@@ -63,7 +63,7 @@ public class RemoteProcessEntry extends RemoteDataEntry implements ProcessEntry 
 
 	@Override
 	public void storeXML(String xml) throws RepositoryException {
-		Response response = getRepository().getService().storeProcess(getPath(), xml);
+		Response response = getRepository().getRepositoryService().storeProcess(getPath(), xml);
 		if (response.getStatus() != RepositoryConstants.OK) {
 			throw new RepositoryException(response.getErrorMessage());
 		}

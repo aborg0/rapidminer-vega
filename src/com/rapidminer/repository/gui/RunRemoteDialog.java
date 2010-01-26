@@ -354,7 +354,7 @@ public class RunRemoteDialog extends ButtonDialog {
 			ExecutionResponse response;
 			if (nowButton.isSelected()) {
 				try {
-					response = repos.getService().executeProcessSimple(location, null);
+					response = repos.getProcessService().executeProcessSimple(location, null);
 				} catch (RepositoryException e) {
 					SwingTools.showSimpleErrorMessage("error_connecting_to_server", e);
 					return;
@@ -362,7 +362,7 @@ public class RunRemoteDialog extends ButtonDialog {
 			} else if (onceButton.isSelected()) {
 				try {
 					Date date = dateField.getDate();
-					response = repos.getService().executeProcessSimple(location, XMLTools.getXMLGregorianCalendar(date));
+					response = repos.getProcessService().executeProcessSimple(location, XMLTools.getXMLGregorianCalendar(date));
 				} catch (DatatypeConfigurationException e) {
 					SwingTools.showSimpleErrorMessage("cannot_parse_date", e);
 					return;
@@ -374,7 +374,7 @@ public class RunRemoteDialog extends ButtonDialog {
 				try {
 					XMLGregorianCalendar start = startBox.isSelected() ? XMLTools.getXMLGregorianCalendar(startField.getDate()) : null;
 					XMLGregorianCalendar end = endBox.isSelected() ? XMLTools.getXMLGregorianCalendar(endField.getDate()) : null;
-					response = repos.getService().executeProcessCron(location, cronField.getText(), start, end);				
+					response = repos.getProcessService().executeProcessCron(location, cronField.getText(), start, end);				
 				} catch (DatatypeConfigurationException e) {
 					SwingTools.showSimpleErrorMessage("cannot_parse_date", e);
 					return;

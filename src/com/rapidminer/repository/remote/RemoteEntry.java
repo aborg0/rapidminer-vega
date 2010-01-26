@@ -128,7 +128,7 @@ public abstract class RemoteEntry implements Entry {
 	
 	@Override
 	public void delete() throws RepositoryException {				
-		Response response = getRepository().getService().deleteEntry(getLocation().getPath());
+		Response response = getRepository().getRepositoryService().deleteEntry(getLocation().getPath());
 		if (response.getStatus() != 0) {
 			throw new RepositoryException(response.getErrorMessage());
 		}

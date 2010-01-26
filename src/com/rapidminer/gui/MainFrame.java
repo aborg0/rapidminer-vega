@@ -135,6 +135,7 @@ import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeColor;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.repository.gui.RepositoryBrowser;
+import com.rapidminer.repository.gui.process.RemoteProcessViewer;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Observable;
 import com.rapidminer.tools.Observer;
@@ -384,6 +385,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	private final NewOperatorEditor newOperatorEditor = new NewOperatorEditor();
 	private final ProcessPanel processPanel = new ProcessPanel(this);
 	private final RepositoryBrowser repositoryBrowser = new RepositoryBrowser();
+	private final RemoteProcessViewer remoteProcessViewer = new RemoteProcessViewer();
 
 	private final Perspectives perspectives = new Perspectives(dockingContext);
 	
@@ -510,6 +512,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		dockingDesktop.registerDockable(systemMonitor);
 		dockingDesktop.registerDockable(operatorDocViewer);
 		dockingDesktop.registerDockable(processContextEditor);
+		dockingDesktop.registerDockable(remoteProcessViewer);
 		dockingDesktop.registerDockable(processPanel.getProcessRenderer().getOverviewPanel());
 		
 		ToolBarContainer toolBarContainer = ToolBarContainer.createDefaultContainer(true, true, true, true);
