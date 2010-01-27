@@ -69,12 +69,18 @@ public class CapabilityCheck {
 
 			// label
 			if (exampleSet.getAttributes().getLabel().isNominal()) {
-				if (exampleSet.getAttributes().getLabel().getMapping().size() == 2) {
-					if (!capabilityProvider.supportsCapability(OperatorCapability.BINOMINAL_LABEL))
-						throw new UserError(learningOperator, 501, learningOperator.getName(), OperatorCapability.BINOMINAL_LABEL.getDescription());
+				if (exampleSet.getAttributes().getLabel().getMapping().size() == 1) {
+					if (!(capabilityProvider.supportsCapability(OperatorCapability.ONE_CLASS_LABEL))) {
+						throw new UserError(learningOperator, 502, learningOperator.getName());						
+					}
 				} else {
-					if (!capabilityProvider.supportsCapability(OperatorCapability.POLYNOMINAL_LABEL))
-						throw new UserError(learningOperator, 501, learningOperator.getName(), OperatorCapability.POLYNOMINAL_LABEL.getDescription());
+					if (exampleSet.getAttributes().getLabel().getMapping().size() == 2) {
+						if (!capabilityProvider.supportsCapability(OperatorCapability.BINOMINAL_LABEL))
+							throw new UserError(learningOperator, 501, learningOperator.getName(), OperatorCapability.BINOMINAL_LABEL.getDescription());
+					} else {
+						if (!capabilityProvider.supportsCapability(OperatorCapability.POLYNOMINAL_LABEL))
+							throw new UserError(learningOperator, 501, learningOperator.getName(), OperatorCapability.POLYNOMINAL_LABEL.getDescription());
+					}
 				}
 			} else {
 				if (exampleSet.getAttributes().getLabel().isNumerical() && !capabilityProvider.supportsCapability(OperatorCapability.NUMERICAL_LABEL))

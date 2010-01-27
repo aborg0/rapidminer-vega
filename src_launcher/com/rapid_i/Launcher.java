@@ -340,7 +340,8 @@ public class Launcher {
 	public static String getPlatform() {
 		String version = Launcher.class.getPackage().getImplementationVersion();
 		if (version == null) {
-			return "ANY";
+			//return "ANY";
+			return null;
 		} else {			
 			return version.split("-")[1]; 
 		}
@@ -366,6 +367,11 @@ public class Launcher {
 			// does not happen
 			return version;
 		}		
+	}
+
+	public static boolean isDevelopmentBuild() {
+		String platform = getPlatform();
+		return (platform == null) || "${platform}".equals(platform);
 	}
 
 }

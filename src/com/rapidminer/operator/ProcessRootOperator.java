@@ -48,6 +48,7 @@ import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.parameter.conditions.NonEqualTypeCondition;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.IOObjectEntry;
+import com.rapidminer.repository.RepositoryAccessor;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
@@ -403,8 +404,10 @@ public final class ProcessRootOperator extends OperatorChain {
 					if (data == null) {
 						getLogger().warning("Nothing to store at "+location+": No results produced at "+port.getSpec()+".");
 					} else {
-						try {
-							RepositoryManager.getInstance(null).store(data, location, this);
+						try {						
+							RepositoryAccessor repositoryAccessor = getProcess().getRepositoryAccessor();
+							location.setAccessor(repositoryAccessor);
+							RepositoryManager.getInstance(repositoryAccessor).store(data, location, this);
 //							Entry entry = location.locateEntry();
 //							if (entry == null) {
 //								String childName = location.getName();

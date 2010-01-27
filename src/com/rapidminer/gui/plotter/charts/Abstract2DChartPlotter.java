@@ -23,6 +23,7 @@
 package com.rapidminer.gui.plotter.charts;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -46,7 +47,10 @@ import org.jfree.chart.axis.LogAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.SymbolAxis;
 import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.block.BlockContainer;
 import org.jfree.chart.block.BlockResult;
+import org.jfree.chart.block.BorderArrangement;
+import org.jfree.chart.block.LabelBlock;
 import org.jfree.chart.entity.XYItemEntity;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
@@ -515,18 +519,7 @@ public abstract class Abstract2DChartPlotter extends RangeablePlotterAdapter {
 	@Override
 	public void updatePlotter() {		
 		prepareData();
-
-        JFreeChart chart = ChartFactory.createScatterPlot(
-    			null,                     // chart title
-    			null,                     // domain axis label
-    			null,                     // range axis label
-    			dataSet,                  // data
-    			PlotOrientation.VERTICAL, // orientation
-    			false,                    // include legend
-    			true,                     // tooltips
-    			false                     // URLs
-    	);
-        
+		JFreeChart chart;
 		if ((axis[X_AXIS] >= 0) && (axis[Y_AXIS] >= 0)) {
 			if (nominal) {
 				int size = dataSet.getSeriesCount();
@@ -555,6 +548,18 @@ public abstract class Abstract2DChartPlotter extends RangeablePlotterAdapter {
 					legend.setFrame(BlockBorder.NONE);
 					legend.setHorizontalAlignment(HorizontalAlignment.LEFT);
 					legend.setItemFont(LABEL_FONT);
+
+			        BlockContainer wrapper = new BlockContainer(new BorderArrangement());
+
+			        LabelBlock title = new LabelBlock(getDataTable().getColumnName(colorColumn), new Font("SansSerif", Font.BOLD, 12));
+			        title.setPadding(0, 5, 5, 5);
+			        wrapper.add(title, RectangleEdge.LEFT);
+
+			        BlockContainer items = legend.getItemContainer();
+			        wrapper.add(items, RectangleEdge.RIGHT);
+			        
+			        
+			        legend.setWrapper(wrapper);
 				}
 			} else {
 
@@ -577,7 +582,7 @@ public abstract class Abstract2DChartPlotter extends RangeablePlotterAdapter {
 					// do nothing
 				}
 
-				chart.addLegend(new LegendTitle(chart.getXYPlot().getRenderer()) {
+				LegendTitle legendTitle = new LegendTitle(chart.getXYPlot().getRenderer()) {
 
 					private static final long serialVersionUID = 1288380309936848376L;
 
@@ -599,8 +604,32 @@ public abstract class Abstract2DChartPlotter extends RangeablePlotterAdapter {
 						draw(g2, area, null);
 					}
 
-				});
+				};
+		        
+				BlockContainer wrapper = new BlockContainer(new BorderArrangement());
+
+		        LabelBlock title = new LabelBlock(getDataTable().getColumnName(colorColumn), new Font("SansSerif", Font.BOLD, 12));
+		        title.setPadding(0, 5, 5, 5);
+		        wrapper.add(title, RectangleEdge.LEFT);
+
+		        BlockContainer items = legendTitle.getItemContainer();
+		        wrapper.add(items, RectangleEdge.RIGHT);
+		        
+		        legendTitle.setWrapper(wrapper);
+
+		        chart.addLegend(legendTitle);
 			}
+		} else {
+	        chart = ChartFactory.createScatterPlot(
+	    			null,                     // chart title
+	    			null,                     // domain axis label
+	    			null,                     // range axis label
+	    			dataSet,                  // data
+	    			PlotOrientation.VERTICAL, // orientation
+	    			false,                    // include legend
+	    			true,                     // tooltips
+	    			false                     // URLs
+	    	);
 		}
 
 		

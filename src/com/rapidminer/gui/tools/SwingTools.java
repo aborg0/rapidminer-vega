@@ -34,10 +34,12 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.logging.Level;
 
 import javax.swing.BorderFactory;
@@ -151,6 +153,9 @@ public class SwingTools {
 	/** A brown font color. */
 	public static final Color LIGHT_BROWN_FONT_COLOR = new Color(113,103,74);	
 
+	/** This set stores all lookup paths for icons */
+	private static Set<String> iconPaths = new LinkedHashSet<String>(Collections.singleton("icons/"));
+	
 	/** Contains the small frame icons in all possible sizes. */
 	private static List<Image> allFrameIcons = new LinkedList<Image>();
 
@@ -248,10 +253,29 @@ public class SwingTools {
 	private static final Object ICON_LOCK = new Object(); 
 
 	/** Tries to load the icon for the given resource. Returns null (and writes a warning) if the 
-	 *  resource file cannot be loaded. This method automatically adds the icon path.
+	 *  resource file cannot be loaded. This method automatically adds all icon paths specified since startup
+	 *  time. The default /icons is always searched. Additional paths might be specified by {@link SwingTools#addIconStoragePath(String)}.
+	 *  
 	 *  The given names must contain '/' instead of backslashes! */
 	public static ImageIcon createIcon(String iconName) {
-		return createImage("icons/" + iconName); 	
+		for (String path: iconPaths) {
+			ImageIcon icon = createImage(path + iconName);
+			if (icon != null)
+				return icon;
+		}
+		return null; 	
+	}
+	
+	/**
+	 * This method adds a path to the set of paths which are searched for icons if 
+	 * the {@link SwingTools#createIcon(String)} is called.
+	 */
+	public static void addIconStoragePath(String path) {
+		if (path.startsWith("/"))
+			path = path.substring(1);
+		if (!path.endsWith("/"))
+			path = path + "/";
+		iconPaths.add(path);
 	}
 
 	/** Tries to load the image for the given resource. Returns null (and writes a warning) if the 
@@ -282,7 +306,7 @@ public class SwingTools {
 			if (key.endsWith(".icon")) {
 				String resource = guiBundle.getString(key);
 				if (Character.isDigit(resource.charAt(0))) {
-					// We start with a number, so load directly
+					// We start with a number, size explicitly stated, so load directly
 					createIcon(resource);
 				} else {
 					// Otherwise prepend sizes
@@ -388,27 +412,47 @@ public class SwingTools {
 		return result.toString();
 	}
 
+	/**
+	 * The key will be used for the properties gui.dialog.-key-.title and
+	 * gui.dialog.results.-key-.icon
+	 */
 	public static void showResultsDialog(final String i18nKey, JComponent results, Object...i18nArgs) {
 		ResultViewDialog dialog = new ResultViewDialog(i18nKey, results, i18nArgs);
 		dialog.setVisible(true);
 	}
 	
+	/**
+	 * The key will be used for the properties gui.dialog.-key-.title and
+	 * gui.dialog.message.-key-.icon
+	 */
 	public static void showMessageDialog(final String key, Object...keyArguments) {
 		MessageDialog dialog = new MessageDialog(key, keyArguments);
 		dialog.setVisible(true);
 	}
 	
+	/**
+	 * The key will be used for the properties gui.dialog.-key-.title and
+	 * gui.dialog.message.-key-.icon
+	 */
 	public static void showMessageDialog(final String key, JComponent component, Object...keyArguments) {
 		MessageDialog dialog = new MessageDialog(key, component, keyArguments);
 		dialog.setVisible(true);
 	}
 
+	/**
+	 * The key will be used for the properties gui.dialog.-key-.title and
+	 * gui.dialog.confirm.-key-.icon
+	 */
 	public static int showConfirmDialog(final String key, int mode, Object...keyArguments) {
 		ConfirmDialog dialog = new ConfirmDialog(key, mode, keyArguments);
 		dialog.setVisible(true);
 		return dialog.getReturnOption();
 	}
 
+	/**
+	 * The key will be used for the properties gui.dialog.-key-.title and
+	 * gui.dialog.input.-key-.icon
+	 */
 	public static String showInputDialog(final String key, String text, Object...keyArguments) {
 		InputDialog dialog = new InputDialog(key, text, keyArguments);
 		dialog.setVisible(true);
@@ -419,6 +463,10 @@ public class SwingTools {
 		}
 	}
 
+	/**
+	 * The key will be used for the properties gui.dialog.-key-.title and
+	 * gui.dialog.input.-key-.icon
+	 */
 	public static Object showInputDialog(final String key, Object[] selectionValues, Object initialSelectionVale, final Object...keyArguments) {
 		SelectionInputDialog dialog = new SelectionInputDialog(key, selectionValues, initialSelectionVale, keyArguments);
 		dialog.setVisible(true);

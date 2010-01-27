@@ -683,8 +683,18 @@ public abstract class PlotterAdapter extends JPanel implements Plotter {
 	private void drawNominalLegend(Graphics graphics, DataTable table, int legendColumn, int xOffset, int alpha) {
 		Graphics2D g = (Graphics2D) graphics.create();
 		g.translate(xOffset, 0);
+
+		
+		// painting label name
+		String legendName = table.getColumnName(legendColumn);
+		g.drawString(legendName, MARGIN, 15);
+		Rectangle2D legendNameBounds = LABEL_FONT.getStringBounds(legendName, g.getFontRenderContext());
+		g.translate(legendNameBounds.getWidth(), 0);
+
+		// painting values
 		int numberOfValues = table.getNumberOfValues(legendColumn);
 		int currentX = MARGIN;
+		
 		for (int i = 0; i < numberOfValues; i++) {
 			if (currentX > getWidth())
 				break;

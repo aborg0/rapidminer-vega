@@ -8,11 +8,11 @@ import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.rapid_i.repository.wsimport.ProcessResponse;
 import com.rapid_i.repository.wsimport.ProcessStackTraceElement;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.repository.RemoteProcessState;
 import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.tools.Tools;
 
@@ -25,9 +25,15 @@ public class RemoteProcessTreeCellRenderer extends DefaultTreeCellRenderer {
 
 	private static final long serialVersionUID = 1L;
 
-	private Icon SERVER_ICON = SwingTools.createIcon("16/application_server_run.png");
-	private Icon PROCESS_ICON = SwingTools.createIcon("16/gear.png");
-	private Icon OPERATOR_ICON = SwingTools.createIcon("16/element_selection");
+	private Icon PROCESS_PENDING_ICON = SwingTools.createIcon("16/gear_new.png");
+	private Icon PROCESS_RUNNING_ICON = SwingTools.createIcon("16/gear_run.png");
+	private Icon PROCESS_STOPPED_ICON = SwingTools.createIcon("16/gear_stop.png");
+	private Icon PROCESS_FAILED_ICON = SwingTools.createIcon("16/gear_error.png");
+	private Icon PROCESS_DONE_ICON = SwingTools.createIcon("16/gear_ok.png");
+	
+	private Icon SERVER_ICON = SwingTools.createIcon("16/application_server_run.png");	
+	private Icon OPERATOR_ICON = SwingTools.createIcon("16/element_selection.png");
+	private Icon RESULT_ICON = SwingTools.createIcon("16/plug_new_next.png");
 	
 	@Override
 	public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
@@ -37,15 +43,59 @@ public class RemoteProcessTreeCellRenderer extends DefaultTreeCellRenderer {
 			label.setIcon(SERVER_ICON);
 		} else if (value instanceof ProcessResponse) {
 			ProcessResponse processResponse = (ProcessResponse) value;
-			Calendar startTime = processResponse.getStartTime().toGregorianCalendar();			
-			label.setText(processResponse.getProcessLocation() +" ("+processResponse.getState()+"; started "+DateFormat.getDateTimeInstance().format(startTime.getTime())+")");
-			label.setIcon(PROCESS_ICON);
+			RemoteProcessState processState = RemoteProcessState.valueOf(processResponse.getState());			
+			Calendar startTime = processResponse.getStartTime() != null ? processResponse.getStartTime().toGregorianCalendar() : null;
+			Calendar endTime = processResponse.getCompletionTime() != null ? processResponse.getCompletionTime().toGregorianCalendar() : null;
+			
+			StringBuilder b = new StringBuilder();
+			b.append("<html><body>");
+			b.append(""+processResponse.getProcessLocation());
+			b.append(" <small style=\"color:gray\">(");			
+			if (processState == RemoteProcessState.FAILED) {
+				b.append("<span style=\"color:red\">");
+			}
+			b.append(processState.toString().toLowerCase());
+			if (processState == RemoteProcessState.FAILED) {
+				b.append("</span>");
+			}
+			if (startTime != null) {
+				b.append("; started ");
+				b.append(DateFormat.getDateTimeInstance().format(startTime.getTime()));
+			}
+			if (endTime != null) {
+				b.append("; completed");
+				b.append(DateFormat.getDateTimeInstance().format(endTime.getTime()));
+			}
+			b.append(")</small>");
+			b.append("</body></html>");
+			label.setText(b.toString());
+			
+			switch (processState) {
+			case COMPLETED:
+				label.setIcon(PROCESS_DONE_ICON);
+				break;
+			case FAILED:
+				label.setIcon(PROCESS_FAILED_ICON);
+				break;
+			case RUNNING:
+				label.setIcon(PROCESS_RUNNING_ICON);
+				break;
+			case PENDING:
+				label.setIcon(PROCESS_PENDING_ICON);
+				break;
+			case STOPPED:
+				label.setIcon(PROCESS_STOPPED_ICON);
+				break;
+			}			
 		} else if (value instanceof ProcessStackTraceElement) {
 			ProcessStackTraceElement element = (ProcessStackTraceElement) value;
 			label.setText(element.getOperatorName() + " ["+element.getApplyCount()+", "+Tools.formatDuration(element.getExecutionTime())+"]");
 			label.setIcon(OPERATOR_ICON);
+		} else if (value instanceof OutputLocation) {
+			label.setText(value.toString());
+			label.setIcon(RESULT_ICON);
 		} else {
-			label.setText("???");			
+			label.setText(value.toString());
 		}
 		return label;
 	}

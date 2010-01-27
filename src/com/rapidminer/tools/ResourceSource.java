@@ -47,6 +47,8 @@ public class ResourceSource {
 	public ResourceSource(ClassLoader loader, String prefix) {
 		this.loader = loader;
 		this.prefix = prefix;
+		if (!prefix.endsWith("/"))
+			this.prefix = prefix + "/";
 	}
 
 	public URL getResource(String name) {

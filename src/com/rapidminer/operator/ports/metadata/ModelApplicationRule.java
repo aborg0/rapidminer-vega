@@ -44,7 +44,7 @@ public class ModelApplicationRule extends PassThroughRule {
 		if (metaData instanceof ExampleSetMetaData) {
 			MetaData modelMetaData = modelInput.getMetaData();
 			if (modelMetaData instanceof ModelMetaData) {
-				metaData = ((ModelMetaData)modelMetaData).apply((ExampleSetMetaData) metaData);
+				metaData = ((ModelMetaData)modelMetaData).apply((ExampleSetMetaData) metaData, getInputPort());
 			}									
 		}
 		return metaData;				

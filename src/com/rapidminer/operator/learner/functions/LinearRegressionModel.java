@@ -34,6 +34,8 @@ import com.rapidminer.tools.Tools;
 /**
  * The model for linear regression.
  * 
+ * If used the intercept is saved in the last cell of the coefficients array. 
+ * 
  * @author Ingo Mierswa
  */
 public class LinearRegressionModel extends PredictionModel {
@@ -131,5 +133,25 @@ public class LinearRegressionModel extends PredictionModel {
 			else
 				return "- " + Tools.formatNumber(Math.abs(coefficient));
 		}
+	}
+
+	public String[] getAttributeNames() {
+		return attributeNames;
+	}
+
+	public boolean[] getSelectedAttributes() {
+		return selectedAttributes;
+	}
+
+	public double[] getCoefficients() {
+		return coefficients;
+	}
+
+	public String getFirstLabel() {
+		return firstClassName;
+	}
+
+	public String getSecondLabel() {
+		return secondClassName;
 	}
 }

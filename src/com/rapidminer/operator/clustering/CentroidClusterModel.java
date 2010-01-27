@@ -141,6 +141,10 @@ public class CentroidClusterModel extends ClusterModel {
 		return stable;
 	}
 
+	public DistanceMeasure getDistanceMeasure() {
+		return distanceMeasure;
+	}
+	
 	@Override
 	public String getExtension() {
 		return "ccm";

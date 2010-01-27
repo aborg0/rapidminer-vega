@@ -97,4 +97,20 @@ public class LogisticRegressionModel extends SimpleBinaryPredictionModel {
 		}
     	return result.toString();
     }
+    
+	public String[] getAttributeNames() {
+		return attributeNames;
+	}
+
+	public double[] getCoefficients() {
+		return beta;
+	}
+
+	public String getFirstLabel() {
+		return getTrainingHeader().getAttributes().getLabel().getMapping().getNegativeString();
+	}
+
+	public String getSecondLabel() {
+		return getTrainingHeader().getAttributes().getLabel().getMapping().getPositiveString();
+	}
 }

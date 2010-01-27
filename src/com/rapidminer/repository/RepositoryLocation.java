@@ -188,7 +188,9 @@ public class RepositoryLocation {
 		} else {
 			String[] pathCopy = new String[path.length-1];
 			System.arraycopy(path, 0, pathCopy, 0, path.length-1);
-			return new RepositoryLocation(this.repositoryName, pathCopy);
+			RepositoryLocation parent = new RepositoryLocation(this.repositoryName, pathCopy);
+			parent.setAccessor(accessor);
+			return parent;
 		}
 		
 	}

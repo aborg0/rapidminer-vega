@@ -128,4 +128,15 @@ public class I18N {
 		
 	}
 	
+	/**
+	 * This will return the value of the property gui.label.-key- of the
+	 * GUI bundle or the key itself if unknown.
+	 */
+	public static String getGUILabel(String key, Object... arguments) {
+		String completeKey = "gui.label." + key;
+		if (GUI_BUNDLE.containsKey(completeKey))
+			return getMessage(GUI_BUNDLE, completeKey, arguments);
+		else
+			return completeKey;
+	}
 }

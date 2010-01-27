@@ -517,6 +517,14 @@ public class SimpleDistributionModel extends DistributionModel {
 		}
 	}
 
+	public double getTotalWeight() {
+		return totalWeight;
+	}
+	
+	public double[] getClassWeights() {
+		return classWeights;
+	}
+	
 	@Override
 	public String toString() {
 		if (modelRecentlyUpdated) {

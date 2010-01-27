@@ -84,8 +84,9 @@ public abstract class AbstractExampleSetProcessing extends Operator {
 	}
 
 
-	/** Delegate for the apply method. In most cases, the returned example set
-	 *  will be the same as the example set or a modified clone. */
+	/** Delegate for the apply method. The given ExampleSet is already a clone of the
+	 *  input example set so that changing this examples set does not affect the original one. 
+	 *  Subclasses should avoid cloning again unnecessarily. */
 	public abstract ExampleSet apply(ExampleSet exampleSet) throws OperatorException;
 
 	@Override
@@ -100,7 +101,7 @@ public abstract class AbstractExampleSetProcessing extends Operator {
 	@Override
 	public final void doWork() throws OperatorException {
 		ExampleSet inputExampleSet = exampleSetInput.getData();
-		ExampleSet result = apply(inputExampleSet);
+		ExampleSet result = apply((ExampleSet) inputExampleSet.clone());
 		originalOutput.deliver(inputExampleSet);
 		exampleSetOutput.deliver(result);		
 	}

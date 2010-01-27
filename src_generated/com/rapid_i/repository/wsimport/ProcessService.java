@@ -27,6 +27,20 @@ public interface ProcessService {
 
     /**
      * 
+     * @param arg0
+     * @return
+     *     returns boolean
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "stopProcess", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.StopProcess")
+    @ResponseWrapper(localName = "stopProcessResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.StopProcessResponse")
+    public boolean stopProcess(
+        @WebParam(name = "arg0", targetNamespace = "")
+        int arg0);
+
+    /**
+     * 
      * @param processLocation
      * @param executionTime
      * @return
@@ -82,12 +96,26 @@ public interface ProcessService {
     /**
      * 
      * @return
-     *     returns java.util.List<com.rapid_i.repository.wsimport.ProcessResponse>
+     *     returns java.util.List<java.lang.Integer>
      */
     @WebMethod
     @WebResult(targetNamespace = "")
     @RequestWrapper(localName = "getRunningProcesses", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetRunningProcesses")
     @ResponseWrapper(localName = "getRunningProcessesResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetRunningProcessesResponse")
-    public List<ProcessResponse> getRunningProcesses();
+    public List<Integer> getRunningProcesses();
+
+    /**
+     * 
+     * @param arg0
+     * @return
+     *     returns com.rapid_i.repository.wsimport.ProcessResponse
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "getRunningProcessesInfo", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetRunningProcessesInfo")
+    @ResponseWrapper(localName = "getRunningProcessesInfoResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetRunningProcessesInfoResponse")
+    public ProcessResponse getRunningProcessesInfo(
+        @WebParam(name = "arg0", targetNamespace = "")
+        int arg0);
 
 }

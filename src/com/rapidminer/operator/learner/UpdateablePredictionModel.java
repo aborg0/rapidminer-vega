@@ -26,6 +26,10 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.set.RemappedExampleSet;
 import com.rapidminer.operator.OperatorException;
 /**
+ * This is an abstract class for all updateable prediction models. It 
+ * already implements the needed functionality to ensure that the value mappings
+ * of the given example set of the updateModel method are remapped to the original
+ * ones used during construction time of the model.
  * 
  * @author Sebastian Land
  */

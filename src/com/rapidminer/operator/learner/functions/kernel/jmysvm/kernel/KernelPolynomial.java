@@ -93,4 +93,8 @@ public class KernelPolynomial extends Kernel {
 		}
 		return result.toString();
 	}
+	
+	public double getDegree() {
+		return degree;
+	}
 }

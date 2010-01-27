@@ -63,7 +63,7 @@ public class RuleModel extends SimplePredictionModel implements Readable {
                 return getLabel().getMapping().getIndex(rule.getLabel());
             }
         }
-        return (Double.NaN); // return unkown if no rule exists
+        return (Double.NaN); // return unknown if no rule exists
 	}
     
     public double getPrediction(Example example) {
@@ -73,7 +73,7 @@ public class RuleModel extends SimplePredictionModel implements Readable {
                 return (label);
             }
         }
-        return (Double.NaN); // return unkown if no rule exists
+        return (Double.NaN); // return unknown if no rule exists
     }
 
 	public void addRule(Rule rule) {

@@ -27,6 +27,7 @@ import java.util.List;
 
 import com.rapidminer.example.Attributes;
 import com.rapidminer.operator.learner.PredictionModel;
+import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.math.container.Range;
 
@@ -77,7 +78,7 @@ public class PredictionModelMetaData extends ModelMetaData {
 
 
 	@Override
-	public ExampleSetMetaData apply(ExampleSetMetaData emd) {
+	public ExampleSetMetaData applyEffects(ExampleSetMetaData emd, InputPort inputPort) {
 		if (predictedLabelMetaData == null) {
 			return emd;
 		}

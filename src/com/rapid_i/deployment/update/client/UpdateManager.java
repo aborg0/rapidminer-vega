@@ -54,6 +54,7 @@ import java.util.zip.ZipOutputStream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.rapid_i.Launcher;
 import com.rapidminer.Version;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.deployment.client.wsimport.UpdateService;
@@ -370,6 +371,11 @@ public class UpdateManager {
 	public static void checkForUpdates() {
 		String updateProperty = System.getProperty(RapidMinerGUI.PROPERTY_RAPIDMINER_GUI_UPDATE_CHECK);
 		if (Tools.booleanValue(updateProperty, true)) {
+			if (Launcher.isDevelopmentBuild()) {
+				LogService.getRoot().config("This is a development build. Ignoring update check.");
+				return;
+			}
+			
 			boolean check = true;			
 			final Date lastCheckDate = loadLastUpdateCheckDate();			
 			if (lastCheckDate != null) {

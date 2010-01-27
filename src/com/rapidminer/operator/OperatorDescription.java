@@ -41,7 +41,7 @@ import com.rapidminer.tools.XMLException;
 import com.rapidminer.tools.documentation.OperatorDocBundle;
 import com.rapidminer.tools.documentation.OperatorDocumentation;
 import com.rapidminer.tools.plugin.Plugin;
-import com.sun.corba.se.spi.orb.OperationFactory;
+
 
 
 /**

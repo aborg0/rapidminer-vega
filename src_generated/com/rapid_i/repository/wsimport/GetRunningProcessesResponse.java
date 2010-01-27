@@ -19,7 +19,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="return" type="{http://service.web.rapidrepository.com/}processResponse" maxOccurs="unbounded" minOccurs="0"/>
+ *         &lt;element name="return" type="{http://www.w3.org/2001/XMLSchema}int" maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -34,8 +34,8 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class GetRunningProcessesResponse {
 
-    @XmlElement(name = "return")
-    protected List<ProcessResponse> _return;
+    @XmlElement(name = "return", type = Integer.class)
+    protected List<Integer> _return;
 
     /**
      * Gets the value of the return property.
@@ -55,13 +55,13 @@ public class GetRunningProcessesResponse {
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link ProcessResponse }
+     * {@link Integer }
      * 
      * 
      */
-    public List<ProcessResponse> getReturn() {
+    public List<Integer> getReturn() {
         if (_return == null) {
-            _return = new ArrayList<ProcessResponse>();
+            _return = new ArrayList<Integer>();
         }
         return this._return;
     }

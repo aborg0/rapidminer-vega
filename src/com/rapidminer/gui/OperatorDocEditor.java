@@ -296,7 +296,14 @@ public class OperatorDocEditor extends OperatorDocViewer {
 		int bodyEnd = html.lastIndexOf("</body>");
 		if (bodyEnd != -1) {
 			html = html.substring(0, bodyEnd);
-		}		
+		}
+		
+		// change line breaks to brs
+		html = html.replace("\n\n", "</p><p><br>");
+		html = html.replace("\n", "");
+		html = html.trim();
+		if (!html.startsWith("<p>"))
+			html = "<p>" + html + "</p>";
 		return html;
 	}
 

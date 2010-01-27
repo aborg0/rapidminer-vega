@@ -62,9 +62,9 @@ public abstract class ResourceAction extends ConditionalAction {
 					MessageFormat.format(getMessage(i18nKey+".label"), i18nArgs));
 		this.key = i18nKey;
 		String mne = getMessageOrNull(i18nKey + ".mne");
-		if (mne != null) {			
+		if (mne != null && mne.length() > 0) {			
 			String name = (String)getValue(NAME);
-			if (name.indexOf(mne.charAt(0)) == -1) {
+			if (name != null && name.length() > 0 && name.indexOf(mne.charAt(0)) == -1) {
 				if (name.indexOf(mne.toUpperCase().charAt(0)) != -1) {
 					mne = mne.toUpperCase();
 					LogService.getRoot().warning("Mnemonic key "+mne+" not found for action " + i18nKey + " ("+name+"), converting to upper case.");

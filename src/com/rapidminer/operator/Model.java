@@ -23,6 +23,7 @@
 package com.rapidminer.operator;
 
 import com.rapidminer.example.ExampleSet;
+import com.rapidminer.example.set.HeaderExampleSet;
 import com.rapidminer.report.Readable;
 
 /**
@@ -38,6 +39,14 @@ import com.rapidminer.report.Readable;
  */
 public interface Model extends ResultObject, Saveable, Readable {
 
+	/**
+	 * This method has to return the HeaderExampleSet containing the signature of the example
+	 * set during training time containing all informations about attributes. This is important for
+	 * checking the compatibility of the examples on application time.
+	 * Note that the AbstractModel already implements all necessary functionality.
+	 */
+	public HeaderExampleSet getTrainingHeader(); 
+	
 	/** Applies the model on the given example set. Please note that the delivered
      *  example set might be the same as the input example set. This does, however,
      *  no always to be the case. */

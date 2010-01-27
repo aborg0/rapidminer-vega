@@ -22,6 +22,10 @@
  */
 package com.rapidminer.tools.math.similarity.nominal;
 /**
+ * This calculates the levenshtein distance of two strings. This is not a valid distance measure.
+ * 
+ * TODO: Extend this to become a valid distance measure
+ * 
  * @author Sebastian Land
  */
 public class LevenshteinDistance {

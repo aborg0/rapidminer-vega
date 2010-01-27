@@ -72,7 +72,7 @@ public abstract class AbstractModel extends ResultObjectAdapter implements Model
 
 	/** Delivers the training header example set, i.e. the header of the example set (without
 	 *  data reference) which was used for creating this model. Might return null. */
-	protected HeaderExampleSet getTrainingHeader() {
+	public HeaderExampleSet getTrainingHeader() {
 		return this.headerExampleSet;
 	}
 

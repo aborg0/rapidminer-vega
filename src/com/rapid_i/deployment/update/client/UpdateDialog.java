@@ -102,6 +102,11 @@ public class UpdateDialog extends ButtonDialog {
 
 
 	public static void showUpdateDialog(final String ... preselectedExtensions) {
+		if (Launcher.isDevelopmentBuild()) {
+			SwingTools.showVerySimpleErrorMessage("update_error_development_build");
+			return;
+		}
+		
 		new ProgressThread("fetching_updates", true) {
 			public void run() {
 				getProgressListener().setTotal(100);

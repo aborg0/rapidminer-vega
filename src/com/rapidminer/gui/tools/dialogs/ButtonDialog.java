@@ -104,12 +104,20 @@ public class ButtonDialog extends JDialog {
 	
 	private final LinkedList<ChangeListener> listeners = new LinkedList<ChangeListener>();
 
+	/**
+	 * The key will be used for the properties gui.dialog.-key-.title and
+	 * gui.dialog.-key-.icon
+	 */
 	public ButtonDialog(String key, Object ... arguments) {
 		super(ApplicationFrame.getApplicationFrame(), I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + key + ".title"), false);
 		this.arguments = arguments;
 		configure(key);
 	}
-	
+
+	/**
+	 * The key will be used for the properties gui.dialog.-key-.title and
+	 * gui.dialog.-key-.icon
+	 */
 	public ButtonDialog(String key, boolean modal, Object ... arguments) {
 		super(ApplicationFrame.getApplicationFrame(), I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + key + ".title"), modal);
 		this.arguments = arguments;
@@ -123,6 +131,7 @@ public class ButtonDialog extends JDialog {
 	 * 						<code>{0}</code>, the second <code>{1}</code> and so on.
 	 * @deprecated
 	 */
+	@Deprecated
 	public ButtonDialog(Dialog owner, String key, boolean modal, Object... arguments ) {
 		this(key, modal, arguments);
 //		super(owner, I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + key + ".title"), modal);
@@ -137,6 +146,7 @@ public class ButtonDialog extends JDialog {
 	 * 						<code>{0}</code>, the second <code>{1}</code> and so on.
 	 * @deprecated
 	 */
+	@Deprecated
 	public ButtonDialog(Dialog owner, String key, Object... arguments ) {
 		this(key, arguments);
 //		super(owner, I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + key + ".title"));
@@ -151,6 +161,7 @@ public class ButtonDialog extends JDialog {
 	 * 						<code>{0}</code>, the second <code>{1}</code> and so on.
 	 * @deprecated
 	 */
+	@Deprecated
 	public ButtonDialog(Frame owner, String key, boolean modal, Object... arguments ) {
 		this(key, modal, arguments);
 //		super(owner, I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + key + ".title"), modal);
@@ -165,6 +176,7 @@ public class ButtonDialog extends JDialog {
 	 * 						<code>{0}</code>, the second <code>{1}</code> and so on.
 	 * @deprecated
 	 */
+	@Deprecated
 	public ButtonDialog(Frame owner, String key, Object... arguments ) {
 		this(key, arguments);
 //		super(owner, I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + key + ".title"));
@@ -405,6 +417,7 @@ public class ButtonDialog extends JDialog {
 		TitledBorder border = new TitledBorder(createBorder(), title) {
 			private static final long serialVersionUID = 3113821577644055057L;
 
+			@Override
 			public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
 				super.paintBorder(c, g, x - EDGE_SPACING, y, width + 2 * EDGE_SPACING, height);
 			}

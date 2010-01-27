@@ -26,8 +26,16 @@ import javax.swing.JMenu;
 
 import com.rapidminer.gui.ConditionalAction;
 /**
+ * This will create a menu, whose settings are take from a .properties file beeing part of
+ * the GUI Resource bundles of RapidMiner. These might be accessed using the I18N class.
  * 
- * @author Simon Fischer
+ * A resource menu needs a key specifier, which will be used to build the complete keys of
+ * the form:
+ * gui.action.menu.<specifier>.label = Which will be the caption
+ * gui.action.menu.<specifier>.tip = Which will be the tool tip
+ * gui.action.menu.<specifier>.mne = Which will give you access to the accelerator key. Please make it the same case as in the label
+ * 
+ * @author Simon Fischer, Sebastian Land
  */
 public class ResourceMenu extends JMenu {
 	private static final long serialVersionUID = -7711922457461154801L;

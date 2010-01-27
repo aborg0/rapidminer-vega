@@ -24,6 +24,7 @@ package com.rapidminer.operator.learner.tree;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -90,6 +91,28 @@ public class Tree implements Serializable {
     			sum += edge.getChild().getSubtreeFrequencySum();
     		}
     		return sum;
+    	}
+    }
+    
+    /**
+     * This returns the class counts from all contained examples by iterating recursively through the tree.
+     */
+    public Map<String, Integer> getSubtreeCounterMap() {
+    	Map<String, Integer> counterMap = new HashMap<String, Integer>();
+    	fillSubtreeCounterMap(counterMap);    	
+    	return counterMap;
+    }
+    
+    protected void fillSubtreeCounterMap(Map<String, Integer> counterMap) {
+    	if (children.size() == 0) {
+    		// then its leaf: Add all counted frequencies
+    		for (String key: this.counterMap.keySet()) {
+    			counterMap.put(key, this.counterMap.get(key));
+    		}
+    	} else {
+    		for (Edge edge: children) {
+    			edge.getChild().fillSubtreeCounterMap(counterMap); 
+    		}
     	}
     }
     

@@ -22,6 +22,7 @@
  */
 package com.rapidminer.repository.remote;
 
+import java.awt.Desktop;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
@@ -47,6 +48,7 @@ import com.rapid_i.repository.wsimport.ProcessService_Service;
 import com.rapid_i.repository.wsimport.RepositoryService;
 import com.rapid_i.repository.wsimport.RepositoryService_Service;
 import com.rapidminer.RapidMiner;
+import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.repository.BlobEntry;
 import com.rapidminer.repository.Entry;
@@ -418,6 +420,22 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		} else if (!username.equals(other.username))
 			return false;
 		return true;
+	}
+
+	public void browse(String path) {
+		try {
+			Desktop.getDesktop().browse(baseUrl.toURI().resolve("faces/browse.jsp?location="+URLEncoder.encode(path, "UTF-8")));
+		} catch (Exception e) {
+			SwingTools.showSimpleErrorMessage("cannot_open_browser", e);
+		}		
+	}
+
+	public void showLog(int id) {
+		try {
+			Desktop.getDesktop().browse(baseUrl.toURI().resolve("processlog?id="+id));
+		} catch (Exception e) {
+			SwingTools.showSimpleErrorMessage("cannot_open_browser", e);
+		}				
 	}	
 	
 }

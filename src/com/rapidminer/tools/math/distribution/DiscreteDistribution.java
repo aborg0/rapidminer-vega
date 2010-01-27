@@ -23,7 +23,6 @@
 package com.rapidminer.tools.math.distribution;
 
 import java.util.ArrayList;
-import java.util.Collection;
 
 import com.rapidminer.tools.Tools;
 
@@ -71,9 +70,11 @@ public class DiscreteDistribution implements Distribution {
 		return attributeName;
 	}
 
-	/** This method returns a collection of all nominal attribute values. */
-	public Collection<Double> getValues() {
-		Collection<Double> values = new ArrayList<Double>();
+	/** This method returns a collection of all nominal attribute values. 
+	 * TODO: This is not fully legally: not guaranteed that the indices are in a sequence, starting with 0!!!
+	 * */
+	public ArrayList<Double> getValues() {
+		ArrayList<Double> values = new ArrayList<Double>();
 		for (int i = 0; i < probabilities.length; i++) {
 			values.add((double) i);
 		}
@@ -122,5 +123,9 @@ public class DiscreteDistribution implements Distribution {
 
 	public double getParameterValue(int index) {
 		return probabilities[index];
+	}
+	
+	public String[] getValueNames() {
+		return valueNames;
 	}
 }
