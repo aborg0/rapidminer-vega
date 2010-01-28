@@ -428,7 +428,7 @@ public class BubbleChartPlotter extends RangeablePlotterAdapter {
 						} else {
 							final String minColorString = Tools.formatNumber(minColor);
 							final String maxColorString = Tools.formatNumber(maxColor);
-							drawSimpleNumericalLegend(g2, (int) (area.getCenterX() - 90), (int) (area.getCenterY() + 7), minColorString, maxColorString);
+							drawSimpleNumericalLegend(g2, (int) (area.getCenterX() - 90), (int) (area.getCenterY() + 7), dataTable.getColumnName(colorColumn), minColorString, maxColorString);
 							return new BlockResult();
 						}
 					}

@@ -27,6 +27,7 @@ import java.util.LinkedList;
 
 import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
+import com.rapidminer.gui.ExampleVisualizer;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
@@ -40,6 +41,7 @@ import com.rapidminer.operator.ports.metadata.GenerateNewMDRule;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.SetRelation;
 import com.rapidminer.operator.ports.metadata.SimplePrecondition;
+import com.rapidminer.tools.ObjectVisualizerService;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.metadata.MetaDataTools;
 
@@ -90,7 +92,12 @@ public abstract class AbstractClusterer extends Operator {
 	@Override
 	public void doWork() throws OperatorException {
 		ExampleSet input = exampleSetInput.getData();
-		modelOutput.deliver(generateClusterModel(input));
+		ClusterModel clusterModel = generateClusterModel(input);
+		
+		// registering visualizer
+		ObjectVisualizerService.addObjectVisualizer(clusterModel, new ExampleVisualizer((ExampleSet) input.clone()));
+		
+		modelOutput.deliver(clusterModel);
 		exampleSetOutput.deliver(input); // generateClusterModel() may has added cluster attribute
 	}
 

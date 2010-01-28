@@ -71,6 +71,7 @@ import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
+import com.rapidminer.tools.RMUrlHandler;
 
 /** This class manages dynamic largish tool tips for JComponents.
  *  In order to use this class, implement a {@link TipProvider} that generates
@@ -202,50 +203,52 @@ public class ToolTipWindow {
 			@Override
 			public void hyperlinkUpdate(HyperlinkEvent e) {
 				if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-					if (e.getDescription().startsWith("operator?")) {
-						String opName = e.getDescription().substring("operator?".length());
-						MainFrame mainFrame = RapidMinerGUI.getMainFrame();
-						mainFrame.selectOperator(mainFrame.getProcess().getOperator(opName));
-					} else {
-						if (e.getDescription().startsWith("loadMetaData?")) {
-							final String loc = e.getDescription().substring("loadMetaData?".length());
-							final Object idAtTimeOfDownload = currentId;
-							tipPane.setText("<p>Please stand by...</p>");
-							final AtomicBoolean tipWasClosed = new AtomicBoolean(false);
-							currentDialog.addWindowListener(new WindowAdapter() {								
-								@Override
-								public void windowClosed(WindowEvent e) {
-									tipWasClosed.set(true);
-								}								
-							});
-							new ProgressThread("download_md_from_repository") {
-								@Override
-								public void run() {
-									getProgressListener().setTotal(100);
-									getProgressListener().setCompleted(10);
-									try {
-										Entry entry = new RepositoryLocation(loc).locateEntry();
-										if (entry instanceof IOObjectEntry) {
-											((IOObjectEntry) entry).retrieveMetaData();
-										}
-									} catch (RepositoryException e) {
-										SwingTools.showSimpleErrorMessage("error_downloading_metadata", e, loc, e.getMessage());
-									} finally {
-										getProgressListener().complete();
+//					if (e.getDescription().startsWith("operator?")) {
+//						String opName = e.getDescription().substring("operator?".length());
+//						MainFrame mainFrame = RapidMinerGUI.getMainFrame();
+//						mainFrame.selectOperator(mainFrame.getProcess().getOperator(opName));
+//					} else {
+					if (e.getDescription().startsWith("loadMetaData?")) {
+						final String loc = e.getDescription().substring("loadMetaData?".length());
+						final Object idAtTimeOfDownload = currentId;
+						tipPane.setText("<p>Please stand by...</p>");
+						final AtomicBoolean tipWasClosed = new AtomicBoolean(false);
+						currentDialog.addWindowListener(new WindowAdapter() {								
+							@Override
+							public void windowClosed(WindowEvent e) {
+								tipWasClosed.set(true);
+							}								
+						});
+						new ProgressThread("download_md_from_repository") {
+							@Override
+							public void run() {
+								getProgressListener().setTotal(100);
+								getProgressListener().setCompleted(10);
+								try {
+									Entry entry = new RepositoryLocation(loc).locateEntry();
+									if (entry instanceof IOObjectEntry) {
+										((IOObjectEntry) entry).retrieveMetaData();
 									}
-									SwingUtilities.invokeLater(new Runnable() {
-										public void run() {
-											if (!tipWasClosed.get()) {
-												refreshDialogContents(idAtTimeOfDownload);
-												autoAdjustDialogSize(state == State.IN_FOCUS);
-												currentDialog.pack();
-											}		
-										}
-									});									
-								}								
-							}.start();
-						}
+								} catch (RepositoryException e) {
+									SwingTools.showSimpleErrorMessage("error_downloading_metadata", e, loc, e.getMessage());
+								} finally {
+									getProgressListener().complete();
+								}
+								SwingUtilities.invokeLater(new Runnable() {
+									public void run() {
+										if (!tipWasClosed.get()) {
+											refreshDialogContents(idAtTimeOfDownload);
+											autoAdjustDialogSize(state == State.IN_FOCUS);
+											currentDialog.pack();
+										}		
+									}
+								});									
+							}								
+						}.start();
+					} else {
+						RMUrlHandler.handleUrl(e.getDescription());
 					}
+					
 				}				
 			}			
 		});

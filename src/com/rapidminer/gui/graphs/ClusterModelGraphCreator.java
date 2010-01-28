@@ -61,7 +61,7 @@ public class ClusterModelGraphCreator extends GraphCreatorAdaptor {
 	
 	private Map<String, HierarchicalClusterNode> vertexMap = new HashMap<String, HierarchicalClusterNode>();	
 	
-    private ClusterModelObjectViewer objectViewer = new ClusterModelObjectViewer();
+    private ClusterModelObjectViewer objectViewer;
     
     
 	public ClusterModelGraphCreator(ClusterModel clusterModel) {
@@ -70,6 +70,7 @@ public class ClusterModelGraphCreator extends GraphCreatorAdaptor {
 
 	public ClusterModelGraphCreator(HierarchicalClusterModel clusterModel) {
 		this.clusterModel = clusterModel;
+		this.objectViewer = new ClusterModelObjectViewer(clusterModel);
 	}
 
 	public Graph<String, String> createGraph() {

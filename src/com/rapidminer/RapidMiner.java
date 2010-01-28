@@ -51,7 +51,6 @@ import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
-import com.rapidminer.tools.ObjectVisualizerService;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.ProgressListener;
@@ -418,18 +417,6 @@ public class RapidMiner {
 	private static void showSplashInfos() {
 		if (getSplashScreen() != null)
 			getSplashScreen().setInfosVisible(true);
-	}
-
-	/** Cleans up the object visualizers available for this process and clears the 
-	 *  current temp directory. This method should be performed in cases where RapidMiner
-	 *  is embedded into other applications and only single operators (in contrast to
-	 *  a complete process) are performed within several runs, e.g. in a loop.
-	 *  
-	 *  TODO: bind object visualizers and temp file service to a 
-	 *  process instead of managing these things in a static way.
-	 */
-	public static void cleanUp() {
-		ObjectVisualizerService.clearVisualizers();
 	}
 
 	public static SplashScreen showSplash() {

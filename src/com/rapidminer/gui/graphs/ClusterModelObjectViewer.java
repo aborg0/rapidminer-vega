@@ -46,6 +46,12 @@ public class ClusterModelObjectViewer implements GraphObjectViewer, ListSelectio
     private DefaultListModel model = new DefaultListModel();
     
     private JList listComponent = new JList(this.model);
+
+	private Object clusterModel;
+    
+    public ClusterModelObjectViewer(Object clusterModel) {
+    	this.clusterModel = clusterModel;
+    }
     
     public JComponent getViewerComponent() { 
         listComponent.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -67,7 +73,7 @@ public class ClusterModelObjectViewer implements GraphObjectViewer, ListSelectio
         if (!e.getValueIsAdjusting()) {
             Object id = listComponent.getSelectedValue();
             if (id != null) {
-            	ObjectVisualizer visualizer = ObjectVisualizerService.getVisualizerForObject(id.toString());
+            	ObjectVisualizer visualizer = ObjectVisualizerService.getVisualizerForObject(clusterModel);
             	visualizer.startVisualization(id);
             }
         }

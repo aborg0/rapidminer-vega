@@ -24,18 +24,23 @@ package com.rapidminer.repository.remote;
 
 import java.awt.Desktop;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
+import javax.swing.Action;
 import javax.swing.event.EventListenerList;
 import javax.xml.namespace.QName;
 
@@ -48,6 +53,7 @@ import com.rapid_i.repository.wsimport.ProcessService_Service;
 import com.rapid_i.repository.wsimport.RepositoryService;
 import com.rapid_i.repository.wsimport.RepositoryService_Service;
 import com.rapidminer.RapidMiner;
+import com.rapidminer.gui.actions.BrowseAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.repository.BlobEntry;
@@ -211,8 +217,17 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		}		
 	}
 	
+	private Map<String,RemoteEntry> cachedEntries = new HashMap<String,RemoteEntry>();
+	protected void register(RemoteEntry entry) {
+		cachedEntries.put(entry.getPath(), entry);
+	}
+	
 	@Override
 	public Entry locate(String string) throws RepositoryException {
+		Entry cached = cachedEntries.get(string);
+		if (cached != null) {
+			return cached;
+		}
 		Entry firstTry = RepositoryManager.getInstance(null).locate(this, string, true);
 		if (firstTry != null) {
 			return firstTry;
@@ -316,6 +331,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	@Override
 	public void refresh() throws RepositoryException {
 		offline = false;
+		cachedEntries.clear();
 		super.refresh();
 	}
 		
@@ -422,20 +438,53 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		return true;
 	}
 
-	public void browse(String path) {
+	public URI getURIForResource(String path) {
 		try {
-			Desktop.getDesktop().browse(baseUrl.toURI().resolve("faces/browse.jsp?location="+URLEncoder.encode(path, "UTF-8")));
+			return baseUrl.toURI().resolve("faces/browse.jsp?location="+URLEncoder.encode(path, "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);			
+		} catch (URISyntaxException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+
+	private URI getURIWebInterfaceURI() {
+		try {
+			return baseUrl.toURI().resolve("faces/index.jsp");
+		} catch (URISyntaxException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void browse(String location) {
+		try {
+			Desktop.getDesktop().browse(getURIForResource(location));
 		} catch (Exception e) {
 			SwingTools.showSimpleErrorMessage("cannot_open_browser", e);
 		}		
 	}
-
+	
 	public void showLog(int id) {
 		try {
-			Desktop.getDesktop().browse(baseUrl.toURI().resolve("processlog?id="+id));
+			Desktop.getDesktop().browse(getProcessLogURI(id));
 		} catch (Exception e) {
 			SwingTools.showSimpleErrorMessage("cannot_open_browser", e);
 		}				
+	}
+
+	public URI getProcessLogURI(int id) {
+		try {
+			return baseUrl.toURI().resolve("processlog?id="+id);
+		} catch (URISyntaxException e) {
+			throw new RuntimeException(e);
+		}
 	}	
-	
+
+	@Override
+	public Collection<Action> getCustomActions() {
+		Collection<Action> actions = super.getCustomActions();
+		actions.add(new BrowseAction("remoterepository.administer", getRepository().getURIWebInterfaceURI()));
+		return actions;
+	}
 }

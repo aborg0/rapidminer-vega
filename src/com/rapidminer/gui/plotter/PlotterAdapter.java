@@ -742,7 +742,7 @@ public abstract class PlotterAdapter extends JPanel implements Plotter {
 			maxColorString = Tools.formatNumber(max);
 		}
 
-		drawNumericalLegend(graphics, getWidth(), minColorString, maxColorString, alpha);
+		drawNumericalLegend(graphics, getWidth(), minColorString, maxColorString, table.getColumnName(legendColumn), alpha);
 	}
 
 	private void drawNumericalLegend(Graphics graphics, DataTable table, int legendColumn, int alpha) {
@@ -757,20 +757,28 @@ public abstract class PlotterAdapter extends JPanel implements Plotter {
 				max = MathFunctions.robustMax(max, colorValue);
 			}
 		}
-		drawNumericalLegend(graphics, min, max, alpha);
+		drawNumericalLegend(graphics, table.getColumnName(legendColumn), min, max, alpha);
 	}
 
 	/** This method can be used to draw a legend on the given graphics context. */
-	private void drawNumericalLegend(Graphics graphics, double minColor, double maxColor, int alpha) {
+	private void drawNumericalLegend(Graphics graphics, String legendColumnName, double minColor, double maxColor, int alpha) {
 		// key or legend
 		String minColorString = Tools.formatNumber(minColor);
 		String maxColorString = Tools.formatNumber(maxColor);
-		drawNumericalLegend(graphics, getWidth(), minColorString, maxColorString, alpha);
+		drawNumericalLegend(graphics, getWidth(), minColorString, maxColorString, legendColumnName, alpha);
 	}
 
 	/** This method can be used to draw a legend on the given graphics context. */
-	public void drawNumericalLegend(Graphics graphics, int width, String minColorString, String maxColorString, int alpha) {
+	public void drawNumericalLegend(Graphics graphics, int width, String minColorString, String maxColorString, String legendColumnName, int alpha) {
 		Graphics2D g = (Graphics2D) graphics.create();
+		
+		// painting label name
+		g.drawString(legendColumnName, MARGIN, 15);
+		Rectangle2D legendNameBounds = LABEL_FONT.getStringBounds(legendColumnName, g.getFontRenderContext());
+		g.translate(legendNameBounds.getWidth(), 0);
+
+		// painting legend
+		
 		Rectangle2D minStringBounds = LABEL_FONT.getStringBounds(minColorString, g.getFontRenderContext());
 		Rectangle2D maxStringBounds = LABEL_FONT.getStringBounds(maxColorString, g.getFontRenderContext());
 		int legendWidth = (int) (minStringBounds.getWidth() + 114 + maxStringBounds.getWidth());
@@ -794,15 +802,26 @@ public abstract class PlotterAdapter extends JPanel implements Plotter {
 	}
 
 	/** This method can be used to draw a legend on the given graphics context. */
-	public void drawSimpleNumericalLegend(Graphics graphics, int x, int y, String minColorString, String maxColorString) {
+	public void drawSimpleNumericalLegend(Graphics graphics, int x, int y, String legendColumnName, String minColorString, String maxColorString) {
 		Graphics2D g = (Graphics2D) graphics.create();
+
+		
+		// painting label name
+		g.setFont(LABEL_FONT_BOLD);
+		g.setColor(Color.black);
+		g.drawString(legendColumnName, x, y + 1);
+		Rectangle2D legendNameBounds = LABEL_FONT.getStringBounds(legendColumnName, g.getFontRenderContext());
+		g.translate(legendNameBounds.getWidth() + 5, 0);
+
+		
+		// painting legend
+		g.setFont(LABEL_FONT);
+		g.setColor(Color.black);
 		Rectangle2D minStringBounds = LABEL_FONT.getStringBounds(minColorString, g.getFontRenderContext());
 
 		int keyX = x;
 		int keyY = y;
 
-		g.setFont(LABEL_FONT);
-		g.setColor(Color.black);
 		g.drawString(minColorString, keyX, keyY + 1);
 		keyX += minStringBounds.getWidth() + 5;
 		for (int i = 0; i < 100; i++) {
@@ -836,7 +855,7 @@ public abstract class PlotterAdapter extends JPanel implements Plotter {
 			maxColorString = Tools.formatNumber(max);
 		}
 
-		drawSimpleNumericalLegend(graphics, x, y, minColorString, maxColorString);
+		drawSimpleNumericalLegend(graphics, x, y, table.getColumnName(legendColumn), minColorString, maxColorString);
 	}
 
 	protected void drawGenericNominalLegend(Graphics graphics, String[] names, PointStyle[] pointStyles, Color[] colors, int xOffset, int alpha) {

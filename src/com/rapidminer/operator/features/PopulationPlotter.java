@@ -49,7 +49,6 @@ import com.rapidminer.tools.Tools;
  * (color for the third dimension) corresponds to performance criteria.
  * 
  * @author Ingo Mierswa
- *          Exp $
  */
 public class PopulationPlotter implements PopulationOperator, ObjectVisualizer {
 

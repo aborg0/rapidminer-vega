@@ -28,8 +28,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.Properties;
 import java.util.logging.Level;
+
+import javax.swing.Action;
 
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
@@ -229,5 +232,10 @@ public abstract class SimpleEntry implements Entry {
 		if (parent != null) {
 			parent.removeChild(this);
 		}
+	}
+	
+	@Override
+	public Collection<Action> getCustomActions() {
+		return null;
 	}
 }

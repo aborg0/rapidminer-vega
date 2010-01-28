@@ -51,9 +51,9 @@ import javax.swing.event.ListSelectionListener;
 import org.freehep.util.export.ExportDialog;
 
 import com.rapidminer.datatable.DataTable;
-import com.rapidminer.gui.plotter.PlotterPanel.LineStyleCellRenderer;
 import com.rapidminer.gui.plotter.PlotterConfigurationModel.PlotterChangedListener;
 import com.rapidminer.gui.plotter.PlotterConfigurationModel.PlotterSettingsChangedListener;
+import com.rapidminer.gui.plotter.PlotterPanel.LineStyleCellRenderer;
 import com.rapidminer.gui.plotter.settings.ListeningJCheckBox;
 import com.rapidminer.gui.plotter.settings.ListeningJComboBox;
 import com.rapidminer.gui.plotter.settings.ListeningJSlider;
@@ -118,7 +118,7 @@ public class PlotterControlPanel extends JPanel implements PlotterChangedListene
 		// 1. register mouse listener on plotter		
 
 		final JLabel coordinatesLabel = new JLabel("                      ");
-		PlotterMouseHandler mouseHandler = new PlotterMouseHandler(plotter, new CoordinatesHandler() {
+		PlotterMouseHandler mouseHandler = new PlotterMouseHandler(plotter, plotterSettings.getDataTable(), new CoordinatesHandler() {
 			@Override
 			public void updateCoordinates(String coordinateInfo) {
 				coordinatesLabel.setText(coordinateInfo);

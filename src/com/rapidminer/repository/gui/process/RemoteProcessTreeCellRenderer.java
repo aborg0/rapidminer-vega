@@ -63,7 +63,7 @@ public class RemoteProcessTreeCellRenderer extends DefaultTreeCellRenderer {
 				b.append(DateFormat.getDateTimeInstance().format(startTime.getTime()));
 			}
 			if (endTime != null) {
-				b.append("; completed");
+				b.append("; completed ");
 				b.append(DateFormat.getDateTimeInstance().format(endTime.getTime()));
 			}
 			b.append(")</small>");

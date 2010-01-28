@@ -37,6 +37,7 @@ import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
+import com.rapidminer.tools.RMUrlHandler;
 
 
 
@@ -99,7 +100,7 @@ public class MetaData implements Serializable {
 			if (!first) {
 				b.append(" &#8592; ");
 			}
-			b.append("<a href=\"operator?");
+			b.append("<a href=\""+RMUrlHandler.URL_PREFIX+"operator/");
 			b.append(port.getPorts().getOwner().getOperator().getName());
 			b.append("\">");
 			b.append(port.getSpec());

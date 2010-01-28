@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.rapidminer.ObjectVisualizer;
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.AttributeWeights;
@@ -36,6 +37,7 @@ import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.example.table.DoubleArrayDataRow;
 import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.tools.ObjectVisualizerService;
 import com.rapidminer.tools.Ontology;
 
 
@@ -80,6 +82,9 @@ public class DataTableExampleSetAdapter extends AbstractDataTable {
 		}
 
 		this.numberOfRegularAttributes = exampleSet.getAttributes().size();
+		
+		// TODO: Find another solution for this hack
+		registerVisualizerForMe(exampleSet);
 	}
 
 	public DataTableExampleSetAdapter(DataTableExampleSetAdapter dataTableExampleSetAdapter) {
@@ -90,8 +95,12 @@ public class DataTableExampleSetAdapter extends AbstractDataTable {
 		this.weights = dataTableExampleSetAdapter.weights; // shallow clone
 		this.idAttribute = dataTableExampleSetAdapter.idAttribute; // shallow clone
 
+		// TODO: Find another solution for this hack
+		registerVisualizerForMe(dataTableExampleSetAdapter);
 	}
 
+	
+	
 	public int getNumberOfSpecialColumns() {
 		return allAttributes.size() - numberOfRegularAttributes;
 	}
@@ -242,5 +251,10 @@ public class DataTableExampleSetAdapter extends AbstractDataTable {
 		}
 
 		return exampleTable.createExampleSet();
+	}
+	
+	private void registerVisualizerForMe(Object father) {
+		ObjectVisualizer visualizer = ObjectVisualizerService.getVisualizerForObject(father);
+		ObjectVisualizerService.addObjectVisualizer(this, visualizer);
 	}
 }

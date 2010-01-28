@@ -1,6 +1,7 @@
 
 package com.rapid_i.repository.wsimport;
 
+import java.util.List;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebResult;
@@ -132,5 +133,47 @@ public interface RepositoryService {
         String parentLocation,
         @WebParam(name = "subfolderName", targetNamespace = "")
         String subfolderName);
+
+    /**
+     * 
+     * @param entryLocation
+     * @return
+     *     returns java.util.List<com.rapid_i.repository.wsimport.AccessRights>
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "getAccessRights", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetAccessRights")
+    @ResponseWrapper(localName = "getAccessRightsResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetAccessRightsResponse")
+    public List<AccessRights> getAccessRights(
+        @WebParam(name = "entryLocation", targetNamespace = "")
+        String entryLocation);
+
+    /**
+     * 
+     * @return
+     *     returns java.util.List<java.lang.String>
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "getAllGroupNames", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetAllGroupNames")
+    @ResponseWrapper(localName = "getAllGroupNamesResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetAllGroupNamesResponse")
+    public List<String> getAllGroupNames();
+
+    /**
+     * 
+     * @param accessRights
+     * @param entryLocation
+     * @return
+     *     returns com.rapid_i.repository.wsimport.Response
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "setAccessRights", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.SetAccessRights")
+    @ResponseWrapper(localName = "setAccessRightsResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.SetAccessRightsResponse")
+    public Response setAccessRights(
+        @WebParam(name = "entryLocation", targetNamespace = "")
+        String entryLocation,
+        @WebParam(name = "accessRights", targetNamespace = "")
+        List<AccessRights> accessRights);
 
 }

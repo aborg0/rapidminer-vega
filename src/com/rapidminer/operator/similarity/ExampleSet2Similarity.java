@@ -26,6 +26,7 @@ import java.util.List;
 
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Tools;
+import com.rapidminer.gui.ExampleVisualizer;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
@@ -38,6 +39,7 @@ import com.rapidminer.operator.ports.metadata.GenerateNewMDRule;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.SetRelation;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.tools.ObjectVisualizerService;
 import com.rapidminer.tools.math.similarity.DistanceMeasure;
 import com.rapidminer.tools.math.similarity.DistanceMeasureHelper;
 import com.rapidminer.tools.math.similarity.DistanceMeasures;
@@ -80,7 +82,11 @@ public class ExampleSet2Similarity extends Operator {
 		Tools.checkAndCreateIds(exampleSet);
 
 		DistanceMeasure measure = measureHelper.getInitializedMeasure(exampleSet);
-		similarityOutput.deliver(new SimilarityMeasureObject(measure, exampleSet));
+		SimilarityMeasureObject measureObject = new SimilarityMeasureObject(measure, exampleSet);
+
+		ObjectVisualizerService.addObjectVisualizer(measureObject, new ExampleVisualizer(exampleSet));
+		
+		similarityOutput.deliver(measureObject);
 		exampleSetOutput.deliver(exampleSet);
 	}
 

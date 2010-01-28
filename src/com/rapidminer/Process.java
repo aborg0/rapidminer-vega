@@ -619,15 +619,9 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 
 	/** This method initializes the process, the operators, and the services and must be invoked
 	 *  at the beginning of run. It also resets all apply counts. */
-	private final void prepareRun(int logVerbosity, boolean cleanUp) throws OperatorException {
-
-		// TODO: perform this cleaning here after object visualizers, log service and 
-		// temp file service are bound to a single process
-		if (cleanUp)
-			RapidMiner.cleanUp();
-
+	private final void prepareRun(int logVerbosity) throws OperatorException {
 		initLogging(logVerbosity);
-		//TODO: Checking memory leak
+
 		setProcessState(PROCESS_STATE_RUNNING);
 		getLogger().fine("Initialising process setup.");
 
@@ -661,17 +655,17 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 
 	/** Starts the process with the given log verbosity. */
 	public final IOContainer run(int logVerbosity) throws OperatorException {
-		return run(new IOContainer(), logVerbosity, true);
+		return run(new IOContainer(), logVerbosity);
 	}
 
 	/** Starts the process with the given input. */
 	public final IOContainer run(IOContainer input) throws OperatorException {
-		return run(input, LogService.UNKNOWN_LEVEL, true);
+		return run(input, LogService.UNKNOWN_LEVEL);
 	}
 
 	/** Starts the process with the given input. The process uses the given log verbosity. */
 	public final IOContainer run(IOContainer input, int logVerbosity) throws OperatorException {
-		return run(input, logVerbosity, true);
+		return run(input, logVerbosity, null);
 	}
 
 	/** Starts the process with the given input. The process uses a default log verbosity.
@@ -680,8 +674,9 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	 *  to set this to false if, for example, several process runs uses the same
 	 *  object visualizer which would have been cleaned otherwise.
 	 */
-	public final IOContainer run(IOContainer input, boolean cleanUp) throws OperatorException {
-		return run(input, LogService.UNKNOWN_LEVEL, cleanUp);
+	@Deprecated
+	public final IOContainer run(IOContainer input, boolean unused) throws OperatorException {
+		return run(input, LogService.UNKNOWN_LEVEL);
 	}
 
 	/** Starts the process with the given input. The process uses the given log verbosity. 
@@ -689,8 +684,9 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	 *  before the process is started. This should usually be true but it might be useful
 	 *  to set this to false if, for example, several process runs uses the same
 	 *  object visualizer which would have been cleaned otherwise. */
+	@Deprecated
 	public final IOContainer run(IOContainer input, int logVerbosity, boolean cleanUp) throws OperatorException {
-		return run(input, logVerbosity, cleanUp, null);
+		return run(input, logVerbosity, null);
 	}
 	
 	/** Starts the process with the given input. The process uses the given log verbosity. 
@@ -702,7 +698,21 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	 *  Since the macros are cleaned then as well it is not possible to set macros to a process
 	 *  but with the given macroMap of this method.
 	 */
+	@Deprecated
 	public final IOContainer run(IOContainer input, int logVerbosity, boolean cleanUp, Map<String, String> macroMap) throws OperatorException {
+		return run(input, logVerbosity, macroMap);
+		
+	}
+	/** Starts the process with the given input. The process uses the given log verbosity. 
+	 *  The boolean flag indicates if some static initializations should be cleaned
+	 *  before the process is started. This should usually be true but it might be useful
+	 *  to set this to false if, for example, several process runs uses the same
+	 *  object visualizer which would have been cleaned otherwise. 
+	 *  
+	 *  Since the macros are cleaned then as well it is not possible to set macros to a process
+	 *  but with the given macroMap of this method.
+	 */
+	public final IOContainer run(IOContainer input, int logVerbosity, Map<String, String> macroMap) throws OperatorException {
 		int myVerbosity = rootOperator.getParameterAsInt(ProcessRootOperator.PARAMETER_LOGVERBOSITY);
 		if (logVerbosity == LogService.UNKNOWN_LEVEL) {
 			logVerbosity = LogService.OFF;
@@ -726,7 +736,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		}
 
 		setProcessState(PROCESS_STATE_RUNNING);
-		prepareRun(logVerbosity, cleanUp);
+		prepareRun(logVerbosity);
 		
 		// macros
 		if (macroMap != null) {

@@ -43,6 +43,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 
+import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
@@ -58,7 +59,6 @@ import com.rapidminer.Process;
 import com.rapidminer.RepositoryProcessLocation;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.dnd.TransferableOperator;
-import com.rapidminer.gui.flow.ExampleSetMetaDataTableModel;
 import com.rapidminer.gui.operatortree.actions.CutCopyPasteAction;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
@@ -68,9 +68,6 @@ import com.rapidminer.gui.tools.components.ToolTipWindow.TipProvider;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DataImportWizard;
 import com.rapidminer.operator.ResultObject;
-import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
-import com.rapidminer.operator.ports.metadata.MetaData;
-import com.rapidminer.repository.BlobEntry;
 import com.rapidminer.repository.DataEntry;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
@@ -516,43 +513,10 @@ public class RepositoryTree extends JTree {
         new ToolTipWindow(owner, new TipProvider() {			
 			@Override
 			public String getTip(Object o) {		
-				if (o instanceof IOObjectEntry) {
-					IOObjectEntry e = (IOObjectEntry) o;
-					StringBuilder tip = new StringBuilder();
-					tip.append("<h3>").append(e.getName()).append("</h3>");
-					if (!e.willBlock()) {
-						try {
-							MetaData metaData = e.retrieveMetaData();
-							if (metaData != null) {
-								tip.append("<p>");
-								if (metaData instanceof ExampleSetMetaData) {
-									tip.append(((ExampleSetMetaData)metaData).getShortDescription());
-								} else {
-									tip.append(metaData.getDescription());
-								}
-								tip.append("</p>");
-							}
-						} catch (RepositoryException e1) {
-							LogService.getRoot().log(Level.WARNING, "Cannot fetch meta data for tool tip: "+e, e);
-							return null;
-						}
-					} else {
-						tip.append("<p>Meta data for this object not loaded yet.<br/><a href=\"loadMetaData?");
-						tip.append(e.getLocation().toString());
-						tip.append("\">Click to load.</a></p>");
-					}
-					return tip.toString();
+				if (o instanceof Entry) {
+					return ToolTipProviderHelper.getTip((Entry) o);
 				} else {
-					if (o instanceof Entry) {
-						StringBuilder tip = new StringBuilder();
-						tip.append("<h3>").append(((Entry)o).getName()).append("</h3><p>").append(((Entry)o).getDescription()).append("</p>");
-						if (o instanceof BlobEntry) {
-							tip.append("<p><strong>Type:</strong> ").append(((BlobEntry)o).getMimeType()).append("</p>");
-						}
-						return tip.toString();
-					} else {
-						return null;	
-					}
+					return null;
 				}
 			}
 			
@@ -568,20 +532,11 @@ public class RepositoryTree extends JTree {
 
 			@Override
 			public Component getCustomComponent(Object o) {
-				if (o instanceof IOObjectEntry) {
-					IOObjectEntry e = (IOObjectEntry) o;
-					if (!e.willBlock()) {
-						try {
-							MetaData metaData = e.retrieveMetaData();
-							if ((metaData != null) && (metaData instanceof ExampleSetMetaData)) {
-								return ExampleSetMetaDataTableModel.makeTableForToolTip((ExampleSetMetaData) metaData);
-							}
-						} catch (Exception ex) {
-							LogService.getRoot().log(Level.WARNING, "Error retrieving meta data for "+e.getLocation()+": "+ex, ex);							
-						}
-					}
+				if (o instanceof Entry) {
+					return ToolTipProviderHelper.getCustomComponent((Entry) o);
+				} else {
+					return null;
 				}
-				return null;				
 			}
 		}, this);
 	}
@@ -683,6 +638,14 @@ public class RepositoryTree extends JTree {
 		if (selected instanceof Folder) {
 			menu.addSeparator();
 			menu.add(REFRESH_ACTION);
+		}
+		
+		if (selected instanceof Entry) {
+			Collection<Action> customActions = ((Entry) selected).getCustomActions();
+			menu.addSeparator();
+			for (Action a : customActions) {
+				menu.add(a);
+			}
 		}
 		
 		menu.show(this, e.getX(), e.getY());

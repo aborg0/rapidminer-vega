@@ -144,7 +144,7 @@ public class TransitionGraphCreator extends GraphCreatorAdaptor {
 
     private final Map<String, String> vertexLabelMap = new HashMap<String, String>();
     
-    private final DefaultObjectViewer objectViewer = new DefaultObjectViewer();
+    private final DefaultObjectViewer objectViewer;
     
     
 	public TransitionGraphCreator(TransitionGraph transitionGraph, ExampleSet exampleSet) {
@@ -174,6 +174,8 @@ public class TransitionGraphCreator extends GraphCreatorAdaptor {
 		for (SourceId sourceId : sourceNames) {
 			sourceFilter.addItem(sourceId);
 		}
+		
+		objectViewer = new DefaultObjectViewer(exampleSet);
 	}
 
 	public Graph<String,String> createGraph() {
@@ -404,7 +406,7 @@ public class TransitionGraphCreator extends GraphCreatorAdaptor {
 
     private String getNodeDescription(String vertex) {
 		if (nodeDescription != null) {
-			ObjectVisualizer visualizer = ObjectVisualizerService.getVisualizerForObject(vertex);
+			ObjectVisualizer visualizer = ObjectVisualizerService.getVisualizerForObject(exampleSet);
 			
 			if (visualizer != null) {
 				if (visualizer.isCapableToVisualize(vertex)) {

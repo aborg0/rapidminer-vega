@@ -444,6 +444,7 @@ public class ProcessRenderer extends JPanel {
 
 	private static int PORT_OFFSET = OPERATOR_FONT.getSize() + 6 + PORT_SIZE;
 
+	private Point currentMousePosition = null;
 	private Point mousePositionAtDragStart = null;
 	private Point mousePositionAtLastEvaluation = null;
 
@@ -510,12 +511,19 @@ public class ProcessRenderer extends JPanel {
 					return true;
 				}
 				
+				List<Operator> selection = getSelection();
+				// if we don't have a loc, we can use the mouse cursor
+				if ((loc == null) && 
+						(((selection == null) || selection.isEmpty()) ||
+						((selection.size() == 1) && (selection.get(0) == displayedChain)))) {
+					loc = currentMousePosition;
+				}
+				
 				// determine process to drop to
 				int processIndex;
 				if (loc != null) {
 					processIndex = getProcessIndexUnder(loc.getLocation());				
-				} else {
-					List<Operator> selection = getSelection();
+				} else {					
 					if ((selection != null) && !selection.isEmpty()) {
 						processIndex = Arrays.asList(processes).indexOf(selection.get(0).getExecutionUnit());
 						if (processIndex == -1) {
@@ -1587,6 +1595,7 @@ public class ProcessRenderer extends JPanel {
 
 		@Override
 		public void mouseMoved(MouseEvent e) {
+			currentMousePosition = e.getPoint();
 			if (flowVisualizer.isActive()) { return; }
 			if (connectingPortSource != null) {
 				repaint();
@@ -1831,6 +1840,7 @@ public class ProcessRenderer extends JPanel {
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
+			currentMousePosition = e.getPoint();
 			if (flowVisualizer.isActive()) { return; }
 			// Pan viewport
 			if ((e.getModifiers() & MouseEvent.BUTTON2_MASK) != 0) {

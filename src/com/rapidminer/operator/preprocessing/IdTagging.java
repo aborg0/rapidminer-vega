@@ -32,18 +32,15 @@ import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Tools;
-import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.SetRelation;
-import com.rapidminer.operator.visualization.ExampleVisualizationOperator;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.tools.Ontology;
-import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.math.container.Range;
 
 
@@ -117,17 +114,6 @@ public class IdTagging extends AbstractDataProcessing {
 			example.setValue(idAttribute, nominalIds ? idAttribute.getMapping().mapString("id_" + currentId) : currentId);
 			currentId++;
 			checkForStop();
-		}
-
-		// initialize example visualizer
-		ExampleVisualizationOperator visualizer = null;
-		try {
-			visualizer = OperatorService.createOperator(ExampleVisualizationOperator.class);
-		} catch (OperatorCreationException e) {
-			getLogger().info("Cannot initialize example visualizer, skipping...");
-		}
-		if (visualizer != null) {
-			visualizer.apply(eSet);
 		}
 
 		return eSet;

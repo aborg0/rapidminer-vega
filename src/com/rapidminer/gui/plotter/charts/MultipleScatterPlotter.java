@@ -549,7 +549,7 @@ public class MultipleScatterPlotter extends LabelRotatingPlotterAdapter {
 						if (entity != null) {
 							String id = idMap.get(new SeriesAndItem(entity.getSeriesIndex(), entity.getItem()));
 							if (id != null) {
-								ObjectVisualizer visualizer = ObjectVisualizerService.getVisualizerForObject(id);
+								ObjectVisualizer visualizer = ObjectVisualizerService.getVisualizerForObject(dataTable);
 								visualizer.startVisualization(id);
 							}
 						}

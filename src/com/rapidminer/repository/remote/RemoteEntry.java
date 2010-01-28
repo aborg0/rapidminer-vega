@@ -22,10 +22,17 @@
  */
 package com.rapidminer.repository.remote;
 
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Logger;
 
+import javax.swing.Action;
+
+import com.rapid_i.repository.wsimport.AccessRights;
 import com.rapid_i.repository.wsimport.EntryResponse;
 import com.rapid_i.repository.wsimport.Response;
+import com.rapidminer.gui.actions.BrowseAction;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.RepositoryException;
@@ -71,6 +78,9 @@ public abstract class RemoteEntry implements Entry {
 		if (location == null) {
 			throw new NullPointerException("Location cannot be null");
 		}
+		if (repository != null) {
+			repository.register(this);
+		}
 	}
 	
 	void setRepository(RemoteRepository repository) {
@@ -109,7 +119,7 @@ public abstract class RemoteEntry implements Entry {
 		return false;
 	}
 
-	final RemoteRepository getRepository() {
+	public final RemoteRepository getRepository() {
 		return repository;
 	}
 
@@ -138,5 +148,22 @@ public abstract class RemoteEntry implements Entry {
 	@Override
 	public boolean move(Folder newParent) {
 		throw new UnsupportedOperationException("Move not implemented.");
+	}
+	
+	@Override
+	public Collection<Action> getCustomActions() {
+		List<Action> actions= new LinkedList<Action>();
+		actions.add(new AccessRightsAction(this));
+		actions.add(new BrowseAction("remoteprocessviewer.browse", getRepository().getURIForResource(location)));
+		return actions;
+	}
+	
+	/** Note: This method contacts the server and may be slow. Invoke in background. */
+	public List<AccessRights> getAccessRights() throws RepositoryException {
+		return getRepository().getRepositoryService().getAccessRights(location);
+	}
+
+	public void setAccessRights(List<AccessRights> accessRights) throws RepositoryException {
+		getRepository().getRepositoryService().setAccessRights(getPath(), accessRights);		
 	}
 }

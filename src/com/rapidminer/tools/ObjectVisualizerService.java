@@ -22,12 +22,13 @@
  */
 package com.rapidminer.tools;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import com.rapidminer.ObjectVisualizer;
+import com.rapidminer.example.ExampleSet;
 import com.rapidminer.gui.DummyObjectVisualizer;
+import com.rapidminer.gui.ExampleVisualizer;
 
 
 /** 
@@ -39,32 +40,33 @@ public class ObjectVisualizerService {
 
 	private static final DummyObjectVisualizer DUMMY_VISUALIZER = new DummyObjectVisualizer();
 	
-	private static List<ObjectVisualizer> objectVisualizers = new LinkedList<ObjectVisualizer>();
+	private static final Map<Object, ObjectVisualizer> visualizerMap = new WeakHashMap<Object, ObjectVisualizer>();
 	
-	public static void addObjectVisualizer(ObjectVisualizer visualizer) {
-		objectVisualizers.add(visualizer);
-	}
-
-	public static void removeObjectVisualizer(ObjectVisualizer visualizer) {
-		objectVisualizers.remove(visualizer);
+	/**
+	 * This method adds the given visualizer for the target object. Please not that only one 
+	 * visualizer per object is allowed. The subsequent added visualizer will overwrite the first.
+	 * 
+	 * The targets will be remembered using a weak reference, so that they don't pose a memory
+	 * leak: If the object isn't referenced anywhere else, it will be deleted.
+	 */
+	public static void addObjectVisualizer(Object target, ObjectVisualizer visualizer) {
+		visualizerMap.put(target, visualizer);
 	}
 
 	/**
-	 * Returns the last object visualizer which is capable to visualize the
-	 * object with the given id.
+	 * Returns the object visualizer registered for this targetObject. If the targetObject is of type
+	 * ExampleSet and there's no special visualizer registered, it will return an new ExampleVisualizer.
 	 */
-	public static ObjectVisualizer getVisualizerForObject(Object id) {
-		Iterator i = objectVisualizers.iterator();
-		ObjectVisualizer capableVisualizer = DUMMY_VISUALIZER;
-		while (i.hasNext()) {
-			ObjectVisualizer visualizer = (ObjectVisualizer) i.next();
-			if (visualizer.isCapableToVisualize(id))
-				capableVisualizer = visualizer;
+	public static ObjectVisualizer getVisualizerForObject(Object targetObject) {
+		ObjectVisualizer capableVisualizer = visualizerMap.get(targetObject);
+		if (capableVisualizer == null) {
+			if (targetObject instanceof ExampleSet) {
+				ObjectVisualizer visualizer = new ExampleVisualizer((ExampleSet)targetObject);
+				addObjectVisualizer(targetObject, visualizer);
+				return visualizer;
+			}
+			return DUMMY_VISUALIZER;
 		}
 		return capableVisualizer;
 	}
-    
-    public static void clearVisualizers() {
-        objectVisualizers.clear();
-    }
 }

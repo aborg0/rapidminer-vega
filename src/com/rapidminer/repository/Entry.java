@@ -22,6 +22,10 @@
  */
 package com.rapidminer.repository;
 
+import java.util.Collection;
+
+import javax.swing.Action;
+
 import com.rapidminer.operator.io.RepositorySource;
 
 /** An entry in a repository. Can be either a folder or a data entry (leaf).
@@ -71,4 +75,7 @@ public interface Entry {
 	/** Deletes the entry and its contents from the repository. 
 	 * @throws RepositoryException */
 	public void delete() throws RepositoryException;
+
+	/** Returns custom actions to be displayed in this entry's popup menu. */
+	public Collection<Action> getCustomActions();
 }

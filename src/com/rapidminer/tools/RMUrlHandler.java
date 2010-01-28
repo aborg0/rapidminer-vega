@@ -1,5 +1,7 @@
 package com.rapidminer.tools;
 
+import java.awt.Desktop;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -7,8 +9,10 @@ import java.util.logging.Level;
 import javax.swing.Action;
 import javax.swing.event.HyperlinkListener;
 
+import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.actions.SettingsAction;
+import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorCreationException;
 
@@ -34,7 +38,7 @@ public class RMUrlHandler {
 	 * 
 	 * @return true iff we understand the url.
 	 */
-	public static boolean handleUrl(String url) {		
+	public static boolean handleUrl(String url) {
 		if (url.startsWith(URL_PREFIX)) {
 			String suffix = url.substring(URL_PREFIX.length());
 			if (suffix.startsWith("opdoc/")) {
@@ -48,6 +52,12 @@ public class RMUrlHandler {
 				}
 				return true;
 			}
+			if (suffix.startsWith("operator/")) {
+				String opName = suffix.substring("operator/".length());
+				MainFrame mainFrame = RapidMinerGUI.getMainFrame();
+				mainFrame.selectOperator(mainFrame.getProcess().getOperator(opName));
+				return true;			
+			}
 			Action action = ACTION_MAP.get(suffix);
 			if (action != null) {
 				action.actionPerformed(null);				
@@ -55,6 +65,13 @@ public class RMUrlHandler {
 				LogService.getRoot().warning("No action associated with URL "+url);
 			}			
 			return true; // we didn't make it, but noone else can, so we return true.
+		} else if (url.startsWith("http://") || (url.startsWith("https://"))) {
+			try {
+				Desktop.getDesktop().browse(new URI(url));
+			} catch (Exception e) {
+				SwingTools.showSimpleErrorMessage("cannot_open_browser", e);				
+			}
+			return true;
 		} else {
 			return false;
 		}

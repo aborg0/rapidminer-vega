@@ -33,7 +33,13 @@ import com.rapidminer.tools.ObjectVisualizerService;
  * @author Ingo Mierswa
  */
 public class DefaultObjectViewer implements GraphObjectViewer {  
-            
+    
+	private Object visualizationTarget;
+
+	public DefaultObjectViewer(Object visualizationTarget) {
+		this.visualizationTarget = visualizationTarget;
+	}
+	
     public JComponent getViewerComponent() {
     	return null;
     }
@@ -41,7 +47,7 @@ public class DefaultObjectViewer implements GraphObjectViewer {
     public void showObject(Object object) {
         if (object != null) {
             String id = (String)object;
-            ObjectVisualizer visualizer = ObjectVisualizerService.getVisualizerForObject(id);
+            ObjectVisualizer visualizer = ObjectVisualizerService.getVisualizerForObject(visualizationTarget);
             visualizer.startVisualization(id);
         }
     }

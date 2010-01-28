@@ -22,6 +22,10 @@
  */
 package com.rapidminer.repository.resource;
 
+import java.util.Collection;
+
+import javax.swing.Action;
+
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.RepositoryException;
@@ -105,5 +109,10 @@ public abstract class ResourceEntry implements Entry {
 	
 	protected void setRepository(ResourceRepository resourceRepository) {
 		this.repository = resourceRepository;		
+	}
+	
+	@Override
+	public Collection<Action> getCustomActions() {
+		return null;
 	}
 }

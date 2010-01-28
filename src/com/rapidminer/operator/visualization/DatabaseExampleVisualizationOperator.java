@@ -98,7 +98,8 @@ public class DatabaseExampleVisualizationOperator extends Operator implements Co
 					getParameterAsString(PARAMETER_ID_COLUMN),
 					getLog()
 			);
-		ObjectVisualizerService.addObjectVisualizer(visualizer);
+		//TODO: giving this is a veeery sad hack: Normally planned to give an IOObject not present here
+		ObjectVisualizerService.addObjectVisualizer(this, visualizer);
 
 		dummyPorts.passDataThrough();
 	}

@@ -2,9 +2,10 @@ package com.rapidminer.repository.gui.process;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.text.DateFormat;
+import java.util.logging.Level;
 
 import javax.swing.Action;
 import javax.swing.JPanel;
@@ -20,13 +21,17 @@ import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceDockKey;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.ViewToolBar;
+import com.rapidminer.gui.tools.components.ToolTipWindow;
+import com.rapidminer.gui.tools.components.ToolTipWindow.TipProvider;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.RemoteProcessState;
 import com.rapidminer.repository.Repository;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryTree;
+import com.rapidminer.repository.gui.ToolTipProviderHelper;
 import com.rapidminer.repository.remote.RemoteRepository;
+import com.rapidminer.tools.LogService;
 import com.vlsolutions.swing.docking.DockKey;
 import com.vlsolutions.swing.docking.Dockable;
 
@@ -139,6 +144,7 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 			}					
 		}
 	};
+
 	public RemoteProcessViewer() {
 		setLayout(new BorderLayout());
 		tree = new JTree(new RemoteProcessesTreeModel());
@@ -154,15 +160,108 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 		toolBar.add(STOP_ACTION);
 		toolBar.add(SHOW_LOG_ACTION);
 
-		tree.addMouseListener(new MouseAdapter() {
+		new ToolTipWindow(new TipProvider() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (e.getClickCount() == 2) {
+			public Component getCustomComponent(Object id) {
+				if (id instanceof TreePath) {
+					RepositoryLocation loc = getSelectedRepositoryLocation((TreePath) id);
+					if (loc != null) {
+						try {
+							return ToolTipProviderHelper.getCustomComponent(loc.locateEntry());
+						} catch (RepositoryException e) {
+							LogService.getRoot().log(Level.WARNING, "Error locating entry for "+loc+": "+e, e);
+							return null;
+						}
+					} else {
+						return null;
+					}
+				} else {
+					return null;
 				}
 			}
-		});
+
+			@Override
+			public Object getIdUnder(Point point) {
+				TreePath path = tree.getPathForLocation((int)point.getX(), (int)point.getY());
+				if (path != null) {
+					return path;
+				} else {
+					return null;
+				}
+			}
+
+			@Override
+			public String getTip(Object o) {
+				if (o instanceof TreePath) {
+					Object last = ((TreePath) o).getLastPathComponent();
+					if (last instanceof ProcessResponse) {
+						ProcessResponse pr = (ProcessResponse) last;
+						StringBuilder b = new StringBuilder();
+						b.append("<html><body>");
+						b.append("<strong>").append(pr.getProcessLocation()).append("</strong> ");
+						if (RemoteProcessState.valueOf(pr.getState()) == RemoteProcessState.FAILED) {
+							b.append("<span style=\"color:red\">(").append(pr.getState().toLowerCase()).append(")</span><br/>");
+						} else {
+							b.append("(").append(pr.getState().toLowerCase()).append(")<br/>");
+						}
+						if (pr.getStartTime() != null) {
+							b.append("<em>Started: </em>").append(DateFormat.getDateTimeInstance().format(pr.getStartTime().toGregorianCalendar().getTime())).append("<br/>");
+						}
+						if (pr.getCompletionTime() != null) {
+							b.append("<em>Completed: </em>").append(DateFormat.getDateTimeInstance().format(pr.getCompletionTime().toGregorianCalendar().getTime())).append("<br/>");
+						}
+						if (pr.getException() != null) {
+							b.append("<span style=\"color:red\">").append(pr.getException()).append("</span><br/>");
+						}
+						RemoteRepository repos = (RemoteRepository) ((TreePath)o).getPath()[1];
+						b.append("<a href=\""+repos.getProcessLogURI(pr.getId()).toString()+"\">View Log</a>");
+						b.append("</body></html>");
+						return b.toString();
+					} else {
+						RepositoryLocation loc = getSelectedRepositoryLocation((TreePath)o);
+						if (loc != null) {
+							try {
+								return ToolTipProviderHelper.getTip(loc.locateEntry());
+							} catch (RepositoryException e) {
+								LogService.getRoot().log(Level.WARNING, "Error locating entry for "+loc+": "+e, e);
+								return null;
+							}
+						} else {
+							return null;
+						}
+					}
+				} else {
+					return null;
+				}
+			}
+		}, tree);
+		//		tree.addMouseListener(new MouseAdapter() {
+		//			@Override
+		//			public void mouseClicked(MouseEvent e) {
+		//				if (e.getClickCount() == 2) {
+		//				}
+		//			}
+		//		});
 	}
 
+	private RepositoryLocation getSelectedRepositoryLocation(TreePath selectionPath) {
+		//TreePath selectionPath = tree.getSelectionPath();
+		if (selectionPath != null) {
+			Object selection = selectionPath.getLastPathComponent();
+			if (selection instanceof ProcessResponse) {
+				Repository repository = (Repository) selectionPath.getPath()[1];
+				return new RepositoryLocation(RepositoryLocation.REPOSITORY_PREFIX+repository.getName()+
+						((ProcessResponse) selection).getProcessLocation());						
+			} else if (selection instanceof OutputLocation) {
+				Repository repository = (Repository) selectionPath.getPath()[1];
+				ProcessResponse proResponse = (ProcessResponse) selectionPath.getPath()[2];
+				RepositoryLocation procLoc = new RepositoryLocation(RepositoryLocation.REPOSITORY_PREFIX+repository.getName()+
+						proResponse.getProcessLocation());
+				return new RepositoryLocation(procLoc.parent(), ((OutputLocation)selection).getLocation());
+			}
+		}
+		return null;
+	}
 
 	public static final String PROCESS_PANEL_DOCK_KEY = "remote_process_viewer";
 	private final DockKey DOCK_KEY = new ResourceDockKey(PROCESS_PANEL_DOCK_KEY);
@@ -181,5 +280,4 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 	public DockKey getDockKey() {
 		return DOCK_KEY;
 	}
-
 }

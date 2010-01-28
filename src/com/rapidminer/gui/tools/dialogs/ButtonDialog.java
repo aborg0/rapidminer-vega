@@ -109,7 +109,7 @@ public class ButtonDialog extends JDialog {
 	 * gui.dialog.-key-.icon
 	 */
 	public ButtonDialog(String key, Object ... arguments) {
-		super(ApplicationFrame.getApplicationFrame(), I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + key + ".title"), false);
+		super(ApplicationFrame.getApplicationFrame(), I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + key + ".title", arguments), false);
 		this.arguments = arguments;
 		configure(key);
 	}
@@ -119,7 +119,7 @@ public class ButtonDialog extends JDialog {
 	 * gui.dialog.-key-.icon
 	 */
 	public ButtonDialog(String key, boolean modal, Object ... arguments) {
-		super(ApplicationFrame.getApplicationFrame(), I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + key + ".title"), modal);
+		super(ApplicationFrame.getApplicationFrame(), I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + key + ".title", arguments), modal);
 		this.arguments = arguments;
 		configure(key);
 	}

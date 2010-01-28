@@ -51,6 +51,8 @@ public class ClusterTreeVisualization extends JTree implements TreeSelectionList
 
 	private static final long serialVersionUID = 3994390578811027103L;
 
+	private Object clusterModel;
+	
 	private static class ClusterTreeLeaf {
 
 		private final String title;
@@ -82,12 +84,14 @@ public class ClusterTreeVisualization extends JTree implements TreeSelectionList
 		DefaultTreeModel model = new DefaultTreeModel(generateTreeModel(cm.getRootNode()));
 		setModel(model);
 		addTreeSelectionListener(this);
+		this.clusterModel = cm;
 	}
 
 	public ClusterTreeVisualization(ClusterModel cm) {
 		DefaultTreeModel model = new DefaultTreeModel(generateFlatModel(cm));
 		setModel(model);
 		addTreeSelectionListener(this);
+		this.clusterModel = cm;
 	}
 
 	private DefaultMutableTreeNode generateFlatModel(ClusterModel cm) {
@@ -126,7 +130,7 @@ public class ClusterTreeVisualization extends JTree implements TreeSelectionList
 	}
 
 	private MutableTreeNode createLeaf(Object id) {
-		ObjectVisualizer viz = ObjectVisualizerService.getVisualizerForObject(id);
+		ObjectVisualizer viz = ObjectVisualizerService.getVisualizerForObject(clusterModel);
 		String title = viz.getTitle(id);
 		if (title == null) {
 			if (id instanceof String)
@@ -149,7 +153,7 @@ public class ClusterTreeVisualization extends JTree implements TreeSelectionList
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode) paths[0].getLastPathComponent();
 			if (!node.getAllowsChildren()) {
 				ClusterTreeLeaf leaf = (ClusterTreeLeaf) node.getUserObject();
-				ObjectVisualizer viz = ObjectVisualizerService.getVisualizerForObject(leaf.getId());
+				ObjectVisualizer viz = ObjectVisualizerService.getVisualizerForObject(clusterModel);
 				viz.startVisualization(leaf.getId());
 			}
 		}

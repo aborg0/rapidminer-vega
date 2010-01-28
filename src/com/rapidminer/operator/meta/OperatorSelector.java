@@ -79,7 +79,7 @@ public class OperatorSelector extends OperatorChain {
         });
         getTransformer().addRule(outputExtender.makePassThroughRule());
     }
-
+    
     @Override
     public boolean areSubprocessesExtendable() {
     	return true;

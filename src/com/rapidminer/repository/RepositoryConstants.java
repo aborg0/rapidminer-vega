@@ -54,5 +54,14 @@ public interface RepositoryConstants {
 	public static final int MALFORMED_PROCESS = -11;
 	
 	public static final int ACCESS_DENIED = -12;
+
+	public static final int NO_SUCH_GROUP = -13;
+
+	public static final int DUPLICATE_USERNAME = -14;
+	
+	public static final int DUPLICATE_GROUPNAME = -15;
+	
+	public static final int NO_SUCH_USER_IN_GROUP = -16;
+
 		
 }

@@ -41,7 +41,6 @@ import com.rapidminer.tools.ObjectVisualizerService;
  * components.
  * 
  * @author Ingo Mierswa
- *          ingomierswa Exp $
  */
 public class ExampleVisualizationOperator extends AbstractExampleSetProcessing {
 
@@ -55,7 +54,7 @@ public class ExampleVisualizationOperator extends AbstractExampleSetProcessing {
 		if (idAttribute == null) {
 			throw new UserError(this, 113, "Id");
 		}
-		ObjectVisualizerService.addObjectVisualizer(new ExampleVisualizer(exampleSet));
+		ObjectVisualizerService.addObjectVisualizer(exampleSet, new ExampleVisualizer(exampleSet));
 
 		return exampleSet;
 	}

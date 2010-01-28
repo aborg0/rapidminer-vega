@@ -594,7 +594,7 @@ public abstract class Abstract2DChartPlotter extends RangeablePlotterAdapter {
 						} else {
 							final String minColorString = Tools.formatNumber(minColor);
 							final String maxColorString = Tools.formatNumber(maxColor);
-							drawSimpleNumericalLegend(g2, (int)(area.getCenterX() - 75), (int)(area.getCenterY() + 7), minColorString, maxColorString);
+							drawSimpleNumericalLegend(g2, (int)(area.getCenterX() - 75), (int)(area.getCenterY() + 7), getDataTable().getColumnName(colorColumn), minColorString, maxColorString);
 							return new BlockResult();
 						}
 					}
@@ -743,7 +743,7 @@ public abstract class Abstract2DChartPlotter extends RangeablePlotterAdapter {
 							if (entity != null) {
 								String id = idMap.get(new SeriesAndItem(entity.getSeriesIndex(), entity.getItem()));
 								if (id != null) {
-									ObjectVisualizer visualizer = ObjectVisualizerService.getVisualizerForObject(id);
+									ObjectVisualizer visualizer = ObjectVisualizerService.getVisualizerForObject(dataTable);
 									visualizer.startVisualization(id);
 								}
 							}

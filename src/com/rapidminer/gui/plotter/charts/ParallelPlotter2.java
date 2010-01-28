@@ -316,7 +316,7 @@ public class ParallelPlotter2 extends LocalNormalizationPlotterAdapter {
 					} else {
 						final String minColorString = Tools.formatNumber(renderer.getMinColorValue());
 						final String maxColorString = Tools.formatNumber(renderer.getMaxColorValue());
-						drawSimpleNumericalLegend(g2, (int)(area.getCenterX() - 90), (int)(area.getCenterY() + 7), minColorString, maxColorString);
+						drawSimpleNumericalLegend(g2, (int)(area.getCenterX() - 90), (int)(area.getCenterY() + 7), dataTable.getColumnName(colorColumn), minColorString, maxColorString);
 						return new BlockResult();
 					}
 				}

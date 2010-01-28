@@ -30,6 +30,7 @@ import java.awt.geom.Point2D;
 import java.text.DecimalFormat;
 
 import com.rapidminer.ObjectVisualizer;
+import com.rapidminer.datatable.DataTable;
 import com.rapidminer.tools.ObjectVisualizerService;
 
 /**
@@ -41,14 +42,15 @@ import com.rapidminer.tools.ObjectVisualizerService;
 public class PlotterMouseHandler implements MouseListener, MouseMotionListener {
 
 	private Plotter plotter;
-	
+	private DataTable dataTable;
 	private CoordinatesHandler coordinatesHandler;
 	
 	/** The point at which a mouse pressing started. */
 	private Point pressStart = null;
 	
-	public PlotterMouseHandler(Plotter plotter, CoordinatesHandler coordinatesHandler) {
+	public PlotterMouseHandler(Plotter plotter, DataTable dataTable, CoordinatesHandler coordinatesHandler) {
 		this.plotter = plotter;
+		this.dataTable = dataTable;
 		this.coordinatesHandler = coordinatesHandler;
 	}
 	
@@ -76,7 +78,7 @@ public class PlotterMouseHandler implements MouseListener, MouseMotionListener {
 			if (e.getClickCount() > 1) {
 				String id = plotter.getIdForPos(e.getX(), e.getY());
 				if (id != null) {
-					ObjectVisualizer visualizer = ObjectVisualizerService.getVisualizerForObject(id);
+					ObjectVisualizer visualizer = ObjectVisualizerService.getVisualizerForObject(dataTable);
 					visualizer.startVisualization(id);
 				}
 			}

@@ -31,6 +31,7 @@ import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Tools;
+import com.rapidminer.gui.ExampleVisualizer;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
@@ -49,6 +50,7 @@ import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.SetRelation;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeStringCategory;
+import com.rapidminer.tools.ObjectVisualizerService;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.math.similarity.DistanceMeasure;
 import com.rapidminer.tools.math.similarity.DistanceMeasureHelper;
@@ -144,6 +146,9 @@ public class AgglomerativeClustering extends Operator {
 		// creating model
 		HierarchicalClusterModel model = new DendogramHierarchicalClusterModel(clusterMap.entrySet().iterator().next().getValue());
 
+		// registering visualizer
+		ObjectVisualizerService.addObjectVisualizer(model, new ExampleVisualizer((ExampleSet) exampleSet.clone()));
+		
 		modelOutput.deliver(model);
 		exampleSetOutput.deliver(exampleSet);
 	}

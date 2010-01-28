@@ -89,12 +89,13 @@ public class SimilarityGraphCreator extends GraphCreatorAdaptor {
 
 	private Map<String, Double> edgeStrengthMap = new HashMap<String, Double>();
 
-	private DefaultObjectViewer objectViewer = new DefaultObjectViewer();
+	private DefaultObjectViewer objectViewer;
 
 
 	public SimilarityGraphCreator(DistanceMeasure measure, ExampleSet exampleSet) {
 		this.measure = measure;
 		this.exampleSet = exampleSet;
+		objectViewer = new DefaultObjectViewer(exampleSet);
 	}
 
 	public Graph<String,String> createGraph() {

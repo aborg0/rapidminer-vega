@@ -25,6 +25,7 @@ package com.rapidminer.operator.visualization.dependencies;
 import java.util.List;
 
 import com.rapidminer.example.ExampleSet;
+import com.rapidminer.gui.ExampleVisualizer;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
@@ -37,6 +38,7 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.ObjectVisualizerService;
 
 /**
  * <p>This operator creates a transition graph from the given example set.
@@ -84,7 +86,9 @@ public class TransitionGraphOperator extends Operator {
 		ExampleSet exampleSet = exampleSetInput.getData();
 
 		TransitionGraph transitionGraph = createTransitionGraph(exampleSet);
-
+		ObjectVisualizerService.addObjectVisualizer(transitionGraph, new ExampleVisualizer(exampleSet));
+		
+		
 		exampleSetOutput.deliver(exampleSet);
 		graphOutput.deliver(transitionGraph);
 	}
