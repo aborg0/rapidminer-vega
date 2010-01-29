@@ -150,8 +150,19 @@ public abstract class PropertyPanel extends JPanel {
 		registerPropertyValueCellEditor(ParameterTypeDatabaseTable.class, DatabaseTableValueCellEditor.class);
 	}
 
-	private static void registerPropertyValueCellEditor(Class<? extends ParameterType> typeClass, Class<? extends PropertyValueCellEditor> editor) {
+	
+	/**
+	 * This method allows extensions to register own ParameterTypes and their editors. Please keep in mind, 
+	 * that this method has to be called before any operator creation! That means, it has to be performed
+	 * during init of the extension. 
+	 * This method will register this value cell editor as well in the PropertyTable.
+	 * 
+	 * @param typeClass The class of the new ParameterType for which the editor should be used
+	 * @param editor    The class of the PropertyValueCellEditor
+	 */
+	public static void registerPropertyValueCellEditor(Class<? extends ParameterType> typeClass, Class<? extends PropertyValueCellEditor> editor) {
 		knownValueEditors.put(typeClass, editor);
+		PropertyTable.registerPropertyValueCellEditor(typeClass, editor);
 	}
 
 	private PropertyValueCellEditor instantiateValueCellEditor(final ParameterType type) {

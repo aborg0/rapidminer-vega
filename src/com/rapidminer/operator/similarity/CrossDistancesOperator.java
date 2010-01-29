@@ -124,7 +124,7 @@ public class CrossDistancesOperator extends Operator {
 		measure.init(documentSet);
 		
 		Attribute oldRequestId = requestSet.getAttributes().getId();
-		Attribute oldDocumentId = requestSet.getAttributes().getId();
+		Attribute oldDocumentId = documentSet.getAttributes().getId();
 		
 		// creating new exampleSet
 		Attribute requestId = AttributeFactory.createAttribute("request", oldRequestId.getValueType());

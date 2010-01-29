@@ -89,11 +89,12 @@ public class AttributeConstructionsLoader extends Operator {
 		}
 
 		File file = getParameterAsFile(PARAMETER_ATTRIBUTE_CONSTRUCTIONS_FILE);
+		List<Attribute> generatedAttributes = new LinkedList<Attribute>();
 		if (file != null) {
 			InputStream in = null;
 			try {
 				in = new FileInputStream(file);
-				ExpressionParser.generateAll(this, exampleSet, in);
+				generatedAttributes = ExpressionParser.generateAll(this, exampleSet, in);
 			} catch (java.io.IOException e) {
 				throw new UserError(this, e, 302, new Object[] { file.getName(), e.getMessage() });
 			} finally {
@@ -109,7 +110,8 @@ public class AttributeConstructionsLoader extends Operator {
 
 		if (!keepAll) {
 			for (Attribute oldAttribute : oldAttributes) {
-				exampleSet.getAttributes().remove(oldAttribute);
+				if (!generatedAttributes.contains(oldAttribute))
+					exampleSet.getAttributes().remove(oldAttribute);
 			}
 		}
 

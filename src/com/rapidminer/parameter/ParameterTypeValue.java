@@ -35,6 +35,14 @@ public class ParameterTypeValue extends ParameterTypeSingle {
 		private String valueParameterName;
 		private boolean isValue;
 		
+		public OperatorValueSelection() {}
+		
+		public OperatorValueSelection(String operatorName, boolean isValue, String valueOrParameterName) {
+			this.operatorName = operatorName;
+			this.valueParameterName = valueOrParameterName;
+			this.isValue = isValue;
+		}
+		
 		public String getOperator() {
 			return operatorName;
 		}
@@ -130,9 +138,9 @@ public class ParameterTypeValue extends ParameterTypeSingle {
 	}
 
 	public static String transformOperatorValueSelection2String(OperatorValueSelection selection) {
-		String operator = selection.getOperator().replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR);
+		String operator = (selection.operatorName != null ) ? selection.getOperator().replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR) : "";
 		operator = operator.replace(SEPERATOR_CHAR, ESCAPE_CHAR + SEPERATOR_CHAR);
-		String value = selection.valueParameterName.replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR);
+		String value = (selection.valueParameterName != null) ? selection.valueParameterName.replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR) : "";
 		value = value.replace(SEPERATOR_CHAR, ESCAPE_CHAR + SEPERATOR_CHAR);
 		return "operator"+ SEPERATOR_CHAR + operator + SEPERATOR_CHAR + ((selection.isValue)? "value" : "parameter")+ SEPERATOR_CHAR + value;
 	}

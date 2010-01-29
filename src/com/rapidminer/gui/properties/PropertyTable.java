@@ -41,58 +41,17 @@ import com.rapidminer.gui.properties.celleditors.key.DefaultPropertyKeyRenderer;
 import com.rapidminer.gui.properties.celleditors.key.DelegationKeyCellEditor;
 import com.rapidminer.gui.properties.celleditors.key.ParameterValueKeyCellEditor;
 import com.rapidminer.gui.properties.celleditors.key.PropertyKeyCellEditor;
-import com.rapidminer.gui.properties.celleditors.value.AttributeFileValueCellEditor;
-import com.rapidminer.gui.properties.celleditors.value.AttributeValueCellEditor;
-import com.rapidminer.gui.properties.celleditors.value.AttributesValueCellEditor;
-import com.rapidminer.gui.properties.celleditors.value.ColorValueCellEditor;
-import com.rapidminer.gui.properties.celleditors.value.ConfigurationWizardValueCellEditor;
-import com.rapidminer.gui.properties.celleditors.value.DatabaseConnectionValueCellEditor;
-import com.rapidminer.gui.properties.celleditors.value.DatabaseTableValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.DefaultPropertyValueCellEditor;
-import com.rapidminer.gui.properties.celleditors.value.EnumerationValueCellEditor;
-import com.rapidminer.gui.properties.celleditors.value.InnerOperatorValueCellEditor;
-import com.rapidminer.gui.properties.celleditors.value.ListValueCellEditor;
-import com.rapidminer.gui.properties.celleditors.value.MatrixValueCellEditor;
-import com.rapidminer.gui.properties.celleditors.value.OperatorValueValueCellEditor;
-import com.rapidminer.gui.properties.celleditors.value.ParameterTupelCellEditor;
-import com.rapidminer.gui.properties.celleditors.value.PreviewValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.PropertyValueCellEditor;
-import com.rapidminer.gui.properties.celleditors.value.RegexpValueCellEditor;
-import com.rapidminer.gui.properties.celleditors.value.RepositoryLocationValueCellEditor;
-import com.rapidminer.gui.properties.celleditors.value.SQLQueryValueCellEditor;
-import com.rapidminer.gui.properties.celleditors.value.SimpleFileValueCellEditor;
-import com.rapidminer.gui.properties.celleditors.value.TextValueCellEditor;
 import com.rapidminer.gui.tools.ExtendedJTable;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterType;
-import com.rapidminer.parameter.ParameterTypeAttribute;
-import com.rapidminer.parameter.ParameterTypeAttributeFile;
-import com.rapidminer.parameter.ParameterTypeAttributes;
-import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
-import com.rapidminer.parameter.ParameterTypeChar;
-import com.rapidminer.parameter.ParameterTypeColor;
-import com.rapidminer.parameter.ParameterTypeConfiguration;
-import com.rapidminer.parameter.ParameterTypeDatabaseConnection;
-import com.rapidminer.parameter.ParameterTypeDatabaseTable;
-import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.ParameterTypeEnumeration;
-import com.rapidminer.parameter.ParameterTypeFile;
-import com.rapidminer.parameter.ParameterTypeInnerOperator;
-import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.ParameterTypeList;
-import com.rapidminer.parameter.ParameterTypeMatrix;
 import com.rapidminer.parameter.ParameterTypeParameterValue;
-import com.rapidminer.parameter.ParameterTypePassword;
-import com.rapidminer.parameter.ParameterTypePreview;
-import com.rapidminer.parameter.ParameterTypeRegexp;
-import com.rapidminer.parameter.ParameterTypeRepositoryLocation;
-import com.rapidminer.parameter.ParameterTypeSQLQuery;
 import com.rapidminer.parameter.ParameterTypeStringCategory;
-import com.rapidminer.parameter.ParameterTypeText;
-import com.rapidminer.parameter.ParameterTypeTupel;
-import com.rapidminer.parameter.ParameterTypeValue;
 import com.rapidminer.tools.LogService;
 
 /**
@@ -114,33 +73,7 @@ public abstract class PropertyTable extends ExtendedJTable {
 	// --> simply use Default editor for non-registered types (including String)
 	// the type ParameterTypeDirectory will also be handled by the simple file case
 	static {
-		// register known value editors
-		registerPropertyValueCellEditor(ParameterTypePassword.class, DefaultPropertyValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeConfiguration.class, ConfigurationWizardValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypePreview.class, PreviewValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeColor.class, ColorValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeCategory.class, DefaultPropertyValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeStringCategory.class, DefaultPropertyValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeBoolean.class, DefaultPropertyValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeChar.class, DefaultPropertyValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeInt.class, DefaultPropertyValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeDouble.class, DefaultPropertyValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeAttributeFile.class, AttributeFileValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeFile.class, SimpleFileValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeRepositoryLocation.class, RepositoryLocationValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeValue.class, OperatorValueValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeInnerOperator.class, InnerOperatorValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeList.class, ListValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeMatrix.class, MatrixValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeText.class, TextValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeAttribute.class, AttributeValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeTupel.class, ParameterTupelCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeRegexp.class, RegexpValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeAttributes.class, AttributesValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeEnumeration.class, EnumerationValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeDatabaseConnection.class, DatabaseConnectionValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeSQLQuery.class, SQLQueryValueCellEditor.class);
-		registerPropertyValueCellEditor(ParameterTypeDatabaseTable.class, DatabaseTableValueCellEditor.class);
+		// value editors are registered in PropertyPanel
 
 		// register known key editors
 		registerPropertyKeyCellEditor(ParameterTypeParameterValue.class, ParameterValueKeyCellEditor.class);

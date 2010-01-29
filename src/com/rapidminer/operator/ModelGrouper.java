@@ -52,14 +52,15 @@ import com.rapidminer.operator.ports.metadata.SimplePrecondition;
  * first one at the start of the io object, queue will be added as the last model to the combined group model.
  * </p>
  * 
- * @author Ingo Mierswa
+ * @author Ingo Mierswa, Sebastian Land
  */
 public class ModelGrouper extends Operator {
 
 	private final InputPortExtender modelInputExtender = new InputPortExtender("models in", getInputPorts()) {
 		@Override
 		protected Precondition makePrecondition(InputPort port) {
-			return new SimplePrecondition(port, new MetaData(Model.class));
+			int index = modelInputExtender.getManagedPorts().size();
+			return new SimplePrecondition(port, new MetaData(Model.class), index < 2);
 		};
 	};
 	private final OutputPort modelOutput = getOutputPorts().createPort("model out");
@@ -67,6 +68,8 @@ public class ModelGrouper extends Operator {
 	public ModelGrouper(OperatorDescription description) {
 		super(description);
 
+		modelInputExtender.ensureMinimumNumberOfPorts(2);
+		
 		getTransformer().addRule(new MDTransformationRule() {
 			@Override
 			public void transformMD() {

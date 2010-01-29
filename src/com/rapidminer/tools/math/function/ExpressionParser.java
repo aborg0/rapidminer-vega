@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -409,8 +411,10 @@ public class ExpressionParser {
 		return newAttribute;
 	}
 	
-	/** Parses all lines. */
-	public static void generateAll(LoggingHandler logging, ExampleSet exampleSet, InputStream in) throws IOException, GenerationException {
+	/** Parses all lines of the AttributeConstruction file and returns a list containing all newly generated
+	 * attributes. */
+	public static List<Attribute> generateAll(LoggingHandler logging, ExampleSet exampleSet, InputStream in) throws IOException, GenerationException {
+		LinkedList<Attribute> generatedAttributes = new LinkedList<Attribute>();
 		Document document = null;
 		try {
 			document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
@@ -444,16 +448,18 @@ public class ExpressionParser {
 					throw new IOException("<attribute> tag needs 'construction' attribute.");
 				}
 				if (attributeConstruction.equals(attributeName)) {
-					if (exampleSet.getAttributes().get(attributeName) != null) {
-						// nothing to do
+					Attribute presentAttribute = exampleSet.getAttributes().get(attributeName);
+					if (presentAttribute != null) {
+						generatedAttributes.add(presentAttribute);
 						continue;
 					} else {
 						throw new GenerationException("No such attribute: " + attributeName);
 					}
 				} else {
-					parser.addAttribute(exampleSet, attributeName, attributeConstruction);
+					generatedAttributes.add(parser.addAttribute(exampleSet, attributeName, attributeConstruction));
 				}
 			}
 		}
+		return generatedAttributes;
 	}
 }

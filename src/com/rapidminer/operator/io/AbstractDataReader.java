@@ -57,18 +57,70 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 	private static final int PREVIEW_LINES = 1000;
 
 	protected abstract class DataSet {
+		/**
+		 * Proceed to the next row if existent. Should return
+		 * true if such a row exists or false, if no such next
+		 * row exists.
+		 * 
+		 * @return
+		 */
 		public abstract boolean next();
 		
+		/**
+		 * Returns the number of columns in the current row, i.e.
+		 * the length of the row.
+		 * 
+		 * @return
+		 */
 		public abstract int getNumberOfColumnsInCurrentRow();
 		
+		/**
+		 * Returns whether the value in the specified column
+		 * in the current row is missing.
+		 * 
+		 * @param columnIndex index of the column
+		 * @return
+		 */
 		public abstract boolean isMissing(int columnIndex);
 		
+		/**
+		 * Returns a numerical value contained in the specified column
+		 * in the current row. Should return null if the value
+		 * is not a numerical or if the value is missing.
+		 * 
+		 * @param columnIndex
+		 * @return
+		 */
 		public abstract Number getNumber(int columnIndex);
-		
+
+		/**
+		 * Returns a nominal value contained in the specified column
+		 * in the current row. Should return null if the value
+		 * is not a nominal or a kind of string type or if the value
+		 * is missing.
+		 * 
+		 * @param columnIndex
+		 * @return
+		 */
 		public abstract String getString(int columnIndex);
-		
+
+		/**
+		 * Returns a date, time or date_time value contained in the
+		 * specified column in the current row. Should return null
+		 * if the value is not a date or time value or if the value
+		 * is missing.
+		 * 
+		 * @param columnIndex
+		 * @return
+		 */
 		public abstract Date getDate(int columnIndex);
 		
+		/**
+		 * Closes the data source. May tear down a database connection
+		 * or close a file which is read from.
+		 * 
+		 * @throws OperatorException
+		 */
 		public abstract void close() throws OperatorException;
 	}
 	

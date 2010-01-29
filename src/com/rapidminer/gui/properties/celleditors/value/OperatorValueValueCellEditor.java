@@ -40,6 +40,7 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.Value;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeValue;
+import com.rapidminer.parameter.ParameterTypeValue.OperatorValueSelection;
 
 
 /**
@@ -131,19 +132,17 @@ public class OperatorValueValueCellEditor extends AbstractCellEditor implements 
 	}
 
 	public Object getCellEditorValue() {
-		return "operator." + operatorCombo.getSelectedItem() + "." + ((typeCombo.getSelectedIndex() == 0) ? "value" : "parameter") + "." + valueCombo.getSelectedItem();
+		OperatorValueSelection selection = new OperatorValueSelection((String) operatorCombo.getSelectedItem(), (typeCombo.getSelectedIndex() == 0), (String) valueCombo.getSelectedItem());
+		return ParameterTypeValue.transformOperatorValueSelection2String(selection);
 	}
 
 	public void setValue(String valueName) {
 		if (valueName != null) {
-			String[] components = valueName.split("\\.");
-			if (components.length == 4) {
-				String operator = components[1];
-				int type = components[2].equals("parameter") ? 1 : 0;
-				String name = components[3];
-				operatorCombo.setSelectedItem(operator);
-				typeCombo.setSelectedIndex(type);
-				valueCombo.setSelectedItem(name);
+			OperatorValueSelection selection = ParameterTypeValue.transformString2OperatorValueSelection(valueName);
+			if (selection != null) {
+				operatorCombo.setSelectedItem(selection.getOperator());
+				typeCombo.setSelectedIndex(selection.isValue() ? 0 : 1);
+				valueCombo.setSelectedItem(selection.isValue() ? selection.getValueName() : selection.getParameterName());
 			} else {
 				operatorCombo.setSelectedIndex(0);
 				typeCombo.setSelectedIndex(0);
