@@ -64,13 +64,21 @@ public class RadioCardPanel extends JPanel {
 	private int counter = 0;
 
 	public RadioCardPanel(String name, IOObject object) {
+		this(name, object, true, true);
+	}
+	
+	public RadioCardPanel(String name, IOObject object, boolean showRepositoryStorageButton, boolean showExportMenuButton) {
 		setLayout(new BorderLayout());
 		add(mainPanel, BorderLayout.CENTER);
 		add(toolBar, BorderLayout.NORTH);
-		
-		toolBar.add(new StoreInRepositoryAction(object), ViewToolBar.RIGHT);		
-		DropDownButton exportButton = PrintingTools.makeExportPrintDropDownButton(mainPanel, (object instanceof ResultObject ? ((ResultObject)object).getName() : "result") + " " + object.getSource());
-		exportButton.addToToolBar(toolBar, ViewToolBar.RIGHT);
+
+		if (showRepositoryStorageButton) {
+			toolBar.add(new StoreInRepositoryAction(object), ViewToolBar.RIGHT);
+		}
+		if (showExportMenuButton) {
+			DropDownButton exportButton = PrintingTools.makeExportPrintDropDownButton(mainPanel, (object instanceof ResultObject ? ((ResultObject)object).getName() : "result") + " " + object.getSource());
+			exportButton.addToToolBar(toolBar, ViewToolBar.RIGHT);
+		}
 	}
 
 	/**

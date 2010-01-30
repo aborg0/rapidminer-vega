@@ -34,8 +34,6 @@ import com.rapidminer.tools.Tools;
 /**
  * The model for linear regression.
  * 
- * If used the intercept is saved in the last cell of the coefficients array. 
- * 
  * @author Ingo Mierswa
  */
 public class LinearRegressionModel extends PredictionModel {
@@ -49,19 +47,31 @@ public class LinearRegressionModel extends PredictionModel {
 	private boolean[] selectedAttributes;
 	
 	private double[] coefficients;
-
+	
+	private double[] standardErrors;
+	
+	private double[] standardizedCoefficients;
+	
+	private double[] tStatistics;
+	
+	private double[] pValues;
+	
 	private boolean useIntercept = true;
 	
 	private String firstClassName = null;
 	
 	private String secondClassName = null;
 	
-	public LinearRegressionModel(ExampleSet exampleSet, boolean[] selectedAttributes, double[] coefficients, boolean useIntercept, String firstClassName, String secondClassName) {
+	public LinearRegressionModel(ExampleSet exampleSet, boolean[] selectedAttributes, double[] coefficients, double[] standardErrors, double[] standardizedCoefficients, double[] tStatistics, double[] pValues, boolean useIntercept, String firstClassName, String secondClassName) {
 		super(exampleSet);
 		this.attributeNames = com.rapidminer.example.Tools.getRegularAttributeNames(exampleSet);
 		this.attributeConstructions = com.rapidminer.example.Tools.getRegularAttributeConstructions(exampleSet);
 		this.selectedAttributes = selectedAttributes;
 		this.coefficients = coefficients;
+		this.standardErrors = standardErrors;
+		this.standardizedCoefficients = standardizedCoefficients;
+		this.tStatistics = tStatistics;
+		this.pValues = pValues;
 		this.useIntercept = useIntercept;
 		this.firstClassName = firstClassName;
 		this.secondClassName = secondClassName;
@@ -135,18 +145,33 @@ public class LinearRegressionModel extends PredictionModel {
 		}
 	}
 
+	/**
+	 * returns an array containing all names of all attributes used for training
+	 */
 	public String[] getAttributeNames() {
 		return attributeNames;
 	}
-
+	
+	/**
+	 *  returns an array containing only the names of those attributes
+	 * 	that have been selected to be included into the model
+	 */
+	public String[] getSelectedAttributeNames() {
+		String[] attributeNames = new String[useIntercept ? coefficients.length - 1 : coefficients.length];
+		int index = 0;
+		for (int i = 0; i < selectedAttributes.length; i++) {
+			if (selectedAttributes[i]) {
+				attributeNames[index] = attributeConstructions[i];
+				index++;
+			}
+		}
+		return attributeNames;
+	}
+	
 	public boolean[] getSelectedAttributes() {
 		return selectedAttributes;
 	}
-
-	public double[] getCoefficients() {
-		return coefficients;
-	}
-
+	
 	public String getFirstLabel() {
 		return firstClassName;
 	}
@@ -154,4 +179,29 @@ public class LinearRegressionModel extends PredictionModel {
 	public String getSecondLabel() {
 		return secondClassName;
 	}
+	
+	public boolean usesIntercept() {
+		return useIntercept;
+	}
+	
+	public double[] getCoefficients() {
+		return coefficients;
+	}
+	
+	public double[] getStandardizedCoefficients() {
+		return standardizedCoefficients;
+	}
+	
+	public double[] getStandardErrors() {
+		return standardErrors;
+	}
+	
+	public double[] getTStats() {
+		return tStatistics;
+	}
+	
+	public double[] getProbabilities() {
+		return pValues;
+	}
+
 }

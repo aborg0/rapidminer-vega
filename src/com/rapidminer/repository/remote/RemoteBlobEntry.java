@@ -70,7 +70,7 @@ public class RemoteBlobEntry extends RemoteDataEntry implements BlobEntry {
 	}
 
 	@Override
-	public void storeInputStream(InputStream in, String mimeType) throws RepositoryException {
+	public OutputStream openOutputStream(String mimeType) throws RepositoryException {
 		try {
 			HttpURLConnection conn = getRepository().getHTTPConnection(getLocation().getPath(), EntryStreamType.BLOB);
 			conn.setDoOutput(true);
@@ -82,9 +82,10 @@ public class RemoteBlobEntry extends RemoteDataEntry implements BlobEntry {
 			} catch (IOException e) {
 				throw new RepositoryException("Cannot upload object: " + conn.getResponseCode()+": "+conn.getResponseMessage(), e);
 			}
-			Tools.copyStreamSynchronously(in, out, true);
-			String returnMessage = Tools.readTextFile(new InputStreamReader(conn.getInputStream()));
-			LogService.getRoot().fine("Reply from server: "+returnMessage);
+			return out;
+//			Tools.copyStreamSynchronously(in, out, true);
+//			String returnMessage = Tools.readTextFile(new InputStreamReader(conn.getInputStream()));
+//			LogService.getRoot().fine("Reply from server: "+returnMessage);
 		} catch (IOException e) {
 			throw new RepositoryException("Cannot open connection to '"+getLocation()+"': "+e, e);
 		}		

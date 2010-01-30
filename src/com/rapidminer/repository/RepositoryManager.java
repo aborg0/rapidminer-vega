@@ -23,6 +23,7 @@
 package com.rapidminer.repository;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -297,7 +298,11 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			} else if (entry instanceof BlobEntry) {
 				BlobEntry blob = (BlobEntry) entry;
 				BlobEntry target = destination.createBlobEntry(newName);
-				target.storeInputStream(blob.openInputStream(), blob.getMimeType());
+				try {
+					Tools.copyStreamSynchronously(blob.openInputStream(), target.openOutputStream(blob.getMimeType()), true);
+				} catch (IOException e) {
+					throw new RepositoryException(e);
+				}
 			} else {
 				throw new RepositoryException("Cannot copy entry of type "+entry.getType());
 			}

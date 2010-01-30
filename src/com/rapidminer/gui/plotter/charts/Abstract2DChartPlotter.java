@@ -381,6 +381,7 @@ public abstract class Abstract2DChartPlotter extends RangeablePlotterAdapter {
 				if (colorColumn >= 0) {
 					for (int v = 0; v < dataTable.getNumberOfValues(colorColumn); v++) {
 						dataCollection.put(dataTable.mapIndex(colorColumn, v), new LinkedList<double[]>());
+						idCollection.put(dataTable.mapIndex(colorColumn, v), new LinkedList<String>());
 					}
 				}
 
@@ -477,6 +478,7 @@ public abstract class Abstract2DChartPlotter extends RangeablePlotterAdapter {
 	private void addPoint(Map<String,List<double[]>> dataCollection, Map<String,List<String>> idCollection, String id, double x, double y, double color) {
 		List<double[]> dataList = null;
 		List<String> idList = null;
+		
 		if (Double.isNaN(color)) {
 			dataList = dataCollection.get("Unknown");
 			if (dataList == null) {
@@ -511,7 +513,7 @@ public abstract class Abstract2DChartPlotter extends RangeablePlotterAdapter {
 				idCollection.put(name, idList);
 			}
 		}
-				
+	
 		dataList.add(new double[] { x, y });
 		idList.add(id);
 	}

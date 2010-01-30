@@ -38,6 +38,7 @@ import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
+import com.rapidminer.tools.Tools;
 
 /** Wizard to import general binary files into the repository.
  * 
@@ -99,7 +100,7 @@ public class BlobImportWizard extends AbstractWizard {
 							} else if (name.endsWith(".gif")) {
 								mimeType = "image/gif";
 							}
-							blob.storeInputStream(new FileInputStream(file), mimeType);
+							Tools.copyStreamSynchronously(new FileInputStream(file), blob.openOutputStream(mimeType), true);
 						}
 					} else {
 						throw new RepositoryException("No such folder: '"+folderLocation+"'.");

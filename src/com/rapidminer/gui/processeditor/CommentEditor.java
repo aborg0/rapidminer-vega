@@ -41,6 +41,7 @@ import com.rapidminer.gui.tools.ResourceDockKey;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.syntax.HTMLTokenMarker;
 import com.rapidminer.gui.tools.syntax.JEditTextArea;
+import com.rapidminer.gui.tools.syntax.TextAreaDefaults;
 import com.rapidminer.operator.Operator;
 import com.vlsolutions.swing.docking.DockKey;
 import com.vlsolutions.swing.docking.Dockable;
@@ -61,7 +62,10 @@ public class CommentEditor extends JPanel implements ProcessEditor, Dockable {
 	
 	public CommentEditor() {
 		super(new BorderLayout());
-		editor = new JEditTextArea(SwingTools.getTextAreaDefaults());
+		TextAreaDefaults textAreaDefaults = SwingTools.getTextAreaDefaults();
+		textAreaDefaults.eolMarkers = false;
+		textAreaDefaults.paintInvalid = false;
+		editor = new JEditTextArea(textAreaDefaults);
 		editor.addFocusListener(new FocusListener() {
 			public void focusGained(FocusEvent e) {}
 			public void focusLost(FocusEvent e) {

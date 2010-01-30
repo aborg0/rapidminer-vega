@@ -30,8 +30,9 @@ package com.rapidminer.gui.tools.syntax;
  * remains intact in all source distributions of this package.
  */
 
-import javax.swing.JPopupMenu;
 import java.awt.Color;
+
+import javax.swing.JPopupMenu;
 
 /**
  * Encapsulates default settings for a text area. This can be passed to the constructor once the necessary fields have been filled out. The advantage of doing this over calling lots of set() methods after creating the text area is that this method is

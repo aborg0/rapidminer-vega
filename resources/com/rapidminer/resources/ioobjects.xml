@@ -240,6 +240,7 @@
         name="Linear Regression Model"
         class="com.rapidminer.operator.learner.functions.LinearRegressionModel"
         reportable="true">
+        <renderer>com.rapidminer.gui.renderer.models.LinearRegressionModelTableRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
     </ioobject>
         

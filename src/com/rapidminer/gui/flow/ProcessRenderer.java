@@ -38,6 +38,8 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -2941,18 +2943,40 @@ public class ProcessRenderer extends JPanel {
 		renameField.setFont(OPERATOR_FONT);
 		add(renameField);
 		renameField.requestFocus();
+		// accepting changes on enter and focus lost
 		renameField.addActionListener(new ActionListener() {			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String name = renameField.getText().trim();
-				if (name.length() > 0) {
-					op.rename(name);
+				if (renameField != null) {
+					String name = renameField.getText().trim();
+					if (name.length() > 0) {
+						op.rename(name);
+					}
+					remove(renameField);
+					renameField = null;
+					repaint();
 				}
-				remove(renameField);
-				renameField = null;
-				repaint();
 			}
 		});
+		renameField.addFocusListener(new FocusListener() {
+			@Override
+			public void focusGained(FocusEvent e) {
+			}
+
+			@Override
+			public void focusLost(FocusEvent e) {
+				if (renameField != null) {
+					String name = renameField.getText().trim();
+					if (name.length() > 0) {
+						op.rename(name);
+					}
+					remove(renameField);
+					renameField = null;
+					repaint();
+				}
+			}
+		});
+		// ignore changes on escape
 		renameField.addKeyListener(new KeyListener() {
 			@Override
 			public void keyPressed(KeyEvent e) {}
@@ -2969,6 +2993,7 @@ public class ProcessRenderer extends JPanel {
 			@Override
 			public void keyTyped(KeyEvent e) {}
 		});
+
 		repaint();
 	}
 

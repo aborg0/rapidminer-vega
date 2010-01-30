@@ -253,6 +253,7 @@ public abstract class PropertyPanel extends JPanel {
 			JPanel parameterPanel = null;
 			if (!editor.rendersLabel()) {
 				parameterPanel = new JPanel(new GridLayout(1,2));
+				parameterPanel.setBackground(getBackground());
 				parameterPanel.setPreferredSize(new Dimension((int) parameterPanel.getPreferredSize().getWidth(), VALUE_CELL_EDITOR_HEIGHT));
 				JLabel label = new JLabel(type.getKey().replace('_', ' ') + " ");			
 				label.setToolTipText(toolTip.toString());
@@ -273,6 +274,7 @@ public abstract class PropertyPanel extends JPanel {
 				add(parameterPanel, c);
 			} else {
 				parameterPanel = new JPanel(new BorderLayout());
+				parameterPanel.setBackground(getBackground());
 				parameterPanel.setPreferredSize(new Dimension((int) parameterPanel.getPreferredSize().getWidth(), VALUE_CELL_EDITOR_HEIGHT));
 				parameterPanel.add(editorComponent, editorComponent instanceof JCheckBox ? BorderLayout.WEST : BorderLayout.CENTER);
 				add(parameterPanel, c);
@@ -285,6 +287,7 @@ public abstract class PropertyPanel extends JPanel {
 		add(getMessage(), c);
 
 		JPanel dummyPanel = new JPanel(new GridLayout(1,2));
+		dummyPanel.setBackground(getBackground());
 		c.weightx = 1;
 		c.weighty = 1;
 		c.fill = GridBagConstraints.BOTH;
@@ -296,7 +299,9 @@ public abstract class PropertyPanel extends JPanel {
 	}
 
 	protected JComponent getMessage() {
-		return new JPanel();
+		JPanel panel = new JPanel();
+		panel.setBackground(getBackground());
+		return panel;
 	}
 
 	protected boolean hasEditorFor(ParameterType type) {

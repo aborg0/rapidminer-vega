@@ -300,7 +300,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 							Double value = Double.valueOf(x.toString());
 							((JTextField) editorComponent).setText(value.toString());
 						} else {
-							Integer defaultValue = (Integer)type.getDefaultValue();
+							Double defaultValue = (Double) type.getDefaultValue();
 							if (defaultValue != null) {
 								((JTextField) editorComponent).setText(type.getDefaultValue().toString());
 							} else {
@@ -314,7 +314,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 							((JTextField) editorComponent).setText(text);
 						} else {
 							// no macro --> set to default
-							Integer defaultValue = (Integer)type.getDefaultValue();
+							Double defaultValue = (Double) type.getDefaultValue();
 							if (defaultValue != null) {
 								((JTextField) editorComponent).setText(type.getDefaultValue().toString());
 							} else {

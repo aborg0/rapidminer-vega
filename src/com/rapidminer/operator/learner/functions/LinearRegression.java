@@ -44,6 +44,7 @@ import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.math.FDistribution;
 
 /**
  *  <p>This operator calculates a linear regression model. It uses the Akaike criterion 
@@ -172,6 +173,7 @@ public class LinearRegression extends AbstractLearner {
 
 		boolean improved;
 		int currentNumberOfAttributes = currentlySelectedAttributes;
+		double currentError = Double.NaN;
 		switch (getParameterAsInt(PARAMETER_FEATURE_SELECTION)) {
 		case GREEDY:
 			do {
@@ -183,8 +185,8 @@ public class LinearRegression extends AbstractLearner {
 						// calculate the akaike value without this attribute
 						currentlySelected[i] = false;
 						double[] currentCoeffs = performRegression(exampleSet, currentlySelected, means, labelMean);
-						double currentMSE = getSquaredError(exampleSet, currentlySelected, currentCoeffs, useBias);
-						double currentAkaike = currentMSE / error * (numberOfExamples - currentlySelectedAttributes) + 2 * currentNumberOfAttributes;
+						currentError = getSquaredError(exampleSet, currentlySelected, currentCoeffs, useBias);
+						double currentAkaike = currentError / error * (numberOfExamples - currentlySelectedAttributes) + 2 * currentNumberOfAttributes;
 						
 						// if the value is improved compared to the current best
 						if (currentAkaike < akaike) {
@@ -223,7 +225,7 @@ public class LinearRegression extends AbstractLearner {
 				if (attribute2Deselect >= 0) {
 					attributeSelection[attribute2Deselect] = false;
 					double[] currentCoefficients = performRegression(exampleSet, attributeSelection, means, labelMean);
-					double currentError = getSquaredError(exampleSet, attributeSelection, currentCoefficients, useBias);
+					currentError = getSquaredError(exampleSet, attributeSelection, currentCoefficients, useBias);
 					double currentAkaike = currentError / error * (numberOfExamples - currentlySelectedAttributes) + 2 * currentNumberOfAttributes;
 
 					if (currentAkaike < akaike) {
@@ -237,6 +239,7 @@ public class LinearRegression extends AbstractLearner {
 			} while (improved);
 			break;
 		case NO_SELECTION:
+			currentError = error;
 			break;
 		}
 
@@ -248,7 +251,21 @@ public class LinearRegression extends AbstractLearner {
 			exampleSet.getAttributes().setLabel(label);
 		}
 		
-		return new LinearRegressionModel(exampleSet, attributeSelection, coefficients, useBias, firstClassName, secondClassName);
+		FDistribution fdistribution = new FDistribution(1, exampleSet.size() - coefficients.length);
+		int length = useBias ? coefficients.length - 1: coefficients.length;
+		double[] standardErrors           = new double[length];
+		double[] standardizedCoefficients = new double[length];
+		double[] tStatistics              = new double[length];
+		double[] pValues                  = new double[length];
+		for (int i = 0; i < length; i++) {
+			standardErrors[i]           = Math.sqrt(currentError) / (standardDeviations[i] * (exampleSet.size() - coefficients.length));
+			standardizedCoefficients[i] = coefficients[i] * standardDeviations[i] / classStandardDeviation;
+			tStatistics[i]              = coefficients[i] / standardErrors[i];
+			double probability          = fdistribution.getProbabilityForValue(tStatistics[i] * tStatistics[i]);
+			pValues[i]                  = probability < 0 ? 1.0d : 1.0d - probability;
+		}
+		
+		return new LinearRegressionModel(exampleSet, attributeSelection, coefficients, standardErrors, standardizedCoefficients, tStatistics, pValues, useBias, firstClassName, secondClassName);
 	}
 	
 	/** This method removes the attribute with the highest standardized coefficient

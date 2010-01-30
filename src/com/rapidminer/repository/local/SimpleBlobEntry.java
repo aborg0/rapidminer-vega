@@ -28,10 +28,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import com.rapidminer.repository.BlobEntry;
 import com.rapidminer.repository.RepositoryException;
-import com.rapidminer.tools.Tools;
 
 /**
  * Reference on BLOB entries in the repository.
@@ -90,10 +90,10 @@ public class SimpleBlobEntry extends SimpleDataEntry implements BlobEntry {
 	}
 
 	@Override
-	public void storeInputStream(InputStream in, String mimeType) throws RepositoryException {
+	public OutputStream openOutputStream(String mimeType) throws RepositoryException {
 		putProperty("mimetype", mimeType);
 		try {
-			Tools.copyStreamSynchronously(in, new FileOutputStream(getFile()), true);
+			return new FileOutputStream(getFile());			
 		} catch (IOException e) {
 			throw new RepositoryException("Cannot open stream from '"+getFile()+"': "+e, e);
 		}

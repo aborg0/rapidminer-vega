@@ -1067,7 +1067,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 			synchronized (process) {
 				Process process = new Process(stateXML, this.process);
 				//this.process.setupFromXML(stateXML);
-				setProcess(process, true);
+				setProcess(process, false);
 				// cannot use method processChanged() because this would add the
 				// old state to the undo stack!
 				this.changed = true;

@@ -360,10 +360,10 @@ public class PlotterControlPanel extends JPanel implements PlotterChangedListene
 
 		// Save image button for the plotter
 		if (!plotter.hasSaveImageButton()) {
-			toolTip = "Saves an image of the current plot.";
-			JButton imageButton = new JButton("Save Image...");
-			imageButton.setToolTipText(toolTip);
-			imageButton.addActionListener(new ActionListener() {
+			JButton imageButton = new JButton(new ResourceAction(true, "save_image") {
+				private static final long serialVersionUID = -6568814929011124484L;
+
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					Component tosave = plotter.getPlotter();
 					ExportDialog exportDialog = new ExportDialog("RapidMiner");

@@ -23,6 +23,7 @@
 package com.rapidminer.repository;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 
 /** A byte blob with no specified contents.
  * 
@@ -36,8 +37,9 @@ public interface BlobEntry extends DataEntry {
 	 * @throws RepositoryException */
 	public InputStream openInputStream() throws RepositoryException;
 	
-	/** Opens a stream to this blob, setting its mime type to the given value. */
-	public void storeInputStream(InputStream in, String mimeType) throws RepositoryException;
+	/** Opens a stream to this blob, setting its mime type to the given value. 
+	 * @return TODO*/
+	public OutputStream openOutputStream(String mimeType) throws RepositoryException;
 
 	public String getMimeType();
 	

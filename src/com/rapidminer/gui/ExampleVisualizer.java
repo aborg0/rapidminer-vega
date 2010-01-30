@@ -115,8 +115,8 @@ public class ExampleVisualizer implements ObjectVisualizer {
 	protected JComponent makeMainVisualizationComponent(Example example) {
 		JComponent main;
 		String[] columnNames = new String[] { "Attribute", "Value" };
-		String[][] data = new String[example.getAttributes().allSize()][2];
-		Iterator<Attribute> a = example.getAttributes().allAttributes();
+		String[][] data = new String[exampleSet.getAttributes().allSize()][2];
+		Iterator<Attribute> a = exampleSet.getAttributes().allAttributes();
 		int counter = 0;
 		while (a.hasNext()) {
 			Attribute attribute = a.next();
