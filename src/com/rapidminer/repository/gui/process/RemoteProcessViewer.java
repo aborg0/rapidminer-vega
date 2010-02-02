@@ -14,6 +14,7 @@ import javax.swing.JTree;
 import javax.swing.tree.TreePath;
 
 import com.rapid_i.repository.wsimport.ProcessResponse;
+import com.rapid_i.repository.wsimport.Response;
 import com.rapidminer.RepositoryProcessLocation;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.actions.OpenAction;
@@ -26,6 +27,7 @@ import com.rapidminer.gui.tools.components.ToolTipWindow.TipProvider;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.RemoteProcessState;
 import com.rapidminer.repository.Repository;
+import com.rapidminer.repository.RepositoryConstants;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryTree;
@@ -58,8 +60,9 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 							RemoteRepository repository = (RemoteRepository) selectionPath.getPath()[1];
 							try {
 
-								if (!repository.getProcessService().stopProcess(processResponse.getId())) {
-									SwingTools.showVerySimpleErrorMessage("remoteprocessviewer.stop_failed");	
+								Response stopResponse = repository.getProcessService().stopProcess(processResponse.getId());
+								if (stopResponse.getStatus() != RepositoryConstants.OK) {
+									SwingTools.showVerySimpleErrorMessage("remoteprocessviewer.stop_failed", stopResponse.getErrorMessage());	
 								}
 							} catch (RepositoryException e1) {
 								SwingTools.showSimpleErrorMessage("remoteprocessviewer.stop_failed", e1);

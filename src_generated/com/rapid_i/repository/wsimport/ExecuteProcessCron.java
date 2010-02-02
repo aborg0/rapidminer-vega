@@ -3,6 +3,7 @@ package com.rapid_i.repository.wsimport;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -40,7 +41,9 @@ public class ExecuteProcessCron {
 
     protected String processLocation;
     protected String cronExpression;
+    @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar start;
+    @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar end;
 
     /**

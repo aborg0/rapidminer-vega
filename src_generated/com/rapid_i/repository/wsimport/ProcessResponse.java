@@ -6,6 +6,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -49,12 +50,14 @@ import javax.xml.datatype.XMLGregorianCalendar;
 })
 public class ProcessResponse {
 
+    @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar completionTime;
     protected String exception;
     protected int id;
     @XmlElement(nillable = true)
     protected List<String> outputLocations;
     protected String processLocation;
+    @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar startTime;
     protected String state;
     protected ProcessStackTrace trace;

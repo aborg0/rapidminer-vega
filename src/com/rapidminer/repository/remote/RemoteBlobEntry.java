@@ -24,7 +24,6 @@ package com.rapidminer.repository.remote;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 
@@ -32,8 +31,6 @@ import com.rapid_i.repository.wsimport.EntryResponse;
 import com.rapidminer.repository.BlobEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.remote.RemoteRepository.EntryStreamType;
-import com.rapidminer.tools.LogService;
-import com.rapidminer.tools.Tools;
 
 /**
  * Reference on BLOB entries in the repository, if using a remote repository.

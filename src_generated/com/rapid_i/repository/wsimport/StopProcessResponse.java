@@ -17,7 +17,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="return" type="{http://www.w3.org/2001/XMLSchema}boolean"/>
+ *         &lt;element name="return" type="{http://service.web.rapidrepository.com/}response" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -33,21 +33,29 @@ import javax.xml.bind.annotation.XmlType;
 public class StopProcessResponse {
 
     @XmlElement(name = "return")
-    protected boolean _return;
+    protected Response _return;
 
     /**
      * Gets the value of the return property.
      * 
+     * @return
+     *     possible object is
+     *     {@link Response }
+     *     
      */
-    public boolean isReturn() {
+    public Response getReturn() {
         return _return;
     }
 
     /**
      * Sets the value of the return property.
      * 
+     * @param value
+     *     allowed object is
+     *     {@link Response }
+     *     
      */
-    public void setReturn(boolean value) {
+    public void setReturn(Response value) {
         this._return = value;
     }
 

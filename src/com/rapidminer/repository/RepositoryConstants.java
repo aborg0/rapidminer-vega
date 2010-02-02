@@ -62,6 +62,10 @@ public interface RepositoryConstants {
 	public static final int DUPLICATE_GROUPNAME = -15;
 	
 	public static final int NO_SUCH_USER_IN_GROUP = -16;
+	
+	public static final int FORBIDDEN = -17;
+
+	public static final int NO_SUCH_PROCESS = -18;
 
 		
 }

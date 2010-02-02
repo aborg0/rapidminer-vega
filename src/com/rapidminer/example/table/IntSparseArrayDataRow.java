@@ -80,7 +80,7 @@ public class IntSparseArrayDataRow extends AbstractSparseArrayDataRow {
     /** Sets the given data for the given attribute. */
     @Override
 	public void setValue(int index, double v) {
-        values[index] = (short)v;
+        values[index] = (int)v;
     }
 
     @Override

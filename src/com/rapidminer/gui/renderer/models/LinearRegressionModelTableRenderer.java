@@ -46,7 +46,7 @@ public class LinearRegressionModelTableRenderer extends AbstractTableModelTableR
 
 		@Override
 		public int getRowCount() {
-			return model.getCoefficients().length;
+			return model.getCoefficients().length - (model.usesIntercept() ? 0 : 1);
 		}
 
 		@Override

@@ -642,9 +642,11 @@ public class RepositoryTree extends JTree {
 		
 		if (selected instanceof Entry) {
 			Collection<Action> customActions = ((Entry) selected).getCustomActions();
-			menu.addSeparator();
-			for (Action a : customActions) {
-				menu.add(a);
+			if ((customActions != null) && !customActions.isEmpty()) {
+				menu.addSeparator();
+				for (Action a : customActions) {
+					menu.add(a);
+				}
 			}
 		}
 		

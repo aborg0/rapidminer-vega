@@ -43,7 +43,6 @@ import com.rapidminer.tools.att.AttributeSet;
  * reassign these indexes.
  * 
  * @author Simon Fischer, Ingo Mierswa
- *          ingomierswa Exp $
  */
 public class SparseFormatDataRowReader extends AbstractDataRowReader {
 
@@ -147,7 +146,7 @@ public class SparseFormatDataRowReader extends AbstractDataRowReader {
 		}
 	}
 
-	/** Checks if futher examples exist. Returns false if one of the files end. */
+	/** Checks if further examples exist. Returns false if one of the files end. */
 	public boolean hasNext() {
 		if ((maxNumber > -1) && (linesRead >= maxNumber))
 			return false;

@@ -77,7 +77,6 @@ public class MetaCostModel extends PredictionModel implements MetaModel {
 
 	@Override
 	public ExampleSet performPrediction(ExampleSet originalExampleSet, Attribute predictedLabel) throws OperatorException {
-
 		ExampleSet exampleSet = (ExampleSet)originalExampleSet.clone();
 		int numberOfClasses = getLabel().getMapping().getValues().size();
 
@@ -88,34 +87,27 @@ public class MetaCostModel extends PredictionModel implements MetaModel {
 		int currentNumber = 0;		
 		HashMap<Integer, String>  classIndexMap = new HashMap<Integer, String> (numberOfClasses);		
 		for (String currentClass : getLabel().getMapping().getValues()) {
-
 			classIndexMap.put(currentNumber, currentClass);							
 			currentNumber++;
 		}			
 
 		// 1. Iterate over all models and all examples for every model to receive all confidence values.
 		for (int k = 0; k < getNumberOfModels(); k++) {
-
 			Model model = getModel(k);			
 			exampleSet = model.apply(exampleSet);
-
 
 			Iterator<Example> reader = exampleSet.iterator();
 			int counter = 0;				
 
 			while (reader.hasNext()) {				
 				Example example = reader.next();
-
 				int currentClassNumber = 0;
-
 				for (String currentClass : getLabel().getMapping().getValues()) {					
 					confidences[counter][currentClassNumber] += example.getConfidence(currentClass);
 					currentClassNumber++;
 				}
-
 				counter++;
 			}
-
 			PredictionModel.removePredictedLabel(exampleSet);		
 		}
 
@@ -126,52 +118,38 @@ public class MetaCostModel extends PredictionModel implements MetaModel {
 		originalExampleSet.getExampleTable().addAttribute(classificationCost);
 		originalExampleSet.getAttributes().setCost(classificationCost);		
 
-		Attribute classLabel = originalExampleSet.getAttributes().getLabel();
-		boolean hasLabel = (classLabel != null);		
-
-		Iterator<Example> reader = originalExampleSet.iterator();
+		// create new predicted label
+		predictedLabel = PredictionModel.createPredictedLabel(exampleSet, getTrainingHeader().getAttributes().getLabel());
+		
 		int counter = 0;				
-
-		while (reader.hasNext()) {	
-
-			Example example = reader.next();
-
+		for(Example example: originalExampleSet) {	
 			for (int i = 0; i < numberOfClasses; i++) { 				
 				confidences[counter][i] = confidences[counter][i] / getNumberOfModels(); 				
 			}			
 
-			double[] conditionalRisk = new double[numberOfClasses];
+			double[] expectedCosts = new double[numberOfClasses];
 			int bestIndex = 0; // if confidences evaluate to NaN: use first
 			double bestValue = Double.POSITIVE_INFINITY;
 
 			for (int i = 0; i < numberOfClasses; i++) {
-
 				for (int j = 0; j < numberOfClasses; j++) {
-
-					conditionalRisk[i] += confidences[counter][j] * costMatrix[i][j];					
+					expectedCosts[i] += confidences[counter][j] * costMatrix[i][j];					
 				}
-				if (conditionalRisk[i] < bestValue) {
-					bestValue = conditionalRisk[i];
+				if (expectedCosts[i] < bestValue) {
+					bestValue = expectedCosts[i];
 					bestIndex = i;						
 				} 
 			}
 
-			example.setPredictedLabel(getLabel().getMapping().mapString(classIndexMap.get(bestIndex)));
-
-			if (hasLabel) {
-				int labelIndex = getLabel().getMapping().mapString(classIndexMap.get((int)example.getLabel()));
-				example.setValue(classificationCost, costMatrix[bestIndex][labelIndex]);
-			} else {
-				example.setValue(classificationCost, conditionalRisk[bestIndex]);
-			}
+			// setting prediction, expectedCost and confidences
+			example.setValue(predictedLabel, getLabel().getMapping().mapString(classIndexMap.get(bestIndex)));
+			example.setValue(classificationCost, expectedCosts[bestIndex]);
 
 			for (int i = 0; i < numberOfClasses; i++) {			
 				example.setConfidence(classIndexMap.get(i), confidences[counter][i]);
 			}
-
 			counter++;
 		}		
-
 		return originalExampleSet;
 	}
 

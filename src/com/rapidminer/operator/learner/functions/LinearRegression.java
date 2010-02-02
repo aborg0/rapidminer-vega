@@ -96,7 +96,10 @@ public class LinearRegression extends AbstractLearner {
 		String firstClassName = null;
 		String secondClassName = null;
 		
-		boolean useBias = getParameterAsBoolean(PARAMETER_USE_BIAS);
+		boolean useBias                    = getParameterAsBoolean(PARAMETER_USE_BIAS);
+		boolean removeColinearAttributes   = getParameterAsBoolean(PARAMETER_ELIMINATE_COLINEAR_FEATURES); 
+		double  ridge                      = getParameterAsDouble(PARAMETER_RIDGE);
+		double  minStandardizedCoefficient = getParameterAsDouble(PARAMETER_MIN_STANDARDIZED_COEFFICIENT);
 		
 		if (label.isNominal()) {
 			if (label.getMapping().size() == 2) {
@@ -153,12 +156,12 @@ public class LinearRegression extends AbstractLearner {
 		double classStandardDeviation = Math.sqrt(exampleSet.getStatistics(workingLabel, Statistics.VARIANCE_WEIGHTED));
 		
 		int numberOfExamples = exampleSet.size();
-		double[] coefficients = new double[numberOfAttributes + 1];
+		double[] coefficients; 
 
 		// perform a regression and remove colinear attributes
 		do {
-			coefficients = performRegression(exampleSet, attributeSelection, means, labelMean);
-		} while (getParameterAsBoolean(PARAMETER_ELIMINATE_COLINEAR_FEATURES) && deselectAttributeWithHighestCoefficient(attributeSelection, coefficients, standardDeviations, classStandardDeviation));
+			coefficients = performRegression(exampleSet, attributeSelection, means, labelMean, ridge);
+		} while (removeColinearAttributes && deselectAttributeWithHighestCoefficient(attributeSelection, coefficients, standardDeviations, classStandardDeviation, minStandardizedCoefficient));
 
 		// determine the current number of attributes + 1
 		int currentlySelectedAttributes = 1;
@@ -184,7 +187,7 @@ public class LinearRegression extends AbstractLearner {
 					if (currentlySelected[i]) {
 						// calculate the akaike value without this attribute
 						currentlySelected[i] = false;
-						double[] currentCoeffs = performRegression(exampleSet, currentlySelected, means, labelMean);
+						double[] currentCoeffs = performRegression(exampleSet, currentlySelected, means, labelMean, ridge);
 						currentError = getSquaredError(exampleSet, currentlySelected, currentCoeffs, useBias);
 						double currentAkaike = currentError / error * (numberOfExamples - currentlySelectedAttributes) + 2 * currentNumberOfAttributes;
 						
@@ -224,7 +227,7 @@ public class LinearRegression extends AbstractLearner {
 				// check if removing this attribute improves Akaike
 				if (attribute2Deselect >= 0) {
 					attributeSelection[attribute2Deselect] = false;
-					double[] currentCoefficients = performRegression(exampleSet, attributeSelection, means, labelMean);
+					double[] currentCoefficients = performRegression(exampleSet, attributeSelection, means, labelMean, ridge);
 					currentError = getSquaredError(exampleSet, attributeSelection, currentCoefficients, useBias);
 					double currentAkaike = currentError / error * (numberOfExamples - currentlySelectedAttributes) + 2 * currentNumberOfAttributes;
 
@@ -252,17 +255,21 @@ public class LinearRegression extends AbstractLearner {
 		}
 		
 		FDistribution fdistribution = new FDistribution(1, exampleSet.size() - coefficients.length);
-		int length = useBias ? coefficients.length - 1: coefficients.length;
-		double[] standardErrors           = new double[length];
-		double[] standardizedCoefficients = new double[length];
-		double[] tStatistics              = new double[length];
-		double[] pValues                  = new double[length];
-		for (int i = 0; i < length; i++) {
-			standardErrors[i]           = Math.sqrt(currentError) / (standardDeviations[i] * (exampleSet.size() - coefficients.length));
-			standardizedCoefficients[i] = coefficients[i] * standardDeviations[i] / classStandardDeviation;
-			tStatistics[i]              = coefficients[i] / standardErrors[i];
-			double probability          = fdistribution.getProbabilityForValue(tStatistics[i] * tStatistics[i]);
-			pValues[i]                  = probability < 0 ? 1.0d : 1.0d - probability;
+		int length = coefficients.length;
+		double[] standardErrors           = new double[length - 1];
+		double[] standardizedCoefficients = new double[length - 1];
+		double[] tStatistics              = new double[length - 1];
+		double[] pValues                  = new double[length - 1];
+		int index = 0;
+		for (int i = 0; i < attributeSelection.length; i++) {
+			if (attributeSelection[i]) {
+				standardErrors[index]           = Math.sqrt(currentError) / (standardDeviations[i] * (exampleSet.size() - coefficients.length));
+				standardizedCoefficients[index] = coefficients[index] * standardDeviations[i] / classStandardDeviation;
+				tStatistics[index]              = coefficients[index] / standardErrors[index];
+				double probability              = fdistribution.getProbabilityForValue(tStatistics[index] * tStatistics[index]);
+				pValues[index]                  = probability < 0 ? 1.0d : 1.0d - probability;
+				index++;
+			}
 		}
 		
 		return new LinearRegressionModel(exampleSet, attributeSelection, coefficients, standardErrors, standardizedCoefficients, tStatistics, pValues, useBias, firstClassName, secondClassName);
@@ -272,15 +279,15 @@ public class LinearRegression extends AbstractLearner {
 	 *  greater than the minimum coefficient parameter. Checks only those attributes 
 	 *  which are currently selected. Returns true if an attribute was actually 
 	 *  deselected and false otherwise. */
-	private boolean deselectAttributeWithHighestCoefficient(boolean[] selectedAttributes, double[] coefficients, double[] standardDeviations, double classStandardDeviation) throws UndefinedParameterError {
-		double minCoefficient = getParameterAsDouble(PARAMETER_MIN_STANDARDIZED_COEFFICIENT);
+	private boolean deselectAttributeWithHighestCoefficient(boolean[] selectedAttributes, double[] coefficients, double[] standardDeviations, double classStandardDeviation, double minStandardizedCoefficient) throws UndefinedParameterError {
+//		double minCoefficient = getParameterAsDouble(PARAMETER_MIN_STANDARDIZED_COEFFICIENT);
 		int attribute2Deselect = -1;
 		int coefficientIndex = 0;
 		for (int i = 0; i < selectedAttributes.length; i++) {
 			if (selectedAttributes[i]) {
 				double standardizedCoefficient = Math.abs(coefficients[coefficientIndex] * standardDeviations[i] / classStandardDeviation);
-				if (standardizedCoefficient > minCoefficient) {
-					minCoefficient = standardizedCoefficient;
+				if (standardizedCoefficient > minStandardizedCoefficient) {
+					minStandardizedCoefficient = standardizedCoefficient;
 					attribute2Deselect = i;
 				}
 				coefficientIndex++;
@@ -326,7 +333,7 @@ public class LinearRegression extends AbstractLearner {
 
 	/** Calculate a linear regression only from the selected attributes. The method returns the
 	 *  calculated coefficients. */
-	private double[] performRegression(ExampleSet exampleSet, boolean[] selectedAttributes, double[] means, double labelMean) throws UndefinedParameterError {
+	private double[] performRegression(ExampleSet exampleSet, boolean[] selectedAttributes, double[] means, double labelMean, double ridge) throws UndefinedParameterError {
 		int currentlySelectedAttributes = 0;
 		for (int i = 0; i < selectedAttributes.length; i++) {
 			if (selectedAttributes[i]) {
@@ -370,7 +377,7 @@ public class LinearRegression extends AbstractLearner {
 				com.rapidminer.tools.math.LinearRegression.performRegression(independent, 
 						                                                     dependent, 
 						                                                     weights, 
-						                                                     getParameterAsDouble(PARAMETER_RIDGE));;
+						                                                     ridge);
 			System.arraycopy(coefficientsWithoutIntercept, 0, coefficients, 0, currentlySelectedAttributes);
 		}
 		coefficients[currentlySelectedAttributes] = labelMean;

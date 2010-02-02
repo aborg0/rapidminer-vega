@@ -105,6 +105,9 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 		File fileFolder = getFile();
 		File[] listFiles = fileFolder.listFiles();
 		for (File file : listFiles) {
+			if (file.isHidden()) {
+				continue;
+			}
 			if (file.isDirectory()) {
 				folders.add(new SimpleFolder(file.getName(), this, getRepository()));
 			} else if (file.getName().endsWith(".ioo")) {

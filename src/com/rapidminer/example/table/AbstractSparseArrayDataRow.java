@@ -30,7 +30,6 @@ import com.rapidminer.example.Tools;
  * map implementation) but needs considerably less memory.
  * 
  * @author Niraj Aswani, Julien Nioche, Ingo Mierswa, Shevek
- *          Exp $
  */
 public abstract class AbstractSparseArrayDataRow extends DataRow implements SparseDataRow {
 
