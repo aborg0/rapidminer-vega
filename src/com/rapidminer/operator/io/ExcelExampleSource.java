@@ -130,9 +130,6 @@ public class ExcelExampleSource extends AbstractDataReader {
 				boolean contentFound = false;
 				for (int r = rowOffset; r < numberOfRows; r++) {
 					for (int c = columnOffset; c < numberOfColumns; c++) {
-//						Cell cell = sheet.getCell(c, r);
-//						String content = cell.getContents();
-//						if ((content != null) && (content.trim().length() > 0)) {
 						if (sheet.getCell(c, r).getType() != CellType.EMPTY) {
 							columnOffset = c;
 							contentFound = true;
@@ -152,9 +149,6 @@ public class ExcelExampleSource extends AbstractDataReader {
 				for (int r = rowOffset; r < numberOfRows; r++) {
 					boolean rowEmpty = true;
 					for (int c = columnOffset; c < numberOfColumns; c++) {
-//						Cell cell = sheet.getCell(c, r);
-//						String content = cell.getContents();
-//						if ((content != null) && (content.trim().length() > 0)) {
 						if (sheet.getCell(c, r).getType() != CellType.EMPTY) {
 							rowEmpty = false;
 							break;
@@ -169,9 +163,6 @@ public class ExcelExampleSource extends AbstractDataReader {
 				for (int c = columnOffset; c < numberOfColumns; c++) {
 					boolean columnEmpty = true;
 					for (int r = rowOffset; r < numberOfRows; r++) {
-//						Cell cell = sheet.getCell(c, r);
-//						String content = cell.getContents();
-//						if ((content != null) && (content.trim().length() > 0)) {
 						if (sheet.getCell(c, r).getType() != CellType.EMPTY) {
 							columnEmpty = false;
 							break;
@@ -204,7 +195,7 @@ public class ExcelExampleSource extends AbstractDataReader {
 			
 			@Override
 			public boolean isMissing(int columnIndex) {
-				return cells[columnIndex].getType() == CellType.EMPTY || cells[columnIndex].getContents() == null || "".equals(cells[columnIndex].getContents().trim());
+				return cells[columnIndex].getType() == CellType.EMPTY || cells[columnIndex].getType() == CellType.ERROR || cells[columnIndex].getType() == CellType.FORMULA_ERROR || cells[columnIndex].getContents() == null || "".equals(cells[columnIndex].getContents().trim());
 			}
 
 			@Override

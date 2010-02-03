@@ -50,16 +50,18 @@ public class RemoteProcessTreeCellRenderer extends DefaultTreeCellRenderer {
 			StringBuilder b = new StringBuilder();
 			b.append("<html><body>");
 			b.append(""+processResponse.getProcessLocation());
-			b.append(" <small style=\"color:gray\">(");			
-			if (processState == RemoteProcessState.FAILED) {
-				b.append("<span style=\"color:red\">");
-			}
-			b.append(processState.toString().toLowerCase());
-			if (processState == RemoteProcessState.FAILED) {
-				b.append("</span>");
+			b.append(" <small style=\"color:gray\">(");
+			if (processState != RemoteProcessState.COMPLETED) { // completed is obvious from completion time
+				if (processState == RemoteProcessState.FAILED) {
+					b.append("<span style=\"color:red\">");
+				}
+				b.append(processState.toString().toLowerCase()).append("; ");
+				if (processState == RemoteProcessState.FAILED) {
+					b.append("</span>");
+				}
 			}
 			if (startTime != null) {
-				b.append("; started ");
+				b.append("started ");
 				b.append(DateFormat.getDateTimeInstance().format(startTime.getTime()));
 			}
 			if (endTime != null) {

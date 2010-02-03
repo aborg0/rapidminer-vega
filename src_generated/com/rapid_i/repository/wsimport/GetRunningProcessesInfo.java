@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="arg0" type="{http://www.w3.org/2001/XMLSchema}int"/>
+ *         &lt;element name="scheduledProcessId" type="{http://www.w3.org/2001/XMLSchema}int"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -27,26 +27,26 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "getRunningProcessesInfo", propOrder = {
-    "arg0"
+    "scheduledProcessId"
 })
 public class GetRunningProcessesInfo {
 
-    protected int arg0;
+    protected int scheduledProcessId;
 
     /**
-     * Gets the value of the arg0 property.
+     * Gets the value of the scheduledProcessId property.
      * 
      */
-    public int getArg0() {
-        return arg0;
+    public int getScheduledProcessId() {
+        return scheduledProcessId;
     }
 
     /**
-     * Sets the value of the arg0 property.
+     * Sets the value of the scheduledProcessId property.
      * 
      */
-    public void setArg0(int value) {
-        this.arg0 = value;
+    public void setScheduledProcessId(int value) {
+        this.scheduledProcessId = value;
     }
 
 }

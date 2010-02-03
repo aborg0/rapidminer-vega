@@ -49,7 +49,7 @@ public class RemoteRepositoryPanel extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 	
-	private final JTextField urlField = new JTextField("http://localhost:8080/RapidRepositoryWeb/", 30);
+	private final JTextField urlField = new JTextField("http://localhost:8080/RMAS/", 30);
 	private final JTextField aliasField = new JTextField("NewRepository", 30);
 	private final JTextField userField = new JTextField(System.getProperty("user.name"), 20);
 	private final JPasswordField passwordField = new JPasswordField(20); 

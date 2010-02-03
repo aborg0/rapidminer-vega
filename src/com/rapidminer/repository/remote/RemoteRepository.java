@@ -104,7 +104,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	private static final Map<URL,WeakReference<RemoteRepository>> ALL_REPOSITORIES = new HashMap<URL,WeakReference<RemoteRepository>>();
 	private static final Object MAP_LOCK = new Object();
 
-	private boolean offline = false; 
+	private boolean offline = true; 
 	
 	static {
 		GlobalAuthenticator.register(new GlobalAuthenticator.URLAuthenticator() {
@@ -288,17 +288,19 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	}
 
 	public RepositoryService getRepositoryService() throws RepositoryException {
-		if (offline) {
-			throw new RepositoryException("Repository "+getName()+" is offline. Connect first.");
-		}
+//		if (offline) {
+//			throw new RepositoryException("Repository "+getName()+" is offline. Connect first.");
+//		}
 		if (repositoryService == null){
 			try {
 				RepositoryService_Service serviceService = new RepositoryService_Service(getRepositoryServiceWSDLUrl(), 
 						new QName("http://service.web.rapidrepository.com/", "RepositoryService"));
 				repositoryService = serviceService.getRepositoryServicePort();
+				offline = false;
 			} catch (Exception e) {
 				offline = true;
 				password = null;
+				repositoryService = null;
 				throw new RepositoryException("Cannot connect to "+baseUrl+": "+e, e);				
 			}
 		}
@@ -314,9 +316,11 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 				ProcessService_Service serviceService = new ProcessService_Service(getProcessServiceWSDLUrl(), 
 						new QName("http://service.web.rapidrepository.com/", "ProcessService"));
 				processService = serviceService.getProcessServicePort();
+				offline = false;
 			} catch (Exception e) {
 				offline = true;
 				password = null;
+				processService = null;
 				throw new RepositoryException("Cannot connect to "+baseUrl+": "+e, e);				
 			}
 		}

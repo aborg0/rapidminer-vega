@@ -51,6 +51,7 @@ import javax.swing.event.ListSelectionListener;
 import org.freehep.util.export.ExportDialog;
 
 import com.rapidminer.datatable.DataTable;
+import com.rapidminer.gui.ApplicationFrame;
 import com.rapidminer.gui.plotter.PlotterConfigurationModel.PlotterChangedListener;
 import com.rapidminer.gui.plotter.PlotterConfigurationModel.PlotterSettingsChangedListener;
 import com.rapidminer.gui.plotter.PlotterPanel.LineStyleCellRenderer;
@@ -367,7 +368,7 @@ public class PlotterControlPanel extends JPanel implements PlotterChangedListene
 				public void actionPerformed(ActionEvent e) {
 					Component tosave = plotter.getPlotter();
 					ExportDialog exportDialog = new ExportDialog("RapidMiner");
-					exportDialog.showExportDialog(plotter.getPlotter(), "Save Image...", tosave, "plot");
+					exportDialog.showExportDialog(ApplicationFrame.getApplicationFrame(), "Save Image...", tosave, "plot");
 				}
 			});
 			this.add(imageButton, c);

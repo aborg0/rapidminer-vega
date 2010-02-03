@@ -27,7 +27,15 @@ public interface ProcessService {
 
     /**
      * 
-     * @param arg0
+     */
+    @WebMethod
+    @RequestWrapper(localName = "postConstruct", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.PostConstruct")
+    @ResponseWrapper(localName = "postConstructResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.PostConstructResponse")
+    public void postConstruct();
+
+    /**
+     * 
+     * @param scheduledProcessId
      * @return
      *     returns com.rapid_i.repository.wsimport.Response
      */
@@ -36,8 +44,8 @@ public interface ProcessService {
     @RequestWrapper(localName = "stopProcess", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.StopProcess")
     @ResponseWrapper(localName = "stopProcessResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.StopProcessResponse")
     public Response stopProcess(
-        @WebParam(name = "arg0", targetNamespace = "")
-        int arg0);
+        @WebParam(name = "scheduledProcessId", targetNamespace = "")
+        int scheduledProcessId);
 
     /**
      * 
@@ -95,6 +103,7 @@ public interface ProcessService {
 
     /**
      * 
+     * @param since
      * @return
      *     returns java.util.List<java.lang.Integer>
      */
@@ -102,11 +111,13 @@ public interface ProcessService {
     @WebResult(targetNamespace = "")
     @RequestWrapper(localName = "getRunningProcesses", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetRunningProcesses")
     @ResponseWrapper(localName = "getRunningProcessesResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetRunningProcessesResponse")
-    public List<Integer> getRunningProcesses();
+    public List<Integer> getRunningProcesses(
+        @WebParam(name = "since", targetNamespace = "")
+        XMLGregorianCalendar since);
 
     /**
      * 
-     * @param arg0
+     * @param scheduledProcessId
      * @return
      *     returns com.rapid_i.repository.wsimport.ProcessResponse
      */
@@ -115,7 +126,7 @@ public interface ProcessService {
     @RequestWrapper(localName = "getRunningProcessesInfo", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetRunningProcessesInfo")
     @ResponseWrapper(localName = "getRunningProcessesInfoResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetRunningProcessesInfoResponse")
     public ProcessResponse getRunningProcessesInfo(
-        @WebParam(name = "arg0", targetNamespace = "")
-        int arg0);
+        @WebParam(name = "scheduledProcessId", targetNamespace = "")
+        int scheduledProcessId);
 
 }

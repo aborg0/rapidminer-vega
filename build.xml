@@ -687,7 +687,7 @@
 		   <arg file="${build}"/ -->
 <arg value="-Xnocompile" />
 <arg value="-extension" />
-<arg value="http://localhost:8080/RapidRepositoryWeb/RepositoryService?wsdl" />
+<arg value="http://localhost:8080/RMAS/RepositoryService?wsdl" />
 </exec>
 	<exec executable="wsimport" dir="${basedir}">
 	<arg value="-Xdebug" />
@@ -700,7 +700,7 @@
 			   <arg file="${build}"/ -->
 	<arg value="-Xnocompile" />
 	<arg value="-extension" />
-	<arg value="http://localhost:8080/RapidRepositoryWeb/ProcessService?wsdl" />
+	<arg value="http://localhost:8080/RMAS/ProcessService?wsdl" />
 	</exec>
 </target>
 </project>

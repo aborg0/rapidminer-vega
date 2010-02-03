@@ -4,13 +4,20 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.text.DateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.logging.Level;
 
 import javax.swing.Action;
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.TreePath;
 
 import com.rapid_i.repository.wsimport.ProcessResponse;
@@ -20,6 +27,7 @@ import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.actions.OpenAction;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceDockKey;
+import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.ViewToolBar;
 import com.rapidminer.gui.tools.components.ToolTipWindow;
@@ -33,11 +41,12 @@ import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryTree;
 import com.rapidminer.repository.gui.ToolTipProviderHelper;
 import com.rapidminer.repository.remote.RemoteRepository;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.vlsolutions.swing.docking.DockKey;
 import com.vlsolutions.swing.docking.Dockable;
 
-/**
+/** Displays a tree of processes running on a remote server.
  * 
  * @author Simon Fischer
  *
@@ -45,7 +54,7 @@ import com.vlsolutions.swing.docking.Dockable;
 public class RemoteProcessViewer extends JPanel implements Dockable {
 
 	private static final long serialVersionUID = 1L;
-
+	
 	private Action STOP_ACTION = new ResourceAction(true, "remoteprocessviewer.stop") {
 		private static final long serialVersionUID = 1L;
 		@Override
@@ -147,10 +156,19 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 			}					
 		}
 	};
-
+	
+	private Date sessionStartDate = new Date();
+	private JComboBox sinceWhenCombo = new JComboBox(new Object[] {
+			I18N.getMessage(I18N.getGUIBundle(), "gui.combo.remoteprocessviewer.since_session_start"),
+			I18N.getMessage(I18N.getGUIBundle(), "gui.combo.remoteprocessviewer.for_today"),
+			I18N.getMessage(I18N.getGUIBundle(), "gui.combo.remoteprocessviewer.all")
+	});
+		
 	public RemoteProcessViewer() {
 		setLayout(new BorderLayout());
-		tree = new JTree(new RemoteProcessesTreeModel());
+		treeModel = new RemoteProcessesTreeModel();
+		treeModel.setSince(sessionStartDate);
+		tree = new JTree(treeModel);
 		tree.setCellRenderer(new RemoteProcessTreeCellRenderer());
 		tree.setShowsRootHandles(true);
 		tree.setRootVisible(false);
@@ -162,6 +180,10 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 		toolBar.add(BROWSE_ACTION);
 		toolBar.add(STOP_ACTION);
 		toolBar.add(SHOW_LOG_ACTION);
+		ResourceLabel label = new ResourceLabel("remoteprocessviewer.filter");
+		label.setLabelFor(sinceWhenCombo);
+		toolBar.add(label);
+		toolBar.add(sinceWhenCombo);
 
 		new ToolTipWindow(new TipProvider() {
 			@Override
@@ -238,17 +260,50 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 				}
 			}
 		}, tree);
-		//		tree.addMouseListener(new MouseAdapter() {
-		//			@Override
-		//			public void mouseClicked(MouseEvent e) {
-		//				if (e.getClickCount() == 2) {
-		//				}
-		//			}
-		//		});
+		
+		sinceWhenCombo.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				switch (sinceWhenCombo.getSelectedIndex()) {
+				case 0:
+					treeModel.setSince(sessionStartDate);
+					break;
+				case 1:
+					Calendar today = new GregorianCalendar();
+					today.set(Calendar.HOUR_OF_DAY, 0);
+					today.set(Calendar.MINUTE, 0);
+					today.set(Calendar.SECOND, 0);
+					today.set(Calendar.MILLISECOND, 0);
+					System.out.println(today.getTime());
+					treeModel.setSince(today.getTime());
+					break;
+				case 2:
+					treeModel.setSince(null);
+				}
+				
+			}
+		});
+		
+		tree.addTreeExpansionListener(new TreeExpansionListener() {
+			@Override
+			public void treeExpanded(TreeExpansionEvent event) {
+				Object leaf = event.getPath().getLastPathComponent();
+				if (leaf instanceof RemoteRepository) {
+					treeModel.observe((RemoteRepository) leaf);
+				}				
+			}
+			
+			@Override
+			public void treeCollapsed(TreeExpansionEvent event) {
+				Object leaf = event.getPath().getLastPathComponent();
+				if (leaf instanceof RemoteRepository) {
+					treeModel.ignore((RemoteRepository) leaf);
+				}				
+			}
+		});
 	}
 
 	private RepositoryLocation getSelectedRepositoryLocation(TreePath selectionPath) {
-		//TreePath selectionPath = tree.getSelectionPath();
 		if (selectionPath != null) {
 			Object selection = selectionPath.getLastPathComponent();
 			if (selection instanceof ProcessResponse) {
@@ -270,6 +325,8 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 	private final DockKey DOCK_KEY = new ResourceDockKey(PROCESS_PANEL_DOCK_KEY);
 
 	private JTree tree;
+
+	private RemoteProcessesTreeModel treeModel;
 	{
 		DOCK_KEY.setDockGroup(MainFrame.DOCK_GROUP_ROOT);
 	}

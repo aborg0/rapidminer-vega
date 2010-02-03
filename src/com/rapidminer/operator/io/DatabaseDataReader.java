@@ -358,7 +358,7 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 			
 			@Override
 			public void close() throws OperatorException {
-				tearDown();
+				disconnect();
 			}
 		};
 	}
