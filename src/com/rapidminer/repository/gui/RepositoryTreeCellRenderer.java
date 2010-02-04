@@ -55,7 +55,8 @@ public class RepositoryTreeCellRenderer extends DefaultTreeCellRenderer {
 	private final Icon ICON_DATA          = SwingTools.createIcon("16/data.png");
 	private final Icon ICON_BLOB          = SwingTools.createIcon("16/data.png");
 	private final Icon ICON_TEXT          = SwingTools.createIcon("16/text.png");
-	private final Icon ICON_IMAGE         = SwingTools.createIcon("16/painting.png");
+	private final Icon ICON_TABLE          = SwingTools.createIcon("16/table2.png");
+	private final Icon ICON_IMAGE         = SwingTools.createIcon("16/photo_landscape2.png");
 
 	private static final DateFormat DATE_FORMAT = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 	
@@ -103,8 +104,10 @@ public class RepositoryTreeCellRenderer extends DefaultTreeCellRenderer {
 			} else if (entry.getType().equals(BlobEntry.TYPE_NAME)) {
 				String mimeType = ((BlobEntry)entry).getMimeType();
 				if (mimeType != null) {
-					if (mimeType.startsWith("text/") || "application/pdf".equals(mimeType)) {
+					if (mimeType.startsWith("text/") || "application/pdf".equals(mimeType)|| "application/rtf".equals(mimeType)) {
 						label.setIcon(ICON_TEXT);	
+					} else if (mimeType.equals("application/msexcel")) {
+						label.setIcon(ICON_TABLE);
 					} else if (mimeType.startsWith("image/")) {
 						label.setIcon(ICON_IMAGE);	
 					} else {

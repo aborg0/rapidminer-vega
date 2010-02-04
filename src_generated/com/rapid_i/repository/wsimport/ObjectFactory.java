@@ -47,54 +47,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link PostConstruct }
-     * 
-     */
-    public PostConstruct createPostConstruct() {
-        return new PostConstruct();
-    }
-
-    /**
-     * Create an instance of {@link GetRunningProcessesInfoResponse }
-     * 
-     */
-    public GetRunningProcessesInfoResponse createGetRunningProcessesInfoResponse() {
-        return new GetRunningProcessesInfoResponse();
-    }
-
-    /**
-     * Create an instance of {@link Response }
-     * 
-     */
-    public Response createResponse() {
-        return new Response();
-    }
-
-    /**
-     * Create an instance of {@link ExecuteProcessCronResponse }
-     * 
-     */
-    public ExecuteProcessCronResponse createExecuteProcessCronResponse() {
-        return new ExecuteProcessCronResponse();
-    }
-
-    /**
-     * Create an instance of {@link GetRunningProcessesInfo }
-     * 
-     */
-    public GetRunningProcessesInfo createGetRunningProcessesInfo() {
-        return new GetRunningProcessesInfo();
-    }
-
-    /**
-     * Create an instance of {@link ExecuteProcessSimpleResponse }
-     * 
-     */
-    public ExecuteProcessSimpleResponse createExecuteProcessSimpleResponse() {
-        return new ExecuteProcessSimpleResponse();
-    }
-
-    /**
      * Create an instance of {@link ProcessStackTraceElement }
      * 
      */
@@ -103,51 +55,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link GetRunningProcesses }
+     * Create an instance of {@link StopProcess }
      * 
      */
-    public GetRunningProcesses createGetRunningProcesses() {
-        return new GetRunningProcesses();
-    }
-
-    /**
-     * Create an instance of {@link ProcessResponse }
-     * 
-     */
-    public ProcessResponse createProcessResponse() {
-        return new ProcessResponse();
-    }
-
-    /**
-     * Create an instance of {@link ExecutionResponse }
-     * 
-     */
-    public ExecutionResponse createExecutionResponse() {
-        return new ExecutionResponse();
-    }
-
-    /**
-     * Create an instance of {@link StopProcessResponse }
-     * 
-     */
-    public StopProcessResponse createStopProcessResponse() {
-        return new StopProcessResponse();
-    }
-
-    /**
-     * Create an instance of {@link GetRunningProcessesResponse }
-     * 
-     */
-    public GetRunningProcessesResponse createGetRunningProcessesResponse() {
-        return new GetRunningProcessesResponse();
-    }
-
-    /**
-     * Create an instance of {@link CancelTriggerResponse }
-     * 
-     */
-    public CancelTriggerResponse createCancelTriggerResponse() {
-        return new CancelTriggerResponse();
+    public StopProcess createStopProcess() {
+        return new StopProcess();
     }
 
     /**
@@ -159,11 +71,35 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link ExecuteProcessCron }
+     * Create an instance of {@link GetRunningProcesses }
      * 
      */
-    public ExecuteProcessCron createExecuteProcessCron() {
-        return new ExecuteProcessCron();
+    public GetRunningProcesses createGetRunningProcesses() {
+        return new GetRunningProcesses();
+    }
+
+    /**
+     * Create an instance of {@link ExecuteProcessSimpleResponse }
+     * 
+     */
+    public ExecuteProcessSimpleResponse createExecuteProcessSimpleResponse() {
+        return new ExecuteProcessSimpleResponse();
+    }
+
+    /**
+     * Create an instance of {@link PostConstruct }
+     * 
+     */
+    public PostConstruct createPostConstruct() {
+        return new PostConstruct();
+    }
+
+    /**
+     * Create an instance of {@link StopProcessResponse }
+     * 
+     */
+    public StopProcessResponse createStopProcessResponse() {
+        return new StopProcessResponse();
     }
 
     /**
@@ -172,6 +108,46 @@ public class ObjectFactory {
      */
     public PostConstructResponse createPostConstructResponse() {
         return new PostConstructResponse();
+    }
+
+    /**
+     * Create an instance of {@link CancelTriggerResponse }
+     * 
+     */
+    public CancelTriggerResponse createCancelTriggerResponse() {
+        return new CancelTriggerResponse();
+    }
+
+    /**
+     * Create an instance of {@link ExecutionResponse }
+     * 
+     */
+    public ExecutionResponse createExecutionResponse() {
+        return new ExecutionResponse();
+    }
+
+    /**
+     * Create an instance of {@link GetRunningProcessesInfoResponse }
+     * 
+     */
+    public GetRunningProcessesInfoResponse createGetRunningProcessesInfoResponse() {
+        return new GetRunningProcessesInfoResponse();
+    }
+
+    /**
+     * Create an instance of {@link GetRunningProcessesInfo }
+     * 
+     */
+    public GetRunningProcessesInfo createGetRunningProcessesInfo() {
+        return new GetRunningProcessesInfo();
+    }
+
+    /**
+     * Create an instance of {@link ExecuteProcessCronResponse }
+     * 
+     */
+    public ExecuteProcessCronResponse createExecuteProcessCronResponse() {
+        return new ExecuteProcessCronResponse();
     }
 
     /**
@@ -191,11 +167,35 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link StopProcess }
+     * Create an instance of {@link ExecuteProcessCron }
      * 
      */
-    public StopProcess createStopProcess() {
-        return new StopProcess();
+    public ExecuteProcessCron createExecuteProcessCron() {
+        return new ExecuteProcessCron();
+    }
+
+    /**
+     * Create an instance of {@link Response }
+     * 
+     */
+    public Response createResponse() {
+        return new Response();
+    }
+
+    /**
+     * Create an instance of {@link GetRunningProcessesResponse }
+     * 
+     */
+    public GetRunningProcessesResponse createGetRunningProcessesResponse() {
+        return new GetRunningProcessesResponse();
+    }
+
+    /**
+     * Create an instance of {@link ProcessResponse }
+     * 
+     */
+    public ProcessResponse createProcessResponse() {
+        return new ProcessResponse();
     }
 
     /**

@@ -71,23 +71,6 @@ public interface RepositoryService {
 
     /**
      * 
-     * @param parentLocation
-     * @param blobName
-     * @return
-     *     returns com.rapid_i.repository.wsimport.EntryResponse
-     */
-    @WebMethod
-    @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "createBlob", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.CreateBlob")
-    @ResponseWrapper(localName = "createBlobResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.CreateBlobResponse")
-    public EntryResponse createBlob(
-        @WebParam(name = "parentLocation", targetNamespace = "")
-        String parentLocation,
-        @WebParam(name = "blobName", targetNamespace = "")
-        String blobName);
-
-    /**
-     * 
      * @param folderLocation
      * @return
      *     returns com.rapid_i.repository.wsimport.FolderContentsResponse
@@ -99,23 +82,6 @@ public interface RepositoryService {
     public FolderContentsResponse getFolderContents(
         @WebParam(name = "folderLocation", targetNamespace = "")
         String folderLocation);
-
-    /**
-     * 
-     * @param parentLocation
-     * @param subfolderName
-     * @return
-     *     returns com.rapid_i.repository.wsimport.EntryResponse
-     */
-    @WebMethod
-    @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "makeFolder", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.MakeFolder")
-    @ResponseWrapper(localName = "makeFolderResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.MakeFolderResponse")
-    public EntryResponse makeFolder(
-        @WebParam(name = "parentLocation", targetNamespace = "")
-        String parentLocation,
-        @WebParam(name = "subfolderName", targetNamespace = "")
-        String subfolderName);
 
     /**
      * 
@@ -133,6 +99,23 @@ public interface RepositoryService {
         String entryLocation,
         @WebParam(name = "processXML", targetNamespace = "")
         String processXML);
+
+    /**
+     * 
+     * @param parentLocation
+     * @param subfolderName
+     * @return
+     *     returns com.rapid_i.repository.wsimport.EntryResponse
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "makeFolder", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.MakeFolder")
+    @ResponseWrapper(localName = "makeFolderResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.MakeFolderResponse")
+    public EntryResponse makeFolder(
+        @WebParam(name = "parentLocation", targetNamespace = "")
+        String parentLocation,
+        @WebParam(name = "subfolderName", targetNamespace = "")
+        String subfolderName);
 
     /**
      * 
@@ -164,6 +147,23 @@ public interface RepositoryService {
 
     /**
      * 
+     * @param parentLocation
+     * @param blobName
+     * @return
+     *     returns com.rapid_i.repository.wsimport.EntryResponse
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "createBlob", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.CreateBlob")
+    @ResponseWrapper(localName = "createBlobResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.CreateBlobResponse")
+    public EntryResponse createBlob(
+        @WebParam(name = "parentLocation", targetNamespace = "")
+        String parentLocation,
+        @WebParam(name = "blobName", targetNamespace = "")
+        String blobName);
+
+    /**
+     * 
      * @param entryLocation
      * @return
      *     returns java.util.List<com.rapid_i.repository.wsimport.AccessRights>
@@ -175,5 +175,19 @@ public interface RepositoryService {
     public List<AccessRights> getAccessRights(
         @WebParam(name = "entryLocation", targetNamespace = "")
         String entryLocation);
+
+    /**
+     * 
+     * @param processLocation
+     * @return
+     *     returns com.rapid_i.repository.wsimport.Response
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "startNewRevision", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.StartNewRevision")
+    @ResponseWrapper(localName = "startNewRevisionResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.StartNewRevisionResponse")
+    public Response startNewRevision(
+        @WebParam(name = "processLocation", targetNamespace = "")
+        String processLocation);
 
 }

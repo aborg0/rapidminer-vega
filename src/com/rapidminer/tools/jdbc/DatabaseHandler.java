@@ -409,15 +409,29 @@ public class DatabaseHandler {
         }
         
         // fill table
-		PreparedStatement insertStatement = getInsertIntoTableStatement(tableName, exampleSet.getAttributes().allSize());
+		PreparedStatement insertStatement = getInsertIntoTableStatement(tableName, exampleSet);
 		for (Example example : exampleSet) {
 			applyInsertIntoTable(insertStatement, example, exampleSet.getAttributes().allAttributeRoles());
 		}
 		insertStatement.close();		
 	}
 
-	private PreparedStatement getInsertIntoTableStatement(String tableName, int size) throws SQLException {
-		StringBuffer result = new StringBuffer("INSERT INTO " + properties.getIdentifierQuoteOpen() + tableName + properties.getIdentifierQuoteClose() + " VALUES (");
+	private PreparedStatement getInsertIntoTableStatement(String tableName, ExampleSet exampleSet) throws SQLException {
+		StringBuffer result = new StringBuffer("INSERT INTO ");
+		result.append(properties.getIdentifierQuoteOpen() + tableName + properties.getIdentifierQuoteClose());
+		result.append("(");
+		Iterator<Attribute> a = exampleSet.getAttributes().allAttributes();
+		boolean first = true;
+		while (a.hasNext()) {
+			Attribute attribute = a.next();
+			if (!first)
+				result.append(", ");
+			result.append(properties.getIdentifierQuoteOpen() + attribute.getName() + properties.getIdentifierQuoteClose());
+			first = false;
+		}
+		result.append(")");
+		result.append(" VALUES (");
+		int size = exampleSet.getAttributes().allSize();
 		for (int i = 0; i < size; i++) {
 			if (i != 0)
 				result.append(", ");

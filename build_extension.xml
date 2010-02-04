@@ -154,7 +154,9 @@
         </unjar>
 
         <jar jarfile="${release.targetDir}/${release.name}" update="false">
-            <fileset dir="${build.build}" includes="**/*" />
+            <fileset dir="${build.build}" includes="**/*">
+                <exclude name="ABOUT.NFO"/>	
+            </fileset>
             <fileset dir="${release.targetDir}/libfiles"  excludes="META-INF/*" >
             	<include name="**/*" />
             </fileset>

@@ -444,7 +444,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	public URI getURIForResource(String path) {
 		try {
-			return baseUrl.toURI().resolve("faces/browse.jsp?location="+URLEncoder.encode(path, "UTF-8"));
+			return baseUrl.toURI().resolve("faces/browse.xhtml?location="+URLEncoder.encode(path, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);			
 		} catch (URISyntaxException e) {
@@ -455,7 +455,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	private URI getURIWebInterfaceURI() {
 		try {
-			return baseUrl.toURI().resolve("faces/index.jsp");
+			return baseUrl.toURI().resolve("faces/index.xhtml");
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}

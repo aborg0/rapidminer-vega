@@ -258,6 +258,9 @@ public class SwingTools {
 	 *  
 	 *  The given names must contain '/' instead of backslashes! */
 	public static ImageIcon createIcon(String iconName) {
+		if (RapidMiner.getExecutionMode().isHeadless()) {
+			return null;
+		}
 		for (String path: iconPaths) {
 			ImageIcon icon = createImage(path + iconName);
 			if (icon != null)
@@ -281,6 +284,9 @@ public class SwingTools {
 	/** Tries to load the image for the given resource. Returns null (and writes a warning) if the 
 	 *  resource file cannot be loaded. */
 	public static ImageIcon createImage(String imageName) {
+		if (RapidMiner.getExecutionMode().isHeadless()) {
+			return null;
+		}
 		synchronized (ICON_LOCK) {
 			if (ICON_CACHE.containsKey(imageName)) {
 				return ICON_CACHE.get(imageName);

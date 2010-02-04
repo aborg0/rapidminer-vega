@@ -34,8 +34,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.swing.filechooser.FileSystemView;
-
+import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.cipher.CipherTools;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
 import com.rapidminer.tools.jdbc.DatabaseService;
@@ -47,9 +46,9 @@ public class DatabaseConnectionService {
 
 	public static final String PROPERTY_CONNECTIONS_DIR = "connections.dir";
 	
-	public static final String PROPERTY_CONNECTIONS_FILE = ".connections";
+	public static final String PROPERTY_CONNECTIONS_FILE = "connections";
 	
-	private static FileSystemView fileSystemView = FileSystemView.getFileSystemView();
+	//private static FileSystemView fileSystemView = FileSystemView.getFileSystemView();
 
 	private static File connectionsFile;
 
@@ -57,41 +56,40 @@ public class DatabaseConnectionService {
 	
 	private static DatabaseHandler handler = null;
 
-	public static void init() {
-		File tempFile = fileSystemView.getHomeDirectory();
-		tempFile = tempFile.getAbsoluteFile();
-		File parentTempFile = tempFile.getParentFile();
-
-		String connectionsDirProperty = System.getProperty(PROPERTY_CONNECTIONS_DIR);
-		if ((connectionsDirProperty != null) && (connectionsDirProperty.length() > 0)) {
-			File applicationSpecifiedDir = new File(connectionsDirProperty);
-			if (applicationSpecifiedDir.exists()) {
-				parentTempFile = applicationSpecifiedDir;
-			}
-		}
-
-		try {
-			parentTempFile = parentTempFile.getCanonicalFile();
-		} catch (Exception exp) {
-		}
-
-		if ((parentTempFile != null) && parentTempFile.exists() && fileSystemView.isTraversable(parentTempFile).booleanValue()) {
-			connectionsFile = new File(parentTempFile, PROPERTY_CONNECTIONS_FILE);
-
-			try {
-				connectionsFile.createNewFile();
-			} catch (IOException ex2) {
-			}
-
-			if (!connectionsFile.exists()) {
-				connectionsFile.delete();
-				connectionsFile = new File(tempFile, PROPERTY_CONNECTIONS_FILE);
-			}
-		} else {
-			connectionsFile = new File(tempFile, PROPERTY_CONNECTIONS_FILE);
-		}
-
-		
+	public static void init() {		
+//		File tempFile = fileSystemView.getHomeDirectory();
+//		tempFile = tempFile.getAbsoluteFile();
+//		File parentTempFile = tempFile.getParentFile();
+//
+//		String connectionsDirProperty = System.getProperty(PROPERTY_CONNECTIONS_DIR);
+//		if ((connectionsDirProperty != null) && (connectionsDirProperty.length() > 0)) {
+//			File applicationSpecifiedDir = new File(connectionsDirProperty);
+//			if (applicationSpecifiedDir.exists()) {
+//				parentTempFile = applicationSpecifiedDir;
+//			}
+//		}
+//
+//		try {
+//			parentTempFile = parentTempFile.getCanonicalFile();
+//		} catch (Exception exp) {
+//		}
+//
+//		if ((parentTempFile != null) && parentTempFile.exists() && fileSystemView.isTraversable(parentTempFile).booleanValue()) {
+//			connectionsFile = new File(parentTempFile, PROPERTY_CONNECTIONS_FILE);
+//
+//			try {
+//				connectionsFile.createNewFile();
+//			} catch (IOException ex2) {
+//			}
+//
+//			if (!connectionsFile.exists()) {
+//				connectionsFile.delete();
+//				connectionsFile = new File(tempFile, PROPERTY_CONNECTIONS_FILE);
+//			}
+//		} else {
+//			connectionsFile = new File(tempFile, PROPERTY_CONNECTIONS_FILE);
+//		}
+		File connectionsFile = ParameterService.getUserConfigFile(PROPERTY_CONNECTIONS_DIR);
 		if (!connectionsFile.exists()) {
 			try {
 				connectionsFile.createNewFile();

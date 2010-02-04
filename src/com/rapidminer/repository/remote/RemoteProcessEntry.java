@@ -22,6 +22,10 @@
  */
 package com.rapidminer.repository.remote;
 
+import java.util.Collection;
+
+import javax.swing.Action;
+
 import com.rapid_i.repository.wsimport.EntryResponse;
 import com.rapid_i.repository.wsimport.ProcessContentsResponse;
 import com.rapid_i.repository.wsimport.Response;
@@ -62,8 +66,9 @@ public class RemoteProcessEntry extends RemoteDataEntry implements ProcessEntry 
 	}
 
 	@Override
-	public void storeXML(String xml) throws RepositoryException {
+	public void storeXML(String xml) throws RepositoryException {		
 		Response response = getRepository().getRepositoryService().storeProcess(getPath(), xml);
+		this.xml = null;
 		if (response.getStatus() != RepositoryConstants.OK) {
 			throw new RepositoryException(response.getErrorMessage());
 		}
@@ -73,5 +78,11 @@ public class RemoteProcessEntry extends RemoteDataEntry implements ProcessEntry 
 	public boolean willBlock() {
 		return xml == null;
 	}
-	
+
+	@Override
+	public Collection<Action> getCustomActions() {
+		Collection<Action> actions = super.getCustomActions();
+		actions.add(new NewRevisionAction(this));
+		return actions;
+	}
 }

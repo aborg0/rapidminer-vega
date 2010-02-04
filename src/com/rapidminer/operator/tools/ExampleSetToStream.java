@@ -161,7 +161,19 @@ public class ExampleSetToStream {
 				out.writeInt(mapping.size());
 				for (String value : mapping.getValues()) {
 					out.writeInt(mapping.mapString(value));
-					out.writeUTF(value);
+					// check if the string is to long for one call of writeUTF: The final utf string is limited to 64k
+					if (value.length() <= 16384) {
+						out.writeUTF(value);
+					} else {
+						int start = 0;
+						int length = value.length();
+						for (int i = 0; i < length / 16384; i++) {
+							 out.writeUTF(value.substring(start, start += 16384));
+						}
+						// if there's a remaining rest of the string: write it to stream
+						if (length % 16384 != 0)
+							 out.writeUTF(value.substring(start, length));
+					}
 				}
 			}
 		}

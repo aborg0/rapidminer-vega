@@ -274,7 +274,6 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 					today.set(Calendar.MINUTE, 0);
 					today.set(Calendar.SECOND, 0);
 					today.set(Calendar.MILLISECOND, 0);
-					System.out.println(today.getTime());
 					treeModel.setSince(today.getTime());
 					break;
 				case 2:

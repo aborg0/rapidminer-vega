@@ -236,6 +236,7 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 		} catch (IOException e) {
 			// TODO add user error
 		}
+		int maxNumberOfNominalMetaValues = AttributeMetaData.getMaximumNumerOfNominalValues();
 		while (set.next()) {
 			rowCount++;
 			if (columnCount < set.getNumberOfColumnsInCurrentRow()) {
@@ -267,7 +268,7 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 							}
 						}
 						values[i] = number;
-						if (valueSets.get(i).size() <= 2) {
+						if (valueSets.get(i).size() <= maxNumberOfNominalMetaValues) {
 							valueSets.get(i).add(number.toString());
 						}
 						continue;
