@@ -87,31 +87,38 @@ public class RapidMiner {
 	/** Indicates how RapidMiner is being executed. */
 	public enum ExecutionMode {    	
 		/** It is unknown how RM was invoked. */
-		UNKNOWN(true, false),
+		UNKNOWN(true, false, false),
 		/** RM is executed using {@link RapidMinerCommandLine#main(String[])}. */
-		COMMAND_LINE(true, true),
+		COMMAND_LINE(true, true, false),
 		/** RM is executed using {@link RapidMinerGUI#main(String[])}. */
-		UI(false, true),
+		UI(false, true, true),
 		/** RM is running inside an application server. */
-		APPSERVER(true, false),
+		APPSERVER(true, false, false),
 		/** RM is running as an applet inside a browser. */
-		APPLET(false, true),
+		APPLET(false, true, true),
 		/** RM is embedded into another program. */
-		EMBEDDED(false, true),    	
+		EMBEDDED_WITH_UI(false, true, false),    	
+		/** RM is embedded into another program. */
+		EMBEDDED_WITHOUT_UI(true, true, false),    	
 		/** RM is running within Java Web Start. */
-		WEBSTART(false, true);
+		WEBSTART(false, true, true);
 
 		private final boolean isHeadless;
 		private final boolean canAccessFilesystem;
-		private ExecutionMode(boolean isHeadless, boolean canAccessFilesystem) {
+		private final boolean hasMainFrame;
+		private ExecutionMode(boolean isHeadless, boolean canAccessFilesystem, boolean hasMainFrame) {
 			this.isHeadless = isHeadless;
-			this.canAccessFilesystem = canAccessFilesystem;    		
+			this.canAccessFilesystem = canAccessFilesystem; 
+			this.hasMainFrame = hasMainFrame;
 		}    	
 		public boolean isHeadless() {
 			return isHeadless;
 		}
 		public boolean canAccessFilesystem() {
 			return canAccessFilesystem;
+		}
+		public boolean hasMainFrame() {
+			return hasMainFrame;
 		}
 	}
 
@@ -373,9 +380,9 @@ public class RapidMiner {
 		Plugin.initPluginSplashTexts();
 		RapidMiner.showSplashInfos();
 
-		RapidMiner.splashMessage("init_setup");
+		//RapidMiner.splashMessage("init_setup");
 
-		LogService.getRoot().config("Default encoding is " + Tools.getDefaultEncoding()+".");
+		//LogService.getRoot().config("Default encoding is " + Tools.getDefaultEncoding()+".");
 	
 		RapidMiner.splashMessage("init_ops");
 		OperatorService.init();

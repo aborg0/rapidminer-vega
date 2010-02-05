@@ -72,7 +72,11 @@ public abstract class ResultObjectAdapter extends AbstractIOObject implements Re
 	}
 
 	/** Saves the object into the given file by using the {@link #write(OutputStream)} 
-	 *  method of {@link IOObject} (XML format). */
+	 *  method of {@link IOObject} (XML format). 
+	 *  @deprecated This method is never used. It was used by some GUI actions when we
+	 *   still had custom actions per result object. Some of the overriding methods
+	 *   also use Tools.getDefaultEncoding() which should also be avoided */
+	@Deprecated
 	public void save(final File file) throws IOException {
 		FileOutputStream fos = null;
 		try {

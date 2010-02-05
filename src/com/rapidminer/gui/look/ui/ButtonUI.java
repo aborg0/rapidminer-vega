@@ -36,7 +36,6 @@ import javax.swing.plaf.basic.BasicButtonUI;
 import com.rapidminer.gui.look.ButtonListener;
 import com.rapidminer.gui.look.RapidLookTools;
 import com.rapidminer.gui.look.painters.CashedPainter;
-import com.vlsolutions.swing.toolbars.VLToolBar;
 
 /**
  * The UI for the basic button.
@@ -46,7 +45,6 @@ import com.vlsolutions.swing.toolbars.VLToolBar;
 public class ButtonUI extends BasicButtonUI {
 
 	private final static ButtonUI BUTTON_UI = new ButtonUI();
-	
 	
 	public static ComponentUI createUI(JComponent c) {
 		return BUTTON_UI;
@@ -86,12 +84,11 @@ public class ButtonUI extends BasicButtonUI {
 	@Override
 	public void paint(Graphics g, JComponent c) {
 		AbstractButton b = (AbstractButton) c;
-		if (b.getParent() instanceof VLToolBar) {
+		if (RapidLookTools.isToolbarButton(b)) {
 			RapidLookTools.drawToolbarButton(g, c);	
 		}
 		if (b.isContentAreaFilled()) {
-			if (b.getParent() instanceof JToolBar ||
-				b.getParent() instanceof VLToolBar) {
+			if (RapidLookTools.isToolbarButton(b)) {
 				RapidLookTools.drawToolbarButton(g, c);
 			} else {
 				CashedPainter.drawButton(c, g);

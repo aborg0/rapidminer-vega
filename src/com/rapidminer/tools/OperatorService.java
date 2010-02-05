@@ -288,6 +288,8 @@ public class OperatorService {
 						}
 					} catch (ClassNotFoundException e) {
 						LogService.getRoot().log(Level.WARNING, "Cannot load operator class: " + e, e);
+					} catch (NoClassDefFoundError e) {
+						LogService.getRoot().log(Level.WARNING, "Cannot load operator class: " + e, e);
 					}
 				} else if (childElement.getTagName().equals("factory")) {
 					String factoryClassName = childElement.getTextContent();

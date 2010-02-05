@@ -24,14 +24,23 @@ package com.rapidminer.gui.tools;
 
 import javax.swing.Icon;
 
+import com.rapidminer.gui.MainFrame;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.vlsolutions.swing.docking.DockKey;
 
 /**
- * 
- * @author Simon Fischer
- *
+ * This generates a DockKey from the GUI resource bundle.
+ * It supports several for properties:
+ * <br>gui.dockkey.-key-.name  which is the name
+ * <br>gui.dockkey.-key-.tip   which will be shown as tool tip when hovering over this dockables tab
+ * <br>gui.dockkey.-key-.icon  this icon is loaded from the 16er icons by prepending an 16/. It is shown in the upper left corner of the tab.
+ *  
+ * By default the DockKey is created to be part of the ROOT dock group. If it should be part of the results 
+ * instead, you will have to call {@link #setDockGroup(com.vlsolutions.swing.docking.DockGroup)} with
+ * the result constant from the mainframe.
+ *  
+ * @author Simon Fischer, Sebastian Land
  */
 public class ResourceDockKey extends DockKey {
 	
@@ -50,7 +59,10 @@ public class ResourceDockKey extends DockKey {
 		}
 		setFloatEnabled(true);
 		setCloseEnabled(true);
-		setAutoHideEnabled(true);		
+		setAutoHideEnabled(true);
+		
+		// setting default dock group to root: Must be overriden if should be result
+		setDockGroup(MainFrame.DOCK_GROUP_ROOT);
 	}
 		
 	private static String getMessage(String key) {

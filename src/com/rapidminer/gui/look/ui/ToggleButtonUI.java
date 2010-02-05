@@ -43,7 +43,6 @@ import javax.swing.text.View;
 import com.rapidminer.gui.look.RapidLookTools;
 import com.rapidminer.gui.look.ToggleButtonListener;
 import com.rapidminer.gui.look.painters.CashedPainter;
-import com.vlsolutions.swing.toolbars.VLToolBar;
 
 /**
  * The UI for toggle buttons.
@@ -53,7 +52,7 @@ import com.vlsolutions.swing.toolbars.VLToolBar;
 public class ToggleButtonUI extends BasicToggleButtonUI {
 
 	private final static ToggleButtonUI TOGGLE_BUTTON_UI = new ToggleButtonUI();
-
+	
 	public static ComponentUI createUI(JComponent c) {
 		return TOGGLE_BUTTON_UI;
 	}
@@ -116,7 +115,7 @@ public class ToggleButtonUI extends BasicToggleButtonUI {
 		if (down) {
 			paintButtonPressed(g, b);
 		} else if (b.isContentAreaFilled()) {
-			if (b.getParent() instanceof JToolBar) {
+			if (RapidLookTools.isToolbarButton(b)) {
 				RapidLookTools.drawToolbarButton(g, c);
 			} else {
 				CashedPainter.drawButton(c, g);
@@ -147,12 +146,11 @@ public class ToggleButtonUI extends BasicToggleButtonUI {
 	protected void paintFocus(Graphics g, AbstractButton b, Rectangle viewRect, Rectangle textRect, Rectangle iconRect) {
 		CashedPainter.drawButtonBorder(b, g, getPropertyPrefix());
 	}
-
+	
 	@Override
 	protected void paintButtonPressed(Graphics g, AbstractButton b) {
 		if (b.isContentAreaFilled()) {
-			if (b.getParent() instanceof JToolBar ||
-				b.getParent() instanceof VLToolBar) {
+			if (RapidLookTools.isToolbarButton(b)) {
 				RapidLookTools.drawToolbarButton(g, b);
 			} else {
 				CashedPainter.drawButton(b, g);

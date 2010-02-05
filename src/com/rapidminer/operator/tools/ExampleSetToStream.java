@@ -29,6 +29,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -48,6 +49,7 @@ import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.example.table.NominalMapping;
 import com.rapidminer.example.table.PolynominalMapping;
 import com.rapidminer.example.table.SparseDataRow;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Ontology;
 
 /** Writes and reads a example sets to and from from streams.
@@ -58,6 +60,17 @@ import com.rapidminer.tools.Ontology;
  */
 public class ExampleSetToStream {
 
+	/** Original version, used for RapidMiner beta 5*/
+	public static final int VERSION_1 = 1;
+	
+	/** Fixes a problem with long strings in DataOutput.writeUTF() which restricts the length to 65k bytes. 
+	 *  Used since RapidMiner 5.0 final release, revision 7197. */
+	public static final int VERSION_2 = 2;
+	
+	public static final int CURRENT_VERSION = VERSION_2;
+
+	private static final Charset STRING_CHARSET = Charset.forName("UTF-8");
+	
 	public enum ColumnType {
 		NOMINAL_BYTE,
 		NOMINAL_SHORT,
@@ -80,6 +93,15 @@ public class ExampleSetToStream {
 		public boolean isSparse() {
 			return sparse;
 		}		
+	}
+
+	private int version;
+	
+	public ExampleSetToStream(int version) {
+		this.version = version;
+		if (version != CURRENT_VERSION) {
+			LogService.getRoot().warning("Using deprecated example set stream version "+version);
+		}
 	}
 	
 	/** Writes header and data of the example set to the stream. */
@@ -143,37 +165,25 @@ public class ExampleSetToStream {
 	 * After that follows a boolean indicating whether we are using sparse format.
 	 * If yes, all default values will be sent as doubles, one per attribute.
 	 */
-	public static void writeHeader(List<AttributeRole> allAttributes, DataOutputStream out, boolean sparse) throws IOException {
+	public void writeHeader(List<AttributeRole> allAttributes, DataOutputStream out, boolean sparse) throws IOException {
 		out.writeInt(allAttributes.size());
 		for (AttributeRole role : allAttributes) {
 			Attribute att = role.getAttribute();
-			out.writeUTF(att.getName());
+			writeString(out, att.getName());
 			String specialName = role.getSpecialName();
 			if (specialName != null) {
-				out.writeUTF(specialName);
+				writeString(out, specialName);
 			} else {
-				out.writeUTF("");
+				writeString(out, "");
 			}
-			out.writeUTF(Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(att.getValueType()));
-			out.writeUTF(Ontology.ATTRIBUTE_BLOCK_TYPE.mapIndex(att.getBlockType()));
+			writeString(out, Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(att.getValueType()));
+			writeString(out, Ontology.ATTRIBUTE_BLOCK_TYPE.mapIndex(att.getBlockType()));
 			if (att.isNominal()) {				
 				NominalMapping mapping = att.getMapping();
 				out.writeInt(mapping.size());
 				for (String value : mapping.getValues()) {
 					out.writeInt(mapping.mapString(value));
-					// check if the string is to long for one call of writeUTF: The final utf string is limited to 64k
-					if (value.length() <= 16384) {
-						out.writeUTF(value);
-					} else {
-						int start = 0;
-						int length = value.length();
-						for (int i = 0; i < length / 16384; i++) {
-							 out.writeUTF(value.substring(start, start += 16384));
-						}
-						// if there's a remaining rest of the string: write it to stream
-						if (length % 16384 != 0)
-							 out.writeUTF(value.substring(start, length));
-					}
+					writeString(out, value);
 				}
 			}
 		}
@@ -191,7 +201,7 @@ public class ExampleSetToStream {
 		DataInputStream in = new DataInputStream(inputStream);
 		
 		// Extract Header information
-		Header header =  ExampleSetToStream.readHeader(in);		
+		Header header =  readHeader(in);		
 		List<AttributeRole> allAttributeRoles = header.getAllRoles();
 		List<Attribute> allAttributes = new ArrayList<Attribute>();
 		for (AttributeRole role : allAttributeRoles) {
@@ -239,21 +249,21 @@ public class ExampleSetToStream {
 	
 	/** Reads meta data information as written by {@link #writeHeader(List, DataOutputStream)}. 
 	 *  TODO: This must return an ExampleSetHeader including the roles and the sparse flag. */
-	public static Header readHeader(DataInputStream in) throws IOException {
+	public Header readHeader(DataInputStream in) throws IOException {
 		int numAttributes = in.readInt();
 		List<AttributeRole> allRoles = new LinkedList<AttributeRole>();
 		for (int i = 0; i < numAttributes; i++) {
-			String name = in.readUTF();
-			String special = in.readUTF();
+			String name = readString(in);
+			String special = readString(in);
 			if (special.length() == 0) {
 				special = null;
 			}
-			String tmp = in.readUTF();
+			String tmp = readString(in);
 			int valueType = Ontology.ATTRIBUTE_VALUE_TYPE.mapName(tmp);
 			if (valueType == -1) {
 				throw new IOException("Unknown value type: '"+ tmp+"'");
 			}
-			tmp = in.readUTF();
+			tmp = readString(in);
 			int blockType = Ontology.ATTRIBUTE_BLOCK_TYPE.mapName(tmp);
 			if (blockType == -1) {
 				throw new IOException("Unknown value type: '"+ tmp + "'");
@@ -273,14 +283,14 @@ public class ExampleSetToStream {
 					NominalMapping mapping = attribute.getMapping();					
 					for (int j = 0; j < numValues; j++) {
 						int index = in.readInt();
-						String value = in.readUTF();
+						String value = readString(in);						
 						mapping.setMapping(value, index);
 					}
 				} else {
 					Map<Integer,String> valueMap = new HashMap<Integer,String>();
 					for (int j = 0; j < numValues; j++) {
 						int index = in.readInt();
-						String value = in.readUTF();
+						String value = readString(in);
 						valueMap.put(index, value);
 					}
 					attribute.setMapping(new PolynominalMapping(valueMap));
@@ -439,4 +449,36 @@ public class ExampleSetToStream {
 		}		
 	}
 
+	private void writeString(DataOutput out, String value) throws IOException {
+		switch (version) {
+		case VERSION_1:
+			out.writeUTF(value);
+			break;
+		case VERSION_2:
+			byte[] bytes = value.getBytes(STRING_CHARSET);
+			out.writeInt(bytes.length);
+			out.write(bytes);
+			break;
+		default:
+			throw new RuntimeException("Version not set");
+		}
+	}
+
+	private String readString(DataInput in) throws IOException {
+		String value;
+		switch (version) {
+		case VERSION_1:
+			value = in.readUTF();
+			break;
+		case VERSION_2:
+			int length = in.readInt();
+			byte[] bytes = new byte[length];
+			in.readFully(bytes);
+			value = new String(bytes, STRING_CHARSET);
+			break;
+		default:
+			throw new RuntimeException("Version not set");
+		}
+		return value;
+	}
 }

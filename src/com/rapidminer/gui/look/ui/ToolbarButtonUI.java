@@ -33,6 +33,7 @@ import javax.swing.plaf.basic.BasicButtonListener;
 import javax.swing.plaf.basic.BasicButtonUI;
 
 import com.rapidminer.gui.look.ButtonListener;
+import com.rapidminer.gui.look.RapidLookTools;
 import com.vlsolutions.swing.toolbars.VLToolBar;
 
 /**
@@ -43,7 +44,7 @@ import com.vlsolutions.swing.toolbars.VLToolBar;
 public class ToolbarButtonUI extends BasicButtonUI {
 
 	protected static boolean isToolbarButton(JComponent c) {
-		return (c.getParent() instanceof JToolBar || c.getParent() instanceof VLToolBar);
+		return RapidLookTools.isToolbarButton(c);
 	}
 
 	@Override

@@ -159,7 +159,7 @@ import com.vlsolutions.swing.toolbars.ToolBarPanel;
  * notified whenever the process changes and propagates this event to its
  * children. Most of the code is enclosed within the Actions.
  * 
- * @author Ingo Mierswa
+ * @author Ingo Mierswa, Simon Fischer, Sebastian Land
  */
 public class MainFrame extends ApplicationFrame implements WindowListener {
 
@@ -388,12 +388,25 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	private final RemoteProcessViewer remoteProcessViewer = new RemoteProcessViewer();
 
 	private final Perspectives perspectives = new Perspectives(dockingContext);
+
+	private final EventListenerList processEditors = new EventListenerList();
+	private List<Operator> selectedOperators = Collections.emptyList();
+
 	
 	private boolean changed = false;
 	private boolean tutorialMode = false;
 	private int undoIndex;
 	
+	
 	private final JMenuBar menuBar;
+
+	private final JMenu fileMenu;
+	private final JMenu editMenu;
+	private final JMenu processMenu;
+	private final JMenu toolsMenu;
+	private final JMenu viewMenu;
+	private final JMenu helpMenu;
+	
 	private final JMenu recentFilesMenu = new ResourceMenu("recent_files");
 	
 	private final LinkedList<String> undoList = new LinkedList<String>();
@@ -474,6 +487,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 			RUN_ACTION.setState(process.getProcessState());
 		}
 	};
+
 
 	// --------------------------------------------------------------------------------
 	
@@ -556,7 +570,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		menuBar.add(fileMenu);
 		
 		// edit menu
-		JMenu editMenu = new ResourceMenu("edit");
+		editMenu = new ResourceMenu("edit");
 		editMenu.add(UNDO_ACTION);
 		editMenu.add(REDO_ACTION);
 		editMenu.addSeparator();
@@ -581,13 +595,13 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		menuBar.add(editMenu);
 		
 		// process menu
-		JMenu expMenu = new ResourceMenu("process");
-		expMenu.add(RUN_ACTION);
-		expMenu.add(PAUSE_ACTION);
-		expMenu.add(STOP_ACTION);		
-		expMenu.addSeparator();
-		expMenu.add(VALIDATE_ACTION);
-		expMenu.add(VALIDATE_AUTOMATICALLY_ACTION.createMenuItem());
+		processMenu = new ResourceMenu("process");
+		processMenu.add(RUN_ACTION);
+		processMenu.add(PAUSE_ACTION);
+		processMenu.add(STOP_ACTION);		
+		processMenu.addSeparator();
+		processMenu.add(VALIDATE_ACTION);
+		processMenu.add(VALIDATE_AUTOMATICALLY_ACTION.createMenuItem());
 //		JCheckBoxMenuItem onlyDirtyMenu = new JCheckBoxMenuItem(new ResourceAction(true, "execute_only_dirty") {
 //			private static final long serialVersionUID = 2158722678316407076L;
 //			@Override
@@ -612,19 +626,19 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 				}
 			}
 		});
-		expMenu.add(debugmodeMenu);
-		expMenu.addSeparator();
+		processMenu.add(debugmodeMenu);
+		processMenu.addSeparator();
 		
 		JMenu wiringMenu = new ResourceMenu("wiring");
 		wiringMenu.add(AUTO_WIRE);
 		wiringMenu.add(AUTO_WIRE_RECURSIVELY);
 		wiringMenu.add(REWIRE);
 		wiringMenu.add(REWIRE_RECURSIVELY);
-		expMenu.add(wiringMenu);
+		processMenu.add(wiringMenu);
 		JMenu orderMenu = new ResourceMenu("execution_order");
 		orderMenu.add(processPanel.getProcessRenderer().getFlowVisualizer().ALTER_EXECUTION_ORDER.createMenuItem());
 		orderMenu.add(processPanel.getProcessRenderer().getFlowVisualizer().SHOW_EXECUTION_ORDER);
-		expMenu.add(orderMenu);
+		processMenu.add(orderMenu);
 		JMenu layoutMenu = new ResourceMenu("process_layout");
 		layoutMenu.add(processPanel.getProcessRenderer().ARRANGE_OPERATORS_ACTION);
 		layoutMenu.add(processPanel.getProcessRenderer().AUTO_FIT_ACTION);
@@ -632,10 +646,10 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		layoutMenu.add(processPanel.getProcessRenderer().DECREASE_PROCESS_LAYOUT_WIDTH_ACTION);
 		layoutMenu.add(processPanel.getProcessRenderer().INCREASE_PROCESS_LAYOUT_HEIGHT_ACTION);
 		layoutMenu.add(processPanel.getProcessRenderer().DECREASE_PROCESS_LAYOUT_HEIGHT_ACTION);
-		expMenu.add(layoutMenu);
-		expMenu.addSeparator();
-		expMenu.add(RUN_REMOTE_ACTION);
-		menuBar.add(expMenu);
+		processMenu.add(layoutMenu);
+		processMenu.addSeparator();
+		processMenu.add(RUN_REMOTE_ACTION);
+		menuBar.add(processMenu);
 		
 		// tools menu
 		toolsMenu = new ResourceMenu("tools");
@@ -652,7 +666,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		menuBar.add(toolsMenu);
 		
 		// view menu
-		JMenu viewMenu = new ResourceMenu("view");
+		viewMenu = new ResourceMenu("view");
 		viewMenu.add(perspectives.getWorkspaceMenu());
 		viewMenu.add(NEW_PERSPECTIVE_ACTION);		
 		viewMenu.add(new DockableMenu(dockingContext));
@@ -662,7 +676,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		menuBar.add(viewMenu);
 		
 		// help menu
-		JMenu helpMenu = new ResourceMenu("help");
+		helpMenu = new ResourceMenu("help");
 		helpMenu.add(TUTORIAL_ACTION);
 		// TODO: Re-add updated manual
 //		helpMenu.add(new ResourceAction("gui_manual") {
@@ -1284,13 +1298,6 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	
 	/// LISTENERS
 	
-	private final EventListenerList processEditors = new EventListenerList();
-
-	private List<Operator> selectedOperators = Collections.emptyList();
-
-	private final JMenu toolsMenu;
-	private final JMenu fileMenu;
-	
 	public List<Operator> getSelectedOperators() {
 		return selectedOperators;
 	}
@@ -1390,11 +1397,47 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		return xmlEditor;
 	}
 	
+	/**
+	 * This returns the file menu to change menu entries
+	 */
+	public JMenu getFileMenu() {
+		return fileMenu;
+	}
+	
+	/**
+	 * This returns the tools menu to change menu entries
+	 */
+
 	public JMenu getToolsMenu() {
 		return toolsMenu;
 	}
 
-	public JMenu getFileMenu() {
-		return fileMenu;
+	/**
+	 * This returns the complete menu bar to insert additional menus
+	 */
+	public JMenuBar getMainMenuBar() {
+		return menuBar;
+	}
+
+	/**
+	 * This returns the edit menu to change menu entries
+	 */
+	public JMenu getEditMenu() {
+		return editMenu;
+	}
+
+	/**
+	 * This returns the process menu to change menu entries
+	 */
+
+	public JMenu getProcessMenu() {
+		return processMenu;
+	}
+
+	/**
+	 * This returns the help menu to change menu entries
+	 */
+	public JMenu getHelpMenu() {
+		return helpMenu;
 	}
 }

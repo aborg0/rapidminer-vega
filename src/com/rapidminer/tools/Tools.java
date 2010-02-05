@@ -102,12 +102,15 @@ public class Tools {
 	/** Used for formatting values in the {@link #formatNumber(double)} method. */
 	private static NumberFormat NUMBER_FORMAT = NumberFormat.getInstance(Locale.US);
 
+	/** Used for formatting values in the {@link #formatNumber(double)} method. */
+	private static NumberFormat INTEGER_FORMAT = NumberFormat.getIntegerInstance(Locale.US);
+	
 	/** Used for formatting values in the {@link #formatPercent(double)} method. */
 	private static NumberFormat PERCENT_FORMAT = NumberFormat.getPercentInstance(Locale.US);
 
 
 	/** Used for determining the symbols used in decimal formats. */
-	private static final DecimalFormatSymbols FORMAT_SYMBOLS = new DecimalFormatSymbols(Locale.US);
+	private static DecimalFormatSymbols FORMAT_SYMBOLS = new DecimalFormatSymbols(Locale.US);
 
 
 	private static final LinkedList<ResourceSource> ALL_RESOURCE_SOURCES = new LinkedList<ResourceSource>();
@@ -135,7 +138,9 @@ public class Tools {
 
 	public static void setFormatLocale(Locale locale) {
 		NUMBER_FORMAT = NumberFormat.getInstance(locale);
+		INTEGER_FORMAT = NumberFormat.getIntegerInstance(locale);
 		PERCENT_FORMAT = NumberFormat.getPercentInstance(locale); 
+		FORMAT_SYMBOLS = new DecimalFormatSymbols(locale);
 	}
 
 	public static String[] getAllTimeZones() {
@@ -243,9 +248,8 @@ public class Tools {
 			String numberDigitsString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_NUMBERS);
 			numberDigits = Integer.parseInt(numberDigitsString);
 		} catch (NumberFormatException e) {}
-		NUMBER_FORMAT.setMaximumFractionDigits(numberDigits);
-		NUMBER_FORMAT.setMinimumFractionDigits(numberDigits);
-		return NUMBER_FORMAT.format(value);
+		// TODO: read property for grouping characters
+		return formatNumber(value, numberDigits, false);
 	}
 
 	/**
@@ -254,6 +258,16 @@ public class Tools {
 	 * smaller than 0 (usually 3)).
 	 */
 	public static String formatNumber(double value, int numberOfDigits) {
+		// TODO: read property for grouping characters
+		return formatNumber(value, numberOfDigits, false);
+	}
+	
+	/**
+	 * Returns a formatted string of the given number (uses the property
+	 * rapidminer.gui.fractiondigits.numbers if the given number of digits is 
+	 * smaller than 0 (usually 3)).
+	 */
+	public static String formatNumber(double value, int numberOfDigits, boolean groupingCharacters) {
 		if (Double.isNaN(value))
 			return "?";
 		int numberDigits = numberOfDigits;
@@ -267,6 +281,7 @@ public class Tools {
 		}
 		NUMBER_FORMAT.setMaximumFractionDigits(numberDigits);
 		NUMBER_FORMAT.setMinimumFractionDigits(numberDigits);
+		NUMBER_FORMAT.setGroupingUsed(groupingCharacters);
 		return NUMBER_FORMAT.format(value);
 	}
 
@@ -278,12 +293,20 @@ public class Tools {
 			String numberDigitsString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_NUMBERS);
 			numberDigits = Integer.parseInt(numberDigitsString);
 		} catch (NumberFormatException e) {}
-		return formatIntegerIfPossible(value, numberDigits);
+		// TODO: read property for grouping characters
+		return formatIntegerIfPossible(value, numberDigits, false);
 	}
 
 	/** Returns a number string with no fraction digits if possible. Otherwise the given 
 	 *  number of digits will be returned. */
 	public static String formatIntegerIfPossible(double value, int numberOfDigits) {
+		// TODO: read property for grouping characters
+		return formatIntegerIfPossible(value, numberOfDigits, false);
+	}
+	
+	/** Returns a number string with no fraction digits if possible. Otherwise the given 
+	 *  number of digits will be returned. */
+	public static String formatIntegerIfPossible(double value, int numberOfDigits, boolean groupingCharacter) {
 		if (Double.isNaN(value))
 			return "?";
 		if (Double.isInfinite(value)) {
@@ -295,9 +318,10 @@ public class Tools {
 
 		long longValue = Math.round(value);
 		if (Math.abs(longValue - value) < IS_DISPLAY_ZERO) {
-			return longValue + "";
+			INTEGER_FORMAT.setGroupingUsed(groupingCharacter);
+			return INTEGER_FORMAT.format(longValue);
 		} else {
-			return formatNumber(value, numberOfDigits);
+			return formatNumber(value, numberOfDigits, groupingCharacter);
 		}
 	}
 
@@ -493,7 +517,7 @@ public class Tools {
 	public static Charset getDefaultEncoding() {
 		Charset result = null;
 
-		if (!RapidMiner.getExecutionMode().isHeadless()) {
+		if (RapidMiner.getExecutionMode().hasMainFrame()) {
 			MainFrame mainFrame = RapidMinerGUI.getMainFrame();
 			if (mainFrame != null) {
 				com.rapidminer.Process process = mainFrame.getProcess();

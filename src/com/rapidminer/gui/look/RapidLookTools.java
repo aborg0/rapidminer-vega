@@ -51,6 +51,16 @@ import com.vlsolutions.swing.toolbars.VLToolBar;
  */
 public final class RapidLookTools {
     
+	private static boolean vlDockingAvailable = true;
+	
+	static {
+		try {
+			VLToolBar.class.getName();
+		} catch (NoClassDefFoundError e) {
+			vlDockingAvailable = false;
+		}
+	}
+	
 	public static void clearMenuCache() {
 		CashedPainter.clearMenuCache();
 	}
@@ -206,9 +216,13 @@ public final class RapidLookTools {
 		}
 		g.setColor(oldColor);
 	}
+	
+	public static boolean isToolbarButton(JComponent b) {
+		return (b.getParent() instanceof JToolBar) || (vlDockingAvailable && isVLToolbarButton(b));
+	}
 
-	public static boolean isToolbarButton(JComponent c) {
-		return c.getParent() instanceof JToolBar;
+	public static boolean isVLToolbarButton(JComponent b) {
+		return (b.getParent() instanceof VLToolBar);
 	}
 
 	public static void drawToolbarButton(Graphics g, JComponent c) {

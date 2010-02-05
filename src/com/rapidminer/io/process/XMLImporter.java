@@ -337,7 +337,7 @@ public class XMLImporter {
 			}
 		}
 
-		if (!RapidMiner.getExecutionMode().isHeadless()) {
+		if (RapidMiner.getExecutionMode().hasMainFrame()) {
 			if (RapidMinerGUI.getMainFrame() != null) {
 				RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().extractGUIInformation(executionUnit, element);
 			}
@@ -422,7 +422,7 @@ public class XMLImporter {
 			if (operator instanceof DummyOperator) {
 				((DummyOperator) operator).setReplaces(className);
 			}
-			if (!RapidMiner.getExecutionMode().isHeadless()) {
+			if (RapidMiner.getExecutionMode().hasMainFrame()) {
 				if (RapidMinerGUI.getMainFrame() != null) {
 					RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().extractGUIInformation(operator, opElement);
 				}

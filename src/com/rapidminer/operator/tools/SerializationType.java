@@ -35,6 +35,11 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.tools.XMLSerialization;
 import com.rapidminer.tools.plugin.Plugin;
 
+/**
+ * 
+ * @author Simon Fischer
+ *
+ */
 class JavaBinaryBodySerializer implements BodySerializer {
 	@Override
 	public Object deserialize(InputStream in) throws IOException {
@@ -90,14 +95,18 @@ class GZippedXMLBodySerializer extends XMLBodySerializer {
 }
 
 class StreamedExampleSetBodySerializer implements BodySerializer {
+	private int version;
+	public StreamedExampleSetBodySerializer(int version) {
+		this.version = version;
+	}
 	@Override
 	public Object deserialize(InputStream in) throws IOException {
-		return new ExampleSetToStream().read(in);
+		return new ExampleSetToStream(version).read(in);
 	}
 	@Override
 	public void serialize(Object object, OutputStream out) throws IOException {
 		if (object instanceof ExampleSet) {
-			new ExampleSetToStream().write((ExampleSet) object, out);
+			new ExampleSetToStream(version).write((ExampleSet) object, out);
 		} else {
 			throw new IOException("Serialization type "+SerializationType.STREAMED_EXAMPLE_SET_DENSE+" only available for ExampleSets.");
 		}
@@ -106,10 +115,13 @@ class StreamedExampleSetBodySerializer implements BodySerializer {
 
 /** Encapsulates some standard ways to serialize and deserialize objects from streams.
  * 
+ * NOTE: When adding new enum constants, don't change the ordering of the old, since the
+ *  ordinal value will be used to identify the serialization type.
  * @author Simon Fischer
  *
  */
 public enum SerializationType {
+	
 	/** Plain binary java serialization using Object{In/Out}putStream. */
 	JAVA_BINARY(new JavaBinaryBodySerializer()),
 	
@@ -119,7 +131,9 @@ public enum SerializationType {
 	/** Uses xstream XML serialization wrapped in a GZip stream. */
 	XML_ZIPPED(new GZippedXMLBodySerializer()),
 	
-	STREAMED_EXAMPLE_SET_DENSE(new StreamedExampleSetBodySerializer());
+	STREAMED_EXAMPLE_SET_DENSE(new StreamedExampleSetBodySerializer(ExampleSetToStream.VERSION_1)),
+	
+	STREAMED_EXAMPLE_SET_DENSE_2(new StreamedExampleSetBodySerializer(ExampleSetToStream.VERSION_2)),;
 	
 	private BodySerializer bodySerializer;
 	

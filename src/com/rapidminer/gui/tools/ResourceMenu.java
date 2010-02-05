@@ -26,7 +26,7 @@ import javax.swing.JMenu;
 
 import com.rapidminer.gui.ConditionalAction;
 /**
- * This will create a menu, whose settings are take from a .properties file beeing part of
+ * This will create a menu, whose settings are take from a .properties file being part of
  * the GUI Resource bundles of RapidMiner. These might be accessed using the I18N class.
  * 
  * A resource menu needs a key specifier, which will be used to build the complete keys of

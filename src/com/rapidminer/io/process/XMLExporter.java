@@ -114,7 +114,7 @@ public class XMLExporter {
 				opElement.appendChild(exportExecutionUnit(executionUnit, hideDefault, doc, false));
 			}
 		}
-		if (!RapidMiner.getExecutionMode().isHeadless()) {
+		if (RapidMiner.getExecutionMode().hasMainFrame()) {
 			if (RapidMinerGUI.getMainFrame() != null) {
 				RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().enrichOperatorElement(operator, opElement);
 			}
@@ -140,7 +140,7 @@ public class XMLExporter {
 		for (Operator op : executionUnit.getOperators()) {
 			exportConnections(op.getOutputPorts(), executionUnit, procElement, doc);			
 		}
-		if (!RapidMiner.getExecutionMode().isHeadless()) {
+		if (RapidMiner.getExecutionMode().hasMainFrame()) {
 			if (RapidMinerGUI.getMainFrame() != null) {
 				RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().enrichProcessElement(executionUnit, procElement);
 			}

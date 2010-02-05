@@ -34,21 +34,24 @@ import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
 /**
+ * This will create an action, whose settings are take from a .properties file being part of
+ * the GUI Resource bundles of RapidMiner. These might be accessed using the I18N class.
  * 
- * @author Simon Fischer
+ * A resource action needs a key specifier, which will be used to build the complete keys of
+ * the form:
+ * gui.action.<specifier>.label = Which will be the caption
+ * gui.action.<specifier>.icon = The icon of this action. For examples used in menus or buttons
+ * gui.action.<specifier>.acc = The accelerator key used for menu entries
+ * gui.action.<specifier>.tip = Which will be the tool tip
+ * gui.action.<specifier>.mne = Which will give you access to the mnemonics key. Please make it the same case as in the label
+ * 
+ * @author Simon Fischer, Sebastian Land
  */
 public abstract class ResourceAction extends ConditionalAction {
 
 	private static final long serialVersionUID = -3699425760142415331L;
 
 	private final String key;
-//	public ResourceAction(String i18nKey) {
-//		this(false, i18nKey);
-//	}
-//	
-//	public ResourceAction(boolean smallIcon, String i18nKey) {
-//		this(smallIcon, i18nKey, (Object[])null);
-//	}
 	
 	public ResourceAction(String i18nKey, Object ... i18nArgs) {
 		this(false, i18nKey, i18nArgs);
