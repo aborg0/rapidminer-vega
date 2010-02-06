@@ -50,7 +50,8 @@ public class ExampleSetPrecondition extends AbstractPrecondition {
     private final String[] ignoreForTypeCheck;
 	private final int allowedSpecialsValueType;
 	private final String[] requiredAttributes;
-
+	private boolean optional = false;
+	
 	public ExampleSetPrecondition(InputPort inputPort) {
 		this(inputPort, Ontology.ATTRIBUTE_VALUE, (String[])null);
 	}
@@ -75,6 +76,10 @@ public class ExampleSetPrecondition extends AbstractPrecondition {
 		this.allowedSpecialsValueType = allowedValueTypesForSpecial;
 		this.ignoreForTypeCheck = ignoreForTypeCheck;
 	}
+	
+	public void setOptional(boolean optional) {
+		this.optional = optional;
+	}
 
 	@Override
 	public void assumeSatisfied() {
@@ -85,7 +90,11 @@ public class ExampleSetPrecondition extends AbstractPrecondition {
 	public void check(MetaData metaData) {
 		final InputPort inputPort = getInputPort();				
 		if (metaData == null) {
-			inputPort.addError(new InputMissingMetaDataError(inputPort, ExampleSet.class, null));			
+			if (!optional) {
+				inputPort.addError(new InputMissingMetaDataError(inputPort, ExampleSet.class, null));
+			} else {
+				return;
+			}
 		} else {
 			if (metaData instanceof ExampleSetMetaData) {
 				ExampleSetMetaData emd = (ExampleSetMetaData)metaData;

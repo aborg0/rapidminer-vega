@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.rapidminer.example.Attribute;
-import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
@@ -78,7 +77,7 @@ public class AttributeMerge extends AbstractDataProcessing {
 			String attributeName1 = getParameterAsString(PARAMETER_FIRST_ATTRIBUTE);
 			String attributeName2 = getParameterAsString(PARAMETER_SECOND_ATTRIBUTE); 
 			String separation = getParameterAsString(PARAMETER_SEPARATOR);
-			AttributeMetaData amd = new AttributeMetaData(attributeName1 + separation + attributeName2, Ontology.NOMINAL, Attributes.ATTRIBUTE_NAME);
+			AttributeMetaData amd = new AttributeMetaData(attributeName1 + separation + attributeName2, Ontology.NOMINAL, null);
 			amd.setValueSetRelation(SetRelation.UNKNOWN);
 			metaData.addAttribute(amd);
 

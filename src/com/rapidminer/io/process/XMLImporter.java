@@ -39,8 +39,6 @@ import org.w3c.dom.NodeList;
 import com.rapidminer.BreakpointListener;
 import com.rapidminer.Process;
 import com.rapidminer.ProcessContext;
-import com.rapidminer.RapidMiner;
-import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.io.process.rules.ChangeParameterValueRule;
 import com.rapidminer.io.process.rules.DeleteAfterAutoWireRule;
 import com.rapidminer.io.process.rules.DeleteUnnecessaryOperatorChainRule;
@@ -110,7 +108,7 @@ public class XMLImporter {
 			LogService.getRoot().warning("Cannot find default parse rules.");
 		}		
 	}
-
+	
 	/**
 	 * This method adds the parse rules from the given resource to the import rule set. The operator name prefix
 	 * describes the operators coming from plugins. The core operators do not have any name prefix, while the 
@@ -337,11 +335,12 @@ public class XMLImporter {
 			}
 		}
 
-		if (RapidMiner.getExecutionMode().hasMainFrame()) {
-			if (RapidMinerGUI.getMainFrame() != null) {
-				RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().extractGUIInformation(executionUnit, element);
-			}
-		}
+		ProcessXMLFilterRegistry.fireExecutionUnitExported(executionUnit, element);
+//		if (RapidMiner.getExecutionMode().hasMainFrame()) {
+//			if (RapidMinerGUI.getMainFrame() != null) {
+//				RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().extractGUIInformation(executionUnit, element);
+//			}
+//		}
 
 	}
 
@@ -422,11 +421,12 @@ public class XMLImporter {
 			if (operator instanceof DummyOperator) {
 				((DummyOperator) operator).setReplaces(className);
 			}
-			if (RapidMiner.getExecutionMode().hasMainFrame()) {
-				if (RapidMinerGUI.getMainFrame() != null) {
-					RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().extractGUIInformation(operator, opElement);
-				}
-			}
+			ProcessXMLFilterRegistry.fireOperatorImported(operator, opElement);
+			//			if (RapidMiner.getExecutionMode().hasMainFrame()) {
+//				if (RapidMinerGUI.getMainFrame() != null) {
+//					RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().extractGUIInformation(operator, opElement);
+//				}
+//			}
 			created++;
 			if (progressListener != null && total > 0) {			
 				progressListener.setCompleted(100 * created / total);

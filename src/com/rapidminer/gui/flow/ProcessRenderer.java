@@ -91,6 +91,8 @@ import com.rapidminer.gui.tools.ResourceMenu;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.ToolTipWindow;
 import com.rapidminer.gui.tools.components.ToolTipWindow.TipProvider;
+import com.rapidminer.io.process.ProcessXMLFilter;
+import com.rapidminer.io.process.ProcessXMLFilterRegistry;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.IOObjectCollection;
@@ -499,6 +501,7 @@ public class ProcessRenderer extends JPanel {
 
 	public ProcessRenderer(ProcessPanel processPanel, MainFrame mainFrame) {
 		new PanningManager(this);
+		ProcessXMLFilterRegistry.registerFilter(new GUIProcessXMLFilter());
 		this.mainFrame = mainFrame;
 		this.processPanel = processPanel;
 		setLayout(null); // for absolute positioning of tipPane
@@ -2726,96 +2729,6 @@ public class ProcessRenderer extends JPanel {
 		return string+"...";
 	}
 
-	/** Adds GUI information to the element. */
-	public void enrichOperatorElement(Operator op, Element opElement) {
-		Rectangle2D bounds = getOperatorRect(op, false);
-		if (bounds != null) {
-			opElement.setAttribute("x", ""+(int)bounds.getX());
-			opElement.setAttribute("y", ""+(int)bounds.getY());
-			opElement.setAttribute("width", ""+(int)bounds.getWidth());
-			opElement.setAttribute("height", ""+(int)bounds.getHeight());
-		}
-	}
-
-	/** Adds GUI information to the element. */
-	public void enrichProcessElement(ExecutionUnit process, Element element) {
-		Dimension size = processSizes.get(process);
-		if (size != null) {
-			element.setAttribute("width", ""+(int)size.getWidth());
-			element.setAttribute("height", ""+(int)size.getHeight());
-		}	
-		for (Port port : process.getInnerSources().getAllPorts()) {
-			Element spacingElement = element.getOwnerDocument().createElement("portSpacing");
-			spacingElement.setAttribute("port", "source_"+port.getName());
-			spacingElement.setAttribute("spacing", ""+(int)getPortSpacing(port));
-			element.appendChild(spacingElement);
-		}
-		for (Port port : process.getInnerSinks().getAllPorts()) {
-			Element spacingElement = element.getOwnerDocument().createElement("portSpacing");
-			spacingElement.setAttribute("port", "sink_"+port.getName());
-			spacingElement.setAttribute("spacing", ""+(int)getPortSpacing(port));
-			element.appendChild(spacingElement);
-		}		
-	}
-
-	/** Extracts GUI information from the XML element. */
-	public void extractGUIInformation(Operator op, Element opElement) {
-		String x = opElement.getAttribute("x");
-		String y = opElement.getAttribute("y");
-		String w = opElement.getAttribute("width");
-		String h = opElement.getAttribute("height");
-		if ((x != null) && (x.length() > 0)) {
-			try {
-				setOperatorRect(op, new Rectangle2D.Double(Double.parseDouble(x),
-						Double.parseDouble(y),
-						Double.parseDouble(w),
-						Double.parseDouble(h)));
-			} catch (Exception e) {
-				// ignore silently				
-			}
-		}
-	}
-
-	/** Extracts GUI information from the XML element. */
-	public void extractGUIInformation(ExecutionUnit process, Element element) {
-		String w = element.getAttribute("width");
-		String h = element.getAttribute("height");	
-		try {
-			if ((w != null) && (w.length() > 0)) {
-				processSizes.put(process, new Dimension((int)Double.parseDouble(w), (int)Double.parseDouble(h)));
-			}
-		} catch (NumberFormatException e) { }
-
-		NodeList children = element.getChildNodes();
-		for (Port port : process.getInnerSources().getAllPorts()) {
-			for (int i = 0; i < children.getLength(); i++) {				
-				if ((children.item(i) instanceof Element) && "portSpacing".equals(((Element)children.item(i)).getTagName())) {
-					Element psElement = (Element)children.item(i);
-					if (("source_"+port.getName()).equals(psElement.getAttribute("port"))) {
-						try {
-							portSpacings.put(port, (double)Integer.parseInt(psElement.getAttribute("spacing")));
-						} catch (NumberFormatException e) {}
-						break;
-					}					
-				}
-			}
-		}
-		for (Port port : process.getInnerSinks().getAllPorts()) {
-			for (int i = 0; i < children.getLength(); i++) {
-				if ((children.item(i) instanceof Element) && "portSpacing".equals(((Element)children.item(i)).getTagName())) {
-					Element psElement = (Element)children.item(i);
-					if (("sink_"+port.getName()).equals(psElement.getAttribute("port"))) {
-						try {
-							portSpacings.put(port, (double)Integer.parseInt(psElement.getAttribute("spacing")));
-						} catch (NumberFormatException e) {}
-						break;
-					}					
-				}
-			}
-		}
-
-	}
-
 	private boolean canBeInsertedIntoConnection(Operator operator) {
 		if (operator == null) {
 			return false;
@@ -3052,6 +2965,99 @@ public class ProcessRenderer extends JPanel {
 		Operator outOp = out.getPorts().getOwner().getOperator();
 		if (!outOp.isEnabled()) {			
 			outOp.setEnabled(true);
+		}
+	}
+
+	/** Adds positions of operators etc. */
+	private class GUIProcessXMLFilter implements ProcessXMLFilter {
+		/** Adds GUI information to the element. */
+		public void operatorExported(Operator op, Element opElement) {
+			Rectangle2D bounds = getOperatorRect(op, false);
+			if (bounds != null) {
+				opElement.setAttribute("x", ""+(int)bounds.getX());
+				opElement.setAttribute("y", ""+(int)bounds.getY());
+				opElement.setAttribute("width", ""+(int)bounds.getWidth());
+				opElement.setAttribute("height", ""+(int)bounds.getHeight());
+			}
+		}
+
+		/** Adds GUI information to the element. */
+		public void executionUnitExported(ExecutionUnit process, Element element) {
+			Dimension size = processSizes.get(process);
+			if (size != null) {
+				element.setAttribute("width", ""+(int)size.getWidth());
+				element.setAttribute("height", ""+(int)size.getHeight());
+			}	
+			for (Port port : process.getInnerSources().getAllPorts()) {
+				Element spacingElement = element.getOwnerDocument().createElement("portSpacing");
+				spacingElement.setAttribute("port", "source_"+port.getName());
+				spacingElement.setAttribute("spacing", ""+(int)getPortSpacing(port));
+				element.appendChild(spacingElement);
+			}
+			for (Port port : process.getInnerSinks().getAllPorts()) {
+				Element spacingElement = element.getOwnerDocument().createElement("portSpacing");
+				spacingElement.setAttribute("port", "sink_"+port.getName());
+				spacingElement.setAttribute("spacing", ""+(int)getPortSpacing(port));
+				element.appendChild(spacingElement);
+			}		
+		}
+
+		/** Extracts GUI information from the XML element. */
+		public void operatorImported(Operator op, Element opElement) {
+			String x = opElement.getAttribute("x");
+			String y = opElement.getAttribute("y");
+			String w = opElement.getAttribute("width");
+			String h = opElement.getAttribute("height");
+			if ((x != null) && (x.length() > 0)) {
+				try {
+					setOperatorRect(op, new Rectangle2D.Double(Double.parseDouble(x),
+							Double.parseDouble(y),
+							Double.parseDouble(w),
+							Double.parseDouble(h)));
+				} catch (Exception e) {
+					// ignore silently				
+				}
+			}
+		}
+
+		/** Extracts GUI information from the XML element. */
+		public void executionUnitImported(ExecutionUnit process, Element element) {
+			String w = element.getAttribute("width");
+			String h = element.getAttribute("height");	
+			try {
+				if ((w != null) && (w.length() > 0)) {
+					processSizes.put(process, new Dimension((int)Double.parseDouble(w), (int)Double.parseDouble(h)));
+				}
+			} catch (NumberFormatException e) { }
+
+			NodeList children = element.getChildNodes();
+			for (Port port : process.getInnerSources().getAllPorts()) {
+				for (int i = 0; i < children.getLength(); i++) {				
+					if ((children.item(i) instanceof Element) && "portSpacing".equals(((Element)children.item(i)).getTagName())) {
+						Element psElement = (Element)children.item(i);
+						if (("source_"+port.getName()).equals(psElement.getAttribute("port"))) {
+							try {
+								portSpacings.put(port, (double)Integer.parseInt(psElement.getAttribute("spacing")));
+							} catch (NumberFormatException e) {}
+							break;
+						}					
+					}
+				}
+			}
+			for (Port port : process.getInnerSinks().getAllPorts()) {
+				for (int i = 0; i < children.getLength(); i++) {
+					if ((children.item(i) instanceof Element) && "portSpacing".equals(((Element)children.item(i)).getTagName())) {
+						Element psElement = (Element)children.item(i);
+						if (("sink_"+port.getName()).equals(psElement.getAttribute("port"))) {
+							try {
+								portSpacings.put(port, (double)Integer.parseInt(psElement.getAttribute("spacing")));
+							} catch (NumberFormatException e) {}
+							break;
+						}					
+					}
+				}
+			}
+
 		}
 	}
 }

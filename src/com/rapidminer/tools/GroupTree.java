@@ -232,7 +232,6 @@ public class GroupTree implements Comparable<GroupTree> {
 			GroupTree child = i.next();
 			child.addAllOperatorDescriptions(operators);
 		}
-//		sort();
 	}
 
 	@Override
@@ -240,7 +239,8 @@ public class GroupTree implements Comparable<GroupTree> {
 		String result = getName();
 		if (getParent() == null) 
 			result = "Root";
-		return result + (getOperatorDescriptions().size() > 0 ? " (" + getOperatorDescriptions().size() + ")" : "");
+		int size = countOperators();
+		return result + (size > 0 ? " (" + size + ")" : "");
 	}
 
     public int compareTo(GroupTree o) {
@@ -352,5 +352,14 @@ public class GroupTree implements Comparable<GroupTree> {
 	
 	public String getKey() {
 		return key;
+	}
+	
+	private int countOperators() {
+		int count = operators.size();
+		for (GroupTree tree : children.values()) {
+			count += tree.countOperators();
+		}
+		return count;
+		
 	}
 }

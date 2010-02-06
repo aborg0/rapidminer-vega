@@ -479,13 +479,16 @@ public class ExampleSetMetaData extends MetaData {
 		return regular;
 	}
 
+	/** Checks if the attribute sets are equal. */
 	public MetaDataInfo equalHeader(ExampleSetMetaData other) {
 		if (other == this)
 			return MetaDataInfo.YES;
 		if (other.getAllAttributes().size() != getAllAttributes().size() && other.getAttributeSetRelation() == SetRelation.EQUAL && getAttributeSetRelation() == SetRelation.EQUAL) {
 			return MetaDataInfo.NO;
 		}
-		if (other.getAllAttributes().size() == getAllAttributes().size() && other.getAttributeSetRelation() == SetRelation.EQUAL && getAttributeSetRelation() == SetRelation.EQUAL) {
+		if (other.getAllAttributes().size() == getAllAttributes().size() && 
+				other.getAttributeSetRelation() == SetRelation.EQUAL && 
+				getAttributeSetRelation() == SetRelation.EQUAL) {
 			for (AttributeMetaData amd: getAllAttributes()) {
 				AttributeMetaData otherAMD = other.getAttributeByName(amd.getName());
 				String otherRole = otherAMD.getRole();

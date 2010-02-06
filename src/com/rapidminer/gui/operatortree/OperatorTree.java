@@ -128,7 +128,7 @@ public class OperatorTree extends JTree implements TreeSelectionListener, TreeEx
 		addTreeExpansionListener(this);
 		addMouseListener(this);
 		ToolTipManager.sharedInstance().registerComponent(this);
-		setToggleClickCount(5);
+		//setToggleClickCount(5);
 
 		// forces the tree to ask the nodes for the correct row heights
 		// must also be invoked after LaF changes...

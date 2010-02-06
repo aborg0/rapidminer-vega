@@ -79,6 +79,9 @@ public class ExampleSetMerge extends Operator {
 		@Override
 		protected Precondition makePrecondition(InputPort port) {
 			return new ExampleSetPrecondition(port) {
+				{
+					setOptional(true);
+				}
 				@Override
 				public void makeAdditionalChecks(ExampleSetMetaData emd) throws UndefinedParameterError {
 					for (MetaData metaData: inputExtender.getMetaData(true)) {

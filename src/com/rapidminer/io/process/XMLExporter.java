@@ -33,8 +33,6 @@ import org.w3c.dom.Element;
 
 import com.rapidminer.BreakpointListener;
 import com.rapidminer.ProcessContext;
-import com.rapidminer.RapidMiner;
-import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorChain;
@@ -114,11 +112,12 @@ public class XMLExporter {
 				opElement.appendChild(exportExecutionUnit(executionUnit, hideDefault, doc, false));
 			}
 		}
-		if (RapidMiner.getExecutionMode().hasMainFrame()) {
-			if (RapidMinerGUI.getMainFrame() != null) {
-				RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().enrichOperatorElement(operator, opElement);
-			}
-		}
+		ProcessXMLFilterRegistry.fireOperatorExported(operator, opElement);
+//		if (RapidMiner.getExecutionMode().hasMainFrame()) {
+//			if (RapidMinerGUI.getMainFrame() != null) {
+//				RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().enrichOperatorElement(operator, opElement);
+//			}
+//		}
 		return opElement;
 	}
 
@@ -140,11 +139,12 @@ public class XMLExporter {
 		for (Operator op : executionUnit.getOperators()) {
 			exportConnections(op.getOutputPorts(), executionUnit, procElement, doc);			
 		}
-		if (RapidMiner.getExecutionMode().hasMainFrame()) {
-			if (RapidMinerGUI.getMainFrame() != null) {
-				RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().enrichProcessElement(executionUnit, procElement);
-			}
-		}
+		ProcessXMLFilterRegistry.fireExecutionUnitExported(executionUnit, procElement);
+//		if (RapidMiner.getExecutionMode().hasMainFrame()) {
+//			if (RapidMinerGUI.getMainFrame() != null) {
+//				RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().enrichProcessElement(executionUnit, procElement);
+//			}
+//		}
 		return procElement;
 	}
 
