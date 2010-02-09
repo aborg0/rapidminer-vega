@@ -110,9 +110,6 @@ public class Launcher {
 				LOGGER.log(Level.INFO, message);
 			}
 		}
-		if (System.getProperty(PROPERTY_RAPIDMINER_HOME) == null) {
-			throw new RuntimeException("Property '" + PROPERTY_RAPIDMINER_HOME + "' not set!");
-		}
 	}
 
 	private static JProgressBar bar;
@@ -295,38 +292,42 @@ public class Launcher {
 	IllegalAccessException, InvocationTargetException, ZipException, IOException {
 		ensureRapidMinerHomeSet();		
 		LOGGER.info("Launching RapidMiner, platform "+getPlatform());
-		File rmHome = new File(System.getProperty(PROPERTY_RAPIDMINER_HOME));
-		File updateDir = new File(rmHome, "update");
-		
-		File updateScript = new File(updateDir, "UPDATE");
-		if (!updateScript.exists()) {
-			updateScript = null;
-		}
-		File[] updates = updateDir.listFiles(new FileFilter() {
-			@Override
-			public boolean accept(File pathname) {
-				return pathname.getName().startsWith("rmupdate");
-			}			
-		});
-		File updateZip = null;
-		if (updates != null) {
-			switch (updates.length) {
-			case 0:
-				break;
-			case 1:
-				updateZip = updates[0];
-				break;
-			default:
-				LOGGER.warning("Multiple updates found: " + Arrays.toString(updates) + ". Ignoring all.");
-			}
-		}
-		if ((updateZip != null) || (updateScript !=  null)) {
-			if (updateGUI(rmHome, updateZip, updateScript)) {
-				relaunch();
-				return; // not reached
-			}
-		}
+		String rapidMinerHomeProperty = System.getProperty(PROPERTY_RAPIDMINER_HOME);
+		if (rapidMinerHomeProperty == null) {
+			LOGGER.info("RapidMiner HOME is not set. Ignoring potential update installation. (If that happens, you weren't able to download updates anyway.)");
+		} else {
+			File rmHome = new File(rapidMinerHomeProperty);
+			File updateDir = new File(rmHome, "update");
 
+			File updateScript = new File(updateDir, "UPDATE");
+			if (!updateScript.exists()) {
+				updateScript = null;
+			}
+			File[] updates = updateDir.listFiles(new FileFilter() {
+				@Override
+				public boolean accept(File pathname) {
+					return pathname.getName().startsWith("rmupdate");
+				}			
+			});
+			File updateZip = null;
+			if (updates != null) {
+				switch (updates.length) {
+				case 0:
+					break;
+				case 1:
+					updateZip = updates[0];
+					break;
+				default:
+					LOGGER.warning("Multiple updates found: " + Arrays.toString(updates) + ". Ignoring all.");
+				}
+			}
+			if ((updateZip != null) || (updateScript !=  null)) {
+				if (updateGUI(rmHome, updateZip, updateScript)) {
+					relaunch();
+					return; // not reached
+				}
+			}
+		}
 		Class<?> rapidMinerClass = Class.forName("com.rapidminer.gui.RapidMinerGUI");
 		Method main = rapidMinerClass.getMethod("main", String[].class);
 		main.invoke(null, new Object[] { args });
@@ -347,7 +348,7 @@ public class Launcher {
 		}
 
 	}
-	
+
 	public static String getLongVersion() {
 		String version = Launcher.class.getPackage().getImplementationVersion();
 		if (version == null) {

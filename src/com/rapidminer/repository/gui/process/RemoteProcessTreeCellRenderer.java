@@ -53,7 +53,7 @@ public class RemoteProcessTreeCellRenderer extends DefaultTreeCellRenderer {
 			b.append(" <small style=\"color:gray\">(");
 			if (processState != RemoteProcessState.COMPLETED) { // completed is obvious from completion time
 				if (processState == RemoteProcessState.FAILED) {
-					b.append("<span style=\"color:red\">");
+					b.append("<span style=\"color:red;font-weight:bold;\">");
 				}
 				b.append(processState.toString().toLowerCase()).append("; ");
 				if (processState == RemoteProcessState.FAILED) {

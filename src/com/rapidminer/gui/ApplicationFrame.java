@@ -38,7 +38,7 @@ public abstract class ApplicationFrame extends JFrame {
 
 	// The status bar of the application, usually displayed at the bottom
 	// of the frame.
-	private final StatusBar statusBar = new StatusBar(false, true);
+	private final StatusBar statusBar = new StatusBar(false, true, true);
 	
 	public ApplicationFrame(String title) {
 		super(title);

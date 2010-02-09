@@ -80,9 +80,9 @@ public class RepositoryLocationValueCellEditor extends AbstractCellEditor implem
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
 		c.weightx = 1;
+		c.weighty = 1;
 		c.gridwidth = GridBagConstraints.RELATIVE;
-		gridBagLayout.setConstraints(textField, c);
-		panel.add(textField);
+		panel.add(textField, c);
 		
 		JButton button = new JButton(new ResourceAction(true, "repository_select_location") {
 			private static final long serialVersionUID = 1L;
@@ -118,7 +118,8 @@ public class RepositoryLocationValueCellEditor extends AbstractCellEditor implem
 		});
 		button.setMargin(new Insets(0, 0, 0, 0));
 		c.gridwidth = GridBagConstraints.REMAINDER;
-		panel.add(button);
+		c.weightx = 0;
+		panel.add(button, c);
 	}
 	
 	@Override

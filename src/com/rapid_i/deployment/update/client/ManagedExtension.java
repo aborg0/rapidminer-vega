@@ -44,6 +44,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.rapid_i.Launcher;
+import com.rapidminer.RapidMiner;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
@@ -135,13 +137,17 @@ public class ManagedExtension {
 	}
 	
 	private static File[] getManagedExtensionsDirectory() {
-		return new File[] {
-				getGlobalExtensionsDir(),
-				getUserExtensionsDir()
-		};
+		File local = getUserExtensionsDir();
+		try {
+			File global = getGlobalExtensionsDir();
+			return new File[] {	global,	local };
+		} catch (IOException e) {
+			LogService.getRoot().warning("None of the properties "+RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS+" and "+Launcher.PROPERTY_RAPIDMINER_HOME+" is set. No globally installed extensions will be loaded.");
+			return new File[] { local };
+		}
 	}
 	
-	private static File getGlobalExtensionsDir() {
+	private static File getGlobalExtensionsDir() throws IOException {
 		return new File(ParameterService.getPluginDir(), "managed");
 	}
 	
@@ -269,7 +275,7 @@ public class ManagedExtension {
 		saveConfiguration();
 	}
 	
-	public File getDestinationFile(String version) {
+	public File getDestinationFile(String version) throws IOException {
 		if (installedInHomeDir) {
 			return new File(getUserExtensionsDir(), packageID+"-"+version+".jar");
 		} else {

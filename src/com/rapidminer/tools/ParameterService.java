@@ -326,28 +326,32 @@ public class ParameterService {
 
 	// -------------------- parameters --------------------
 
-	/**
-	 * Returns a system property and throws a runtime exception if the property
-	 * is not set.
-	 */
-	private static String getProperty(String key) {
-		String property = System.getProperty(key);
+//	/**
+//	 * Returns a system property and throws a runtime exception if the property
+//	 * is not set.
+//	 */
+//	private static String getProperty(String key) {
+//		String property = System.getProperty(key);
+//		if (property == null) {
+//			throw new RuntimeException("Property '" + key + "' not set!");
+//		}
+//		return property;
+//	}
+
+	public static File getRapidMinerHome() throws IOException {		
+		String property = System.getProperty(Launcher.PROPERTY_RAPIDMINER_HOME);
 		if (property == null) {
-			throw new RuntimeException("Property '" + key + "' not set!");
+			throw new IOException("Property "+Launcher.PROPERTY_RAPIDMINER_HOME+" is not set");
 		}
-		return property;
+		return new File(property);
 	}
 
-	public static File getRapidMinerHome() {
-		return new File(getProperty(Launcher.PROPERTY_RAPIDMINER_HOME));
-	}
-
-	private static File getLibraryFile(String name) {
+	private static File getLibraryFile(String name) throws IOException {
 		File home = getRapidMinerHome();
 		return new File(home, "lib" + File.separator + name);
 	}
 
-	public static File getPluginDir() {
+	public static File getPluginDir() throws IOException {
 		return getLibraryFile("plugins");
 	}
 	

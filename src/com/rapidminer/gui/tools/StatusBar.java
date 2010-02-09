@@ -217,23 +217,10 @@ public class StatusBar extends JPanel implements ProcessEditor {
 	private String specialText = null;
 
 	public StatusBar() {
-		this(true, true);
+		this(true, true, true);
 	}
 
-	public StatusBar(boolean showClock, boolean showTrafficLight) {
-		progressBar.setStringPainted(true);
-		progressBar.setEnabled(false);
-		progressBar.setFont(progressBar.getFont().deriveFont(8.5f));
-		progressBar.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (e.getClickCount() == 2) {
-					if (!ProgressThreadDialog.getInstance().isVisible()) {
-						ProgressThreadDialog.getInstance().setVisible(true);
-					}
-				}
-			}
-		});
+	public StatusBar(boolean showClock, boolean showTrafficLight, boolean showProgressBar) {
 		GridBagLayout layout = new GridBagLayout();
 		setLayout(layout);
 		GridBagConstraints constraints = new GridBagConstraints();
@@ -257,8 +244,24 @@ public class StatusBar extends JPanel implements ProcessEditor {
 		constraints.weightx = 0;
 		constraints.fill = GridBagConstraints.NONE;		
 		constraints.gridwidth = GridBagConstraints.RELATIVE;
-		layout.setConstraints(progressBar, constraints);
-		add(progressBar);
+		if (showProgressBar) {
+			progressBar.setStringPainted(true);
+			progressBar.setEnabled(false);
+			progressBar.setFont(progressBar.getFont().deriveFont(8.5f));
+			progressBar.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					if (e.getClickCount() == 2) {
+						if (!ProgressThreadDialog.getInstance().isVisible()) {
+							ProgressThreadDialog.getInstance().setVisible(true);
+						}
+					}
+				}
+			});
+			
+			layout.setConstraints(progressBar, constraints);
+			add(progressBar);
+		}
 
 		if (showClock) {
 			clockLabel.setToolTipText("The current system time.");

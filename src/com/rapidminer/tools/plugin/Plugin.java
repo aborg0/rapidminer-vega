@@ -49,6 +49,7 @@ import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
 
+import com.rapid_i.Launcher;
 import com.rapid_i.deployment.update.client.ManagedExtension;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.gui.MainFrame;
@@ -735,11 +736,17 @@ public class Plugin {
 			}
 
 			if (pluginDir == null) {
-				pluginDir = ParameterService.getPluginDir();
+				try {
+					pluginDir = ParameterService.getPluginDir();
+				} catch (IOException e) {
+					LogService.getRoot().warning("None of the properties "+RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS+" and "+Launcher.PROPERTY_RAPIDMINER_HOME+" is set. No globally installed plugins will be loaded.");
+				}
 			}
 
-			LogService.getRoot().config("Scanning plugins in " + pluginDir + ".");
-			registerAllPluginDescriptions(pluginDir, true);
+			if (pluginDir != null) {
+				LogService.getRoot().config("Scanning plugins in " + pluginDir + ".");
+				registerAllPluginDescriptions(pluginDir, true);
+			}
 			initPlugins();
 		} else {
 			LogService.getRoot().config("Plugins skipped.");

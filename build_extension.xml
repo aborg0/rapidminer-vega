@@ -291,7 +291,7 @@ Name "${extension.name.long}"
 
     <target name="release" description="This will increase the version counter and generate all files with the new version, including update files and javadoc.">
         <!-- testing if release should be built at all -->
-        <input message="Do you really want to create a new Release? This will increase the revision version counter, generate all platform install files, javadoc, update files and upload them either to sourceforge or the update server." validargs="yes,no,republish" defaultvalue="no" addproperty="release.input">
+        <input message="Do you really want to create a new Release? This will increase the revision version counter (current: ${extension.version}.${extension.revision}.${extension.update}), generate all platform install files, javadoc, update files and upload them either to sourceforge or the update server." validargs="yes,no,republish" defaultvalue="no" addproperty="release.input">
         </input>
         <condition property="release.accepted">
             <or>
@@ -323,10 +323,13 @@ Name "${extension.name.long}"
     </target>
 
     <target name="update" description="This target will perform a full update including file generation and uploading them to the update server.">
-        <input message="Do you really want to create a new Update? This will increase the update version counter, generate all update files and upload to the server." validargs="yes,no" addproperty="update.input">
+        <input message="Do you really want to create a new Update? This will increase the update version counter (current: ${extension.version}.${extension.revision}.${extension.update}), generate all update files and upload to the server." validargs="yes,no,republish" addproperty="update.input">
         </input>
         <condition property="update.accepted">
-            <istrue value="${update.input}" />
+            <or>
+                <equals arg1="${update.input}" arg2="republish" />
+                <istrue value="${update.input}" />
+            </or>
         </condition>
         <fail unless="update.accepted" />
         <echo message="Updating started..." />

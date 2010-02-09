@@ -35,6 +35,7 @@ import com.rapidminer.example.AttributeTransformation;
  *  @author Ingo Mierswa
  */
 public class AttributeTransformationReplaceMissing implements AttributeTransformation {
+	private static final long serialVersionUID = 1L;
 
 	private Map<String, Double> replacementMap;
 	

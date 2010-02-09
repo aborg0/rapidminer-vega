@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import javax.swing.Action;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.event.TreeExpansionEvent;
@@ -54,7 +55,11 @@ import com.vlsolutions.swing.docking.Dockable;
 public class RemoteProcessViewer extends JPanel implements Dockable {
 
 	private static final long serialVersionUID = 1L;
-	
+
+	private JTree tree;
+
+	private RemoteProcessesTreeModel treeModel;
+
 	private Action STOP_ACTION = new ResourceAction(true, "remoteprocessviewer.stop") {
 		private static final long serialVersionUID = 1L;
 		@Override
@@ -321,18 +326,18 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 	}
 
 	public static final String PROCESS_PANEL_DOCK_KEY = "remote_process_viewer";
+	private JScrollPane scrollPane;
 	private final DockKey DOCK_KEY = new ResourceDockKey(PROCESS_PANEL_DOCK_KEY);
-
-	private JTree tree;
-
-	private RemoteProcessesTreeModel treeModel;
 	{
 		DOCK_KEY.setDockGroup(MainFrame.DOCK_GROUP_ROOT);
 	}
 
 	@Override
 	public Component getComponent() {
-		return this;
+		if (scrollPane == null) {
+			scrollPane = new JScrollPane(this);
+		}
+		return scrollPane;
 	}
 
 	@Override

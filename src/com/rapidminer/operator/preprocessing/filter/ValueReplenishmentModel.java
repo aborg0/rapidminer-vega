@@ -84,7 +84,7 @@ public class ValueReplenishmentModel extends PreprocessingModel {
 			for (Attribute attribute: attributes) {
 				if (replace[i]) {
 					double value = example.getValue(attribute);
-					if (value == replaceWhat || (replaceWhat != replaceWhat && Double.isNaN(value))) { //special NaN treatment
+					if (value == replaceWhat || (Double.isNaN(replaceWhat) && Double.isNaN(value))) { //special NaN treatment
 						example.setValue(attribute, by[i]);
 					}
 				}

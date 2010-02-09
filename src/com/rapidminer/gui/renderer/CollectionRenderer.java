@@ -41,6 +41,7 @@ public class CollectionRenderer extends NonGraphicalRenderer {
 		return "Collection";
 	}
 
+	@SuppressWarnings("unchecked")
 	public Component getVisualizationComponent(Object renderable, IOContainer ioContainer) {
 		if (renderable instanceof GroupedModel) {
 			GroupedModel cm = (GroupedModel) renderable;

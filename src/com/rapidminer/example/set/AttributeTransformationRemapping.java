@@ -32,8 +32,9 @@ import com.rapidminer.example.table.NominalMapping;
  *  @author Ingo Mierswa
  */
 public class AttributeTransformationRemapping implements AttributeTransformation {
-	
-    private NominalMapping overlayedMapping;
+	private static final long serialVersionUID = 1L;
+
+	private NominalMapping overlayedMapping;
     
 	public AttributeTransformationRemapping(NominalMapping overlayedMapping) {
 		this.overlayedMapping = overlayedMapping;

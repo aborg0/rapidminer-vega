@@ -34,7 +34,6 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
-import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.processeditor.results.ResultDisplayTools;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ExtendedJTable;
@@ -90,7 +89,7 @@ public class AnovaCalculatorDialog extends ButtonDialog {
 	private final AnovaTableModel tableModel;
 
 	public AnovaCalculatorDialog() {
-		super(RapidMinerGUI.getMainFrame(), "anova_calculator", true);
+		super("anova_calculator", true);
 
 		JPanel panel = new JPanel(new BorderLayout());
 		this.calculator = new AnovaCalculator();

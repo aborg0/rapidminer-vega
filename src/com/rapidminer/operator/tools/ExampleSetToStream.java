@@ -308,7 +308,7 @@ public class ExampleSetToStream {
 	}
 
 	/** Extracts column types such that they have minimal memory consumption. */
-	public static ColumnType[] convertToColumnTypes(List<AttributeRole> allRoles) {
+	public ColumnType[] convertToColumnTypes(List<AttributeRole> allRoles) {
 		ColumnType columnTypes[] = new ColumnType[allRoles.size()];
 		for (int i = 0; i < columnTypes.length; i++) {
 			Attribute att = allRoles.get(i).getAttribute();
@@ -335,7 +335,7 @@ public class ExampleSetToStream {
 	
 	/** Writes a single datum with the given index. The data type is specified by the parameter columnType.
 	 *  If sparse is true, the value is prefixed by the given attributeIndex. */
-	public static final void writeDatum(double value, int attributeIndex, Attribute attribute, ColumnType columnType, DataOutput out, boolean sparse) throws IOException {
+	public final void writeDatum(double value, int attributeIndex, Attribute attribute, ColumnType columnType, DataOutput out, boolean sparse) throws IOException {
 		if (sparse) {
 			if (Tools.isDefault(attribute.getDefault(), value)) {
 				return;
@@ -388,7 +388,7 @@ public class ExampleSetToStream {
 	}
 	
 	/** Reads a single datum in non-sparse representation of the given type and returns it as a double. */
-	private static final double readDatum(DataInput in, ColumnType columnType) throws IOException {
+	private final double readDatum(DataInput in, ColumnType columnType) throws IOException {
 		switch (columnType) {
 		case DOUBLE:
 			return in.readDouble();
@@ -432,7 +432,7 @@ public class ExampleSetToStream {
 	}
 	
 	/** Reads a single row from the stream. */
-	public static void readRow(DataInputStream in, double[] data, ColumnType[] columnTypes, boolean sparse) throws IOException {
+	public void readRow(DataInputStream in, double[] data, ColumnType[] columnTypes, boolean sparse) throws IOException {
 		if (sparse) {				
 			while (true) {
 				int index = in.readInt();
@@ -465,20 +465,20 @@ public class ExampleSetToStream {
 	}
 
 	private String readString(DataInput in) throws IOException {
-		String value;
 		switch (version) {
 		case VERSION_1:
-			value = in.readUTF();
-			break;
+			return in.readUTF();
 		case VERSION_2:
 			int length = in.readInt();
 			byte[] bytes = new byte[length];
 			in.readFully(bytes);
-			value = new String(bytes, STRING_CHARSET);
-			break;
+			return new String(bytes, STRING_CHARSET);
 		default:
 			throw new RuntimeException("Version not set");
 		}
-		return value;
+	}
+	
+	public int getVersion() {
+		return version;
 	}
 }

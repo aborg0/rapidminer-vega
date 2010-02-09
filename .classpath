@@ -11,18 +11,6 @@
 	<classpathentry exported="true" kind="lib" path="lib/jxl.jar"/>
 	<classpathentry kind="lib" path="lib/jugpreview.jar"/>
 	<classpathentry kind="lib" path="lib/joone-engine.jar"/>
-	<classpathentry kind="lib" path="lib/freehep/freehep-export-2.0.3.jar"/>
-	<classpathentry kind="lib" path="lib/freehep/freehep-graphics2d-2.0.jar"/>
-	<classpathentry kind="lib" path="lib/freehep/freehep-graphicsio-2.0.jar"/>
-	<classpathentry kind="lib" path="lib/freehep/freehep-graphicsio-emf-2.0.jar"/>
-	<classpathentry kind="lib" path="lib/freehep/freehep-graphicsio-pdf-2.0.jar"/>
-	<classpathentry kind="lib" path="lib/freehep/freehep-graphicsio-ps-2.0.jar"/>
-	<classpathentry kind="lib" path="lib/freehep/freehep-graphicsio-svg-2.0.jar"/>
-	<classpathentry kind="lib" path="lib/freehep/freehep-graphicsio-swf-2.0.jar"/>
-	<classpathentry kind="lib" path="lib/freehep/freehep-io-2.0.1.jar"/>
-	<classpathentry kind="lib" path="lib/freehep/freehep-swing-2.0.2.jar"/>
-	<classpathentry kind="lib" path="lib/freehep/freehep-util-2.0.1.jar"/>
-	<classpathentry kind="lib" path="lib/freehep/freehep-xml-2.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/jcommon.jar"/>
 	<classpathentry kind="lib" path="lib/jfreechart.jar"/>
 	<classpathentry kind="lib" path="lib/junit.jar"/>
@@ -57,5 +45,17 @@
 	<classpathentry kind="lib" path="lib/jdbc/postgresql-8.1-407.jdbc3.jar"/>
 	<classpathentry kind="lib" path="lib/vldocking.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/freehep/freehep-export.jar"/>
+	<classpathentry kind="lib" path="lib/freehep/freehep-graphics2d.jar"/>
+	<classpathentry kind="lib" path="lib/freehep/freehep-graphicsio-emf.jar"/>
+	<classpathentry kind="lib" path="lib/freehep/freehep-graphicsio-pdf.jar"/>
+	<classpathentry kind="lib" path="lib/freehep/freehep-graphicsio-ps.jar"/>
+	<classpathentry kind="lib" path="lib/freehep/freehep-graphicsio-svg.jar"/>
+	<classpathentry kind="lib" path="lib/freehep/freehep-graphicsio-swf.jar"/>
+	<classpathentry kind="lib" path="lib/freehep/freehep-graphicsio.jar"/>
+	<classpathentry kind="lib" path="lib/freehep/freehep-io.jar"/>
+	<classpathentry kind="lib" path="lib/freehep/freehep-swing.jar"/>
+	<classpathentry kind="lib" path="lib/freehep/freehep-util.jar"/>
+	<classpathentry kind="lib" path="lib/freehep/freehep-xml.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

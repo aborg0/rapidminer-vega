@@ -31,7 +31,6 @@ import java.io.OutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import com.rapidminer.example.ExampleSet;
 import com.rapidminer.tools.XMLSerialization;
 import com.rapidminer.tools.plugin.Plugin;
 
@@ -92,25 +91,6 @@ class GZippedXMLBodySerializer extends XMLBodySerializer {
 	public void serialize(Object object, OutputStream out) throws IOException {
 		super.serialize(new GZIPOutputStream(out), out);
 	}		
-}
-
-class StreamedExampleSetBodySerializer implements BodySerializer {
-	private int version;
-	public StreamedExampleSetBodySerializer(int version) {
-		this.version = version;
-	}
-	@Override
-	public Object deserialize(InputStream in) throws IOException {
-		return new ExampleSetToStream(version).read(in);
-	}
-	@Override
-	public void serialize(Object object, OutputStream out) throws IOException {
-		if (object instanceof ExampleSet) {
-			new ExampleSetToStream(version).write((ExampleSet) object, out);
-		} else {
-			throw new IOException("Serialization type "+SerializationType.STREAMED_EXAMPLE_SET_DENSE+" only available for ExampleSets.");
-		}
-	}	
 }
 
 /** Encapsulates some standard ways to serialize and deserialize objects from streams.
