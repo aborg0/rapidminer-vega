@@ -13,7 +13,7 @@ import com.rapidminer.example.ExampleSet;
  */
 public class StreamedExampleSetBodySerializer implements BodySerializer {
 	private int version;
-	public StreamedExampleSetBodySerializer(int version) {
+	protected StreamedExampleSetBodySerializer(int version) {
 		this.version = version;
 	}
 	@Override

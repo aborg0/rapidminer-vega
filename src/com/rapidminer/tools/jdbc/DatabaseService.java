@@ -282,8 +282,15 @@ public class DatabaseService {
 
     private static void addDriverInformation(Element driverElement) throws Exception {
         JDBCProperties properties = new JDBCProperties(driverElement);
-        jdbcProperties.add(properties);
         properties.registerDrivers();
+        for (JDBCProperties other : jdbcProperties) {
+        	if (other.getName().equals(properties.getName())) {
+        		LogService.getRoot().config("Merging jdbc driver information for "+other.getName());
+        		other.merge(properties);
+        		return;
+        	}
+        }
+        jdbcProperties.add(properties);        
     }
     
 	private static Enumeration<Driver> getAllDrivers() {

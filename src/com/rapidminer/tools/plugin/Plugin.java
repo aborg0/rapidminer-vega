@@ -233,7 +233,7 @@ public class Plugin {
 		try {
 			this.archive = new JarFile(this.file);
 			URL url = new URL("file", null, this.file.getAbsolutePath());
-			return new URLClassLoader(new URL[] { url });
+			return new URLClassLoader(new URL[] { url }, Plugin.class.getClassLoader());
 		} catch (IOException e) {
 			return null;
 		}
@@ -678,9 +678,11 @@ public class Plugin {
 			return;
 		}
 		try {
-			ClassLoader classLoader = getClassLoader();
+			ClassLoader classLoader;
 			if (useOriginalJarClassLoader) {
 				classLoader = getOriginalClassLoader();
+			} else {
+				classLoader = getClassLoader();
 			}
 			Class<?> pluginInitator = Class.forName(pluginInitClassName, false, classLoader);
 			Method initMethod;

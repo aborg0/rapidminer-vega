@@ -27,6 +27,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.sql.Driver;
 import java.sql.DriverManager;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.w3c.dom.Attr;
@@ -59,7 +62,40 @@ public class JDBCProperties {
     private String valueQuoteClose;
     private String[] drivers;
     private String driverJarFile;
-    
+
+    /** Overrides all fields specified by other. */
+	public void merge(JDBCProperties other) {
+		if (other.defaultPort != null) this.defaultPort = other.defaultPort;
+		if (other.urlPrefix != null) this.urlPrefix = other.urlPrefix;
+		if (other.dbNameSeperator != null) this.dbNameSeperator = other.dbNameSeperator;
+		if (other.integerName != null) this.integerName = other.integerName;
+		if (other.textName != null) this.textName = other.textName;
+		if (other.dateTimeName != null) this.dateTimeName = other.dateTimeName;
+		if (other.timeName != null) this.timeName = other.timeName;
+		if (other.dateName != null) this.dateName = other.dateName;
+		if (other.identifierQuoteOpen != null) this.identifierQuoteOpen = other.identifierQuoteOpen;
+		if (other.identifierQuoteClose != null) this.identifierQuoteClose = other.identifierQuoteClose;
+		if (other.valueQuoteOpen != null) this.valueQuoteOpen = other.valueQuoteOpen;
+		if (other.valueQuoteClose != null) this.driverJarFile = other.valueQuoteClose;
+		if (other.driverJarFile != null) {
+			if (this.driverJarFile == null) {
+				this.driverJarFile = other.driverJarFile;
+			} else {
+				this.driverJarFile = other.driverJarFile+","+this.driverJarFile;
+			}
+		}
+		if (other.drivers != null) {
+			if (this.drivers == null) { 
+				this.drivers = other.drivers;
+			} else {
+				Set<String> merged = new HashSet<String>();
+				merged.addAll(Arrays.asList(this.drivers));
+				merged.addAll(Arrays.asList(other.drivers));
+				this.drivers = merged.toArray(new String[merged.size()]);
+			}
+		}
+	}    
+
     private JDBCProperties() {
     	name = "unknown";
     	defaultPort = "port";
@@ -320,5 +356,5 @@ public class JDBCProperties {
 
 	public String[] getDriverClasses() {
 		return drivers;
-	}    
+	}
 }
