@@ -186,13 +186,13 @@ public abstract class AbstractReader<T extends IOObject> extends Operator {
 	@Override
 	protected void registerOperator(Process process) {
 		super.registerOperator(process);
-		process.addObserver(new Observer<Process>() {
-			@Override
-			public void update(Observable<Process> observable, Process arg) {
-				cacheDirty = true;
-				AbstractReader.this.fireUpdate(AbstractReader.this);
-			}			
-		}, false);
+//		process.addObserver(new Observer<Process>() {
+//			@Override
+//			public void update(Observable<Process> observable, Process arg) {
+//				cacheDirty = true;
+//				AbstractReader.this.fireUpdate(AbstractReader.this);
+//			}			
+//		}, false);
 		cacheDirty = true;
 	}
 

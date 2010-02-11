@@ -198,12 +198,15 @@ public class DatabaseHandler {
 		if (connection != null) {
 			throw new SQLException("connect: Connection to database '" + databaseURL + "' already exists!");
 		}
-		if (username == null) {
+		DriverManager.setLoginTimeout(30);
+		if (username == null) {			
 			connection = DriverManager.getConnection(databaseURL);
 		} else {
 			connection = DriverManager.getConnection(databaseURL, username, passwd);
 		}
 		connection.setAutoCommit(autoCommit);
+		
+		
 	}
 
 	/** Closes the connection to the database. */
@@ -466,17 +469,17 @@ public class DatabaseHandler {
 				if (attribute.isNominal()) {
 					String valueString = attribute.getMapping().mapIndex((int)value);
 					
-					while (valueString.indexOf(properties.getIdentifierQuoteOpen()) >= 0)
-						valueString = valueString.replace(properties.getIdentifierQuoteOpen(), "_");
-					
-					while (valueString.indexOf(properties.getIdentifierQuoteClose()) >= 0)
-						valueString = valueString.replace(properties.getIdentifierQuoteClose(), "_");
-					
-					while (valueString.indexOf(properties.getValueQuoteOpen()) >= 0)
-						valueString = valueString.replace(properties.getValueQuoteOpen(), "_");
-					
-					while (valueString.indexOf(properties.getValueQuoteClose()) >= 0)
-						valueString = valueString.replace(properties.getValueQuoteClose(), "_");
+//					while (valueString.indexOf(properties.getIdentifierQuoteOpen()) >= 0)
+//						valueString = valueString.replace(properties.getIdentifierQuoteOpen(), "_");
+//					
+//					while (valueString.indexOf(properties.getIdentifierQuoteClose()) >= 0)
+//						valueString = valueString.replace(properties.getIdentifierQuoteClose(), "_");
+//					
+//					while (valueString.indexOf(properties.getValueQuoteOpen()) >= 0)
+//						valueString = valueString.replace(properties.getValueQuoteOpen(), "_");
+//					
+//					while (valueString.indexOf(properties.getValueQuoteClose()) >= 0)
+//						valueString = valueString.replace(properties.getValueQuoteClose(), "_");
 					
 					statement.setString(counter, valueString);
 				} else {
@@ -658,10 +661,10 @@ public class DatabaseHandler {
 
         DatabaseMetaData metaData = connection.getMetaData();
         String[] types = new String[] { "TABLE" };
-        ResultSet tableNames = metaData.getTables(null, null, "%", types);
+        ResultSet tableNames = metaData.getTables(null, null, "%", types);        
         List<String> tableNameList = new LinkedList<String>();
-        while (tableNames.next()) {
-            String tableName    = tableNames.getString(3);
+        while (tableNames.next()) {        	
+            String tableName    = tableNames.getString("TABLE_NAME");
             tableNameList.add(tableName);
         }
         

@@ -113,19 +113,14 @@ public class ProcessThread extends Thread {//implements ProcessListener {
 				} else {
 					// perform process check. No bug report if errors...
 					// TODO : prevent logging
-					boolean errors = process.checkProcess(new IOContainer());
-					if (errors) {
 						// ugly runtime exceptions (NPE, ArrayIndexOutOfBound...) should
 						// not be shown...
-						if ((e instanceof NullPointerException) || 
+					if ((e instanceof NullPointerException) || 
 							(e instanceof ArrayIndexOutOfBoundsException)) {
-							LogService.getRoot().log(Level.SEVERE, e.toString(), e);
-							SwingTools.showVerySimpleErrorMessage("proc_failed_without_obv_reason");
-						} else {
-							SwingTools.showSimpleErrorMessage("process_failed_simple", e, true);
-						}
+						LogService.getRoot().log(Level.SEVERE, e.toString(), e);
+						SwingTools.showVerySimpleErrorMessage("proc_failed_without_obv_reason");
 					} else {
-						SwingTools.showVerySimpleErrorMessage("proc_failed_errors");
+						SwingTools.showSimpleErrorMessage("process_failed_simple", e, true);
 					}
 				}
 			}

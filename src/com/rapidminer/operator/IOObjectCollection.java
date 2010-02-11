@@ -75,16 +75,6 @@ public class IOObjectCollection<T extends IOObject> extends ResultObjectAdapter 
 	}
 	
 	@Override
-	public String getExtension() {
-		return "ioc";
-	}
-
-	@Override
-	public String getFileDescription() {		
-		return "IO Object Collection";
-	}
-
-	@Override
 	public String toResultString() {
 		StringBuilder b = new StringBuilder();
 		b.append(objects.size() + " objects:\n");

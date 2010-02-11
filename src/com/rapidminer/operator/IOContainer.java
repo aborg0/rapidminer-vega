@@ -65,15 +65,7 @@ public class IOContainer implements Serializable {
 		@Override
 		public String toString() {
 			return "No intermediate results for this operator";
-		}
-        
-        /** Returns false. */
-        @Override
-		public boolean isSavable() { return false; }
-        
-        public String getExtension() { return "dum"; }
-        
-        public String getFileDescription() { return "dummy result"; }
+		}               
         
 	} });
 

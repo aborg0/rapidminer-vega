@@ -40,9 +40,7 @@ public class FixedWidthLabel extends JLabel {
 	private String rootlessHTML;
 	
 	public FixedWidthLabel(int width, String rootlessHTML) {
-		this.width = width;
-		this.rootlessHTML = rootlessHTML;
-		updateLabel();
+		this(width, rootlessHTML, null);
 	}
 	
 	public FixedWidthLabel(int width, String rootlessHTML, Icon icon) {

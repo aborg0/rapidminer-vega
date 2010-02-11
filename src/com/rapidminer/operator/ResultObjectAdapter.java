@@ -22,10 +22,6 @@
  */
 package com.rapidminer.operator;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -41,51 +37,17 @@ import com.rapidminer.tools.Tools;
  * methods and can be used if the subclass does not need to extend other
  * classes. The method {@link #toResultString()} delivers the return value of
  * {@link #toString()}. The visualization components for the graphical user
- * interface is simply the HTML representation of the result string. If a
- * subclass also implements {@link Saveable} an action for Saving will
- * automatically be added to the actions list.
+ * interface is simply the HTML representation of the result string.
  * 
  * @author Ingo Mierswa, Simon Fischer
  */
-public abstract class ResultObjectAdapter extends AbstractIOObject implements ResultObject, LoggingHandler, Saveable {
+public abstract class ResultObjectAdapter extends AbstractIOObject implements ResultObject, LoggingHandler {
 
 	private static final long serialVersionUID = -8621885253590411373L;
-
-	//private transient List<Action> actions;
-
-	public ResultObjectAdapter() {
-		//initActions();
-	}
 
 	/** The default implementation returns the classname without package. */
 	public String getName() {
 		return this.getClass().getSimpleName();
-	}
-
-	/** Returns true. 
-	 * 
-	 * @deprecated All objects can now always be saved, action concept for objects removed.
-	 */
-	@Deprecated
-	public boolean isSavable() {
-		return false;
-	}
-
-	/** Saves the object into the given file by using the {@link #write(OutputStream)} 
-	 *  method of {@link IOObject} (XML format). 
-	 *  @deprecated This method is never used. It was used by some GUI actions when we
-	 *   still had custom actions per result object. Some of the overriding methods
-	 *   also use Tools.getDefaultEncoding() which should also be avoided */
-	@Deprecated
-	public void save(final File file) throws IOException {
-		FileOutputStream fos = null;
-		try {
-			fos = new FileOutputStream(file);
-			write(fos);
-		} finally {
-			if (fos != null)
-				fos.close();
-		}
 	}
 
 	/**

@@ -268,8 +268,7 @@ public class RapidMinerGUI extends RapidMiner {
 	protected void setupGUI() throws NoOpUserError {
 		System.setProperty(BookmarkIO.PROPERTY_BOOKMARKS_DIR, ParameterService.getUserRapidMinerDir().getAbsolutePath());
 		System.setProperty(BookmarkIO.PROPERTY_BOOKMARKS_FILE, ".bookmarks");
-		System.setProperty(DatabaseConnectionService.PROPERTY_CONNECTIONS_DIR, ParameterService.getUserRapidMinerDir().getAbsolutePath());
-		System.setProperty(DatabaseConnectionService.PROPERTY_CONNECTIONS_FILE, ".connections");
+		System.setProperty(DatabaseConnectionService.PROPERTY_CONNECTIONS_FILE, "connections");
 		try {
 			UIManager.setLookAndFeel(new RapidLookAndFeel());
 			//OperatorService.reloadIcons();

@@ -47,6 +47,21 @@ import com.rapidminer.tools.container.Pair;
  */
 public class XMLExporter {
 	
+	
+	private boolean onlyCoreElements = false;
+
+	public XMLExporter() {
+		this(false);
+	}
+	
+	/**
+	 * 
+	 * @param onlyCoreElements If true, GUI and other additional information will be ignored.
+	 */
+	public XMLExporter(boolean onlyCoreElements) {
+		this.onlyCoreElements = onlyCoreElements;
+	}
+
 	public Document exportProcess(Operator operator, boolean hideDefault) throws IOException {
 		try {
 			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();			
@@ -112,7 +127,9 @@ public class XMLExporter {
 				opElement.appendChild(exportExecutionUnit(executionUnit, hideDefault, doc, false));
 			}
 		}
-		ProcessXMLFilterRegistry.fireOperatorExported(operator, opElement);
+		if (!onlyCoreElements) {
+			ProcessXMLFilterRegistry.fireOperatorExported(operator, opElement);
+		}
 //		if (RapidMiner.getExecutionMode().hasMainFrame()) {
 //			if (RapidMinerGUI.getMainFrame() != null) {
 //				RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().enrichOperatorElement(operator, opElement);
@@ -139,7 +156,9 @@ public class XMLExporter {
 		for (Operator op : executionUnit.getOperators()) {
 			exportConnections(op.getOutputPorts(), executionUnit, procElement, doc);			
 		}
-		ProcessXMLFilterRegistry.fireExecutionUnitExported(executionUnit, procElement);
+		if (!onlyCoreElements) {
+			ProcessXMLFilterRegistry.fireExecutionUnitExported(executionUnit, procElement);
+		}
 //		if (RapidMiner.getExecutionMode().hasMainFrame()) {
 //			if (RapidMinerGUI.getMainFrame() != null) {
 //				RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().enrichProcessElement(executionUnit, procElement);

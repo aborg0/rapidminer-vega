@@ -411,6 +411,9 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	
 	private final LinkedList<String> undoList = new LinkedList<String>();
 
+	/** XML representation of the process at last validation. */
+	private String lastProcessXML;
+	
 	/** The host name of the system. Might be empty (no host name will be shown) and will be initialized
 	 *  in the first call of {@link #setTitle()}. */
 	private String hostname = null;
@@ -435,14 +438,17 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 			setRepeats(false);
 		}
 	};
-	
+
 	private void updateProcessNow() {
 		lastUpdate = System.currentTimeMillis();
-		if (addToUndoList()) {
+		addToUndoList();
+		String xmlWithoutGUIInformation = process.getRootOperator().getXML(true, false);
+		if (!xmlWithoutGUIInformation.equals(lastProcessXML)) {
 			validateProcess(false);			
 		} else {
 			processPanel.getProcessRenderer().repaint();
 		}
+		lastProcessXML = xmlWithoutGUIInformation;
 	}
 
 	public void validateProcess(boolean force) {

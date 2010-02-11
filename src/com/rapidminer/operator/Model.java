@@ -37,7 +37,7 @@ import com.rapidminer.report.Readable;
  * 
  * @author Ingo Mierswa
  */
-public interface Model extends ResultObject, Saveable, Readable {
+public interface Model extends ResultObject, Readable {
 
 	/**
 	 * This method has to return the HeaderExampleSet containing the signature of the example

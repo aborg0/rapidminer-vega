@@ -15,21 +15,23 @@ if [ -z "${RAPIDMINER_HOME}" ] ; then
     echo "RAPIDMINER_HOME is not set. Trying the directory '${RAPIDMINER_HOME}'..."
 fi 
 
-if [ -z "${JAVA_HOME}" ] ; then
-    echo "JAVA_HOME is not set. Edit $0 and/or your local startup files."
-    exit 1
-else
-    _jfnd="`which java`"
-    if [ -x "${_jfnd}" ]; then
-       JAVA="${_jfnd}"
-    elif [ -x  "${JAVA_HOME}/bin/java" ]; then
-       JAVA="${JAVA_HOME}/bin/java"
-    else
-      echo 'Could not find the java executable in default path or ${JAVA_HOME}/bin/java.'
-      echo "Edit $0 and/or your local startup files."
-      exit 1
-    fi
-    unset _jfnd
+# JAVA_HOME set, so use it
+if [ ! -z "${JAVA_HOME}" ] ; then
+	if [ -x "${JAVA_HOME}/bin/java" ]; then
+		JAVA="${JAVA_HOME}/bin/java"
+	fi
+fi
+# otherwise, try to find java using which
+if [ -z "${JAVA}" ] ; then
+	_jfnd="`which java`"
+	if [ -x "${_jfnd}" ]; then
+		JAVA="${_jfnd}"
+	else
+		echo 'Could not find the java executable in default path or ${JAVA_HOME}/bin/java.'
+		echo "Edit $0 and/or your local startup files."
+		exit 1
+	fi
+	unset _jfnd
 fi
 
 if [ -z "${MAX_JAVA_MEMORY}" ] ; then

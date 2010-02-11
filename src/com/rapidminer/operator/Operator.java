@@ -1512,10 +1512,18 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		return getXML(hideDefault);
 	}
 
-	/** Returns the XML representation of this operator. */
+	
+	/** Same as getXML(hideDefault, false). */
 	public String getXML(boolean hideDefault) {
+		return getXML(hideDefault, false);
+	}
+	
+	/** Returns the XML representation of this operator.
+	 *  @param hideDefault if true, default parameters will be ignored when creating the xml representation
+	 *  @param onlyCoreElements if true, GUI and other additional information will be ignored. */
+	public String getXML(boolean hideDefault, boolean onlyCoreElements) {
 		try {
-			return XMLTools.toString(new XMLExporter().exportProcess(this, hideDefault), XMLImporter.PROCESS_FILE_CHARSET);
+			return XMLTools.toString(new XMLExporter(onlyCoreElements).exportProcess(this, hideDefault), XMLImporter.PROCESS_FILE_CHARSET);
 		} catch (Exception e) {			
 			LogService.getRoot().log(Level.WARNING, "Cannot generate process XML: "+e, e);
 			return e.toString();

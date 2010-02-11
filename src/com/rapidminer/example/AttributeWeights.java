@@ -266,7 +266,6 @@ public class AttributeWeights extends AverageVector {
 	}
 
 	/** Saves the attribute weights into an XML file. */
-	@Override
 	public void save(File file) throws IOException {
 		writeAttributeWeights(file, Tools.getDefaultEncoding());
 	}

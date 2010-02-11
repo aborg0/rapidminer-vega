@@ -292,6 +292,8 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 			ProgressThread t = new ProgressThread("test_database_connection") {
 				@Override
 				public void run() {
+					getProgressListener().setTotal(100);
+					getProgressListener().setCompleted(10);
 					try {
 						ConnectionEntry entry = checkFields(false);
 						if (entry == null) {
@@ -309,6 +311,8 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 			        	}
 			        	testLabel.setText(errorMessage);
 			            testLabel.setIcon(ICON_CONNECTION_STATUS_ERROR);
+			        } finally {
+			        	getProgressListener().complete();
 			        }
 				}
 			};

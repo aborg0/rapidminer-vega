@@ -43,53 +43,15 @@ import com.rapidminer.tools.jdbc.DatabaseService;
  * @author Tobias Malbrecht
  */
 public class DatabaseConnectionService {
-
-	public static final String PROPERTY_CONNECTIONS_DIR = "connections.dir";
 	
 	public static final String PROPERTY_CONNECTIONS_FILE = "connections";
 	
-	//private static FileSystemView fileSystemView = FileSystemView.getFileSystemView();
-
-	private static File connectionsFile;
-
 	private static List<ConnectionEntry> connections = new LinkedList<ConnectionEntry>();
 	
 	private static DatabaseHandler handler = null;
 
-	public static void init() {		
-//		File tempFile = fileSystemView.getHomeDirectory();
-//		tempFile = tempFile.getAbsoluteFile();
-//		File parentTempFile = tempFile.getParentFile();
-//
-//		String connectionsDirProperty = System.getProperty(PROPERTY_CONNECTIONS_DIR);
-//		if ((connectionsDirProperty != null) && (connectionsDirProperty.length() > 0)) {
-//			File applicationSpecifiedDir = new File(connectionsDirProperty);
-//			if (applicationSpecifiedDir.exists()) {
-//				parentTempFile = applicationSpecifiedDir;
-//			}
-//		}
-//
-//		try {
-//			parentTempFile = parentTempFile.getCanonicalFile();
-//		} catch (Exception exp) {
-//		}
-//
-//		if ((parentTempFile != null) && parentTempFile.exists() && fileSystemView.isTraversable(parentTempFile).booleanValue()) {
-//			connectionsFile = new File(parentTempFile, PROPERTY_CONNECTIONS_FILE);
-//
-//			try {
-//				connectionsFile.createNewFile();
-//			} catch (IOException ex2) {
-//			}
-//
-//			if (!connectionsFile.exists()) {
-//				connectionsFile.delete();
-//				connectionsFile = new File(tempFile, PROPERTY_CONNECTIONS_FILE);
-//			}
-//		} else {
-//			connectionsFile = new File(tempFile, PROPERTY_CONNECTIONS_FILE);
-//		}
-		File connectionsFile = ParameterService.getUserConfigFile(PROPERTY_CONNECTIONS_DIR);
+	public static void init() {
+		File connectionsFile = getConnectionsFile(); 
 		if (!connectionsFile.exists()) {
 			try {
 				connectionsFile.createNewFile();
@@ -99,6 +61,10 @@ public class DatabaseConnectionService {
 		} else {
 			connections = readConnectionEntries(connectionsFile);
 		}
+	}
+	
+	private static File getConnectionsFile() {
+		return ParameterService.getUserConfigFile(PROPERTY_CONNECTIONS_FILE);
 	}
 	
 	public static Collection<ConnectionEntry> getConnectionEntries() {
@@ -117,13 +83,13 @@ public class DatabaseConnectionService {
 	public static void addConnectionEntry(ConnectionEntry entry) {
 		connections.add(entry);
 		Collections.sort(connections, ConnectionEntry.COMPARATOR);
-		writeConnectionEntries(connections, connectionsFile);
+		writeConnectionEntries(connections);
 	}
 
 	public static void deleteConnectionEntry(ConnectionEntry entry) {
 		connections.remove(entry);
 		if (entry != null) {
-			writeConnectionEntries(connections, connectionsFile);
+			writeConnectionEntries(connections);
 		}
 	}
 
@@ -171,7 +137,8 @@ public class DatabaseConnectionService {
 		return connectionEntries;
 	}
 	
-	public static void writeConnectionEntries(Collection<ConnectionEntry> connectionEntries, File connectionEntriesFile) {
+	public static void writeConnectionEntries(Collection<ConnectionEntry> connectionEntries) {
+		File connectionEntriesFile = getConnectionsFile();
 		PrintWriter out = null;
 		try {
 			out = new PrintWriter(new FileWriter(connectionEntriesFile));
@@ -215,4 +182,26 @@ public class DatabaseConnectionService {
     	}
     	return false;
 	}
+	
+//	public static void main(String[] args) throws SQLException {
+//		RapidMiner.setExecutionMode(RapidMiner.ExecutionMode.EMBEDDED_WITHOUT_UI);
+//		DatabaseService.init();
+//		DatabaseConnectionService.init();
+//		System.out.println("#entries = "+DatabaseConnectionService.getConnectionEntries());
+//		for (ConnectionEntry entry : DatabaseConnectionService.getConnectionEntries()) {
+//			DatabaseHandler handler = DatabaseConnectionService.connect(entry);
+//			Connection con = handler.getConnection();
+//			DatabaseMetaData meta = con.getMetaData();
+//			ResultSet typeResult = meta.getTypeInfo();
+//			ResultSetMetaData rsmd = typeResult.getMetaData();
+//			for (int i = 1; i <= rsmd.getColumnCount(); i++) {
+//				System.out.println(rsmd.getColumnName(i));
+//			}
+//			while (typeResult.next()) {
+//				System.out.print("data type: "+typeResult.getString("DATA_TYPE"));
+//				System.out.println("; type name: "+typeResult.getString("TYPE_NAME"));
+//				int type = Types.BIGINT;
+//			}
+//		}
+//	}
 }

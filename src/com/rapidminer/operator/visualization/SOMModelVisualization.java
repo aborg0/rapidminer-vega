@@ -65,13 +65,6 @@ public class SOMModelVisualization extends Operator {
 		public Model getModel() {
 			return model;
 		}
-
-		@Override
-		public boolean isSavable() { return false; }
-
-		public String getExtension() { return "mvs"; }
-
-		public String getFileDescription() { return "model visualization"; }
 	}
 
 	private InputPort exampleSetInput = getInputPorts().createPort("example set", ExampleSet.class);

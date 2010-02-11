@@ -284,10 +284,12 @@ public class JDBCProperties {
     	return this.identifierQuoteClose;
     }
     
+    @Deprecated
     public String getValueQuoteOpen() {
     	return this.valueQuoteOpen;
     }
     
+    @Deprecated
     public String getValueQuoteClose() {
     	return this.valueQuoteClose;
     }

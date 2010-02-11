@@ -191,20 +191,6 @@ public class PerformanceVector extends AverageVector {
 		return "performance vector file";
 	}
 
-	@Override
-	public void save(File file) throws IOException {
-		FileOutputStream out = null;
-		try {
-			out = new FileOutputStream(file);
-			super.write(out);
-		} catch (IOException e) {
-			throw e;
-		} finally {
-			if (out != null)
-				out.close();
-		}
-	}
-
 	/** Init the value map which ensures an easy human readable format. */
 	@Override
 	public void initWriting() {

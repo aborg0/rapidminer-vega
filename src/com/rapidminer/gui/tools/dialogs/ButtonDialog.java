@@ -80,11 +80,10 @@ public class ButtonDialog extends JDialog {
 	protected boolean wasConfirmed = false;
 
 	public static final int NORMAL = 1;
-
 	public static final int NARROW = 2;
-
 	public static final int LARGE = 3;
-
+	public static final int MESSAGE = 4;
+	public static final int MESSAGE_EXTENDED = 5;
 	public static final int DEFAULT_SIZE = 8;
 
 	public static final int GAP = 6;
@@ -213,18 +212,16 @@ public class ButtonDialog extends JDialog {
 		return I18N.getMessage(I18N.getGUIBundle(), getKey() + ".title", this.arguments); 
 	}
 
-	protected JPanel makeInfoPanel() {
+	private JPanel makeInfoPanel() {
 		return makeInfoPanel(getInfoText(), getInfoIcon());
 	}
 
-	protected JPanel makeInfoPanel(String message, Icon icon) {
-		BorderLayout infoHeaderLayout = new BorderLayout();
-		infoHeaderLayout.setHgap(20);
+	private JPanel makeInfoPanel(String message, Icon icon) {
 		JLabel infoIcon = new JLabel(icon);
 		infoIcon.setVerticalAlignment(SwingConstants.TOP);
-		JPanel infoHeader = new JPanel(infoHeaderLayout);
-		infoHeader.setBorder(BorderFactory.createEmptyBorder(12, 16, 16, 4));
-		infoHeader.add(infoIcon, BorderLayout.WEST);
+		JPanel infoPanel = new JPanel(new BorderLayout(20, 0));
+		infoPanel.setBorder(BorderFactory.createEmptyBorder(12, 16, 16, 4));
+		infoPanel.add(infoIcon, BorderLayout.WEST);
 		int width;
 		if (centerComponent!= null) {
 			width = (int) centerComponent.getPreferredSize().getWidth() - 88; // icon plus padding
@@ -234,9 +231,9 @@ public class ButtonDialog extends JDialog {
 		} else {
 			width = 420;
 		}
-		infoTextLabel = new FixedWidthLabel(width, message);
-		infoHeader.add(infoTextLabel, BorderLayout.CENTER);
-		return infoHeader;
+		infoTextLabel = new FixedWidthLabel(width, message);		
+		infoPanel.add(infoTextLabel, BorderLayout.CENTER);
+		return infoPanel;
 	}
 
 	protected void layoutDefault(JComponent centerComponent, int size, Collection<AbstractButton> buttons) {
@@ -316,6 +313,10 @@ public class ButtonDialog extends JDialog {
 			return new Dimension(720, 540);
 		case LARGE:
 			return new Dimension(800, 600);
+		case MESSAGE:
+			return new Dimension(600, 200);
+		case MESSAGE_EXTENDED:
+			return new Dimension(600, 400);
 		default:
 			return new Dimension(420, 300);
 		}

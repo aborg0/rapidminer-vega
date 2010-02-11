@@ -599,14 +599,13 @@ public class SwingTools {
 	 * @param arguments					additional arguments for the internationalized message, which replace <code>{0}</code>, <code>{1}</code>, etcpp.
 	 */
 	public static void showFinalErrorMessage(String key, Throwable e, boolean displayExceptionMessage, Object...objects ) {
-		ExtendedErrorDialog dialog = new ExtendedErrorDialog( key, e, displayExceptionMessage, objects );
-		//		dialog.setLocationRelativeTo(RapidMinerGUI.getMainFrame());
-		dialog.setVisible(true);
-
 		// if debug modus is enabled, print throwable into logger
 		if (System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_DEBUGMODE).equals("true")) {
 			LogService.getRoot().log(Level.SEVERE, e.getMessage(), e);
 		}
+		ExtendedErrorDialog dialog = new ExtendedErrorDialog( key, e, displayExceptionMessage, objects );
+		//		dialog.setLocationRelativeTo(RapidMinerGUI.getMainFrame());
+		dialog.setVisible(true);
 	}
 
 	/** 
