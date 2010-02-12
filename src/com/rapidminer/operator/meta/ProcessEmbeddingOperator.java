@@ -50,6 +50,7 @@ import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeRepositoryLocation;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Observable;
@@ -186,10 +187,18 @@ public class ProcessEmbeddingOperator extends Operator {
 		String relativeProcessLocation  = getParameterAsString(PARAMETER_PROCESS_FILE);
 		RepositoryLocation resolvedLocation;
 		if ((getProcess() != null) && (getProcess().getRepositoryLocation() != null)) {
-			resolvedLocation = new RepositoryLocation(getProcess().getRepositoryLocation().parent(), relativeProcessLocation);
+			try {
+				resolvedLocation = new RepositoryLocation(getProcess().getRepositoryLocation().parent(), relativeProcessLocation);
+			} catch (MalformedRepositoryLocationException e) {
+				throw e.makeUserError(this);
+			}
 		} else {
 			getLogger().info("Process is not contained in a repository. Trying to resolve absolute location.");
-			resolvedLocation = new RepositoryLocation(relativeProcessLocation);
+			try {
+				resolvedLocation = new RepositoryLocation(relativeProcessLocation);
+			} catch (MalformedRepositoryLocationException e) {
+				throw e.makeUserError(this);
+			}
 		}
 		
 		Process process;

@@ -23,6 +23,7 @@
 package com.rapidminer.gui.tools.dialogs.wizards.dataimport.access;
 
 import java.io.File;
+import java.sql.SQLException;
 
 import javax.swing.JComponent;
 
@@ -58,11 +59,11 @@ public class AccessImportWizard extends DataImportWizard {
 	
 	private ExampleSetMetaData metaData = null;
 	
-	public AccessImportWizard(String i18nKey, Object ... i18nArgs) {
+	public AccessImportWizard(String i18nKey, Object ... i18nArgs) throws SQLException {
 		this(i18nKey, null, null, i18nArgs);
 	}
 	
-	public AccessImportWizard(String i18nKey, File preselectedFile, RepositoryLocation preselectedLocation, Object ... i18nArgs) {
+	public AccessImportWizard(String i18nKey, File preselectedFile, RepositoryLocation preselectedLocation, Object ... i18nArgs) throws SQLException {
 		super(i18nKey, i18nArgs);
 		connectionEntry.setFile(preselectedFile);
 		try {
@@ -80,7 +81,7 @@ public class AccessImportWizard extends DataImportWizard {
 			});
 		}
 		addStep(new WizardStep("database_query") {
-			private final SQLQueryBuilder dialog = new SQLQueryBuilder("build_sql_query", true);
+			private final SQLQueryBuilder dialog = new SQLQueryBuilder(DatabaseHandler.getConnectedDatabaseHandler(connectionEntry));
 			{
 				dialog.addChangeListener(AccessImportWizard.this);
 			}

@@ -50,7 +50,6 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.tools.LoggingHandler;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
-import com.rapidminer.tools.jdbc.DatabaseService;
 
 /**
  * Queries the database table for the row with the requested ID
@@ -72,14 +71,13 @@ public class DatabaseExampleVisualization implements ObjectVisualizer {
 	
 	public DatabaseExampleVisualization(String databaseURL, String userName, String password, int databaseSystem, String tableName, String columnName, LoggingHandler logging) {		
 		try {
-			this.handler = DatabaseHandler.getConnectedDatabaseHandler(databaseURL, userName, password, 
-					DatabaseService.getJDBCProperties().get(databaseSystem), logging);
+			this.handler = DatabaseHandler.getConnectedDatabaseHandler(databaseURL, userName, password);
 
 			String query = 
 				"SELECT * FROM " + 
-				handler.getProperties().getIdentifierQuoteOpen() + tableName + handler.getProperties().getIdentifierQuoteClose() + 
+				handler.getStatementCreator().makeIdentifier(tableName) + 
 				" WHERE " + 
-				handler.getProperties().getIdentifierQuoteOpen() + columnName + handler.getProperties().getIdentifierQuoteClose() + 
+				handler.getStatementCreator().makeIdentifier(columnName) + 
 				" = ?";
 
 			this.statement = this.handler.createPreparedStatement(query, false);

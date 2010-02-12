@@ -39,8 +39,7 @@ import com.rapidminer.tools.jdbc.DatabaseHandler;
  * one should use a {@link MemoryExampleTable} if the data is small enough for
  * the main memory.
  * 
- * @author Ingo Mierswa
- *          ingomierswa Exp $
+ * @author Ingo Mierswa, Simon Fischer
  */
 public class IndexCachedDatabaseExampleTable extends AbstractExampleTable {
 	
@@ -76,9 +75,8 @@ public class IndexCachedDatabaseExampleTable extends AbstractExampleTable {
 	
 	private DatabaseHandler databaseHandler;
 	
-	private String openQuote;
-	
-	private String closeQuote;
+//	private String openQuote;	
+//	private String closeQuote;
 	
 	private String tableName;
 	
@@ -98,8 +96,8 @@ public class IndexCachedDatabaseExampleTable extends AbstractExampleTable {
 	public IndexCachedDatabaseExampleTable(DatabaseHandler databaseHandler, String tableName, int dataManagementType, boolean dropMappingTable, LoggingHandler logging) throws SQLException {
 		super(new ArrayList<Attribute>());
 		this.databaseHandler = databaseHandler;
-		this.openQuote = this.databaseHandler.getProperties().getIdentifierQuoteOpen();
-		this.closeQuote = this.databaseHandler.getProperties().getIdentifierQuoteClose();
+//		this.openQuote = this.databaseHandler.getProperties().getIdentifierQuoteOpen();
+//		this.closeQuote = this.databaseHandler.getProperties().getIdentifierQuoteClose();
 		this.tableName = tableName;
 		this.dataManagementType = dataManagementType;
 		
@@ -125,7 +123,7 @@ public class IndexCachedDatabaseExampleTable extends AbstractExampleTable {
 			
 			// no key: create RM_INDEX key
 			logging.logNote("No primary key found: creating a new primary key with name '" + INDEX_COLUMN_NAME + "' for table '" + tableName + "'. This might take some time...");
-			createRMPrimaryKeyIndex(databaseHandler, this.tableName, openQuote, closeQuote);
+			createRMPrimaryKeyIndex(databaseHandler, this.tableName);
 			logging.logNote("Creation of primary key '" + INDEX_COLUMN_NAME + "' for table '" + tableName + "' finished.");
 		} else {
 			// key exists --> check for name --> wrong --> create mapping table
@@ -139,7 +137,7 @@ public class IndexCachedDatabaseExampleTable extends AbstractExampleTable {
 				boolean exists = false;
 				try {
 		            // check if table already exists (no exception and more than zero columns :-)
-					ResultSet existingResultSet = statement.executeQuery("SELECT * FROM " + openQuote + this.mappingTableName + closeQuote + " WHERE 0 = 1");
+					ResultSet existingResultSet = statement.executeQuery(databaseHandler.getStatementCreator().makeSelectEmptySetStatement(this.mappingTableName));
 		            if (existingResultSet.getMetaData().getColumnCount() > 0)
 		                exists = true;
 					existingResultSet.close();
@@ -158,7 +156,7 @@ public class IndexCachedDatabaseExampleTable extends AbstractExampleTable {
 				
 				if (exists && dropMappingTable) {
 					// drop mapping table if parameter is set
-					String dropSQL = "DROP TABLE " + openQuote + this.mappingTableName + closeQuote;
+					String dropSQL = databaseHandler.getStatementCreator().makeDropStatement(this.mappingTableName);
 					statement = this.databaseHandler.createStatement(false);
 					statement.executeUpdate(dropSQL);
 					statement.close();
@@ -169,9 +167,9 @@ public class IndexCachedDatabaseExampleTable extends AbstractExampleTable {
 					// copy key column
 					logging.logNote("Primary key '" + primaryKeyName + "' found: creating a new mapping table '" + this.mappingTableName + "' which maps from the RapidMiner index '" + INDEX_COLUMN_NAME + "' to the primary key. This might take some time..."); 
 					String copyKeyQuery = 
-						"CREATE TABLE " + openQuote + this.mappingTableName + closeQuote +
-						" AS ( SELECT " + openQuote + primaryKeyName + closeQuote + 
-						" FROM " + openQuote + this.tableName + closeQuote + " )";
+						"CREATE TABLE " + databaseHandler.getStatementCreator().makeIdentifier(this.mappingTableName)+
+						" AS ( SELECT " + databaseHandler.getStatementCreator().makeIdentifier(primaryKeyName) + 
+						" FROM " + databaseHandler.getStatementCreator().makeIdentifier(this.tableName)+ " )";
 
 					statement = this.databaseHandler.createStatement(true);
 					statement.execute(copyKeyQuery);
@@ -179,7 +177,7 @@ public class IndexCachedDatabaseExampleTable extends AbstractExampleTable {
 
 					// add new RM_INDEX key
 					logging.logNote("Creating new primary key for mapping table '" + this.mappingTableName + "'...");
-					createRMPrimaryKeyIndex(databaseHandler, this.mappingTableName, openQuote, closeQuote);
+					createRMPrimaryKeyIndex(databaseHandler, this.mappingTableName);
 					logging.logNote("Creation of mapping table '" + this.mappingTableName + "' finished.");
 				}
 			} else {
@@ -190,10 +188,10 @@ public class IndexCachedDatabaseExampleTable extends AbstractExampleTable {
 	}
 	
 	/** Subclasses might want to override this method if they do not support auto_increment. */
-	protected void createRMPrimaryKeyIndex(DatabaseHandler databaseHandler, String tableName, String openQuote, String closeQuote) throws SQLException {
+	protected void createRMPrimaryKeyIndex(DatabaseHandler databaseHandler, String tableName) throws SQLException {
 		String addKeyQuery = 
-			"ALTER TABLE " + openQuote + tableName + closeQuote +
-			" ADD " + openQuote + INDEX_COLUMN_NAME + closeQuote + 
+			"ALTER TABLE " + databaseHandler.getStatementCreator().makeIdentifier(tableName)+
+			" ADD " + databaseHandler.getStatementCreator().makeIdentifier(INDEX_COLUMN_NAME)+ 
 			" INT NOT NULL AUTO_INCREMENT PRIMARY KEY";
 		
 		Statement statement = databaseHandler.createStatement(true);
@@ -215,9 +213,7 @@ public class IndexCachedDatabaseExampleTable extends AbstractExampleTable {
 	
 	private void initAttributes() throws SQLException {
 		Statement attributeStatement = this.databaseHandler.createStatement(false);
-		String limitedQuery = 
-			"SELECT * FROM " + openQuote + tableName + closeQuote + 
-			" WHERE 0 = 1";
+		String limitedQuery = databaseHandler.getStatementCreator().makeSelectEmptySetStatement(tableName);
 		ResultSet attributeResultSet = attributeStatement.executeQuery(limitedQuery);
 		
 		List<Attribute> attributes = DatabaseHandler.createAttributes(attributeResultSet);
@@ -256,9 +252,9 @@ public class IndexCachedDatabaseExampleTable extends AbstractExampleTable {
     		if (this.mappingTableName == null) { // work directly on table
     			Statement batchStatement = this.databaseHandler.createStatement(false);
     			String limitedQuery = 
-    				"SELECT * FROM " + openQuote + tableName + closeQuote + 
-    				" WHERE " + openQuote + INDEX_COLUMN_NAME + closeQuote + " >= " + newOffset +
-    				" AND " + openQuote + INDEX_COLUMN_NAME + closeQuote + " < " + (newOffset + DEFAULT_BATCH_SIZE);
+    				"SELECT * FROM " + databaseHandler.getStatementCreator().makeIdentifier(tableName) + 
+    				" WHERE " + databaseHandler.getStatementCreator().makeIdentifier(INDEX_COLUMN_NAME) + " >= " + newOffset +
+    				" AND " + databaseHandler.getStatementCreator().makeIdentifier(INDEX_COLUMN_NAME) + " < " + (newOffset + DEFAULT_BATCH_SIZE);
     			ResultSet batchResultSet = batchStatement.executeQuery(limitedQuery);
     			this.batchExampleTable = createExampleTableFromBatch(batchResultSet);
     			batchResultSet.close();
@@ -267,12 +263,12 @@ public class IndexCachedDatabaseExampleTable extends AbstractExampleTable {
     		} else { // work with mapping table
     			Statement batchStatement = this.databaseHandler.createStatement(false);
     			String limitedQuery = 
-    				"SELECT * FROM " + openQuote + this.tableName + closeQuote + 
-    				"," + openQuote + this.mappingTableName + closeQuote +
-    				" WHERE " + openQuote + INDEX_COLUMN_NAME + closeQuote + " >= " + newOffset +
-    				" AND " + openQuote + INDEX_COLUMN_NAME + closeQuote + " < " + (newOffset + DEFAULT_BATCH_SIZE) +
-    				" AND " + openQuote + this.tableName + closeQuote + "." + openQuote + this.mappingPrimaryKey + closeQuote + 
-    				" = " + openQuote + this.mappingTableName + closeQuote + "." + openQuote + this.mappingPrimaryKey + closeQuote;
+    				"SELECT * FROM " + databaseHandler.getStatementCreator().makeIdentifier(this.tableName)+ 
+    				"," + databaseHandler.getStatementCreator().makeIdentifier(this.mappingTableName) +
+    				" WHERE " + databaseHandler.getStatementCreator().makeIdentifier(INDEX_COLUMN_NAME) + " >= " + newOffset +
+    				" AND " + databaseHandler.getStatementCreator().makeIdentifier(INDEX_COLUMN_NAME) + " < " + (newOffset + DEFAULT_BATCH_SIZE) +
+    				" AND " + databaseHandler.getStatementCreator().makeIdentifier(this.tableName) + "." + databaseHandler.getStatementCreator().makeIdentifier(this.mappingPrimaryKey)+ 
+    				" = " + databaseHandler.getStatementCreator().makeIdentifier(this.mappingTableName) + "." + databaseHandler.getStatementCreator().makeIdentifier(this.mappingPrimaryKey);
     			ResultSet batchResultSet = batchStatement.executeQuery(limitedQuery);
     			this.batchExampleTable = createExampleTableFromBatch(batchResultSet);
     			batchResultSet.close();
@@ -308,7 +304,7 @@ public class IndexCachedDatabaseExampleTable extends AbstractExampleTable {
 		int size = 0;
 		try {
 			Statement countStatement = this.databaseHandler.createStatement(false);
-			String countQuery = "SELECT count(*) FROM " + openQuote + sizeTable + closeQuote;
+			String countQuery = "SELECT count(*) FROM " + databaseHandler.getStatementCreator().makeIdentifier(sizeTable);
 			ResultSet countResultSet = countStatement.executeQuery(countQuery);
 			countResultSet.next();
 			size = countResultSet.getInt(1);

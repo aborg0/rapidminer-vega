@@ -23,6 +23,7 @@
 package com.rapidminer.gui.tools.dialogs.wizards.dataimport;
 
 import java.io.File;
+import java.sql.SQLException;
 
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.gui.RapidMinerGUI;
@@ -101,7 +102,11 @@ public class DataImportWizard extends AbstractWizard {
 			} else if ("xls".equals(extension)) {
 				new ExcelImportWizard("import_excel_sheet", file, location).setVisible(true);
 			} else if ("mdb".equals(extension)) {
-				new AccessImportWizard("import_access_table", file, location).setVisible(true);
+				try {
+					new AccessImportWizard("import_access_table", file, location).setVisible(true);
+				} catch (SQLException e) {
+					SwingTools.showSimpleErrorMessage("db_connection_failed_simple", e, e.getMessage());
+				}
 			} else {
 				SwingTools.showVerySimpleErrorMessage("importwizard.filetype_not_supported", extension);
 			}

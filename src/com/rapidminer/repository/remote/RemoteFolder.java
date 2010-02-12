@@ -37,6 +37,7 @@ import com.rapidminer.repository.DataEntry;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.IOObjectEntry;
+import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.RepositoryConstants;
 import com.rapidminer.repository.RepositoryException;
@@ -184,7 +185,12 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 
 	@Override
 	public IOObjectEntry createIOObjectEntry(String name, IOObject ioobject, Operator callingOperator, ProgressListener l) throws RepositoryException {
-		RepositoryLocation loc = new RepositoryLocation(getLocation(), name);
+		RepositoryLocation loc;
+		try {
+			loc = new RepositoryLocation(getLocation(), name);
+		} catch (MalformedRepositoryLocationException e) {
+			throw new RepositoryException(e);
+		}
 		RemoteIOObjectEntry.storeData(ioobject, loc.getPath(), getRepository(), l);
 		EntryResponse response = getRepository().getRepositoryService().getEntry(loc.getPath());
 		if (response.getStatus() != 0) {
@@ -200,7 +206,12 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 
 	@Override
 	public ProcessEntry createProcessEntry(String name, String processXML) throws RepositoryException {
-		RepositoryLocation loc = new RepositoryLocation(getLocation(), name);
+		RepositoryLocation loc;
+		try {
+			loc = new RepositoryLocation(getLocation(), name);
+		} catch (MalformedRepositoryLocationException e) {
+			throw new RepositoryException(e);
+		}
 		Response response = getRepository().getRepositoryService().storeProcess(loc.getPath(), processXML);
 		if (response.getStatus() != 0) {
 			throw new RepositoryException(response.getErrorMessage());

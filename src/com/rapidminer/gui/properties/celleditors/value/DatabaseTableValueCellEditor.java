@@ -50,7 +50,6 @@ import com.rapidminer.tools.jdbc.ColumnIdentifier;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 import com.rapidminer.tools.jdbc.connection.ConnectionProvider;
-import com.rapidminer.tools.jdbc.connection.DatabaseConnectionService;
 
 /**
  * @author Tobias Malbrecht
@@ -83,7 +82,7 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 								list.clear();
 								DatabaseHandler handler = null;
 								try {
-									handler = DatabaseConnectionService.connect(entry);
+									handler = DatabaseHandler.getConnectedDatabaseHandler(entry);
 								} catch (SQLException e1) {
 								}
 

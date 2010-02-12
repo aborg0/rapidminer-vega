@@ -48,6 +48,7 @@ import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.parameter.conditions.NonEqualTypeCondition;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.IOObjectEntry;
+import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryAccessor;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
@@ -127,7 +128,7 @@ public final class ProcessRootOperator extends OperatorChain {
 							RepositoryLocation loc;
 							try {
 								loc = getProcess().resolveRepositoryLocation(location);
-							} catch (UserError e1) {
+							} catch (Exception e1) {
 								addError(new SimpleProcessSetupError(Severity.WARNING, getPortOwner(), "repository_access_error", location, e1.toString()));
 								return;
 							}
@@ -363,7 +364,12 @@ public final class ProcessRootOperator extends OperatorChain {
 					getLogger().warning("No input port available for process input #"+(i+1)+": "+location);
 				} else {
 					OutputPort port = getSubprocess(0).getInnerSources().getPortByIndex(i);
-					RepositoryLocation loc = getProcess().resolveRepositoryLocation(location);
+					RepositoryLocation loc;
+					try {
+						loc = getProcess().resolveRepositoryLocation(location);
+					} catch (MalformedRepositoryLocationException e1) {
+						throw e1.makeUserError(this);
+					}
 					try {
 						Entry entry = loc.locateEntry();
 						if (entry == null) {
@@ -399,7 +405,12 @@ public final class ProcessRootOperator extends OperatorChain {
 					getLogger().warning("No output port corresponding to process output #"+(i+1)+": "+locationStr);
 				} else {
 					InputPort port = getSubprocess(0).getInnerSinks().getPortByIndex(i);
-					RepositoryLocation location = getProcess().resolveRepositoryLocation(locationStr);
+					RepositoryLocation location;
+					try {
+						location = getProcess().resolveRepositoryLocation(locationStr);
+					} catch (MalformedRepositoryLocationException e1) {
+						throw e1.makeUserError(this);
+					}
 					IOObject data = port.getDataOrNull();
 					if (data == null) {
 						getLogger().warning("Nothing to store at "+location+": No results produced at "+port.getSpec()+".");

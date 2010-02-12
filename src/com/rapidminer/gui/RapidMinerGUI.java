@@ -67,6 +67,7 @@ import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.ParameterTypeString;
+import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.tools.LogService;
@@ -385,7 +386,11 @@ public class RapidMinerGUI extends RapidMiner {
 				if (line.startsWith("file ")) {
 					recentFiles.add(new FileProcessLocation(new File(line.substring(5))));	
 				} else if (line.startsWith("repository ")) {
-					recentFiles.add(new RepositoryProcessLocation(new RepositoryLocation(line.substring(11))));
+					try {
+						recentFiles.add(new RepositoryProcessLocation(new RepositoryLocation(line.substring(11))));
+					} catch (MalformedRepositoryLocationException e) {
+						LogService.getRoot().log(Level.WARNING, "Unparseable line in history file: "+line);
+					}
 				} else {
 					LogService.getRoot().log(Level.WARNING, "Unparseable line in history file: "+line);		
 				}				

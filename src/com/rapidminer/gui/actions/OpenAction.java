@@ -32,6 +32,7 @@ import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryLocationChooser;
 import com.rapidminer.tools.XMLException;
@@ -60,7 +61,11 @@ public class OpenAction extends ResourceAction {
 		if (RapidMinerGUI.getMainFrame().close()) {
 			String location = RepositoryLocationChooser.selectLocation(null, RapidMinerGUI.getMainFrame());
 			if (location != null) {
-				open(new RepositoryProcessLocation(new RepositoryLocation(location)), true);
+				try {
+					open(new RepositoryProcessLocation(new RepositoryLocation(location)), true);
+				} catch (MalformedRepositoryLocationException e) {
+					SwingTools.showSimpleErrorMessage("while_loading", e, location, e.getMessage());
+				}
 			}			
 		}
 	}

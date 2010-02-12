@@ -70,6 +70,7 @@ import com.rapidminer.operator.UnknownParameterInformation;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ports.Port;
 import com.rapidminer.report.ReportStream;
+import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryAccessor;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.AbstractObservable;
@@ -1013,7 +1014,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 
 
 	/** Resolves a repository location relative to {@link #getRepositoryLocation()}. */
-	public RepositoryLocation resolveRepositoryLocation(String loc) throws UserError {
+	public RepositoryLocation resolveRepositoryLocation(String loc) throws UserError, MalformedRepositoryLocationException {
 		if (RepositoryLocation.isAbsolute(loc)) {
 			RepositoryLocation repositoryLocation = new RepositoryLocation(loc);
 			repositoryLocation.setAccessor(getRepositoryAccessor());

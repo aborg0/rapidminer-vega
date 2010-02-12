@@ -36,8 +36,7 @@ import com.rapidminer.tools.jdbc.DatabaseHandler;
  * one should use a {@link MemoryExampleTable} if the data is small enough for
  * the main memory.
  * 
- * @author Ingo Mierswa
- *          ingomierswa Exp $
+ * @author Ingo Mierswa, Simon Fischer
  */
 public class LimitCachedDatabaseExampleTable extends AbstractExampleTable {
 	
@@ -93,7 +92,8 @@ public class LimitCachedDatabaseExampleTable extends AbstractExampleTable {
 	
 	private void initAttributes() throws SQLException {
 		Statement attributeStatement = this.databaseHandler.createStatement(false);
-		String limitedQuery = "SELECT * FROM " + databaseHandler.getProperties().getIdentifierQuoteOpen() + tableName + databaseHandler.getProperties().getIdentifierQuoteClose() + " LIMIT 1";
+		String limitedQuery = databaseHandler.getStatementCreator().makeSelectEmptySetStatement(tableName);
+		//"SELECT * FROM " + databaseHandler.getProperties().getIdentifierQuoteOpen() + tableName + databaseHandler.getProperties().getIdentifierQuoteClose() + " LIMIT 1";
 		ResultSet attributeResultSet = attributeStatement.executeQuery(limitedQuery);
 		
 		addAttributes(DatabaseHandler.createAttributes(attributeResultSet));
@@ -122,7 +122,7 @@ public class LimitCachedDatabaseExampleTable extends AbstractExampleTable {
     	// retrieve new batch
     	if (newBatch) {
     		Statement batchStatement = this.databaseHandler.createStatement(false);
-    		String limitedQuery = "SELECT * FROM " + databaseHandler.getProperties().getIdentifierQuoteOpen()+ tableName + databaseHandler.getProperties().getIdentifierQuoteClose() + " LIMIT " + DEFAULT_BATCH_SIZE + " OFFSET " + newOffset;
+    		String limitedQuery = "SELECT * FROM " + databaseHandler.getStatementCreator().makeIdentifier(tableName) + " LIMIT " + DEFAULT_BATCH_SIZE + " OFFSET " + newOffset;
     		ResultSet batchResultSet = batchStatement.executeQuery(limitedQuery);
     		this.batchExampleTable = createExampleTableFromBatch(batchResultSet);
     		batchResultSet.close();
@@ -157,7 +157,7 @@ public class LimitCachedDatabaseExampleTable extends AbstractExampleTable {
 		if (this.size < 0) {
 			try {
 				Statement countStatement = this.databaseHandler.createStatement(false);
-				String countQuery = "SELECT count(*) FROM " + databaseHandler.getProperties().getIdentifierQuoteOpen() + tableName + databaseHandler.getProperties().getIdentifierQuoteClose();
+				String countQuery = databaseHandler.getStatementCreator().makeSelectSizeStatement(tableName);
 				ResultSet countResultSet = countStatement.executeQuery(countQuery);
 				countResultSet.next();
 				this.size = countResultSet.getInt(1);

@@ -37,7 +37,6 @@ import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypePassword;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
-import com.rapidminer.tools.jdbc.DatabaseService;
 
 
 /**
@@ -78,8 +77,7 @@ public class AccessDataWriter extends AbstractExampleSetWriter {
 		}
 		DatabaseHandler handler = null;
 		try {
-			handler = DatabaseHandler.getConnectedDatabaseHandler(databaseURL, username, password, 
-															      DatabaseService.getJDBCProperties("ODBC Bridge (e.g. Access)"), this);
+			handler = DatabaseHandler.getConnectedDatabaseHandler(databaseURL, username, password);
 			handler.createTable(exampleSet, getParameterAsString(PARAMETER_TABLE_NAME), getParameterAsInt(PARAMETER_OVERWRITE_MODE), getApplyCount() == 0, -1);
 			handler.disconnect();
 			return exampleSet;

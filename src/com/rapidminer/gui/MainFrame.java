@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -305,8 +306,13 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			AccessImportWizard wizard = new AccessImportWizard("import_access_table");
-			wizard.setVisible(true);
+			AccessImportWizard wizard;
+			try {
+				wizard = new AccessImportWizard("import_access_table");
+				wizard.setVisible(true);
+			} catch (SQLException e1) {
+				SwingTools.showSimpleErrorMessage("db_connection_failed_simple", e1, e1.getMessage());
+			}			
 		}
 	};
 	public final transient Action IMPORT_DATABASE_TABLE_ACTION = new ResourceAction("import_database_table") {
@@ -314,8 +320,13 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			DatabaseImportWizard wizard = new DatabaseImportWizard("import_database_table");
-			wizard.setVisible(true);
+			DatabaseImportWizard wizard;
+			try {
+				wizard = new DatabaseImportWizard("import_database_table");
+				wizard.setVisible(true);
+			} catch (SQLException e1) {
+				SwingTools.showSimpleErrorMessage("db_connection_failed_simple", e1, e1.getMessage());
+			}			
 		}
 	};
 	public final transient Action IMPORT_PROCESS_ACTION = new ImportProcessAction();

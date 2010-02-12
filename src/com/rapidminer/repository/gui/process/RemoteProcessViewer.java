@@ -34,6 +34,7 @@ import com.rapidminer.gui.tools.ViewToolBar;
 import com.rapidminer.gui.tools.components.ToolTipWindow;
 import com.rapidminer.gui.tools.components.ToolTipWindow.TipProvider;
 import com.rapidminer.repository.IOObjectEntry;
+import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RemoteProcessState;
 import com.rapidminer.repository.Repository;
 import com.rapidminer.repository.RepositoryConstants;
@@ -115,8 +116,15 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 				Object selection = selectionPath.getLastPathComponent();
 				if (selection instanceof ProcessResponse) {
 					Repository repository = (Repository) selectionPath.getPath()[1];
-					RepositoryLocation loc = new RepositoryLocation(RepositoryLocation.REPOSITORY_PREFIX+repository.getName()+
-							((ProcessResponse) selection).getProcessLocation());
+					String locStr = RepositoryLocation.REPOSITORY_PREFIX+repository.getName()+
+					((ProcessResponse) selection).getProcessLocation();
+					RepositoryLocation loc;
+					try {
+						loc = new RepositoryLocation(locStr);
+					} catch (MalformedRepositoryLocationException e1) {
+						SwingTools.showSimpleErrorMessage("while_loading", e1, locStr, e1.getMessage());
+						return;
+					}
 					OpenAction.open(new RepositoryProcessLocation(loc), true);							
 				} else if (selection instanceof OutputLocation) {
 					try {
@@ -161,14 +169,14 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 			}					
 		}
 	};
-	
+
 	private Date sessionStartDate = new Date();
 	private JComboBox sinceWhenCombo = new JComboBox(new Object[] {
 			I18N.getMessage(I18N.getGUIBundle(), "gui.combo.remoteprocessviewer.since_session_start"),
 			I18N.getMessage(I18N.getGUIBundle(), "gui.combo.remoteprocessviewer.for_today"),
 			I18N.getMessage(I18N.getGUIBundle(), "gui.combo.remoteprocessviewer.all")
 	});
-		
+
 	public RemoteProcessViewer() {
 		setLayout(new BorderLayout());
 		treeModel = new RemoteProcessesTreeModel();
@@ -265,7 +273,7 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 				}
 			}
 		}, tree);
-		
+
 		sinceWhenCombo.addActionListener(new ActionListener() {			
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -284,10 +292,10 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 				case 2:
 					treeModel.setSince(null);
 				}
-				
+
 			}
 		});
-		
+
 		tree.addTreeExpansionListener(new TreeExpansionListener() {
 			@Override
 			public void treeExpanded(TreeExpansionEvent event) {
@@ -296,7 +304,7 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 					treeModel.observe((RemoteRepository) leaf);
 				}				
 			}
-			
+
 			@Override
 			public void treeCollapsed(TreeExpansionEvent event) {
 				Object leaf = event.getPath().getLastPathComponent();
@@ -308,19 +316,23 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 	}
 
 	private RepositoryLocation getSelectedRepositoryLocation(TreePath selectionPath) {
-		if (selectionPath != null) {
-			Object selection = selectionPath.getLastPathComponent();
-			if (selection instanceof ProcessResponse) {
-				Repository repository = (Repository) selectionPath.getPath()[1];
-				return new RepositoryLocation(RepositoryLocation.REPOSITORY_PREFIX+repository.getName()+
-						((ProcessResponse) selection).getProcessLocation());						
-			} else if (selection instanceof OutputLocation) {
-				Repository repository = (Repository) selectionPath.getPath()[1];
-				ProcessResponse proResponse = (ProcessResponse) selectionPath.getPath()[2];
-				RepositoryLocation procLoc = new RepositoryLocation(RepositoryLocation.REPOSITORY_PREFIX+repository.getName()+
-						proResponse.getProcessLocation());
-				return new RepositoryLocation(procLoc.parent(), ((OutputLocation)selection).getLocation());
+		try {
+			if (selectionPath != null) {
+				Object selection = selectionPath.getLastPathComponent();
+				if (selection instanceof ProcessResponse) {
+					Repository repository = (Repository) selectionPath.getPath()[1];
+					return new RepositoryLocation(RepositoryLocation.REPOSITORY_PREFIX+repository.getName()+
+							((ProcessResponse) selection).getProcessLocation());						
+				} else if (selection instanceof OutputLocation) {
+					Repository repository = (Repository) selectionPath.getPath()[1];
+					ProcessResponse proResponse = (ProcessResponse) selectionPath.getPath()[2];
+					RepositoryLocation procLoc = new RepositoryLocation(RepositoryLocation.REPOSITORY_PREFIX+repository.getName()+
+							proResponse.getProcessLocation());
+					return new RepositoryLocation(procLoc.parent(), ((OutputLocation)selection).getLocation());
+				}
 			}
+		} catch (MalformedRepositoryLocationException e) {
+			return null;
 		}
 		return null;
 	}

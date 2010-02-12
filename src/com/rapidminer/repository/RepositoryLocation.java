@@ -47,7 +47,7 @@ public class RepositoryLocation {
 	
 	/** Constructs a RepositoryLocation from a string of the form
 	 *  //Repository/path/to/object. */
-	public RepositoryLocation(String absoluteLocation) {
+	public RepositoryLocation(String absoluteLocation) throws MalformedRepositoryLocationException {
 		if (isAbsolute(absoluteLocation)) {
 			initializeFromAbsoluteLocation(absoluteLocation);
 		} else {
@@ -57,8 +57,9 @@ public class RepositoryLocation {
 	}
 	
 	/** Creates a RepositoryLocation for a given repository and a set of path components
-	 *  which will be concatenated by a /. */
-	public RepositoryLocation(String repositoryName, String[] pathComponents) {
+	 *  which will be concatenated by a /. 
+	 * @throws MalformedRepositoryLocationException */
+	public RepositoryLocation(String repositoryName, String[] pathComponents) throws MalformedRepositoryLocationException {
 		this.repositoryName = repositoryName;
 		this.path = pathComponents;
 		String tmp;
@@ -71,8 +72,9 @@ public class RepositoryLocation {
 	
 	/** Appends a child entry to a given parent location. Child can be composed
 	 *  of subcomponents separated by /. Dots ("..") will resolve to the parent 
-	 *  folder. */
-	public RepositoryLocation(RepositoryLocation parent, String childName) {		
+	 *  folder. 
+	 * @throws MalformedRepositoryLocationException */
+	public RepositoryLocation(RepositoryLocation parent, String childName) throws MalformedRepositoryLocationException {		
 		if (isAbsolute(childName)) {
 			initializeFromAbsoluteLocation(childName);
 		} else if (childName.startsWith(""+SEPARATOR)) {
@@ -104,9 +106,9 @@ public class RepositoryLocation {
 		}
 	}
 
-	private void initializeFromAbsoluteLocation(String absoluteLocation) {
+	private void initializeFromAbsoluteLocation(String absoluteLocation) throws MalformedRepositoryLocationException {
 		if (!isAbsolute(absoluteLocation)) {
-			throw new IllegalArgumentException("Location is not absolute: '"+absoluteLocation+"'!");
+			throw new MalformedRepositoryLocationException("Location is not absolute: '"+absoluteLocation+"'!");
 		}
 		
 		String tmp = absoluteLocation.substring(2);
@@ -114,22 +116,22 @@ public class RepositoryLocation {
 		if (nextSlash != -1) {
 			repositoryName = tmp.substring(0, nextSlash);
 		} else {
-			throw new IllegalArgumentException("Malformed repositoy location: "+absoluteLocation+": path component missing.");
+			throw new MalformedRepositoryLocationException("Malformed repositoy location: "+absoluteLocation+": path component missing.");
 		}
 		initializeAbsolutePath(tmp.substring(nextSlash));		
 	}
 	
-	private void initializeAbsolutePath(String path) {
+	private void initializeAbsolutePath(String path) throws MalformedRepositoryLocationException {
 		if (!path.startsWith(""+SEPARATOR)) {
-			throw new IllegalArgumentException("No absolute path: "+path);
+			throw new MalformedRepositoryLocationException("No absolute path: "+path);
 		}
 		path = path.substring(1);
 		this.path = path.split(""+SEPARATOR);
 	}
 	
-	private static void checkName(String name) {
+	private static void checkName(String name) throws MalformedRepositoryLocationException {
 		if (name.contains(""+SEPARATOR)) {
-			throw new IllegalArgumentException("Names must not contain '"+SEPARATOR+"'.");
+			throw new MalformedRepositoryLocationException("Names must not contain '"+SEPARATOR+"'.");
 		}
 	}
 	
@@ -188,7 +190,12 @@ public class RepositoryLocation {
 		} else {
 			String[] pathCopy = new String[path.length-1];
 			System.arraycopy(path, 0, pathCopy, 0, path.length-1);
-			RepositoryLocation parent = new RepositoryLocation(this.repositoryName, pathCopy);
+			RepositoryLocation parent;
+			try {
+				parent = new RepositoryLocation(this.repositoryName, pathCopy);
+			} catch (MalformedRepositoryLocationException e) {
+				throw new RuntimeException(e);
+			}
 			parent.setAccessor(accessor);
 			return parent;
 		}

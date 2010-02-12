@@ -33,6 +33,7 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -42,7 +43,6 @@ import java.util.Map;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.AttributeRole;
-import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
@@ -60,6 +60,7 @@ import com.rapidminer.parameter.ParameterTypeSQLQuery;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.LoggingHandler;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.Tools;
@@ -139,15 +140,59 @@ public class DatabaseHandler {
 	
 	/** Used for logging purposes. */
 	private String databaseURL;
+    
+    private StatementCreator statementCreator;
 
-    /** The properties of this JDBC driver and connection. */
-    private JDBCProperties properties;
+    private String user;
     
 	/** The 'singleton' connection. Each database handler can handle one single connection to 
 	 *  a database. Will be null before the connection is established and will also be null
 	 *  after {@link #disconnect()} was invoked. */
 	private Connection connection;
     
+	private static class DHIdentifier {
+		private String url;
+		private String username;
+
+		private DHIdentifier(String url, String username) {
+			super();
+			this.url = url;
+			this.username = username;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((url == null) ? 0 : url.hashCode());
+			result = prime * result + ((username == null) ? 0 : username.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			DHIdentifier other = (DHIdentifier) obj;
+			if (url == null) {
+				if (other.url != null)
+					return false;
+			} else if (!url.equals(other.url))
+				return false;
+			if (username == null) {
+				if (other.username != null)
+					return false;
+			} else if (!username.equals(other.username))
+				return false;
+			return true;
+		}
+	}
+	private static final Map<DHIdentifier,DatabaseHandler> POOL = new HashMap<DHIdentifier,DatabaseHandler>(); 
+	private static final Object POOL_LOCK = new Object();
 	
 	/**
 	 * Constructor of the database handler. This constructor expects the URL definition
@@ -157,28 +202,49 @@ public class DatabaseHandler {
      * a connected database handler you might use the static method 
      * {@link #getConnectedDatabaseHandler(String, String, String, JDBCProperties, LoggingHandler)} instead.
 	 */
-	public DatabaseHandler(String databaseURL, JDBCProperties properties) {
+	private DatabaseHandler(String databaseURL, String user) {
 		this.databaseURL = databaseURL;
-        this.properties = properties;
-		connection = null;
+		this.user = user;
 	}
+	
+    public static DatabaseHandler getConnectedDatabaseHandler(ConnectionEntry entry) throws SQLException {
+    	synchronized (POOL_LOCK) {
+    		DHIdentifier id = new DHIdentifier(entry.getURL(), entry.getName());
+    		DatabaseHandler pooled = POOL.get(id);
+    		if ((pooled != null) && !pooled.connection.isClosed()) {    			
+    			return pooled;
+    		} else {
+    			DatabaseHandler handler = new DatabaseHandler(entry.getURL(), entry.getUser());
+    			handler.connect(entry.getPassword());
+    			POOL.put(id, handler);
+    			return handler;
+    		}    		
+    	}		
+	}
+
     
 	/** Returns a connected database handler instance from the given connection data. If the password
 	 *  is null, it will be queries by the user during this method. */
-	public static DatabaseHandler getConnectedDatabaseHandler(String databaseURL, String username, String password, JDBCProperties properties, LoggingHandler logging) throws OperatorException, SQLException {
-		if (password == null) {
-			password = RapidMiner.getInputHandler().inputPassword("Password for user '" + username + "' required");
+	public static DatabaseHandler getConnectedDatabaseHandler(String databaseURL, String username, String password) throws OperatorException, SQLException {
+		synchronized (POOL_LOCK) {
+			DHIdentifier id = new DHIdentifier(databaseURL, username);
+    		DatabaseHandler pooled = POOL.get(id);
+    		if ((pooled != null) && !pooled.connection.isClosed()) {
+    			return pooled;
+    		} else {
+    			if (password == null) {
+    				password = RapidMiner.getInputHandler().inputPassword("Password for user '" + username + "' required");
+    			}
+    			DatabaseHandler databaseHandler = new DatabaseHandler(databaseURL, username);
+    			databaseHandler.connect(password.toCharArray());
+    			POOL.put(id, databaseHandler);
+    			return databaseHandler;
+    		}
 		}
-
-		DatabaseHandler databaseHandler = new DatabaseHandler(databaseURL, properties);
-		logging.log("Connecting to '" + databaseURL + "'.");
-		databaseHandler.connect(username, password, true);
-		return databaseHandler;
 	}
-	
-	/** Returns the JDBC properties associated with this handler. */
-	public JDBCProperties getProperties() {
-		return this.properties;
+
+	public StatementCreator getStatementCreator() {
+		return statementCreator;
 	}
 	
 	/**
@@ -194,26 +260,32 @@ public class DatabaseHandler {
 	 *            automatically. If FALSE, the commit()-Method has to be called
 	 *            to make changes permanent.
 	 */
-	public void connect(String username, String passwd, boolean autoCommit) throws SQLException {
+	private void connect(char[] passwd) throws SQLException {
 		if (connection != null) {
-			throw new SQLException("connect: Connection to database '" + databaseURL + "' already exists!");
+			throw new SQLException("Connection to database '" + databaseURL + "' already exists!");
 		}
+		LogService.getRoot().config("Connecting to "+databaseURL+" as "+this.user+".");
 		DriverManager.setLoginTimeout(30);
-		if (username == null) {			
+		if (this.user == null) {			
 			connection = DriverManager.getConnection(databaseURL);
 		} else {
-			connection = DriverManager.getConnection(databaseURL, username, passwd);
+			connection = DriverManager.getConnection(databaseURL, this.user, new String(passwd));
 		}
-		connection.setAutoCommit(autoCommit);
-		
-		
+		connection.setAutoCommit(true);
+		statementCreator = new StatementCreator(connection);
 	}
 
 	/** Closes the connection to the database. */
 	public void disconnect() throws SQLException {
 		if (connection != null) {
 			connection.close();
-			connection = null;
+			unregister();			
+		}
+	}
+
+	private void unregister() {
+		synchronized (POOL_LOCK) {			
+			POOL.remove(new DHIdentifier(this.databaseURL, this.user));
 		}
 	}
 
@@ -300,7 +372,12 @@ public class DatabaseHandler {
 		boolean exists = false;
 		try {
             // check if column already exists (no exception and more than zero rows :-)
-			ResultSet existingResultSet = statement.executeQuery("SELECT " + properties.getIdentifierQuoteOpen() + attribute.getName() + properties.getIdentifierQuoteClose() + " FROM " + properties.getIdentifierQuoteOpen() + tableName + properties.getIdentifierQuoteClose() + " WHERE 0 = 1");
+			// TODO: Use meta data instead
+			ResultSet existingResultSet = statement.executeQuery("SELECT " + 
+					statementCreator.makeColumnIdentifier(attribute) + 
+					" FROM " + 
+					statementCreator.makeIdentifier(tableName) + " WHERE 0 = 1");
+			//ResultSet existingResultSet = statement.executeQuery(statementCreator.makeSelectEmptySetStatement(tableName));
             if (existingResultSet.getMetaData().getColumnCount() > 0)
                 exists = true;
 			existingResultSet.close();
@@ -319,10 +396,9 @@ public class DatabaseHandler {
 			st = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 			String query = 
 				"ALTER TABLE " + 
-				properties.getIdentifierQuoteOpen() + tableName + properties.getIdentifierQuoteClose() + 
+				statementCreator.makeIdentifier(tableName) + 
 				" ADD COLUMN " + 
-				properties.getIdentifierQuoteOpen() + attribute.getName() + properties.getIdentifierQuoteClose() + 
-				" " + (attribute.isNominal() ? (properties.getVarcharName() + "(256)") : properties.getRealName());
+				statementCreator.makeColumnCreator(attribute);
 			st.execute(query);
 		} catch (SQLException e) {
 			throw e;
@@ -342,9 +418,9 @@ public class DatabaseHandler {
         	st = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
         	String query = 
         		"ALTER TABLE " + 
-        		properties.getIdentifierQuoteOpen() + tableName + properties.getIdentifierQuoteClose() + 
+        		statementCreator.makeIdentifier(tableName) + 
         		" DROP COLUMN " + 
-        		properties.getIdentifierQuoteOpen() + attribute.getName() + properties.getIdentifierQuoteClose();
+        		statementCreator.makeColumnIdentifier(attribute);
         	st.execute(query);
         } catch (SQLException e) {
         	throw e;
@@ -364,13 +440,15 @@ public class DatabaseHandler {
 		boolean exists = false;
 		try {
             // check if table already exists (no exception and more than zero columns :-)
-			ResultSet existingResultSet = statement.executeQuery("SELECT * FROM " + properties.getIdentifierQuoteOpen() + tableName + properties.getIdentifierQuoteClose() + " WHERE 0 = 1");
+			// TODO: Huargh. Use meta data instead
+			ResultSet existingResultSet = statement.executeQuery("SELECT * FROM " + 
+					statementCreator.makeIdentifier(tableName) + " WHERE 0 = 1");
             if (existingResultSet.getMetaData().getColumnCount() > 0)
                 exists = true;
 			existingResultSet.close();
 		} catch (SQLException e) {
 			// exception will be throw if table does not exist
-//TODO : Remove
+			//TODO : Remove
 			e.printStackTrace();
 		}
 		
@@ -381,21 +459,19 @@ public class DatabaseHandler {
             	throw new SQLException("Table with name '"+tableName+"' already exists and overwriting mode is not activated." + Tools.getLineSeparator() + 
             	"Please change table name or activate overwriting mode.");
         	case OVERWRITE_MODE_OVERWRITE:
-            	statement.executeUpdate("DROP TABLE " + properties.getIdentifierQuoteOpen() + tableName + properties.getIdentifierQuoteClose());
-            	
+            	statement.executeUpdate(statementCreator.makeDropStatement(tableName));            	
             	// create new table
             	exampleSet.recalculateAllAttributeStatistics(); // necessary for updating the possible nominal values
-            	String createTableString = getCreateTableString(exampleSet, tableName, defaultVarcharLength);
+            	String createTableString = statementCreator.makeTableCreator(exampleSet.getAttributes(), tableName, defaultVarcharLength);
             	statement.executeUpdate(createTableString);
             	statement.close();
             	break;
         	case OVERWRITE_MODE_OVERWRITE_FIRST:
         		if (firstAttempt) {
-                	statement.executeUpdate("DROP TABLE " + properties.getIdentifierQuoteOpen() + tableName + properties.getIdentifierQuoteClose());
-                	
+                	statement.executeUpdate(statementCreator.makeDropStatement(tableName));                	
                 	// create new table
                 	exampleSet.recalculateAllAttributeStatistics(); // necessary for updating the possible nominal values
-                	createTableString = getCreateTableString(exampleSet, tableName, defaultVarcharLength);
+                	createTableString = statementCreator.makeTableCreator(exampleSet.getAttributes(), tableName, defaultVarcharLength);
                 	statement.executeUpdate(createTableString);
                 	statement.close();        			
         		}
@@ -406,7 +482,7 @@ public class DatabaseHandler {
         } else {
         	// create new table
         	exampleSet.recalculateAllAttributeStatistics(); // necessary for updating the possible nominal values
-        	String createTableString = getCreateTableString(exampleSet, tableName, defaultVarcharLength);
+        	String createTableString = statementCreator.makeTableCreator(exampleSet.getAttributes(), tableName, defaultVarcharLength);
         	statement.executeUpdate(createTableString);
         	statement.close();
         }
@@ -420,28 +496,28 @@ public class DatabaseHandler {
 	}
 
 	private PreparedStatement getInsertIntoTableStatement(String tableName, ExampleSet exampleSet) throws SQLException {
-		StringBuffer result = new StringBuffer("INSERT INTO ");
-		result.append(properties.getIdentifierQuoteOpen() + tableName + properties.getIdentifierQuoteClose());
-		result.append("(");
-		Iterator<Attribute> a = exampleSet.getAttributes().allAttributes();
-		boolean first = true;
-		while (a.hasNext()) {
-			Attribute attribute = a.next();
-			if (!first)
-				result.append(", ");
-			result.append(properties.getIdentifierQuoteOpen() + attribute.getName() + properties.getIdentifierQuoteClose());
-			first = false;
-		}
-		result.append(")");
-		result.append(" VALUES (");
-		int size = exampleSet.getAttributes().allSize();
-		for (int i = 0; i < size; i++) {
-			if (i != 0)
-				result.append(", ");
-			result.append("?");
-		}
-		result.append(")");
-		return createPreparedStatement(result.toString(), true);
+//		StringBuffer result = new StringBuffer("INSERT INTO ");
+//		result.append(properties.getIdentifierQuoteOpen() + tableName + properties.getIdentifierQuoteClose());
+//		result.append("(");
+//		Iterator<Attribute> a = exampleSet.getAttributes().allAttributes();
+//		boolean first = true;
+//		while (a.hasNext()) {
+//			Attribute attribute = a.next();
+//			if (!first)
+//				result.append(", ");
+//			result.append(properties.getIdentifierQuoteOpen() + attribute.getName() + properties.getIdentifierQuoteClose());
+//			first = false;
+//		}
+//		result.append(")");
+//		result.append(" VALUES (");
+//		int size = exampleSet.getAttributes().allSize();
+//		for (int i = 0; i < size; i++) {
+//			if (i != 0)
+//				result.append(", ");
+//			result.append("?");
+//		}
+//		result.append(")");
+		return createPreparedStatement(statementCreator.makeInsertStatement(tableName, exampleSet), true);
 	}
 
 	private void applyInsertIntoTable(PreparedStatement statement, Example example, Iterator<AttributeRole> attributes) throws SQLException {
@@ -459,7 +535,7 @@ public class DatabaseHandler {
 					}
 				} else {
 					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.STRING)) {
-						sqlType = Types.BLOB;
+						sqlType = Types.CLOB;
 					} else {
 						sqlType = Types.VARCHAR;
 					}
@@ -499,72 +575,72 @@ public class DatabaseHandler {
 		statement.executeUpdate();
 	}
 	
-	private String getCreateTableString(ExampleSet exampleSet, String tableName, int defaultVarcharLength) {
-		// define all attribute names and types
-		StringBuffer result = new StringBuffer();
-		result.append("CREATE TABLE " + properties.getIdentifierQuoteOpen() + tableName + properties.getIdentifierQuoteClose() + "(");
-		Iterator<AttributeRole> a = exampleSet.getAttributes().allAttributeRoles();
-		boolean first = true;
-		while (a.hasNext()) {
-			if (!first)
-				result.append(", ");
-			first = false;
-			AttributeRole attributeRole = a.next();
-			result.append(getCreateAttributeString(attributeRole, defaultVarcharLength));
-		}
-		
-		// set primary key
-		Attribute idAttribute = exampleSet.getAttributes().getId(); 
-		if (idAttribute != null) {
-			result.append(", PRIMARY KEY( " + properties.getIdentifierQuoteOpen() + idAttribute.getName() + properties.getIdentifierQuoteClose() + " )");
-		}
-		
-		result.append(")");
-		return result.toString();
-	}
+//	private String getCreateTableString(ExampleSet exampleSet, String tableName, int defaultVarcharLength) {
+//		// define all attribute names and types
+//		StringBuffer result = new StringBuffer();
+//		result.append("CREATE TABLE " + properties.getIdentifierQuoteOpen() + tableName + properties.getIdentifierQuoteClose() + "(");
+//		Iterator<AttributeRole> a = exampleSet.getAttributes().allAttributeRoles();
+//		boolean first = true;
+//		while (a.hasNext()) {
+//			if (!first)
+//				result.append(", ");
+//			first = false;
+//			AttributeRole attributeRole = a.next();
+//			result.append(getCreateAttributeString(attributeRole, defaultVarcharLength));
+//		}
+//		
+//		// set primary key
+//		Attribute idAttribute = exampleSet.getAttributes().getId(); 
+//		if (idAttribute != null) {
+//			result.append(", PRIMARY KEY( " + properties.getIdentifierQuoteOpen() + idAttribute.getName() + properties.getIdentifierQuoteClose() + " )");
+//		}
+//		
+//		result.append(")");
+//		return result.toString();
+//	}
 	
-	/** Creates the name and type string for the given attribute. Id attributes
-	 *  must not be null.
-	 */
-	private String getCreateAttributeString(AttributeRole attributeRole, int defaultVarcharLength) {
-		Attribute attribute = attributeRole.getAttribute();
-		StringBuffer result = new StringBuffer(properties.getIdentifierQuoteOpen() + attribute.getName() + properties.getIdentifierQuoteClose() + " ");
-		if (attribute.isNominal()) {
-			int varCharLength = 1; // at least length 1
-			if (defaultVarcharLength != -1) {
-				varCharLength = defaultVarcharLength;
-			} else {
-				for (String value : attribute.getMapping().getValues()) {
-					varCharLength = Math.max(varCharLength, value.length());
-				}
-			}
-			if (attribute.getValueType() != Ontology.STRING)
-				result.append(properties.getVarcharName() + "(" + varCharLength + ")");
-			else
-				result.append(properties.getTextName());
-		} else {
-			if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.INTEGER)) {
-				result.append(properties.getIntegerName());
-			} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)){
-				if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE)){
-					result.append(properties.getDateName());
-				} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.TIME)){
-					result.append(properties.getTimeName());
-				} else { // Date_time
-					result.append(properties.getDateTimeName());
-				}
-			} else {
-				result.append(properties.getRealName());
-			}
-		}
-		
-		// id must not be null
-		if (attributeRole.isSpecial())
-			if (attributeRole.getSpecialName().equals(Attributes.ID_NAME))
-				result.append(" NOT NULL");
-		
-		return result.toString();
-	}
+//	/** Creates the name and type string for the given attribute. Id attributes
+//	 *  must not be null.
+//	 */
+//	private String getCreateAttributeString(AttributeRole attributeRole, int defaultVarcharLength) {
+//		Attribute attribute = attributeRole.getAttribute();
+//		StringBuffer result = new StringBuffer(properties.getIdentifierQuoteOpen() + attribute.getName() + properties.getIdentifierQuoteClose() + " ");
+//		if (attribute.isNominal()) {
+//			int varCharLength = 1; // at least length 1
+//			if (defaultVarcharLength != -1) {
+//				varCharLength = defaultVarcharLength;
+//			} else {
+//				for (String value : attribute.getMapping().getValues()) {
+//					varCharLength = Math.max(varCharLength, value.length());
+//				}
+//			}
+//			if (attribute.getValueType() != Ontology.STRING)
+//				result.append(properties.getVarcharName() + "(" + varCharLength + ")");
+//			else
+//				result.append(properties.getTextName());
+//		} else {
+//			if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.INTEGER)) {
+//				result.append(properties.getIntegerName());
+//			} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)){
+//				if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE)){
+//					result.append(properties.getDateName());
+//				} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.TIME)){
+//					result.append(properties.getTimeName());
+//				} else { // Date_time
+//					result.append(properties.getDateTimeName());
+//				}
+//			} else {
+//				result.append(properties.getRealName());
+//			}
+//		}
+//		
+//		// id must not be null
+//		if (attributeRole.isSpecial())
+//			if (attributeRole.getSpecialName().equals(Attributes.ID_NAME))
+//				result.append(" NOT NULL");
+//		
+//		return result.toString();
+//	}
     
 	/**
 	 * Returns for the given SQL-type the name of the corresponding RapidMiner-Type
@@ -655,8 +731,12 @@ public class DatabaseHandler {
 	}
 
     public Map<String, List<ColumnIdentifier>> getAllTableMetaData() throws SQLException {
-        if ((connection == null) || connection.isClosed()) {
+        if (connection == null) {
             throw new SQLException("Could not retrieve all table names: no open connection to database '" + databaseURL + "' !");
+        }
+        if (connection.isClosed()) {
+        	unregister();
+        	throw new SQLException("Could not retrieve all table names: connection is closed.");
         }
 
         DatabaseMetaData metaData = connection.getMetaData();
@@ -691,7 +771,8 @@ public class DatabaseHandler {
         Statement statement = null;
         try {
         	statement = createStatement(false);
-        	ResultSet rs = statement.executeQuery("SELECT * FROM " + properties.getIdentifierQuoteOpen() + tableName + properties.getIdentifierQuoteClose() + " WHERE 0 = 1");
+        	// TODO: Use meta data
+        	ResultSet rs = statement.executeQuery("SELECT * FROM " + statementCreator.makeIdentifier(tableName) + " WHERE 0 = 1");
         	List<ColumnIdentifier> result = new LinkedList<ColumnIdentifier>();
 
         	ResultSetMetaData metadata;
@@ -705,7 +786,7 @@ public class DatabaseHandler {
 
         	for (int column = 1; column <= numberOfColumns; column++) {
         		String name = metadata.getColumnLabel(column);
-        		result.add(new ColumnIdentifier(tableName, name));
+        		result.add(new ColumnIdentifier(this, tableName, name));
         	}
         	
             return result;
@@ -716,7 +797,8 @@ public class DatabaseHandler {
                 statement.close();
         }
     }
-    
+
+	/** TODO: Pool these connections. */
 	public static DatabaseHandler getConnectedDatabaseHandler(Operator operator) throws OperatorException, SQLException {
 		switch (operator.getParameterAsInt(PARAMETER_DEFINE_CONNECTION)) {
 		case CONNECTION_MODE_PREDEFINED:
@@ -724,14 +806,12 @@ public class DatabaseHandler {
 			if (entry == null) {
 				throw new UserError(operator, 318, operator.getParameterAsString(PARAMETER_CONNECTION));
 			}
-			return getConnectedDatabaseHandler(entry.getURL(), entry.getUser(), new String(entry.getPassword()), entry.getProperties(), operator); 
+			return getConnectedDatabaseHandler(entry.getURL(), entry.getUser(), new String(entry.getPassword())); 
 		case DatabaseHandler.CONNECTION_MODE_URL:
 		default:
 			return getConnectedDatabaseHandler(operator.getParameterAsString(PARAMETER_DATABASE_URL),
 											   operator.getParameterAsString(PARAMETER_USERNAME),
-											   operator.getParameterAsString(PARAMETER_PASSWORD),
-											   DatabaseService.getJDBCProperties().get(operator.getParameterAsInt(PARAMETER_DATABASE_SYSTEM)),
-											   operator);
+											   operator.getParameterAsString(PARAMETER_PASSWORD));
 		}
 	}
 	

@@ -26,6 +26,7 @@ import javax.swing.JComponent;
 
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
+import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryLocationChooser;
 
@@ -59,6 +60,11 @@ public class RepositoryLocationSelectionWizardStep extends WizardStep {
 	}
 	
 	public String getRepositoryLocation() {
-		return locationChooser.getRepositoryLocation();
+		try {
+			return locationChooser.getRepositoryLocation();
+		} catch (MalformedRepositoryLocationException e) {
+			// Only queried if hasSelection returned true, so we will not have an exception.
+			throw new RuntimeException(e);
+		}
 	}
 }

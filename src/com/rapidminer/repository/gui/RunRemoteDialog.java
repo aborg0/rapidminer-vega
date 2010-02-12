@@ -221,7 +221,7 @@ public class RunRemoteDialog extends ButtonDialog {
 						String relative = location.getPath();
 						repositoryBox.setSelectedItem(repository);
 						processField.setText(relative);
-					} catch (IllegalArgumentException ex) {
+					} catch (Exception ex) {
 						processField.setText(selected);
 					}
 					processField.selectAll();

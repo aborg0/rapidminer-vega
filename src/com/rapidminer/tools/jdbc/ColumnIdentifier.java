@@ -33,10 +33,13 @@ public class ColumnIdentifier {
 	private String tableName;
 	
 	private String columnName;
+
+	private DatabaseHandler databaseHandler;
 	
-	public ColumnIdentifier(String tableName, String columnName) {
+	public ColumnIdentifier(DatabaseHandler databaseHandler, String tableName, String columnName) {
 		this.tableName = tableName;
 		this.columnName = columnName;
+		this.databaseHandler = databaseHandler;
 	}
 	
 	public String getTableName() {
@@ -47,37 +50,38 @@ public class ColumnIdentifier {
 		return this.columnName;
 	}
 	
-	public String getFullName(JDBCProperties properties, boolean singleTable) {
+	public String getFullName(boolean singleTable) {
 		if (singleTable) {
-			return 
-			properties.getIdentifierQuoteOpen() +
-			this.columnName +
-			properties.getIdentifierQuoteClose();
+			return databaseHandler.getStatementCreator().makeIdentifier(this.columnName);
+//			properties.getIdentifierQuoteOpen() +
+//			this.columnName +
+//			properties.getIdentifierQuoteClose();
 		} else {
-			return 
-			properties.getIdentifierQuoteOpen() +
-			this.tableName +
-			properties.getIdentifierQuoteClose() +
-			"." +
-			properties.getIdentifierQuoteOpen() +
-			this.columnName +
-			properties.getIdentifierQuoteClose();
+			return databaseHandler.getStatementCreator().makeIdentifier(this.tableName + "." + this.columnName);
+//			return 
+//			properties.getIdentifierQuoteOpen() +
+//			this.tableName +
+//			properties.getIdentifierQuoteClose() +
+//			"." +
+//			properties.getIdentifierQuoteOpen() +
+//			this.columnName +
+//			properties.getIdentifierQuoteClose();
 		}
 	}
 	
-	public String getAliasName(JDBCProperties properties, boolean singleTable) {
+	public String getAliasName(boolean singleTable) {
 		if (singleTable) {
-			return 
-			properties.getIdentifierQuoteOpen() +
-			this.columnName +
-			properties.getIdentifierQuoteClose();		 	
+			return databaseHandler.getStatementCreator().makeIdentifier(this.columnName);
+//			properties.getIdentifierQuoteOpen() +
+//			this.columnName +
+//			properties.getIdentifierQuoteClose();		 	
 		} else {
-			return 
-			properties.getIdentifierQuoteOpen() +
-			this.tableName +
-			"__" +
-			this.columnName +
-			properties.getIdentifierQuoteClose();
+			return  databaseHandler.getStatementCreator().makeIdentifier(this.tableName+"__"+this.columnName);
+//			properties.getIdentifierQuoteOpen() +
+//			this.tableName +
+//			"__" +
+//			this.columnName +
+//			properties.getIdentifierQuoteClose();
 		}
 	}	
 	

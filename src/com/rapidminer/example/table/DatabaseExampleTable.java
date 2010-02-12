@@ -65,12 +65,7 @@ public class DatabaseExampleTable extends AbstractExampleTable {
 	public static DatabaseExampleTable createDatabaseExampleTable(DatabaseHandler databaseHandler, String tableName) throws SQLException {
 		// derive attribute list
     	Statement statement = databaseHandler.createStatement(false);
-        ResultSet rs = statement.executeQuery(
-        		"SELECT * FROM " + 
-        		databaseHandler.getProperties().getIdentifierQuoteOpen() + 
-        		tableName + 
-        		databaseHandler.getProperties().getIdentifierQuoteClose() +
-        		" WHERE 0 = 1");
+        ResultSet rs = statement.executeQuery(databaseHandler.getStatementCreator().makeSelectEmptySetStatement(tableName));
 		List<Attribute> attributes = DatabaseHandler.createAttributes(rs);
 		rs.close();
 		statement.close();
@@ -86,11 +81,11 @@ public class DatabaseExampleTable extends AbstractExampleTable {
     		statement = null;
     	}
     	this.statement = this.databaseHandler.createStatement(true);
-        this.resultSet = this.statement.executeQuery(
-        		"SELECT * FROM " + 
-        		databaseHandler.getProperties().getIdentifierQuoteOpen() + 
-        		tableName + 
-        		databaseHandler.getProperties().getIdentifierQuoteClose());
+        this.resultSet = this.statement.executeQuery(databaseHandler.getStatementCreator().makeSelectAllStatement(tableName));
+//        		"SELECT * FROM " + 
+//        		databaseHandler.getProperties().getIdentifierQuoteOpen() + 
+//        		tableName + 
+//        		databaseHandler.getProperties().getIdentifierQuoteClose());
     }
     
 	public DataRowReader getDataRowReader() {
@@ -149,7 +144,8 @@ public class DatabaseExampleTable extends AbstractExampleTable {
 		if (this.size < 0) {
 			try {
 				Statement countStatement = this.databaseHandler.createStatement(false);
-				String countQuery = "SELECT count(*) FROM " + databaseHandler.getProperties().getIdentifierQuoteOpen() + tableName + databaseHandler.getProperties().getIdentifierQuoteClose();
+				//String countQuery = "SELECT count(*) FROM " + databaseHandler.getProperties().getIdentifierQuoteOpen() + tableName + databaseHandler.getProperties().getIdentifierQuoteClose();
+				String countQuery = databaseHandler.getStatementCreator().makeSelectSizeStatement(tableName);
 				ResultSet countResultSet = countStatement.executeQuery(countQuery);
 				countResultSet.next();
 				this.size = countResultSet.getInt(1);

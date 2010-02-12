@@ -189,4 +189,8 @@ public class Ontology {
 	public String[] getNames() {
 		return names;
 	}
+
+	public int getParent(int parent) {
+		return parentId[parent];
+	}
 }

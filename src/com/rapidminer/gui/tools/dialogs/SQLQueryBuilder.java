@@ -38,12 +38,12 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
-import com.rapidminer.gui.tools.ProgressMonitor;
-import com.rapidminer.gui.tools.ProgressUtils;
+import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.SQLEditor;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.syntax.DefaultInputHandler;
@@ -52,7 +52,6 @@ import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
-import com.rapidminer.tools.jdbc.connection.DatabaseConnectionService;
 
 
 /**
@@ -89,18 +88,20 @@ public class SQLQueryBuilder extends ButtonDialog {
     /** All attribute names for the available tables. */
     private final Map<String, List<ColumnIdentifier>> attributeNameMap = new LinkedHashMap<String, List<ColumnIdentifier>>();
     
-    private ConnectionEntry entry = null;
+	private DatabaseHandler databaseHandler;
 
-	public SQLQueryBuilder(String key, boolean modal, Object ... arguments) {
-		super(key, modal, arguments);
+	public SQLQueryBuilder(DatabaseHandler databaseHandler) {
+		super("build_sql_query", true);
+		this.databaseHandler = databaseHandler;
 	}
 	
 	public void setConnectionEntry(ConnectionEntry entry) {
-		this.entry = entry;
 		try {
+			this.databaseHandler = DatabaseHandler.getConnectedDatabaseHandler(entry);
 			retrieveTableAndAttributeNames();
 		} catch (SQLException e) {
 			SwingTools.showSimpleErrorMessage("db_connection_failed_url", e, entry.getURL());
+			this.databaseHandler = null;
 		}
 	}
 	
@@ -186,9 +187,9 @@ public class SQLQueryBuilder extends ButtonDialog {
             result.append(", ");
         }
         if (singleTable) {
-            result.append(identifier.getFullName(entry.getProperties(), singleTable));
+            result.append(identifier.getFullName(singleTable));
         } else {
-            result.append(identifier.getFullName(entry.getProperties(), singleTable) + " AS " + identifier.getAliasName(entry.getProperties(), singleTable));
+            result.append(identifier.getFullName(singleTable) + " AS " + identifier.getAliasName(singleTable));
         }        
     }
     
@@ -236,7 +237,7 @@ public class SQLQueryBuilder extends ButtonDialog {
                 result.append(", ");
             }
             String tableName = (String)o;
-            result.append(entry.getProperties().getIdentifierQuoteOpen() + tableName + entry.getProperties().getIdentifierQuoteClose());
+            result.append(databaseHandler.getStatementCreator().makeIdentifier(tableName));
         }
         
         // WHERE
@@ -248,45 +249,43 @@ public class SQLQueryBuilder extends ButtonDialog {
     }
 
     private void retrieveTableAndAttributeNames() throws SQLException {
-    	if (entry != null) {
-	    	final DatabaseHandler handler = DatabaseConnectionService.connect(entry);
-	        Thread retrieveTablesThread = new Thread() { 
+    	if (databaseHandler != null) {
+	        ProgressThread retrieveTablesThread = new ProgressThread("fetching_database_tables") { 
 	            @Override
 				public void run() { 
-	                ProgressMonitor monitor = ProgressUtils.createProgressMonitor(SQLQueryBuilder.this, 100, true, 50, true); 
-	                monitor.start("Fetching tables and attributes from database..."); 
-	                try {
-	                	// retrieve data
+	            	getProgressListener().setTotal(100);
+	            	getProgressListener().setCompleted(10);
+	            	try {
+	                	// retrieve data	            	
 	                    attributeNameMap.clear();
-	                    if (handler != null) {
+	                    if (databaseHandler != null) {
 	                        Map<String, List<ColumnIdentifier>> newAttributeMap;
 							try {
-								newAttributeMap = handler.getAllTableMetaData();
+								newAttributeMap = databaseHandler.getAllTableMetaData();
 		                        attributeNameMap.putAll(newAttributeMap);
 							} catch (SQLException e) {
-								// TODO: appropriate error message
-								SwingTools.showVerySimpleErrorMessage("Retrieval of table and attribute names failed");
+								SwingTools.showSimpleErrorMessage("db_connection_failed_simple", e, e.getMessage());
 							}
 	                    }
 	                    
 	                    // set table name list data
-	                    String[] allNames = new String[attributeNameMap.size()];
+	                    final String[] allNames = new String[attributeNameMap.size()];
 	                    attributeNameMap.keySet().toArray(allNames);
-	                    tableList.removeAll();
-	                    tableList.setListData(allNames);
+	                    SwingUtilities.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								tableList.removeAll();
+								tableList.setListData(allNames);
+							}
+	                    });
 	                } finally { 
-	                    // to ensure that progress monitor is closed in case of any exception 
-	                    if (monitor.getCurrent() != monitor.getTotal()) { 
-	                        monitor.setCurrent(null, monitor.getTotal());
-	                    }
-	                    
+	                	getProgressListener().complete();                   
 	                    // disconnect
-	                    try {
-							handler.disconnect();
-						} catch (SQLException e) {
-							// TODO: appropriate error message
-							SwingTools.showVerySimpleErrorMessage("Disconnecting from the database failed");
-						}
+//	                    try {
+//							databaseHandler.disconnect();
+//						} catch (SQLException e) {
+//							SwingTools.showSimpleErrorMessage("db_connection_failed_simple", e, e.getMessage());
+//						}
 	                }
 	            } 
 	        };

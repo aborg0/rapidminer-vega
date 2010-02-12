@@ -358,17 +358,17 @@ public class DatabaseService {
 		return null;
 	}
 	
-	@Deprecated
-	public static JDBCProperties getJProperties(String systemName) {
-		JDBCProperties result = null;
-		for (JDBCProperties properties : jdbcProperties) {
-			if (properties.getName().equalsIgnoreCase(systemName)) {
-				result = properties;
-				break;
-			}
-		}
-		return result;
-	}
+//	@Deprecated
+//	public static JDBCProperties getJProperties(String systemName) {
+//		JDBCProperties result = null;
+//		for (JDBCProperties properties : jdbcProperties) {
+//			if (properties.getName().equalsIgnoreCase(systemName)) {
+//				result = properties;
+//				break;
+//			}
+//		}
+//		return result;
+//	}
 	
     public static List<JDBCProperties> getJDBCProperties() {
         return jdbcProperties;

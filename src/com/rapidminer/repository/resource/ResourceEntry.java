@@ -28,6 +28,7 @@ import javax.swing.Action;
 
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
+import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 
@@ -62,7 +63,11 @@ public abstract class ResourceEntry implements Entry {
 
 	@Override
 	public RepositoryLocation getLocation() {
-		return new RepositoryLocation(getRepository().getLocation().toString() + getPath());
+		try {
+			return new RepositoryLocation(getRepository().getLocation().toString() + getPath());
+		} catch (MalformedRepositoryLocationException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override

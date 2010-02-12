@@ -229,7 +229,7 @@ public class ToolTipWindow {
 									if (entry instanceof IOObjectEntry) {
 										((IOObjectEntry) entry).retrieveMetaData();
 									}
-								} catch (RepositoryException e) {
+								} catch (Exception e) {
 									SwingTools.showSimpleErrorMessage("error_downloading_metadata", e, loc, e.getMessage());
 								} finally {
 									getProgressListener().complete();

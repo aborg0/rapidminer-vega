@@ -49,17 +49,17 @@ public class JDBCProperties {
     private String defaultPort;
     private String urlPrefix;
     private String dbNameSeperator;
-    private String integerName;
-    private String realName;
-    private String varcharName;
-    private String textName;
-    private String dateTimeName;
-    private String timeName;
-    private String dateName;
-    private String identifierQuoteOpen;
-    private String identifierQuoteClose;
-    private String valueQuoteOpen;
-    private String valueQuoteClose;
+//    private String integerName;
+//    private String realName;
+//    private String varcharName;
+//    private String textName;
+//    private String dateTimeName;
+//    private String timeName;
+//    private String dateName;
+//    private String identifierQuoteOpen;
+//    private String identifierQuoteClose;
+//    private String valueQuoteOpen;
+//    private String valueQuoteClose;
     private String[] drivers;
     private String driverJarFile;
 
@@ -68,15 +68,17 @@ public class JDBCProperties {
 		if (other.defaultPort != null) this.defaultPort = other.defaultPort;
 		if (other.urlPrefix != null) this.urlPrefix = other.urlPrefix;
 		if (other.dbNameSeperator != null) this.dbNameSeperator = other.dbNameSeperator;
-		if (other.integerName != null) this.integerName = other.integerName;
-		if (other.textName != null) this.textName = other.textName;
-		if (other.dateTimeName != null) this.dateTimeName = other.dateTimeName;
-		if (other.timeName != null) this.timeName = other.timeName;
-		if (other.dateName != null) this.dateName = other.dateName;
-		if (other.identifierQuoteOpen != null) this.identifierQuoteOpen = other.identifierQuoteOpen;
-		if (other.identifierQuoteClose != null) this.identifierQuoteClose = other.identifierQuoteClose;
-		if (other.valueQuoteOpen != null) this.valueQuoteOpen = other.valueQuoteOpen;
-		if (other.valueQuoteClose != null) this.driverJarFile = other.valueQuoteClose;
+		
+//		if (other.integerName != null) this.integerName = other.integerName;
+//		if (other.textName != null) this.textName = other.textName;
+//		if (other.dateTimeName != null) this.dateTimeName = other.dateTimeName;
+//		if (other.timeName != null) this.timeName = other.timeName;
+//		if (other.dateName != null) this.dateName = other.dateName;
+//		if (other.identifierQuoteOpen != null) this.identifierQuoteOpen = other.identifierQuoteOpen;
+//		if (other.identifierQuoteClose != null) this.identifierQuoteClose = other.identifierQuoteClose;
+//		if (other.valueQuoteOpen != null) this.valueQuoteOpen = other.valueQuoteOpen;
+//		if (other.valueQuoteClose != null) this.driverJarFile = other.valueQuoteClose;
+		
 		if (other.driverJarFile != null) {
 			if (this.driverJarFile == null) {
 				this.driverJarFile = other.driverJarFile;
@@ -101,17 +103,17 @@ public class JDBCProperties {
     	defaultPort = "port";
     	urlPrefix = "urlprefix://";
     	dbNameSeperator = "/";
-    	varcharName = "VARCHAR";
-    	textName = "BLOB";
-    	integerName = "INTEGER";
-    	realName = "REAL";
-    	timeName = "TIME";
-    	dateName = "DATE";
-    	dateTimeName = "TIMESTAMP";
-    	identifierQuoteOpen = "\"";
-    	identifierQuoteClose = "\"";
-    	valueQuoteOpen = "'";
-    	valueQuoteClose = "'";
+//    	varcharName = "VARCHAR";
+//    	textName = "BLOB";
+//    	integerName = "INTEGER";
+//    	realName = "REAL";
+//    	timeName = "TIME";
+//    	dateName = "DATE";
+//    	dateTimeName = "TIMESTAMP";
+//    	identifierQuoteOpen = "\"";
+//    	identifierQuoteClose = "\"";
+//    	valueQuoteOpen = "'";
+//    	valueQuoteClose = "'";
     }
 
 	/**
@@ -124,17 +126,17 @@ public class JDBCProperties {
         Attr portAttr                 = driverElement.getAttributeNode("defaultport");
         Attr urlAttr                  = driverElement.getAttributeNode("urlprefix");
         Attr dbNameAttr               = driverElement.getAttributeNode("dbnameseperator");
-        Attr varcharNameAttr          = driverElement.getAttributeNode("type_varchar");
-        Attr textNameAttr             = driverElement.getAttributeNode("type_text");
-        Attr integerNameAttr          = driverElement.getAttributeNode("type_integer");
-        Attr realNameAttr             = driverElement.getAttributeNode("type_real");
-        Attr timeNameAttr             = driverElement.getAttributeNode("type_time");
-        Attr dateNameAttr             = driverElement.getAttributeNode("type_date");
-        Attr dateTimeNameAttr         = driverElement.getAttributeNode("type_dateTime");
-        Attr identifierQuoteOpenAttr  = driverElement.getAttributeNode("identifier_quote_open");
-        Attr identifierQuoteCloseAttr = driverElement.getAttributeNode("identifier_quote_close");
-        Attr valueQuoteOpenAttr       = driverElement.getAttributeNode("value_quote_open");
-        Attr valueQuoteCloseAttr      = driverElement.getAttributeNode("value_quote_close");
+//        Attr varcharNameAttr          = driverElement.getAttributeNode("type_varchar");
+//        Attr textNameAttr             = driverElement.getAttributeNode("type_text");
+//        Attr integerNameAttr          = driverElement.getAttributeNode("type_integer");
+//        Attr realNameAttr             = driverElement.getAttributeNode("type_real");
+//        Attr timeNameAttr             = driverElement.getAttributeNode("type_time");
+//        Attr dateNameAttr             = driverElement.getAttributeNode("type_date");
+//        Attr dateTimeNameAttr         = driverElement.getAttributeNode("type_dateTime");
+//        Attr identifierQuoteOpenAttr  = driverElement.getAttributeNode("identifier_quote_open");
+//        Attr identifierQuoteCloseAttr = driverElement.getAttributeNode("identifier_quote_close");
+//        Attr valueQuoteOpenAttr       = driverElement.getAttributeNode("value_quote_open");
+//        Attr valueQuoteCloseAttr      = driverElement.getAttributeNode("value_quote_close");
         Attr driverJarAttr            = driverElement.getAttributeNode("driver_jar");
         
         if (nameAttr == null)
@@ -152,81 +154,81 @@ public class JDBCProperties {
         	LogService.getRoot().warning("Missing database driver class name for '"+name+"'");
         }
         
-        if (varcharNameAttr != null) {
-        	this.varcharName = varcharNameAttr.getValue();
-        } else {
-            this.varcharName = "VARCHAR";
-            LogService.getRoot().warning("No definition of 'type_varchar' found for driver " + nameAttr.getValue() + ", using default (VARCHAR)...");
-        }
+//        if (varcharNameAttr != null) {
+//        	this.varcharName = varcharNameAttr.getValue();
+//        } else {
+//            this.varcharName = "VARCHAR";
+//            LogService.getRoot().warning("No definition of 'type_varchar' found for driver " + nameAttr.getValue() + ", using default (VARCHAR)...");
+//        }
+//        
+//        if (textNameAttr != null) {
+//        	this.textName= textNameAttr.getValue();
+//        } else {
+//            this.textName = "BLOB";
+//            LogService.getRoot().warning("No definition of 'type_text' found for driver " + nameAttr.getValue() + ", using default (BLOB)...");
+//        }
+//        
+//        if (integerNameAttr != null) {
+//        	this.integerName = integerNameAttr.getValue();
+//        } else {
+//            this.integerName= "INTEGER";
+//            LogService.getRoot().warning("No definition of 'type_integer' found for driver " + nameAttr.getValue() + ", using default (INTEGER)...");
+//        }
         
-        if (textNameAttr != null) {
-        	this.textName= textNameAttr.getValue();
-        } else {
-            this.textName = "BLOB";
-            LogService.getRoot().warning("No definition of 'type_text' found for driver " + nameAttr.getValue() + ", using default (BLOB)...");
-        }
+//        if (realNameAttr != null) {
+//        	this.realName = realNameAttr.getValue();
+//        } else {
+//            this.realName= "REAL";
+//            LogService.getRoot().warning("No definition of 'type_real' found for driver " + nameAttr.getValue() + ", using default (REAL)...");
+//        }
+//        
+//        if (timeNameAttr != null) {
+//        	this.timeName= timeNameAttr.getValue();
+//        } else {
+//            this.timeName = "TIME";
+//        	LogService.getRoot().warning("No definition of 'type_time' found for driver " + nameAttr.getValue() + ", using default (TIME)...");
+//        }
+//
+//        if (dateNameAttr != null) {
+//        	this.dateName = dateNameAttr.getValue();
+//        } else {
+//            this.dateName= "DATE";
+//        	LogService.getRoot().warning("No definition of 'type_date' found for driver " + nameAttr.getValue() + ", using default (DATE)...");
+//        }
+//        if (dateTimeNameAttr != null) {
+//        	this.dateTimeName = dateTimeNameAttr.getValue();
+//        } else {
+//            this.dateTimeName = "TIMESTAMP";
+//            LogService.getRoot().warning("No definition of 'type_dateTime' found for driver " + nameAttr.getValue() + ", using default (TIMESTAMP)...");
+//        }
         
-        if (integerNameAttr != null) {
-        	this.integerName = integerNameAttr.getValue();
-        } else {
-            this.integerName= "INTEGER";
-            LogService.getRoot().warning("No definition of 'type_integer' found for driver " + nameAttr.getValue() + ", using default (INTEGER)...");
-        }
+//        if (identifierQuoteOpenAttr != null) {
+//        	this.identifierQuoteOpen = identifierQuoteOpenAttr.getValue();
+//        } else {
+//            this.identifierQuoteOpen = "\"";
+//        	LogService.getRoot().warning("No definition of 'identifier_quote_open' found for driver " + nameAttr.getValue() + ", using default (\")...");
+//        }
+//
+//        if (identifierQuoteCloseAttr != null) {
+//        	this.identifierQuoteClose = identifierQuoteCloseAttr.getValue();
+//        } else {
+//            this.identifierQuoteClose = "\"";
+//            LogService.getRoot().warning("No definition of 'identifier_quote_close' found for driver " + nameAttr.getValue() + ", using default (\")...");
+//        }
         
-        if (realNameAttr != null) {
-        	this.realName = realNameAttr.getValue();
-        } else {
-            this.realName= "REAL";
-            LogService.getRoot().warning("No definition of 'type_real' found for driver " + nameAttr.getValue() + ", using default (REAL)...");
-        }
-        
-        if (timeNameAttr != null) {
-        	this.timeName= timeNameAttr.getValue();
-        } else {
-            this.timeName = "TIME";
-        	LogService.getRoot().warning("No definition of 'type_time' found for driver " + nameAttr.getValue() + ", using default (TIME)...");
-        }
+//        if (valueQuoteOpenAttr != null) {
+//        	this.valueQuoteOpen = valueQuoteOpenAttr.getValue();
+//        } else {
+//        	this.valueQuoteOpen = "'";
+//            LogService.getRoot().warning("No definition of 'value_quote_open' found for driver " + nameAttr.getValue() + ", using default (')...");
+//        }
 
-        if (dateNameAttr != null) {
-        	this.dateName = dateNameAttr.getValue();
-        } else {
-            this.dateName= "DATE";
-        	LogService.getRoot().warning("No definition of 'type_date' found for driver " + nameAttr.getValue() + ", using default (DATE)...");
-        }
-        if (dateTimeNameAttr != null) {
-        	this.dateTimeName = dateTimeNameAttr.getValue();
-        } else {
-            this.dateTimeName = "TIMESTAMP";
-            LogService.getRoot().warning("No definition of 'type_dateTime' found for driver " + nameAttr.getValue() + ", using default (TIMESTAMP)...");
-        }
-        
-        if (identifierQuoteOpenAttr != null) {
-        	this.identifierQuoteOpen = identifierQuoteOpenAttr.getValue();
-        } else {
-            this.identifierQuoteOpen = "\"";
-        	LogService.getRoot().warning("No definition of 'identifier_quote_open' found for driver " + nameAttr.getValue() + ", using default (\")...");
-        }
-
-        if (identifierQuoteCloseAttr != null) {
-        	this.identifierQuoteClose = identifierQuoteCloseAttr.getValue();
-        } else {
-            this.identifierQuoteClose = "\"";
-            LogService.getRoot().warning("No definition of 'identifier_quote_close' found for driver " + nameAttr.getValue() + ", using default (\")...");
-        }
-        
-        if (valueQuoteOpenAttr != null) {
-        	this.valueQuoteOpen = valueQuoteOpenAttr.getValue();
-        } else {
-        	this.valueQuoteOpen = "'";
-            LogService.getRoot().warning("No definition of 'value_quote_open' found for driver " + nameAttr.getValue() + ", using default (')...");
-        }
-
-        this.valueQuoteClose = "'";
-        if (valueQuoteCloseAttr != null) {
-        	this.valueQuoteClose = valueQuoteCloseAttr.getValue();
-        } else {
-            LogService.getRoot().warning("No definition of 'value_quote_close' found for driver " + nameAttr.getValue() + ", using default (')...");
-        }
+//        this.valueQuoteClose = "'";
+//        if (valueQuoteCloseAttr != null) {
+//        	this.valueQuoteClose = valueQuoteCloseAttr.getValue();
+//        } else {
+//            LogService.getRoot().warning("No definition of 'value_quote_close' found for driver " + nameAttr.getValue() + ", using default (')...");
+//        }
                	
     	defaultPort = portAttr.getValue();
     	urlPrefix = urlAttr.getValue();
@@ -255,56 +257,56 @@ public class JDBCProperties {
     public String getName() {
         return name;
     }
-
+//
     public String getUrlPrefix() {
         return urlPrefix;
     }
+//    
+//    public String getIntegerName() {
+//        return integerName;
+//    }
+//    
+//	public String getTextName() {
+//		return textName;
+//	}
+//	
+//    public String getRealName() {
+//        return realName;
+//    }
+//    
+//    public String getVarcharName() {
+//        return varcharName;
+//    }
     
-    public String getIntegerName() {
-        return integerName;
-    }
+//    public String getIdentifierQuoteOpen() {
+//    	return this.identifierQuoteOpen;
+//    }
+//    
+//    public String getIdentifierQuoteClose() {
+//    	return this.identifierQuoteClose;
+//    }
     
-	public String getTextName() {
-		return textName;
-	}
-	
-    public String getRealName() {
-        return realName;
-    }
-    
-    public String getVarcharName() {
-        return varcharName;
-    }
-    
-    public String getIdentifierQuoteOpen() {
-    	return this.identifierQuoteOpen;
-    }
-    
-    public String getIdentifierQuoteClose() {
-    	return this.identifierQuoteClose;
-    }
-    
-    @Deprecated
-    public String getValueQuoteOpen() {
-    	return this.valueQuoteOpen;
-    }
-    
-    @Deprecated
-    public String getValueQuoteClose() {
-    	return this.valueQuoteClose;
-    }
+//    @Deprecated
+//    public String getValueQuoteOpen() {
+//    	return this.valueQuoteOpen;
+//    }
+//    
+//    @Deprecated
+//    public String getValueQuoteClose() {
+//    	return this.valueQuoteClose;
+//    }
 
-    public String getDateTimeName() {
-		return dateTimeName;
-	}
-
-	public String getTimeName() {
-		return timeName;
-	}
-
-	public String getDateName() {
-		return dateName;
-	}
+//    public String getDateTimeName() {
+//		return dateTimeName;
+//	}
+//
+//	public String getTimeName() {
+//		return timeName;
+//	}
+//
+//	public String getDateName() {
+//		return dateName;
+//	}
 
     public static JDBCProperties createDefaultJDBCProperties() {
     	return new JDBCProperties();

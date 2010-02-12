@@ -81,6 +81,7 @@ import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeTupel;
 import com.rapidminer.parameter.Parameters;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.AbstractObservable;
 import com.rapidminer.tools.DelegatingObserver;
@@ -1255,12 +1256,22 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		String loc = getParameter(key);
 		Process process = getProcess();
 		if (process != null) {
-			RepositoryLocation result = process.resolveRepositoryLocation(loc);
+			RepositoryLocation result;
+			try {
+				result = process.resolveRepositoryLocation(loc);
+			} catch (MalformedRepositoryLocationException e) {
+				throw new UserError(this, e, 319, e.getMessage());				
+			}
 			result.setAccessor(process.getRepositoryAccessor());
 			return result;
 		} else {
 			if (RepositoryLocation.isAbsolute(loc)) {
-				RepositoryLocation result = new RepositoryLocation(loc);
+				RepositoryLocation result;
+				try {
+					result = new RepositoryLocation(loc);
+				} catch (MalformedRepositoryLocationException e) {
+					throw new UserError(this, e, 319, e.getMessage());
+				}
 				result.setAccessor(process.getRepositoryAccessor());
 				return result;
 			} else {

@@ -54,13 +54,14 @@ public class DatabaseImportWizard extends DataImportWizard {
 	
 	private ExampleSetMetaData metaData = null;
 
-	public DatabaseImportWizard(String i18nKey, Object ... i18nArgs) {
+	public DatabaseImportWizard(String i18nKey, Object ... i18nArgs) throws SQLException {
 		super(i18nKey, i18nArgs);
 		try {
 			reader = OperatorService.createOperator(com.rapidminer.operator.io.DatabaseDataReader.class);
 		} catch (OperatorCreationException e) {
 			
 		}
+		final SQLQueryBuilder sqlQueryBuilder = new SQLQueryBuilder(null);
 		addStep(new WizardStep("database_connection") {
 			private final DatabaseConnectionDialog dialog = new DatabaseConnectionDialog("manage_db_connections");
 			{
@@ -106,13 +107,13 @@ public class DatabaseImportWizard extends DataImportWizard {
 				reader.setParameter(DatabaseHandler.PARAMETER_USERNAME, entry.getUser());
 				reader.setParameter(DatabaseHandler.PARAMETER_PASSWORD, new String(entry.getPassword()));
 				connectionEntry = entry;
+				sqlQueryBuilder.setConnectionEntry(connectionEntry);
 				return true;
 			}
 		});
-		addStep(new WizardStep("database_query") {
-			private final SQLQueryBuilder dialog = new SQLQueryBuilder("build_sql_query", true);
+		addStep(new WizardStep("database_query") {			
 			{
-				dialog.addChangeListener(DatabaseImportWizard.this);
+				sqlQueryBuilder.addChangeListener(DatabaseImportWizard.this);
 			}
 			
 			@Override
@@ -122,24 +123,24 @@ public class DatabaseImportWizard extends DataImportWizard {
 
 			@Override
 			protected boolean canProceed() {
-				return dialog.getQuery().length() > 0;
+				return sqlQueryBuilder.getQuery().length() > 0;
 			}
 
 			@Override
 			protected JComponent getComponent() {
-				return dialog.makeQueryBuilderPanel();
+				return sqlQueryBuilder.makeQueryBuilderPanel();
 			}
 			
 			@Override
 			protected boolean performEnteringAction() {
-				dialog.setConnectionEntry(connectionEntry);
+				sqlQueryBuilder.setConnectionEntry(connectionEntry);
 				return true;
 			}
 			
 			@Override
 			protected boolean performLeavingAction() {
 				reader.setParameter(DatabaseHandler.PARAMETER_DEFINE_QUERY, DatabaseHandler.QUERY_MODES[DatabaseHandler.QUERY_QUERY]);
-				reader.setParameter(DatabaseHandler.PARAMETER_QUERY, dialog.getQuery());
+				reader.setParameter(DatabaseHandler.PARAMETER_QUERY, sqlQueryBuilder.getQuery());
 				try {
 					metaData = (ExampleSetMetaData) reader.getGeneratedMetaData();
 				} catch (OperatorException e) {

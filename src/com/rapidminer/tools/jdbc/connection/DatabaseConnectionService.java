@@ -163,18 +163,12 @@ public class DatabaseConnectionService {
 		}
 	}
 	
-	public static DatabaseHandler connect(ConnectionEntry entry) throws SQLException {
-		DatabaseHandler handler = new DatabaseHandler(entry.getURL(), entry.getProperties());
-		handler.connect(entry.getUser(), new String(entry.getPassword()), true);
-		return handler;
-	}
-	
 	public static boolean testConnection(ConnectionEntry entry) throws SQLException {
     	if (entry != null) {
     		if (handler != null) {
     			handler.disconnect();
     		}
-            handler = connect(entry);
+            handler = DatabaseHandler.getConnectedDatabaseHandler(entry);
             if (handler != null) {
             	handler.disconnect();
             }

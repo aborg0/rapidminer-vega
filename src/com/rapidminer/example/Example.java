@@ -143,7 +143,8 @@ public class Example implements Serializable, Map<String, Object> {
 	/**
 	 * Sets the value of attribute a which must be a nominal attribute. The
 	 * attribute a need not necessarily be part of the example set the example
-	 * is taken from, although this is no good style.
+	 * is taken from, although this is no good style. Missing values might be given by 
+	 * passing null as second argument.
 	 */
 	public void setValue(Attribute a, String str) {
 		if (!a.isNominal())

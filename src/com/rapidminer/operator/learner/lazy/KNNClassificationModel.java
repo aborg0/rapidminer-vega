@@ -91,7 +91,7 @@ public class KNNClassificationModel extends UpdateablePredictionModel {
 			// counting frequency of labels
 			double[] counter = new double[predictedLabel.getMapping().size()];
 			double totalDistance = 0;
-			if (!weightByDistance) {
+			if (!weightByDistance || k == 1) {
 				// finding next k neighbours
 				Collection<Integer> neighbourLabels = samples.getNearestValues(k, values);
 				// distance is 1 for complete neighbourhood

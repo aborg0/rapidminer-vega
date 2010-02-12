@@ -32,10 +32,12 @@ import javax.swing.JTable;
 
 import com.rapidminer.gui.properties.PropertyDialog;
 import com.rapidminer.gui.tools.ResourceAction;
+import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.SQLQueryBuilder;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterTypeSQLQuery;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.jdbc.DatabaseHandler;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 import com.rapidminer.tools.jdbc.connection.ConnectionProvider;
 
@@ -58,7 +60,14 @@ public class SQLQueryValueCellEditor extends AbstractCellEditor implements Prope
 			private static final long serialVersionUID = -2911499842513746414L;
 
 			public void actionPerformed(ActionEvent e) {
-				final SQLQueryBuilder queryBuilder = new SQLQueryBuilder("build_sql_query", true);
+				DatabaseHandler handler;
+				try {
+					handler = DatabaseHandler.getConnectedDatabaseHandler(operator);
+				} catch (Exception e2) {
+					SwingTools.showSimpleErrorMessage("db_connection_failed_simple", e2, e2.getMessage());
+					return;
+				}
+				final SQLQueryBuilder queryBuilder = new SQLQueryBuilder(handler);
 				class SQLQueryPropertyDialog extends PropertyDialog {
 					private static final long serialVersionUID = -5224113818406394872L;
 

@@ -100,7 +100,17 @@ public class DriverInfo implements Comparable<DriverInfo> {
 		if (c != 0) {
 			return c;
 		} else {
-			return this.getClassName().compareTo(o.getClassName());
+			String cn1 = this.getClassName();
+			String cn2 = o.getClassName();
+			if ((cn1 != null) && (cn2 != null)) {
+				return cn1.compareTo(cn2);
+			} else {
+				if (cn1 == null) {
+					return 1;
+				} else {
+					return -1;
+				}
+			}
 		}
 	}
 	

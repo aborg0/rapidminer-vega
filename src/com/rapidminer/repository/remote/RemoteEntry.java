@@ -35,6 +35,7 @@ import com.rapid_i.repository.wsimport.Response;
 import com.rapidminer.gui.actions.BrowseAction;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
+import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 /**
@@ -133,7 +134,11 @@ public abstract class RemoteEntry implements Entry {
 	
 	@Override
 	public RepositoryLocation getLocation() {
-		return new RepositoryLocation(""+RepositoryLocation.SEPARATOR + RepositoryLocation.SEPARATOR + getRepository().getName() + location);
+		try {
+			return new RepositoryLocation(""+RepositoryLocation.REPOSITORY_PREFIX + getRepository().getName() + location);
+		} catch (MalformedRepositoryLocationException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	@Override

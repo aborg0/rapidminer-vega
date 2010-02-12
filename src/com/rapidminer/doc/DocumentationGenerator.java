@@ -60,7 +60,11 @@ public class DocumentationGenerator {
 
 	/** Use only classes beneath the operator package. */
 	private void getRootDoc() {
-		getRootDoc(new File(ParameterService.getRapidMinerHome(), "src" + File.separator), "com.rapidminer.operator");
+		try {
+			getRootDoc(new File(ParameterService.getRapidMinerHome(), "src" + File.separator), "com.rapidminer.operator");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void getRootDoc(File srcDir, String subpackages) {

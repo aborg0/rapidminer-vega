@@ -32,6 +32,7 @@ import org.w3c.dom.Element;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
+import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.Repository;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryListener;
@@ -120,7 +121,11 @@ public class LocalRepository extends SimpleFolder implements Repository {
 
 	@Override
 	public RepositoryLocation getLocation() {
-		return new RepositoryLocation(getName(), new String[0]);
+		try {
+			return new RepositoryLocation(getName(), new String[0]);
+		} catch (MalformedRepositoryLocationException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override

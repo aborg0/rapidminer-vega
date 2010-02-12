@@ -36,6 +36,7 @@ import javax.swing.Action;
 
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
+import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.LogService;
@@ -108,10 +109,14 @@ public abstract class SimpleEntry implements Entry {
 	
 	@Override
 	public RepositoryLocation getLocation() {
-		if (getContainingFolder() != null) {
-			return new RepositoryLocation(getContainingFolder().getLocation(), getName());
-		} else {
-			return new RepositoryLocation(getRepository().getName(), new String[] { getName() });
+		try {
+			if (getContainingFolder() != null) {
+				return new RepositoryLocation(getContainingFolder().getLocation(), getName());
+			} else {
+				return new RepositoryLocation(getRepository().getName(), new String[] { getName() });
+			}
+		} catch (MalformedRepositoryLocationException e) {
+			throw new RuntimeException(e);
 		}
 	}
 	

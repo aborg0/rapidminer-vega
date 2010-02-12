@@ -32,6 +32,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.LinkedList;
+import java.util.logging.Level;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -48,10 +49,13 @@ import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ResourceActionAdapter;
 import com.rapidminer.gui.tools.ResourceLabel;
+import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
+import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryLocation;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 
 /** A dialog that shows the repository tree. The static method
@@ -187,7 +191,7 @@ public class RepositoryLocationChooser extends JPanel {
 		}
 	}
 
-	public String getRepositoryLocation() {
+	public String getRepositoryLocation() throws MalformedRepositoryLocationException {
 		if (tree.getSelectionPath() != null) {
 			Entry selectedEntry = (Entry) tree.getSelectionPath().getLastPathComponent();
 			RepositoryLocation selectedLocation = selectedEntry.getLocation();
@@ -204,8 +208,19 @@ public class RepositoryLocationChooser extends JPanel {
 		}
 	}
 	
+	/** Returns true iff the user entered a valid, non-empty repository location. */
 	public boolean hasSelection() {
-		return !locationField.getText().equals("");
+		if (locationField.getText().isEmpty()) {
+			return false;
+		} else {			
+			try {
+				getRepositoryLocation();
+				return true;
+			} catch (MalformedRepositoryLocationException e) {
+				LogService.getRoot().warning("Malformed repository location: "+e);
+				return false;
+			}			
+		}
 	}
 
 	public boolean resolveRelative() {
@@ -244,6 +259,15 @@ public class RepositoryLocationChooser extends JPanel {
 				});
 				layoutDefault(chooser, NORMAL, makeOkButton(), makeCancelButton());
 			}
+			@Override
+			protected void ok() {
+				try {
+					chooser.getRepositoryLocation();
+					super.ok();
+				} catch (MalformedRepositoryLocationException e) {
+					SwingTools.showSimpleErrorMessage("malformed_repository_location", e, e.getMessage());
+				}
+			}
 		}
 		final RepositoryLocationChooserDialog dialog = new RepositoryLocationChooserDialog(resolveRelativeTo, initialValue);
 		dialog.setVisible(true);
@@ -256,7 +280,13 @@ public class RepositoryLocationChooser extends JPanel {
 				System.setProperty(RapidMinerGUI.PROPERTY_RESOLVE_RELATIVE_REPOSITORY_LOCATIONS, dialog.chooser.resolveRelative() ? "true" : "false");
 				ParameterService.writePropertyIntoMainUserConfigFile(RapidMinerGUI.PROPERTY_RESOLVE_RELATIVE_REPOSITORY_LOCATIONS, dialog.chooser.resolveRelative() ? "true" : "false");
 			}
-			String text = dialog.chooser.getRepositoryLocation();
+			String text;
+			try {
+				text = dialog.chooser.getRepositoryLocation();
+			} catch (MalformedRepositoryLocationException e) {
+				// this should not happen since the dialog would not have disposed without an error message.
+				throw new RuntimeException(e);
+			}
 			if (text.length() > 0) {
 				return text;
 			} else {
@@ -268,7 +298,11 @@ public class RepositoryLocationChooser extends JPanel {
 	}
 
 	private void updateResult() {
-		String repositoryLocation = getRepositoryLocation();
-		resultLabel.setText(repositoryLocation);
+		try {
+			String repositoryLocation = getRepositoryLocation();
+			resultLabel.setText(repositoryLocation);
+		} catch (MalformedRepositoryLocationException e) {
+			LogService.getRoot().log(Level.WARNING, "Malformed location: "+ e, e);
+		}		
 	}
 }
