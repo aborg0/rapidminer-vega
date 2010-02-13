@@ -1,6 +1,5 @@
 package com.rapidminer.repository.remote;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.util.Collections;
@@ -9,7 +8,6 @@ import java.util.List;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
@@ -17,6 +15,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 
 import com.rapid_i.repository.wsimport.AccessRights;
+import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ExtendedJTable;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
@@ -116,8 +115,6 @@ public class AccessRightsDialog extends ButtonDialog {
 			}
 		};
 		
-		JPanel main = new JPanel(new BorderLayout());
-		
 		accessRightsTableModel = new AccessRightsTableModel();
 		final ExtendedJTable table = new ExtendedJTable(accessRightsTableModel, false) {
 			private static final long serialVersionUID = 1L;
@@ -129,7 +126,6 @@ public class AccessRightsDialog extends ButtonDialog {
 				}
 			};
 		};
-		main.add(new JScrollPane(table), BorderLayout.CENTER);
 
 		JButton addRowButton = new JButton(new ResourceAction("accessrights.add_row") {
 			private static final long serialVersionUID = 1L;
@@ -160,7 +156,9 @@ public class AccessRightsDialog extends ButtonDialog {
 				accessRightsTableModel.fireTableStructureChanged();
 			}			
 		});
-		layoutDefault(main, addRowButton, removeRowButton, makeCancelButton(), makeOkButton());
+		JScrollPane tablePane = new ExtendedJScrollPane(table);
+		tablePane.setBorder(createBorder());
+		layoutDefault(tablePane, NORMAL, addRowButton, removeRowButton, makeOkButton(), makeCancelButton());
 	}
 
 

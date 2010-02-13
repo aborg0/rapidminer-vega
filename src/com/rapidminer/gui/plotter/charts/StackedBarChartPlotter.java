@@ -510,8 +510,7 @@ public class StackedBarChartPlotter extends LabelRotatingPlotterAdapter implemen
 				}
 			};
     		
-			//renderer.setBarPainter(new StandardBarPainter());
-//			renderer.setBarPainter(new RapidBarPainter());
+			renderer.setBarPainter(new RapidBarPainter());
             renderer.setDrawBarOutline(true);
             renderer.setShadowVisible(false);
     		plot.setRenderer(renderer);

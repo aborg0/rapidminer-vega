@@ -108,7 +108,7 @@ public class CSVDataReader extends AbstractDataReader {
 				parser.setCommentCharacters(getParameterAsString(PARAMETER_COMMENT_CHARS));
 			}
 			
-			private final NumberFormat numberFormat = StrictDecimalFormat.getInstance(CSVDataReader.this);
+			private final NumberFormat numberFormat = StrictDecimalFormat.getInstance(CSVDataReader.this, true);
 			
 			private final DateFormat   dateFormat   = DateParser.getInstance(CSVDataReader.this);
 			
@@ -154,8 +154,11 @@ public class CSVDataReader extends AbstractDataReader {
 
 			@Override
 			public Number getNumber(int columnIndex) {
+				if (numberFormat == null) {
+					return null;
+				}
 				try {
-					return numberFormat.parse(parsedLine[columnIndex]);
+					return numberFormat.parse(parsedLine[columnIndex].replace('e', 'E'));
 				} catch (ParseException e) {
 				}
 				return null; 
@@ -204,7 +207,7 @@ public class CSVDataReader extends AbstractDataReader {
 		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_QUOTES, false, true));
 		types.add(type);
 		types.add(new ParameterTypeString(PARAMETER_COLUMN_SEPARATORS, "Column separators for data files (regular expression)", ",\\s*|;\\s*|\\s+"));
-		types.addAll(StrictDecimalFormat.getParameterTypes(this));
+		types.addAll(StrictDecimalFormat.getParameterTypes(this, true));
 		types.addAll(DateParser.getParameterTypes(this));
 		return types;
 	}

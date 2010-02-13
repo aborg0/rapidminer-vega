@@ -115,21 +115,6 @@ public class ArffExampleSource extends AbstractDataReader {
 		AbstractReader.registerReaderDescription(new ReaderDescription("arff", ArffExampleSource.class, PARAMETER_DATA_FILE));
 	}
 
-//	/** The parameter name for &quot;The (case sensitive) name of the label attribute&quot; */
-//	public static final String PARAMETER_LABEL_ATTRIBUTE = "label_attribute";
-//
-//	/** The parameter name for &quot;The (case sensitive) name of the id attribute&quot; */
-//	public static final String PARAMETER_ID_ATTRIBUTE = "id_attribute";
-//
-//	/** The parameter name for &quot;The (case sensitive) name of the weight attribute&quot; */
-//	public static final String PARAMETER_WEIGHT_ATTRIBUTE = "weight_attribute";
-
-//	/** The parameter name for &quot;The fraction of the data set which should be read (1 = all; only used if sample_size = -1)&quot; */
-//	public static final String PARAMETER_SAMPLE_RATIO = "sample_ratio";
-//
-//	/** The parameter name for &quot;The exact number of samples which should be read (-1 = use sample ratio; if not -1, sample_ratio will not have any effect)&quot; */
-//	public static final String PARAMETER_SAMPLE_SIZE = "sample_size";
-
 	public ArffExampleSource(OperatorDescription description) {
 		super(description);
 	}
@@ -387,16 +372,6 @@ public class ArffExampleSource extends AbstractDataReader {
 		types.add(new ParameterTypeFile(PARAMETER_DATA_FILE, "The path to the data file.", "arff", false));
 		types.addAll(super.getParameterTypes());
 		types.addAll(StrictDecimalFormat.getParameterTypes(this));
-//		ParameterType type = new ParameterTypeString(PARAMETER_LABEL_ATTRIBUTE, "The (case sensitive) name of the label attribute");
-//		type.setExpert(false);
-//		types.add(type);
-//		types.add(new ParameterTypeString(PARAMETER_ID_ATTRIBUTE, "The (case sensitive) name of the id attribute"));
-//		types.add(new ParameterTypeString(PARAMETER_WEIGHT_ATTRIBUTE, "The (case sensitive) name of the weight attribute"));
-//		type = new ParameterTypeDouble(PARAMETER_SAMPLE_RATIO, "The fraction of the data set which should be read (1 = all; only used if sample_size = -1)", 0.0d, 1.0d, 1.0d);
-//		type.setExpert(false);
-//		types.add(type);
-//		types.add(new ParameterTypeInt(PARAMETER_SAMPLE_SIZE, "The exact number of samples which should be read (-1 = use sample ratio; if not -1, sample_ratio will not have any effect)", -1, Integer.MAX_VALUE, -1));
-//		types.addAll(RandomGenerator.getRandomGeneratorParameters(this));
 		return types;
 	}
 }

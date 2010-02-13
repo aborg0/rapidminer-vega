@@ -222,7 +222,7 @@ public abstract class ApplicationPerspectives {
 
 	/** Saves all perspectives to the users config directory. */
 	public void saveAll() {		
-		LogService.getRoot().fine("Saving perspectives.");
+		LogService.getRoot().config("Saving perspectives.");
 		if (current != null) {
 			current.store(context);
 		}

@@ -255,6 +255,21 @@ public class PortPairExtender implements PortExtender {
 	}
 
 	/**
+	 * Returns a list of all non-null data delivered to the input ports created by this port extender.
+	 * @throws UserError 
+	 */
+	public <T extends IOObject> List<T> getOutputData() throws UserError {
+		List<T> results = new LinkedList<T>();
+		for (PortPair pair : managedPairs) {
+			T data = pair.outputPort.<T> getDataOrNull();
+			if (data != null) {
+				results.add(data);
+			}
+		}
+		return results;
+	}
+
+	/**
 	 * This method is a convenient method for delivering several IOObjects. But keep in mind that you cannot deliver
 	 * more IObjects than you received first hand. First objects in list will be delivered on the first port. If input
 	 * ports are not connected or got not delivered an objects unequal null, the corresponding output port is skipped.

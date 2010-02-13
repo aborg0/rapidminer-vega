@@ -23,6 +23,7 @@
 package com.rapidminer.tools.math.function.aggregation;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.tools.Ontology;
 
 
 /**
@@ -73,7 +74,7 @@ public class MaxFunction extends AbstractAggregationFunction {
     }    
     
     public boolean supportsAttribute(Attribute attribute) {
-        return attribute.isNumerical();
+        return attribute.isNumerical() || Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME);
     }
     
 }

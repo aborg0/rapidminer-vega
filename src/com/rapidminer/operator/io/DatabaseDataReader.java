@@ -238,7 +238,9 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 				return Ontology.NOMINAL;
 
 			case Types.DATE:
+				return Ontology.DATE;
 			case Types.TIME:
+				return Ontology.TIME;
 			case Types.TIMESTAMP:
 				return Ontology.DATE_TIME;
 
@@ -258,10 +260,13 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 					metaData = resultSet.getMetaData(); 
 					int numberOfColumns = metaData.getColumnCount();
 					String[] columnNames = new String[numberOfColumns];
+					int[] columnTypes = new int[numberOfColumns];
 					for (int i = 0; i < numberOfColumns; i++) {
 						columnNames[i] = metaData.getColumnLabel(i + 1);
+						columnTypes[i] = getValueType(metaData.getColumnType(i + 1));
 					}
 					setColumnNames(columnNames);
+					setValueTypes(columnTypes);
 				} catch (SQLException e) {
 					throw new OperatorException("Could not read result set meta data.");
 				}

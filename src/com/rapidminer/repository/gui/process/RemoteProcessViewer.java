@@ -26,6 +26,8 @@ import com.rapid_i.repository.wsimport.Response;
 import com.rapidminer.RepositoryProcessLocation;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.actions.OpenAction;
+import com.rapidminer.gui.actions.RunRemoteAction;
+import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceDockKey;
 import com.rapidminer.gui.tools.ResourceLabel;
@@ -48,10 +50,10 @@ import com.rapidminer.tools.LogService;
 import com.vlsolutions.swing.docking.DockKey;
 import com.vlsolutions.swing.docking.Dockable;
 
-/** Displays a tree of processes running on a remote server.
+/**
+ * Displays a tree of processes running on a remote server.
  * 
- * @author Simon Fischer
- *
+ * @author Simon Fischer, Tobias Malbrecht
  */
 public class RemoteProcessViewer extends JPanel implements Dockable {
 
@@ -185,14 +187,18 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 		tree.setCellRenderer(new RemoteProcessTreeCellRenderer());
 		tree.setShowsRootHandles(true);
 		tree.setRootVisible(false);
-		add(tree, BorderLayout.CENTER);
+		JScrollPane scrollPane = new ExtendedJScrollPane(tree);
+		scrollPane.setBorder(null);
+		add(scrollPane, BorderLayout.CENTER);
 
 		JToolBar toolBar = new ViewToolBar();
 		add(toolBar, BorderLayout.NORTH);
+		toolBar.add(new RunRemoteAction());
 		toolBar.add(OPEN_ACTION);
 		toolBar.add(BROWSE_ACTION);
 		toolBar.add(STOP_ACTION);
 		toolBar.add(SHOW_LOG_ACTION);
+		toolBar.addSeparator();
 		ResourceLabel label = new ResourceLabel("remoteprocessviewer.filter");
 		label.setLabelFor(sinceWhenCombo);
 		toolBar.add(label);
@@ -338,7 +344,6 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 	}
 
 	public static final String PROCESS_PANEL_DOCK_KEY = "remote_process_viewer";
-	private JScrollPane scrollPane;
 	private final DockKey DOCK_KEY = new ResourceDockKey(PROCESS_PANEL_DOCK_KEY);
 	{
 		DOCK_KEY.setDockGroup(MainFrame.DOCK_GROUP_ROOT);
@@ -346,10 +351,7 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 
 	@Override
 	public Component getComponent() {
-		if (scrollPane == null) {
-			scrollPane = new JScrollPane(this);
-		}
-		return scrollPane;
+		return this;
 	}
 
 	@Override

@@ -338,7 +338,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	public final transient RunAction RUN_ACTION = new RunAction(this);
 	public final transient Action PAUSE_ACTION = new PauseAction(this);
 	public final transient Action STOP_ACTION = new StopAction(this);
-	public final transient Action RUN_REMOTE_ACTION = new RunRemoteAction(this);
+	public final transient Action RUN_REMOTE_ACTION = new RunRemoteAction();
 	public final transient Action VALIDATE_ACTION = new ValidateProcessAction(this);
 	public final transient ToggleAction VALIDATE_AUTOMATICALLY_ACTION = new ValidateAutomaticallyAction();
 	public final transient Action OPEN_TEMPLATE_ACTION = new WizardAction(this);
@@ -381,10 +381,6 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	private final ResultDisplay resultDisplay = ResultDisplayTools.makeResultDisplay();
 	private final LoggingViewer messageViewer = new LoggingViewer();
 	private final SystemMonitor systemMonitor = new SystemMonitor();
-
-	// moved StatusBar to upper class ApplicationFrame to allow for better integration
-	// of ProgressThread into other applications
-//	private final StatusBar statusBar = new StatusBar(false, true); 
 
 	private final OperatorDocViewer operatorDocViewer = OperatorDocViewer.instantiate();
 	private final OperatorTreePanel operatorTree = new OperatorTreePanel(this);

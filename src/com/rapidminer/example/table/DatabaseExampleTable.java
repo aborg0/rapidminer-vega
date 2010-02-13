@@ -39,7 +39,6 @@ import com.rapidminer.tools.jdbc.DatabaseHandler;
  * therefore usually not recommended.
  * 
  * @author Ingo Mierswa
- *          ingomierswa Exp $
  */
 public class DatabaseExampleTable extends AbstractExampleTable {
 

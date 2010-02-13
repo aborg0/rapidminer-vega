@@ -35,7 +35,6 @@ import com.rapidminer.tools.Ontology;
  * minimum, maximum and average of the values.
  * 
  * @author Ingo Mierswa
- *          Exp $
  */
 public class NumericalAttribute extends AbstractAttribute {
 

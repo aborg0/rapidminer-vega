@@ -138,7 +138,8 @@ public class AggregationOperator extends AbstractDataProcessing {
 		int aggregations = parameterList.size();
 		Attribute[] aggregationAttributes = new Attribute[aggregations];
 		String[] aggregationFunctionNames = new String[aggregations];
-		boolean[] nominalResults = new boolean[aggregations];
+		int[] resultTypes = new int[aggregations];
+//		boolean[] nominalResults = new boolean[aggregations];
 		int parameterListIndex = 0;
 		for (String[] valuePair : parameterList) {
 			String attributeName = valuePair[0];
@@ -149,7 +150,18 @@ public class AggregationOperator extends AbstractDataProcessing {
 			}
 			aggregationAttributes[parameterListIndex] = attribute;
 			aggregationFunctionNames[parameterListIndex] = aggregationFunctionName;
-			nominalResults[parameterListIndex] = attribute.isNominal() && aggregationFunctionName.equals(AbstractAggregationFunction.KNOWN_AGGREGATION_FUNCTION_NAMES[AbstractAggregationFunction.MODE]);
+//			nominalResults[parameterListIndex] = attribute.isNominal() && aggregationFunctionName.equals(AbstractAggregationFunction.KNOWN_AGGREGATION_FUNCTION_NAMES[AbstractAggregationFunction.MODE]);
+			if (aggregationFunctionName.equals(AbstractAggregationFunction.KNOWN_AGGREGATION_FUNCTION_NAMES[AbstractAggregationFunction.COUNT])) {
+				resultTypes[parameterListIndex] = Ontology.NUMERICAL;
+			} else {
+				if (attribute.isNumerical()) {
+					resultTypes[parameterListIndex] = Ontology.NUMERICAL;
+				} else if (attribute.isNominal()) {
+					resultTypes[parameterListIndex] = Ontology.NOMINAL;
+				} else {
+					resultTypes[parameterListIndex] = attribute.getValueType();
+				}
+			}
 			parameterListIndex++;
 		}
 
@@ -251,11 +263,12 @@ public class AggregationOperator extends AbstractDataProcessing {
 				resultGroupAttributes[i] = resultGroupAttribute;
 			}
 			for (int i = 0; i < aggregations; i++) {
-				if (nominalResults[i]) {
-					resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" + aggregationAttributes[i].getName() + ")", Ontology.NOMINAL));
-				} else {
-					resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" + aggregationAttributes[i].getName() + ")", Ontology.REAL));        			
-				}
+//				if (nominalResults[i]) {
+//					resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" + aggregationAttributes[i].getName() + ")", Ontology.NOMINAL));
+//				} else {
+//					resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" + aggregationAttributes[i].getName() + ")", Ontology.REAL));        			
+//				}
+				resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" + aggregationAttributes[i].getName() + ")", resultTypes[i]));
 			}
 			resultTable = new MemoryExampleTable(resultAttributes);
 
@@ -269,7 +282,12 @@ public class AggregationOperator extends AbstractDataProcessing {
 				AggregationFunction[] functions = functionSet.get(i);
 				if (functions != null) {
 					for (int j = 0; j < aggregations; j++) {
-						data[groupByAttributes.length + j] = nominalResults[j] ? resultTable.getAttribute(groupByAttributes.length + j).getMapping().mapString(aggregationAttributes[j].getMapping().mapIndex((int) functions[j].getValue())) : functions[j].getValue();
+//						data[groupByAttributes.length + j] = nominalResults[j] ? resultTable.getAttribute(groupByAttributes.length + j).getMapping().mapString(aggregationAttributes[j].getMapping().mapIndex((int) functions[j].getValue())) : functions[j].getValue();
+						if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(resultTypes[j], Ontology.NOMINAL)) {
+							data[groupByAttributes.length + j] = resultTable.getAttribute(groupByAttributes.length + j).getMapping().mapString(aggregationAttributes[j].getMapping().mapIndex((int) functions[j].getValue()));
+						} else {
+							data[groupByAttributes.length + j] = functions[j].getValue();
+						}
 					}
 					resultTable.addDataRow(new DoubleArrayDataRow(data));
 				}
@@ -316,11 +334,13 @@ public class AggregationOperator extends AbstractDataProcessing {
 			Attribute resultGroupAttribute = AttributeFactory.createAttribute(GENERIC_GROUP_NAME, Ontology.NOMINAL); 
 			resultAttributes.add(resultGroupAttribute);
 			for (int i = 0; i < aggregations; i++) {
-				if (nominalResults[i]) {
-					resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" + aggregationAttributes[i].getName() + ")", Ontology.NOMINAL));
-				} else {
-					resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" + aggregationAttributes[i].getName() + ")", Ontology.REAL));
-				}
+//				if (nominalResults[i]) {
+//					resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" + aggregationAttributes[i].getName() + ")", Ontology.NOMINAL));
+//				} else {
+//					resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" + aggregationAttributes[i].getName() + ")", Ontology.REAL));
+//				}
+				resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" + aggregationAttributes[i].getName() + ")", resultTypes[i]));
+
 			}
 			for (Attribute attribute : resultAttributes) {
 				attribute.setConstruction(attribute.getName());
@@ -331,7 +351,13 @@ public class AggregationOperator extends AbstractDataProcessing {
 			double[] data = new double[aggregations + 1];
 			data[0] = resultGroupAttribute.getMapping().mapString(GENERIC_ALL_NAME);
 			for (int i = 0; i < aggregations; i++) {
-				data[i + 1] = nominalResults[i] ? resultTable.getAttribute(i + 1).getMapping().mapString(aggregationAttributes[i].getMapping().mapIndex((int) functions[i].getValue())) : functions[i].getValue();
+//				data[i + 1] = nominalResults[i] ? resultTable.getAttribute(i + 1).getMapping().mapString(aggregationAttributes[i].getMapping().mapIndex((int) functions[i].getValue())) : functions[i].getValue();
+				if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(resultTypes[i], Ontology.NOMINAL)) {
+					data[i + 1] = resultTable.getAttribute(i + 1).getMapping().mapString(aggregationAttributes[i].getMapping().mapIndex((int) functions[i].getValue()));
+				} else {
+					data[i + 1] = functions[i].getValue();
+				}
+
 			}
 			resultTable.addDataRow(new DoubleArrayDataRow(data));
 		}

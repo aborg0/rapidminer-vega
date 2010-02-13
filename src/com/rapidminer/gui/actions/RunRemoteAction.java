@@ -25,6 +25,7 @@ package com.rapidminer.gui.actions;
 import java.awt.event.ActionEvent;
 
 import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.repository.gui.RunRemoteDialog;
 /**
@@ -37,15 +38,14 @@ public class RunRemoteAction extends ResourceAction {
 
 	public MainFrame mainFrame;
 	
-	public RunRemoteAction(MainFrame mainFrame) {
-		super("run_remote");
-		this.mainFrame = mainFrame;
+	public RunRemoteAction() {
+		super(true, "run_remote");
 		setCondition(EDIT_IN_PROGRESS, DISALLOWED);
 	}
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		RunRemoteDialog.showDialog(mainFrame.getProcess());
+		RunRemoteDialog.showDialog(RapidMinerGUI.getMainFrame().getProcess());
 	}
 
 }

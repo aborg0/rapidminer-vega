@@ -358,9 +358,9 @@ public class ExtendedJTableSorterModel extends AbstractTableModel {
                 // Define null less than everything, except null.
                 if (o1 == null && o2 == null) {
                     comparison = 0;
-                } else if (o1 == null) {
+                } else if (o1 == null || "?".equals(o1)) {
                     comparison = -1;
-                } else if (o2 == null) {
+                } else if (o2 == null || "?".equals(o2)) {
                     comparison = 1;
                 } else {
                     comparison = getComparator(column).compare(o1, o2);

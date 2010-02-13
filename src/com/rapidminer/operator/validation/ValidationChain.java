@@ -270,10 +270,11 @@ public abstract class ValidationChain extends OperatorChain {
 		// set last result for plotting purposes. This is an average value and
 		// actually not the last performance value!
 		boolean success = false;
-		for (IOObject result : applyProcessPerformancePortExtender.getData()) {
+		for (IOObject result : applyProcessPerformancePortExtender.getOutputData()) {
 			if (result instanceof PerformanceVector) {
 				setResult((PerformanceVector)result);
 				success = true;
+				break;
 			}
 		}
 		if (!success) {

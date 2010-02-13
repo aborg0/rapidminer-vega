@@ -123,14 +123,24 @@ public class AttributeAggregationOperator extends AbstractFeatureConstruction {
 			throw new UserError(this, 904, functionName, e.getMessage());
 		}
 
+		int valueType = Ontology.ATTRIBUTE_VALUE;
 		for (Attribute attribute: attributes) {
+			if (valueType == Ontology.ATTRIBUTE_VALUE) {
+				if (attribute.isNominal() || attribute.isNumerical()) {
+					valueType = Ontology.NUMERICAL;
+				} else {
+					valueType = attribute.getValueType();
+				}
+			}
 			if (!aggregationFunction.supportsAttribute(attribute)) {
 				throw new UserError(this, 136, attribute.getName());
 			}
 		}
 
 		// create aggregation attribute
-		Attribute newAttribute = AttributeFactory.createAttribute(getParameterAsString(PARAMETER_ATTRIBUTE_NAME), Ontology.REAL);
+//		Attribute newAttribute = AttributeFactory.createAttribute(getParameterAsString(PARAMETER_ATTRIBUTE_NAME), Ontology.REAL);
+		Attribute newAttribute = AttributeFactory.createAttribute(getParameterAsString(PARAMETER_ATTRIBUTE_NAME), valueType);
+		
 		exampleSet.getExampleTable().addAttribute(newAttribute);
 		exampleSet.getAttributes().addRegular(newAttribute);
 

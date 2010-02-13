@@ -33,7 +33,6 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -150,49 +149,49 @@ public class DatabaseHandler {
 	 *  after {@link #disconnect()} was invoked. */
 	private Connection connection;
     
-	private static class DHIdentifier {
-		private String url;
-		private String username;
-
-		private DHIdentifier(String url, String username) {
-			super();
-			this.url = url;
-			this.username = username;
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((url == null) ? 0 : url.hashCode());
-			result = prime * result + ((username == null) ? 0 : username.hashCode());
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			DHIdentifier other = (DHIdentifier) obj;
-			if (url == null) {
-				if (other.url != null)
-					return false;
-			} else if (!url.equals(other.url))
-				return false;
-			if (username == null) {
-				if (other.username != null)
-					return false;
-			} else if (!username.equals(other.username))
-				return false;
-			return true;
-		}
-	}
-	private static final Map<DHIdentifier,DatabaseHandler> POOL = new HashMap<DHIdentifier,DatabaseHandler>(); 
-	private static final Object POOL_LOCK = new Object();
+//	private static class DHIdentifier {
+//		private String url;
+//		private String username;
+//
+//		private DHIdentifier(String url, String username) {
+//			super();
+//			this.url = url;
+//			this.username = username;
+//		}
+//
+//		@Override
+//		public int hashCode() {
+//			final int prime = 31;
+//			int result = 1;
+//			result = prime * result + ((url == null) ? 0 : url.hashCode());
+//			result = prime * result + ((username == null) ? 0 : username.hashCode());
+//			return result;
+//		}
+//
+//		@Override
+//		public boolean equals(Object obj) {
+//			if (this == obj)
+//				return true;
+//			if (obj == null)
+//				return false;
+//			if (getClass() != obj.getClass())
+//				return false;
+//			DHIdentifier other = (DHIdentifier) obj;
+//			if (url == null) {
+//				if (other.url != null)
+//					return false;
+//			} else if (!url.equals(other.url))
+//				return false;
+//			if (username == null) {
+//				if (other.username != null)
+//					return false;
+//			} else if (!username.equals(other.username))
+//				return false;
+//			return true;
+//		}
+//	}
+//	private static final Map<DHIdentifier,DatabaseHandler> POOL = new HashMap<DHIdentifier,DatabaseHandler>(); 
+//	private static final Object POOL_LOCK = new Object();
 	
 	/**
 	 * Constructor of the database handler. This constructor expects the URL definition
@@ -208,39 +207,39 @@ public class DatabaseHandler {
 	}
 	
     public static DatabaseHandler getConnectedDatabaseHandler(ConnectionEntry entry) throws SQLException {
-    	synchronized (POOL_LOCK) {
-    		DHIdentifier id = new DHIdentifier(entry.getURL(), entry.getName());
-    		DatabaseHandler pooled = POOL.get(id);
-    		if ((pooled != null) && !pooled.connection.isClosed()) {    			
-    			return pooled;
-    		} else {
+    	//synchronized (POOL_LOCK) {
+//    		DHIdentifier id = new DHIdentifier(entry.getURL(), entry.getName());
+//    		DatabaseHandler pooled = POOL.get(id);
+//    		if ((pooled != null) && !pooled.connection.isClosed()) {    			
+//    			return pooled;
+//    		} else {
     			DatabaseHandler handler = new DatabaseHandler(entry.getURL(), entry.getUser());
     			handler.connect(entry.getPassword());
-    			POOL.put(id, handler);
+//    			POOL.put(id, handler);
     			return handler;
-    		}    		
-    	}		
+//    		}    		
+//    	}		
 	}
 
     
 	/** Returns a connected database handler instance from the given connection data. If the password
 	 *  is null, it will be queries by the user during this method. */
 	public static DatabaseHandler getConnectedDatabaseHandler(String databaseURL, String username, String password) throws OperatorException, SQLException {
-		synchronized (POOL_LOCK) {
-			DHIdentifier id = new DHIdentifier(databaseURL, username);
-    		DatabaseHandler pooled = POOL.get(id);
-    		if ((pooled != null) && !pooled.connection.isClosed()) {
-    			return pooled;
-    		} else {
+//		synchronized (POOL_LOCK) {
+//			DHIdentifier id = new DHIdentifier(databaseURL, username);
+//    		DatabaseHandler pooled = POOL.get(id);
+//    		if ((pooled != null) && !pooled.connection.isClosed()) {
+//    			return pooled;
+//    		} else {
     			if (password == null) {
     				password = RapidMiner.getInputHandler().inputPassword("Password for user '" + username + "' required");
     			}
     			DatabaseHandler databaseHandler = new DatabaseHandler(databaseURL, username);
     			databaseHandler.connect(password.toCharArray());
-    			POOL.put(id, databaseHandler);
+//    			POOL.put(id, databaseHandler);
     			return databaseHandler;
-    		}
-		}
+//    		}
+//		}
 	}
 
 	public StatementCreator getStatementCreator() {
@@ -284,9 +283,9 @@ public class DatabaseHandler {
 	}
 
 	private void unregister() {
-		synchronized (POOL_LOCK) {			
-			POOL.remove(new DHIdentifier(this.databaseURL, this.user));
-		}
+//		synchronized (POOL_LOCK) {			
+//			POOL.remove(new DHIdentifier(this.databaseURL, this.user));
+//		}
 	}
 
 	/** Returns the connection. Might be used in order to create statements. The return
@@ -358,7 +357,6 @@ public class DatabaseHandler {
 		if (!sqlQuery.toLowerCase().startsWith("select")) {
 			throw new SQLException("Query: Only SQL-Statements starting with SELECT are allowed: " + sqlQuery);
 		}
-
 		Statement st = createStatement(true);
 		ResultSet rs = st.executeQuery(sqlQuery);
 		return rs;
@@ -368,23 +366,7 @@ public class DatabaseHandler {
 	/** Adds a column for the given attribute to the table with name tableName. */
 	public void addColumn(Attribute attribute, String tableName) throws SQLException {
 		// drop the column if necessary 
-		Statement statement = createStatement(false);
-		boolean exists = false;
-		try {
-            // check if column already exists (no exception and more than zero rows :-)
-			// TODO: Use meta data instead
-			ResultSet existingResultSet = statement.executeQuery("SELECT " + 
-					statementCreator.makeColumnIdentifier(attribute) + 
-					" FROM " + 
-					statementCreator.makeIdentifier(tableName) + " WHERE 0 = 1");
-			//ResultSet existingResultSet = statement.executeQuery(statementCreator.makeSelectEmptySetStatement(tableName));
-            if (existingResultSet.getMetaData().getColumnCount() > 0)
-                exists = true;
-			existingResultSet.close();
-		} catch (SQLException e) {
-			// exception will be thrown if the column does not exist
-		}
-		statement.close();
+		boolean exists = existsColumnInTable(tableName, attribute.getName());
 		
         if (exists) {
         	removeColumn(attribute, tableName);
@@ -437,20 +419,7 @@ public class DatabaseHandler {
 	public void createTable(ExampleSet exampleSet, String tableName, int overwriteMode, boolean firstAttempt, int defaultVarcharLength) throws SQLException {
 		// either drop the table or throw an exception (depending on the parameter 'overwrite')
 		Statement statement = createStatement(true);
-		boolean exists = false;
-		try {
-            // check if table already exists (no exception and more than zero columns :-)
-			// TODO: Huargh. Use meta data instead
-			ResultSet existingResultSet = statement.executeQuery("SELECT * FROM " + 
-					statementCreator.makeIdentifier(tableName) + " WHERE 0 = 1");
-            if (existingResultSet.getMetaData().getColumnCount() > 0)
-                exists = true;
-			existingResultSet.close();
-		} catch (SQLException e) {
-			// exception will be throw if table does not exist
-			//TODO : Remove
-			e.printStackTrace();
-		}
+		boolean exists = existsTable(tableName);
 		
 		// drop table?
         if (exists) {
@@ -716,19 +685,17 @@ public class DatabaseHandler {
 		return attributes;
 	}
 
-	/** 
-	 * @deprecated Use the open and close quotes for identifiers from the properties instead 
-	 */
-	@Deprecated
-	public static String getDatabaseName(Attribute attribute) {
-		String name = attribute.getName();
-		//name = name.toUpperCase();
-        //name = name.replaceAll("\\\\s", "_");
-		//name = name.replaceAll("\\(", "_");
-		//name = name.replaceAll("\\)", "_");
-        name = name.replaceAll("\\W", "_"); // replace non-word characters
-		return name;
+	/** Checks whether a table with the given name exists. */
+	private boolean existsTable(String tableName) throws SQLException {	
+        ResultSet tableNames = connection.getMetaData().getTables(null, null, tableName, null);        
+        return tableNames.next();
 	}
+
+	/** Checks whether the given column exists in the given data base. */
+	private boolean existsColumnInTable(String tableName, String columnName) throws SQLException {
+		return connection.getMetaData().getColumns(null, null, tableName, columnName).next();
+	}
+
 
     public Map<String, List<ColumnIdentifier>> getAllTableMetaData() throws SQLException {
         if (connection == null) {
@@ -771,24 +738,11 @@ public class DatabaseHandler {
         Statement statement = null;
         try {
         	statement = createStatement(false);
-        	// TODO: Use meta data
-        	ResultSet rs = statement.executeQuery("SELECT * FROM " + statementCreator.makeIdentifier(tableName) + " WHERE 0 = 1");
+        	ResultSet columnResult = connection.getMetaData().getColumns(null, null, tableName, "%");
         	List<ColumnIdentifier> result = new LinkedList<ColumnIdentifier>();
-
-        	ResultSetMetaData metadata;
-        	try {
-        		metadata = rs.getMetaData();
-        	} catch (NullPointerException npe) {
-        		throw new SQLException("Could not create column name list: ResultSet object seems closed.");
+        	while (columnResult.next()) {
+        		result.add(new ColumnIdentifier(this, tableName, columnResult.getString("COLUMN_NAME")));
         	}
-
-        	int numberOfColumns = metadata.getColumnCount();
-
-        	for (int column = 1; column <= numberOfColumns; column++) {
-        		String name = metadata.getColumnLabel(column);
-        		result.add(new ColumnIdentifier(this, tableName, name));
-        	}
-        	
             return result;
         } catch (SQLException e) {
         	throw e;
@@ -798,7 +752,6 @@ public class DatabaseHandler {
         }
     }
 
-	/** TODO: Pool these connections. */
 	public static DatabaseHandler getConnectedDatabaseHandler(Operator operator) throws OperatorException, SQLException {
 		switch (operator.getParameterAsInt(PARAMETER_DEFINE_CONNECTION)) {
 		case CONNECTION_MODE_PREDEFINED:

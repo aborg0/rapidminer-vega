@@ -292,7 +292,7 @@ public class IndexCachedDatabaseExampleTable extends AbstractExampleTable {
 			updateBatchAndCursors(index);
 			return new NonWritableDataRow(this.batchExampleTable.getDataRow(index - this.currentBatchStartCursor + 1));
 		} catch (SQLException e) {
-			throw new RuntimeException("Cannot retrieve data from database: " + e);
+			throw new RuntimeException("Cannot retrieve data from database: " + e, e);
 		}
 	}
 

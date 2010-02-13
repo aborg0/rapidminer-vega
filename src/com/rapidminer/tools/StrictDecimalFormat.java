@@ -43,6 +43,8 @@ import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 public class StrictDecimalFormat extends DecimalFormat {
 	private static final long serialVersionUID = -1597219600920760784L;
 	
+	public static final String PARAMETER_PARSE_NUMBERS = "parse_numbers";
+	
 	public static final String PARAMETER_DECIMAL_CHARACTER = "decimal_character";
 	
 	public static final String PARAMETER_GROUPED_DIGITS = "grouped_digits";
@@ -108,8 +110,17 @@ public class StrictDecimalFormat extends DecimalFormat {
 		symbols.setGroupingSeparator(groupingSeparator);
 		setDecimalFormatSymbols(symbols);
 	}
-	
+
 	public static StrictDecimalFormat getInstance(ParameterHandler handler) throws UndefinedParameterError {
+		return getInstance(handler, false);
+	}
+	
+	public static StrictDecimalFormat getInstance(ParameterHandler handler, boolean optional) throws UndefinedParameterError {
+		if (optional) {
+			if (!handler.getParameterAsBoolean(PARAMETER_PARSE_NUMBERS)) {
+				return null;
+			}
+		}
 		char decimalCharacter = handler.getParameterAsChar(PARAMETER_DECIMAL_CHARACTER);
 		char groupingCharacter = handler.getParameterAsChar(PARAMETER_GROUPING_CHARACTER);
 		if (handler.getParameterAsBoolean(PARAMETER_GROUPED_DIGITS)) {
@@ -120,10 +131,30 @@ public class StrictDecimalFormat extends DecimalFormat {
 	}
 	
 	public static List<ParameterType> getParameterTypes(ParameterHandler handler) {
+		return getParameterTypes(handler, false);
+	}
+	
+	public static List<ParameterType> getParameterTypes(ParameterHandler handler, boolean optional) {
 		List<ParameterType> types = new LinkedList<ParameterType>();
-		types.add(new ParameterTypeChar(PARAMETER_DECIMAL_CHARACTER, "The decimal character.", DEFAULT_DECIMAL_CHARACTER));
-		types.add(new ParameterTypeBoolean(PARAMETER_GROUPED_DIGITS, "Parse grouped digits.", false));
-		ParameterType type = new ParameterTypeChar(PARAMETER_GROUPING_CHARACTER, "The grouping character.", DEFAULT_GROUPING_CHARACTER);
+		ParameterType type;
+		if (optional) {
+			type = new ParameterTypeBoolean(PARAMETER_PARSE_NUMBERS, "Specifies whether numbers are parsed.", true, false);
+			types.add(type);
+		}
+		type = new ParameterTypeChar(PARAMETER_DECIMAL_CHARACTER, "The decimal character.", DEFAULT_DECIMAL_CHARACTER, false);
+		if (optional) {
+			type.registerDependencyCondition(new BooleanParameterCondition(handler, PARAMETER_PARSE_NUMBERS, false, true));
+		}
+		types.add(type);
+		type = new ParameterTypeBoolean(PARAMETER_GROUPED_DIGITS, "Parse grouped digits.", false, false);
+		if (optional) {
+			type.registerDependencyCondition(new BooleanParameterCondition(handler, PARAMETER_PARSE_NUMBERS, false, true));
+		}
+		types.add(type);
+		type = new ParameterTypeChar(PARAMETER_GROUPING_CHARACTER, "The grouping character.", DEFAULT_GROUPING_CHARACTER, false);
+		if (optional) {
+			type.registerDependencyCondition(new BooleanParameterCondition(handler, PARAMETER_PARSE_NUMBERS, false, true));
+		}
 		type.registerDependencyCondition(new BooleanParameterCondition(handler, PARAMETER_GROUPED_DIGITS, false, true));
 		types.add(type);
 		return types;
