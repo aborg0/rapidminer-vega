@@ -167,9 +167,10 @@ public class MemoryExampleTable extends AbstractExampleTable {
 
 	/**
 	 * Convenience method allowing the adding of data rows without a data row
-	 * reader.
+	 * reader. This will trim the data row before to save memory.
 	 */
 	public void addDataRow(DataRow dataRow) {
+		dataRow.trim();
 		dataList.add(dataRow);
 	}
 

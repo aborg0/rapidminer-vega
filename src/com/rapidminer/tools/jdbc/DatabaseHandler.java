@@ -39,6 +39,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
+
 import com.rapidminer.RapidMiner;
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.AttributeRole;
@@ -82,11 +86,13 @@ public class DatabaseHandler {
 	
 	public static final String PARAMETER_DEFINE_CONNECTION = "define_connection";
 	
-	public static final String[] CONNECTION_MODES = { "predefined" , "url" };
+	public static final String[] CONNECTION_MODES = { "predefined" , "url", "jndi" };
 	
 	public static final int CONNECTION_MODE_PREDEFINED = 0;
 	
-	public static final int CONNECTION_MODE_URL = 1;
+	public static final int CONNECTION_MODE_URL        = 1;
+	
+	public static final int CONNECTION_MODE_JNDI       = 2;
 	
 	public static final String PARAMETER_CONNECTION = "connection";
 	
@@ -103,6 +109,8 @@ public class DatabaseHandler {
 	public static final String PARAMETER_PASSWORD = "password";
 
 	public static final String PARAMETER_DEFINE_QUERY = "define_query";
+	
+	public static final String PARAMETER_JNDI_NAME = "jndi_name";
 	
 	public static final String[] QUERY_MODES = { "query" , "query file" , "table name" };
 	
@@ -221,6 +229,13 @@ public class DatabaseHandler {
 //    	}		
 	}
 
+    
+    public static DatabaseHandler getHandler(Connection connection) throws OperatorException, SQLException {
+		DatabaseHandler databaseHandler = new DatabaseHandler("preconnected", "unknown");
+		databaseHandler.connection = connection;
+		databaseHandler.statementCreator = new StatementCreator(connection);
+		return databaseHandler;
+    }
     
 	/** Returns a connected database handler instance from the given connection data. If the password
 	 *  is null, it will be queries by the user during this method. */
@@ -759,7 +774,17 @@ public class DatabaseHandler {
 			if (entry == null) {
 				throw new UserError(operator, 318, operator.getParameterAsString(PARAMETER_CONNECTION));
 			}
-			return getConnectedDatabaseHandler(entry.getURL(), entry.getUser(), new String(entry.getPassword())); 
+			return getConnectedDatabaseHandler(entry.getURL(), entry.getUser(), new String(entry.getPassword()));
+		case DatabaseHandler.CONNECTION_MODE_JNDI:
+			final String jndiName = operator.getParameterAsString(PARAMETER_JNDI_NAME);
+			try {
+				InitialContext ctx;
+				ctx = new InitialContext();				
+				DataSource source = (DataSource) ctx.lookup(jndiName);
+				return getHandler(source.getConnection());
+			} catch (NamingException e) {
+				throw new OperatorException("Failed to lookup '"+jndiName+"': "+e, e);
+			}								
 		case DatabaseHandler.CONNECTION_MODE_URL:
 		default:
 			return getConnectedDatabaseHandler(operator.getParameterAsString(PARAMETER_DATABASE_URL),
@@ -770,7 +795,8 @@ public class DatabaseHandler {
 	
 	public static ConnectionEntry getConnectionEntry(Operator operator) {
 		try {
-			switch (operator.getParameterAsInt(DatabaseHandler.PARAMETER_DEFINE_CONNECTION)) {
+			final int connectionMode = operator.getParameterAsInt(DatabaseHandler.PARAMETER_DEFINE_CONNECTION);
+			switch (connectionMode) {
 			case DatabaseHandler.CONNECTION_MODE_PREDEFINED:
 				return DatabaseConnectionService.getConnectionEntry(operator.getParameterAsString(DatabaseHandler.PARAMETER_CONNECTION));
 			case DatabaseHandler.CONNECTION_MODE_URL:
@@ -793,6 +819,9 @@ public class DatabaseHandler {
 						return connectionPassword;
 					}
 				};
+			case DatabaseHandler.CONNECTION_MODE_JNDI:			
+			default:
+				return null;	
 			}
 		} catch (UndefinedParameterError e) {
 		}
@@ -827,6 +856,12 @@ public class DatabaseHandler {
 		type.registerDependencyCondition(new EqualTypeCondition(handler, PARAMETER_DEFINE_CONNECTION, CONNECTION_MODES, true, CONNECTION_MODE_URL));
         type.setExpert(false);
         types.add(type);
+        
+        type = new ParameterTypeString(PARAMETER_JNDI_NAME, "JNDI name for a data source.");
+		type.registerDependencyCondition(new EqualTypeCondition(handler, PARAMETER_DEFINE_CONNECTION, CONNECTION_MODES, true, CONNECTION_MODE_JNDI));
+        type.setExpert(false);
+        types.add(type);
+
         return types;
     }
     

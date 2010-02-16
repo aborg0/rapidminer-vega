@@ -1,5 +1,6 @@
 package com.rapidminer.repository.gui.process;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -11,7 +12,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 
 import javax.swing.SwingUtilities;
@@ -42,22 +42,9 @@ public class RemoteProcessesTreeModel implements TreeModel {
 
 	private static final long UPDATE_PERIOD = 2500;
 
-	private static class PendingEvent {
-		private static enum Type { ADD, STRUCTURE_CHANGED, DELETE };
-		private TreeModelEvent event;
-		private Type type;
-		public PendingEvent(TreeModelEvent event, Type type) {		
-			this.event = event;
-			this.type = type;
-		}		
-	}
-
 	private class ProcessList {
 		private List<Integer> knownIds = new LinkedList<Integer>();
 		private Map<Integer,ProcessResponse> processResponses = new HashMap<Integer,ProcessResponse>();
-		//		public Collection<ProcessResponse> allProcesses() {
-		//			return processResponses.values();
-		//		}
 		public int add(ProcessResponse pr) {
 			int newIndex = -1;
 			if (!processResponses.containsKey(pr.getId())) {
@@ -87,33 +74,29 @@ public class RemoteProcessesTreeModel implements TreeModel {
 			}
 			return -1;
 		}
-		public ProcessList copy() {
-			ProcessList copy = new ProcessList();
-			for (Integer id : knownIds) {
-				copy.add(processResponses.get(id));
-			}
-			return copy;
-		}
-		//		public int delete(ProcessResponse process) {
-		//			int oldId = knownIds.indexOf(process.getId());
-		//			knownIds.remove(oldId);e
-		//			processResponses.remove(process.getId());
-		//			return oldId;
-		//		}
-		private void trim(Collection<Integer> processIds, RemoteRepository repos, Collection<PendingEvent> pendingProcessEvents) {
-			Iterator<Entry<Integer, ProcessResponse>> i = processResponses.entrySet().iterator();
+		private TreeModelEvent trim(Set<Integer> processIds, RemoteRepository repos) {			
+			List<Integer> removedIndices = new LinkedList<Integer>();
+			List<Object> removedObjects = new LinkedList<Object>();
+			Iterator<Integer> i = knownIds.iterator();
+			int index = 0;
 			while (i.hasNext()) {
-				Map.Entry<Integer,ProcessResponse> entry = i.next();
-				ProcessResponse process = entry.getValue();
-				if (!processIds.contains(process.getId())) {
-					int oldIndex = knownIds.indexOf(process.getId());
-					knownIds.remove(oldIndex);
+				Integer id = i.next();
+				if (!processIds.contains(id)) {
 					i.remove();
-					pendingProcessEvents.add(new PendingEvent(new TreeModelEvent(this,
-							new Object[] { root, repos },
-							new int[] { oldIndex },
-							new Object[] { process }), PendingEvent.Type.DELETE));
+					ProcessResponse process = processResponses.remove(id);					
+					removedIndices.add(index);
+					removedObjects.add(process);
+				} 
+				index++;				
+			}
+			if (!removedIndices.isEmpty()) {
+				int[] indices = new int[removedIndices.size()];
+				for (int j = 0; j < removedIndices.size(); j++) {
+					indices[j] = removedIndices.get(j);
 				}
+				return new TreeModelEvent(this, new Object[] { root, repos }, indices, removedObjects.toArray());
+			} else {
+				return null;
 			}
 		}
 	}
@@ -122,83 +105,86 @@ public class RemoteProcessesTreeModel implements TreeModel {
 		@Override
 		public void run() {
 			final List<RemoteRepository> newRepositories = RemoteRepository.getAll();
-			final List<PendingEvent> pendingProcessEvents = new LinkedList<PendingEvent>();			
 			if (!newRepositories.equals(repositories)) {
-				pendingProcessEvents.add(new PendingEvent(new TreeModelEvent(this, new Object[] { root }), PendingEvent.Type.STRUCTURE_CHANGED));	
-			}
-
-			final Map<RemoteRepository, ProcessList> newProcesses = new HashMap<RemoteRepository, ProcessList>();
-
-			for (RemoteRepository repos : newRepositories) {
-				if (observedRepositories.contains(repos)) {
-					ProcessList oldProcessList = processes.get(repos);
-					ProcessList newProcessList = oldProcessList == null ? new ProcessList() : oldProcessList.copy();
-					//if (repos.isConnected()) {
-						try {
-							Collection<Integer> processIds = repos.getProcessService().getRunningProcesses(since);
-							// First, delete removed ids
-							newProcessList.trim(processIds, repos, pendingProcessEvents);
-
-							for (Integer processId : processIds) {
-								ProcessResponse oldProcess = newProcessList.getById(processId);
-								// we update if we don't know the id yet or if the process is not complete						
-								if (oldProcess == null) {
-									ProcessResponse newResponse = repos.getProcessService().getRunningProcessesInfo(processId);
-									int newIndex = newProcessList.add(newResponse);
-									pendingProcessEvents.add(new PendingEvent(new TreeModelEvent(this, 
-											new Object[] {root, repos}, 
-											new int[] {newIndex}, 
-											new Object[] {newResponse}), PendingEvent.Type.ADD));							
-								} else if (!RemoteProcessState.valueOf(oldProcess.getState()).isTerminated()) {
-									ProcessResponse updatedResponse = repos.getProcessService().getRunningProcessesInfo(processId);
-									newProcessList.add(updatedResponse);
-									pendingProcessEvents.add(new PendingEvent(new TreeModelEvent(this, 
-											new Object[] {root, repos, updatedResponse}), PendingEvent.Type.STRUCTURE_CHANGED));							
-
-								} else {								
-									// If process is terminated, there is not need to update.
-									// The process is already in the list since it is copied
-								}						
+				try {
+					SwingUtilities.invokeAndWait(new Runnable() {
+						public void run() {
+							repositories = newRepositories;
+							processes.clear();
+							for (RemoteRepository repos : repositories) {
+								processes.put(repos, new ProcessList());
 							}
-							newProcesses.put(repos, newProcessList);
-						} catch (Exception ex) {
-							LogService.getRoot().log(Level.WARNING, "Error fetching remote process list: "+ex, ex);
-							newProcesses.clear();
-							pendingProcessEvents.add(new PendingEvent(new TreeModelEvent(this, new TreePath(new Object[] { root, repos })), PendingEvent.Type.STRUCTURE_CHANGED));
-						}
-					//}
-				}
+							fireStructureChanged(new TreeModelEvent(this, new Object[] { root }));
+							System.out.println("Structure changed");
+						};	
+					});
+				} catch (InterruptedException e) {
+					LogService.getRoot().log(Level.WARNING, e.toString(), e);
+				} catch (InvocationTargetException e) {
+					LogService.getRoot().log(Level.WARNING, e.toString(), e);
+				}					
 			}
-			// finally, set the new data atomically and fire all events
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					RemoteProcessesTreeModel.this.repositories = newRepositories;
-					RemoteProcessesTreeModel.this.processes    = newProcesses;					
-					for (PendingEvent e : pendingProcessEvents) {
-						switch (e.type) {
-						case ADD:
-							fireAdd(e.event);
-							break;
-						case DELETE:
-							fireDelete(e.event);
-							break;
-						case STRUCTURE_CHANGED:
-							fireStructureChanged(e.event);
-							break;
-						default:
-							throw new RuntimeException("Unknown event type: "+e.type);	
-						}
-					}					
+
+			for (final RemoteRepository repos : repositories) {
+				if (observedRepositories.contains(repos)) {
+					final ProcessList processList = processes.get(repos);
+					try {
+						final Collection<Integer> processIds = repos.getProcessService().getRunningProcesses(since);
+						// First, delete removed ids
+						SwingUtilities.invokeAndWait(new Runnable() {
+							@Override
+							public void run() {
+								TreeModelEvent deleteEvent = processList.trim(new HashSet<Integer>(processIds), repos);
+								//processes.put(repos, processList);
+								if (deleteEvent != null) {
+									System.out.println(deleteEvent);
+									fireDelete(deleteEvent);									
+								}									
+							}
+						});
+
+						for (Integer processId : processIds) {
+							ProcessResponse oldProcess = processList.getById(processId);
+							// we update if we don't know the id yet or if the process is not complete						
+							if (oldProcess == null) {
+								final ProcessResponse newResponse = repos.getProcessService().getRunningProcessesInfo(processId);									
+								SwingUtilities.invokeAndWait(new Runnable() {
+									@Override
+									public void run() {
+										int newIndex = processList.add(newResponse);
+										fireAdd(new TreeModelEvent(this, new Object[] {root, repos}, 
+												new int[] {newIndex}, 
+												new Object[] {newResponse}));							
+
+									}									
+								});
+							} else if (!RemoteProcessState.valueOf(oldProcess.getState()).isTerminated()) {
+								final ProcessResponse updatedResponse = repos.getProcessService().getRunningProcessesInfo(processId);
+								SwingUtilities.invokeAndWait(new Runnable() {
+									@Override
+									public void run() {
+										processList.add(updatedResponse);
+										fireUpdate(new TreeModelEvent(this, new Object[] {root, repos, updatedResponse}));							
+									}
+								});
+							} else {								
+								// If process is terminated, there is not need to update.
+								// The process is already in the list since it is copied
+							}						
+						}							
+					} catch (Exception ex) {
+						LogService.getRoot().log(Level.WARNING, "Error fetching remote process list: "+ex, ex);
+						fireStructureChanged(new TreeModelEvent(this, new TreePath(new Object[] { root, repos })));
+					}
 				}
-			});			
+			}	
 		}
 	}
 
 	private Map<RemoteRepository, ProcessList> processes = new HashMap<RemoteRepository, ProcessList>(); 
 	private List<RemoteRepository> repositories = new LinkedList<RemoteRepository>();
 	private Set<RemoteRepository> observedRepositories = new HashSet<RemoteRepository>();
-	
+
 	private Object root = new Object();
 
 	private Timer updateTimer = new Timer("RemoteProcess-Updater", true);
@@ -337,6 +323,12 @@ public class RemoteProcessesTreeModel implements TreeModel {
 		}
 	}					
 
+	private void fireUpdate(TreeModelEvent e) {
+		for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
+			l.treeNodesChanged(e);
+		}
+	}					
+
 	private void fireDelete(TreeModelEvent event) {
 		for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
 			l.treeNodesRemoved(event);
@@ -362,7 +354,7 @@ public class RemoteProcessesTreeModel implements TreeModel {
 			}
 		}
 	}
-	
+
 	public void observe(RemoteRepository rep) {
 		observedRepositories.add(rep);
 	}

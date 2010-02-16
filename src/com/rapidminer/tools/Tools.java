@@ -1131,11 +1131,14 @@ public class Tools {
 				out.write(buffer, 0, length);
 			}
 			out.flush();
+			if (closeOutputStream) {
+				out.close();
+			}
 		} finally {
 			if (closeOutputStream && (out != null)) {
 				try {
 					out.close();
-				} catch (IOException ex) {}
+				} catch (IOException ex) { }
 			}
 			if (in != null) {
 				try {

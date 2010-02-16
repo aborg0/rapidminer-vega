@@ -109,7 +109,7 @@ public class StratifiedSamplingOperator extends AbstractSamplingOperator {
 				getExampleSetInputPort().addError(
 						new SimpleMetaDataError(Severity.ERROR, getExampleSetInputPort(), 
 								Collections.singletonList(new ParameterSettingQuickFix(this, PARAMETER_SAMPLE_SIZE, emd.getNumberOfExamples().getValue().toString())),
-								"need_more_examples", absoluteNumber + ""));
+								"exampleset.need_more_examples", absoluteNumber + ""));
 			return new MDInteger(absoluteNumber);
 		case SAMPLE_RELATIVE:
 			MDInteger number = emd.getNumberOfExamples();
