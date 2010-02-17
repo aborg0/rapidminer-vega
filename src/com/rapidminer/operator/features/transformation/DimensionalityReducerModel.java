@@ -35,7 +35,6 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.example.table.DataRow;
 import com.rapidminer.example.table.DoubleArrayDataRow;
-import com.rapidminer.example.table.ListDataRowReader;
 import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.AbstractModel;
 import com.rapidminer.operator.OperatorException;
@@ -60,7 +59,7 @@ public class DimensionalityReducerModel extends AbstractModel {
 		this.dimensions = dimensions;
 	}
 
-	public ExampleSet apply(ExampleSet es) throws OperatorException {
+	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
 		List<Attribute> attributes = new ArrayList<Attribute>();
 		Map<Attribute, String> specialAttributes = new HashMap<Attribute, String>();
 		for (int i = 0; i < dimensions; i++) {
@@ -68,38 +67,31 @@ public class DimensionalityReducerModel extends AbstractModel {
 			attributes.add(att);
 		}
 
-		Iterator<AttributeRole> s = es.getAttributes().specialAttributes();
+		Iterator<AttributeRole> s = exampleSet.getAttributes().specialAttributes();
 		while (s.hasNext()) {
 			AttributeRole role = s.next();
-			Attribute att = (Attribute) role.getAttribute().clone();
+			Attribute att = AttributeFactory.createAttribute(role.getAttribute());
 			specialAttributes.put(att, role.getSpecialName());
 			attributes.add(att);
 		}
-		MemoryExampleTable et = new MemoryExampleTable(attributes);
+		MemoryExampleTable table = new MemoryExampleTable(attributes);
 
-		// Apply the measures and build the instances
-		List<DataRow> dataRows = new ArrayList<DataRow>();
-
-		// Apply the measures and build the instances
+		// Apply build the instances
 		int i = 0;
-		for (Example oldExample : es) {
-			DataRow dr = new DoubleArrayDataRow(new double[dimensions + specialAttributes.size()]);
+		for (Example oldExample : exampleSet) {
+			DataRow row = new DoubleArrayDataRow(new double[attributes.size()]);
 			for (int j = 0; j < dimensions; j++)
-				dr.set(attributes.get(j), p[i][j]);
+				row.set(attributes.get(j), p[i][j]);
 
-			Iterator<Attribute> sa = specialAttributes.keySet().iterator();
-
-            while (sa.hasNext()) {
-                Attribute att = sa.next();
-                dr.set(att, oldExample.getValue(es.getAttributes().getSpecial(att.getName())));
+			for (Attribute specialAttribute: specialAttributes.keySet()) {
+                row.set(specialAttribute, oldExample.getValue(exampleSet.getAttributes().getSpecial(specialAttribute.getName())));
             }
             
-			dataRows.add(dr);
+			table.addDataRow(row);
 			i++;
 		}
 
-		et.readExamples(new ListDataRowReader(dataRows.iterator()));
-		ExampleSet examples = et.createExampleSet(specialAttributes);
+		ExampleSet examples = table.createExampleSet(specialAttributes);
 		return examples;
 	}
 

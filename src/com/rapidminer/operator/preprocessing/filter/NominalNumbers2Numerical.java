@@ -41,7 +41,6 @@ import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.SetRelation;
 import com.rapidminer.operator.preprocessing.GuessValueTypes;
 import com.rapidminer.parameter.ParameterType;
-import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.StrictDecimalFormat;
@@ -84,8 +83,6 @@ public class NominalNumbers2Numerical extends AbstractFilteredDataProcessing {
 				boolean isNumericalNominal = true;
 				try {
 					for(String value : attribute.getMapping().getValues()) {
-//						String checkValue = value.replace(decimalPointCharacter, '.');
-//						Double.parseDouble(checkValue);
 						format.parse(value);
 					}
 				} catch (Exception e){
@@ -103,8 +100,6 @@ public class NominalNumbers2Numerical extends AbstractFilteredDataProcessing {
 						double oldValue = e.getValue(attribute);
 						if (!Double.isNaN(oldValue)) {
 							String value = e.getValueAsString(attribute);
-							//String replaceValue = value.replace(decimalPointCharacter, '.');
-							//e.setValue(newAttribute, Double.parseDouble(replaceValue));
 							try {
 								e.setValue(newAttribute, format.parse(value).doubleValue());
 							} catch (ParseException ex) {
@@ -131,19 +126,7 @@ public class NominalNumbers2Numerical extends AbstractFilteredDataProcessing {
 	}
 
 	private NumberFormat makeFormat() throws UndefinedParameterError {
-		StrictDecimalFormat format = new StrictDecimalFormat();
-		
-		String decimalCharString = getParameterAsString(PARAMETER_DECIMAL_POINT_CHARACTER);
-		if (!decimalCharString.isEmpty()) {
-			format.getDecimalFormatSymbols().setDecimalSeparator(decimalCharString.charAt(0));
-		}
-		String groupSeparator =  getParameterAsString(PARAMETER_GROUP_SEPARATOR);		
-		if (!groupSeparator.isEmpty()) {
-			format.setGroupingUsed(true);
-			format.getDecimalFormatSymbols().setGroupingSeparator(groupSeparator.charAt(0));
-		} else {
-			format.setGroupingUsed(false);
-		}
+		StrictDecimalFormat format = StrictDecimalFormat.getInstance(this);
 		return format;
 	}
 
@@ -201,8 +184,10 @@ public class NominalNumbers2Numerical extends AbstractFilteredDataProcessing {
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
-		types.add(new ParameterTypeString(PARAMETER_DECIMAL_POINT_CHARACTER, "Character that is used as decimal point.", ".", false));
-		types.add(new ParameterTypeString(PARAMETER_GROUP_SEPARATOR, "Character that is used to separate groups (e.g. in 1.000.000 or 1,000,000).", "", false));
+		types.addAll(StrictDecimalFormat.getParameterTypes(this));
+		// TODO: Replace old parameters by new ones
+//		types.add(new ParameterTypeChar(PARAMETER_DECIMAL_POINT_CHARACTER, "Character that is used as decimal point.", '.', false));
+//		types.add(new ParameterTypeChar(PARAMETER_GROUP_SEPARATOR, "Character that is used to separate groups (e.g. in 1.000.000 or 1,000,000).", false));
 		return types;
 	}
 

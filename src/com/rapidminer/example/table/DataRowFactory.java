@@ -147,7 +147,7 @@ public class DataRowFactory {
 			row = new BooleanArrayDataRow(new boolean[size]);
 			break;
 		case TYPE_DOUBLE_SPARSE_ARRAY:
-			row = new DoubleSparseArrayDataRow(size >> 2);
+			row = new DoubleSparseArrayDataRow(16);
 			break;
 		case TYPE_FLOAT_SPARSE_ARRAY:
 			row = new FloatSparseArrayDataRow(size >> 2);

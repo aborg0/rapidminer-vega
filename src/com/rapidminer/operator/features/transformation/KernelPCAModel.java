@@ -112,7 +112,7 @@ public class KernelPCAModel extends AbstractModel {
 	private void checkNames(Attributes attributes) throws UserError {
 		int i = 0;
 		for (Attribute attribute: attributes) {
-			if (attribute.getName() != attributeNames.get(i++)) {
+			if (!attribute.getName().equals(attributeNames.get(i++))) {
 				throw new UserError(null, 141);
 			}
 		}
