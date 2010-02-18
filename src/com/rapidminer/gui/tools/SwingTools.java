@@ -450,7 +450,7 @@ public class SwingTools {
 	 * gui.dialog.confirm.-key-.icon
 	 */
 	public static int showConfirmDialog(final String key, int mode, Object...keyArguments) {
-		ConfirmDialog dialog = new ConfirmDialog(key, mode, keyArguments);
+		ConfirmDialog dialog = new ConfirmDialog(key, mode, false, keyArguments);
 		dialog.setVisible(true);
 		return dialog.getReturnOption();
 	}

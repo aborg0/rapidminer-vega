@@ -48,11 +48,8 @@ import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.parameter.conditions.NonEqualTypeCondition;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.IOObjectEntry;
-import com.rapidminer.repository.MalformedRepositoryLocationException;
-import com.rapidminer.repository.RepositoryAccessor;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
-import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.io.Encoding;
@@ -339,139 +336,18 @@ public final class ProcessRootOperator extends OperatorChain {
 		return types;
 	}
 
-	/** Loads data into the input ports as specified in the processes {@link ProcessContext}. 
-	 * @throws OperatorException */
-	@Override
-	public void doWork() throws OperatorException {
-		loadInitialData();
-		super.doWork();
-		saveResults();
-	}
-
-	/** Loads results from the repository if specified in the {@link ProcessContext}. */
-	private void loadInitialData() throws UserError {
-		ProcessContext context = getProcess().getContext();
-		if (context.getInputRepositoryLocations().isEmpty()) {
-			return;
-		}
-		getLogger().info("Loading initial data.");		
-		for (int i = 0; i < context.getInputRepositoryLocations().size(); i++) {
-			String location = context.getInputRepositoryLocations().get(i);
-			if ((location == null) || (location.length() == 0)) {
-				getLogger().fine("Input #"+(i+1)+" not specified.");
-			} else {
-				if (i >= getSubprocess(0).getInnerSources().getNumberOfPorts()) {
-					getLogger().warning("No input port available for process input #"+(i+1)+": "+location);
-				} else {
-					OutputPort port = getSubprocess(0).getInnerSources().getPortByIndex(i);
-					RepositoryLocation loc;
-					try {
-						loc = getProcess().resolveRepositoryLocation(location);
-					} catch (MalformedRepositoryLocationException e1) {
-						throw e1.makeUserError(this);
-					}
-					try {
-						Entry entry = loc.locateEntry();
-						if (entry == null) {
-							throw new UserError(this, 312, loc, "Entry "+loc+" does not exist.");	
-						} if (entry instanceof IOObjectEntry) {
-							getLogger().info("Assigning "+loc+" to input port "+port.getSpec()+".");
-							port.deliver(((IOObjectEntry)entry).retrieveData(null));
-						} else {
-							getLogger().info("Cannot assigning "+loc+" to input port "+port.getSpec()+": Repository location does not reference an IOObject entry.");
-							throw new UserError(this, 312, loc, "Not an IOObject entry.");
-						}
-					} catch (RepositoryException e) {
-						throw new UserError(this, e, 312, loc, e.getMessage());
-					}
-				}
-			}
-		}
-	}
-
-	/** Stores the results in the repository if specified in the {@link ProcessContext}. */
-	private void saveResults() throws UserError {
-		ProcessContext context = getProcess().getContext();
-		if (context.getOutputRepositoryLocations().isEmpty()) {
-			return;
-		}
-		getLogger().info("Saving results.");
-		for (int i = 0; i < context.getOutputRepositoryLocations().size(); i++) {
-			String locationStr = context.getOutputRepositoryLocations().get(i);
-			if ((locationStr == null) || (locationStr.length() == 0)) {
-				getLogger().fine("Output #"+(i+1)+" not specified.");
-			} else {
-				if (i >= getSubprocess(0).getInnerSinks().getNumberOfPorts()) {
-					getLogger().warning("No output port corresponding to process output #"+(i+1)+": "+locationStr);
-				} else {
-					InputPort port = getSubprocess(0).getInnerSinks().getPortByIndex(i);
-					RepositoryLocation location;
-					try {
-						location = getProcess().resolveRepositoryLocation(locationStr);
-					} catch (MalformedRepositoryLocationException e1) {
-						throw e1.makeUserError(this);
-					}
-					IOObject data = port.getDataOrNull();
-					if (data == null) {
-						getLogger().warning("Nothing to store at "+location+": No results produced at "+port.getSpec()+".");
-					} else {
-						try {						
-							RepositoryAccessor repositoryAccessor = getProcess().getRepositoryAccessor();
-							location.setAccessor(repositoryAccessor);
-							RepositoryManager.getInstance(repositoryAccessor).store(data, location, this);
-//							Entry entry = location.locateEntry();
-//							if (entry == null) {
-//								String childName = location.getName();
-//								RepositoryLocation parent = location.parent();
-//								Entry parentEntry = parent.locateEntry();				
-//								if (parentEntry != null) {
-//									if (parentEntry instanceof Folder) {
-//										Folder parentFolder = (Folder)parentEntry;
-//										parentFolder.createIOObjectEntry(childName, data, null);
-//										return;
-//									} else {
-//										throw new RepositoryException("Parent '"+parent+"' of '"+locationStr+"' is not a folder.");
-//									}
-//								} else {
-//									throw new RepositoryException("Parent '"+parent+"' of '"+locationStr+"' does not exist.");
-//								}	
-//							} if (entry instanceof IOObjectEntry) {
-//								getLogger().info("Storing result from "+port.getSpec()+" at "+location+".");
-//								((IOObjectEntry)entry).storeData(data, null);
-//							} else {
-//								getLogger().info("Cannot store result from "+port.getSpec()+" to "+location+": Repository location does not reference an IOObject entry.");
-//								throw new UserError(this, 315, location, "Not an IOObject entry.");
-//							}
-						} catch (RepositoryException e) {
-							throw new UserError(this, e, 315, location, e.getMessage());
-						}
-					}		
-				}
-			}		
-		}
-	}
-
-	// SIMONS Neuerungen
+//	/** Loads data into the input ports as specified in the processes {@link ProcessContext}. 
+//	 * @throws OperatorException */
+//	@Override
+//	public void doWork() throws OperatorException {
+//		loadInitialData();
+//		super.doWork();
+//		saveResults();
+//	}
 
 	/** Convenience backport method to get the results of a process. */
 	public IOContainer getResults() {
-//		if (getSubprocess(0).getInnerSinks().getPortByIndex(0).isConnected()) {
-			return getSubprocess(0).getInnerSinks().createIOContainer(false);
-//		} else {
-//			getLogger().info("No result ports connected. Delivering output of all disconnected ports.");
-//			Collection<IOObject> results = new LinkedList<IOObject>();
-//			for (Operator op : getSubprocess(0).getOperators()) {
-//				for (OutputPort port : op.getOutputPorts().getAllPorts()) {
-//					if (!port.isConnected() && port.shouldAutoConnect()) {
-//						IOObject data = port.getData(false);
-//						if (data != null) {
-//							results.add(data);
-//						}
-//					}
-//				}
-//			}
-//			return new IOContainer(results);
-//		}
+		return getSubprocess(0).getInnerSinks().createIOContainer(false);
 	}
 	
 	/** Returns the meta data delivered to the output ports. */	

@@ -29,11 +29,14 @@ import java.util.LinkedList;
 import javax.swing.AbstractButton;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
 
 import com.rapidminer.gui.tools.ResourceAction;
+import com.rapidminer.gui.tools.ResourceActionAdapter;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.tools.I18N;
+import com.rapidminer.tools.ParameterService;
 
 
 /**
@@ -61,9 +64,10 @@ public class ConfirmDialog extends ButtonDialog {
 	
 	
 	private int returnOption = CANCEL_OPTION;
-	
-	public ConfirmDialog(String key, int mode, Object...arguments) {
-//		super(ApplicationFrame.getApplicationFrame(), "confirm." + key, true, arguments);
+
+	private JCheckBox dontAskAgainCheckbox = null;
+		
+	public ConfirmDialog(String key, int mode, boolean showAskAgainCheckbox, Object...arguments) {
 		super("confirm." + key, true, arguments);
 		Collection<AbstractButton> buttons = new LinkedList<AbstractButton>();
 		switch (mode) {
@@ -81,7 +85,11 @@ public class ConfirmDialog extends ButtonDialog {
 			buttons.add(makeCancelButton());
 			break;
 		}
-		layoutDefault(null, buttons);
+		
+		if (showAskAgainCheckbox) {
+			this.dontAskAgainCheckbox  = new JCheckBox(new ResourceActionAdapter("dont_ask_again"));
+		}
+		layoutDefault(this.dontAskAgainCheckbox, buttons);
 	}
 	
 	@Override
@@ -164,5 +172,23 @@ public class ConfirmDialog extends ButtonDialog {
 
 	public int getReturnOption() {
 		return returnOption;
+	}
+	
+	public static int showConfirmDialog(String key, int mode, String propertyConfirmExit, int defaultOption, Object ... i18nArgs) {
+		if (propertyConfirmExit == null) {
+			ConfirmDialog dialog = new ConfirmDialog(key, mode, true, i18nArgs);
+			dialog.setVisible(true);
+			return dialog.getReturnOption();
+		} else {
+			String askProperty = System.getProperty(propertyConfirmExit);
+			if (!"false".equals(askProperty)) {
+				ConfirmDialog dialog = new ConfirmDialog(key, mode, true, i18nArgs);
+				dialog.setVisible(true);
+				ParameterService.writePropertyIntoMainUserConfigFile(propertyConfirmExit, Boolean.toString(!dialog.dontAskAgainCheckbox.isSelected()));				
+				return dialog.getReturnOption();
+			} else {			
+				return defaultOption;
+			}
+		}
 	}
 }

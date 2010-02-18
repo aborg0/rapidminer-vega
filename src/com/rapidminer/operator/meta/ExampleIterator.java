@@ -29,6 +29,7 @@ import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ValueDouble;
+import com.rapidminer.operator.ports.CollectingPortPairExtender;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
@@ -48,7 +49,7 @@ import com.rapidminer.parameter.ParameterTypeString;
  * {@link OutputPort} of this operator or if not connected the initial unmodified 
  * {@link ExampleSet}.</p>
  * 
- * @author Marcin Skirzynski
+ * @author Marcin Skirzynski, Tobias Malbrecht
  */
 public class ExampleIterator extends OperatorChain {
 
@@ -59,6 +60,7 @@ public class ExampleIterator extends OperatorChain {
 	private final OutputPort exampleSetOutput = getOutputPorts().createPort( "example set" );
 	private final OutputPort exampleSetInnerSource = getSubprocess(0).getInnerSources().createPort( "example set" );
 	private final InputPort exampleSetInnerSink = getSubprocess(0).getInnerSinks().createPort( "example set" );
+	private final CollectingPortPairExtender outExtender = new CollectingPortPairExtender("output", getSubprocess(0).getInnerSinks(), getOutputPorts());
 
 	/**
 	 * Indicates the current iteration respectively example.
@@ -67,7 +69,8 @@ public class ExampleIterator extends OperatorChain {
 
 	public ExampleIterator(OperatorDescription description) {
 		super(description, "Example Process");
-
+		outExtender.start();
+		
 		getTransformer().addPassThroughRule(exampleSetInput, exampleSetInnerSource);
 		getTransformer().addRule( new SubprocessTransformRule(getSubprocess(0)) );
 		getTransformer().addRule( new PassThroughRule(exampleSetInput, exampleSetOutput, false ) {
@@ -81,6 +84,7 @@ public class ExampleIterator extends OperatorChain {
 				}
 			}
 		});
+		getTransformer().addRule(outExtender.makePassThroughRule());
 
 		addValue(new ValueDouble( "iteration", "The number of the current iteration / loop / example." ) {
 			@Override
@@ -97,9 +101,9 @@ public class ExampleIterator extends OperatorChain {
 	 */
 	@Override
 	public void doWork() throws OperatorException {
+		outExtender.reset();
 		ExampleSet exampleSet = exampleSetInput.getData();
 		String iterationMacroName = getParameterAsString( PARAMETER_ITERATION_MACRO );
-
 		boolean innerSinkIsConnected = exampleSetInnerSink.isConnected();
 
 		for (iteration = 1; iteration <= exampleSet.size(); iteration++ ) {
@@ -115,11 +119,11 @@ public class ExampleIterator extends OperatorChain {
 				exampleSet = exampleSetInnerSink.getData();
 			}
 
+			outExtender.collect();
 		}
 
 		getProcess().getMacroHandler().removeMacro( iterationMacroName );
 		exampleSetOutput.deliver(exampleSet);
-
 	}
 
 	/**

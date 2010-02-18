@@ -135,6 +135,8 @@ public class RapidMinerGUI extends RapidMiner {
 
 	public static final String PROPERTY_ADD_BREAKPOINT_RESULTS_TO_HISTORY = "rapidminer.gui.add_breakpoint_results_to_history";
 	
+	public static final String PROPERTY_CONFIRM_EXIT = "rapidminer.gui.confirm_exit";
+	
 	static {
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_UPDATE_CHECK, "Check for new RapidMiner versions at start up time?", true)); 
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_MAX_STATISTICS_ROWS, "Indicates the maximum number of rows for the automatic calculation of statistics and other time intensive data viewing actions.", 1, Integer.MAX_VALUE, 100000));
@@ -150,6 +152,8 @@ public class RapidMinerGUI extends RapidMiner {
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(RapidMinerGUI.PROPERTY_ADD_BREAKPOINT_RESULTS_TO_HISTORY, "Should results produced at breakpoints be added to the result history?", false));
 		
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(RapidMinerGUI.PROPERTY_DISCONNECT_ON_DISABLE, "Should operators be disconnected upon disabling them?", true));
+		
+		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_CONFIRM_EXIT, "Should RapidMiner ask if you are sure each time you exit?", true));
 		
 		// UPDATE
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(com.rapid_i.deployment.update.client.UpdateManager.PARAMETER_UPDATE_INCREMENTALLY, "Download (small) patches rather than complete installation archives?", true));

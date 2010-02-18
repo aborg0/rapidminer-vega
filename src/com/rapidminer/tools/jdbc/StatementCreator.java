@@ -82,7 +82,7 @@ public class StatementCreator {
 	private void buildTypeMap(Connection con) throws SQLException {
 		DatabaseMetaData dbMetaData = con.getMetaData();
 		this.identifierQuote = dbMetaData.getIdentifierQuoteString();
-		LogService.getRoot().config("Identifier quote character is: "+this.identifierQuote);
+		LogService.getRoot().fine("Identifier quote character is: "+this.identifierQuote);
 		Map<Integer,DataTypeSyntaxInformation> dataTypeToMDMap = new HashMap<Integer,DataTypeSyntaxInformation>();
 		ResultSet typesResult = dbMetaData.getTypeInfo();
 		while (typesResult.next()) {
@@ -109,7 +109,7 @@ public class StatementCreator {
 			DataTypeSyntaxInformation si = dataTypeToMDMap.get(i);
 			if (si != null) {
 				typeMap.put(attributeType, si);
-				LogService.getRoot().config("Mapping "+Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(attributeType)+" to "+si);
+				LogService.getRoot().fine("Mapping "+Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(attributeType)+" to "+si);
 				return;
 			}
 		}

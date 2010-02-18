@@ -36,6 +36,7 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeText;
 import com.rapidminer.parameter.TextType;
+import com.rapidminer.tools.plugin.Plugin;
 
 /** <p>This operator can be used to execute arbitrary Groovy scripts. 
  *  This basically means that analysts can write their own operators
@@ -112,7 +113,8 @@ public class ScriptingOperator extends Operator {
 
 		Object result;
 		try {	
-			GroovyShell shell = new GroovyShell();
+			GroovyShell shell = new GroovyShell(Plugin.getMajorClassLoader());
+			//GroovyShell shell = new GroovyShell(ScriptingOperator.class.getClassLoader());
 			List<IOObject> input = inExtender.getData(true);		
 			shell.setVariable("input", input);
 			shell.setVariable("operator", this);

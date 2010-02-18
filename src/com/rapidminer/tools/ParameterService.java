@@ -236,6 +236,7 @@ public class ParameterService {
 			LogService.getRoot().config("Ignoring request to save properties file in execution mode "+RapidMiner.getExecutionMode()+".");
 			return;
 		}
+		LogService.getRoot().config("Saving property "+key+"="+value);
 		// read old configuration
 		Properties userProperties = readPropertyFile(getMainUserConfigFile());
 

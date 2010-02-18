@@ -23,24 +23,18 @@
 package com.rapidminer.gui.processeditor;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.KeyEvent;
 import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.JPanel;
-import javax.swing.JToolBar;
+import javax.swing.JTextArea;
 
 import com.rapidminer.Process;
 import com.rapidminer.gui.MainFrame;
-import com.rapidminer.gui.tools.ExtendedJToolBar;
 import com.rapidminer.gui.tools.ResourceDockKey;
 import com.rapidminer.gui.tools.SwingTools;
-import com.rapidminer.gui.tools.syntax.HTMLTokenMarker;
-import com.rapidminer.gui.tools.syntax.JEditTextArea;
 import com.rapidminer.gui.tools.syntax.TextAreaDefaults;
 import com.rapidminer.operator.Operator;
 import com.vlsolutions.swing.docking.DockKey;
@@ -58,25 +52,28 @@ public class CommentEditor extends JPanel implements ProcessEditor, Dockable {
 	
 	private transient Operator currentOperator;
 	
-	private final JEditTextArea editor;
+	//private final JEditTextArea editor;
+	private JTextArea editor = new JTextArea(20, 80);
 	
 	public CommentEditor() {
 		super(new BorderLayout());
 		TextAreaDefaults textAreaDefaults = SwingTools.getTextAreaDefaults();
 		textAreaDefaults.eolMarkers = false;
 		textAreaDefaults.paintInvalid = false;
-		editor = new JEditTextArea(textAreaDefaults);
+		//editor = new JEditTextArea(textAreaDefaults);
 		editor.addFocusListener(new FocusListener() {
 			public void focusGained(FocusEvent e) {}
 			public void focusLost(FocusEvent e) {
 				saveComment();
 			}			
 		});
-		editor.setTokenMarker(new HTMLTokenMarker());
+		//editor.setTokenMarker(new HTMLTokenMarker());
+		editor.setLineWrap(true);
+		editor.setWrapStyleWord(true);
 		editor.setBorder(null);
 		
-		JToolBar toolBar = new ExtendedJToolBar();
-		toolBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+//		JToolBar toolBar = new ExtendedJToolBar();
+//		toolBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
 //		toolBar.add(new ResourceAction(true, "xml_editor.apply_changes") {
 //			private static final long serialVersionUID = 1L;
 //			@Override
@@ -91,13 +88,13 @@ public class CommentEditor extends JPanel implements ProcessEditor, Dockable {
 //			}			
 //		});
 //		toolBar.addSeparator();
-		toolBar.add(editor.COPY_ACTION);
-		toolBar.add(editor.CUT_ACTION);
-		toolBar.add(editor.PASTE_ACTION);
-		toolBar.add(editor.DELETE_ACTION);
-		toolBar.addSeparator();
-		toolBar.add(editor.SEARCH_AND_REPLACE_ACTION);
-		add(toolBar, BorderLayout.NORTH);
+//		toolBar.add(editor.COPY_ACTION);
+//		toolBar.add(editor.CUT_ACTION);
+//		toolBar.add(editor.PASTE_ACTION);
+//		toolBar.add(editor.DELETE_ACTION);
+//		toolBar.addSeparator();
+//		toolBar.add(editor.SEARCH_AND_REPLACE_ACTION);
+//		add(toolBar, BorderLayout.NORTH);
 		add(editor, BorderLayout.CENTER);
 	}
 	
@@ -131,18 +128,18 @@ public class CommentEditor extends JPanel implements ProcessEditor, Dockable {
 		}
 	}
 
-	/**
-	 * Overwrites the super method in order to save the typed text.
-	 */
-	@Override
-	public void processKeyEvent(KeyEvent evt) {
-		editor.processKeyEvent(evt);
-		switch (evt.getID()) {
-		case KeyEvent.KEY_RELEASED:
-			saveComment();
-			break;
-		}
-	}	
+//	/**
+//	 * Overwrites the super method in order to save the typed text.
+//	 */
+//	@Override
+//	public void processKeyEvent(KeyEvent evt) {
+//		editor.processKeyEvent(evt);
+//		switch (evt.getID()) {
+//		case KeyEvent.KEY_RELEASED:
+//			saveComment();
+//			break;
+//		}
+//	}	
 
 	public static final String COMMENT_EDITOR_DOCK_KEY = "comment_editor";
 	private final DockKey DOCK_KEY = new ResourceDockKey(COMMENT_EDITOR_DOCK_KEY);

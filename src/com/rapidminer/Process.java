@@ -68,11 +68,17 @@ import com.rapidminer.operator.ProcessRootOperator;
 import com.rapidminer.operator.ProcessStoppedException;
 import com.rapidminer.operator.UnknownParameterInformation;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.ports.InputPort;
+import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.Port;
 import com.rapidminer.report.ReportStream;
+import com.rapidminer.repository.Entry;
+import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryAccessor;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
+import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.tools.AbstractObservable;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.LoggingHandler;
@@ -642,6 +648,87 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		getLogger().fine("Process initialised.");
 	}
 
+	/** Loads results from the repository if specified in the {@link ProcessContext}. */
+	protected void loadInitialData() throws UserError {
+		ProcessContext context = getContext();
+		if (context.getInputRepositoryLocations().isEmpty()) {
+			return;
+		}
+		getLogger().info("Loading initial data.");		
+		for (int i = 0; i < context.getInputRepositoryLocations().size(); i++) {
+			String location = context.getInputRepositoryLocations().get(i);
+			if ((location == null) || (location.length() == 0)) {
+				getLogger().fine("Input #"+(i+1)+" not specified.");
+			} else {
+				if (i >= rootOperator.getSubprocess(0).getInnerSources().getNumberOfPorts()) {
+					getLogger().warning("No input port available for process input #"+(i+1)+": "+location);
+				} else {
+					OutputPort port = rootOperator.getSubprocess(0).getInnerSources().getPortByIndex(i);
+					RepositoryLocation loc;
+					try {
+						loc = resolveRepositoryLocation(location);
+					} catch (MalformedRepositoryLocationException e1) {
+						throw e1.makeUserError(rootOperator);
+					}
+					try {
+						Entry entry = loc.locateEntry();
+						if (entry == null) {
+							throw new UserError(rootOperator, 312, loc, "Entry "+loc+" does not exist.");	
+						} if (entry instanceof IOObjectEntry) {
+							getLogger().info("Assigning "+loc+" to input port "+port.getSpec()+".");
+							port.deliver(((IOObjectEntry)entry).retrieveData(null));
+						} else {
+							getLogger().info("Cannot assigning "+loc+" to input port "+port.getSpec()+": Repository location does not reference an IOObject entry.");
+							throw new UserError(rootOperator, 312, loc, "Not an IOObject entry.");
+						}
+					} catch (RepositoryException e) {
+						throw new UserError(rootOperator, e, 312, loc, e.getMessage());
+					}
+				}
+			}
+		}
+	}
+
+	/** Stores the results in the repository if specified in the {@link ProcessContext}. */
+	protected void saveResults() throws UserError {
+		ProcessContext context = getContext();
+		if (context.getOutputRepositoryLocations().isEmpty()) {
+			return;
+		}
+		getLogger().info("Saving results.");
+		for (int i = 0; i < context.getOutputRepositoryLocations().size(); i++) {
+			String locationStr = context.getOutputRepositoryLocations().get(i);
+			if ((locationStr == null) || (locationStr.length() == 0)) {
+				getLogger().fine("Output #"+(i+1)+" not specified.");
+			} else {
+				if (i >= rootOperator.getSubprocess(0).getInnerSinks().getNumberOfPorts()) {
+					getLogger().warning("No output port corresponding to process output #"+(i+1)+": "+locationStr);
+				} else {
+					InputPort port = rootOperator.getSubprocess(0).getInnerSinks().getPortByIndex(i);
+					RepositoryLocation location;
+					try {
+						location = rootOperator.getProcess().resolveRepositoryLocation(locationStr);
+					} catch (MalformedRepositoryLocationException e1) {
+						throw e1.makeUserError(rootOperator);
+					}
+					IOObject data = port.getDataOrNull();
+					if (data == null) {
+						getLogger().warning("Nothing to store at "+location+": No results produced at "+port.getSpec()+".");
+					} else {
+						try {						
+							RepositoryAccessor repositoryAccessor = getRepositoryAccessor();
+							location.setAccessor(repositoryAccessor);
+							RepositoryManager.getInstance(repositoryAccessor).store(data, location, rootOperator);
+
+						} catch (RepositoryException e) {
+							throw new UserError(rootOperator, e, 315, location, e.getMessage());
+						}
+					}		
+				}
+			}		
+		}
+	}
+
 	private void applyContextMacros() {
 		for (Pair<String,String> macro : context.getMacros()) {
 			getLogger().fine("Defining context macro: "+macro.getFirst() + " = " + macro.getSecond()+".");
@@ -739,6 +826,8 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		setProcessState(PROCESS_STATE_RUNNING);
 		prepareRun(logVerbosity);
 		
+		loadInitialData();		
+		
 		// macros
 		if (macroMap != null) {
 			for (Map.Entry<String, String> entry : macroMap.entrySet()) {
@@ -758,6 +847,8 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 				rootOperator.deliverInput(Arrays.asList(input.getIOObjects()));
 			}
 			rootOperator.execute();
+			
+			saveResults();
 			IOContainer result = rootOperator.getResults();
 			long end = System.currentTimeMillis();
 

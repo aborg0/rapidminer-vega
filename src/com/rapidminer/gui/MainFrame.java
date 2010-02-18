@@ -1240,9 +1240,8 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 			}
 		} else {
 			if (!relaunch) { // in this case we have already confirmed
-				ConfirmDialog dialog = new ConfirmDialog("exit", ConfirmDialog.YES_NO_OPTION);
-				dialog.setVisible(true);
-				if (dialog.getReturnOption() != ConfirmDialog.YES_OPTION) {
+				int answer = ConfirmDialog.showConfirmDialog("exit", ConfirmDialog.YES_NO_OPTION, RapidMinerGUI.PROPERTY_CONFIRM_EXIT, ConfirmDialog.YES_OPTION);
+				if (answer != ConfirmDialog.YES_OPTION) {
 					return;
 				}
 			}

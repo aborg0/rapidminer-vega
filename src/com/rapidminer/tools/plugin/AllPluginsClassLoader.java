@@ -22,6 +22,8 @@
  */
 package com.rapidminer.tools.plugin;
 
+import com.rapidminer.RapidMiner;
+
 /** A class loader that consecutively tries to load classes from all registered plugins. 
  *  It starts with the system class loader and then tries all plugins in the order as returned
  *  by {@link Plugin#getAllPlugins()}. 
@@ -32,19 +34,23 @@ package com.rapidminer.tools.plugin;
  */
 public class AllPluginsClassLoader extends ClassLoader {
 
+	public AllPluginsClassLoader() {
+		super(RapidMiner.class.getClassLoader());
+	}
+	
 	@Override
 	public Class<?extends Object> loadClass(String name) throws ClassNotFoundException {
-		try {
-			return AllPluginsClassLoader.class.getClassLoader().loadClass(name);
-		} catch (ClassNotFoundException notFound) {
-		}
+//		try {
+//			return AllPluginsClassLoader.class.getClassLoader().loadClass(name);
+//		} catch (ClassNotFoundException notFound) {
+//		}
 		for (Plugin plugin : Plugin.getAllPlugins()) {
 			ClassLoader classLoader = plugin.getClassLoader();
 			try {
 				return classLoader.loadClass(name);
 			} catch (ClassNotFoundException notFound) {
 			}
-		}
+		}		
 		ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
 		if (contextClassLoader != null) {
 			return contextClassLoader.loadClass(name);

@@ -25,6 +25,7 @@ package com.rapidminer.operator;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -245,5 +246,9 @@ public class IOContainer implements Serializable {
 	/** Removes all Objects from this IOContainer. */
 	public void removeAll() {
 		ioObjects.clear();		
+	}
+
+	public List<IOObject> asList() {
+		return Collections.unmodifiableList(ioObjects);
 	}
 }

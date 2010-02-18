@@ -113,6 +113,7 @@ public class ExampleSetToStream {
 			allRoles.add(i.next());
 		}
 		boolean sparse = false;
+		// TODO: Remove ugly instanceof check
 		if ((exampleSet.size() > 0) && (exampleSet.getExample(0).getDataRow() instanceof SparseDataRow)) {
 			sparse = true;
 		}

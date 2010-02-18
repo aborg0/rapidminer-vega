@@ -357,7 +357,7 @@ public class LibSVMLearner extends AbstractKernelBasedLearner {
 		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_KERNEL_TYPE, KERNEL_TYPES, false, 1));
 		types.add(type);
 
-		type = new ParameterTypeDouble(PARAMETER_GAMMA, "The parameter gamma for polynomial, rbf, and sigmoid kernel functions (0 means 1/#attributes).", 0.0, Double.POSITIVE_INFINITY, 0.0d);
+		type = new ParameterTypeDouble(PARAMETER_GAMMA, "The parameter gamma for polynomial, rbf, and sigmoid kernel functions (0 means 1/#examples).", 0.0, Double.POSITIVE_INFINITY, 0.0d);
 		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_KERNEL_TYPE, KERNEL_TYPES, false, 1, 2, 3));
 		types.add(type);
 

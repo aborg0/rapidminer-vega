@@ -115,7 +115,6 @@ public class RemoteProcessesTreeModel implements TreeModel {
 								processes.put(repos, new ProcessList());
 							}
 							fireStructureChanged(new TreeModelEvent(this, new Object[] { root }));
-							System.out.println("Structure changed");
 						};	
 					});
 				} catch (InterruptedException e) {
@@ -137,7 +136,6 @@ public class RemoteProcessesTreeModel implements TreeModel {
 								TreeModelEvent deleteEvent = processList.trim(new HashSet<Integer>(processIds), repos);
 								//processes.put(repos, processList);
 								if (deleteEvent != null) {
-									System.out.println(deleteEvent);
 									fireDelete(deleteEvent);									
 								}									
 							}
@@ -158,13 +156,13 @@ public class RemoteProcessesTreeModel implements TreeModel {
 
 									}									
 								});
-							} else if (!RemoteProcessState.valueOf(oldProcess.getState()).isTerminated()) {
-								final ProcessResponse updatedResponse = repos.getProcessService().getRunningProcessesInfo(processId);
+							} else if (!RemoteProcessState.valueOf(oldProcess.getState()).isTerminated()) {								
+								final ProcessResponse updatedResponse = repos.getProcessService().getRunningProcessesInfo(processId);							
 								SwingUtilities.invokeAndWait(new Runnable() {
 									@Override
 									public void run() {
 										processList.add(updatedResponse);
-										fireUpdate(new TreeModelEvent(this, new Object[] {root, repos, updatedResponse}));							
+										fireStructureChanged(new TreeModelEvent(this, new Object[] {root, repos, updatedResponse}));							
 									}
 								});
 							} else {								
@@ -323,11 +321,11 @@ public class RemoteProcessesTreeModel implements TreeModel {
 		}
 	}					
 
-	private void fireUpdate(TreeModelEvent e) {
-		for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
-			l.treeNodesChanged(e);
-		}
-	}					
+//	private void fireUpdate(TreeModelEvent e) {
+//		for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
+//			l.treeNodesChanged(e);
+//		}
+//	}
 
 	private void fireDelete(TreeModelEvent event) {
 		for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {

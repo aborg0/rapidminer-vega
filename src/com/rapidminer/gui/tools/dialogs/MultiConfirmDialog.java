@@ -43,7 +43,7 @@ public class MultiConfirmDialog extends ConfirmDialog {
 	private boolean applyToAll = false;
 	
 	public MultiConfirmDialog(String i18nKey, int mode, Object ... i18nArgs) {
-		super(i18nKey, mode, i18nArgs);
+		super(i18nKey, mode, false, i18nArgs);
 	}
 
 	@Override
