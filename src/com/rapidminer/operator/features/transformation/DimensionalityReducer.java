@@ -30,12 +30,13 @@ import com.rapidminer.operator.Model;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.learner.CapabilityProvider;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
+import com.rapidminer.operator.ports.metadata.CapabilityPrecondition;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetPassThroughRule;
-import com.rapidminer.operator.ports.metadata.ExampleSetPrecondition;
 import com.rapidminer.operator.ports.metadata.GenerateNewMDRule;
 import com.rapidminer.operator.ports.metadata.PassThroughRule;
 import com.rapidminer.operator.ports.metadata.SetRelation;
@@ -51,7 +52,7 @@ import com.rapidminer.tools.Ontology;
  * 
  * @author Michael Wurst, Ingo Mierswa
  */
-public abstract class DimensionalityReducer extends Operator {
+public abstract class DimensionalityReducer extends Operator implements CapabilityProvider {
 
 	/** The parameter name for &quot;the number of dimensions in the result representation&quot; */
 	public static final String PARAMETER_DIMENSIONS = "dimensions";
@@ -65,7 +66,8 @@ public abstract class DimensionalityReducer extends Operator {
 	public DimensionalityReducer(OperatorDescription description) {
 		super(description);
 
-		exampleSetInput.addPrecondition(new ExampleSetPrecondition(exampleSetInput, Ontology.NUMERICAL));
+		exampleSetInput.addPrecondition(new CapabilityPrecondition(this, exampleSetInput));
+		
 		getTransformer().addRule(new ExampleSetPassThroughRule(exampleSetInput, exampleSetOutput, SetRelation.SUBSET) {
 			@Override
 			public ExampleSetMetaData modifyExampleSet(ExampleSetMetaData metaData) throws UndefinedParameterError {
@@ -105,6 +107,8 @@ public abstract class DimensionalityReducer extends Operator {
 		modelOutput.deliver(model);
 	}
 
+
+	
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();

@@ -94,12 +94,6 @@ public class UpdateManager {
 		int i = 0;
 		OutputStream out = null; 
 		try {
-			File managedDir = new File(ParameterService.getPluginDir(), "managed");
-			if (!managedDir.exists()) {
-				if (!managedDir.mkdirs()) {
-					throw new IOException("Cannot create directory "+managedDir);
-				}
-			}
 			for (PackageDescriptor desc : downloadList) {
 				String urlString = service.getDownloadURL(desc.getPackageId(), desc.getVersion(), desc.getPlatformName());
 				
@@ -138,7 +132,7 @@ public class UpdateManager {
 			}
 		}
 	}
-	
+
 	/**
 	 * @throws IOException  */
 	private InputStream openStream(URL url, ProgressListener listener, int minProgress, int maxProgress) throws IOException {

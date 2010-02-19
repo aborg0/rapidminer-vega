@@ -158,7 +158,7 @@ public class RapidMinerGUI extends RapidMiner {
 		// UPDATE
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(com.rapid_i.deployment.update.client.UpdateManager.PARAMETER_UPDATE_INCREMENTALLY, "Download (small) patches rather than complete installation archives?", true));
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeString(com.rapid_i.deployment.update.client.UpdateManager.PARAMETER_UPDATE_URL, "URL of the RapidMiner update server.", com.rapid_i.deployment.update.client.UpdateManager.UPDATESERVICE_URL));
-		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(com.rapid_i.deployment.update.client.UpdateManager.PARAMETER_INSTALL_TO_HOME, "If checked, all upgrades will be installed to the users home directory. Otherwise, administrator privileges are required.", false));	
+		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(com.rapid_i.deployment.update.client.UpdateManager.PARAMETER_INSTALL_TO_HOME, "If checked, all upgrades will be installed to the users home directory. Otherwise, administrator privileges are required.", true));	
 	}
 
 	private static final int NUMBER_OF_RECENT_FILES = 8;

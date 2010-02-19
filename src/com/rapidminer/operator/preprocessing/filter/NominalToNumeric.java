@@ -170,6 +170,6 @@ public class NominalToNumeric extends PreprocessingOperator {
 	
 	@Override
 	protected int[] getFilterValueTypes() {
-		return new int[] { Ontology.NOMINAL };
+		return new int[] { Ontology.NOMINAL, Ontology.NOMINAL  };
 	}
 }

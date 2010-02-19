@@ -25,7 +25,10 @@ package com.rapidminer.tools.jdbc.connection;
 import com.rapidminer.tools.jdbc.JDBCProperties;
 
 /**
- * @author Tobias Malbrecht
+ * This class is a ConnectionEntry specifying additional fields for storing
+ * the host, port and database.
+ * 
+ * @author Tobias Malbrecht, Sebastian Land
  */
 public class FieldConnectionEntry extends ConnectionEntry {
 

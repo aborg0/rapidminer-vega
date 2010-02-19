@@ -71,6 +71,7 @@ public class BinominalClassificationPerformanceEvaluator extends AbstractPerform
 	/** The proper criteria to the names. */
 	private static final Class[] SIMPLE_CRITERIA_CLASSES = {  
 		com.rapidminer.operator.performance.AreaUnderCurve.Optimistic.class,
+		com.rapidminer.operator.performance.AreaUnderCurve.Optimistic.class,
 		com.rapidminer.operator.performance.AreaUnderCurve.Neutral.class,
 		com.rapidminer.operator.performance.AreaUnderCurve.Pessimistic.class
 	};
@@ -105,6 +106,10 @@ public class BinominalClassificationPerformanceEvaluator extends AbstractPerform
 	public List<PerformanceCriterion> getCriteria() {
 		List<PerformanceCriterion> performanceCriteria = new LinkedList<PerformanceCriterion>();
 
+		// standard classification measures
+		for (int i = 0; i < MultiClassificationPerformance.NAMES.length; i++)
+			performanceCriteria.add(new MultiClassificationPerformance(i));
+		
 		for (int i = 0; i < SIMPLE_CRITERIA_CLASSES.length; i++) {
 			try {
 				performanceCriteria.add((PerformanceCriterion)SIMPLE_CRITERIA_CLASSES[i].newInstance());

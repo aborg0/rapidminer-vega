@@ -32,7 +32,6 @@ import com.rapidminer.tools.math.Averagable;
  * criterion is used in a validation operator.
  * 
  * @author Simon Fischer, Ingo Mierswa
- *          ingomierswa Exp $
  */
 public class EstimatedPerformance extends PerformanceCriterion {
 

@@ -459,10 +459,11 @@ public abstract class AbstractPerformanceEvaluator extends Operator {
 			}
 
 			List<PerformanceCriterion> criteria = getCriteria();
+			boolean isDefault = true;
 			for (PerformanceCriterion criterion : criteria) {
-				ParameterType type = new ParameterTypeBoolean(criterion.getName(), criterion.getDescription(), false);
-				type.setExpert(false);
+				ParameterType type = new ParameterTypeBoolean(criterion.getName(), criterion.getDescription(), isDefault, false);
 				types.add(type);
+				isDefault = false;
 			}
 		}
 

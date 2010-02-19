@@ -633,10 +633,10 @@ public class XMLImporter {
 			addMessage("Missing &lt;macros&gt; tag in context.");
 			break;
 		case 1:
-			NodeList locationNodes = ((Element)childNodes.item(0)).getElementsByTagName("location");
+			NodeList locationNodes = ((Element)childNodes.item(0)).getElementsByTagName("macro");
 			for (int i = 0; i < locationNodes.getLength(); i++) {
 				Element macroElem = (Element)locationNodes.item(i);
-				context.getMacros().add(new Pair<String,String>(XMLTools.getTagContents(macroElem, "key"), 
+				context.addMacro(new Pair<String,String>(XMLTools.getTagContents(macroElem, "key"), 
 						XMLTools.getTagContents(macroElem, "value")));
 			}
 			break;

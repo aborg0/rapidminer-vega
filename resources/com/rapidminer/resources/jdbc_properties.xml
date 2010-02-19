@@ -139,6 +139,7 @@
       />
    -->   
    
+   <!-- 
     <driver name="Oracle"
     	    drivers="oracle.jdbc.driver.OracleDriver"
 			defaultport="1521"			
@@ -156,7 +157,8 @@
 			value_quote_open="'"
 			value_quote_close="'"							
 	/>	
-
+ -->
+<!-- 
    <driver name="IBM DB2"
    			drivers="COM.ibm.db2.jdbc.app.DB2Driver,com.ibm.as400.access.AS400JDBCDriver,com.ibm.db2.jcc.DB2Driver,com.ibm.db2.jcc.DB2Driver"
 			defaultport="50000"
@@ -175,6 +177,8 @@
 			value_quote_close="'"							
 	/>
    
+    -->
+   <!-- 
    <driver name="Microsoft SQL Server (Microsoft)"
 	        drivers="com.microsoft.jdbc.sqlserver.SQLServerDriver"
 			defaultport="1433"
@@ -192,7 +196,8 @@
 			value_quote_open="'"
 			value_quote_close="'"							
 	/>
-    
+	 -->
+    <!--
     <driver
       		name="SQLBase"
             drivers = "jdbc.gupta.sqlbase.SqlbaseDriver"            
@@ -211,5 +216,5 @@
             value_quote_open="'"
             value_quote_close="'"                           
     />  
-     
+     -->
 </drivers>

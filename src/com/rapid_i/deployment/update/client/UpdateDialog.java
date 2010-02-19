@@ -45,6 +45,7 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.tools.GlobalAuthenticator;
+import com.rapidminer.tools.LogService;
 
 /**
  * 
@@ -102,11 +103,6 @@ public class UpdateDialog extends ButtonDialog {
 
 
 	public static void showUpdateDialog(final String ... preselectedExtensions) {
-		if (Launcher.isDevelopmentBuild()) {
-			SwingTools.showVerySimpleErrorMessage("update_error_development_build");
-			return;
-		}
-		
 		new ProgressThread("fetching_updates", true) {
 			public void run() {
 				getProgressListener().setTotal(100);
@@ -127,12 +123,15 @@ public class UpdateDialog extends ButtonDialog {
 
 					final List<PackageDescriptor> descriptors = new LinkedList<PackageDescriptor>();
 
-					//service.getExtensions(PACKAGEID_RAPIDMINER);					
-					String rmPlatform = Launcher.getPlatform();
-					String latestRMVersion = service.getLatestVersion(PACKAGEID_RAPIDMINER, rmPlatform);
-					PackageDescriptor packageInfo = service.getPackageInfo(PACKAGEID_RAPIDMINER, latestRMVersion, rmPlatform);
-					if (packageInfo != null) {
-						descriptors.add(packageInfo);
+					if (Launcher.isDevelopmentBuild()) {
+						LogService.getRoot().config("This is a development build. Ignoring update check.");
+					} else {
+						String rmPlatform = Launcher.getPlatform();
+						String latestRMVersion = service.getLatestVersion(PACKAGEID_RAPIDMINER, rmPlatform);
+						PackageDescriptor packageInfo = service.getPackageInfo(PACKAGEID_RAPIDMINER, latestRMVersion, rmPlatform);
+						if (packageInfo != null) {
+							descriptors.add(packageInfo);
+						}
 					}
 					getProgressListener().setCompleted(30);
 					
@@ -141,7 +140,7 @@ public class UpdateDialog extends ButtonDialog {
 					int i = 0;
 					for (String extension : extensions) {
 						String version = service.getLatestVersion(extension, targetPlatform);
-						packageInfo = service.getPackageInfo(extension, version, targetPlatform);
+						PackageDescriptor packageInfo = service.getPackageInfo(extension, version, targetPlatform);
 						descriptors.add(packageInfo);
 						i++;
 						getProgressListener().setCompleted(30 + 70 * i / extensions.size());

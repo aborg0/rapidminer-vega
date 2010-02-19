@@ -40,13 +40,17 @@ import com.rapidminer.tools.jdbc.DatabaseHandler;
 import com.rapidminer.tools.jdbc.DatabaseService;
 
 /**
- * @author Tobias Malbrecht
+ * The central service for registering DatabaseConnections. They are used for
+ * connection selection on all database related operators as well as for the import
+ * wizards.
+ * 
+ * @author Tobias Malbrecht, Sebastian Land
  */
 public class DatabaseConnectionService {
 	
 	public static final String PROPERTY_CONNECTIONS_FILE = "connections";
 	
-	private static List<ConnectionEntry> connections = new LinkedList<ConnectionEntry>();
+	private static List<FieldConnectionEntry> connections = new LinkedList<FieldConnectionEntry>();
 	
 	private static DatabaseHandler handler = null;
 
@@ -67,7 +71,7 @@ public class DatabaseConnectionService {
 		return ParameterService.getUserConfigFile(PROPERTY_CONNECTIONS_FILE);
 	}
 	
-	public static Collection<ConnectionEntry> getConnectionEntries() {
+	public static Collection<FieldConnectionEntry> getConnectionEntries() {
 		return connections;
 	}
 	
@@ -80,7 +84,7 @@ public class DatabaseConnectionService {
 		return null;
 	}
 
-	public static void addConnectionEntry(ConnectionEntry entry) {
+	public static void addConnectionEntry(FieldConnectionEntry entry) {
 		connections.add(entry);
 		Collections.sort(connections, ConnectionEntry.COMPARATOR);
 		writeConnectionEntries(connections);
@@ -100,8 +104,8 @@ public class DatabaseConnectionService {
 //		}
 //	}
 	
-	public static List<ConnectionEntry> readConnectionEntries(File connectionEntriesFile) {
-		LinkedList<ConnectionEntry> connectionEntries = new LinkedList<ConnectionEntry>();
+	public static List<FieldConnectionEntry> readConnectionEntries(File connectionEntriesFile) {
+		LinkedList<FieldConnectionEntry> connectionEntries = new LinkedList<FieldConnectionEntry>();
 		BufferedReader in = null;
 		try {
 			in = new BufferedReader(new FileReader(connectionEntriesFile));
@@ -137,21 +141,30 @@ public class DatabaseConnectionService {
 		return connectionEntries;
 	}
 	
-	public static void writeConnectionEntries(Collection<ConnectionEntry> connectionEntries) {
+	public static void writeConnectionEntries(Collection<FieldConnectionEntry> connectionEntries) {
 		File connectionEntriesFile = getConnectionsFile();
 		PrintWriter out = null;
 		try {
 			out = new PrintWriter(new FileWriter(connectionEntriesFile));
-			out.println(connectionEntries.size());
-			for (ConnectionEntry connectionEntry : connectionEntries) {
-				FieldConnectionEntry entry = (FieldConnectionEntry) connectionEntry;
-				out.println(entry.getName());
-				out.println(entry.getProperties().getName());
-				out.println(entry.getHost());
-				out.println(entry.getPort());
-				out.println(entry.getDatabase());
-				out.println(entry.getUser());
-				out.println(CipherTools.encrypt(new String(entry.getPassword())));
+			// searching number of not dynamic entries to store it's number
+			int numberOfEntries = 0;
+			for (FieldConnectionEntry entry : connectionEntries) {
+				if (!entry.isDynamic())
+					numberOfEntries++;
+			}
+			out.println(numberOfEntries);
+			
+			// outputting each single non dynamic entry
+			for (FieldConnectionEntry entry : connectionEntries) {
+				if (!entry.isDynamic()) {
+					out.println(entry.getName());
+					out.println(entry.getProperties().getName());
+					out.println(entry.getHost());
+					out.println(entry.getPort());
+					out.println(entry.getDatabase());
+					out.println(entry.getUser());
+					out.println(CipherTools.encrypt(new String(entry.getPassword())));
+				}
 			}
 			out.close();
 		} catch (Exception e) {

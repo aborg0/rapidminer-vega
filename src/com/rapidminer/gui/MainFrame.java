@@ -121,6 +121,7 @@ import com.rapidminer.gui.tools.WelcomeScreen;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.gui.tools.dialogs.DecisionRememberingConfirmDialog;
 import com.rapidminer.gui.tools.dialogs.ManageDatabaseConnectionsDialog;
+import com.rapidminer.gui.tools.dialogs.ManageDatabaseDriversDialog;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.BlobImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DatabaseImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.access.AccessImportWizard;
@@ -673,6 +674,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		toolsMenu.addSeparator();
         toolsMenu.add(CHECK_FOR_JDBC_DRIVERS_ACTION);
         toolsMenu.add(MANAGE_DB_CONNECTIONS_ACTION);
+        toolsMenu.add(ManageDatabaseDriversDialog.SHOW_DIALOG_ACTION);
 		toolsMenu.addSeparator();
 		toolsMenu.add(UsageStatsTransmissionDialog.SHOW_STATISTICS_ACTION);
         toolsMenu.add(SETTINGS_ACTION);

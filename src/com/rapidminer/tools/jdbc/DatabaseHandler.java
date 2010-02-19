@@ -280,7 +280,7 @@ public class DatabaseHandler {
 		}
 		LogService.getRoot().config("Connecting to "+databaseURL+" as "+this.user+".");
 		DriverManager.setLoginTimeout(30);
-		if (this.user == null) {			
+		if ((this.user == null) || user.isEmpty()) {			
 			connection = DriverManager.getConnection(databaseURL);
 		} else {
 			connection = DriverManager.getConnection(databaseURL, this.user, new String(passwd));

@@ -114,7 +114,8 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 				}
 				if (value instanceof FieldConnectionEntry) {
 					FieldConnectionEntry entry = (FieldConnectionEntry) value;
-					label.setText("<html>" + entry.getName() + " <small>(" + entry.getProperties().getName() + "; " + entry.getHost() + ":" + entry.getPort() + ")</small></html>");
+					String readOnly = (entry.isReadOnly()) ? "*":"";
+					label.setText("<html>" + entry.getName() + readOnly + " <small>(" + entry.getProperties().getName() + "; " + entry.getHost() + ":" + entry.getPort() + ")</small></html>");
 					label.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 					label.setIcon(entryIcon);
 				}
@@ -134,6 +135,11 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 			public void valueChanged(ListSelectionEvent e) {
 				boolean selected = connectionList.getSelectedValue() != null;
 				OPEN_CONNECTION_ACTION.setEnabled(selected);
+				
+				// open delete only if not read only
+				if (selected) {
+					selected = !((FieldConnectionEntry)connectionList.getSelectedValue()).isReadOnly();
+				}
 				DELETE_CONNECTION_ACTION.setEnabled(selected);
 			}
 		});
@@ -193,13 +199,31 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 			Object value = connectionList.getSelectedValue();
 			if (value instanceof FieldConnectionEntry) {
 				FieldConnectionEntry entry = (FieldConnectionEntry) value;
+				// setting values of connection into fields
 				aliasTextField.setText(entry.getName());
 				databaseTypeComboBox.setSelectedItem(entry.getProperties().getName());
 				hostTextField.setText(entry.getHost());
 				portTextField.setText(entry.getPort());
 				databaseTextField.setText(entry.getDatabase());
 				userTextField.setText(entry.getUser());
-				passwordField.setText(new String(entry.getPassword()));
+				if (entry.getPassword() == null)
+					passwordField.setText("");
+				else
+					passwordField.setText(new String(entry.getPassword()));
+
+				// setting fields editable depending on entry's readonly flag
+				aliasTextField.setEditable(!entry.isReadOnly());
+				databaseTypeComboBox.setEnabled(!entry.isReadOnly());
+				hostTextField.setEditable(!entry.isReadOnly());
+				portTextField.setEditable(!entry.isReadOnly());
+				databaseTextField.setEditable(!entry.isReadOnly());
+				userTextField.setEditable(!entry.isReadOnly());
+				passwordField.setEditable(!entry.isReadOnly());
+				
+				// disabling save action if needed
+				SAVE_CONNECTION_ACTION.setEnabled(!entry.isReadOnly());
+				
+				// updating URL
 				updateURL();
 			}
 		}
@@ -240,6 +264,7 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			// resetting fields
 			databaseTypeComboBox.setSelectedIndex(0);
 			aliasTextField.setText("");
 			hostTextField.setText("");
@@ -247,6 +272,20 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 			databaseTextField.setText("");
 			userTextField.setText("");
 			passwordField.setText("");
+			
+			// enabling fields
+			aliasTextField.setEditable(true);
+			databaseTypeComboBox.setEnabled(true);
+			hostTextField.setEditable(true);
+			portTextField.setEditable(true);
+			databaseTextField.setEditable(true);
+			userTextField.setEditable(true);
+			passwordField.setEditable(true);
+			
+			
+			SAVE_CONNECTION_ACTION.setEnabled(true);
+			
+			// setting defaults
 			updateDefaults();
 			updateURL();
 		}

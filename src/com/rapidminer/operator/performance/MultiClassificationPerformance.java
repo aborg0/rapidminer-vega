@@ -45,7 +45,6 @@ import com.rapidminer.tools.math.Averagable;
  * column) / (n to the power of 2) ].
  * 
  * @author Ingo Mierswa
- *          ingomierswa Exp $
  */
 public class MultiClassificationPerformance extends MeasuredPerformance {
 

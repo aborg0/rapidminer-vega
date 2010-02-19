@@ -112,8 +112,8 @@ public class TFIDFFilter extends AbstractDataProcessing {
 			int i = 0;
 			for (Attribute attribute : attributes) { 
 				double value = example.getValue(attribute);
-				if (termFrequencySum[exampleCounter] == 0.0d) {
-					example.setValue(attribute, 0.0d);
+				if (termFrequencySum[exampleCounter] == 0.0d || Double.isNaN(inverseDocumentFrequencies[i])) {
+						example.setValue(attribute, 0.0d);
 				} else {
 					double tf = value;
 					if (calculateTermFrequencies)

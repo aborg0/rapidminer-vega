@@ -113,7 +113,7 @@ public class ManagedExtension {
 	}
 	
 	private File findFile(String version) {
-		for (File dir : getManagedExtensionsDirectory()) {
+		for (File dir : getManagedExtensionsDirectories()) {
 			File file = new File(dir, packageID+"-"+version+".jar");
 			if (file.exists()) {
 				return file;
@@ -136,7 +136,7 @@ public class ManagedExtension {
 		return selectedVersion;
 	}
 	
-	private static File[] getManagedExtensionsDirectory() {
+	private static File[] getManagedExtensionsDirectories() {
 		File local = getUserExtensionsDir();
 		try {
 			File global = getGlobalExtensionsDir();
@@ -279,12 +279,22 @@ public class ManagedExtension {
 		if (installedInHomeDir) {
 			return new File(getUserExtensionsDir(), packageID+"-"+version+".jar");
 		} else {
+			makeGlobalManagedExtensionsDir();
 			return new File(getGlobalExtensionsDir(), packageID+"-"+version+".jar");
 		}
 	}
 	
+	private static void makeGlobalManagedExtensionsDir() throws IOException {
+		File managedDir = getGlobalExtensionsDir();
+		if (!managedDir.exists()) {
+			if (!managedDir.mkdirs()) {
+				throw new IOException("Cannot create directory "+managedDir+". Make sure you have administrator privileges or check property "+UpdateManager.PARAMETER_INSTALL_TO_HOME+" in the preferences.");
+			}
+		}
+	}
+
 	private static boolean isInstallToHome() {
-		return "true".equals(System.getProperty(UpdateManager.PARAMETER_INSTALL_TO_HOME));
+		return !"false".equals(System.getProperty(UpdateManager.PARAMETER_INSTALL_TO_HOME));
 	}
 
 	public static void init() {

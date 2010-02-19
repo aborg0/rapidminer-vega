@@ -160,7 +160,7 @@ public class MacroEditor extends JPanel {
 	}
 	
 	private void addMacro() {
-		context.getMacros().add(new Pair<String, String>("", ""));
+		context.addMacro(new Pair<String, String>("", ""));
 		macroModel.fireAdd();
 	}
 	

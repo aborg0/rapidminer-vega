@@ -1216,6 +1216,10 @@ public class Tools {
 		return toString(collection, ", ");
 	}
 	public static String toString(Object[] collection, String separator) {
-		return toString(Arrays.asList(collection), separator);
+		if (collection == null) {
+			return null;
+		} else {
+			return toString(Arrays.asList(collection), separator);
+		}
 	}
 }

@@ -22,16 +22,17 @@
  */
 package com.rapidminer.operator.features.transformation;
 
-import com.rapidminer.example.ExampleSet;
-import com.rapidminer.operator.OperatorDescription;
-
 import Jama.Matrix;
 import Jama.SingularValueDecomposition;
 
+import com.rapidminer.example.ExampleSet;
+import com.rapidminer.operator.OperatorCapability;
+import com.rapidminer.operator.OperatorDescription;
+
 /**
- * A dimensionality reduction method based on Singular Value Decomposition. TODO: see super class
+ * A dimensionality reduction method based on Singular Value Decomposition.
  * 
- * @author Michael Wurst, Ingo Mierswa
+ * @author Michael Wurst, Ingo Mierswa, Sebastian Land
  * 
  */
 public class SVDReduction extends JamaDimensionalityReduction {
@@ -45,5 +46,16 @@ public class SVDReduction extends JamaDimensionalityReduction {
 		SingularValueDecomposition svd = new SingularValueDecomposition(in);
 		Matrix u = svd.getU().getMatrix(0, es.size() - 1, 0, dimensions - 1);
 		return u;
+	}
+
+	@Override
+	public boolean supportsCapability(OperatorCapability capability) {
+		switch (capability) {
+		case NUMERICAL_ATTRIBUTES:
+		case NO_LABEL:
+			return true;
+		default:
+			return false;
+		}
 	}
 }

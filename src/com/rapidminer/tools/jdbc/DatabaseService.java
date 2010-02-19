@@ -27,6 +27,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.logging.Level;
 
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
@@ -46,9 +48,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.rapidminer.RapidMiner;
+import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.XMLException;
 
 
 /**
@@ -64,55 +68,13 @@ public class DatabaseService {
     private static List<JDBCProperties> jdbcProperties = new ArrayList<JDBCProperties>();
     
 	public static void init() {
-//		String loadJDBCDirString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_JDBC_LIB);
-//		boolean loadJDBCDir = Tools.booleanValue(loadJDBCDirString, true);
-
-//		File jdbcDir = null;
-//		String jdbcDirString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_JDBC_LIB_LOCATION);
-//		if ((jdbcDirString != null) && !jdbcDirString.isEmpty()) {
-//			jdbcDir = new File(jdbcDirString);
-//		}
-//
-//		if (jdbcDir == null) {
-//			jdbcDir = ParameterService.getLibraryFile("jdbc");
-//		}
-//		
-//		String loadJDBCClasspathString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_JDBC_CLASSPATH);
-//		boolean loadJDBCClasspath = Tools.booleanValue(loadJDBCClasspathString, false);
-//
-//		LogService.getRoot().log(Level.CONFIG, (loadJDBCDir ? "Will" : "Will not") + " load jdbc drivers from "+jdbcDir + ". Classpath " + (loadJDBCClasspath ? "will" : "will not") +" be scanned for JDBC drivers.");
-//		
-//		registerAllJDBCDrivers(jdbcDir, loadJDBCDir, loadJDBCClasspath);
-		
-//		// then try properties from the etc directory if available
-//		File etcPropertyFile = null;
-//		if (RapidMiner.getExecutionMode().canAccessFilesystem()) {
-//			etcPropertyFile = ParameterService.getUserConfigFile("jdbc_properties.xml");
-//		}
-//		if ((etcPropertyFile != null) && (etcPropertyFile.exists())) {
-//			InputStream in = null;
-//			try {
-//				in = new FileInputStream(etcPropertyFile);
-//				loadJDBCProperties(in, "etc:jdbc_properties.xml");
-//			} catch (IOException e) {
-//				LogService.getRoot().log(Level.WARNING, "Cannot load JDBC properties from etc directory.", e);
-//			} finally {
-//				if (in != null) {
-//					try {
-//						in.close();
-//					} catch (IOException e) {
-//						LogService.getRoot().log(Level.WARNING, "Cannot close connection for JDBC properties file in the etc directory.", e);
-//					}
-//				}
-//			}
-//		} else {
 		// use the delivered default properties in the resources (e.g. in the jar file)
 		URL propertyURL = Tools.getResource("jdbc_properties.xml");
 		if (propertyURL != null) {
 			InputStream in = null;
 			try {
 				in = propertyURL.openStream();
-				loadJDBCProperties(in, "resource jdbc_properties.xml");
+				loadJDBCProperties(in, "resource jdbc_properties.xml", false);
 			} catch (IOException e) {
 				LogService.getRoot().log(Level.WARNING, "Cannot load JDBC properties from program resources.", e);
 			} finally {
@@ -129,24 +91,28 @@ public class DatabaseService {
 		if (RapidMiner.getExecutionMode().canAccessFilesystem()) {
 			File globalJDBCFile = ParameterService.getGlobalConfigFile("jdbc_properties.xml");
 			if (globalJDBCFile != null) {
-				loadJDBCProperties(globalJDBCFile);
+				loadJDBCProperties(globalJDBCFile, false);
 			}
 
 
-			File userProperties = ParameterService.getUserConfigFile("jdbc_properties.xml");
+			File userProperties = getUserJDBCPropertiesFile();
 			if ((userProperties!= null) && userProperties.exists()) {
-				loadJDBCProperties(userProperties);
+				loadJDBCProperties(userProperties, true);
 			}
 		} else {
 			LogService.getRoot().config("Ignoring jdbc_properties.xml files in execution mode "+RapidMiner.getExecutionMode()+".");
 		}
 	}
 
-	private static void loadJDBCProperties(File jdbcProperties) {
+	private static File getUserJDBCPropertiesFile() {
+		return ParameterService.getUserConfigFile("jdbc_properties.xml");
+	}
+
+	private static void loadJDBCProperties(File jdbcProperties, boolean userDefined) {
 		InputStream in = null;
 		try {
 			in = new FileInputStream(jdbcProperties);
-			loadJDBCProperties(in, jdbcProperties.getAbsolutePath());
+			loadJDBCProperties(in, jdbcProperties.getAbsolutePath(), userDefined);
 		} catch (IOException e) {
 			LogService.getRoot().log(Level.WARNING, "Cannot load JDBC properties from etc directory.", e);
 		} finally {
@@ -248,7 +214,7 @@ public class DatabaseService {
 
     }
     */
-	private static void loadJDBCProperties(InputStream in, String name) {
+	private static void loadJDBCProperties(InputStream in, String name, boolean userDefined) {
         //jdbcProperties.clear();
         LogService.getRoot().config("Loading JDBC driver information from '" + name + "'.");
         Document document = null;
@@ -267,7 +233,7 @@ public class DatabaseService {
             for (int i = 0; i < driverTags.getLength(); i++) {
                 Element currentElement = (Element) driverTags.item(i);
                 try {
-                    addDriverInformation(currentElement);
+                    addDriverInformation(currentElement, userDefined);
                 } catch (Exception e) {
                     Attr currentNameAttr = currentElement.getAttributeNode("name");
                     if (currentNameAttr != null) {
@@ -280,8 +246,8 @@ public class DatabaseService {
         }	    
     }
 
-    private static void addDriverInformation(Element driverElement) throws Exception {
-        JDBCProperties properties = new JDBCProperties(driverElement);
+    private static void addDriverInformation(Element driverElement, boolean userDefined) throws Exception {
+        JDBCProperties properties = new JDBCProperties(driverElement, userDefined);
         properties.registerDrivers();
         for (JDBCProperties other : jdbcProperties) {
         	if (other.getName().equals(properties.getName())) {
@@ -374,6 +340,15 @@ public class DatabaseService {
         return jdbcProperties;
     }
     
+    public static void addJDBCProperties(JDBCProperties newProps) {
+    	jdbcProperties.add(newProps);
+	}
+
+    public static void removeJDBCProperties(JDBCProperties newProps) {
+    	jdbcProperties.remove(newProps);
+	}
+
+    
     public static String[] getDBSystemNames() {
         String[] names = new String[jdbcProperties.size()];
         int counter = 0;
@@ -383,7 +358,25 @@ public class DatabaseService {
         }
         return names;
     }
-    
+
+	public static void saveUserDefinedProperties() throws XMLException {
+		Document doc;
+		try {
+			doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+		} catch (ParserConfigurationException e) {
+			throw new XMLException("Failed to create document: "+e, e);
+		}
+		Element root = doc.createElement("drivers");
+		doc.appendChild(root);
+		for (JDBCProperties props : getJDBCProperties()) {
+			if (props.isUserDefined()) {
+				root.appendChild(props.getXML(doc));
+			}
+		}
+		XMLTools.stream(doc, getUserJDBCPropertiesFile(), Charset.forName("UTF-8"));
+	}
+
+	    
 //    /** Sets whether the lib directory is scanned for JDBC drivers. */
 //    public static void setScanLibForJDBCDrivers(boolean scan) {
 //    	System.setProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_JDBC_LIB, Boolean.toString(scan));

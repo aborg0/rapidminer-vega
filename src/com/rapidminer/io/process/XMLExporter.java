@@ -202,15 +202,17 @@ public class XMLExporter {
 		Element element = doc.createElement("context");
 		appendList(element, "input", context.getInputRepositoryLocations());
 		appendList(element, "output", context.getOutputRepositoryLocations());
-		Element macroElem = doc.createElement("macros");
-		element.appendChild(macroElem);
+		Element macrosElem = doc.createElement("macros");
+		element.appendChild(macrosElem);
 		for (Pair<String,String> macro : context.getMacros()) {
+			Element macroElement = doc.createElement("macro");
+			macrosElem.appendChild(macroElement);
 			Element key = doc.createElement("key");
-			macroElem.appendChild(key);
+			macroElement.appendChild(key);
 			key.appendChild(doc.createTextNode(macro.getFirst()));
 			
 			Element value = doc.createElement("value");
-			macroElem.appendChild(value);
+			macroElement.appendChild(value);
 			value.appendChild(doc.createTextNode(macro.getSecond()));			
 		}
 		return element;

@@ -47,6 +47,7 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterTypeDatabaseConnection;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 import com.rapidminer.tools.jdbc.connection.DatabaseConnectionService;
+import com.rapidminer.tools.jdbc.connection.FieldConnectionEntry;
 
 /**
  * 
@@ -129,7 +130,7 @@ public class DatabaseConnectionValueCellEditor extends AbstractCellEditor implem
 
 					@Override
 					protected void ok() {
-						ConnectionEntry entry = checkFields(true); 
+						FieldConnectionEntry entry = checkFields(true); 
 						if (entry != null) {
 							boolean existent = false;
 							for (ConnectionEntry listEntry : DatabaseConnectionService.getConnectionEntries()) {

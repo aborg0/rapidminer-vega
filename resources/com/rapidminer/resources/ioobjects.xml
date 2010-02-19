@@ -412,7 +412,14 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.performance.MultiClassificationPerformanceRenderer</renderer>
     </ioobject>
-    
+
+    <ioobject
+        name="Weighted Multiclass Classification Performance"
+        class="com.rapidminer.operator.performance.WeightedMultiClassPerformance"
+        reportable="true">
+        <renderer>com.rapidminer.gui.renderer.performance.WeightedMultiClassPerformanceRenderer</renderer>
+    </ioobject>
+
     <ioobject
         name="ANOVA Significance"
         class="com.rapidminer.tools.math.AnovaCalculator$AnovaSignificanceTestResult"

@@ -33,9 +33,11 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.Tools;
 
 /**
  * This class encapsulates the necessary information to build a JDBC connection string (url)
@@ -62,47 +64,18 @@ public class JDBCProperties {
 //    private String valueQuoteClose;
     private String[] drivers;
     private String driverJarFile;
+	private boolean userDefined;
 
-    /** Overrides all fields specified by other. */
-	public void merge(JDBCProperties other) {
-		if (other.defaultPort != null) this.defaultPort = other.defaultPort;
-		if (other.urlPrefix != null) this.urlPrefix = other.urlPrefix;
-		if (other.dbNameSeperator != null) this.dbNameSeperator = other.dbNameSeperator;
-		
-//		if (other.integerName != null) this.integerName = other.integerName;
-//		if (other.textName != null) this.textName = other.textName;
-//		if (other.dateTimeName != null) this.dateTimeName = other.dateTimeName;
-//		if (other.timeName != null) this.timeName = other.timeName;
-//		if (other.dateName != null) this.dateName = other.dateName;
-//		if (other.identifierQuoteOpen != null) this.identifierQuoteOpen = other.identifierQuoteOpen;
-//		if (other.identifierQuoteClose != null) this.identifierQuoteClose = other.identifierQuoteClose;
-//		if (other.valueQuoteOpen != null) this.valueQuoteOpen = other.valueQuoteOpen;
-//		if (other.valueQuoteClose != null) this.driverJarFile = other.valueQuoteClose;
-		
-		if (other.driverJarFile != null) {
-			if (this.driverJarFile == null) {
-				this.driverJarFile = other.driverJarFile;
-			} else {
-				this.driverJarFile = other.driverJarFile+","+this.driverJarFile;
-			}
-		}
-		if (other.drivers != null) {
-			if (this.drivers == null) { 
-				this.drivers = other.drivers;
-			} else {
-				Set<String> merged = new HashSet<String>();
-				merged.addAll(Arrays.asList(this.drivers));
-				merged.addAll(Arrays.asList(other.drivers));
-				this.drivers = merged.toArray(new String[merged.size()]);
-			}
-		}
-	}    
-
-    private JDBCProperties() {
-    	name = "unknown";
-    	defaultPort = "port";
-    	urlPrefix = "urlprefix://";
+	private JDBCProperties() {
+		this(false);
+	}
+	
+	public JDBCProperties(boolean userDefined) {
+    	setName("unknown");
+    	setDefaultPort("port");
+    	setUrlPrefix("urlprefix://");
     	dbNameSeperator = "/";
+    	this.userDefined = userDefined;
 //    	varcharName = "VARCHAR";
 //    	textName = "BLOB";
 //    	integerName = "INTEGER";
@@ -120,7 +93,8 @@ public class JDBCProperties {
 	 * @param driverElement
      * @throws Exception 
 	 */
-	public JDBCProperties(Element driverElement) throws Exception {
+	public JDBCProperties(Element driverElement, boolean userDefined) throws Exception {
+		this.userDefined = userDefined;
 		Attr nameAttr                 = driverElement.getAttributeNode("name");
 		Attr driversAttr              = driverElement.getAttributeNode("drivers");
         Attr portAttr                 = driverElement.getAttributeNode("defaultport");
@@ -142,16 +116,14 @@ public class JDBCProperties {
         if (nameAttr == null)
             throw new Exception("Missing name for <driver> tag");
         
-        name = nameAttr.getValue();
+        setName(nameAttr.getValue());
         
         if (portAttr == null)
-            throw new Exception("Missing defaultport for <driver> tag for driver '"+name+"'");
+            throw new Exception("Missing defaultport for <driver> tag for driver '"+getName()+"'");
         if (urlAttr == null)
-            throw new Exception("Missing urlprefix for <driver> tag for driver '"+name+"'");
-        if (dbNameAttr == null)
-            throw new Exception("Missing dbnameseperator for <driver> tag for driver '"+name+"'");
+            throw new Exception("Missing urlprefix for <driver> tag for driver '"+getName()+"'");
         if (driversAttr == null) {
-        	LogService.getRoot().warning("Missing database driver class name for '"+name+"'");
+        	LogService.getRoot().warning("Missing database driver class name for '"+getName()+"'");
         }
         
 //        if (varcharNameAttr != null) {
@@ -230,22 +202,55 @@ public class JDBCProperties {
 //            LogService.getRoot().warning("No definition of 'value_quote_close' found for driver " + nameAttr.getValue() + ", using default (')...");
 //        }
                	
-    	defaultPort = portAttr.getValue();
-    	urlPrefix = urlAttr.getValue();
-    	dbNameSeperator = dbNameAttr.getValue();
+    	setDefaultPort(portAttr.getValue());
+    	setUrlPrefix(urlAttr.getValue());
+    	dbNameSeperator = dbNameAttr != null ? dbNameAttr.getValue() : "/";
     	
     	if (driversAttr != null) {
-    		this.drivers = driversAttr.getValue().split("\\s*,\\s*");
+    		final String value = driversAttr.getValue();
+			setDriverClasses(value);
     	} else {
     		this.drivers = new String[0];
     	}
     	if (driverJarAttr != null) {
-    		this.driverJarFile = driverJarAttr.getValue();
+    		this.setDriverJarFile(driverJarAttr.getValue());
     	} else {
-    		this.driverJarFile = null;
+    		this.setDriverJarFile(null);
     	}
 	}
 
+	public void setDriverClasses(String value) {
+		if (value == null) {
+			this.drivers = new String[0];
+		} else {
+			this.drivers = value.split("\\s*,\\s*");
+		} 
+	}
+
+	 /** Overrides all fields specified by other. */
+	public void merge(JDBCProperties other) {
+		if (other.getDefaultPort() != null) this.setDefaultPort(other.getDefaultPort());
+		if (other.getUrlPrefix() != null) this.setUrlPrefix(other.getUrlPrefix());
+		if (other.dbNameSeperator != null) this.dbNameSeperator = other.dbNameSeperator;
+		this.userDefined = this.userDefined || other.userDefined;
+		if (other.getDriverJarFile() != null) {
+			if (this.getDriverJarFile() == null) {
+				this.setDriverJarFile(other.getDriverJarFile());
+			} else {
+				this.setDriverJarFile(other.getDriverJarFile()+","+this.getDriverJarFile());
+			}
+		}
+		if (other.drivers != null) {
+			if (this.drivers == null) { 
+				this.drivers = other.drivers;
+			} else {
+				Set<String> merged = new HashSet<String>();
+				merged.addAll(Arrays.asList(this.drivers));
+				merged.addAll(Arrays.asList(other.drivers));
+				this.drivers = merged.toArray(new String[merged.size()]);
+			}
+		}
+	}    
 	public String getDbNameSeperator() {
         return dbNameSeperator;
     }
@@ -316,11 +321,11 @@ public class JDBCProperties {
     	for (String driverName : drivers) {
     		try {
     			ClassLoader loader;
-    			if (driverJarFile != null) {
-        			String[] jarNames = driverJarFile.split(",");
+    			if (getDriverJarFile() != null) {
+        			String[] jarNames = getDriverJarFile().split(",");
         			URL urls[] = new URL[jarNames.length];
         			for (int i = 0; i < jarNames.length; i++) {
-        				File jarFile = new File(driverJarFile);
+        				File jarFile = new File(getDriverJarFile());
         				if (!jarFile.exists()) {
         					LogService.getRoot().warning("Driver jar file '"+jarFile.getAbsolutePath()+"' referenced for JDBC driver "+getName()+" does not exist.");
         				}
@@ -333,22 +338,22 @@ public class JDBCProperties {
     			
     			// Normally, forName() is sufficient, but when loaded dynamically, the DriverManager
     			// does not accept it, so we use the DriverAdapter, see http://www.kfu.com/~nsayer/Java/dyn-jdbc.html
-    			if (driverJarFile == null) {
+    			if (getDriverJarFile() == null) {
     				Class.forName(driverName, true, loader);
     			} else {
     				DriverManager.registerDriver(new DriverAdapter((Driver)Class.forName(driverName, true, loader).newInstance()));
     			}
     			//Class.forName(driverName, true, loader).newInstance();    			
     			
-    			if (driverJarFile != null) {
-    				LogService.getRoot().config("Loaded JDBC driver "+driverName + " from "+driverJarFile);
+    			if (getDriverJarFile() != null) {
+    				LogService.getRoot().config("Loaded JDBC driver "+driverName + " from "+getDriverJarFile());
     			} else {
     				LogService.getRoot().config("Loaded JDBC driver "+driverName);
     			}
    			
     		} catch (ClassNotFoundException e) {
-    			if (driverJarFile != null) {
-    				LogService.getRoot().info("JDBC driver "+driverName+" not found in "+driverJarFile);
+    			if (getDriverJarFile() != null) {
+    				LogService.getRoot().info("JDBC driver "+driverName+" not found in "+getDriverJarFile());
     			} else {
     				LogService.getRoot().info("JDBC driver "+driverName+" not found. Probably the driver is not installed.");
     			}
@@ -360,5 +365,44 @@ public class JDBCProperties {
 
 	public String[] getDriverClasses() {
 		return drivers;
+	}
+
+	public String getDriverJarFile() {
+		return driverJarFile;
+	}
+	
+	public boolean isUserDefined() {
+		return userDefined;
+	}
+	
+	@Override
+	public String toString() {
+		return getName();
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setDefaultPort(String defaultPort) {
+		this.defaultPort = defaultPort;
+	}
+
+	public void setUrlPrefix(String urlPrefix) {
+		this.urlPrefix = urlPrefix;
+	}
+
+	public void setDriverJarFile(String driverJarFile) {
+		this.driverJarFile = driverJarFile;
+	}
+
+	public Element getXML(Document doc) {
+		Element element = doc.createElement("driver");
+		element.setAttribute("name", getName());
+		element.setAttribute("drivers", Tools.toString(drivers, ","));
+		element.setAttribute("driver_jar", getDriverJarFile());
+		element.setAttribute("defaultport", getDefaultPort());
+		element.setAttribute("urlprefix", getUrlPrefix());
+		return element;
 	}
 }
