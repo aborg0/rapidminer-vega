@@ -1,3 +1,25 @@
+/*
+ *  RapidMiner
+ *
+ *  Copyright (C) 2001-2010 by Rapid-I and the contributors
+ *
+ *  Complete list of developers available at our web site:
+ *
+ *       http://rapid-i.com
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program.  If not, see http://www.gnu.org/licenses/.
+ */
 package com.rapidminer.repository.gui;
 
 import java.awt.Component;
@@ -49,7 +71,7 @@ public class ToolTipProviderHelper {
 		} else {
 			if (o instanceof Entry) {
 				StringBuilder tip = new StringBuilder();
-				tip.append("<h3>").append(((Entry)o).getName()).append("</h3><p>").append(((Entry)o).getDescription()).append("</p>");
+				tip.append("<h3>").append((o).getName()).append("</h3><p>").append((o).getDescription()).append("</p>");
 				if (o instanceof BlobEntry) {
 					tip.append("<p><strong>Type:</strong> ").append(((BlobEntry)o).getMimeType()).append("</p>");
 				}

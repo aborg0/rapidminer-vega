@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2009 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2010 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -383,17 +383,14 @@ public class ManagedExtension {
 		// we only mark as uninstalled if 
 		//   (1) File does not exist, probably was removed manually
 		//   (2) We were able to remove it (requires administrator permissions if installed globally).
-		if (!file.exists() || file.delete()) {
-			installedVersions.remove(selectedVersion);
-			selectedVersion = null;
-			active = false;
-			if (installedVersions.isEmpty()) {
-				MANAGED_EXTENSIONS.remove(this.getPackageId());
-			}
-			saveConfiguration();
-			return true;
-		} else {
-			return false;
+		file.delete();
+		installedVersions.remove(selectedVersion);
+		selectedVersion = null;
+		active = false;
+		if (installedVersions.isEmpty()) {
+			MANAGED_EXTENSIONS.remove(this.getPackageId());
 		}
+		saveConfiguration();
+		return true;
 	}
 }

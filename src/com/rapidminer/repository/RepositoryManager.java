@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2009 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2010 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -24,6 +24,8 @@ package com.rapidminer.repository;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -69,6 +71,9 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 	private static Repository sampleRepository;
 	private static final Map<RepositoryAccessor,RepositoryManager> CACHED_MANAGERS = new HashMap<RepositoryAccessor,RepositoryManager>();
 	private static final List<RepositoryFactory> FACTORIES = new LinkedList<RepositoryFactory>();
+
+	private static final String PROPERTY_HOME_REPOSITORY_URL = "rapidminer.homerepository.url";
+	private static final String PROPERTY_HOME_REPOSITORY_USER = "rapidminer.homerepository.user";
 	
 	private final List<Repository> repositories = new LinkedList<Repository>();
 	
@@ -103,6 +108,17 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			sampleRepository = new ResourceRepository("Samples", "/"+Tools.RESOURCE_PREFIX+"samples");
 		}
 		repositories.add(sampleRepository);
+		final String homeUrl = System.getProperty(PROPERTY_HOME_REPOSITORY_URL);
+		if (homeUrl != null) {
+			// TODO
+			try {
+				RemoteRepository homeRepository = new RemoteRepository(new URL(homeUrl), "Home", System.getProperty(PROPERTY_HOME_REPOSITORY_USER), null);
+				addRepository(homeRepository);
+				LogService.getRoot().config("Adding home repository "+homeUrl+".");
+			} catch (MalformedURLException e) {
+				LogService.getRoot().log(Level.WARNING, "Illegal repository URL "+homeUrl+": "+e, e);
+			}
+		}
 		load();
 	}
 
