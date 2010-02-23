@@ -56,9 +56,6 @@ after_mem_more:
 ;IntOp $R8 $R9 / 3
 
 ;DetailPrint "90% of free: $R9 M"
-
-  Call PerformUpdate
-  
   Call GetJRE
   Pop $R0
  
@@ -77,6 +74,7 @@ after_mem_more:
   
   SetOutPath $EXEDIR
  Relaunch:
+  Call PerformUpdate
   ExecWait $0 $1
   IntCmp $1 2 Relaunch
 SectionEnd
@@ -94,8 +92,16 @@ Function PerformUpdate
   StrCpy $R0 ""
         
   UpdateFound:
-    CopyFiles /SILENT $EXEDIR\RUinstall\* $EXEDIR
-    RmDir /r $EXEDIR\RUinstall
+    ; Check if update contains new RapidMiner.exe
+    StrCpy $R0 "$EXEDIR\RUinstall\RapidMiner.exe"
+    IfFileExists UpdateItself UpdateOther
+    UpdateItself:
+       Rename "$EXEDIR\RUinstall\RapidMiner.exe" "$EXEDIR\RapidMiner.exex"
+       Rename /REBOOTOK "$EXEDIR\RapidMiner.exex" "$EXEDIR\RapidMiner.exe"
+    
+    UpdateOther:  
+       CopyFiles /SILENT $EXEDIR\RUinstall\* $EXEDIR
+       RmDir /r $EXEDIR\RUinstall
      
 FunctionEnd
 

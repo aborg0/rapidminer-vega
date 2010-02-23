@@ -125,14 +125,14 @@ rem ###                     ###
 rem ###########################
 
 :update
-rem set RUINSTALL_DIR=%RAPIDMINER_HOME%\RUinstall
-rem if exist "%RUINSTALL_DIR%" goto perform_update
-rem goto start
+set RUINSTALL_DIR=%RAPIDMINER_HOME%\RUinstall
+if exist "%RUINSTALL_DIR%" goto perform_update
+goto start
 
 :perform_update
-rem xcopy "%RUINSTALL_DIR%" "%RAPIDMINER_HOME%" /c /s /y /i
-rem rmdir "%RUINSTALL_DIR%" /s /q
-rem goto start
+xcopy "%RUINSTALL_DIR%" "%RAPIDMINER_HOME%" /c /s /y /i
+rmdir "%RUINSTALL_DIR%" /s /q
+goto start
 
 
 rem #############################
@@ -166,7 +166,7 @@ rem echo The used classpath is '%COMPLETE_CLASSPATH%'...
 
 :launch
 "%JAVA%" -Xms%MAX_JAVA_MEMORY%m -Xmx%MAX_JAVA_MEMORY%m -classpath "%COMPLETE_CLASSPATH%" -Drapidminer.home="%RAPIDMINER_HOME%" -Drapidminer.operators.additional="%RAPIDMINER_OPERATORS_ADDITIONAL%" %RAPIDMINER_JDBC_DRIVER_PARAMETER% -jar "%RAPIDMINER_HOME%\lib\launcher.jar" %CMD_LINE_ARGS%
-if errorlevel 2 goto launch 
+if errorlevel 2 goto start 
 goto end
 
 

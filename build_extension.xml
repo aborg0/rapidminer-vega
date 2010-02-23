@@ -333,7 +333,10 @@ Name "${extension.name.long}"
         </condition>
         <fail unless="update.accepted" />
         <echo message="Updating started..." />
-        <antcall target="version.increaseUpdate" />
+        <condition property="update.republish">
+        	<equals arg1="${update.input}" arg2="republish" />
+        </condition>
+    	<antcall target="version.increaseUpdate" />
         <antcall target="update.publish" />
     </target>
 
@@ -348,7 +351,7 @@ Name "${extension.name.long}"
         <antcall target="version.updateFiles" />
     </target>
 
-    <target name="version.increaseUpdate">
+    <target name="version.increaseUpdate" unless="update.republish">
         <echo message="Increasing Update..." />
         <propertyfile file="build.properties">
             <entry type="int" key="extension.update" operation="+" value="1" pattern="000" />

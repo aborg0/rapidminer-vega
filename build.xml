@@ -449,13 +449,19 @@
 	</target>
 
 	<target name="update" description="This target will perform a full update including file generation and uploading them to the update server.">
-		<input message="Do you really want to create a new Update? This will increase the update version counter, generate all update files and upload to the server." validargs="yes,no" addproperty="update.input">
+		<input message="Do you really want to create a new Update? This will increase the update version counter, generate all update files and upload to the server." validargs="yes,no,republish" addproperty="update.input">
 		</input>
 		<condition property="update.accepted">
-			<istrue value="${update.input}" />
-		</condition>
+            <or>
+                <equals arg1="${update.input}" arg2="republish" />
+                <istrue value="${update.input}" />
+            </or>
+        </condition>
 		<fail unless="update.accepted" />
 		<echo message="Updating started..." />
+        <condition property="update.republish">
+            <equals arg1="${update.input}" arg2="republish" />
+        </condition>
 		<antcall target="version.increaseUpdate" />
 		<antcall target="update.publish" />
 	</target>
@@ -471,7 +477,7 @@
 		<antcall target="version.updateFiles" />
 	</target>
 
-	<target name="version.increaseUpdate">
+	<target name="version.increaseUpdate" unless="update.republish">
 		<echo message="Increasing Update..." />
 		<propertyfile file="build.properties">
 			<entry type="int" key="rapidminer.update" operation="+" value="1" pattern="000" />
