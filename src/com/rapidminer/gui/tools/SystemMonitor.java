@@ -37,6 +37,7 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 import com.rapidminer.gui.MainFrame;
+import com.rapidminer.tools.Tools;
 import com.vlsolutions.swing.docking.DockKey;
 import com.vlsolutions.swing.docking.Dockable;
 
@@ -61,8 +62,6 @@ public class SystemMonitor extends JPanel implements Dockable {
 	private static final Color GRID_COLOR = Color.LIGHT_GRAY;
 	
 	private static final Color LINE_COLOR = SwingTools.VERY_DARK_BLUE;
-
-	private static final String[] MEMORY_UNITS = { "b", "kB", "MB", "GB", "TB" };
 
 	private static final int NUMBER_OF_MEASUREMENTS = 20;
 
@@ -182,8 +181,8 @@ public class SystemMonitor extends JPanel implements Dockable {
 		g2d.setColor(textColor);
 		Font font = new Font("Courier", Font.PLAIN, 11);
 		g2d.setFont(font);
-		String totalString = " Total: " + humanReadable(total); 
-		String maxString = " Max:   " + humanReadable(Runtime.getRuntime().maxMemory());
+		String totalString = " Total: " + Tools.formatSizeInBytes(total); 
+		String maxString = " Max:   " + Tools.formatSizeInBytes(Runtime.getRuntime().maxMemory());
 		Rectangle2D totalBounds = g2d.getFontMetrics().getStringBounds(totalString, g2d);
 		Rectangle2D maxBounds = g2d.getFontMetrics().getStringBounds(totalString, g2d);
 		int totalHeight = 4 * font.getSize() + 2 * MARGIN;
@@ -194,24 +193,6 @@ public class SystemMonitor extends JPanel implements Dockable {
 		}
 	}
 
-	private String humanReadable(long bytes) {
-		long result = bytes;
-		long rest = 0;
-		int unit = 0;
-		while (result > 1024) {
-			rest = result % 1024;
-			result /= 1024;
-			unit++;
-			if (unit >= MEMORY_UNITS.length - 1)
-				break;
-		}
-		if ((result < 10) && (unit > 0)) {
-			return result + "." + (10 * rest / 1024) + " " + MEMORY_UNITS[unit];
-		} else {
-			return result + " " + MEMORY_UNITS[unit];
-		}
-	}
-	
 	private Color getMemoryColor(double value) {
         if (Double.isNaN(value))
             return SwingTools.LIGHTEST_BLUE;
@@ -222,10 +203,7 @@ public class SystemMonitor extends JPanel implements Dockable {
         double bColorDiff = maxCol[2] - minCol[2];
 		return new Color(Color.HSBtoRGB((float)(minCol[0] + hColorDiff * value), (float)(minCol[1] + value * sColorDiff), (float)(minCol[2] + value * bColorDiff)));
 	}
-	
-	
-	
-	
+		
 	public static final String SYSTEM_MONITOR_DOCK_KEY = "system_monitor";	
 	private final DockKey DOCK_KEY = new ResourceDockKey(SYSTEM_MONITOR_DOCK_KEY);
 	{

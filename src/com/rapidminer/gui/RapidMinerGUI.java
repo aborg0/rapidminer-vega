@@ -279,7 +279,7 @@ public class RapidMinerGUI extends RapidMiner {
 			//OperatorService.reloadIcons();
 		} catch (Exception e) {
 			LogService.getRoot().log(Level.WARNING, "Cannot setup modern look and feel, using default.", e);
-		} 			
+		}
 	}
 
 	public static void setMainFrame(MainFrame mf) {

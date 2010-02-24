@@ -108,12 +108,12 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			sampleRepository = new ResourceRepository("Samples", "/"+Tools.RESOURCE_PREFIX+"samples");
 		}
 		repositories.add(sampleRepository);
+		
 		final String homeUrl = System.getProperty(PROPERTY_HOME_REPOSITORY_URL);
 		if (homeUrl != null) {
-			// TODO
 			try {
 				RemoteRepository homeRepository = new RemoteRepository(new URL(homeUrl), "Home", System.getProperty(PROPERTY_HOME_REPOSITORY_USER), null);
-				addRepository(homeRepository);
+				repositories.add(homeRepository);
 				LogService.getRoot().config("Adding home repository "+homeUrl+".");
 			} catch (MalformedURLException e) {
 				LogService.getRoot().log(Level.WARNING, "Illegal repository URL "+homeUrl+": "+e, e);

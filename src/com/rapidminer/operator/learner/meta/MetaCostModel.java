@@ -103,7 +103,8 @@ public class MetaCostModel extends PredictionModel implements MetaModel {
 				Example example = reader.next();
 				int currentClassNumber = 0;
 				for (String currentClass : getLabel().getMapping().getValues()) {					
-					confidences[counter][currentClassNumber] += example.getConfidence(currentClass);
+					final double confidence = example.getConfidence(currentClass);
+					confidences[counter][currentClassNumber] += confidence;
 					currentClassNumber++;
 				}
 				counter++;
@@ -118,9 +119,6 @@ public class MetaCostModel extends PredictionModel implements MetaModel {
 		originalExampleSet.getExampleTable().addAttribute(classificationCost);
 		originalExampleSet.getAttributes().setCost(classificationCost);		
 
-		// create new predicted label
-		predictedLabel = PredictionModel.createPredictedLabel(exampleSet, getTrainingHeader().getAttributes().getLabel());
-		
 		int counter = 0;				
 		for(Example example: originalExampleSet) {	
 			for (int i = 0; i < numberOfClasses; i++) { 				

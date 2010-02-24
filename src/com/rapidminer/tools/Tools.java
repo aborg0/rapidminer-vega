@@ -76,9 +76,11 @@ import com.rapidminer.tools.plugin.Plugin;
  */
 public class Tools {
 
+	/** Units for sizes in bytes. */
+	private static final String[] MEMORY_UNITS = { "b", "kB", "MB", "GB", "TB" };
+	
 	/** The line separator depending on the operating system. */
 	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
-
 
 	/** Number smaller than this value are considered as zero. */
 	private static final double IS_ZERO = 1E-6;
@@ -112,9 +114,7 @@ public class Tools {
 	/** Used for determining the symbols used in decimal formats. */
 	private static DecimalFormatSymbols FORMAT_SYMBOLS = new DecimalFormatSymbols(Locale.US);
 
-
 	private static final LinkedList<ResourceSource> ALL_RESOURCE_SOURCES = new LinkedList<ResourceSource>();
-
 
 	public static final String RESOURCE_PREFIX = "com/rapidminer/resources/";
 
@@ -1222,4 +1222,23 @@ public class Tools {
 			return toString(Arrays.asList(collection), separator);
 		}
 	}
+
+	public static String formatSizeInBytes(long bytes) {
+		long result = bytes;
+		long rest = 0;
+		int unit = 0;
+		while (result > 1024) {
+			rest = result % 1024;
+			result /= 1024;
+			unit++;
+			if (unit >= Tools.MEMORY_UNITS.length - 1)
+				break;
+		}
+		if ((result < 10) && (unit > 0)) {
+			return result + "." + (10 * rest / 1024) + " " + Tools.MEMORY_UNITS[unit];
+		} else {
+			return result + " " + Tools.MEMORY_UNITS[unit];
+		}
+	}
+
 }
