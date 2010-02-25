@@ -144,6 +144,9 @@ public class SwingTools {
 	/** The Rapid-I brown color. */
 	public static final Color RAPID_I_BROWN = new Color(97, 66, 11);
 
+	/** The Rapid-I beige color. */
+	public static final Color RAPID_I_BEIGE = new Color(202, 188, 165);
+
 	/** Some color constants for Java Look and Feel. */
 	public static final Color LIGHTEST_RED = new Color(250, 210, 210);
 
