@@ -96,6 +96,7 @@ public class ProcessContext extends AbstractObservable<ProcessContext> {
 
 	public void addMacro(Pair<String, String> macro) {
 		this.macros.add(macro);
+		fireUpdate(this);
 	}
 	
 	public void setMacros(List<Pair<String, String>> macros) {

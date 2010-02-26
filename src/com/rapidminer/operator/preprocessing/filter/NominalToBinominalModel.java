@@ -92,7 +92,7 @@ public class NominalToBinominalModel extends PreprocessingModel {
 			Attribute sourceAttribute = iterator.next();
 			String sourceAttributeName = sourceAttribute.getName();
 			if (dichotomizationAttributeNames.contains(sourceAttributeName)) {
-				for (String value : sourceAttribute.getMapping().getValues()) {
+				for (String value : getTrainingHeader().getAttributes().get(sourceAttributeName).getMapping().getValues()) {
 					// create nominal mapping
 					Attribute newAttribute = AttributeFactory.createAttribute(createAttributeName(sourceAttributeName, value), Ontology.BINOMINAL);
 					NominalMapping mapping = new BinominalMapping();
