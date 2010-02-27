@@ -111,7 +111,7 @@ public abstract class RemoteEntry implements Entry {
 
 	@Override
 	public boolean isReadOnly() {		
-		return true;
+		return false;
 	}
 
 	@Override

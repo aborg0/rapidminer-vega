@@ -128,7 +128,7 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 		}
 		OutputStream out = null;
 		try {
-			conn.setRequestProperty("Content-Type", RemoteRepository.RMContentType.IOOBJECT.getContentTypeString());
+			conn.setRequestProperty("Content-Type", RMContentType.IOOBJECT.getContentTypeString());
 			conn.setRequestMethod("POST");
 			conn.setDoOutput(true);
 			conn.setDoInput(true);

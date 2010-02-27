@@ -213,7 +213,7 @@ public abstract class PredictionModel extends AbstractModel {
     public static void copyPredictedLabel(ExampleSet source, ExampleSet destination) {
         Attribute predictedLabel = source.getAttributes().getPredictedLabel();
         if (predictedLabel != null) {
-            removePredictedLabel(destination, true, true);
+        	removePredictedLabel(destination, true, true);
             if (predictedLabel.isNominal()) {
                 java.util.Iterator i = predictedLabel.getMapping().getValues().iterator();
                 while (i.hasNext()) {

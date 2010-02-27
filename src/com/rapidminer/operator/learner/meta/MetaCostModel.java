@@ -112,13 +112,11 @@ public class MetaCostModel extends PredictionModel implements MetaModel {
 			PredictionModel.removePredictedLabel(exampleSet);		
 		}
 
-
 		// 2. Iterate again over all examples to compute a prediction and a confidence distribution for 
 		//    all examples depending on the results of step 1 and the cost matrix. 
 		Attribute classificationCost = AttributeFactory.createAttribute(Attributes.CLASSIFICATION_COST, Ontology.REAL);
 		originalExampleSet.getExampleTable().addAttribute(classificationCost);
 		originalExampleSet.getAttributes().setCost(classificationCost);		
-
 		int counter = 0;				
 		for(Example example: originalExampleSet) {	
 			for (int i = 0; i < numberOfClasses; i++) { 				

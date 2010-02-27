@@ -553,6 +553,7 @@ public class SwingTools {
 	 * This is the normal method which could be used by GUI classes for errors caused by 
 	 * some exception (e.g. IO issues). Of course these error message methods should never be 
 	 * invoked by operators or similar.
+	 * The key is constructed as gui.dialog.error.-key- and uses .title and .icon properties
 	 * 
 	 * @param key						the I18n-key which will be used to display the internationalized message
 	 * @param errorMessage				the error message associated to this message
@@ -949,6 +950,17 @@ public class SwingTools {
 		if (c instanceof Container) {
 			for (Component child : ((Container)c).getComponents()) {
 				setEnabledRecursive(child, enabled);
+			}
+		}
+	}
+
+	public static void setOpaqueRecursive(Component c, boolean enabled) {
+		if (c instanceof JComponent) {
+			((JComponent)c).setOpaque(enabled);	
+		}
+		if (c instanceof Container) {
+			for (Component child : ((Container)c).getComponents()) {
+				setOpaqueRecursive(child, enabled);
 			}
 		}
 	}

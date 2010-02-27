@@ -351,9 +351,9 @@ public class OperatorTreeCellRenderer extends DefaultTreeCellRenderer {
 		if (value instanceof Operator) {
 			//operatorPanel = new OperatorPanel();
 			operatorPanel.updateOperator(tree, (Operator) value, selected, hasFocus);
-			SwingTools.setEnabledRecursive(operatorPanel, tree.isEnabled());
+			SwingTools.setEnabledRecursive(operatorPanel, operatorPanel.isEnabled());
 			return operatorPanel;
-		} else if (value instanceof ExecutionUnit){
+		} else if (value instanceof ExecutionUnit) {
 			Component component = super.getTreeCellRendererComponent(tree, ((ExecutionUnit)value).getName(), selected, expanded, leaf, row, hasFocus);
 			OperatorTreeTransferHandler.Position dndMarker = ((OperatorTree)tree).getOperatorTreeTransferHandler().getMarkerPosition((ExecutionUnit)value);
 			if (dndMarker != OperatorTreeTransferHandler.Position.UNMARKED) {

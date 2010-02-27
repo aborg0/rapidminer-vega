@@ -79,20 +79,6 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		METADATA, IOOBJECT, PROCESS, BLOB
 	}
 
-	public static enum RMContentType {		
-		IOOBJECT("application/vnd.rapidminer.ioo"),
-		METADATA("application/vnd.rapidminer.md"),
-		PROCESS("application/vnd.rapidminer.rmp+xml");
-		
-		private String typeString;
-		RMContentType(String typeString) {
-			this.typeString = typeString;
-		}
-		public String getContentTypeString() {
-			return typeString;
-		}
-	}
-	
 	private final URL baseUrl;
 	private String alias;
 	private final String username;
@@ -346,6 +332,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		for (String fraction : split) {
 			encoded.append('/');
 			encoded.append(URLEncoder.encode(fraction, "UTF-8"));
+			//encoded.append(fraction);
 		}
 		if (type == EntryStreamType.METADATA) {
 			encoded.append("?format=binmeta");

@@ -1122,7 +1122,7 @@ public class Tools {
 	 *  even in case of a failure. 
 	 * @param closeOutputStream TODO*/
 	public static void copyStreamSynchronously(InputStream in, OutputStream out, boolean closeOutputStream) throws IOException {
-		byte[] buffer = new byte[1024];
+		byte[] buffer = new byte[1024*20];
 		try {
 //			in = new BufferedInputStream(in);
 //			out = new BufferedOutputStream(out);

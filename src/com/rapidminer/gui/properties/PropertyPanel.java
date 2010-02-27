@@ -23,6 +23,7 @@
 package com.rapidminer.gui.properties;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -114,6 +115,8 @@ public abstract class PropertyPanel extends JPanel {
 
 	/** Types currently displayed by editors. */
 	private Collection<ParameterType> currentTypes;
+
+	private Color fontColor = Color.BLACK;
 	
 	public static final int VALUE_CELL_EDITOR_HEIGHT = 28;
 
@@ -253,9 +256,13 @@ public abstract class PropertyPanel extends JPanel {
 			JPanel parameterPanel = null;
 			if (!editor.rendersLabel()) {
 				parameterPanel = new JPanel(new GridLayout(1,2));
+				parameterPanel.setOpaque(isOpaque());
 				parameterPanel.setBackground(getBackground());
 				parameterPanel.setPreferredSize(new Dimension((int) parameterPanel.getPreferredSize().getWidth(), VALUE_CELL_EDITOR_HEIGHT));
 				JLabel label = new JLabel(type.getKey().replace('_', ' ') + " ");			
+				label.setOpaque(isOpaque());
+				label.setFont(getFont());
+				label.setForeground(fontColor);
 				label.setToolTipText(toolTip.toString());
 				int style = Font.PLAIN;
 				if (!type.isOptional()) {
@@ -274,6 +281,7 @@ public abstract class PropertyPanel extends JPanel {
 				add(parameterPanel, c);
 			} else {
 				parameterPanel = new JPanel(new BorderLayout());
+				parameterPanel.setOpaque(isOpaque());
 				parameterPanel.setBackground(getBackground());
 				parameterPanel.setPreferredSize(new Dimension((int) parameterPanel.getPreferredSize().getWidth(), VALUE_CELL_EDITOR_HEIGHT));
 				parameterPanel.add(editorComponent, editorComponent instanceof JCheckBox ? BorderLayout.WEST : BorderLayout.CENTER);
@@ -284,10 +292,13 @@ public abstract class PropertyPanel extends JPanel {
 
 		c.gridx = 0;
 		c.gridy = row;
-		add(getMessage(), c);
+		JComponent message = getMessage();
+		message.setOpaque(isOpaque());
+		add(message, c);
 
 		JPanel dummyPanel = new JPanel(new GridLayout(1,2));
-		dummyPanel.setBackground(getBackground());
+		//dummyPanel.setBackground(getBackground());
+		dummyPanel.setOpaque(false);
 		c.weightx = 1;
 		c.weighty = 1;
 		c.fill = GridBagConstraints.BOTH;
@@ -342,5 +353,12 @@ public abstract class PropertyPanel extends JPanel {
 		} while (typeClass != null);
 		editor.setOperator(operator);
 		return editor;
+	}
+	
+	/**
+	 * This sets the color of the labels of properties. Not used if lable is replaced by editor
+	 */
+	public void setLabelTextColor(Color color) {
+		fontColor = color;
 	}
 }

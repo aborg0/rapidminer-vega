@@ -339,6 +339,7 @@
 		</condition>
 
 		<antcall target="version.increaseRevision" />
+		<antcall target="javadoc.makeZip" />
 		<antcall target="release.publish" />
 		<antcall target="update.publish" />
 	</target>

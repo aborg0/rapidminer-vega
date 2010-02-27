@@ -373,7 +373,6 @@ public class Example implements Serializable, Map<String, Object> {
 		} else {
 			return getValue(attribute);
 		}
-		
 	}
 
 	public Object put(String attributeName, Object value) {

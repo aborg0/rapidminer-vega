@@ -335,13 +335,7 @@ public class XMLImporter {
 			}
 		}
 
-		ProcessXMLFilterRegistry.fireExecutionUnitExported(executionUnit, element);
-//		if (RapidMiner.getExecutionMode().hasMainFrame()) {
-//			if (RapidMinerGUI.getMainFrame() != null) {
-//				RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().extractGUIInformation(executionUnit, element);
-//			}
-//		}
-
+		ProcessXMLFilterRegistry.fireExecutionUnitImported(executionUnit, element);
 	}
 
 	private void parseConnection(Element connectionElement, ExecutionUnit executionUnit) throws XMLException {
@@ -422,11 +416,6 @@ public class XMLImporter {
 				((DummyOperator) operator).setReplaces(className);
 			}
 			ProcessXMLFilterRegistry.fireOperatorImported(operator, opElement);
-			//			if (RapidMiner.getExecutionMode().hasMainFrame()) {
-//				if (RapidMinerGUI.getMainFrame() != null) {
-//					RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().extractGUIInformation(operator, opElement);
-//				}
-//			}
 			created++;
 			if (progressListener != null && total > 0) {			
 				progressListener.setCompleted(100 * created / total);

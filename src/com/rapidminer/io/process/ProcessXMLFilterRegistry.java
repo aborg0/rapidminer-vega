@@ -65,7 +65,7 @@ public class ProcessXMLFilterRegistry {
 		}
 	}
 	
-	protected static void fireProcessImported(ExecutionUnit unit, Element element) {
+	protected static void fireExecutionUnitImported(ExecutionUnit unit, Element element) {
 		for (ProcessXMLFilter filter : FILTERS) {
 			filter.executionUnitImported(unit, element);
 		}	
