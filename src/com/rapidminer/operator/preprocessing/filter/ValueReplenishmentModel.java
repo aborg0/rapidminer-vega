@@ -133,6 +133,9 @@ public class ValueReplenishmentModel extends PreprocessingModel {
 
 	@Override
 	public double getValue(Attribute targetAttribute, double value) {
-		return attributeReplacementMap.get(targetAttribute);
+		if (replaceWhat == value || Double.isNaN(replaceWhat) && Double.isNaN(value))
+			return attributeReplacementMap.get(targetAttribute);
+		else
+			return value;
 	}
 }

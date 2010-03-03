@@ -2192,6 +2192,10 @@
                   <replaces>CostEvaluator</replaces>
                </operator>
                <operator>
+                  <key>performance_ranking</key>
+                  <class>com.rapidminer.operator.performance.cost.RankingEvaluator</class>
+               </operator>
+               <operator>
                   <key>performance_support_vector_count</key>
                   <class>com.rapidminer.operator.performance.SupportVectorCounter</class>
                   <replaces>SupportVectorCounter</replaces>

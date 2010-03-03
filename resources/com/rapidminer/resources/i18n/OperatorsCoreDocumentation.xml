@@ -2226,6 +2226,55 @@
             increased or decreased by the corresponding example values.</help>
     <key>perceptron</key>
   </operator>
+       <operator>
+        <name>Performance (Ranking)</name>
+        <synopsis>This operator delivers as a performance value representing costs
+           for the cofidence rank of the true label.</synopsis>
+        <help>&lt;p&gt;This performance evaluator operator should be used for
+            tasks, where it is not only important that the real class is assigned the 
+            highest but receives a comparably high confidence.&lt;/p&gt;
+            &lt;p&gt;This operator will sort the confidences for each label and depending of the
+            rank position of the real label, costs are generated. You can define these costs
+            by the parameter ranking_costs. The costs are entered for hole intervalls, so you 
+            don't have to enter a cost value for each rank. These intervalls are defined
+            by their start rank and range either until the start of the next interval or infinite.
+            Everything before the first mentioned rank will receive costs of 0. The counting of 
+            rank starts by 0, so the most confident label is rank 0.&lt;/p&gt;
+            &lt;p&gt;The costs are entered on the right side of the table.&lt;/p&gt;
+            &lt;p&gt;For example, if you want to assing costs of zero if the true label is predicted with 
+            the highest confidence, 1 for the second place, 2 for the third and 10 for each following, you 
+            have to enter:&lt;/p&gt;
+            &lt;table border="1px"&gt; 
+            &lt;tr&gt;
+            &lt;td&gt;
+            1
+            &lt;/td&gt;
+            &lt;td&gt;
+            1
+            &lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;tr&gt;
+            &lt;td&gt;
+            2
+            &lt;/td&gt;
+            &lt;td&gt;
+            2
+            &lt;/td&gt;
+            
+            &lt;/tr&gt;
+            &lt;tr&gt;
+            &lt;td&gt;
+            3
+            &lt;/td&gt;
+            &lt;td&gt;
+            10
+            &lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;/table&gt;
+        </help>
+    <key>performance_ranking</key>
+    <shortName>Performance</shortName>
+  </operator>
     <operator>
         <name>Performance (Regression)</name>
         <synopsis>This operator delivers as output a list of performance

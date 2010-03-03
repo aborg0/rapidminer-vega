@@ -54,7 +54,7 @@ public class SplashScreen extends JPanel {
 
 	private static final Paint MAIN_PAINT = Color.BLACK;
 	
-	private static Image backgroundImage = null;
+	public static Image backgroundImage = null;
 	
 	
 	private static final int MARGIN = 10;
@@ -63,9 +63,11 @@ public class SplashScreen extends JPanel {
 	
 	static {
 		try {			
-			URL url = Tools.getResource("splashscreen_community.png");
-			if (url != null)
-				backgroundImage = ImageIO.read(url);
+			if (backgroundImage == null) {
+				URL url = Tools.getResource("splashscreen_community.png");
+				if (url != null)
+					backgroundImage = ImageIO.read(url);
+			}
 		} catch (IOException e) {
 			LogService.getGlobal().logWarning("Cannot load images for splash screen. Using empty splash screen...");
 		}

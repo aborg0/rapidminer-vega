@@ -275,7 +275,7 @@ public class ExampleSetMetaData extends MetaData {
 								(es2.attributesRelation == SetRelation.SUPERSET))) {
 
 			result.attributesRelation = SetRelation.UNKNOWN;
-			result.attributeMetaData = null;
+			result.attributeMetaData.clear();
 		} else {
 			for (AttributeMetaData a : es2.attributeMetaData.values()) {
 				AttributeMetaData clone = a.clone();

@@ -16,6 +16,7 @@
 	<property name="license" location="licenses/short_license.txt" />
 	<property name="release" location="release" />
 	<property name="release.files" location="${release}/files" />
+	<property name="release.includes" location="${release}/filesToInclude" />
 	<property name="jre32" location="jre/jre32" />
 	<property name="jre64" location="jre/jre64" />
 
@@ -174,6 +175,9 @@
 				<exclude name="src/*.java" />
 				<exclude name="src/**/*.cache" />
 			</fileset>
+			<fileset dir="${release.includes}">
+				<include name="**/*" />
+			</fileset>
 		</copy>
 
 		<property name="lock.isPrepared" value="true" />
@@ -182,6 +186,7 @@
 	<target name="release.deleteFiles" description="This will remove all temporary stored files if the release is finished.">
 		<echo message="Deleting release files..." />
 		<delete dir="${release.files}" />
+		<delete dir="${release.includes}" />
 	</target>
 
 	<target name="release.finish" unless="release.isMultiple" description="This will delete the files stored in release/files after release">
@@ -453,16 +458,16 @@
 		<input message="Do you really want to create a new Update? This will increase the update version counter, generate all update files and upload to the server." validargs="yes,no,republish" addproperty="update.input">
 		</input>
 		<condition property="update.accepted">
-            <or>
-                <equals arg1="${update.input}" arg2="republish" />
-                <istrue value="${update.input}" />
-            </or>
-        </condition>
+			<or>
+				<equals arg1="${update.input}" arg2="republish" />
+				<istrue value="${update.input}" />
+			</or>
+		</condition>
 		<fail unless="update.accepted" />
 		<echo message="Updating started..." />
-        <condition property="update.republish">
-            <equals arg1="${update.input}" arg2="republish" />
-        </condition>
+		<condition property="update.republish">
+			<equals arg1="${update.input}" arg2="republish" />
+		</condition>
 		<antcall target="version.increaseUpdate" />
 		<antcall target="update.publish" />
 	</target>
@@ -480,6 +485,7 @@
 
 	<target name="version.increaseUpdate" unless="update.republish">
 		<echo message="Increasing Update..." />
+
 		<propertyfile file="build.properties">
 			<entry type="int" key="rapidminer.update" operation="+" value="1" pattern="000" />
 		</propertyfile>
@@ -696,18 +702,18 @@
 <arg value="-extension" />
 <arg value="http://localhost:8080/RMAS/RepositoryService?wsdl" />
 </exec>
-	<exec executable="wsimport" dir="${basedir}">
-	<arg value="-Xdebug" />
-	<arg value="-keep" />
-	<arg value="-p" />
-	<arg value="com.rapid_i.repository.wsimport" />
-	<arg value="-s" />
-	<arg file="${src_generated}" />
-	<!--arg value="-d"/>
+<exec executable="wsimport" dir="${basedir}">
+<arg value="-Xdebug" />
+<arg value="-keep" />
+<arg value="-p" />
+<arg value="com.rapid_i.repository.wsimport" />
+<arg value="-s" />
+<arg file="${src_generated}" />
+<!--arg value="-d"/>
 			   <arg file="${build}"/ -->
-	<arg value="-Xnocompile" />
-	<arg value="-extension" />
-	<arg value="http://localhost:8080/RMAS/ProcessService?wsdl" />
-	</exec>
+<arg value="-Xnocompile" />
+<arg value="-extension" />
+<arg value="http://localhost:8080/RMAS/ProcessService?wsdl" />
+</exec>
 </target>
 </project>

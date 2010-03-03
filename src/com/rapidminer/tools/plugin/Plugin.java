@@ -56,6 +56,7 @@ import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.flow.ProcessRenderer;
 import com.rapidminer.gui.renderer.RendererService;
 import com.rapidminer.gui.templates.BuildingBlock;
+import com.rapidminer.gui.tools.SplashScreen;
 import com.rapidminer.gui.tools.dialogs.AboutBox;
 import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.tools.I18N;
@@ -697,8 +698,8 @@ public class Plugin {
 		}
 	}
 
-	public static void initPluginSplashTexts() {
-		callPluginInitMethods("initSplashTexts", new Class[] {}, new Object[] {}, false);
+	public static void initPluginSplashTexts(SplashScreen splashScreen) {
+		callPluginInitMethods("initSplashTexts", new Class[] {SplashScreen.class}, new Object[] { splashScreen }, false);
 	}
 
 	public static void initAboutTexts(Properties properties) {
@@ -707,7 +708,7 @@ public class Plugin {
 
 	public boolean showAboutBox() {
 		try {
-			Class<?> pluginInitator = Class.forName("com.rapidminer.PluginInit", false, getOriginalClassLoader());
+			Class<?> pluginInitator = Class.forName(pluginInitClassName, false, getOriginalClassLoader());
 			Method initGuiMethod = pluginInitator.getMethod("showAboutBox", new Class[] {});
 			Boolean showAboutBox = (Boolean) initGuiMethod.invoke(null, new Object[] {});
 			return showAboutBox.booleanValue();

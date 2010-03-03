@@ -119,4 +119,11 @@ public abstract class ResourceAction extends ConditionalAction {
 			LogService.getRoot().warning("Cannot add action "+key+" to input map: no accelerator defined.");
 		}
 	}
+	
+	/**
+	 * This returns the i18n key of this action.
+	 */
+	public String getKey() {
+		return key;
+	}
 }

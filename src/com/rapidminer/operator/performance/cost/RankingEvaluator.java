@@ -110,7 +110,7 @@ public class RankingEvaluator extends Operator {
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
 		types.add(new ParameterTypeList(PARAMETER_RANKING_COSTS, "This parameter defines the costs when the real call isn't the one with the highest confidence.", 
-				new ParameterTypeInt(PARAMETER_RANK_START, "This is the first rank of the interval between this and the nearest greater defined rank. Each of these ranks get assigned this value. Rank counting starts with 0.", 0, Integer.MAX_VALUE), new ParameterTypeDouble(PARAMETER_RANK_COST, "This is the cost of all ranks within this range.", Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY)));
+				new ParameterTypeInt(PARAMETER_RANK_START, "This is the first rank of the interval between this and the nearest greater defined rank. Each of these ranks get assigned this value. Rank counting starts with 0.", 0, Integer.MAX_VALUE), new ParameterTypeDouble(PARAMETER_RANK_COST, "This is the cost of all ranks within this range.", Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY), false));
 		return types;
 	}
 }

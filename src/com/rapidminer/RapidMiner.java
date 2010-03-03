@@ -143,9 +143,6 @@ public class RapidMiner {
 	/** The name of the property indicating the path to an RC file (settings). */
 	public static final String PROPERTY_RAPIDMINER_RC_FILE = "rapidminer.rcfile";
 
-	/** The name of the property indicating the path to the Weka Jar file. */
-	public static final String PROPERTY_RAPIDMINER_WEKA_JAR = "rapidminer.weka.jar";
-
 	/** The name of the property indicating the path to the global logging file. */
 	public static final String PROPERTY_RAPIDMINER_GLOBAL_LOG_FILE = "rapidminer.global.logging.file";
 
@@ -377,7 +374,7 @@ public class RapidMiner {
 
 		RapidMiner.splashMessage("register_plugins");
 		Plugin.initAll();
-		Plugin.initPluginSplashTexts();
+		Plugin.initPluginSplashTexts(RapidMiner.splashScreen);
 		RapidMiner.showSplashInfos();
 
 		//RapidMiner.splashMessage("init_setup");
