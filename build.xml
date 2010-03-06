@@ -146,6 +146,7 @@
 
 	<target name="release.prepare" depends="clean, build" unless="lock.isPrepared" description="Copies all needed files to the release/files directory">
 		<echo message="Preparing Release..." />
+		<mkdir dir="${release.includes}"/>
 		<copy toDir="${release.files}">
 			<fileset dir="./">
 				<include name="etc/**/*" />
