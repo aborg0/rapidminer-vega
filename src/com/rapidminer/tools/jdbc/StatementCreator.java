@@ -86,7 +86,7 @@ public class StatementCreator {
 	private String identifierQuote;
 	private long defaultVarCharLength = -1;
 	
-	StatementCreator(Connection connection) throws SQLException {
+	public StatementCreator(Connection connection) throws SQLException {
 		this(connection, -1);
 	}
 	
@@ -124,6 +124,7 @@ public class StatementCreator {
 		registerSyntaxInfo(Ontology.DATE_TIME, dataTypeToMDMap, Types.TIMESTAMP);
 		registerSyntaxInfo(Ontology.TIME, dataTypeToMDMap, Types.TIME, Types.TIMESTAMP);
 		registerSyntaxInfo(Ontology.ATTRIBUTE_VALUE, dataTypeToMDMap, Types.DOUBLE, Types.REAL, Types.FLOAT); // fallback; same will be used by actual insertino code
+		registerSyntaxInfo(Ontology.BINOMINAL, dataTypeToMDMap, Types.VARCHAR); // fallback; same will be used by actual insertino code
 	}
 
 	private void registerSyntaxInfo(int attributeType, Map<Integer,DataTypeSyntaxInformation> dataTypeToMDMap, int ... possibleDataTypes) throws SQLException {
@@ -310,6 +311,46 @@ public class StatementCreator {
 	@Deprecated
 	public String makeSelectEmptySetStatement(String tableName) {
 		return "SELECT * FROM "+makeIdentifier(tableName) + " WHERE 1=0";
+	}
+
+	public String makeClobCreator(String columnName, int minLength) {
+		StringBuilder b = new StringBuilder();
+		b.append(makeIdentifier(columnName)).append(" ");
+		
+		final String typeString = mapAttributeTypeToSQLDataType(Ontology.STRING);
+		b.append(typeString);
+		if (typeString.toLowerCase().startsWith("varchar")) {
+			if (minLength != -1) {
+				b.append("(").append(minLength).append(")");				
+			} else {
+				b.append("(").append(defaultVarCharLength).append(")");
+			}
+		}
+		return b.toString();
+	}
+	
+	public String makeVarcharCreator(String columnName, int minLength) {
+		StringBuilder b = new StringBuilder();
+		b.append(makeIdentifier(columnName)).append(" ");
+		
+		final String typeString = mapAttributeTypeToSQLDataType(Ontology.NOMINAL);
+		b.append(typeString);
+		if (typeString.toLowerCase().startsWith("varchar")) {
+			if (minLength != -1) {
+				b.append("(").append(minLength).append(")");				
+			} else {
+				b.append("(").append(defaultVarCharLength).append(")");
+			}
+		}
+		return b.toString();
+	}
+	
+	public String makeIntegerCreator(String columnName) {
+		StringBuilder b = new StringBuilder();
+		b.append(makeIdentifier(columnName)).append(" ");	
+		final String typeString = mapAttributeTypeToSQLDataType(Ontology.INTEGER);
+		b.append(typeString);
+		return b.toString();
 	}
 
 }
