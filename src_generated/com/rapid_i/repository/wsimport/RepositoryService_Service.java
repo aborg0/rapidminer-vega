@@ -17,7 +17,7 @@ import javax.xml.ws.WebServiceFeature;
  * Generated source version: 2.1
  * 
  */
-@WebServiceClient(name = "RepositoryService", targetNamespace = "http://service.web.rapidrepository.com/", wsdlLocation = "http://localhost:8080/RMAS/RepositoryService?wsdl")
+@WebServiceClient(name = "RepositoryService", targetNamespace = "http://service.web.rapidrepository.com/", wsdlLocation = "http://localhost:8080/RAWS/RepositoryService?wsdl")
 public class RepositoryService_Service
     extends Service
 {
@@ -30,9 +30,9 @@ public class RepositoryService_Service
         try {
             URL baseUrl;
             baseUrl = com.rapid_i.repository.wsimport.RepositoryService_Service.class.getResource(".");
-            url = new URL(baseUrl, "http://localhost:8080/RMAS/RepositoryService?wsdl");
+            url = new URL(baseUrl, "http://localhost:8080/RAWS/RepositoryService?wsdl");
         } catch (MalformedURLException e) {
-            logger.warning("Failed to create URL for the wsdl Location: 'http://localhost:8080/RMAS/RepositoryService?wsdl', retrying as a local file");
+            logger.warning("Failed to create URL for the wsdl Location: 'http://localhost:8080/RAWS/RepositoryService?wsdl', retrying as a local file");
             logger.warning(e.getMessage());
         }
         REPOSITORYSERVICE_WSDL_LOCATION = url;

@@ -33,8 +33,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
+import com.rapidminer.tools.cipher.CipherException;
 import com.rapidminer.tools.cipher.CipherTools;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
 import com.rapidminer.tools.jdbc.DatabaseService;
@@ -96,6 +99,13 @@ public class DatabaseConnectionService {
 			writeConnectionEntries(connections);
 		}
 	}
+	
+
+	public static void setConnectionEntries(List<FieldConnectionEntry> entries) {
+		connections = entries;
+		Collections.sort(connections, ConnectionEntry.COMPARATOR);
+	}
+
 
 //	public static void renameConnectionEntry(ConnectionEntry entry, String name) {
 //		if (entry != null) {
@@ -141,11 +151,21 @@ public class DatabaseConnectionService {
 		return connectionEntries;
 	}
 	
+	
 	public static void writeConnectionEntries(Collection<FieldConnectionEntry> connectionEntries) {
 		File connectionEntriesFile = getConnectionsFile();
-		PrintWriter out = null;
+		PrintWriter out;
+		
 		try {
 			out = new PrintWriter(new FileWriter(connectionEntriesFile));
+			writeConnectionEntries(connectionEntries, out);
+		} catch (Exception e) {
+			LogService.getRoot().log(Level.WARNING, "Failed to write database connections file: "+e, e);
+		}		
+	}
+	
+	public static void writeConnectionEntries(Collection<FieldConnectionEntry> connectionEntries, PrintWriter out) {	
+		try {
 			// searching number of not dynamic entries to store it's number
 			int numberOfEntries = 0;
 			for (FieldConnectionEntry entry : connectionEntries) {
@@ -163,12 +183,17 @@ public class DatabaseConnectionService {
 					out.println(entry.getPort());
 					out.println(entry.getDatabase());
 					out.println(entry.getUser());
-					out.println(CipherTools.encrypt(new String(entry.getPassword())));
+					String encrypted;
+					try {					
+						encrypted = CipherTools.encrypt(new String(entry.getPassword()));
+					} catch (CipherException e) {
+						LogService.getRoot().log(Level.WARNING, "Failed to write database connections file: "+e, e);
+						encrypted = null;
+					}
+					out.println(encrypted);
 				}
 			}
 			out.close();
-		} catch (Exception e) {
-			// do nothing
 		} finally {
 			if (out != null) {
 				out.close();

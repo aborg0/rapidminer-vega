@@ -47,83 +47,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link ProcessStackTraceElement }
-     * 
-     */
-    public ProcessStackTraceElement createProcessStackTraceElement() {
-        return new ProcessStackTraceElement();
-    }
-
-    /**
-     * Create an instance of {@link StopProcess }
-     * 
-     */
-    public StopProcess createStopProcess() {
-        return new StopProcess();
-    }
-
-    /**
-     * Create an instance of {@link ExecuteProcessSimple }
-     * 
-     */
-    public ExecuteProcessSimple createExecuteProcessSimple() {
-        return new ExecuteProcessSimple();
-    }
-
-    /**
-     * Create an instance of {@link GetRunningProcesses }
-     * 
-     */
-    public GetRunningProcesses createGetRunningProcesses() {
-        return new GetRunningProcesses();
-    }
-
-    /**
-     * Create an instance of {@link ExecuteProcessSimpleResponse }
-     * 
-     */
-    public ExecuteProcessSimpleResponse createExecuteProcessSimpleResponse() {
-        return new ExecuteProcessSimpleResponse();
-    }
-
-    /**
      * Create an instance of {@link PostConstruct }
      * 
      */
     public PostConstruct createPostConstruct() {
         return new PostConstruct();
-    }
-
-    /**
-     * Create an instance of {@link StopProcessResponse }
-     * 
-     */
-    public StopProcessResponse createStopProcessResponse() {
-        return new StopProcessResponse();
-    }
-
-    /**
-     * Create an instance of {@link PostConstructResponse }
-     * 
-     */
-    public PostConstructResponse createPostConstructResponse() {
-        return new PostConstructResponse();
-    }
-
-    /**
-     * Create an instance of {@link CancelTriggerResponse }
-     * 
-     */
-    public CancelTriggerResponse createCancelTriggerResponse() {
-        return new CancelTriggerResponse();
-    }
-
-    /**
-     * Create an instance of {@link ExecutionResponse }
-     * 
-     */
-    public ExecutionResponse createExecutionResponse() {
-        return new ExecutionResponse();
     }
 
     /**
@@ -135,11 +63,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link GetRunningProcessesInfo }
+     * Create an instance of {@link Response }
      * 
      */
-    public GetRunningProcessesInfo createGetRunningProcessesInfo() {
-        return new GetRunningProcessesInfo();
+    public Response createResponse() {
+        return new Response();
     }
 
     /**
@@ -148,6 +76,102 @@ public class ObjectFactory {
      */
     public ExecuteProcessCronResponse createExecuteProcessCronResponse() {
         return new ExecuteProcessCronResponse();
+    }
+
+    /**
+     * Create an instance of {@link GetRunningProcessesInfo }
+     * 
+     */
+    public GetRunningProcessesInfo createGetRunningProcessesInfo() {
+        return new GetRunningProcessesInfo();
+    }
+
+    /**
+     * Create an instance of {@link ExecuteProcessSimpleResponse }
+     * 
+     */
+    public ExecuteProcessSimpleResponse createExecuteProcessSimpleResponse() {
+        return new ExecuteProcessSimpleResponse();
+    }
+
+    /**
+     * Create an instance of {@link ProcessStackTraceElement }
+     * 
+     */
+    public ProcessStackTraceElement createProcessStackTraceElement() {
+        return new ProcessStackTraceElement();
+    }
+
+    /**
+     * Create an instance of {@link GetRunningProcesses }
+     * 
+     */
+    public GetRunningProcesses createGetRunningProcesses() {
+        return new GetRunningProcesses();
+    }
+
+    /**
+     * Create an instance of {@link ProcessResponse }
+     * 
+     */
+    public ProcessResponse createProcessResponse() {
+        return new ProcessResponse();
+    }
+
+    /**
+     * Create an instance of {@link ExecutionResponse }
+     * 
+     */
+    public ExecutionResponse createExecutionResponse() {
+        return new ExecutionResponse();
+    }
+
+    /**
+     * Create an instance of {@link StopProcessResponse }
+     * 
+     */
+    public StopProcessResponse createStopProcessResponse() {
+        return new StopProcessResponse();
+    }
+
+    /**
+     * Create an instance of {@link GetRunningProcessesResponse }
+     * 
+     */
+    public GetRunningProcessesResponse createGetRunningProcessesResponse() {
+        return new GetRunningProcessesResponse();
+    }
+
+    /**
+     * Create an instance of {@link CancelTriggerResponse }
+     * 
+     */
+    public CancelTriggerResponse createCancelTriggerResponse() {
+        return new CancelTriggerResponse();
+    }
+
+    /**
+     * Create an instance of {@link ExecuteProcessSimple }
+     * 
+     */
+    public ExecuteProcessSimple createExecuteProcessSimple() {
+        return new ExecuteProcessSimple();
+    }
+
+    /**
+     * Create an instance of {@link ExecuteProcessCron }
+     * 
+     */
+    public ExecuteProcessCron createExecuteProcessCron() {
+        return new ExecuteProcessCron();
+    }
+
+    /**
+     * Create an instance of {@link PostConstructResponse }
+     * 
+     */
+    public PostConstructResponse createPostConstructResponse() {
+        return new PostConstructResponse();
     }
 
     /**
@@ -167,35 +191,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link ExecuteProcessCron }
+     * Create an instance of {@link StopProcess }
      * 
      */
-    public ExecuteProcessCron createExecuteProcessCron() {
-        return new ExecuteProcessCron();
-    }
-
-    /**
-     * Create an instance of {@link Response }
-     * 
-     */
-    public Response createResponse() {
-        return new Response();
-    }
-
-    /**
-     * Create an instance of {@link GetRunningProcessesResponse }
-     * 
-     */
-    public GetRunningProcessesResponse createGetRunningProcessesResponse() {
-        return new GetRunningProcessesResponse();
-    }
-
-    /**
-     * Create an instance of {@link ProcessResponse }
-     * 
-     */
-    public ProcessResponse createProcessResponse() {
-        return new ProcessResponse();
+    public StopProcess createStopProcess() {
+        return new StopProcess();
     }
 
     /**

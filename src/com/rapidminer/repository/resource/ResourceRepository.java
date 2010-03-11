@@ -97,4 +97,9 @@ public class ResourceRepository extends ResourceFolder implements Repository {
 	public Entry locate(String entry) throws RepositoryException {
 		return RepositoryManager.getInstance(null).locate(this, entry, false);
 	}
+
+	@Override
+	public boolean shouldSave() {
+		return false;
+	}
 }

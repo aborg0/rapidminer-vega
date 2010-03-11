@@ -89,7 +89,7 @@ public class IOObjectSerializer {
 			offset += length;
 		}  while (offset < MAGIC_NUMBER.length);
 		if (!Arrays.equals(magicRead, MAGIC_NUMBER)) {
-			throw new IOException("No magic number found. Mak sure you are using RapidMiner 5.0 compatible files.");
+			throw new IOException("No magic number found. Make sure you are using RapidMiner 5.0 compatible files.");
 		}
 		DataInputStream din = new DataInputStream(in);
 		int typeIndex = din.readInt();

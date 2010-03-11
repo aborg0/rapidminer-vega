@@ -3,20 +3,21 @@ package com.rapid_i.repository.wsimport;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for getAccessRight complex type.
+ * <p>Java class for renameResponse complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="getAccessRight">
+ * &lt;complexType name="renameResponse">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="entryLocation" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="return" type="{http://service.web.rapidrepository.com/}entryResponse" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -26,35 +27,36 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "getAccessRight", propOrder = {
-    "entryLocation"
+@XmlType(name = "renameResponse", propOrder = {
+    "_return"
 })
-public class GetAccessRight {
+public class RenameResponse {
 
-    protected String entryLocation;
+    @XmlElement(name = "return")
+    protected EntryResponse _return;
 
     /**
-     * Gets the value of the entryLocation property.
+     * Gets the value of the return property.
      * 
      * @return
      *     possible object is
-     *     {@link String }
+     *     {@link EntryResponse }
      *     
      */
-    public String getEntryLocation() {
-        return entryLocation;
+    public EntryResponse getReturn() {
+        return _return;
     }
 
     /**
-     * Sets the value of the entryLocation property.
+     * Sets the value of the return property.
      * 
      * @param value
      *     allowed object is
-     *     {@link String }
+     *     {@link EntryResponse }
      *     
      */
-    public void setEntryLocation(String value) {
-        this.entryLocation = value;
+    public void setReturn(EntryResponse value) {
+        this._return = value;
     }
 
 }

@@ -158,5 +158,10 @@ public class LocalRepository extends SimpleFolder implements Repository {
 	public void delete() {
 		RepositoryManager.getInstance(null).removeRepository(this);
 	}
+
+	@Override
+	public boolean shouldSave() {
+		return true;
+	}
 }
 

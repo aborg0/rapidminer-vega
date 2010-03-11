@@ -112,7 +112,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 		final String homeUrl = System.getProperty(PROPERTY_HOME_REPOSITORY_URL);
 		if (homeUrl != null) {
 			try {
-				RemoteRepository homeRepository = new RemoteRepository(new URL(homeUrl), "Home", System.getProperty(PROPERTY_HOME_REPOSITORY_USER), null);
+				RemoteRepository homeRepository = new RemoteRepository(new URL(homeUrl), "Home", System.getProperty(PROPERTY_HOME_REPOSITORY_USER), null, true);
 				repositories.add(homeRepository);
 				LogService.getRoot().config("Adding home repository "+homeUrl+".");
 			} catch (MalformedURLException e) {
@@ -237,9 +237,11 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 		Element root = doc.createElement("repositories");
 		doc.appendChild(root);
 		for (Repository repository : getRepositories()) {
-			Element repositoryElement = repository.createXML(doc);
-			if (repositoryElement != null) {
-				root.appendChild(repositoryElement);
+			if (repository.shouldSave()) {
+				Element repositoryElement = repository.createXML(doc);
+				if (repositoryElement != null) {
+					root.appendChild(repositoryElement);
+				}
 			}
 		}
 		try {

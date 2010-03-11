@@ -48,7 +48,7 @@ public abstract class RemoteEntry implements Entry {
 	private RemoteRepository repository;	
 	private RemoteFolder containingFolder;	
 	private final String owner;	
-	private final String location;
+	private String location;
 	private String name;
 	
 	RemoteEntry(String location) {
@@ -115,9 +115,21 @@ public abstract class RemoteEntry implements Entry {
 	}
 
 	@Override
-	public boolean rename(String newName) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean rename(String newName) throws RepositoryException {
+		EntryResponse response = getRepository().getRepositoryService().rename(getPath(), newName);
+		if (response.getStatus() == 0) {
+			this.location = response.getLocation();
+			int lastSlash = this.location.lastIndexOf('/');
+			if (lastSlash == -1) {
+				this.name = this.location;
+			} else {
+				this.name = this.location.substring(lastSlash+1);
+			}
+			getRepository().fireEntryRenamed(this);
+			return true;
+		} else {
+			throw new RepositoryException(response.getErrorMessage());
+		}
 	}
 
 	public final RemoteRepository getRepository() {

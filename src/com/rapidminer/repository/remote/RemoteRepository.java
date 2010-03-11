@@ -91,6 +91,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	private static final Object MAP_LOCK = new Object();
 
 	private boolean offline = true; 
+	private boolean isHome;
 	
 	static {
 		GlobalAuthenticator.register(new GlobalAuthenticator.URLAuthenticator() {
@@ -122,12 +123,13 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		});
 	}
 	
-	public RemoteRepository(URL baseUrl, String alias, String username, char[] password) {		
+	public RemoteRepository(URL baseUrl, String alias, String username, char[] password, boolean isHome) {		
 		super("/");
 		setRepository(this);
 		this.alias = alias;
 		this.baseUrl = baseUrl;
 		this.username = username;
+		this.isHome = isHome;
 		if ((password != null) && (password.length > 0)) {
 			this.password = password;
 		} else {
@@ -144,7 +146,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	private URL getRepositoryServiceWSDLUrl() {
 		try {
-			return new URL(baseUrl, "RepositoryService?wsdl");
+			return new URL(baseUrl, "RAWS/RepositoryService?wsdl");
 		} catch (MalformedURLException e) {
 			// cannot happen
 			LogService.getRoot().log(Level.WARNING, "Cannot create web service url: "+e, e);
@@ -154,7 +156,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	
 	private URL getProcessServiceWSDLUrl() {
 		try {
-			return new URL(baseUrl, "ProcessService?wsdl");
+			return new URL(baseUrl, "RAWS/ProcessService?wsdl");
 		} catch (MalformedURLException e) {
 			// cannot happen
 			LogService.getRoot().log(Level.WARNING, "Cannot create web service url: "+e, e);
@@ -204,6 +206,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	}
 	
 	private Map<String,RemoteEntry> cachedEntries = new HashMap<String,RemoteEntry>();
+	
 	protected void register(RemoteEntry entry) {
 		cachedEntries.put(entry.getPath(), entry);
 	}
@@ -328,7 +331,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	protected HttpURLConnection getHTTPConnection(String location, EntryStreamType type) throws IOException {		
 		String split[] = location.split("/");
 		StringBuilder encoded = new StringBuilder();
-		encoded.append("resources");
+		encoded.append("RAWS/resources");
 		for (String fraction : split) {
 			encoded.append('/');
 			encoded.append(URLEncoder.encode(fraction, "UTF-8"));
@@ -365,7 +368,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			return new RemoteRepository(new URL(url),
 					XMLTools.getTagContents(element, "alias", true),
 					XMLTools.getTagContents(element, "user", true),
-					null);
+					null, false);
 		} catch (MalformedURLException e) {
 			throw new XMLException("Illegal url '"+url+"': "+e, e);
 		}
@@ -431,7 +434,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	public URI getURIForResource(String path) {
 		try {
-			return baseUrl.toURI().resolve("faces/browse.xhtml?location="+URLEncoder.encode(path, "UTF-8"));
+			return baseUrl.toURI().resolve("RA/faces/restricted/browse.xhtml?location="+URLEncoder.encode(path, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);			
 		} catch (URISyntaxException e) {
@@ -442,7 +445,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	private URI getURIWebInterfaceURI() {
 		try {
-			return baseUrl.toURI().resolve("faces/index.xhtml");
+			return baseUrl.toURI().resolve("RA/faces/restricted/index.xhtml");
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
@@ -477,5 +480,10 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		Collection<Action> actions = super.getCustomActions();
 		actions.add(new BrowseAction("remoterepository.administer", getRepository().getURIWebInterfaceURI()));
 		return actions;
+	}
+
+	@Override
+	public boolean shouldSave() {
+		return !isHome ;
 	}
 }

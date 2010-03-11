@@ -697,11 +697,9 @@
 <arg value="com.rapid_i.repository.wsimport" />
 <arg value="-s" />
 <arg file="${src_generated}" />
-<!--arg value="-d"/>
-		   <arg file="${build}"/ -->
 <arg value="-Xnocompile" />
 <arg value="-extension" />
-<arg value="http://localhost:8080/RMAS/RepositoryService?wsdl" />
+<arg value="http://localhost:8080/RAWS/RepositoryService?wsdl" />
 </exec>
 <exec executable="wsimport" dir="${basedir}">
 <arg value="-Xdebug" />
@@ -710,11 +708,9 @@
 <arg value="com.rapid_i.repository.wsimport" />
 <arg value="-s" />
 <arg file="${src_generated}" />
-<!--arg value="-d"/>
-			   <arg file="${build}"/ -->
 <arg value="-Xnocompile" />
 <arg value="-extension" />
-<arg value="http://localhost:8080/RMAS/ProcessService?wsdl" />
+<arg value="http://localhost:8080/RAWS/ProcessService?wsdl" />
 </exec>
 </target>
 </project>

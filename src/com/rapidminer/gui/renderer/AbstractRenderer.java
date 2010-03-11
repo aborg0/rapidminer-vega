@@ -175,7 +175,7 @@ public abstract class AbstractRenderer implements Renderer {
 	}
 
 	public void setParameter(String key, String value) {
-		this.parameters.setParameter(key, value);
+		getParameters().setParameter(key, value);
 	}
 
 	/** Do nothing. */

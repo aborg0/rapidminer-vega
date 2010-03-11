@@ -41,4 +41,6 @@ public interface Repository extends Folder {
 	/** Returns a piece of XML to store the repository in a configuration file. */
 	public Element createXML(Document doc);
 
+	public abstract boolean shouldSave();
+
 }

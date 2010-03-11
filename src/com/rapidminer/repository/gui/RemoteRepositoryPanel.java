@@ -49,7 +49,7 @@ public class RemoteRepositoryPanel extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 	
-	private final JTextField urlField = new JTextField("http://localhost:8080/RMAS/", 30);
+	private final JTextField urlField = new JTextField("http://localhost:8080/", 30);
 	private final JTextField aliasField = new JTextField("NewRepository", 30);
 	private final JTextField userField = new JTextField(System.getProperty("user.name"), 20);
 	private final JPasswordField passwordField = new JPasswordField(20); 
@@ -133,7 +133,7 @@ public class RemoteRepositoryPanel extends JPanel {
 			public void run() {
 				getProgressListener().setTotal(100);
 				getProgressListener().setCompleted(10);
-				Repository repository = new RemoteRepository(url, finalAlias, userField.getText(), passwordField.getPassword());
+				Repository repository = new RemoteRepository(url, finalAlias, userField.getText(), passwordField.getPassword(), false);
 				getProgressListener().setCompleted(90);
 				if (repository != null) {
 					RepositoryManager.getInstance(null).addRepository(repository);

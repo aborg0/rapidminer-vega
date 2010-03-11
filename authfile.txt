@@ -1,1 +1,0 @@
-http://admin:admin@localhost:8080/RapidRepositoryWeb/RepositoryServiceService?wsdl
