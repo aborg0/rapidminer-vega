@@ -113,7 +113,11 @@ public enum SerializationType {
 	
 	STREAMED_EXAMPLE_SET_DENSE(new StreamedExampleSetBodySerializer(ExampleSetToStream.VERSION_1)),
 	
-	STREAMED_EXAMPLE_SET_DENSE_2(new StreamedExampleSetBodySerializer(ExampleSetToStream.VERSION_2)),;
+	STREAMED_EXAMPLE_SET_DENSE_2(new StreamedExampleSetBodySerializer(ExampleSetToStream.VERSION_2)),
+	
+	STREAMED_EXAMPLE_SET_DENSE_3(new StreamedExampleSetBodySerializer(ExampleSetToStream.VERSION_3));
+	
+	public static SerializationType STREAMED_EXAMPLE_SET_DENSE_CURRENT_VERSION = STREAMED_EXAMPLE_SET_DENSE_3; 
 	
 	private BodySerializer bodySerializer;
 	

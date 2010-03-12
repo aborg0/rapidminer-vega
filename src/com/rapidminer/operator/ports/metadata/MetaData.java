@@ -33,6 +33,7 @@ import java.util.Map;
 
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.gui.renderer.RendererService;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.ports.InputPort;
@@ -60,15 +61,20 @@ public class MetaData implements Serializable {
 
 	private Class<? extends IOObject> dataClass;
 
+	private Annotations annotations = new Annotations();
+	
 	public MetaData() {
 		this(IOObject.class);
 	}
 
 	/** Restores an empty history. */
-	public Object readResolve() {
+	private Object readResolve() {
 		if (generationHistory == null) {
 			generationHistory = new LinkedList<OutputPort>();
-		}	
+		}
+		if (annotations == null) {
+			annotations = new Annotations();
+		}
 		return this;
 	}
 
@@ -154,6 +160,13 @@ public class MetaData implements Serializable {
 			desc.append("; ");
 			desc.append(keyValueMap);
 		}
+		if (!annotations.isEmpty()) {
+			desc.append("<ul>");
+			for (String key: annotations.getKeys()) {
+				desc.append("<li><em>").append(key).append(":</em> ").append(annotations.get(key));
+			}
+			desc.append("</ul>");
+		}
 		return desc.toString();		
 	}
 
@@ -186,10 +199,21 @@ public class MetaData implements Serializable {
 	}
 
 	public static MetaData forIOObject(IOObject ioo) {
+		MetaData result;
 		if (ioo instanceof ExampleSet) {
-			return new ExampleSetMetaData((ExampleSet)ioo);
+			result = new ExampleSetMetaData((ExampleSet)ioo);
 		} else {
-			return new MetaData(ioo.getClass());
+			result = new MetaData(ioo.getClass());
 		}
-	}	
+		result.annotations = new Annotations(ioo.getAnnotations());
+		return result;
+	}
+
+	public Annotations getAnnotations() {
+		return annotations;
+	}
+	
+	public void setAnnotations(Annotations annotations) {
+		this.annotations = annotations;		
+	}
 }

@@ -84,5 +84,6 @@ public interface IOObject extends Serializable {
     /** Sets the current working operator, i.e. the operator which is currently 
      *  working on this IOObject. This might be used for example for logging. */
     public void setLoggingHandler(LoggingHandler loggingHandler);
-    
+
+    public Annotations getAnnotations();
 }

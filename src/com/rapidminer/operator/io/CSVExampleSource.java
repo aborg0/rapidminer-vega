@@ -46,6 +46,7 @@ import com.rapidminer.parameter.ParameterTypeFile;
  * @rapidminer.index csv
  * @author Ingo Mierswa
  */
+@Deprecated
 public class CSVExampleSource extends SimpleExampleSource {
 
 	// Removed because of deprecation of this operator

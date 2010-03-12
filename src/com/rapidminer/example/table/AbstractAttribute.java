@@ -32,6 +32,7 @@ import com.rapidminer.example.AttributeTransformation;
 import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Statistics;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.tools.Ontology;
 
 
@@ -57,6 +58,8 @@ public abstract class AbstractAttribute implements Attribute {
 	
 	/** The current attribute construction description object. */
 	private String constructionDescription = null;
+	
+	private Annotations annotations = new Annotations();
 	
 	// --------------------------------------------------------------------------------
 
@@ -105,6 +108,9 @@ public abstract class AbstractAttribute implements Attribute {
 	public Object readResolve() {
     	if (owners == null) {
     		owners = new LinkedList<Attributes>();
+    	}
+    	if (annotations == null) {
+    		annotations = new Annotations();
     	}
     	return this;
     }
@@ -302,5 +308,9 @@ public abstract class AbstractAttribute implements Attribute {
 		result.append(Ontology.ATTRIBUTE_BLOCK_TYPE.mapIndex(this.attributeDescription.getBlockType()));
 		result.append(")");
 		return result.toString();
+	}
+	
+	public Annotations getAnnotations() {
+		return annotations;
 	}
 }

@@ -16,7 +16,8 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.data.ExampleSetMetaDataRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.data.ExampleSetDataRenderer</renderer>
-        <renderer>com.rapidminer.gui.renderer.data.ExampleSetPlotRenderer</renderer>                        
+        <renderer>com.rapidminer.gui.renderer.data.ExampleSetPlotRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>                        
     </ioobject>
         
         

@@ -35,6 +35,8 @@ import java.sql.Types;
 import java.util.Date;
 import java.util.List;
 
+import com.rapidminer.example.ExampleSet;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
@@ -372,4 +374,12 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 	public ConnectionEntry getConnectionEntry() {
 		return DatabaseHandler.getConnectionEntry(this);
 	}
+	
+	protected void addAnnotations(ExampleSet result) {
+		try {
+			result.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, getQuery());
+		} catch (OperatorException e) {
+		}
+	}
+	
 }

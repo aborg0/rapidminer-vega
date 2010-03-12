@@ -49,6 +49,7 @@ import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.example.table.NominalMapping;
 import com.rapidminer.example.table.PolynominalMapping;
 import com.rapidminer.example.table.SparseDataRow;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Ontology;
 
@@ -67,7 +68,16 @@ public class ExampleSetToStream {
 	 *  Used since RapidMiner 5.0 final release, revision 7197. */
 	public static final int VERSION_2 = 2;
 	
-	public static final int CURRENT_VERSION = VERSION_2;
+	/** Adds support for {@link Annotations} 
+	 *  Used since revision XXXX. */
+	public static final int VERSION_3 = 3;
+	
+	/** Current version of the stream protocol. To add a new version:
+	 *  - Add a constant here, and redirect the constant CURRENT_VERSION to the new constant. 
+	 *  - Add SVN revision to the comment of the new version
+	 *  - In {@link SerializationType} add a new enum constant for the new version and make it the default 
+	 *  */
+	public static final int CURRENT_VERSION = VERSION_3;
 
 	private static final Charset STRING_CHARSET = Charset.forName("UTF-8");
 	
@@ -80,18 +90,24 @@ public class ExampleSetToStream {
 	}
 
 	public static class Header {
+		private final Annotations annotations;
 		private final List<AttributeRole> allRoles;
 		private final boolean sparse;
-		protected Header(List<AttributeRole> allRoles, boolean sparse) {
+		
+		protected Header(Annotations annotations, List<AttributeRole> allRoles, boolean sparse) {
 			super();
 			this.allRoles = allRoles;
 			this.sparse = sparse;
+			this.annotations = annotations;
 		}
 		public List<AttributeRole> getAllRoles() {
 			return allRoles;
 		}
 		public boolean isSparse() {
 			return sparse;
+		}
+		public Annotations getAnnotations() {
+			return annotations;
 		}		
 	}
 
@@ -117,7 +133,7 @@ public class ExampleSetToStream {
 		if ((exampleSet.size() > 0) && (exampleSet.getExample(0).getDataRow() instanceof SparseDataRow)) {
 			sparse = true;
 		}
-		writeHeader(allRoles, out, sparse);
+		writeHeader(exampleSet.getAnnotations(), allRoles, out, sparse);
 		writeData(exampleSet, out, allRoles, sparse);
 		out.flush();		
 	}
@@ -153,7 +169,8 @@ public class ExampleSetToStream {
 		}
 	}
 
-	/** Writes the meta data, including nominal mappings, to the stream, in the following order:
+	/** Writes the annotations, meta data, including nominal mappings, to the stream, in the following order:
+	 *  - annotations
 	 *  - number of attributes to come
 	 *  - For each attribute
 	 *    - name
@@ -166,7 +183,8 @@ public class ExampleSetToStream {
 	 * After that follows a boolean indicating whether we are using sparse format.
 	 * If yes, all default values will be sent as doubles, one per attribute.
 	 */
-	public void writeHeader(List<AttributeRole> allAttributes, DataOutputStream out, boolean sparse) throws IOException {
+	public void writeHeader(Annotations annotations, List<AttributeRole> allAttributes, DataOutputStream out, boolean sparse) throws IOException {
+		writeAnnotations(out, annotations);
 		out.writeInt(allAttributes.size());
 		for (AttributeRole role : allAttributes) {
 			Attribute att = role.getAttribute();
@@ -251,6 +269,7 @@ public class ExampleSetToStream {
 	/** Reads meta data information as written by {@link #writeHeader(List, DataOutputStream)}. 
 	 *  TODO: This must return an ExampleSetHeader including the roles and the sparse flag. */
 	public Header readHeader(DataInputStream in) throws IOException {
+		Annotations annotations = readAnnotations(in);
 		int numAttributes = in.readInt();
 		List<AttributeRole> allRoles = new LinkedList<AttributeRole>();
 		for (int i = 0; i < numAttributes; i++) {
@@ -305,7 +324,7 @@ public class ExampleSetToStream {
 				role.getAttribute().setDefault(in.readDouble());
 			}			
 		}
-		return new Header(allRoles, sparse);		
+		return new Header(annotations, allRoles, sparse);		
 	}
 
 	/** Extracts column types such that they have minimal memory consumption. */
@@ -456,6 +475,7 @@ public class ExampleSetToStream {
 			out.writeUTF(value);
 			break;
 		case VERSION_2:
+		case VERSION_3:
 			byte[] bytes = value.getBytes(STRING_CHARSET);
 			out.writeInt(bytes.length);
 			out.write(bytes);
@@ -470,6 +490,7 @@ public class ExampleSetToStream {
 		case VERSION_1:
 			return in.readUTF();
 		case VERSION_2:
+		case VERSION_3:
 			int length = in.readInt();
 			byte[] bytes = new byte[length];
 			in.readFully(bytes);
@@ -482,4 +503,39 @@ public class ExampleSetToStream {
 	public int getVersion() {
 		return version;
 	}
+	
+	/** One integer for size
+	 *  For each annotation
+	 *   - one string ({@link #writeString(DataOutput, String)} for key
+	 *   - one string ({@link #writeString(DataOutput, String)} for value 
+	 * */
+	public void writeAnnotations(DataOutput out, Annotations annotations) throws IOException {
+		if (version < VERSION_3) {
+			LogService.getRoot().warning("Ignoring annotations in example set stream version "+version);
+		} else {
+			if (annotations == null) {
+				out.writeInt(0);
+			} else {
+				out.writeInt(annotations.size());
+				for (String key : annotations.getKeys()) {
+					writeString(out, key);
+					writeString(out, annotations.getAnnotation(key));
+				}
+			}
+		}
+	}
+	
+	public Annotations readAnnotations(DataInput in) throws IOException {
+		if (version < VERSION_3) {
+			return new Annotations();
+		} else {
+			Annotations result = new Annotations();
+			int size = in.readInt();
+			for (int i = 0; i < size; i++) {
+				result.setAnnotation(readString(in), readString(in));
+			}
+			return result;
+		}
+	}
+		
 }

@@ -27,6 +27,7 @@ import java.util.Iterator;
 
 import com.rapidminer.example.table.DataRow;
 import com.rapidminer.example.table.NominalMapping;
+import com.rapidminer.operator.Annotations;
 
 
 /**
@@ -185,4 +186,6 @@ public interface Attribute extends Cloneable, Serializable {
 	/** Returns a formatted string of the given value according to the attribute type. */
 	public String getAsString(double value, int digits, boolean quoteNominal);
 
+	/** Returns a set of annotations for this attribute. */
+	public Annotations getAnnotations();
 }

@@ -112,7 +112,7 @@ import com.rapidminer.tools.usagestats.UsageStatistics;
  * @author Ingo Mierswa
  */
 public class Process extends AbstractObservable<Process> implements Cloneable {
-
+	
 	public static final int PROCESS_STATE_UNKNOWN = -1;
 	public static final int PROCESS_STATE_STOPPED = 0;
 	public static final int PROCESS_STATE_PAUSED  = 1;
@@ -172,7 +172,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	/** Indicates whether we are updating meta data. */
 	private transient DebugMode debugMode = DebugMode.DEBUG_OFF;
 	
-	private transient final Logger logger = Logger.getLogger(Process.class.getName());
+	private transient final Logger logger = makeLogger();
 
 	/** @deprecated Use {@link #getLogger()} */
 	@Deprecated
@@ -226,6 +226,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		this(xml);
 		this.processLocation = process.processLocation;
 	}
+
 	/** Reads an process configuration from an XML String. */
 	public Process(String xmlString) throws IOException, XMLException {
 		initContext();
@@ -254,6 +255,10 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		in.close();
 	}
 
+	protected Logger makeLogger() {
+		 return Logger.getLogger(Process.class.getName());
+	}
+	
 	private void initContext() {
 		getContext().addObserver(delegatingObserver, false);		
 	}

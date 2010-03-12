@@ -54,7 +54,7 @@ public class IOObjectSerializer {
 	public void serialize(OutputStream out, Object object) throws IOException {
 		SerializationType type;
 		if (object instanceof ExampleSet) {
-			type = SerializationType.STREAMED_EXAMPLE_SET_DENSE_2;
+			type = SerializationType.STREAMED_EXAMPLE_SET_DENSE_CURRENT_VERSION;
 		} else {
 			type = SerializationType.JAVA_BINARY;
 		}

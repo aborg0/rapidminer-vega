@@ -44,7 +44,15 @@ import com.rapidminer.tools.Tools;
 public abstract class ResultObjectAdapter extends AbstractIOObject implements ResultObject, LoggingHandler {
 
 	private static final long serialVersionUID = -8621885253590411373L;
+	private Annotations annotations = new Annotations();
 
+	private Object readResolve() {
+		if (annotations == null) {
+			annotations = new Annotations();
+		}
+		return this;
+	}
+	
 	/** The default implementation returns the classname without package. */
 	public String getName() {
 		return this.getClass().getSimpleName();
@@ -117,5 +125,10 @@ public abstract class ResultObjectAdapter extends AbstractIOObject implements Re
 	@Override
 	public void logError(String message) {
 		getLog().logError(getName() + ": " + message);
+	}
+	
+	@Override
+	public Annotations getAnnotations() {
+		return this.annotations ;
 	}
 }

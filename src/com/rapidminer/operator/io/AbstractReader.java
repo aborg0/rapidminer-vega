@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.rapidminer.Process;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorCreationException;
@@ -40,6 +41,7 @@ import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.MetaDataError;
 import com.rapidminer.operator.ports.metadata.SimpleMetaDataError;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.Observable;
 import com.rapidminer.tools.Observer;
 import com.rapidminer.tools.OperatorService;
@@ -115,10 +117,23 @@ public abstract class AbstractReader<T extends IOObject> extends Operator {
 	
 	/** Creates (or reads) the ExampleSet that will be returned by {@link #apply()}. */
 	public abstract T read() throws OperatorException;
-
+	
 	@Override
 	public void doWork() throws OperatorException {
-		outputPort.deliver(read());
+		final T result = read();
+		addAnnotations(result);
+		outputPort.deliver(result);
+	}
+
+	protected void addAnnotations(T result) {
+		for (ReaderDescription rd : READER_DESCRIPTIONS.values()) {
+			if (rd.readerClass.equals(this.getClass())) {
+				try {
+					result.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, getParameter(rd.fileParameterKey));
+				} catch (UndefinedParameterError e) { }
+				return;
+			}
+		}
 	}
 
 	/** Describes an operator that can read certain file types. */
@@ -186,13 +201,6 @@ public abstract class AbstractReader<T extends IOObject> extends Operator {
 	@Override
 	protected void registerOperator(Process process) {
 		super.registerOperator(process);
-//		process.addObserver(new Observer<Process>() {
-//			@Override
-//			public void update(Observable<Process> observable, Process arg) {
-//				cacheDirty = true;
-//				AbstractReader.this.fireUpdate(AbstractReader.this);
-//			}			
-//		}, false);
 		cacheDirty = true;
 	}
 
@@ -200,13 +208,6 @@ public abstract class AbstractReader<T extends IOObject> extends Operator {
 	protected boolean supportsEncoding() {
 		return false;
 	}
-
-//	@Override
-//	public Operator cloneOperator(String name) {
-//		Operator operator = super.cloneOperator(name);
-//		((AbstractReader)operator).observeParameters();
-//		return operator;
-//	}
 		
 	@Override
 	public List<ParameterType> getParameterTypes() {
