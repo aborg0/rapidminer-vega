@@ -101,18 +101,19 @@ public class Tools {
 	private static final DateFormat DATE_TIME_FORMAT = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.LONG, Locale.getDefault());
 
 
+	private static Locale FORMAT_LOCALE = Locale.US;
+	
 	/** Used for formatting values in the {@link #formatNumber(double)} method. */
-	private static NumberFormat NUMBER_FORMAT = NumberFormat.getInstance(Locale.US);
+	private static NumberFormat NUMBER_FORMAT = NumberFormat.getInstance(FORMAT_LOCALE);
 
 	/** Used for formatting values in the {@link #formatNumber(double)} method. */
-	private static NumberFormat INTEGER_FORMAT = NumberFormat.getIntegerInstance(Locale.US);
+	private static NumberFormat INTEGER_FORMAT = NumberFormat.getIntegerInstance(FORMAT_LOCALE);
 	
 	/** Used for formatting values in the {@link #formatPercent(double)} method. */
-	private static NumberFormat PERCENT_FORMAT = NumberFormat.getPercentInstance(Locale.US);
-
+	private static NumberFormat PERCENT_FORMAT = NumberFormat.getPercentInstance(FORMAT_LOCALE);
 
 	/** Used for determining the symbols used in decimal formats. */
-	private static DecimalFormatSymbols FORMAT_SYMBOLS = new DecimalFormatSymbols(Locale.US);
+	private static DecimalFormatSymbols FORMAT_SYMBOLS = new DecimalFormatSymbols(FORMAT_LOCALE);
 
 	private static final LinkedList<ResourceSource> ALL_RESOURCE_SOURCES = new LinkedList<ResourceSource>();
 
@@ -137,12 +138,17 @@ public class Tools {
 
 
 	public static void setFormatLocale(Locale locale) {
+		FORMAT_LOCALE = locale;
 		NUMBER_FORMAT = NumberFormat.getInstance(locale);
 		INTEGER_FORMAT = NumberFormat.getIntegerInstance(locale);
 		PERCENT_FORMAT = NumberFormat.getPercentInstance(locale); 
 		FORMAT_SYMBOLS = new DecimalFormatSymbols(locale);
 	}
 
+	public static Locale getFormatLocale() {
+		return FORMAT_LOCALE;
+	}
+	
 	public static String[] getAllTimeZones() {
 		return availableTimeZoneNames;
 	}

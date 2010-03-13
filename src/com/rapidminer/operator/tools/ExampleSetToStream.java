@@ -69,7 +69,7 @@ public class ExampleSetToStream {
 	public static final int VERSION_2 = 2;
 	
 	/** Adds support for {@link Annotations} 
-	 *  Used since revision XXXX. */
+	 *  Used since revision 7430. */
 	public static final int VERSION_3 = 3;
 	
 	/** Current version of the stream protocol. To add a new version:
@@ -170,7 +170,7 @@ public class ExampleSetToStream {
 	}
 
 	/** Writes the annotations, meta data, including nominal mappings, to the stream, in the following order:
-	 *  - annotations
+	 *  - annotations {@link #writeAnnotations(DataOutput, Annotations)}
 	 *  - number of attributes to come
 	 *  - For each attribute
 	 *    - name
@@ -180,6 +180,7 @@ public class ExampleSetToStream {
 	 *    - If nominal, the number of nominal values, and for each nominal value
 	 *      - the index
 	 *      - the string  
+	 *    - the annotations of the attribute
 	 * After that follows a boolean indicating whether we are using sparse format.
 	 * If yes, all default values will be sent as doubles, one per attribute.
 	 */
@@ -205,8 +206,8 @@ public class ExampleSetToStream {
 					writeString(out, value);
 				}
 			}
-		}
-		
+			writeAnnotations(out, att.getAnnotations());
+		}		
 		out.writeBoolean(sparse);
 		if (sparse) {			
 			for (AttributeRole role : allAttributes) {
@@ -263,6 +264,7 @@ public class ExampleSetToStream {
 				exampleSet.getAttributes().getRole(att).setSpecial(role.getSpecialName());
 			}
 		}
+		exampleSet.getAnnotations().putAll(header.getAnnotations());
 		return exampleSet;
 	}
 	
@@ -292,7 +294,7 @@ public class ExampleSetToStream {
 			AttributeRole role = new AttributeRole(attribute);
 			if (special != null) {
 				role.setSpecial(special);
-			}			
+			}	
 			allRoles.add(role);
 			
 			// read mapping
@@ -316,6 +318,8 @@ public class ExampleSetToStream {
 					attribute.setMapping(new PolynominalMapping(valueMap));
 				}
 			}
+			Annotations attAnnotations = readAnnotations(in);
+			attribute.getAnnotations().putAll(attAnnotations);
 		}
 		
 		boolean sparse = in.readBoolean();
