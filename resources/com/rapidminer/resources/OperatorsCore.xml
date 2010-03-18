@@ -1633,6 +1633,10 @@
                   <replaces>LinearRegression</replaces>
                </operator>
                <operator>
+                  <key>seemingly_unrelated_regression</key>
+                  <class>com.rapidminer.operator.learner.functions.SeeminglyUnrelatedRegressionOperator</class>
+               </operator>
+               <operator>
                   <key>polynomial_regression</key>
                   <class>com.rapidminer.operator.learner.functions.PolynomialRegression</class>
                   <replaces>PolynomialRegression</replaces>

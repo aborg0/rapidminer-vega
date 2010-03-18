@@ -22,6 +22,8 @@
  */
 package com.rapidminer.operator.ports.metadata;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Iterator;
@@ -34,6 +36,7 @@ import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Statistics;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.math.container.Range;
@@ -63,12 +66,14 @@ public class AttributeMetaData implements Serializable {
 
 	private MDReal mean = new MDReal();
 
+	private Annotations annotations = new Annotations();
+
 	public AttributeMetaData(String name, int type) {
 		this(name, type, null);
 	}
 
 	public AttributeMetaData(AttributeRole role, ExampleSet exampleSet) {
-		this(role.getAttribute().getName(), role.getAttribute().getValueType(), role.getSpecialName());
+		this(role.getAttribute().getName(), role.getAttribute().getValueType(), role.getSpecialName());		
 		Attribute att = role.getAttribute();
 		if (att.isNominal()) {
 			valueSet.clear();
@@ -96,25 +101,26 @@ public class AttributeMetaData implements Serializable {
 			if (att.isNominal()) {
 				setMode(null);
 			}
-		}
+		}		
+		this.annotations.putAll(att.getAnnotations());
 	}
 
 	public AttributeMetaData(String name, int type, String role) {
 		this.name = name;
 		this.type = type;
-		this.role = role;
+		this.role = role;		
 	}
 
 	public AttributeMetaData(String name, String role, int nominalType, String...values) {
 		this(name, role, values);
-		this.type = nominalType;
+		this.type = nominalType;		
 	}
 
 	public AttributeMetaData(String name, String role, String...values) {
 		this.name = name;
 		this.type = Ontology.NOMINAL;
 		this.role = role;
-		this.valueSetRelation = SetRelation.EQUAL;
+		this.valueSetRelation = SetRelation.EQUAL;		
 		for (String string: values)
 			valueSet.add(string);
 	}
@@ -124,7 +130,7 @@ public class AttributeMetaData implements Serializable {
 		this.role = role;
 		this.type = Ontology.REAL;
 		this.valueRange = range;
-		this.valueSetRelation = SetRelation.EQUAL;
+		this.valueSetRelation = SetRelation.EQUAL;		
 	}
 
 	public AttributeMetaData(String name, String role, int type, Range range) {
@@ -142,12 +148,21 @@ public class AttributeMetaData implements Serializable {
 		this.valueSetRelation = attributeMetaData.getValueSetRelation();
 		this.valueRange = new Range(attributeMetaData.getValueRange());
 		this.valueSet = new TreeSet<String>();
-		valueSet.addAll(attributeMetaData.getValueSet());
+		this.annotations = new Annotations(attributeMetaData.annotations);
+		valueSet.addAll(attributeMetaData.getValueSet());		
 	}
 
 	public AttributeMetaData(Attribute attribute) {
 		this.name = attribute.getName();
 		this.type = attribute.getValueType();
+		this.annotations.putAll(attribute.getAnnotations());
+	}
+	
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+		if (annotations == null) {
+			annotations = new Annotations();
+		}
 	}
 
 	public String getRole() {
@@ -293,7 +308,7 @@ public class AttributeMetaData implements Serializable {
 		return buf.toString();
 	}
 
-	public String getDescriptionAsTableRow() {
+	protected String getDescriptionAsTableRow() {
 		StringBuilder b = new StringBuilder();
 		b.append("<tr><td>");
 		String role2 = getRole();
@@ -301,7 +316,12 @@ public class AttributeMetaData implements Serializable {
 			role2 = "-";
 		}
 		b.append(role2).append("</td><td>");
-		b.append(getName()).append("</td><td>");
+		b.append(getName());
+		String unit = getAnnotations().getAnnotation(Annotations.KEY_UNIT);
+		if (unit != null) {
+			b.append(" <em>[").append(unit).append("]</em>");
+		}
+		b.append("</td><td>");
 		b.append(Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(getValueType())).append("</td><td>");
 
 		if (valueSetRelation != SetRelation.UNKNOWN) {
@@ -394,7 +414,8 @@ public class AttributeMetaData implements Serializable {
 			break;
 		}		
 
-		b.append("</td></tr>");
+		final String comment = getAnnotations().getAnnotation(Annotations.KEY_COMMENT);
+		b.append("</td><td>").append(comment != null ? comment : "-").append("</tr></tr>");
 		return b.toString();
 	}
 
@@ -649,5 +670,17 @@ public class AttributeMetaData implements Serializable {
 			clone.owner = owner;
 			return clone;
 		}
+	}
+
+	public void setAnnotations(Annotations annotations) {
+		if (annotations == null) {
+			this.annotations = new Annotations();
+		} else {
+			this.annotations = annotations;
+		}
+	}
+	
+	public Annotations getAnnotations() {
+		return annotations;
 	}
 }

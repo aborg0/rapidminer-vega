@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.gui.viewer.MetaDataViewerTableModel;
 
 /** Instances of this class can be used to annotate {@link IOObject}s, {@link Attribute}s, etc. 
  * 
@@ -22,18 +23,18 @@ public class Annotations implements Serializable, Map<String,String> {
 	// for IOObjects
 
 	/** Source, e.g. URI, or SQL query of data. */
-	public static final String KEY_SOURCE    = "annotation.source";
+	public static final String KEY_SOURCE    = "Source";
 	
 	/** User defined comment. */
-	public static final String KEY_COMMENT   = "annotation.comment";
+	public static final String KEY_COMMENT   = "Comment";
 
 	// for Attribtues
 	
 	/** Physical unit of attributes. */
-	public static final String KEY_UNIT      = "annotation.unit";
+	public static final String KEY_UNIT      = "Unit";
 
 	/** Colors for attribute values. */
-	public static final String KEY_COLOR_MAP = "annotation.colors";
+	public static final String KEY_COLOR_MAP = "Colors";
 
 	// Dublin Core
 	
@@ -53,11 +54,13 @@ public class Annotations implements Serializable, Map<String,String> {
 	public static final String KEY_DC_AUDIENCE             = "dc.audience";
 	public static final String KEY_DC_INSTRUCTIONAL_METHOD = "dc.description";
 	
+	/** Custom keys defined by RapidMiner */
 	public static final String[] KEYS_RAPIDMINER_IOOBJECT = {
 		KEY_SOURCE,
 		KEY_COMMENT
 	};
 	
+	/** Custom keys defined by the Dublin Core standard. */
 	public static final String[] KEYS_DUBLIN_CORE = {
 		KEY_DC_AUTHOR,
 		KEY_DC_TITLE,
@@ -76,6 +79,7 @@ public class Annotations implements Serializable, Map<String,String> {
 		KEY_DC_INSTRUCTIONAL_METHOD
 	};
 	
+	/** All keys that are supposed to be used with {@link IOObject}s. */
 	public static final String[] ALL_KEYS_IOOBJECT = {
 		KEY_SOURCE,
 		KEY_COMMENT,
@@ -95,6 +99,13 @@ public class Annotations implements Serializable, Map<String,String> {
 		KEY_DC_RELATION,
 		KEY_DC_AUDIENCE,
 		KEY_DC_INSTRUCTIONAL_METHOD
+	};
+	
+	/** Keys that can be assigned to {@link Attribute}s. 
+	 *  If you extend this list, also extend {@link MetaDataViewerTableModel#COLUMN_NAMES}. */
+	public static final String[] ALL_KEYS_ATTRIBUTE = {
+		KEY_COMMENT,
+		KEY_UNIT
 	};
 	
 	private LinkedHashMap<String,String> keyValueMap = new LinkedHashMap<String,String>();

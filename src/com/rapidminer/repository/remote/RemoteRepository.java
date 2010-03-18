@@ -484,6 +484,6 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	@Override
 	public boolean shouldSave() {
-		return !isHome ;
+		return !isHome;
 	}
 }

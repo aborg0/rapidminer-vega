@@ -22,6 +22,8 @@
  */
 package com.rapidminer.example.table;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -105,15 +107,15 @@ public abstract class AbstractAttribute implements Attribute {
 		this.constructionDescription = name;
 	}
 
-	public Object readResolve() {
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();	
     	if (owners == null) {
     		owners = new LinkedList<Attributes>();
     	}
     	if (annotations == null) {
     		annotations = new Annotations();
     	}
-    	return this;
-    }
+	}
 	
 	public void addOwner(Attributes attributes) {
 		this.owners.add(attributes);		

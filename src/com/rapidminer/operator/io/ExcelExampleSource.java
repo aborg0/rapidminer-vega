@@ -23,8 +23,12 @@
 package com.rapidminer.operator.io;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -36,13 +40,16 @@ import jxl.Sheet;
 import jxl.Workbook;
 import jxl.read.biff.BiffException;
 
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
+import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypeInt;
+import com.rapidminer.parameter.ParameterTypeList;
 
 /**
  * <p>This operator can be used to load data from Microsoft Excel spreadsheets. 
@@ -59,6 +66,9 @@ import com.rapidminer.parameter.ParameterTypeInt;
  * @author Ingo Mierswa, Tobias Malbrecht
  */
 public class ExcelExampleSource extends AbstractDataReader {
+
+	/** Pseudo-annotation to be used for attribute names. */
+	public static final String ANNOTATION_NAME = "Name";
 
 	/** The parameter name for &quot;The Excel spreadsheet file which should be loaded.&quot; */
 	public static final String PARAMETER_EXCEL_FILE = "excel_file";
@@ -90,12 +100,44 @@ public class ExcelExampleSource extends AbstractDataReader {
 
 	public static final String PARAMETER_CREATE_ID = "create_id";
 
+	public static final String PARAMETER_ANNOTATIONS = "annotations";
+
 	public ExcelExampleSource(OperatorDescription description) {
 		super(description);
 	}
 
 	@Override
 	protected DataSet getDataSet() throws OperatorException {
+		List<String[]> allAnnotations = getParameterList(PARAMETER_ANNOTATIONS);
+		final Map<Integer,String> annotationsMap = new HashMap<Integer,String>();
+		boolean nameFound = false;
+		int lastAnnotatedRow = 0;
+		int nameRow = -1;
+		for (String[] pair : allAnnotations) {
+			try {
+				final int row = Integer.parseInt(pair[0]);
+				if (row > lastAnnotatedRow) {
+					lastAnnotatedRow = row;
+				}
+				annotationsMap.put(row, pair[1]);
+				if (ANNOTATION_NAME.equals(pair[1])) {
+					nameFound = true;
+					nameRow = row;
+				}
+			} catch (NumberFormatException e) {
+				throw new OperatorException("row_number entries in parameter list "+PARAMETER_ANNOTATIONS+" must be integers.", e);
+			}
+		}
+		if (nameFound && getParameterAsBoolean(PARAMETER_FIRST_ROW_AS_NAMES)) {
+			throw new OperatorException("If "+PARAMETER_FIRST_ROW_AS_NAMES+" is set to true, you cannot use " + ANNOTATION_NAME +" entries in parameter list "+PARAMETER_ANNOTATIONS+".");
+		}
+		if (getParameterAsBoolean(PARAMETER_FIRST_ROW_AS_NAMES)) {
+			annotationsMap.put(1, ANNOTATION_NAME);
+			nameRow = 0;
+		}
+		final int lastAnnotatedRowF = lastAnnotatedRow;
+		final int nameRowF = nameRow;
+		
 		return new DataSet() {
 			private Workbook workbook = null;
 			
@@ -111,9 +153,9 @@ public class ExcelExampleSource extends AbstractDataReader {
 			private int columnOffset    = getParameterAsInt(PARAMETER_COLUMN_OFFSET);
 			private int numberOfRows    = 0;
 			private int numberOfColumns = 0;
-			private int currentRow      = rowOffset + (getParameterAsBoolean(PARAMETER_FIRST_ROW_AS_NAMES) ? 1 : 0);
+			private int currentRow      = rowOffset + lastAnnotatedRowF;
 			
-			{
+			{			
 				try {
 					workbook = Workbook.getWorkbook(getParameterAsInputStream(PARAMETER_EXCEL_FILE));
 					sheet = workbook.getSheet(getParameterAsInt(PARAMETER_SHEET_NUMBER) - 1);
@@ -175,17 +217,38 @@ public class ExcelExampleSource extends AbstractDataReader {
 
 				// attribute names
 				String[] attributeNames = new String[numberOfColumns - columnOffset - emptyColumns.size()];
-				if (getParameterAsBoolean(PARAMETER_FIRST_ROW_AS_NAMES)) {
+				if (nameRowF != -1) {
 					int columnCounter = 0;
 					for (int c = columnOffset; c < numberOfColumns; c++) {
 						// skip empty columns
 						if (emptyColumns.contains(c))
 							continue;
-						Cell cell = sheet.getCell(c, rowOffset);
+						Cell cell = sheet.getCell(c, rowOffset + nameRowF);
 						attributeNames[columnCounter++] = cell.getContents();
 					}
 				}
 				setColumnNames(attributeNames);
+				
+				// Annotations
+				int columnCounter = 0;
+				Annotations[] annotationss = new Annotations[numberOfColumns - columnOffset - emptyColumns.size()];
+				for (int c = columnOffset; c < numberOfColumns; c++) {
+					// skip empty columns
+					if (emptyColumns.contains(c))
+						continue;							
+
+					annotationss[columnCounter] = new Annotations();
+					for (Map.Entry<Integer,String> entry : annotationsMap.entrySet()) {						
+						if (ANNOTATION_NAME.equals(entry.getValue())) {
+							continue;
+						} else {							
+							Cell cell = sheet.getCell(c, rowOffset +  entry.getKey());
+							annotationss[columnCounter].put(entry.getValue(), cell.getContents());							
+						}						
+					}
+					columnCounter++;
+				}	
+				setAnnotations(annotationss);
 			}
 
 			@Override
@@ -257,6 +320,16 @@ public class ExcelExampleSource extends AbstractDataReader {
 		types.add(new ParameterTypeInt(PARAMETER_ROW_OFFSET, "The number of rows to skip at top of sheet as they contain no usable data.", 0, 65535, 0, false));
 		types.add(new ParameterTypeInt(PARAMETER_COLUMN_OFFSET, "The number of columns to skip at left side of sheet as they contain no usable data.", 0, 255, 0, false));
 		types.add(new ParameterTypeBoolean(PARAMETER_FIRST_ROW_AS_NAMES, "Indicates if the first row should be used for the attribute names.", true, false));
+		
+		List<String> annotations = new LinkedList<String>();
+		annotations.add(ANNOTATION_NAME);
+		annotations.addAll(Arrays.asList(Annotations.ALL_KEYS_ATTRIBUTE));
+		types.add(new ParameterTypeList(PARAMETER_ANNOTATIONS, "Maps row numbers to annotation names.", 
+				new ParameterTypeInt("row_number", "Row number which contains an annotation", 0, Integer.MAX_VALUE),
+				new ParameterTypeCategory("annotation", 
+						"Name of the annotation to assign this row.",
+						annotations.toArray(new String[annotations.size()]), 0)));
+				
 //		types.addAll(StrictDecimalFormat.getParameterTypes(this));
 //		types.add(new ParameterTypeBoolean(PARAMETER_CREATE_LABEL, "Indicates if the sheet has a label column.", false, false));
 //

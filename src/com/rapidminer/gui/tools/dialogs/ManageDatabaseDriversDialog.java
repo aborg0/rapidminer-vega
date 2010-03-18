@@ -85,6 +85,7 @@ public class ManageDatabaseDriversDialog extends ButtonDialog {
 		private JTextField urlprefixField = new JTextField(20);
 		private JTextField portField = new JTextField(20);
 		private JTextField jarFileField = new JTextField(20);
+		private JTextField dbseparatorField = new JTextField(20);
 		private JComboBox classNameCombo = new JComboBox();		
 		public DriverPane() {
 			setLayout(new GridBagLayout());
@@ -108,8 +109,9 @@ public class ManageDatabaseDriversDialog extends ButtonDialog {
 			add("name", nameField, null);
 			add("urlprefix", urlprefixField, null);
 			add("port", portField, null);
+			add("dbseparator", dbseparatorField, null);
 			add("jarfile", jarFileField, fileButton);
-			add("classname", classNameCombo, null);
+			add("classname", classNameCombo, null);			
 		}
 		private void add(String labelKey, JComponent component, JComponent button) {
 			GridBagConstraints c = new GridBagConstraints();
@@ -150,13 +152,15 @@ public class ManageDatabaseDriversDialog extends ButtonDialog {
 				urlprefixField.setText("");
 				portField.setText("");
 				classNameCombo.setSelectedItem("");
-				jarFileField.setText("");			
+				jarFileField.setText("");
+				dbseparatorField.setText("/");
 			} else {
 				nameField.setText(props.getName());
 				urlprefixField.setText(props.getUrlPrefix());
 				portField.setText(props.getDefaultPort());
 				classNameCombo.setSelectedItem(Tools.toString(props.getDriverClasses(),","));
 				jarFileField.setText(props.getDriverJarFile());
+				dbseparatorField.setText(props.getDbNameSeperator());
 				if (props.isUserDefined()) {
 					SwingTools.setEnabledRecursive(this, true);
 				} else {
@@ -172,6 +176,7 @@ public class ManageDatabaseDriversDialog extends ButtonDialog {
 				properties.setUrlPrefix(urlprefixField.getText());
 				properties.setDefaultPort(portField.getText());
 				properties.setDriverJarFile(jarFileField.getText());
+				properties.setDbNameSeperator(dbseparatorField.getText());
 				final String className = (String)classNameCombo.getSelectedItem();
 				if (className != null) {
 					properties.setDriverClasses(className);

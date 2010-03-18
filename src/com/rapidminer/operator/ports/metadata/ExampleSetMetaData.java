@@ -141,7 +141,7 @@ public class ExampleSetMetaData extends MetaData {
 			}
 			buf.append(attributeMetaData.size());
 			buf.append(" attribute" + (attributeMetaData.size() != 1 ? "s" : "") + ": ");			
-			buf.append("<table><thead><tr><th>Role</th><th>Name</th><th>Type</th><th>Range</th><th>Missings</th></tr></thead><tbody>");
+			buf.append("<table><thead><tr><th>Role</th><th>Name</th><th>Type</th><th>Range</th><th>Missings</th><th>Comment</th></tr></thead><tbody>");
 			//boolean first = true;
 			for (AttributeMetaData amd : attributeMetaData.values()) {
 				//				if (!first) {

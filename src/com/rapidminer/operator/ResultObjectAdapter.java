@@ -22,6 +22,8 @@
  */
 package com.rapidminer.operator;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -46,11 +48,11 @@ public abstract class ResultObjectAdapter extends AbstractIOObject implements Re
 	private static final long serialVersionUID = -8621885253590411373L;
 	private Annotations annotations = new Annotations();
 
-	private Object readResolve() {
-		if (annotations == null) {
-			annotations = new Annotations();
-		}
-		return this;
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();	
+    	if (annotations == null) {
+    		annotations = new Annotations();
+    	}
 	}
 	
 	/** The default implementation returns the classname without package. */

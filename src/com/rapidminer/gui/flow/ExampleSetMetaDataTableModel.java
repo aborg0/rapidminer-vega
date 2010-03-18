@@ -32,6 +32,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
 import com.rapidminer.gui.tools.ExtendedJTable;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.tools.Ontology;
@@ -45,12 +46,13 @@ public class ExampleSetMetaDataTableModel implements TableModel {
 
 	private final List<AttributeMetaData> attributes;
 	
-	private static final String[] COLUMN_NAMES = {"Role", "Name", "Type", "Range", "Missings" };
+	private static final String[] COLUMN_NAMES = {"Role", "Name", "Type", "Range", "Missings", "Comment" };
 	private static final int ROLE_COLUMN = 0;
 	private static final int NAME_COLUMN = 1;
 	private static final int TYPE_COLUMN = 2;
 	private static final int RANGE_COLUMN = 3;
-	private static final int MISSINGS_COLUMN = 4;	
+	private static final int MISSINGS_COLUMN = 4;
+	private static final int COMMENT_COLUMN = 5;
 	
 	public ExampleSetMetaDataTableModel(ExampleSetMetaData emd) {
 		super();
@@ -96,10 +98,17 @@ public class ExampleSetMetaDataTableModel implements TableModel {
 		AttributeMetaData amd = attributes.get(rowIndex);
 		switch (columnIndex) {
 		case ROLE_COLUMN: return amd.getRole();
-		case NAME_COLUMN: return amd.getName();
+		case NAME_COLUMN:
+			String unit = amd.getAnnotations().getAnnotation(Annotations.KEY_UNIT);			
+			String name = amd.getName();
+			if (unit != null) {
+				name += " ["+unit+"]";
+			}
+			return name;
 		case TYPE_COLUMN: return Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(amd.getValueType());
 		case RANGE_COLUMN: return amd.getRangeString();
 		case MISSINGS_COLUMN: return amd.getNumberOfMissingValues();
+		case COMMENT_COLUMN: return amd.getAnnotations().getAnnotation(Annotations.KEY_COMMENT);
 		default: return null;
 		}
 		

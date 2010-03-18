@@ -25,6 +25,7 @@ package com.rapidminer.operator.learner.functions;
 import Jama.Matrix;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
@@ -37,7 +38,7 @@ import com.rapidminer.tools.Tools;
 /**
  * The model for vector linear regression.
  * 
- * @author Tobias Malbrecht
+ * @author Tobias Malbrecht, Sebastian Land
  */
 public class VectorRegressionModel extends PredictionModel {
 
@@ -61,6 +62,7 @@ public class VectorRegressionModel extends PredictionModel {
 	
 	@Override
 	public ExampleSet apply(ExampleSet exampleSet) {
+		// creating labels
 		Attribute[] predictedLabels = new Attribute[labelNames.length];
 		for (int i = 0; i < labelNames.length; i++) {
 			predictedLabels[i] = AttributeFactory.createAttribute("prediction(" + labelNames[i] + ")", Ontology.NUMERICAL);
@@ -68,11 +70,24 @@ public class VectorRegressionModel extends PredictionModel {
 			exampleSet.getAttributes().addRegular(predictedLabels[i]);
 			exampleSet.getAttributes().setSpecialAttribute(predictedLabels[i], "prediction_" + labelNames[i]);
 		}
+
+		// retrieving attributes
+		Attributes attributes = exampleSet.getAttributes();
+		Attribute[] usedAttributes = new Attribute[attributeNames.length];
+		for (int i = 0; i < attributeNames.length; i++) {
+			usedAttributes[i] = attributes.get(attributeNames[i]);
+		}
+		
+		// now calculate predicted value
 		for (Example example : exampleSet) {
 			for (int i = 0; i < predictedLabels.length; i++) {
 				double predictedLabel = useIntercept ? coefficients.get(0, i) : 0;
-				for (int j = 0; j < attributeNames.length; j++) {
-					predictedLabel += example.getValue(exampleSet.getAttributes().get(attributeNames[j])) * coefficients.get(useIntercept ? j+1 : j, i);
+				if (useIntercept) {
+					for (int j = 1; j <= attributeNames.length; j++)
+						predictedLabel += example.getValue(usedAttributes[j]) * coefficients.get(j, i);
+				} else {
+					for (int j = 0; j < attributeNames.length; j++)
+						predictedLabel += example.getValue(usedAttributes[j]) * coefficients.get(j, i);
 				}
 				example.setValue(predictedLabels[i], predictedLabel);
 			}

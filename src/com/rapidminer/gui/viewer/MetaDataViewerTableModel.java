@@ -38,6 +38,7 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Statistics;
 import com.rapidminer.example.Tools;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.tools.Ontology;
 
 
@@ -63,9 +64,12 @@ public class MetaDataViewerTableModel extends AbstractTableModel {
     public static final int STATISTICS_RANGE   = 7;
     public static final int STATISTICS_SUM     = 8;
     public static final int STATISTICS_UNKNOWN = 9;
+    public static final int UNIT               = 10;
+    public static final int COMMENT            = 11;
     
     public static final String[] COLUMN_NAMES = new String[] {
-        "Role", "Table Index", "Name", "Construction", "Type", "Block", "Statistics", "Range", "Sum", "Missings"
+        "Role", "Table Index", "Name", "Construction", "Type", "Block", "Statistics", "Range", "Sum", "Missings",
+        Annotations.KEY_UNIT, Annotations.KEY_COMMENT 
     };
 
     public static final String[] COLUMN_TOOL_TIPS = new String[] {
@@ -78,11 +82,14 @@ public class MetaDataViewerTableModel extends AbstractTableModel {
         "Basic statistics about the data set values with respect to this attribute.",
         "The range about the data set values with respect to this attribute (only numerical attributes).",
         "The sum of all values in the data set for this attribute.",
-        "The number of unknown values in the data set for this attribute"
+        "The number of unknown values in the data set for this attribute",
+        "The unit annotation.",
+        "The comment annotation"
     };
 
     public static final Class[] COLUMN_CLASSES = new Class[] {
-    	String.class, Double.class, String.class, String.class, String.class, String.class, String.class, String.class, Double.class, Double.class
+    	String.class, Double.class, String.class, String.class, String.class, String.class, String.class, String.class, Double.class, Double.class,
+    	String.class, String.class
     };
     
     private int[] currentMapping = {
@@ -382,6 +389,10 @@ public class MetaDataViewerTableModel extends AbstractTableModel {
             	return exampleSet.getStatistics(attribute, Statistics.SUM);
             case STATISTICS_UNKNOWN:
               return exampleSet.getStatistics(attribute, Statistics.UNKNOWN);
+            case COMMENT:
+                return attribute.getAnnotations().getAnnotation(Annotations.KEY_COMMENT);
+            case UNIT:
+              return attribute.getAnnotations().getAnnotation(Annotations.KEY_UNIT);
             default: return "unknown";
         }
     }
@@ -397,6 +408,8 @@ public class MetaDataViewerTableModel extends AbstractTableModel {
      * 7: range statistics<br>
      * 8: sum statistics<br>
      * 9: unknown statistics<br>
+     * 10: unit annotation<br>
+     * 11: comment annotation
      */
     @Override
 	public String getColumnName(int col) {

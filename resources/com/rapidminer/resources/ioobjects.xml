@@ -6,6 +6,7 @@
         class="com.rapidminer.operator.IOObjectCollection"
         reportable="false">
       <renderer>com.rapidminer.gui.renderer.CollectionRenderer</renderer>
+      <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
     
     <!-- Data Tables (Example Sets) -->
@@ -17,7 +18,7 @@
         <renderer>com.rapidminer.gui.renderer.data.ExampleSetMetaDataRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.data.ExampleSetDataRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.data.ExampleSetPlotRenderer</renderer>
-        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>                        
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>     
     </ioobject>
         
         
@@ -28,7 +29,8 @@
         class="com.rapidminer.example.AttributeWeights"
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.weights.AttributeWeightsTableRenderer</renderer>
-        <renderer>com.rapidminer.gui.renderer.weights.AttributeWeightsPlotRenderer</renderer>                           
+        <renderer>com.rapidminer.gui.renderer.weights.AttributeWeightsPlotRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>                           
     </ioobject>
     
         
@@ -41,7 +43,8 @@
         <renderer>com.rapidminer.gui.renderer.similarity.SimilarityTableRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.similarity.SimilarityGraphRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.similarity.SimilarityHistogramRenderer</renderer>
-        <renderer>com.rapidminer.gui.renderer.similarity.SimilarityKDistanceRenderer</renderer>                                     
+        <renderer>com.rapidminer.gui.renderer.similarity.SimilarityKDistanceRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>                                     
     </ioobject>
 
 
@@ -52,7 +55,8 @@
         class="com.rapidminer.operator.visualization.dependencies.TransitionGraph"
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>        
-        <renderer>com.rapidminer.gui.renderer.visualization.TransitionGraphRenderer</renderer>                                      
+        <renderer>com.rapidminer.gui.renderer.visualization.TransitionGraphRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>                                      
     </ioobject>         
 
             
@@ -65,6 +69,7 @@
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.cluster.ClusterModelFolderRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.cluster.ClusterModelGraphRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
 
     <ioobject 
@@ -76,6 +81,7 @@
         <renderer>com.rapidminer.gui.renderer.cluster.ClusterModelGraphRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.cluster.ClusterModelCentroidTableRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.cluster.ClusterModelCentroidPlotRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
     
     <ioobject
@@ -85,6 +91,7 @@
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.cluster.ClusterModelFolderRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.cluster.ClusterModelGraphRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
 
     <ioobject
@@ -95,6 +102,7 @@
         <renderer>com.rapidminer.gui.renderer.cluster.ClusterModelFolderRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.cluster.ClusterModelGraphRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.cluster.ClusterModelDendogrammRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
 
 
@@ -105,6 +113,7 @@
         class="com.rapidminer.operator.learner.lazy.AttributeBasedVotingModel"
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
     
     <ioobject
@@ -113,6 +122,7 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.models.DistributionModelPlotRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
     
     <ioobject
@@ -121,6 +131,7 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.models.DistributionModelPlotRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
 
     <ioobject
@@ -128,6 +139,7 @@
         class="com.rapidminer.operator.learner.lazy.KNNRegressionModel"
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
 
     <ioobject
@@ -135,6 +147,7 @@
         class="com.rapidminer.operator.learner.rules.RuleModel"
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
 
     <ioobject
@@ -142,6 +155,7 @@
         class="com.rapidminer.operator.learner.lazy.KNNClassificationModel"
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
 
 
@@ -151,6 +165,7 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.models.DistributionModelPlotRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
 
     <ioobject
@@ -161,6 +176,7 @@
         <renderer>com.rapidminer.gui.renderer.models.KernelModelWeightsRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.models.KernelModelSupportVectorRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.models.KernelModelPlotRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
     
     <ioobject
@@ -169,6 +185,7 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.models.HyperplaneModelRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
     
     <ioobject
@@ -177,6 +194,7 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.models.HyperModelWeightsRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
     
     <ioobject
@@ -185,6 +203,7 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.models.TreeModelGraphRenderer</renderer>      
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
 
     <ioobject
@@ -193,7 +212,8 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.models.DistributionModelPlotRenderer</renderer>       
-        <renderer>com.rapidminer.gui.renderer.models.DistributionModelTableRenderer</renderer>      
+        <renderer>com.rapidminer.gui.renderer.models.DistributionModelTableRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>      
     </ioobject>
     
         <ioobject
@@ -202,7 +222,8 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.models.DistributionModelPlotRenderer</renderer>       
-        <renderer>com.rapidminer.gui.renderer.models.DistributionModelTableRenderer</renderer>      
+        <renderer>com.rapidminer.gui.renderer.models.DistributionModelTableRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>      
     </ioobject>
 
     <ioobject
@@ -211,6 +232,7 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.models.NeuralNetGraphRenderer</renderer>      
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
     
     <ioobject
@@ -219,6 +241,7 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.models.SimpleNeuralNetGraphRenderer</renderer>        
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
 
     <ioobject
@@ -227,6 +250,7 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.models.ImprovedNeuralNetModelRenderer</renderer>      
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
         
     <ioobject
@@ -235,6 +259,7 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.models.RuleSetRenderer</renderer>     
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
         
     <ioobject
@@ -243,69 +268,79 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.models.LinearRegressionModelTableRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
         
     <ioobject
         name="Ada Boost Model"
         class="com.rapidminer.operator.learner.meta.AdaBoostModel"
         reportable="true">
-        <renderer>com.rapidminer.gui.renderer.models.MetaModelRenderer</renderer>       
+        <renderer>com.rapidminer.gui.renderer.models.MetaModelRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>       
     </ioobject>     
     
     <ioobject
         name="Grouped Model"
         class="com.rapidminer.operator.GroupedModel"
         reportable="true">
-        <renderer>com.rapidminer.gui.renderer.models.MetaModelRenderer</renderer>       
+        <renderer>com.rapidminer.gui.renderer.models.MetaModelRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>       
     </ioobject> 
     
     <ioobject
         name="Additive Regression Model"
         class="com.rapidminer.operator.learner.meta.AdditiveRegressionModel"
         reportable="true">
-        <renderer>com.rapidminer.gui.renderer.models.MetaModelRenderer</renderer>       
+        <renderer>com.rapidminer.gui.renderer.models.MetaModelRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>       
     </ioobject>     
 
     <ioobject
         name="Bagging Model"
         class="com.rapidminer.operator.learner.meta.BaggingModel"
         reportable="true">
-        <renderer>com.rapidminer.gui.renderer.models.MetaModelRenderer</renderer>       
+        <renderer>com.rapidminer.gui.renderer.models.MetaModelRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>       
     </ioobject>     
 
     <ioobject
         name="Baysian Boosting Model"
         class="com.rapidminer.operator.learner.meta.BayBoostModel"
         reportable="true">
-        <renderer>com.rapidminer.gui.renderer.models.MetaModelRenderer</renderer>       
+        <renderer>com.rapidminer.gui.renderer.models.MetaModelRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>       
     </ioobject> 
     
     <ioobject
         name="Binary2Multiclass Model"
         class="com.rapidminer.operator.learner.meta.Binary2MultiClassModel"
         reportable="true">
-        <renderer>com.rapidminer.gui.renderer.models.MetaModelRenderer</renderer>       
+        <renderer>com.rapidminer.gui.renderer.models.MetaModelRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>       
     </ioobject> 
     
     <ioobject
         name="MetaCost Model"
         class="com.rapidminer.operator.learner.meta.MetaCostModel"
         reportable="true">
-        <renderer>com.rapidminer.gui.renderer.models.MetaModelRenderer</renderer>       
+        <renderer>com.rapidminer.gui.renderer.models.MetaModelRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>       
     </ioobject> 
 
     <ioobject
         name="Vote Model"
         class="com.rapidminer.operator.learner.meta.SimpleVoteModel"
         reportable="true">
-        <renderer>com.rapidminer.gui.renderer.models.MetaModelRenderer</renderer>       
+        <renderer>com.rapidminer.gui.renderer.models.MetaModelRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>       
     </ioobject> 
 
     <ioobject
         name="Stacking Model"
         class="com.rapidminer.operator.learner.meta.StackingModel"
         reportable="true">
-        <renderer>com.rapidminer.gui.renderer.models.MetaModelRenderer</renderer>       
+        <renderer>com.rapidminer.gui.renderer.models.MetaModelRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>       
     </ioobject> 
     
     
@@ -314,21 +349,24 @@
         name="Relative Regression Model"
         class="com.rapidminer.operator.learner.meta.RelativeRegressionModel"
         reportable="true">
-        <renderer>com.rapidminer.gui.renderer.models.DelegationModelRenderer</renderer>     
+        <renderer>com.rapidminer.gui.renderer.models.DelegationModelRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>     
     </ioobject> 
 
     <ioobject
         name="Threshold Model"
         class="com.rapidminer.operator.learner.meta.ThresholdModel"
         reportable="true">
-        <renderer>com.rapidminer.gui.renderer.models.DelegationModelRenderer</renderer>     
+        <renderer>com.rapidminer.gui.renderer.models.DelegationModelRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>     
     </ioobject> 
     
     <ioobject
         name="Transformed Regression Model"
         class="com.rapidminer.operator.learner.meta.TransformedRegressionModel"
         reportable="true">
-        <renderer>com.rapidminer.gui.renderer.models.DelegationModelRenderer</renderer>     
+        <renderer>com.rapidminer.gui.renderer.models.DelegationModelRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>     
     </ioobject> 
 
     <ioobject
@@ -337,14 +375,16 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.models.EigenvectorModelEigenvalueRenderer</renderer>      
         <renderer>com.rapidminer.gui.renderer.models.EigenvectorModelEigenvectorRenderer</renderer>
-        <renderer>com.rapidminer.gui.renderer.models.EigenvectorModelVariancePlotRenderer</renderer>                
+        <renderer>com.rapidminer.gui.renderer.models.EigenvectorModelVariancePlotRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>                
     </ioobject> 
 
     <ioobject
         name="Kernel PCA Model"
         class="com.rapidminer.operator.features.transformation.KernelPCAModel"
         reportable="true">
-        <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>                
+        <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>                
     </ioobject> 
 
     <ioobject
@@ -353,7 +393,8 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.models.EigenvectorModelEigenvalueRenderer</renderer>      
         <renderer>com.rapidminer.gui.renderer.models.EigenvectorModelEigenvectorRenderer</renderer>
-        <renderer>com.rapidminer.gui.renderer.models.EigenvectorModelVariancePlotRenderer</renderer>                
+        <renderer>com.rapidminer.gui.renderer.models.EigenvectorModelVariancePlotRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>                
     </ioobject> 
 
     <!--  Item Sets and Association Rules -->
@@ -363,6 +404,7 @@
         class="com.rapidminer.operator.learner.associations.FrequentItemSets"
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.itemsets.FrequentItemSetsTableRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
     
     <ioobject
@@ -372,6 +414,7 @@
         <renderer>com.rapidminer.gui.renderer.itemsets.AssociationRulesTableRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.itemsets.AssociationRulesGraphRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
     
     
@@ -383,6 +426,7 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.performance.PerformanceVectorRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
     
     <ioobject
@@ -390,6 +434,7 @@
         class="com.rapidminer.tools.math.Averagable"
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject> 
     
     <ioobject
@@ -398,6 +443,7 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.AverageVectorRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
     
     <ioobject
@@ -405,6 +451,7 @@
         class="com.rapidminer.operator.performance.BinaryClassificationPerformance"
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.performance.BinaryClassificationPerformanceRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
     
     <ioobject
@@ -412,6 +459,7 @@
         class="com.rapidminer.operator.performance.MultiClassificationPerformance"
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.performance.MultiClassificationPerformanceRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
 
     <ioobject
@@ -419,6 +467,7 @@
         class="com.rapidminer.operator.performance.WeightedMultiClassPerformance"
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.performance.WeightedMultiClassPerformanceRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
 
     <ioobject
@@ -427,6 +476,7 @@
         reportable="false">
         <renderer>com.rapidminer.gui.renderer.performance.AnovaCalculatorViewerRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
 
     <ioobject
@@ -435,6 +485,7 @@
         reportable="false">
         <renderer>com.rapidminer.gui.renderer.performance.TTestSignificanceTestRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
 
     <ioobject
@@ -442,6 +493,7 @@
         class="com.rapidminer.operator.visualization.dependencies.ANOVAMatrix"
         reportable="false">
         <renderer>com.rapidminer.gui.renderer.visualization.AnovaMatrixRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
     
     <ioobject
@@ -449,7 +501,8 @@
         class="com.rapidminer.operator.performance.AreaUnderCurve"
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.performance.AreaUnderCurveRenderer</renderer>
-        <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>        
+        <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>        
     </ioobject>
 
     <ioobject
@@ -457,7 +510,8 @@
         class="com.rapidminer.operator.performance.AreaUnderCurve$Neutral"
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.performance.AreaUnderCurveRenderer</renderer>
-        <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>        
+        <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>        
     </ioobject>
 
     <ioobject
@@ -466,6 +520,7 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.performance.AreaUnderCurveRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>        
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
 
     <ioobject
@@ -473,7 +528,8 @@
         class="com.rapidminer.operator.performance.AreaUnderCurve$Pessimistic"
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.performance.AreaUnderCurveRenderer</renderer>
-        <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>        
+        <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>        
     </ioobject>
 
     <!-- Matrixes -->
@@ -483,7 +539,8 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.math.NumericalMatrixTableRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.math.NumericalMatrixPairwiseRenderer</renderer>
-        <renderer>com.rapidminer.gui.renderer.math.NumericalMatrixPlotRenderer</renderer>       
+        <renderer>com.rapidminer.gui.renderer.math.NumericalMatrixPlotRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>       
     </ioobject>
     
     <ioobject
@@ -494,7 +551,8 @@
         <renderer>com.rapidminer.gui.renderer.math.NumericalMatrixPairwiseRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.math.NumericalMatrixPlotRenderer</renderer>   
         <renderer>com.rapidminer.gui.renderer.math.RainflowMatrixTableRenderer</renderer>
-        <renderer>com.rapidminer.gui.renderer.math.RainflowMatrixPlotRenderer</renderer>        
+        <renderer>com.rapidminer.gui.renderer.math.RainflowMatrixPlotRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>        
     </ioobject>
     
     <!-- Visualizations -->
@@ -505,12 +563,14 @@
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.visualization.LiftChartRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
     <ioobject
         name="Formula"
         class="com.rapidminer.operator.visualization.FormulaExtractor$FormulaResult"
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
     
     
@@ -520,6 +580,7 @@
         class="com.rapidminer.operator.visualization.ROCComparison"
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.performance.ROCComparisonRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
 
     <!-- ParameterSet -->
@@ -528,6 +589,7 @@
         class="com.rapidminer.operator.meta.ParameterSet"
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
     
     <!-- Dummy Entry -->
@@ -537,6 +599,7 @@
         class=""
         reportable="true">
         <renderer></renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject
 -->
                     

@@ -24,9 +24,12 @@ package com.rapidminer.gui.tools.dialogs.wizards.dataimport.excel;
 
 import java.awt.BorderLayout;
 import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import com.rapidminer.gui.tools.SimpleFileFilter;
@@ -39,6 +42,7 @@ import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.io.ExcelExampleSource;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
+import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.OperatorService;
 
@@ -66,9 +70,9 @@ public class ExcelImportWizard extends DataImportWizard {
 	
 	private final WizardStep STEP_EXCEL_DATA_SELECTION = new WizardStep("excel_data_selection") {
 		 
-		private final ExcelWorkbookPane workbookSelectionPanel = new ExcelWorkbookPane();
+		private final ExcelWorkbookPane workbookSelectionPanel = new ExcelWorkbookPane(this);
 		
-		private final JCheckBox useFirstRowAsColumnNamesCheckBox = new JCheckBox("Use First Row As Column Names", true);
+		private final JLabel errorLabel = new JLabel("");
 
 		@Override
 		protected boolean canGoBack() {
@@ -77,7 +81,7 @@ public class ExcelImportWizard extends DataImportWizard {
 
 		@Override
 		protected boolean canProceed() {
-			return true;
+			return workbookSelectionPanel.displayErrorStatus(errorLabel);
 		}
 		
 		@Override
@@ -90,7 +94,12 @@ public class ExcelImportWizard extends DataImportWizard {
 		@Override
 		protected boolean performLeavingAction() {
 			reader.setParameter(ExcelExampleSource.PARAMETER_SHEET_NUMBER, Integer.toString(workbookSelectionPanel.getSelection().getSheetIndex() + 1));
-			reader.setParameter(ExcelExampleSource.PARAMETER_FIRST_ROW_AS_NAMES, Boolean.toString(useFirstRowAsColumnNamesCheckBox.isSelected()));
+			List<String[]> annotationParameter = new LinkedList<String[]>();
+			for (Map.Entry<Integer,String> entry : workbookSelectionPanel.getSelection().getAnnotationMap().entrySet()) {
+				annotationParameter.add(new String[] { entry.getKey().toString(), entry.getValue() } );
+			}
+			reader.setParameter(ExcelExampleSource.PARAMETER_ANNOTATIONS, ParameterTypeList.transformList2String(annotationParameter));
+			reader.setParameter(ExcelExampleSource.PARAMETER_FIRST_ROW_AS_NAMES, "false"); //Boolean.toString(useFirstRowAsColumnNamesCheckBox.isSelected()));
 			try {
 				metaData = (ExampleSetMetaData) reader.getGeneratedMetaData();
 			} catch (OperatorException e) {
@@ -103,7 +112,7 @@ public class ExcelImportWizard extends DataImportWizard {
 		protected JComponent getComponent() {
 			JPanel panel = new JPanel(new BorderLayout());
 			panel.add(workbookSelectionPanel, BorderLayout.CENTER);
-			panel.add(useFirstRowAsColumnNamesCheckBox, BorderLayout.SOUTH);
+			panel.add(errorLabel, BorderLayout.SOUTH);
 			return panel;
 		}
 	};
@@ -136,6 +145,7 @@ public class ExcelImportWizard extends DataImportWizard {
 		try {
 			reader = OperatorService.createOperator(com.rapidminer.operator.io.ExcelExampleSource.class);
 		} catch (OperatorCreationException e) {
+			throw new RuntimeException("Failed to create excel reader: "+e, e); 
 		}
 		if (preselectedFile == null) {
 			addStep(STEP_FILE_SELECTION);
@@ -150,7 +160,7 @@ public class ExcelImportWizard extends DataImportWizard {
 		});
 		layoutDefault();
 	}
-	
+
 	public ExcelImportWizard(String i18nKey, ExcelExampleSource reader, Object ... i18nArgs) {
 		super(i18nKey, i18nArgs);
 		this.reader = reader;

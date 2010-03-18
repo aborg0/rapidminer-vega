@@ -690,6 +690,10 @@ public class Tools {
 		}
 	}
 
+	public static String readTextFile(InputStream in) throws IOException {
+		return readTextFile(new InputStreamReader(in, "UTF-8"));
+	}
+	
 	/** Reads a text file into a single string. */
 	public static String readTextFile(File file) throws IOException {
 		return readTextFile(new FileReader(file));

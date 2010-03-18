@@ -23,6 +23,8 @@
 package com.rapidminer.operator.ports.metadata;
 
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -67,15 +69,17 @@ public class MetaData implements Serializable {
 		this(IOObject.class);
 	}
 
-	/** Restores an empty history. */
-	private Object readResolve() {
+	/** Restores an empty history. 
+	 * @throws ClassNotFoundException 
+	 * @throws IOException */
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();	
 		if (generationHistory == null) {
 			generationHistory = new LinkedList<OutputPort>();
 		}
 		if (annotations == null) {
 			annotations = new Annotations();
 		}
-		return this;
 	}
 
 	public MetaData(Class<? extends IOObject> dataClass) {

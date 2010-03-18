@@ -69,7 +69,7 @@ public abstract class WizardStep {
 	/**
 	 * should be called whenever a field was updated
 	 */
-	protected void fireStateChanged() {
+	public void fireStateChanged() {
 		ChangeEvent e = new ChangeEvent(this);
 		for (ChangeListener listener : listeners) {
 			listener.stateChanged(e);

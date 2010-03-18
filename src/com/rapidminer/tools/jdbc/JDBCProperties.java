@@ -74,7 +74,7 @@ public class JDBCProperties {
     	setName("unknown");
     	setDefaultPort("port");
     	setUrlPrefix("urlprefix://");
-    	dbNameSeperator = "/";
+    	this.dbNameSeperator = "/";
     	this.userDefined = userDefined;
 //    	varcharName = "VARCHAR";
 //    	textName = "BLOB";
@@ -99,7 +99,11 @@ public class JDBCProperties {
 		Attr driversAttr              = driverElement.getAttributeNode("drivers");
         Attr portAttr                 = driverElement.getAttributeNode("defaultport");
         Attr urlAttr                  = driverElement.getAttributeNode("urlprefix");
-        Attr dbNameAttr               = driverElement.getAttributeNode("dbnameseperator");
+        Attr dbNameAttr               = driverElement.getAttributeNode("dbnameseparator");
+        if (dbNameAttr == null) {
+        	// old version with typo
+        	dbNameAttr               = driverElement.getAttributeNode("dbnameseperator");
+        }
 //        Attr varcharNameAttr          = driverElement.getAttributeNode("type_varchar");
 //        Attr textNameAttr             = driverElement.getAttributeNode("type_text");
 //        Attr integerNameAttr          = driverElement.getAttributeNode("type_integer");
@@ -395,6 +399,11 @@ public class JDBCProperties {
 	public void setDriverJarFile(String driverJarFile) {
 		this.driverJarFile = driverJarFile;
 	}
+	
+	public void setDbNameSeperator(String dbNameSeperator) {
+        this.dbNameSeperator = dbNameSeperator;
+    }
+
 
 	public Element getXML(Document doc) {
 		Element element = doc.createElement("driver");
@@ -403,6 +412,7 @@ public class JDBCProperties {
 		element.setAttribute("driver_jar", getDriverJarFile());
 		element.setAttribute("defaultport", getDefaultPort());
 		element.setAttribute("urlprefix", getUrlPrefix());
+		element.setAttribute("dbnameseparator", getDbNameSeperator());
 		return element;
 	}
 }

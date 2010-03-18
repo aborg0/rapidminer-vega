@@ -22,7 +22,9 @@
  */
 package com.rapidminer.gui.tools.dialogs.wizards.dataimport.excel;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -42,16 +44,23 @@ public class ExcelTableModel extends AbstractTableModel {
 	private ExcelWorkbookSelection reductionSelection;
 
 	private List<String> columnNames;
+
+	private final Map<Integer,String> annotationTypes = new HashMap<Integer,String>();
 	
 	public ExcelTableModel(Sheet sheet) {
 		excelSheet = sheet;
 	}
 	
+	@Override
+	public boolean isCellEditable(int rowIndex, int columnIndex) {
+		return columnIndex == 0;
+	}
+	
 	public int getColumnCount() {
 		if (reductionSelection == null) {
-			return excelSheet.getColumns();
+			return excelSheet.getColumns()+1;
 		} else {
-			return reductionSelection.getColumnIndexEnd() - reductionSelection.getColumnIndexStart() + 1;
+			return reductionSelection.getColumnIndexEnd() - reductionSelection.getColumnIndexStart() + 1 + 1;
 		}
 	}
 
@@ -64,14 +73,37 @@ public class ExcelTableModel extends AbstractTableModel {
 	}
 
 	public Object getValueAt(int rowIndex, int columnIndex) {
+		if (columnIndex == 0) {
+			String value = getAnnotationMap().get(rowIndex);
+			if (value == null) {
+				return AnnotationCellEditor.NONE;
+			} else {
+				return value;
+			}
+		}
+		columnIndex--;
+
 		if (reductionSelection == null) {
 			return excelSheet.getCell(columnIndex, rowIndex).getContents();
 		} else {
 			return excelSheet.getCell(columnIndex + reductionSelection.getColumnIndexStart(), rowIndex + reductionSelection.getRowIndexStart()).getContents();
 		}
 	}
+	
+	@Override
+	public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+		if (columnIndex == 0) {
+			getAnnotationMap().put(rowIndex, (String)aValue);
+			fireTableCellUpdated(rowIndex, columnIndex);
+		}
+	}
+	
 	@Override
 	public String getColumnName(int column) {
+		if (column == 0) {
+			return "Use as";
+		}
+		column--;
 		if (columnNames == null) {
 			if (reductionSelection != null) {
 				column += reductionSelection.getColumnIndexStart();
@@ -102,6 +134,10 @@ public class ExcelTableModel extends AbstractTableModel {
 	}
 	public void resetNames() {
 		columnNames = null;
+	}
+
+	public Map<Integer,String> getAnnotationMap() {
+		return annotationTypes;
 	}
 
 }

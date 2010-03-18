@@ -24,10 +24,17 @@ package com.rapidminer.gui.tools.dialogs.wizards.dataimport.excel;
 
 import java.awt.BorderLayout;
 import java.io.File;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
 
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
 import jxl.Sheet;
@@ -36,6 +43,8 @@ import jxl.Workbook;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ExtendedJTabbedPane;
 import com.rapidminer.gui.tools.ExtendedJTable;
+import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
+import com.rapidminer.tools.LogService;
 
 /**
  * 
@@ -92,6 +101,10 @@ public class ExcelWorkbookPane extends JPanel {
 		public int getSelectionHeight() {
 			return rowIndexEnd - rowIndexStart + 1;
 		}
+
+		public Map<Integer,String> getAnnotationMap() {
+			return ((ExcelTableModel)tables[sheetIndex].getModel()).getAnnotationMap();
+		}
 	}
 
 	private static final long serialVersionUID = 9179757216097316344L;
@@ -101,8 +114,11 @@ public class ExcelWorkbookPane extends JPanel {
 	private JTable[] tables;
 	private ExcelWorkbookSelection selectedView;
 
-	public ExcelWorkbookPane() {
+	private WizardStep wizardStep;
+	
+	public ExcelWorkbookPane(WizardStep wizardStep) {
 		super();
+		this.wizardStep = wizardStep;
 		sheetsPane = new ExtendedJTabbedPane();
 		sheetsPane.setBorder(null);
 		this.setLayout(new BorderLayout());
@@ -110,12 +126,12 @@ public class ExcelWorkbookPane extends JPanel {
 	}
 
 	public ExcelWorkbookPane(String fileName) {
-		this();
+		this((WizardStep)null);
 		loadWorkbook(fileName);
 	}
 	
 	public ExcelWorkbookPane(File file) {
-		this();
+		this((WizardStep)null);
 		loadWorkbook(file);
 	}
 
@@ -129,6 +145,7 @@ public class ExcelWorkbookPane extends JPanel {
 			workbook = Workbook.getWorkbook(file);
 		} catch (Exception e) {
 			// TODO correct error handling
+			LogService.getRoot().log(Level.WARNING, "Error loading workbook: "+e, e);
 		}
 		excelWorkbook = workbook;
 		loadWorkbook();
@@ -190,9 +207,10 @@ public class ExcelWorkbookPane extends JPanel {
 		ExcelTableModel sheetModel = new ExcelTableModel(sheet);
 		sheetModel.createView(selection);
 		sheetModel.setNames(columnNames);
-		tables[0] = new ExtendedJTable(sheetModel, false, false);
+		tables[0] = new ExtendedJTable(sheetModel, false, false);		
 		tables[0].setBorder(null);
-		tables[0].setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		tables[0].setAutoResizeMode(JTable.AUTO_RESIZE_OFF);		
+		tables[0].getColumnModel().getColumn(0).setCellEditor(new AnnotationCellEditor());
 		/*
 	    tables[0].setMaximumSize(new Dimension(5000, 50000));
 		TableColumnModel columnModel = tables[0].getColumnModel();
@@ -223,10 +241,20 @@ public class ExcelWorkbookPane extends JPanel {
 		for (int sheetIndex = 0; sheetIndex < excelWorkbook.getNumberOfSheets(); sheetIndex++) {
 			Sheet sheet = excelWorkbook.getSheet(sheetIndex);
 			TableModel sheetModel = new ExcelTableModel(sheet);
+			sheetModel.addTableModelListener(new TableModelListener() {
+				@Override
+				public void tableChanged(TableModelEvent e) {
+					if (wizardStep != null) {
+						wizardStep.fireStateChanged();
+					}
+				}
+			});
 			tables[sheetIndex] = new ExtendedJTable(sheetModel, false, false);
 			tables[sheetIndex].setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 			tables[sheetIndex].setBorder(null);
 
+			tables[sheetIndex].getColumnModel().getColumn(0).setCellEditor(new AnnotationCellEditor());
+			
 			// momentary disable selection in tables
 			tables[sheetIndex].setRowSelectionAllowed(false);
 			tables[sheetIndex].setColumnSelectionAllowed(false);
@@ -249,5 +277,25 @@ public class ExcelWorkbookPane extends JPanel {
 
 	public String getColumnName(int sheet, int index) {
 		return tables[sheet].getColumnName(index);
+	}
+
+	public boolean displayErrorStatus(JLabel label) {
+		if (tables == null) {
+			return true;
+		}
+		Set<String> usedAnnotations = new HashSet<String>();
+		for (String an : ((ExcelTableModel)tables[getSelection().getSheetIndex()].getModel()).getAnnotationMap().values()) {
+			if (AnnotationCellEditor.NONE.equals(an)) {
+				continue;
+			}
+			if (usedAnnotations.contains(an)) {
+				label.setText("Duplicate annotation: "+an);
+				return false;	
+			} else {
+				usedAnnotations.add(an);
+			}
+		}		
+		label.setText("");
+		return true;
 	}
 }

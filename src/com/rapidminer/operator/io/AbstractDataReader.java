@@ -36,8 +36,10 @@ import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.example.table.DataRow;
 import com.rapidminer.example.table.DoubleArrayDataRow;
 import com.rapidminer.example.table.MemoryExampleTable;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MDInteger;
@@ -54,7 +56,7 @@ import com.rapidminer.tools.math.container.Range;
  */
 public abstract class AbstractDataReader extends AbstractExampleSource {
 	
-	private static final int PREVIEW_LINES = 1000;
+	private static final int PREVIEW_LINES = 2000;
 
 	protected abstract class DataSet {
 		/**
@@ -152,12 +154,13 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 	
 	private int[]     valueTypes        = null;
 	
+	private Annotations[] annotations;
+	
 	private boolean   complete          = false;
 	
 	private boolean   cachePreview      = false;
 	
-	private LinkedList<Object[]> previewValues = null;
-	
+	private LinkedList<Object[]> previewValues = null;	
 
 	public AbstractDataReader(OperatorDescription description) {
 		super(description);
@@ -185,26 +188,45 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 	}
 	
 	protected void setColumnNames(String[] columnNames) {
+		this.columnNames = columnNames;
 		if (columnCount < columnNames.length) {
-			this.columnNames = new String[columnNames.length];
-			for (int i = 0; i < columnNames.length; i++) {
-				this.columnNames[i] = columnNames[i];
-			}
+//			this.columnNames = new String[columnNames.length];
+//			for (int i = 0; i < columnNames.length; i++) {
+//				this.columnNames[i] = columnNames[i];
+//			}
 			extendToLength(columnNames.length);
-		} else {
-			this.columnNames = columnNames;
 		}
+//		else {
+//			this.columnNames = columnNames;
+//		}
 	}
 	
 	protected void setValueTypes(int[] valueTypes) {
+		this.valueTypes = valueTypes;
 		if (columnCount < valueTypes.length) {
-			this.valueTypes = new int[valueTypes.length];
-			for (int i = 0; i < valueTypes.length; i++) {
-				this.valueTypes[i] = valueTypes[i];
-			}
+//			this.valueTypes = new int[valueTypes.length];
+//			for (int i = 0; i < valueTypes.length; i++) {
+//				this.valueTypes[i] = valueTypes[i];
+//			}
 			extendToLength(valueTypes.length);
+		}
+//		else {
+//			this.valueTypes = valueTypes;
+//		}
+	}
+	
+	protected void setAnnotations(Annotations[] annotations) {
+		this.annotations = annotations;
+		if (columnCount < annotations.length) {
+			extendToLength(annotations.length);
+		}
+	}
+	
+	private Annotations getAnnotations(int colIndex) {
+		if ((this.annotations == null) || (colIndex >= this.annotations.length)) {
+			return new Annotations();
 		} else {
-			this.valueTypes = valueTypes;
+			return annotations[colIndex];
 		}
 	}
 	
@@ -496,6 +518,7 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 				name = getGenericColumnName(i);
 			}
 			AttributeMetaData amd = new AttributeMetaData(name, getValueTypes()[i]);
+			amd.setAnnotations(getAnnotations(i));
 			MDInteger missings = new MDInteger(getNumberOfMissings()[i]);
 			SetRelation relation = SetRelation.EQUAL;
 			if (isMetaDataGuessComplete()) {
@@ -530,24 +553,21 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 
 	protected DataRow generateDataRow(DataSet set, Attribute[] attributes) {
 		double[] values = new double[getColumnCount()];
-		for (int i = 0; i < getColumnCount(); i++) {
-			values[i] = Double.NaN;
-		}
 		for (int i = 0; i < set.getNumberOfColumnsInCurrentRow(); i++) {
 			if (set.isMissing(i)) {
+				values[i] = Double.NaN;
 				continue;
-			}
-			if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[i].getValueType(), Ontology.NUMERICAL)) {
+			} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[i].getValueType(), Ontology.NUMERICAL)) {
 				values[i] = set.getNumber(i).doubleValue();
 				continue;
-			}
-			if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[i].getValueType(), Ontology.DATE_TIME)) {
+			} else	if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[i].getValueType(), Ontology.DATE_TIME)) {
 				values[i] = set.getDate(i).getTime();
 				continue;
-			}
-			if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[i].getValueType(), Ontology.NOMINAL)) {
+			} else	if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[i].getValueType(), Ontology.NOMINAL)) {
 				values[i] = attributes[i].getMapping().mapString(set.getString(i));
 				continue;
+			} else {
+				values[i] = Double.NaN;
 			}
 		}
 		return new DoubleArrayDataRow(values);
@@ -562,7 +582,9 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 	public ExampleSet createExampleSet(ExampleSetMetaData metaData) throws OperatorException {
 		ArrayList<Attribute> attributesList = new ArrayList<Attribute>(metaData.getAllAttributes().size());
 		for (AttributeMetaData amd : metaData.getAllAttributes()) {
-			attributesList.add(AttributeFactory.createAttribute(amd.getName(), amd.getValueType()));
+			final Attribute attribute = AttributeFactory.createAttribute(amd.getName(), amd.getValueType());
+			attribute.getAnnotations().putAll(amd.getAnnotations());
+			attributesList.add(attribute);
 		}
 		Attribute[] attributesArray = new Attribute[attributesList.size()];
 		attributesArray = attributesList.toArray(attributesArray);
@@ -571,7 +593,7 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 		try {
 			set = getDataSet();
 		} catch (IOException e) {
-			// TODO throw user error
+			throw new UserError(this, e, 403, e.getMessage());
 		}
 		while (set.next()) {
 			table.addDataRow(generateDataRow(set, attributesArray));
@@ -582,6 +604,7 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 				exampleSet.getAttributes().setSpecialAttribute(exampleSet.getAttributes().get(amd.getName()), amd.getRole());
 			}
 		}
+		addAnnotations(exampleSet);
 		return exampleSet;
 	}
 }
