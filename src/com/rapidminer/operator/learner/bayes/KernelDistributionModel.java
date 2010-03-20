@@ -469,30 +469,6 @@ public class KernelDistributionModel extends DistributionModel {
 		}
 	}
 
-//	public void prepareRendering() {
-//		if (this.plotter == null)
-//			this.plotter = new DistributionPlotter(this);
-//		plotter.prepareRendering();
-//	}
-//
-//	public void finishRendering() {
-//		plotter.finishRendering();
-//		plotter = null;
-//	}
-//
-//	public int getRenderHeight(int preferredHeight) {
-//		return plotter.getRenderHeight(preferredHeight);
-//	}
-//
-//	public int getRenderWidth(int preferredWidth) {
-//		return plotter.getRenderWidth(preferredWidth);
-//	}
-//
-//	public void render(Graphics graphics, int width, int height) {
-//		plotter.getRenderComponent().setSize(width, height);
-//		plotter.getRenderComponent().paint(graphics);
-//	}
-
 	@Override
 	public String toString() {
 		if (modelRecentlyUpdated) {

@@ -45,6 +45,7 @@ import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.ProcessStoppedException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.learner.AbstractLearner;
 import com.rapidminer.operator.ports.InputPortExtender;
@@ -52,6 +53,7 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeDouble;
+import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.container.Pair;
 import com.rapidminer.tools.math.matrix.CovarianceMatrix;
@@ -75,6 +77,10 @@ public class SeeminglyUnrelatedRegressionOperator extends AbstractLearner {
 	@Override
 	public Model learn(ExampleSet mainSet) throws OperatorException {
 		List<ExampleSet> dataSets = unrelatedExampleSets.getData(true);
+		return learn(mainSet, dataSets);
+	}
+
+	public SeeminglyUnrelatedRegressionModel learn(ExampleSet mainSet, List<ExampleSet> dataSets) throws UserError, UndefinedParameterError, OperatorException, ProcessStoppedException {
 		// check if each data set is part of the mainSet and has the same size
 		int numberOfExamples = mainSet.size();
 		int numberOfSets = dataSets.size();

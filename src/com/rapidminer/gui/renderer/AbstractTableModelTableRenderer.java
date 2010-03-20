@@ -125,7 +125,8 @@ public abstract class AbstractTableModelTableRenderer extends NonGraphicalRender
 		}
 
 		public String getCell(int row, int column) {
-			String value = model.getValueAt(row + minRow, column + minColumn).toString();
+			final Object objValue = model.getValueAt(row + minRow, column + minColumn);
+			String value = objValue == null ? "" : objValue.toString();
 			if (Number.class.isAssignableFrom(model.getColumnClass(column))) {
 				return Tools.formatIntegerIfPossible(Double.valueOf(value));
 			} else {

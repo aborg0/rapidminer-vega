@@ -111,7 +111,7 @@ public class ExcelExampleSource extends AbstractDataReader {
 		List<String[]> allAnnotations = getParameterList(PARAMETER_ANNOTATIONS);
 		final Map<Integer,String> annotationsMap = new HashMap<Integer,String>();
 		boolean nameFound = false;
-		int lastAnnotatedRow = 0;
+		int lastAnnotatedRow = -1;
 		int nameRow = -1;
 		for (String[] pair : allAnnotations) {
 			try {
@@ -135,7 +135,7 @@ public class ExcelExampleSource extends AbstractDataReader {
 			annotationsMap.put(1, ANNOTATION_NAME);
 			nameRow = 0;
 		}
-		final int lastAnnotatedRowF = lastAnnotatedRow;
+		final int lastAnnotatedRowF = lastAnnotatedRow + 1; //+1 since the last annotated row itself must be ignored
 		final int nameRowF = nameRow;
 		
 		return new DataSet() {
@@ -293,7 +293,7 @@ public class ExcelExampleSource extends AbstractDataReader {
 					return false;
 				}
 				cells = new Cell[numberOfColumns - columnOffset - emptyColumns.size()];
-				int columnCounter = 0;;
+				int columnCounter = 0;
 				for (int c = columnOffset; c < numberOfColumns; c++) {
 					if (emptyColumns.contains(c)) {
 						continue;

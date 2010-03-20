@@ -162,10 +162,10 @@ public abstract class ProgressThread implements Runnable {
 							};
 						});					
 					}
-					ProgressThread.this.run();
-					ProgressThread.this.getProgressListener().complete();
-					QUEUE_MODEL.remove(ProgressThread.this);					
+					ProgressThread.this.run();										
 				} finally {
+					ProgressThread.this.getProgressListener().complete();
+					QUEUE_MODEL.remove(ProgressThread.this);
 					current = null;
 				}
 			}				

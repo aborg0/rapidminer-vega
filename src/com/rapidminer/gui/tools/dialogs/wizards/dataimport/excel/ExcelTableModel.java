@@ -93,7 +93,11 @@ public class ExcelTableModel extends AbstractTableModel {
 	@Override
 	public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
 		if (columnIndex == 0) {
-			getAnnotationMap().put(rowIndex, (String)aValue);
+			if (AnnotationCellEditor.NONE.equals(aValue)) {
+				getAnnotationMap().remove(rowIndex);
+			} else {
+				getAnnotationMap().put(rowIndex, (String)aValue);
+			}
 			fireTableCellUpdated(rowIndex, columnIndex);
 		}
 	}

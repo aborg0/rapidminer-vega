@@ -92,6 +92,7 @@ public class SeeminglyUnrelatedRegressionModel extends PredictionModel {
 				for (int j = 0; j < usedAttributes[i].length; j++) {
 					predictedValue += example.getValue(usedAttributes[i][j]) * coefficients[coefficientOffset + j];
 				}
+				coefficientOffset += usedAttributes[i].length;
 				example.setValue(predictedLabels[i], predictedValue);
 			}
 		}

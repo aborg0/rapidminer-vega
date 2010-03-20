@@ -84,7 +84,7 @@ public class VectorRegressionModel extends PredictionModel {
 				double predictedLabel = useIntercept ? coefficients.get(0, i) : 0;
 				if (useIntercept) {
 					for (int j = 1; j <= attributeNames.length; j++)
-						predictedLabel += example.getValue(usedAttributes[j]) * coefficients.get(j, i);
+						predictedLabel += example.getValue(usedAttributes[j - 1]) * coefficients.get(j, i);
 				} else {
 					for (int j = 0; j < attributeNames.length; j++)
 						predictedLabel += example.getValue(usedAttributes[j]) * coefficients.get(j, i);

@@ -155,6 +155,8 @@ public class FullKernelDistribution extends KernelDistribution {
 			}
 			probability += NormalDistribution.getProbability(0, 1, scaledValue) * entry.getValue().doubleValue() / bandwidth;
 		}
+		//TODO: If here probability is 0, the product of probabilities will be 0, too. Needs to add minimal 
+		// probability here or do not use bounds at all.
 		return probability / weightSum;
 	}
 

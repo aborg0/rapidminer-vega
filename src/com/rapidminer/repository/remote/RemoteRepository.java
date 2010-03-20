@@ -469,7 +469,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	public URI getProcessLogURI(int id) {
 		try {
-			return baseUrl.toURI().resolve("processlog?id="+id);
+			return baseUrl.toURI().resolve("/RA/processlog?id="+id);
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}

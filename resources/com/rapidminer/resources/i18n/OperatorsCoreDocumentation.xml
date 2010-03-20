@@ -719,6 +719,20 @@
     <key>linear_regression</key>
   </operator>
     <operator>
+        <name>Seemingly Unrelated Regression</name>
+        <shortName>SUR</shortName>
+        <synopsis>This will perform regressions on different datasets with different labels and will take into account the 
+        correlation of residuals.</synopsis>
+        <help>
+        &lt;p&gt;The regression might be performed on different attribute sets, but all delivered ExampleSets must have the same number of examples. A main set must be 
+        delivered containing the union of all attributes in all subsets. This must be connected to the first input port of this operator.
+        On all other ports subsets might be attached.&lt;/p&gt; 
+        &lt;p&gt;To compute the residuals a linear regression is performed on each single set using the parameter settings of
+        this operator. The covariance of the residuals is used for improve the quality of predictions that are influenced by effects not captured by the attributes.&lt;/p&gt;
+        </help>
+    <key>seemingly_unrelated_regression</key>
+  </operator>
+    <operator>
         <name>Generate Gaussians</name>
         <synopsis>Creates a gaussian function based on a given attribute and a
             specified mean and standard deviation sigma.</synopsis>
