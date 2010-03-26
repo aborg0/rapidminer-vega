@@ -1,7 +1,0 @@
-Market Basket Analyses
-Reads a data set containing of three columns: customerId, itemId, and itemCount. The item count is summed up per item and customer, pivoting is performed to have one attribute per item, and finally, association rules are generated.
-marketbasket.xml
-Retrieve.repository_entry
-Define Customer.value
-Define Item.value
-Define Item Count.value

@@ -1,4 +1,0 @@
-Find best Learner
-This process uses a "Select Subprocess" operator to iterate over three possible learning algorithms: SVM, Naive Bayes, and kNN. An optimization operator is used to select the best result.
-fbl.xml
-Retrieve.repository_entry

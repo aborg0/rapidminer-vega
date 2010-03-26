@@ -1,5 +1,0 @@
-Crossvalidation (Numerical, Linear Regression)
-Performs a cross validation using a linear regression as learning algorithm.
-xvalnum.xml
-Retrieve.repository_entry
-Validation.number_of_validations

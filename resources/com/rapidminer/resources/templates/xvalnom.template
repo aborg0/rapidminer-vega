@@ -1,5 +1,0 @@
-Crossvalidation (Nominal, Decision Tree)
-Performs a crossvalidation on a given data set with nominal label, using a Decision Tree as learning algorithm.
-xvalnom.xml
-Retrieve.repository_entry
-Validation.number_of_validations

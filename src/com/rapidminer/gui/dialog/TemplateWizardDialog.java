@@ -22,11 +22,12 @@
  */
 package com.rapidminer.gui.dialog;
 
-import java.io.InputStream;
+import java.awt.BorderLayout;
 import java.util.Collection;
 import java.util.logging.Level;
 
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import com.rapidminer.Process;
@@ -54,7 +55,7 @@ public class TemplateWizardDialog extends AbstractWizard {
     private static final long serialVersionUID = 1L;
 
     private Process process = null;
-    
+    private Template template;
     private Collection<OperatorParameterPair> parameters = null; 
 	
 	public TemplateWizardDialog() {
@@ -83,14 +84,9 @@ public class TemplateWizardDialog extends AbstractWizard {
 			
 			protected boolean performLeavingAction() {
 				try {
-					Template template = dialog.getSelectedTemplate();
-					InputStream processStream = template.getProcessStream();
-					if (processStream != null) {
-						process = new Process(processStream);
-						parameters = template.getParameters();
-					} else {
-						LogService.getRoot().warning("Cannot find resource for template "+template.getName());
-						return false;					}					
+					template = dialog.getSelectedTemplate();
+					process = template.getProcess();
+					parameters = template.getParameters();
 				} catch (Exception e) {
 					LogService.getRoot().log(Level.WARNING, "Error loading process template: "+e, e);
 					return false;
@@ -106,7 +102,7 @@ public class TemplateWizardDialog extends AbstractWizard {
 		});
 		addStep(new WizardStep("open_template.parameters") {
 			private WizardPropertyTable propertyTable = new WizardPropertyTable();
-			
+			private JLabel headerLabel = new JLabel();
 			@Override
 			protected boolean canGoBack() {
 				return true;
@@ -122,6 +118,7 @@ public class TemplateWizardDialog extends AbstractWizard {
 					return false;
 				}
 				propertyTable.setProcess(process, parameters);
+				headerLabel.setText(template.getHTMLDescription());
 				return true;
 			}
 			
@@ -132,9 +129,14 @@ public class TemplateWizardDialog extends AbstractWizard {
 
 			@Override
 			protected JComponent getComponent() {
+				JPanel panel = new JPanel(new BorderLayout());
 				ExtendedJScrollPane tablePane = new ExtendedJScrollPane(propertyTable);
 				tablePane.setBorder(createBorder());
-				return tablePane;
+				
+				panel.add(tablePane, BorderLayout.CENTER);
+				panel.add(headerLabel, BorderLayout.NORTH);
+				
+				return panel;
 			}
 			
 		});

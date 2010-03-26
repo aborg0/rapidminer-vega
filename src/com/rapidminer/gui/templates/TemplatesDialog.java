@@ -25,8 +25,6 @@ package com.rapidminer.gui.templates;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
@@ -34,10 +32,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 
 import javax.swing.Action;
@@ -80,30 +80,45 @@ public class TemplatesDialog extends ButtonDialog {
 				JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus); 
 				if (value instanceof Template) {
 					Template template = (Template) value;
-					label.setText("<html><strong>" + template.getName() + "</strong><div width=\"600\">" + template.getDescription() + "</div></html>");
+					label.setText(((Template)template).getHTMLDescription());
 					label.setIcon(SwingTools.createIcon("16/package.png"));
 					label.setBorder(BorderFactory.createEmptyBorder(GAP, GAP, GAP, GAP));
 					label.setVerticalAlignment(SwingConstants.TOP);
 					label.setVerticalTextPosition(SwingConstants.TOP);
+					label.setHorizontalTextPosition(SwingConstants.RIGHT);
+					//label.setHorizontalAlignment(SwingConstants.RIGHT);
+				} else if (value instanceof String) {
+					label.setText("<html><strong>"+value.toString()+"</strong></html>");
+					label.setIcon(null);
+					label.setBorder(BorderFactory.createEmptyBorder(GAP, GAP, GAP, GAP));
+					label.setVerticalAlignment(SwingConstants.TOP);
+					label.setVerticalTextPosition(SwingConstants.TOP);
+					label.setHorizontalTextPosition(SwingConstants.LEFT);
+					//label.setHorizontalAlignment(SwingConstants.LEFT);
+					label.setBackground(SwingTools.LIGHT_BLUE);
 				}
 				return label;
 			}
 			
-		});
+		});		
+		
 		templateList.addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
-				fireStateChanged();
-			}
-		});
-		templateList.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (e.getClickCount() == 2) {
-					actOnDoubleClick();
+				if (!(templateList.getSelectedValue() instanceof Template)) {
+					templateList.setSelectedValue(null, false);
 				}
+				fireStateChanged();				
 			}
 		});
+//		templateList.addMouseListener(new MouseAdapter() {
+//			@Override
+//			public void mouseClicked(MouseEvent e) {
+//				if (e.getClickCount() == 2) {
+//					actOnDoubleClick();
+//				}
+//			}
+//		});
 	}
 
 	private final Map<String, Template> templateMap = new TreeMap<String, Template>();
@@ -158,7 +173,7 @@ public class TemplatesDialog extends ButtonDialog {
 						} else {
 							LogService.getRoot().warning("Cannot find template "+templateName);
 						}
-					} catch (IOException e) {
+					} catch (Exception e) {
 						SwingTools.showSimpleErrorMessage("cannot_load_template_file", e, line);
 					}
 				}
@@ -192,19 +207,47 @@ public class TemplatesDialog extends ButtonDialog {
 	
 	public JPanel createTemplateManagementPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
-		panel.add(listPane, BorderLayout.CENTER);
+		panel.add(listPane,//		try {
+//			if (oldFormat) {
+//				saveAsUserTemplate(getProcess());
+//			}
+//		} catch (XMLException e) {
+//			throw new IOException(e);
+//		}
+ BorderLayout.CENTER);
 		return panel;
 	}
-	
-	protected void actOnDoubleClick() {}
+		
+	//protected void actOnDoubleClick() {}
 
 	private void update() {
-		Vector<Template> data = new Vector<Template>();
-		Iterator<Template> i = templateMap.values().iterator();
-		while (i.hasNext()) {
-			Template template = i.next();
-			data.add(template);
+		Map<String,List<Template>> groupToTemplateList = new TreeMap<String,List<Template>>();
+				
+		for (Template template : templateMap.values()) {
+			List<Template> groupList = groupToTemplateList.get(template.getGroup());
+			if (groupList == null) {
+				groupList = new LinkedList<Template>();
+				groupToTemplateList.put(template.getGroup(), groupList);
+			}
+			groupList.add(template);
 		}
+		Vector<Object> data = new Vector<Object>();
+		for (Entry<String, List<Template>> entry : groupToTemplateList.entrySet()) {
+			data.add(entry.getKey()); // group name header
+			for (Template template : entry.getValue()) {
+				data.add(template);
+			}
+		}
+//		String lastGroup = null;
+//		Iterator<Template> i = templateMap.values().iterator();
+//		while (i.hasNext()) {
+//			Template template = i.next();
+//			if (!template.getGroup().equals(lastGroup)) {
+//				lastGroup = template.getGroup();
+//				data.add(lastGroup);
+//			}
+//			data.add(template);
+//		}		
 		templateList.setListData(data);
 		repaint();
 	}
@@ -214,19 +257,17 @@ public class TemplatesDialog extends ButtonDialog {
 		for (int i = 0; i < selection.length; i++) {
 			String name = ((Template) selection[i]).getName();
 			Template template = templateMap.remove(name);
-			File templateFile = template.getFile();
-			File expFile = template.getProcessFile();
-			boolean deleteResult = templateFile.delete();
-			if (!deleteResult)
-				LogService.getGlobal().logWarning("Unable to delete template file: " + templateFile);
-			deleteResult = expFile.delete();
-			if (!deleteResult)
-				LogService.getGlobal().logWarning("Unable to delete template experiment file: " + expFile);
+			template.delete();
 		}
 		update();
 	}
 	
-	public Template getSelectedTemplate() {
-		return (Template) templateList.getSelectedValue();
+	public Template getSelectedTemplate() {		 
+		final Object selectedValue = templateList.getSelectedValue();
+		if (selectedValue instanceof Template) {
+			return (Template) selectedValue;
+		} else {
+			return null;
+		}
 	}
 }

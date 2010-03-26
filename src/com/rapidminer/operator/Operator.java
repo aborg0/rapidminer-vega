@@ -1540,7 +1540,6 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		}
 	}
 
-
 	public static Operator createFromXML(Element element, List<UnknownParameterInformation> unknownParameterInformation) throws XMLException {
 		return createFromXML(element, unknownParameterInformation, null);
 	}

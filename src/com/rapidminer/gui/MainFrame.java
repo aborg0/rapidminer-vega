@@ -28,8 +28,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.File;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
@@ -111,7 +109,6 @@ import com.rapidminer.gui.processeditor.results.ResultDisplayTools;
 import com.rapidminer.gui.processeditor.results.TabbedResultDisplay;
 import com.rapidminer.gui.properties.OperatorPropertyPanel;
 import com.rapidminer.gui.templates.SaveAsTemplateDialog;
-import com.rapidminer.gui.templates.Template;
 import com.rapidminer.gui.tools.LoggingViewer;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceMenu;
@@ -141,7 +138,6 @@ import com.rapidminer.repository.gui.process.RemoteProcessViewer;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Observable;
 import com.rapidminer.tools.Observer;
-import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.plugin.Plugin;
 import com.rapidminer.tools.usagestats.UsageStatsTransmissionDialog;
@@ -1200,19 +1196,13 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	}
 
 	public void saveAsTemplate() {
-		synchronized (process) {
-			Operator rootOperator = MainFrame.this.process.getRootOperator();
-			SaveAsTemplateDialog dialog = new SaveAsTemplateDialog(rootOperator);
+		synchronized (process) {			
+			SaveAsTemplateDialog dialog = new SaveAsTemplateDialog(MainFrame.this.process);
 			dialog.setVisible(true);
 			if (dialog.isOk()) {
-				Template template = dialog.getTemplate(rootOperator);
-				String name = template.getName();
-				try {
-					File templateFile = ParameterService.getUserConfigFile(name + ".template");
-					template.save(templateFile);
-					File templateXmlFile = ParameterService.getUserConfigFile(name + ".xml");
-					MainFrame.this.process.save(templateXmlFile);
-				} catch (IOException ioe) {
+				try {					
+					dialog.getTemplate().saveAsUserTemplate(MainFrame.this.process);					
+				} catch (Exception ioe) {
 					SwingTools.showSimpleErrorMessage("cannot_write_template_file", ioe);
 				}
 			}

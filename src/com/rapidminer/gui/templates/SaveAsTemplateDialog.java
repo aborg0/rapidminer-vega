@@ -22,6 +22,8 @@
  */
 package com.rapidminer.gui.templates;
 
+import com.rapidminer.Process;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -35,6 +37,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -85,9 +88,14 @@ public class SaveAsTemplateDialog extends ButtonDialog {
 
 	private final JTextArea descriptionField = new JTextArea(5, 40);
 
+	private Process process;
+
 	/** Creates a new save as template dialog. */
-	public SaveAsTemplateDialog(Operator operator) {
+	public SaveAsTemplateDialog(Process process) {
 		super("save_as_template", true);
+		this.process = process;
+		
+		descriptionField.setText(process.getRootOperator().getUserDescription());
 		descriptionField.setLineWrap(true);
 		descriptionField.setWrapStyleWord(true);		
 		
@@ -127,7 +135,7 @@ public class SaveAsTemplateDialog extends ButtonDialog {
 		descriptionPane.setBorder(createBorder());
 		panel.add(descriptionPane, c);
 		
-		JScrollPane tablePane = new ExtendedJScrollPane(makeCheckboxTable(operator));
+		JScrollPane tablePane = new ExtendedJScrollPane(makeCheckboxTable(process.getRootOperator()));
 		tablePane.setBorder(createBorder());
 
 		c.weightx = 1;
@@ -204,6 +212,7 @@ public class SaveAsTemplateDialog extends ButtonDialog {
 				if (!current.equals(type.toString(type.getDefaultValue()))) {
 					currentLabel.setFont(currentLabel.getFont().deriveFont(Font.BOLD));
 					box.setSelected(true);
+					selectedParameters.add(opp);
 				}
 				parameterPanel.add(currentLabel);
 			}
@@ -236,10 +245,16 @@ public class SaveAsTemplateDialog extends ButtonDialog {
 		return ok;
 	}
 
-	public Template getTemplate(Operator operator) {
+	public Template getTemplate() {
 		String name = nameField.getText();
-		Set<OperatorParameterPair> selectedOptional = new TreeSet<OperatorParameterPair>(selectedParameters);
-		addMandatoryParameters(operator, selectedOptional);
+		Set<OperatorParameterPair> selectedOptional = new TreeSet<OperatorParameterPair>(new Comparator<OperatorParameterPair>() {
+			@Override
+			public int compare(OperatorParameterPair o1, OperatorParameterPair o2) {
+				return o1.compareTo(o2);
+			}			
+		});
+		selectedOptional.addAll(selectedParameters);
+		addMandatoryParameters(process.getRootOperator(), selectedOptional);
 		return new Template(name, descriptionField.getText(), name + ".xml", selectedOptional);
 	}
 

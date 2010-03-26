@@ -23,6 +23,9 @@
 package com.rapidminer.io.process;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -191,7 +194,22 @@ public class XMLExporter {
 		Document doc = element.getOwnerDocument();
 		Element list = doc.createElement(name);
 		element.appendChild(list);
-		for (String loc : locations) {
+		
+		// We don't write the last empty entries, so strip first.
+		LinkedList<String> nonNull = new LinkedList<String>(locations);
+		Collections.reverse(nonNull);
+		Iterator<String> i = nonNull.iterator();
+		while (i.hasNext()) {
+			String loc = i.next();
+			if ((loc != null) && !loc.isEmpty()) {
+				break;
+			}
+			i.remove();
+		}
+		
+		Collections.reverse(nonNull);
+		i = locations.iterator();
+		for (String loc : nonNull) {
 			Element stringElem = doc.createElement("location");
 			list.appendChild(stringElem);
 			stringElem.appendChild(doc.createTextNode(loc));

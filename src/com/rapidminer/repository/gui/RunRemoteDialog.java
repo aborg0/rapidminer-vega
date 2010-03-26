@@ -122,8 +122,8 @@ public class RunRemoteDialog extends ButtonDialog {
 		startField.setStripTime(false);
 		startField.setKeepTime(true);
 		endField.setStripTime(false);
-		endField.setKeepTime(true);
-		
+		endField.setKeepTime(true);		
+				
 		startBox.setSelected(false);
 		endBox.setSelected(false);
 
