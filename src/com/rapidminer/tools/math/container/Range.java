@@ -40,14 +40,24 @@ public class Range implements Serializable {
 		this.upper = Double.NaN;
 	}
 
-	public Range(double start, double end) {
-		this.lower = start;
-		this.upper = end;
+	public Range(double lowerBound, double upperBound) {
+		if (lowerBound > upperBound){
+			throw new RuntimeException("Range was tried to initialized with a " +
+					"lower bound > upper bound. Lower bound = "+lowerBound+" Upper = "+upperBound+".");
+		}
+		this.lower = lowerBound;
+		this.upper = upperBound;
 	}
 
 	public Range(Range valueRange) {
-		this.lower = valueRange.getLower();
-		this.upper = valueRange.getUpper();
+		if (valueRange != null){
+			this.lower = valueRange.getLower();
+			this.upper = valueRange.getUpper();
+		} else{
+			this.lower = Double.NEGATIVE_INFINITY;
+			this.upper = Double.POSITIVE_INFINITY;
+		}
+
 	}
 
 	/**
@@ -80,6 +90,27 @@ public class Range implements Serializable {
 
 	public double getLower() {
 		return lower;
+	}
+	
+	public double getSize(){
+		return upper-lower;
+	}
+	
+	public void setRange(double lower, double upper){
+		this.lower = lower;
+		this.upper = upper;
+	}
+	
+	public void setRange(Range theNewRange){
+		setRange(theNewRange.getLower(), theNewRange.getUpper());
+	}
+	
+	public void setLower(double newLowerBound){
+		this.lower = newLowerBound;
+	}
+	
+	public void setUpper(double newUpperBound){
+		this.upper = newUpperBound;
 	}
 	
 	@Override
