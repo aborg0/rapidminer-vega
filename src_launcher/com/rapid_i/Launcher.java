@@ -13,7 +13,6 @@ import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -101,7 +100,9 @@ public class Launcher {
 						} else {
 							message += "failed";
 						}
-					} catch (URISyntaxException e) {
+					} catch (Throwable e) { 
+						// important: not only URI Syntax Exception since the program must not crash in any case!!!
+						// For example: RapidNet integration as applet into Siebel would cause problem with new File(...)
 						message += "failed";
 					}
 				} else {

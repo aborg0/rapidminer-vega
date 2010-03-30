@@ -104,6 +104,20 @@ public class ViewToolBar extends JToolBar {
 		return c;
 	}
 	
+	public void addSeparator(int alignment) {
+		switch (alignment) {
+		case LEFT:
+			leftToolBar.addSeparator();
+			break;
+		case RIGHT:
+			rightToolBar.addSeparator();
+			break;
+		default:
+			leftToolBar.addSeparator();
+			break;
+		}
+	}
+	
 	@Override
 	public JButton add(Action a) {
 		return add(a, LEFT);
@@ -117,6 +131,17 @@ public class ViewToolBar extends JToolBar {
 			return rightToolBar.add(a);
 		default:
 			return leftToolBar.add(a);
+		}
+	}
+	
+	@Override
+	public void setBackground(Color bg) {
+		super.setBackground(bg);
+		if (leftToolBar != null) {
+			leftToolBar.setBackground(bg);
+		}
+		if (rightToolBar != null) {
+			rightToolBar.setBackground(bg);
 		}
 	}
 }

@@ -263,6 +263,7 @@ public abstract class PropertyPanel extends JPanel {
 				label.setOpaque(isOpaque());
 				label.setFont(getFont());
 				label.setForeground(fontColor);
+				label.setBackground(getBackground());
 				label.setToolTipText(toolTip.toString());
 				int style = Font.PLAIN;
 				if (!type.isOptional()) {
