@@ -38,10 +38,10 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Ontology;
 
-/** Helper class to create SQL statements and escape column names. 
+/** 
+ * Helper class to create SQL statements and escape column names. 
  * 
  * @author Simon Fischer
- *
  */
 public class StatementCreator {
 
@@ -119,12 +119,13 @@ public class StatementCreator {
 		registerSyntaxInfo(Ontology.NOMINAL, dataTypeToMDMap, Types.VARCHAR);
 		registerSyntaxInfo(Ontology.STRING, dataTypeToMDMap, Types.CLOB, Types.BLOB, Types.LONGVARCHAR, Types.LONGNVARCHAR, Types.VARCHAR);
 		registerSyntaxInfo(Ontology.REAL, dataTypeToMDMap, Types.DOUBLE, Types.REAL, Types.FLOAT);
+		registerSyntaxInfo(Ontology.NUMERICAL, dataTypeToMDMap, Types.DOUBLE, Types.REAL, Types.FLOAT);
 		registerSyntaxInfo(Ontology.INTEGER, dataTypeToMDMap, Types.INTEGER);
 		registerSyntaxInfo(Ontology.DATE, dataTypeToMDMap, Types.DATE, Types.TIMESTAMP);
 		registerSyntaxInfo(Ontology.DATE_TIME, dataTypeToMDMap, Types.TIMESTAMP);
 		registerSyntaxInfo(Ontology.TIME, dataTypeToMDMap, Types.TIME, Types.TIMESTAMP);
-		registerSyntaxInfo(Ontology.ATTRIBUTE_VALUE, dataTypeToMDMap, Types.DOUBLE, Types.REAL, Types.FLOAT); // fallback; same will be used by actual insertino code
-		registerSyntaxInfo(Ontology.BINOMINAL, dataTypeToMDMap, Types.VARCHAR); // fallback; same will be used by actual insertino code
+		registerSyntaxInfo(Ontology.ATTRIBUTE_VALUE, dataTypeToMDMap, Types.DOUBLE, Types.REAL, Types.FLOAT); // fallback; same will be used by actual insertion code
+		registerSyntaxInfo(Ontology.BINOMINAL, dataTypeToMDMap, Types.VARCHAR); // fallback; same will be used by actual insertion code
 	}
 
 	private void registerSyntaxInfo(int attributeType, Map<Integer,DataTypeSyntaxInformation> dataTypeToMDMap, int ... possibleDataTypes) throws SQLException {
@@ -150,7 +151,7 @@ public class StatementCreator {
 	private DataTypeSyntaxInformation getSQLTypeForRMValueType(int type) {
 		int parent = type;
 		while (parent != Ontology.ATTRIBUTE_VALUE) {
-			DataTypeSyntaxInformation si = typeMap.get(type);
+			DataTypeSyntaxInformation si = typeMap.get(parent);
 			if (si != null) {
 				return si;
 			} else {

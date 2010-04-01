@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator.preprocessing.outlier;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -203,6 +204,9 @@ public class LOFOutlierOperator extends AbstractOutlierDetection {
 	 * Isn't called because super method of modifyMetaData is overridden.
 	 */
 	protected Set<String> getOutlierValues() {
-		return null;
+		HashSet<String> set = new HashSet<String>();
+		set.add("true");
+		set.add("false");
+		return set;
 	}
 }

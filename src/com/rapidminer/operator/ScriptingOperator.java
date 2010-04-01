@@ -95,7 +95,7 @@ public class ScriptingOperator extends Operator {
 		inExtender.start();
 		outExtender.start();
 	}
-
+	
 	@Override
 	public void doWork() throws OperatorException {		
 		String script = getParameterAsString(PARAMETER_SCRIPT);

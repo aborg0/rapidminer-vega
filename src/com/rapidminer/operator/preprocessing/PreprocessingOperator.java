@@ -87,7 +87,7 @@ public abstract class PreprocessingOperator extends AbstractDataProcessing {
 			if (replacement != null) {
 				if (replacement.size() == 1) {
 					AttributeMetaData replacementAttribute = replacement.iterator().next();
-					replacementAttribute.setRole(exampleSetMetaData.getAttributeByName(replacementAttribute.getName()).getRole());
+					replacementAttribute.setRole(amd.getRole());
 				}
 				exampleSetMetaData.removeAttribute(amd);
 				exampleSetMetaData.addAllAttributes(replacement);

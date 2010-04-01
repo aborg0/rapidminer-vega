@@ -24,7 +24,7 @@ package com.rapidminer.operator.performance;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
 
 import com.rapidminer.example.Attribute;
@@ -159,20 +159,21 @@ public class MultiClassificationPerformance extends MeasuredPerformance {
 		if ((this.predictedLabelAttribute == null) || (!this.predictedLabelAttribute.isNominal()))
 			throw new UserError(null, 101, "calculation of classification performance criteria", "predicted label attribute");
 
-		if (this.predictedLabelAttribute.getMapping().size() != this.labelAttribute.getMapping().size()) {
-			throw new UserError(null, 118, new Object[] { this.predictedLabelAttribute.getName(), this.predictedLabelAttribute.getMapping().size(), " the same as the different values of the label (" + this.labelAttribute.getMapping().size() + ")" });
-		}
-
 		if (useExampleWeights)
 			this.weightAttribute = eSet.getAttributes().getWeight();
 
-		Collection values = this.labelAttribute.getMapping().getValues();
-		this.counter = new double[values.size()][values.size()];
-		this.classNames = new String[values.size()];
-		Iterator i = values.iterator();
+		Collection<String> labelValues = this.labelAttribute.getMapping().getValues();
+		Collection<String> predictedLabelValues = this.predictedLabelAttribute.getMapping().getValues();
+		
+		// searching for greater mapping for making symmetric matrix in case of different mapping sizes 
+		Collection<String> unionedMapping = new LinkedHashSet<String>(labelValues);
+		unionedMapping.addAll(predictedLabelValues);
+		
+		this.counter = new double[unionedMapping.size()][unionedMapping.size()];
+		this.classNames = new String[unionedMapping.size()];
 		int n = 0;
-		while (i.hasNext()) {
-			classNames[n] = (String) i.next();
+		for (String labelValue: unionedMapping) {
+			classNames[n] = labelValue;
 			classNameMap.put(classNames[n], n);
 			n++;
 		}

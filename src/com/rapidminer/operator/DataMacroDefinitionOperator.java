@@ -108,7 +108,8 @@ public class DataMacroDefinitionOperator extends Operator {
 		"variance",
 		"min",
 		"max",
-		"count"
+		"count",
+		"unknown"
 	};
 
 	public static final int STATISTICS_TYPE_AVERAGE   = 0;
@@ -117,6 +118,7 @@ public class DataMacroDefinitionOperator extends Operator {
 	public static final int STATISTICS_TYPE_MIN       = 3;
 	public static final int STATISTICS_TYPE_MAX       = 4;
 	public static final int STATISTICS_TYPE_COUNT     = 5;
+	public static final int STATISTICS_TYPE_UNKNOWN   = 6;
 
 	/** The last defined macro. */
 	private String macroValue = null;
@@ -245,6 +247,8 @@ public class DataMacroDefinitionOperator extends Operator {
 					throw new UserError(this, 119, attribute.getName(), getName());
 				}
 				break;
+			case STATISTICS_TYPE_UNKNOWN:
+				macroValue = exampleSet.getStatistics(attribute, Statistics.UNKNOWN) + "";
 			}
 			break;
 		}

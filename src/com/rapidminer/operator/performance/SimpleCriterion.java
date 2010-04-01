@@ -104,7 +104,7 @@ public abstract class SimpleCriterion extends MeasuredPerformance {
 		if (!Double.isNaN(deviation)) {
 			countExampleWithWeight(deviation, weight);
 		} else {
-			LogService.getGlobal().log("SimpleCriterion: NaN was generated!", LogService.WARNING);
+			LogService.getGlobal().log("SimpleCriterion: Deviation of Performance was NaN!", LogService.WARNING);
 		}
 	}
 

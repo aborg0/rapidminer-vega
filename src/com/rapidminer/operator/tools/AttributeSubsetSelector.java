@@ -251,6 +251,7 @@ public class AttributeSubsetSelector {
 	 */
 	public Set<Attribute> getAttributeSubset(ExampleSet exampleSet, boolean keepSpecialIfNotIncluded) throws UndefinedParameterError, UserError {
 		try {
+			exampleSet = (ExampleSet) exampleSet.clone();
 			Attributes attributes = exampleSet.getAttributes();
 			AttributeFilterCondition condition = createCondition(CONDITION_NAMES[operator.getParameterAsInt(PARAMETER_FILTER_TYPE)], operator);
 
@@ -307,7 +308,7 @@ public class AttributeSubsetSelector {
 					// now inverting, cannot be unchecked now
 					afterScanResult = afterScanResult.invert(invert);
 					if (afterScanResult == ScanResult.REMOVE)
-						exampleSet.getAttributes().remove(attribute);
+						attributes.remove(attribute);
 				}
 			}
 

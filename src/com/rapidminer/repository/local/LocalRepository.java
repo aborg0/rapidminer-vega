@@ -23,6 +23,7 @@
 package com.rapidminer.repository.local;
 
 import java.io.File;
+import java.util.logging.Level;
 
 import javax.swing.event.EventListenerList;
 
@@ -38,6 +39,7 @@ import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryListener;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
 
 /** A repository backed by the local file system. Each entry is backed by one or more files.
@@ -55,7 +57,11 @@ public class LocalRepository extends SimpleFolder implements Repository {
 		super(name, null, null);		
 		setRepository(this);
 		this.root = root;
-		mkdir();
+		try {
+			mkdir();
+		} catch (Exception e) {
+			LogService.getRoot().log(Level.WARNING, "Failed to create repository directory: "+e, e);
+		}
 	}
 
 	protected File getRoot() {

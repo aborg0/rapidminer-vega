@@ -32,6 +32,7 @@ import com.rapidminer.example.set.Partition;
 import com.rapidminer.example.set.SplittedExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.preprocessing.AbstractDataProcessing;
@@ -65,6 +66,10 @@ public class RemoveDuplicates extends AbstractDataProcessing {
 		int[] partition = new int[exampleSet.size()];
 		Set<Attribute> compareAttributes = subsetSelector.getAttributeSubset(exampleSet, false);
 
+		// if set is empty: Nothing can be done!
+		if (compareAttributes.isEmpty())
+			throw new UserError(this, 153, 1, 0);
+		
 		for (int i = 0; i < exampleSet.size(); i++) {
 			Example example = exampleSet.getExample(i);
 			for (int j = i + 1; j < exampleSet.size(); j++) {

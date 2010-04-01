@@ -44,7 +44,10 @@ public class MetaDataTools {
 		if (emd.getSpecial(Attributes.ID_NAME) == null) {
 			AttributeMetaData idMD = new AttributeMetaData(Attributes.ID_NAME, Ontology.INTEGER, Attributes.ID_NAME); 
 			if (emd.getNumberOfExamples().isKnown())
-				idMD.setValueRange(new Range(0, emd.getNumberOfExamples().getValue().doubleValue() - 1), SetRelation.EQUAL);
+				if (emd.getNumberOfExamples().getValue().doubleValue() > 1)
+					idMD.setValueRange(new Range(0, emd.getNumberOfExamples().getValue().doubleValue() - 1), SetRelation.EQUAL);
+				else
+					idMD.setValueRange(new Range(), SetRelation.EQUAL);
 			emd.addAttribute(idMD);
 		}
 	}

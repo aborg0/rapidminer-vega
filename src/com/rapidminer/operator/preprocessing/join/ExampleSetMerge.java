@@ -132,15 +132,17 @@ public class ExampleSetMerge extends Operator {
 						for (AttributeMetaData amd : resultEMD.getAllAttributes()) {
 							String name = amd.getName();
 							AttributeMetaData mergingAMD = mergerEMD.getAttributeByName(name);
-							// values
-							if (amd.isNominal()) {
-								amd.getValueSet().addAll(mergingAMD.getValueSet());
-							}else {
-								amd.getValueRange().union(mergingAMD.getValueRange());
+							if (mergingAMD != null) {
+								// values
+								if (amd.isNominal()) {
+									amd.getValueSet().addAll(mergingAMD.getValueSet());
+								}else {
+									amd.getValueRange().union(mergingAMD.getValueRange());
+								}
+								amd.getValueSetRelation().merge(mergingAMD.getValueSetRelation());
+								// missing values
+								amd.getNumberOfMissingValues().add(mergingAMD.getNumberOfMissingValues());
 							}
-							amd.getValueSetRelation().merge(mergingAMD.getValueSetRelation());
-							// missing values
-							amd.getNumberOfMissingValues().add(mergingAMD.getNumberOfMissingValues());
 						}
 					}
 					mergedOutput.deliverMD(resultEMD);

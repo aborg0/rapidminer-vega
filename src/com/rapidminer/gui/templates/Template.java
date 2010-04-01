@@ -172,8 +172,9 @@ public class Template {
 		}
 	}
 
-	public Template(String name, String description, String configFile, Set<OperatorParameterPair> parameters) {
+	public Template(String name, String group, String description, String configFile, Set<OperatorParameterPair> parameters) {
 		this.name = name;
+		this.group = group;
 		this.description = description;
 		this.processResourceName = configFile;
 		this.parameters = parameters;
@@ -271,12 +272,18 @@ public class Template {
 
 
 	public Process getProcess() throws IOException, XMLException {
+		Process process;
 		if (oldFormat) {
 			final InputStream in = getProcessStream();
-			return new Process(in);
+			process = new Process(in);
 		} else {
-			return new Process(templateDefinition);
+			process = new Process(templateDefinition);
 		}
+		final String desc = process.getRootOperator().getUserDescription();
+		if ((desc == null) || desc.isEmpty()) {
+			process.getRootOperator().setUserDescription(getDescription());
+		}
+		return process;
 	}
 
 

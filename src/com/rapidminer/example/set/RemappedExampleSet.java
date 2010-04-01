@@ -28,7 +28,6 @@ import java.util.Map;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.AttributeRole;
-import com.rapidminer.example.AttributeTransformation;
 import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
@@ -50,14 +49,12 @@ public class RemappedExampleSet extends AbstractExampleSet {
 
 	private ExampleSet parent;
 
-	private ExampleSet mappingSet;
-
 	public RemappedExampleSet(ExampleSet parentSet, ExampleSet mappingSet) {
 		this(parentSet, mappingSet, true);
 	}
 	public RemappedExampleSet(ExampleSet parentSet, ExampleSet _mappingSet, boolean keepAdditional) {
 		this.parent = (ExampleSet)parentSet.clone();
-		this.mappingSet = (ExampleSet)_mappingSet.clone();
+		ExampleSet mappingSet = (ExampleSet)_mappingSet.clone();
 
 		// check for a missing mappingSet because of compatibility
 		if (mappingSet != null) {
@@ -97,7 +94,7 @@ public class RemappedExampleSet extends AbstractExampleSet {
 				if (currentAttribute.isNominal()) {
 					NominalMapping mapping = null;
 					mapping = currentAttribute.getMapping();
-					Attribute oldMappingAttribute = this.mappingSet.getAttributes().get(role.getAttribute().getName());
+					Attribute oldMappingAttribute = mappingSet.getAttributes().get(role.getAttribute().getName());
 					if ((oldMappingAttribute != null) && (oldMappingAttribute.isNominal()))
 						mapping = oldMappingAttribute.getMapping();
 					currentAttribute.addTransformation(new AttributeTransformationRemapping(mapping));
@@ -109,24 +106,6 @@ public class RemappedExampleSet extends AbstractExampleSet {
 	/** Clone constructor. */
 	public RemappedExampleSet(RemappedExampleSet other) {
 		this.parent = (ExampleSet)other.parent.clone();
-		this.mappingSet = (ExampleSet)other.mappingSet.clone();
-
-		Iterator<AttributeRole> a = this.parent.getAttributes().allAttributeRoles();
-		while (a.hasNext()) {
-			AttributeRole role = a.next();
-			Attribute currentAttribute = role.getAttribute();
-			AttributeTransformation transformation = currentAttribute.getLastTransformation();
-			if (transformation != null) {
-				if (transformation instanceof AttributeTransformationRemapping) {
-					Attribute mappingAttribute = this.mappingSet.getAttributes().get(currentAttribute.getName());
-					if (mappingAttribute != null) {
-						NominalMapping oldMapping = mappingAttribute.getMapping();
-						if (oldMapping != null)
-							((AttributeTransformationRemapping)transformation).setNominalMapping(oldMapping);
-					}
-				}
-			}
-		}
 	}
 
 	public Attributes getAttributes() {

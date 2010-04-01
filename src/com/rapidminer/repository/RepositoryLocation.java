@@ -147,8 +147,9 @@ public class RepositoryLocation {
 		return b.toString();
 	}
 	
-	/** Returns the repository associated with this location. */
-	public Repository getRepository() {
+	/** Returns the repository associated with this location. 
+	 * @throws RepositoryException */
+	public Repository getRepository() throws RepositoryException {
 		return RepositoryManager.getInstance(getAccessor()).getRepository(repositoryName);		
 	}
 

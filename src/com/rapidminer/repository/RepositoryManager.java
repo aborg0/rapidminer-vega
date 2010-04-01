@@ -150,14 +150,13 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 		return Collections.unmodifiableList(repositories);
 	}
 
-	public Repository getRepository(String name) {
+	public Repository getRepository(String name) throws RepositoryException {
 		for (Repository repos : repositories) {
 			if (repos.getName().equals(name)) {
 				return repos;
 			}
 		}
-		LogService.getRoot().warning("Requested repository "+name + " does not exist.");
-		return null;
+		throw new RepositoryException("Requested repository "+name + " does not exist.");
 	}
 
 	public List<RemoteRepository> getRemoteRepositories() {

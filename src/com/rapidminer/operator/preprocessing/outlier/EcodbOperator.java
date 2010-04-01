@@ -23,6 +23,7 @@
 package com.rapidminer.operator.preprocessing.outlier;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -244,7 +245,10 @@ public class EcodbOperator extends AbstractOutlierDetection {
 
 	@Override
 	protected Set<String> getOutlierValues() {
-		return null;
+		HashSet<String> set = new HashSet<String>();
+		set.add("true");
+		set.add("false");
+		return set;
 	}
 
 }

@@ -82,7 +82,9 @@ public class EvolutionaryParameterOptimizationOperator extends ParameterOptimiza
 
 	/** The actual optimizer. */
 	private ESOptimization optimizer;
-
+	private double bestFitnessEver = Double.NaN;
+	private double lastGenerationsPerformance = Double.NaN;
+	
 	/** The operators for which parameters should be optimized. */
 	private Operator[] operators;
 
@@ -97,7 +99,7 @@ public class EvolutionaryParameterOptimizationOperator extends ParameterOptimiza
 		addValue(new ValueDouble("best", "best performance ever") {
 			@Override
 			public double getDoubleValue() {
-				return optimizer.getBestFitnessEver();
+				return bestFitnessEver;
 			}
 		});
 	}
@@ -121,7 +123,11 @@ public class EvolutionaryParameterOptimizationOperator extends ParameterOptimiza
 
 	@Override
 	public double getCurrentBestPerformance() {
-		return optimizer.getBestFitnessInGeneration();
+		// must make this check, because optimizer will be set null to tidy up after execution
+		if (optimizer != null)
+			return optimizer.getBestFitnessInGeneration();
+		else
+			return lastGenerationsPerformance;
 	}
 
 	@Override
@@ -205,7 +211,9 @@ public class EvolutionaryParameterOptimizationOperator extends ParameterOptimiza
 		}
 		ParameterSet bestSet = new ParameterSet(operators, parameters, bestValues, optimizer.getBestPerformanceEver());
 
-		// freeing memory        
+		// freeing memory, but saving best value before
+		this.bestFitnessEver = optimizer.getBestFitnessEver();
+		this.lastGenerationsPerformance = optimizer.getBestFitnessInGeneration();
 		this.optimizer = null;
 		deliver(bestSet);
 	}

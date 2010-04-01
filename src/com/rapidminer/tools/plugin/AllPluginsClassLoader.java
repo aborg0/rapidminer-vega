@@ -40,10 +40,6 @@ public class AllPluginsClassLoader extends ClassLoader {
 	
 	@Override
 	public Class<?extends Object> loadClass(String name) throws ClassNotFoundException {
-//		try {
-//			return AllPluginsClassLoader.class.getClassLoader().loadClass(name);
-//		} catch (ClassNotFoundException notFound) {
-//		}
 		for (Plugin plugin : Plugin.getAllPlugins()) {
 			ClassLoader classLoader = plugin.getClassLoader();
 			try {
@@ -57,6 +53,11 @@ public class AllPluginsClassLoader extends ClassLoader {
 		} else {
 			throw new ClassNotFoundException(name);
 		}
+	}
+	
+	@Override
+	protected Class<?> findClass(String name) throws ClassNotFoundException {
+		return loadClass(name);
 	}
 }
 

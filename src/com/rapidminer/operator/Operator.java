@@ -1671,7 +1671,9 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 	protected void collectErrors(List<ProcessSetupError> errors) {
 		errors.addAll(errorList);
 		for (Port port : getInputPorts().getAllPorts()) {
-			errors.addAll(port.getErrors());
+			Collection<MetaDataError> portErrors = port.getErrors();
+			if (portErrors != null)
+				errors.addAll(portErrors);
 		}
 		for (Port port : getOutputPorts().getAllPorts()) {
 			Collection<MetaDataError> portErrors = port.getErrors();

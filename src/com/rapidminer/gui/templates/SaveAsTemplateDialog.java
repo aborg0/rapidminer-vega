@@ -85,6 +85,8 @@ public class SaveAsTemplateDialog extends ButtonDialog {
 	private final Set<OperatorParameterPair> selectedParameters = new HashSet<OperatorParameterPair>();
 
 	private final JTextField nameField = new JTextField();
+	
+	private final JTextField groupField = new JTextField();
 
 	private final JTextArea descriptionField = new JTextArea(5, 40);
 
@@ -118,6 +120,21 @@ public class SaveAsTemplateDialog extends ButtonDialog {
 		c.fill = GridBagConstraints.BOTH;
 		panel.add(nameField, c);
 
+		label = new ResourceLabel("save_as_template.group");	
+		c.fill = GridBagConstraints.NONE;
+		c.weightx   = 0;
+		c.weighty   = 0;
+		c.gridwidth = GridBagConstraints.RELATIVE;
+		c.insets    = new Insets(0, 0, GAP, GAP);
+		label.setLabelFor(groupField);
+		panel.add(label, c);
+		c.weightx   = 1;
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		c.insets    = new Insets(0, 0, GAP, 0);
+		c.fill = GridBagConstraints.BOTH;
+		panel.add(groupField, c);
+
+		
 		label = new ResourceLabel("save_as_template.description");
 		c.insets    = new Insets(0, 0, GAP, GAP);
 		c.weightx   = 0;
@@ -247,6 +264,7 @@ public class SaveAsTemplateDialog extends ButtonDialog {
 
 	public Template getTemplate() {
 		String name = nameField.getText();
+		String group = groupField.getText();
 		Set<OperatorParameterPair> selectedOptional = new TreeSet<OperatorParameterPair>(new Comparator<OperatorParameterPair>() {
 			@Override
 			public int compare(OperatorParameterPair o1, OperatorParameterPair o2) {
@@ -255,7 +273,7 @@ public class SaveAsTemplateDialog extends ButtonDialog {
 		});
 		selectedOptional.addAll(selectedParameters);
 		addMandatoryParameters(process.getRootOperator(), selectedOptional);
-		return new Template(name, descriptionField.getText(), name + ".xml", selectedOptional);
+		return new Template(name, group, descriptionField.getText(), name + ".xml", selectedOptional);
 	}
 
 	private boolean checkIfNameOk() {

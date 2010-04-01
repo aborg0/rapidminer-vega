@@ -42,7 +42,7 @@ public class Range implements Serializable {
 
 	public Range(double lowerBound, double upperBound) {
 		if (lowerBound > upperBound){
-			throw new RuntimeException("Range was tried to initialized with a " +
+			throw new IllegalArgumentException("Range was tried to initialized with a " +
 					"lower bound > upper bound. Lower bound = "+lowerBound+" Upper = "+upperBound+".");
 		}
 		this.lower = lowerBound;
@@ -81,6 +81,8 @@ public class Range implements Serializable {
 	
 	@Override
 	public String toString() {
+		if (Double.isNaN(lower) || Double.isNaN(upper)) 
+			return "\u2205";
 		return "[" + Tools.formatIntegerIfPossible(lower) + " \u2013 " + Tools.formatIntegerIfPossible(upper) + "]";
 	}
 

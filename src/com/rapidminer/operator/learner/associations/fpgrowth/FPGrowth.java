@@ -39,6 +39,7 @@ import com.rapidminer.example.Tools;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.ProcessStoppedException;
 import com.rapidminer.operator.io.ExampleSource;
 import com.rapidminer.operator.learner.associations.BooleanAttributeItem;
 import com.rapidminer.operator.learner.associations.FrequentItemSet;
@@ -53,6 +54,7 @@ import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.tools.Ontology;
 
 
@@ -97,6 +99,8 @@ public class FPGrowth extends Operator {
 	/** Indicates the minimum number of item sets by iteratively decreasing the minimum support. */
 	public static final String PARAMETER_MIN_NUMBER_OF_ITEMSETS = "min_number_of_itemsets";
 
+	public static final String PARAMETER_MAX_REDUCTION_STEPS = "max_number_of_retries";
+	
 	public static final String PARAMETER_POSITIVE_VALUE = "positive_value";
 
 	/** The parameter name for &quot;Minimal Support&quot; */
@@ -130,26 +134,18 @@ public class FPGrowth extends Operator {
 		// check
 		Tools.onlyNominalAttributes(exampleSet, "FPGrowth");
 
-		// precomputing data properties
-		//ExampleSet workingSet = (ExampleSet)exampleSet.clone();
+		boolean shouldFindMinimumNumber = getParameterAsBoolean(PARAMETER_FIND_MIN_NUMBER_OF_ITEMSETS);
+		int maximalNumberOfRetries = shouldFindMinimumNumber ? getParameterAsInt(PARAMETER_MAX_REDUCTION_STEPS) : 1;
+		int minimumNumberOfItemsets = shouldFindMinimumNumber ? getParameterAsInt(PARAMETER_MIN_NUMBER_OF_ITEMSETS) : 1;
+
+		int maxItems = getParameterAsInt(PARAMETER_MAX_ITEMS);
+		double currentSupport = getParameterAsDouble(PARAMETER_MIN_SUPPORT);
 
 		// determine frequent items sets
-		boolean shouldFindMinimumNumber = getParameterAsBoolean(PARAMETER_FIND_MIN_NUMBER_OF_ITEMSETS);
-		int maxItems = getParameterAsInt(PARAMETER_MAX_ITEMS);
-
 		FrequentItemSets sets = null;
-
-		int minimumNumberOfItemsets = getParameterAsInt(PARAMETER_MIN_NUMBER_OF_ITEMSETS);
-		double currentSupport = 0.95;
-		boolean foundEnough = false;
-		while (!foundEnough) {
-			int minTotalSupport;
-			if (shouldFindMinimumNumber) {
-				minTotalSupport = (int) Math.ceil(currentSupport * exampleSet.size());
-			} else {
-				double minSupport = getParameterAsDouble(PARAMETER_MIN_SUPPORT);
-				minTotalSupport = (int) Math.ceil(minSupport * exampleSet.size());
-			}
+		int retryCount = 0;
+		while (sets.size() < minimumNumberOfItemsets && retryCount < maximalNumberOfRetries) {
+			int currentMinTotalSupport = (int) Math.ceil(currentSupport * exampleSet.size());
 
 			// precomputing data properties
 			ExampleSet workingSet = preprocessExampleSet(exampleSet);
@@ -178,7 +174,7 @@ public class FPGrowth extends Operator {
 			// computing frequency of 1-Item Sets
 			getItemFrequency(workingSet, attributes, positiveIndices, itemMapping);
 			// eliminating non frequent items
-			removeNonFrequentItems(itemMapping, minTotalSupport, workingSet);
+			removeNonFrequentItems(itemMapping, currentMinTotalSupport, workingSet);
 
 			// generating FP Tree
 			FPTree tree = getFPTree(workingSet, attributes, positiveIndices, itemMapping);
@@ -187,7 +183,7 @@ public class FPGrowth extends Operator {
 			sets = new FrequentItemSets(workingSet.size());
 			String mustContainItems = getParameterAsString(PARAMETER_MUST_CONTAIN);
 			if (mustContainItems == null) {
-				mineTree(tree, sets, 0, minTotalSupport, maxItems);
+				mineTree(tree, sets, 0, currentMinTotalSupport, maxItems);
 			} else {
 				// building conditional items
 				FrequentItemSet conditionalItems = new FrequentItemSet();
@@ -200,19 +196,12 @@ public class FPGrowth extends Operator {
 					}
 				}
 				sets.addFrequentSet(conditionalItems);
-				mineTree(tree, sets, 0, conditionalItems, minTotalSupport, maxItems);
+				mineTree(tree, sets, 0, conditionalItems, currentMinTotalSupport, maxItems);
 			}
 
-			if (shouldFindMinimumNumber) {
-				// enough?
-				if ((sets.size() >= minimumNumberOfItemsets) || (currentSupport <= 0.06)) {
-					foundEnough = true;	
-				}
-				currentSupport -= 0.05;
-			} else {
-				// leaving loop if parameter is not set
-				break;
-			}
+
+			currentSupport *= 0.9;
+			retryCount++;
 		}
 
 		exampleSetOutput.deliver(exampleSet);
@@ -240,11 +229,12 @@ public class FPGrowth extends Operator {
 		return workingSet;
 	}
 
-	private void mineTree(FPTree tree, FrequentItemSets rules, int recursionDepth, int minTotalSupport, int maxItems) {
+	private void mineTree(FPTree tree, FrequentItemSets rules, int recursionDepth, int minTotalSupport, int maxItems) throws ProcessStoppedException {
 		mineTree(tree, rules, recursionDepth, new FrequentItemSet(), minTotalSupport, maxItems);
 	}
 
-	private void mineTree(FPTree tree, FrequentItemSets rules, int recursionDepth, FrequentItemSet conditionalItems, int minTotalSupport, int maxItems) {
+	private void mineTree(FPTree tree, FrequentItemSets rules, int recursionDepth, FrequentItemSet conditionalItems, int minTotalSupport, int maxItems) throws ProcessStoppedException {
+		checkForStop();
 		if (!(treeIsEmpty(tree, recursionDepth))) {
 			if (maxItems > 0) {
 				if (recursionDepth >= maxItems) {
@@ -408,13 +398,18 @@ public class FPGrowth extends Operator {
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
-		ParameterType type = new ParameterTypeBoolean(PARAMETER_FIND_MIN_NUMBER_OF_ITEMSETS, "Indicates if the support should be decreased until the specified minimum number of frequent item sets is found. Otherwise, FPGrowth simply uses the defined support.", true);
+		ParameterType type = new ParameterTypeBoolean(PARAMETER_FIND_MIN_NUMBER_OF_ITEMSETS, "Indicates if the mininmal support should be decreased automatically until the specified minimum number of frequent item sets is found. The defined minimal support is lowered by 20 percent each time.", true);
 		type.setExpert(false);
 		types.add(type);
 		type = new ParameterTypeInt(PARAMETER_MIN_NUMBER_OF_ITEMSETS, "Indicates the minimum number of itemsets which should be determined if the corresponding parameter is activated.", 0, Integer.MAX_VALUE, 100);
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_FIND_MIN_NUMBER_OF_ITEMSETS, true, false));
 		type.setExpert(false);
 		types.add(type);
-
+		type = new ParameterTypeInt(PARAMETER_MAX_REDUCTION_STEPS, "This determines how many times the operator lowers min support to find the minimal number of item sets. Each time the minimal support is lowered by 20 percent.", 2, Integer.MAX_VALUE, 15);
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_FIND_MIN_NUMBER_OF_ITEMSETS, false, false));
+		type.setExpert(true);
+		types.add(type);
+		
 		type = new ParameterTypeString(PARAMETER_POSITIVE_VALUE, "This parameter determines, which value of the binominal attributes is treated as positive. Attributes with that value are considered as part of a transaction. If left blank, the example set determines, which is value is used.", true);
 		type.setExpert(true);
 		types.add(type);

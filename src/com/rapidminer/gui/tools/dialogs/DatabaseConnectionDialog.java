@@ -169,7 +169,7 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				updateDefaults();
-				updateURL();
+				updateURL(null);
 			}
 		});
 		KeyListener keyListener = new KeyListener() {
@@ -178,7 +178,7 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-				updateURL();
+				updateURL(null);
 			}
 
 			@Override
@@ -224,7 +224,7 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 				SAVE_CONNECTION_ACTION.setEnabled(!entry.isReadOnly());
 				
 				// updating URL
-				updateURL();
+				updateURL(entry);
 			}
 		}
 	};
@@ -287,7 +287,7 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 			
 			// setting defaults
 			updateDefaults();
-			updateURL();
+			updateURL(null);
 		}
 	};
 	
@@ -443,7 +443,7 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 		panel.add(testLabel, c);
 		
 		updateDefaults();
-		updateURL();
+		updateURL(null);
 		return panel;
 	}
 	
@@ -464,8 +464,12 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 		portTextField.setText(getProperties().getDefaultPort());
 	}
 	
-	private void updateURL() {
-		urlField.setText(FieldConnectionEntry.createURL(getProperties(), hostTextField.getText(), portTextField.getText(), databaseTextField.getText()));
+	private void updateURL(FieldConnectionEntry entry) {
+		if (entry != null && entry.isReadOnly()) {
+			urlField.setText(entry.getURL());
+		} else {
+			urlField.setText(FieldConnectionEntry.createURL(getProperties(), hostTextField.getText(), portTextField.getText(), databaseTextField.getText()));
+		}
 		testLabel.setText(TEXT_CONNECTION_STATUS_UNKNOWN);
 		testLabel.setIcon(ICON_CONNECTION_STATUS_UNKNOWN);
 		fireStateChanged();
