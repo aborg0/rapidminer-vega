@@ -404,7 +404,11 @@ public class XMLImporter {
 			OperatorDescription[] operatorDescriptions = OperatorService.getOperatorDescriptions(DummyOperator.class);
 			if (operatorDescriptions.length == 1) {
 				opDescr = operatorDescriptions[0];
-				addMessage("The operator class '"+className+"' is unknown.");				
+				if (className.indexOf(':') == -1) {
+					addMessage("<em class=\"error\">The operator class '"+className+"' is unknown.</em>");
+				} else {
+					addMessage("<em class=\"error\">The operator class '"+className+"' is unknown. Possibly you must install a plugin for operators of group '"+className.substring(0, className.indexOf(':'))+"'.</em>");
+				}
 			} else {
 				throw new XMLException("Unknown operator class: '" + className + "'!");
 			}
