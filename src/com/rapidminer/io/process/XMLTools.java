@@ -95,7 +95,11 @@ public class XMLTools {
 			if (VALIDATORS.containsKey(schemaURL)) {
 				return VALIDATORS.get(schemaURL);
 			} else {		
-				SchemaFactory factory  = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+				SchemaFactory factory  = null;
+				if (factory == null) {
+					throw new RuntimeException("XMLConstants.W3C_XML_SCHEMA_NS_URI cannot be resolved at compile time for JBoss.");
+					//SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+				}
 				Validator validator;
 				try {					
 					validator = factory.newSchema(schemaURL).newValidator();

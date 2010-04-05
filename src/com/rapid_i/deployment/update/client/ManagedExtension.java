@@ -49,6 +49,7 @@ import com.rapidminer.RapidMiner;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
+import com.rapidminer.tools.plugin.Plugin;
 
 /** 
  * 
@@ -148,7 +149,7 @@ public class ManagedExtension {
 	}
 	
 	private static File getGlobalExtensionsDir() throws IOException {
-		return new File(ParameterService.getPluginDir(), "managed");
+		return new File(Plugin.getPluginLocation(), "managed");
 	}
 	
 	private static File getUserExtensionsDir() {
@@ -298,7 +299,7 @@ public class ManagedExtension {
 	}
 
 	public static void init() {
-		readConfiguration();		
+		readConfiguration();
 	}
 
 	public static Collection<ManagedExtension> getAll() {

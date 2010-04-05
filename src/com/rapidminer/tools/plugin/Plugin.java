@@ -740,7 +740,7 @@ public class Plugin {
 
 			if (pluginDir == null) {
 				try {
-					pluginDir = ParameterService.getPluginDir();
+					pluginDir = getPluginLocation();
 				} catch (IOException e) {
 					LogService.getRoot().warning("None of the properties "+RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS+" and "+Launcher.PROPERTY_RAPIDMINER_HOME+" is set. No globally installed plugins will be loaded.");
 				}
@@ -779,7 +779,12 @@ public class Plugin {
 		return extensionId;
 	}
 
-	public static File getPluginLocation() {
-		return new File(System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS_LOCATION));
+	public static File getPluginLocation() throws IOException {
+		String locationProperty = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS_LOCATION);
+		if (locationProperty == null) {
+			return ParameterService.getLibraryFile("plugins");
+		} else {
+			return new File(locationProperty);
+		}
 	}
 }

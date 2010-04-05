@@ -347,13 +347,9 @@ public class ParameterService {
 		return new File(property);
 	}
 
-	private static File getLibraryFile(String name) throws IOException {
+	public static File getLibraryFile(String name) throws IOException {
 		File home = getRapidMinerHome();
 		return new File(home, "lib" + File.separator + name);
-	}
-
-	public static File getPluginDir() throws IOException {
-		return getLibraryFile("plugins");
 	}
 	
 	// -------------------- tools --------------------
