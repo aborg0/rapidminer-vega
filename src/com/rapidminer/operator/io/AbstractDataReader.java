@@ -512,12 +512,13 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 	public synchronized MetaData getGeneratedMetaData() throws OperatorException {
 		init();
 		ExampleSetMetaData metaData = new ExampleSetMetaData();
+		int[] resultValueTypes = getValueTypes();
 		for (int i = 0; i < getColumnCount(); i++) {
 			String name = getColumnNames()[i];
 			if (metaData.getAttributeByName(name) != null) {
 				name = getGenericColumnName(i);
 			}
-			AttributeMetaData amd = new AttributeMetaData(name, getValueTypes()[i]);
+			AttributeMetaData amd = new AttributeMetaData(name, resultValueTypes[i]);
 			amd.setAnnotations(getAnnotations(i));
 			MDInteger missings = new MDInteger(getNumberOfMissings()[i]);
 			SetRelation relation = SetRelation.EQUAL;
@@ -525,8 +526,8 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 				relation = SetRelation.SUPERSET;
 				missings.increaseByUnknownAmount();
 			}
-			if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(getValueTypes()[i], Ontology.NUMERICAL) ||
-				Ontology.ATTRIBUTE_VALUE_TYPE.isA(getValueTypes()[i], Ontology.DATE_TIME)) {
+			if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(resultValueTypes[i], Ontology.NUMERICAL) ||
+				Ontology.ATTRIBUTE_VALUE_TYPE.isA(resultValueTypes[i], Ontology.DATE_TIME)) {
 				amd.setValueRange(new Range(minValues[i], maxValues[i]), relation);
 			} else {
 				amd.setValueSet(getValueSet(i), relation);

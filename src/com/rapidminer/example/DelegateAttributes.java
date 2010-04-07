@@ -68,12 +68,12 @@ public class DelegateAttributes extends AbstractAttributes {
 		return new DelegateAttributes(this);
 	}
 
-	public AttributeRole findRoleByName(String name) {
-		return delegate.findRoleByName(name);		
+	public AttributeRole findRoleByName(String name, boolean caseSensitive) {
+		return delegate.findRoleByName(name, caseSensitive);		
 	}
 
-	public AttributeRole findRoleBySpecialName(String specialName) {
-		return delegate.findRoleBySpecialName(specialName);
+	public AttributeRole findRoleBySpecialName(String specialName, boolean caseSensitive) {		
+		return delegate.findRoleBySpecialName(specialName, caseSensitive);
 	}
 
 	public void rename(AttributeRole attributeRole, String newName) {

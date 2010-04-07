@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Map.Entry;
 
 /**
  * A very basic and simple implementation of the {@link com.rapidminer.example.Attributes} 
@@ -193,11 +194,29 @@ public class SimpleAttributes extends AbstractAttributes {
 		return unregister(attributeRole, false);		
 	}
 
-	public AttributeRole findRoleByName(String name) {
-		return nameToAttributeRoleMap.get(name);
+	public AttributeRole findRoleByName(String name, boolean caseSensitive) {
+		if (caseSensitive)
+			return nameToAttributeRoleMap.get(name);
+		else {
+			String lowerSearchTerm = name.toLowerCase();
+			for (Entry<String, AttributeRole> entry: nameToAttributeRoleMap.entrySet()) {
+				if (lowerSearchTerm.equals(entry.getKey().toLowerCase()))
+					return entry.getValue();
+			}
+			return null;
+		}
 	}
 
-	public AttributeRole findRoleBySpecialName(String specialName) {
-		return specialNameToAttributeRoleMap.get(specialName);
+	public AttributeRole findRoleBySpecialName(String specialName, boolean caseSensitive) {
+		if (caseSensitive)
+			return specialNameToAttributeRoleMap.get(specialName);
+		else {
+			String lowerSearchTerm = specialName.toLowerCase();
+			for (Entry<String, AttributeRole> entry: specialNameToAttributeRoleMap.entrySet()) {
+				if (lowerSearchTerm.equals(entry.getKey().toLowerCase()))
+					return entry.getValue();
+			}
+			return null;
+		}
 	}
 }

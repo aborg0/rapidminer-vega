@@ -94,6 +94,9 @@ public abstract class AbstractAttribute implements Attribute {
 		
 		// copy construction description
 		this.constructionDescription = attribute.constructionDescription;
+
+		// copy annotations
+		annotations.putAll(attribute.getAnnotations());
 	}
 	
 	/**

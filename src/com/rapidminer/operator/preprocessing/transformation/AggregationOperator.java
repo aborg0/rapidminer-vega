@@ -39,6 +39,7 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.example.table.DoubleArrayDataRow;
 import com.rapidminer.example.table.MemoryExampleTable;
+import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
@@ -49,6 +50,10 @@ import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.SetRelation;
 import com.rapidminer.operator.preprocessing.AbstractDataProcessing;
 import com.rapidminer.operator.preprocessing.filter.ExampleFilter;
+import com.rapidminer.operator.preprocessing.filter.NumericToNominal;
+import com.rapidminer.operator.preprocessing.filter.NumericToPolynominal;
+import com.rapidminer.operator.preprocessing.filter.attributes.RegexpAttributeFilter;
+import com.rapidminer.operator.tools.AttributeSubsetSelector;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeAttributes;
@@ -57,6 +62,7 @@ import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeStringCategory;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.container.MultidimensionalArraySet;
 import com.rapidminer.tools.container.ValueSet;
 import com.rapidminer.tools.math.function.aggregation.AbstractAggregationFunction;
@@ -131,6 +137,7 @@ public class AggregationOperator extends AbstractDataProcessing {
 
 	@Override
 	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {         
+		exampleSet = (ExampleSet) exampleSet.clone();
 		boolean onlyDistinctValues = getParameterAsBoolean(PARAMETER_ONLY_DISTINCT);
 		boolean ignoreMissings = getParameterAsBoolean(PARAMETER_IGNORE_MISSINGS);
 
@@ -170,6 +177,18 @@ public class AggregationOperator extends AbstractDataProcessing {
 
 		if (isParameterSet(PARAMETER_GROUP_BY_ATTRIBUTES)) {
 			String groupByAttributesRegex = getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES);
+			
+			// make attributes nominal
+			try {
+				NumericToNominal toNominalOperator = OperatorService.createOperator(NumericToPolynominal.class);
+				toNominalOperator.setParameter(AttributeSubsetSelector.PARAMETER_FILTER_TYPE, AttributeSubsetSelector.CONDITION_REGULAR_EXPRESSION + "");
+				toNominalOperator.setParameter(RegexpAttributeFilter.PARAMETER_REGULAR_EXPRESSION, groupByAttributesRegex);
+				toNominalOperator.setParameter(AttributeSubsetSelector.PARAMETER_INCLUDE_SPECIAL_ATTRIBUTES, "true");
+				exampleSet = toNominalOperator.apply(exampleSet);
+			} catch (OperatorCreationException e) {
+				// might work if attributes already nominal. Otherwise UserError will be thrown.
+			}
+			
 			Attribute[] groupByAttributes = getAttributesArrayFromRegex(exampleSet.getAttributes(), groupByAttributesRegex);
 
 			if (groupByAttributes.length == 0) {
@@ -178,7 +197,7 @@ public class AggregationOperator extends AbstractDataProcessing {
 
 			int[] mappingSizes = new int[groupByAttributes.length];
 			for (int i = 0; i < groupByAttributes.length; i++) {
-				if (!groupByAttributes[i].isNominal()) {
+				if (groupByAttributes[i].isNumerical()) {
 					throw new UserError(this, 103, new Object[] { groupByAttributesRegex, "grouping by attribute." });        			
 				}
 				mappingSizes[i] = groupByAttributes[i].getMapping().size();
@@ -198,7 +217,7 @@ public class AggregationOperator extends AbstractDataProcessing {
 					for (int i = 0; i < groupByAttributes.length; i++) {
 						indices[i] = (int) example.getValue(groupByAttributes[i]);
 					}
-					double weight = weightAttribute != null ? example.getWeight() : 1.0d;
+
 					ValueSet[] distinctValues = distinctValueSet.get(indices);
 					if (distinctValues == null) {
 						distinctValues = new ValueSet[aggregations];
@@ -207,6 +226,8 @@ public class AggregationOperator extends AbstractDataProcessing {
 						}
 						distinctValueSet.set(indices, distinctValues);        				
 					}
+					
+					double weight = weightAttribute != null ? example.getWeight() : 1.0d;
 					for (int i = 0; i < aggregations; i++) {
 						distinctValues[i].add(example.getValue(aggregationAttributes[i]), weight);
 					}

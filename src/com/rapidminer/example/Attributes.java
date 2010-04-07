@@ -171,9 +171,15 @@ public interface Attributes extends Iterable<Attribute>, Cloneable, Serializable
 	/** Replaces the first attribute by the second. Returns the second attribute. */
 	public Attribute replace(Attribute first, Attribute second);
 
-	/** Returns the attribute for the given name. */
+	/** Returns the attribute for the given name. The search is case sensitive.*/
 	public Attribute get(String name);
 
+	/** Returns the attribute for the given name. If the search is performed case sensitive depends
+	 * on the boolean parameter.
+	 * Please keep in mind that case insensitive search is not optimized and will take linear time to number of attributes.
+	 * */
+	public Attribute get(String name, boolean caseSensitive);
+	
 	/** Returns the regular attribute for the given name. */
 	public Attribute getRegular(String name);
 
@@ -242,12 +248,22 @@ public interface Attributes extends Iterable<Attribute>, Cloneable, Serializable
 	/** Returns a string representation of this attribute set. */
 	public String toString();
 
-	/** Finds the {@link AttributeRole} belonging to the attribute with the given name (both regular and special). */
+	/** Finds the {@link AttributeRole} belonging to the attribute with the given name (both regular and special). 
+	 * Search is performed case sensitive. */
 	public AttributeRole findRoleByName(String name);
+	
+	/** Finds the {@link AttributeRole} belonging to the attribute with the given name (both regular and special). 
+	 * If the search is performed case sensitive depends on the boolean parameter. 
+	 * Attention: Case insensitive search is not optimized and takes linear time with number of attributes.*/
+	public AttributeRole findRoleByName(String name, boolean caseSensitive);
 	
 	/** Finds the {@link AttributeRole} with the given special name (both regular and special). */
 	public AttributeRole findRoleBySpecialName(String specialName);
 	
+	/** Finds the {@link AttributeRole} with the given special name (both regular and special). 
+	 * If the search is performed case sensitive depends on the boolean parameter. 
+	 * Attention: Case insensitive search is not optimized and takes linear time with number of attributes.*/
+	public AttributeRole findRoleBySpecialName(String specialName, boolean caseSensitive);
 	
 	/** @see #rename(Attribute, String) */
 	public void rename(AttributeRole attributeRole, String newSpecialName);

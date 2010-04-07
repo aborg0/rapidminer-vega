@@ -135,15 +135,28 @@ public abstract class AbstractAttributes implements Attributes {
 	}
 	
 	public Attribute get(String name) {
-		AttributeRole result = findRoleByName(name);
+		return get(name, true);
+	}
+	public Attribute get(String name, boolean caseSensitive) {
+		AttributeRole result = findRoleByName(name, caseSensitive);
 		if (result == null) {
-			result = findRoleBySpecialName(name);
+			result = findRoleBySpecialName(name, caseSensitive);
 		}
 		if (result != null) {
 			return result.getAttribute();
 		} else {
 			return null;
 		}
+	}
+	
+	@Override
+	public AttributeRole findRoleByName(String name) {
+		return findRoleByName(name, true);
+	}
+	
+	@Override
+	public AttributeRole findRoleBySpecialName(String specialName) {
+		return findRoleBySpecialName(specialName, true);
 	}
 	
 	public Attribute getRegular(String name) {

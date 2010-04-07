@@ -222,7 +222,7 @@ public class DatabaseHandler {
 //    			return pooled;
 //    		} else {
     			DatabaseHandler handler = new DatabaseHandler(entry.getURL(), entry.getUser());
-    			handler.connect(entry.getPassword());
+    			handler.connect(entry.getPassword(), true);
 //    			POOL.put(id, handler);
     			return handler;
 //    		}    		
@@ -238,9 +238,15 @@ public class DatabaseHandler {
     }
     
 	/** Returns a connected database handler instance from the given connection data. If the password
-	 *  is null, it will be queries by the user during this method. */
+	 *  is null, it will be queries by the user during this method. 
+	 *  This will create a connection with auto commit enabled.
+	 *  */
 	public static DatabaseHandler getConnectedDatabaseHandler(String databaseURL, String username, String password) throws OperatorException, SQLException {
-//		synchronized (POOL_LOCK) {
+		return getConnectedDatabaseHandler(databaseURL, username, password, true);
+	}
+	
+	public static DatabaseHandler getConnectedDatabaseHandler(String databaseURL, String username, String password, boolean autoCommit) throws OperatorException, SQLException {
+		//		synchronized (POOL_LOCK) {
 //			DHIdentifier id = new DHIdentifier(databaseURL, username);
 //    		DatabaseHandler pooled = POOL.get(id);
 //    		if ((pooled != null) && !pooled.connection.isClosed()) {
@@ -250,7 +256,7 @@ public class DatabaseHandler {
     				password = RapidMiner.getInputHandler().inputPassword("Password for user '" + username + "' required");
     			}
     			DatabaseHandler databaseHandler = new DatabaseHandler(databaseURL, username);
-    			databaseHandler.connect(password.toCharArray());
+    			databaseHandler.connect(password.toCharArray(), autoCommit);
 //    			POOL.put(id, databaseHandler);
     			return databaseHandler;
 //    		}
@@ -274,7 +280,7 @@ public class DatabaseHandler {
 	 *            automatically. If FALSE, the commit()-Method has to be called
 	 *            to make changes permanent.
 	 */
-	private void connect(char[] passwd) throws SQLException {
+	private void connect(char[] passwd, boolean autoCommit) throws SQLException {
 		if (connection != null) {
 			throw new SQLException("Connection to database '" + databaseURL + "' already exists!");
 		}
@@ -285,8 +291,9 @@ public class DatabaseHandler {
 		} else {
 			connection = DriverManager.getConnection(databaseURL, this.user, new String(passwd));
 		}
-		connection.setAutoCommit(true);
+		connection.setAutoCommit(autoCommit);
 		statementCreator = new StatementCreator(connection);
+		
 	}
 
 	/** Closes the connection to the database. */
@@ -480,27 +487,6 @@ public class DatabaseHandler {
 	}
 
 	private PreparedStatement getInsertIntoTableStatement(String tableName, ExampleSet exampleSet) throws SQLException {
-//		StringBuffer result = new StringBuffer("INSERT INTO ");
-//		result.append(properties.getIdentifierQuoteOpen() + tableName + properties.getIdentifierQuoteClose());
-//		result.append("(");
-//		Iterator<Attribute> a = exampleSet.getAttributes().allAttributes();
-//		boolean first = true;
-//		while (a.hasNext()) {
-//			Attribute attribute = a.next();
-//			if (!first)
-//				result.append(", ");
-//			result.append(properties.getIdentifierQuoteOpen() + attribute.getName() + properties.getIdentifierQuoteClose());
-//			first = false;
-//		}
-//		result.append(")");
-//		result.append(" VALUES (");
-//		int size = exampleSet.getAttributes().allSize();
-//		for (int i = 0; i < size; i++) {
-//			if (i != 0)
-//				result.append(", ");
-//			result.append("?");
-//		}
-//		result.append(")");
 		return createPreparedStatement(statementCreator.makeInsertStatement(tableName, exampleSet), true);
 	}
 
@@ -648,6 +634,7 @@ public class DatabaseHandler {
 				return Ontology.NUMERICAL;
 			case Types.BLOB:
 			case Types.CLOB:
+			case Types.LONGVARCHAR:
 				return Ontology.STRING;
 				
 			case Types.CHAR:
@@ -658,13 +645,14 @@ public class DatabaseHandler {
 			case Types.JAVA_OBJECT:
 			case Types.STRUCT:
 			case Types.VARBINARY:
-			case Types.LONGVARCHAR:
 				return Ontology.NOMINAL;
 
 			case Types.DATE:
+				return Ontology.DATE;
 			case Types.TIME:
+				return Ontology.TIME;
 			case Types.TIMESTAMP:
-				return Ontology.NOMINAL;
+				return Ontology.DATE_TIME;
 
 			default:
 				return Ontology.NOMINAL;

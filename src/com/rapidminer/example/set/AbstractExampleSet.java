@@ -396,7 +396,7 @@ public abstract class AbstractExampleSet extends ResultObjectAdapter implements 
 	// =============================================================================
 
 	public void remapIds() {
-		idMap = new HashMap<Double, int[]>();
+		idMap = new HashMap<Double, int[]>(size());
 		Attribute idAttribute = getAttributes().getSpecial(Attributes.ID_NAME);
 		if (idAttribute != null) {
 			int index = 0;

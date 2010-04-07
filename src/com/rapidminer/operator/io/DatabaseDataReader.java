@@ -206,51 +206,6 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 		return list;
 	}
 	
-	// TODO unify with DatabaseHandler.getValueType(..) - check if date types have been implemented
-	protected static int getValueType(int sqlType) {
-		switch (sqlType) {
-			case Types.BIGINT:
-			case Types.INTEGER:
-			case Types.TINYINT:
-			case Types.SMALLINT:
-				return Ontology.INTEGER;
-
-			case Types.FLOAT:
-			case Types.REAL:
-			case Types.DECIMAL:
-			case Types.DOUBLE:
-				return Ontology.REAL;
-
-			case Types.NUMERIC:
-				return Ontology.NUMERICAL;
-				
-			case Types.BLOB:
-			case Types.CLOB:
-				return Ontology.STRING;
-				
-			case Types.CHAR:
-			case Types.VARCHAR:
-			case Types.BINARY:
-			case Types.BIT:
-			case Types.LONGVARBINARY:
-			case Types.JAVA_OBJECT:
-			case Types.STRUCT:
-			case Types.VARBINARY:
-			case Types.LONGVARCHAR:
-				return Ontology.NOMINAL;
-
-			case Types.DATE:
-				return Ontology.DATE;
-			case Types.TIME:
-				return Ontology.TIME;
-			case Types.TIMESTAMP:
-				return Ontology.DATE_TIME;
-
-			default:
-				return Ontology.NOMINAL;
-		}
-	}
-	
 	@Override
 	protected DataSet getDataSet() throws OperatorException {
 		return new DataSet() {
@@ -265,7 +220,7 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 					int[] columnTypes = new int[numberOfColumns];
 					for (int i = 0; i < numberOfColumns; i++) {
 						columnNames[i] = metaData.getColumnLabel(i + 1);
-						columnTypes[i] = getValueType(metaData.getColumnType(i + 1));
+						columnTypes[i] = DatabaseHandler.getRapidMinerTypeIndex(metaData.getColumnType(i + 1));
 					}
 					setColumnNames(columnNames);
 					setValueTypes(columnTypes);
@@ -282,9 +237,9 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 				try {
 					if (resultSet.next()) {
 						for (int i = 0; i < getColumnCount(); i++) {
-							if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(DatabaseDataReader.getValueType(metaData.getColumnType(i + 1)), Ontology.NUMERICAL)) {
+							if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(DatabaseHandler.getRapidMinerTypeIndex(metaData.getColumnType(i + 1)), Ontology.NUMERICAL)) {
 								values[i] = Double.valueOf(resultSet.getDouble(i + 1));
-							} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(DatabaseDataReader.getValueType(metaData.getColumnType(i + 1)), Ontology.DATE_TIME)) {
+							} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(DatabaseHandler.getRapidMinerTypeIndex(metaData.getColumnType(i + 1)), Ontology.DATE_TIME)) {
 								values[i] = resultSet.getTimestamp(i + 1);
 							} else if (metaData.getColumnType(i + 1) == Types.CLOB) {
 								Clob clob = resultSet.getClob(i + 1);
@@ -304,7 +259,7 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 								} else {
 									values[i] = null;
 								}
-							} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(DatabaseDataReader.getValueType(metaData.getColumnType(i + 1)), Ontology.NOMINAL)) {
+							} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(DatabaseHandler.getRapidMinerTypeIndex(metaData.getColumnType(i + 1)), Ontology.NOMINAL)) {
 								values[i] = resultSet.getString(i + 1);
 							}
 							if (resultSet.wasNull()) {
@@ -333,7 +288,7 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 			@Override
 			public Number getNumber(int columnIndex) {
 				try {
-					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(DatabaseDataReader.getValueType(metaData.getColumnType(columnIndex + 1)), Ontology.NUMERICAL)) {
+					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(DatabaseHandler.getRapidMinerTypeIndex(metaData.getColumnType(columnIndex + 1)), Ontology.NUMERICAL)) {
 						return (Double) values[columnIndex];
 					}
 				} catch (SQLException e) {
@@ -344,7 +299,7 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 			@Override
 			public Date getDate(int columnIndex) {
 				try {
-					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(DatabaseDataReader.getValueType(metaData.getColumnType(columnIndex + 1)), Ontology.DATE_TIME)) {
+					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(DatabaseHandler.getRapidMinerTypeIndex(metaData.getColumnType(columnIndex + 1)), Ontology.DATE_TIME)) {
 						return (Date) values[columnIndex];
 					}
 				} catch (SQLException e) {
@@ -355,7 +310,7 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 			@Override
 			public String getString(int columnIndex) {
 				try {
-					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(DatabaseDataReader.getValueType(metaData.getColumnType(columnIndex + 1)), Ontology.NOMINAL)) {
+					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(DatabaseHandler.getRapidMinerTypeIndex(metaData.getColumnType(columnIndex + 1)), Ontology.NOMINAL)) {
 						return (String) values[columnIndex];
 					}
 				} catch (SQLException e) {
@@ -375,6 +330,7 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 		return DatabaseHandler.getConnectionEntry(this);
 	}
 	
+	@Override
 	protected void addAnnotations(ExampleSet result) {
 		try {
 			result.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, getQuery());

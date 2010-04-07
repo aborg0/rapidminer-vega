@@ -56,13 +56,15 @@ public class ExampleVisualizer implements ObjectVisualizer {
 
 	private final Attribute idAttribute;
 
+	private boolean isExampleSetRemapped = false;
+	
 	public ExampleVisualizer(ExampleSet exampleSet) {
 		this.exampleSet = exampleSet;
-		this.exampleSet.remapIds();
 		this.idAttribute = exampleSet.getAttributes().getId();
 	}
 
 	public void startVisualization(final Object objId) {
+		remapIds();
 		JDialog dialog = new ButtonDialog("example_visualizer_dialog", false, objId) {
 			private static final long serialVersionUID = 1L;
 			{
@@ -138,6 +140,7 @@ public class ExampleVisualizer implements ObjectVisualizer {
 	};
 
 	public String getDetailData(Object objId, String fieldName) { 		
+		remapIds();
 		double idValue = Double.NaN;
 
 		if (idAttribute.isNominal()) {
@@ -168,12 +171,20 @@ public class ExampleVisualizer implements ObjectVisualizer {
 	}
 
 	public boolean isCapableToVisualize(Object id) {
+		remapIds();
 		if (idAttribute.isNominal()) {
 			double idValue = id instanceof String ? idAttribute.getMapping().mapString((String) id) : (Double) id;
 			return exampleSet.getExampleFromId(idValue) != null;			
 		} else {
 			double idValue = id instanceof String ? Double.parseDouble((String)id) : (Double) id;
 			return exampleSet.getExampleFromId(idValue) != null;			
+		}
+	}
+	
+	private void remapIds() {
+		if (!isExampleSetRemapped) {
+			this.exampleSet.remapIds();
+			this.isExampleSetRemapped = true;
 		}
 	}
 }

@@ -205,6 +205,8 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 	private transient final LoggingHandler logService = new WrapperLoggingHandler(logger);
 
 	private boolean isRunning = false;
+	
+	private boolean shouldStopStandaloneExecution = false;
 
 	// -------------------- INITIALISATION --------------------
 
@@ -834,8 +836,27 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 			getLogger().info("Process interrupted in "+getName());
 			processBreakpoint(null, BreakpointListener.BREAKPOINT_AFTER);
 		}
+		if (process == null && shouldStopStandaloneExecution) {
+			stop();
+			return;
+		}
 	}
 
+	/**
+	 * This method will cause the execution of this operator to stop 
+	 * at the next call of checkForStop() in the executing thread. When this will be depends
+	 * on the operator. Some operations like huge matrix inversions cannot be aborted prematurely at all.
+	 * A ProcessStoppedException will be thrown in case of stopping, so prepare to catch it when executing the 
+	 * operator.
+	 * Please keep in mind, that this method will have an effect only if the operator is executed without a
+	 * process context directly from the API.
+	 */
+	public final void shouldStopStandaloneExecution() throws ProcessStoppedException {
+		if (getProcess() == null) {
+			this.shouldStopStandaloneExecution = true;
+		}
+	}
+	
 	private final void stop() throws ProcessStoppedException {
 		getLogger().info(getName() + ": Process stopped.");
 		throw new ProcessStoppedException(this);
@@ -1673,7 +1694,11 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		for (Port port : getInputPorts().getAllPorts()) {
 			Collection<MetaDataError> portErrors = port.getErrors();
 			if (portErrors != null)
-				errors.addAll(portErrors);
+				try {
+					errors.addAll(portErrors);
+				} catch (NullPointerException e) {
+					System.out.println("TEST");
+				}
 		}
 		for (Port port : getOutputPorts().getAllPorts()) {
 			Collection<MetaDataError> portErrors = port.getErrors();

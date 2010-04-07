@@ -171,7 +171,7 @@ public class ParameterIteration extends ParameterIteratingOperatorChain {
 		
 		this.iteration = 0;
 		while (true) {
-
+			checkForStop();
 			String[] currentValues = new String[parameters.length];
 			// set all parameter values
 			for (int j = 0; j < operators.length; j++) {

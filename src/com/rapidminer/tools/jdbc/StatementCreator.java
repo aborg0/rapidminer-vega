@@ -29,6 +29,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.rapidminer.example.Attribute;
@@ -81,8 +82,8 @@ public class StatementCreator {
 		}
 	}
 	
-	/** Maps types as defined by {@link Ontology#ATTRIBUTE_VALUE_TYPE} to syntactical SQL information. */
-	private Map<Integer,DataTypeSyntaxInformation> typeMap = new HashMap<Integer,DataTypeSyntaxInformation>();
+	/** Maps types as defined by {@link Ontology#ATTRIBUTE_VALUE_TYPE} to syntactical SQL information. Must be linkedHashMap to ensure prefered types are taken first.*/
+	private Map<Integer, DataTypeSyntaxInformation> typeMap = new LinkedHashMap<Integer, DataTypeSyntaxInformation>();
 	private String identifierQuote;
 	private long defaultVarCharLength = -1;
 	
@@ -105,7 +106,7 @@ public class StatementCreator {
 		DatabaseMetaData dbMetaData = con.getMetaData();
 		this.identifierQuote = dbMetaData.getIdentifierQuoteString();
 		LogService.getRoot().fine("Identifier quote character is: "+this.identifierQuote);
-		Map<Integer,DataTypeSyntaxInformation> dataTypeToMDMap = new HashMap<Integer,DataTypeSyntaxInformation>();
+		Map<Integer, DataTypeSyntaxInformation> dataTypeToMDMap = new HashMap<Integer, DataTypeSyntaxInformation>();
 		ResultSet typesResult = dbMetaData.getTypeInfo();
 		while (typesResult.next()) {
 			DataTypeSyntaxInformation dtmd = new DataTypeSyntaxInformation(typesResult);
@@ -240,15 +241,15 @@ public class StatementCreator {
 		
 		// varchar length parameter
 		if (attribute.isNominal()) {
-			if ((si.getPrecision() >= 0) && (defaultVarCharLength > si.getPrecision())) {
+			if ((si.getPrecision() > 0) && (defaultVarCharLength > si.getPrecision())) {
 				throw new SQLException("minimum requested varchar length >"+si.getPrecision()+" which is the maximum length for columns of SQL type "+si.getTypeName());
 			}
-			int maxLength = 0;
+			int maxLength = 1;
 			for (String value : attribute.getMapping().getValues()) {
 				final int length = value.length();
 				if (length > maxLength) {
 					maxLength = length;
-					if ((si.getPrecision() >= 0) && (length > si.getPrecision())) {
+					if ((si.getPrecision() > 0) && (length > si.getPrecision())) {
 						throw new SQLException("Attribute "+attribute.getName()+" contains values with length >"+si.getPrecision()+" which is the maximum length for columns of SQL type "+si.getTypeName());
 					}
 					if ((defaultVarCharLength != -1) && (maxLength > defaultVarCharLength)) {
