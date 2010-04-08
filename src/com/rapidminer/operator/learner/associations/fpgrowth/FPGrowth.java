@@ -144,7 +144,7 @@ public class FPGrowth extends Operator {
 		// determine frequent items sets
 		FrequentItemSets sets = null;
 		int retryCount = 0;
-		while (sets.size() < minimumNumberOfItemsets && retryCount < maximalNumberOfRetries) {
+		while ((sets == null) || (sets.size() < minimumNumberOfItemsets && retryCount < maximalNumberOfRetries)) {
 			int currentMinTotalSupport = (int) Math.ceil(currentSupport * exampleSet.size());
 
 			// precomputing data properties

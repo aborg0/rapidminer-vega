@@ -1261,6 +1261,10 @@
                <class>com.rapidminer.operator.preprocessing.filter.SetData</class>
                <replaces>SetData</replaces>
             </operator>
+            <operator>
+               <key>declare_missing_value</key>
+               <class>com.rapidminer.operator.preprocessing.filter.DeclareMissingValueOperator</class>
+            </operator>
             <group key="numerical">
                <operator>
                   <key>normalize</key>

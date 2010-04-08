@@ -1974,6 +1974,14 @@
             and attribute to the given value.</help>
     <key>set_data</key>
   </operator>
+  <operator>
+        <name>Declare Missing Value</name>
+        <synopsis>Declares a missing numeric or nominal value on a selected subset,
+        	which will be converted to Double.NaN.</synopsis>
+        <help>The given value will be replaced with Double.NaN throughout the specified subset,
+        	so it will be treated as a missing value by subsequent operators.</help>
+    <key>declare_missing_value</key>
+  </operator>
     <operator>
         <name>Stem (Snowball)</name>
         <synopsis>The Snowball stemmer for different languages.</synopsis>
