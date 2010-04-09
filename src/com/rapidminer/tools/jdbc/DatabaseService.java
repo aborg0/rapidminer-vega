@@ -108,7 +108,7 @@ public class DatabaseService {
 		return ParameterService.getUserConfigFile("jdbc_properties.xml");
 	}
 
-	private static void loadJDBCProperties(File jdbcProperties, boolean userDefined) {
+	public static void loadJDBCProperties(File jdbcProperties, boolean userDefined) {
 		InputStream in = null;
 		try {
 			in = new FileInputStream(jdbcProperties);
@@ -214,7 +214,7 @@ public class DatabaseService {
 
     }
     */
-	private static void loadJDBCProperties(InputStream in, String name, boolean userDefined) {
+	public static void loadJDBCProperties(InputStream in, String name, boolean userDefined) {
         //jdbcProperties.clear();
         LogService.getRoot().config("Loading JDBC driver information from '" + name + "'.");
         Document document = null;
