@@ -17,7 +17,7 @@ RequestExecutionLevel admin
 
 # Defines
 !include version.nsi
-!define REGKEY "SOFTWARE\$(^Name)"
+!define REGKEY "SOFTWARE\Rapid-i\$(^Name)"
 !define COMPANY "Rapid-I GmbH"
 !define URL http://www.rapidminer.com
 !define LICENSE ..\release\files\LICENSE.txt

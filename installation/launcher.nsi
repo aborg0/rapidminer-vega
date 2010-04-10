@@ -22,14 +22,7 @@ System::Call "Kernel32::GlobalMemoryStatus(i) v (r1)"
 System::Call "*$1(&i4 .r2, &i4 .r3, &i4 .r4, &i4 .r5, \
                   &i4 .r6, &i4.r7, &i4 .r8, &i4 .r9)"
 System::Free $1
-;DetailPrint "Structure size (useless): $2 Bytes"
-;DetailPrint "Memory load: $3%"
-;DetailPrint "Total physical memory: $4 Bytes"
-;DetailPrint "Free physical memory: $5 Bytes"
-;DetailPrint "Total page file: $6 Bytes"
-;DetailPrint "Free page file: $7 Bytes"
-;DetailPrint "Total virtual: $8 Bytes"
-;DetailPrint "Free virtual: $9 Bytes"
+
 
 ; for Xmx and Xms
 IntOp $R9 $5 / 1024
@@ -52,10 +45,6 @@ StrCpy $R9 1200
 Goto after_mem_more
 
 after_mem_more:
-; for Xmn
-;IntOp $R8 $R9 / 3
-
-;DetailPrint "90% of free: $R9 M"
   Call GetJRE
   Pop $R0
  
