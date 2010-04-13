@@ -239,9 +239,11 @@ public class AttributeSubsetSelector {
 	}
 
 	/**
-	 * Returns a set of attributes containing the attributes
-	 * of the original example set which match the filter
-	 * settings of the parameter
+	 * Returns a set of attributes containing the original (!) attributes
+	 * of the given example set which match the filter
+	 * settings of the parameter. Please keep in mind that this method does not clone the
+	 * example set like the getSubset method. If you change the attributes in the subset, 
+	 * you will alter them in the given example set.
 	 * 
 	 * @param exampleSet the original example set
 	 * @param keepSpecialIfNotIncluded keep the special attributes if they are not included
@@ -251,7 +253,6 @@ public class AttributeSubsetSelector {
 	 */
 	public Set<Attribute> getAttributeSubset(ExampleSet exampleSet, boolean keepSpecialIfNotIncluded) throws UndefinedParameterError, UserError {
 		try {
-			exampleSet = (ExampleSet) exampleSet.clone();
 			Attributes attributes = exampleSet.getAttributes();
 			AttributeFilterCondition condition = createCondition(CONDITION_NAMES[operator.getParameterAsInt(PARAMETER_FILTER_TYPE)], operator);
 

@@ -26,9 +26,11 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -109,6 +111,7 @@ public class ExcelExampleSource extends AbstractDataReader {
 	@Override
 	protected DataSet getDataSet() throws OperatorException {
 		List<String[]> allAnnotations = getParameterList(PARAMETER_ANNOTATIONS);
+		final Set<Integer> annotationRows = new HashSet<Integer>();
 		final Map<Integer,String> annotationsMap = new HashMap<Integer,String>();
 		boolean nameFound = false;
 		int lastAnnotatedRow = -1;
@@ -124,6 +127,7 @@ public class ExcelExampleSource extends AbstractDataReader {
 					nameFound = true;
 					nameRow = row;
 				}
+				annotationRows.add(row);
 			} catch (NumberFormatException e) {
 				throw new OperatorException("row_number entries in parameter list "+PARAMETER_ANNOTATIONS+" must be integers.", e);
 			}
@@ -132,10 +136,11 @@ public class ExcelExampleSource extends AbstractDataReader {
 			throw new OperatorException("If "+PARAMETER_FIRST_ROW_AS_NAMES+" is set to true, you cannot use " + ANNOTATION_NAME +" entries in parameter list "+PARAMETER_ANNOTATIONS+".");
 		}
 		if (getParameterAsBoolean(PARAMETER_FIRST_ROW_AS_NAMES)) {
-			annotationsMap.put(1, ANNOTATION_NAME);
+			annotationsMap.put(0, ANNOTATION_NAME);
+			annotationRows.add(0);
 			nameRow = 0;
 		}
-		final int lastAnnotatedRowF = lastAnnotatedRow + 1; //+1 since the last annotated row itself must be ignored
+//		final int lastAnnotatedRowF = lastAnnotatedRow + 1; //+1 since the last annotated row itself must be ignored
 		final int nameRowF = nameRow;
 		
 		return new DataSet() {
@@ -153,7 +158,8 @@ public class ExcelExampleSource extends AbstractDataReader {
 			private int columnOffset    = getParameterAsInt(PARAMETER_COLUMN_OFFSET);
 			private int numberOfRows    = 0;
 			private int numberOfColumns = 0;
-			private int currentRow      = rowOffset + lastAnnotatedRowF;
+//			private int currentRow      = rowOffset + lastAnnotatedRowF;
+			private int currentRow      = rowOffset;
 			
 			{			
 				try {
@@ -243,11 +249,11 @@ public class ExcelExampleSource extends AbstractDataReader {
 							continue;
 						} else {							
 							Cell cell = sheet.getCell(c, rowOffset +  entry.getKey());
-							annotationss[columnCounter].put(entry.getValue(), cell.getContents());							
+							annotationss[columnCounter].put(entry.getValue(), cell.getContents());
 						}						
 					}
 					columnCounter++;
-				}	
+				}
 				setAnnotations(annotationss);
 			}
 
@@ -286,7 +292,7 @@ public class ExcelExampleSource extends AbstractDataReader {
 
 			@Override
 			public boolean next() {
-				while (emptyRows.contains(currentRow) && currentRow < numberOfRows) {
+				while ((emptyRows.contains(currentRow) || annotationRows.contains(currentRow)) && currentRow < numberOfRows) {
 					currentRow++;
 				}
 				if (currentRow >= numberOfRows) {
@@ -326,9 +332,7 @@ public class ExcelExampleSource extends AbstractDataReader {
 		annotations.addAll(Arrays.asList(Annotations.ALL_KEYS_ATTRIBUTE));
 		types.add(new ParameterTypeList(PARAMETER_ANNOTATIONS, "Maps row numbers to annotation names.", 
 				new ParameterTypeInt("row_number", "Row number which contains an annotation", 0, Integer.MAX_VALUE),
-				new ParameterTypeCategory("annotation", 
-						"Name of the annotation to assign this row.",
-						annotations.toArray(new String[annotations.size()]), 0)));
+				new ParameterTypeCategory("annotation", "Name of the annotation to assign this row.", annotations.toArray(new String[annotations.size()]), 0)));
 				
 //		types.addAll(StrictDecimalFormat.getParameterTypes(this));
 //		types.add(new ParameterTypeBoolean(PARAMETER_CREATE_LABEL, "Indicates if the sheet has a label column.", false, false));
