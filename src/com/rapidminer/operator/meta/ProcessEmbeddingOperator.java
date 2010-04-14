@@ -50,7 +50,9 @@ import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeRepositoryLocation;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
-import com.rapidminer.repository.MalformedRepositoryLocationException;
+import com.rapidminer.repository.Entry;
+import com.rapidminer.repository.ProcessEntry;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Observable;
@@ -158,7 +160,12 @@ public class ProcessEmbeddingOperator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		Process process = loadIncludedProcess();
+		Process process;
+		try {
+			process = loadIncludedProcess();
+		} catch (RepositoryException e) {
+			throw new UserError(this, e, 312, getParameterAsString(PARAMETER_PROCESS_FILE), e.getMessage());
+		}
 
 		// define macros
 		Map<String, String> macroMap = new HashMap<String, String>();
@@ -183,33 +190,41 @@ public class ProcessEmbeddingOperator extends Operator {
 		outputExtender.deliver(Arrays.asList(result.getIOObjects()));
 	}
 
-	private Process loadIncludedProcess() throws UndefinedParameterError, UserError {
-		String relativeProcessLocation  = getParameterAsString(PARAMETER_PROCESS_FILE);
-		RepositoryLocation resolvedLocation;
-		if ((getProcess() != null) && (getProcess().getRepositoryLocation() != null)) {
+	private Process loadIncludedProcess() throws UndefinedParameterError, UserError, RepositoryException {
+		RepositoryLocation location = getParameterAsRepositoryLocation(PARAMETER_PROCESS_FILE);
+		Entry entry = location.locateEntry();
+		if (entry == null) {
+			throw new RepositoryException("Entry '"+location+"' does not exist.");
+		} else if (entry instanceof ProcessEntry) {
+			Process process;
 			try {
-				resolvedLocation = new RepositoryLocation(getProcess().getRepositoryLocation().parent(), relativeProcessLocation);
-			} catch (MalformedRepositoryLocationException e) {
-				throw e.makeUserError(this);
+				process = new RepositoryProcessLocation(location).load(null);
+			} catch (IOException e) {
+				throw new UserError(this, 302, location, e.getMessage());
+			} catch (XMLException e) {
+				throw new UserError(this, 401, e.getMessage());
 			}
+			return process;
 		} else {
-			getLogger().info("Process is not contained in a repository. Trying to resolve absolute location.");
-			try {
-				resolvedLocation = new RepositoryLocation(relativeProcessLocation);
-			} catch (MalformedRepositoryLocationException e) {
-				throw e.makeUserError(this);
-			}
+			throw new RepositoryException("Entry '"+location+"' is not a data entry, but "+entry.getType());
 		}
-		
-		Process process;
-		try {
-			process = new RepositoryProcessLocation(resolvedLocation).load(null);
-		} catch (IOException e) {
-			throw new UserError(this, 302, resolvedLocation, e.getMessage());
-		} catch (XMLException e) {
-			throw new UserError(this, 401, e.getMessage());
-		}
-		return process;
+//
+//		String relativeProcessLocation  = getParameterAsString(PARAMETER_PROCESS_FILE);
+//		RepositoryLocation resolvedLocation;
+//		if ((getProcess() != null) && (getProcess().getRepositoryLocation() != null)) {
+//			try {
+//				resolvedLocation = new RepositoryLocation(getProcess().getRepositoryLocation().parent(), relativeProcessLocation);
+//			} catch (MalformedRepositoryLocationException e) {
+//				throw e.makeUserError(this);
+//			}
+//		} else {
+//			getLogger().info("Process is not contained in a repository. Trying to resolve absolute location.");
+//			try {
+//				resolvedLocation = new RepositoryLocation(relativeProcessLocation);
+//			} catch (MalformedRepositoryLocationException e) {
+//				throw e.makeUserError(this);
+//			}
+//		}		
 	}
 
 	@Override

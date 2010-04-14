@@ -155,7 +155,7 @@ public class SeeminglyUnrelatedRegressionOperator extends AbstractLearner {
 		
 		checkForStop();
 		wMatrixInverse = wMatrixInverse.times(1d / numberOfExamples);
-		wMatrixInverse.inverse();
+		wMatrixInverse = wMatrixInverse.inverse();
 
 		// now build data matrices and merge to single matrix
 		checkForStop();

@@ -98,7 +98,8 @@ public class ProcessBranch extends OperatorChain {
 		"min_performance_value",
 		"max_performance_value",
 		"file_exists",
-		"input_exists"
+		"input_exists",
+		"macro_defined"
 	};
 
 	public static final Class[]  CONDITION_CLASSES = {
@@ -113,11 +114,12 @@ public class ProcessBranch extends OperatorChain {
 		MinPerformanceValueCondition.class,
 		MaxPerformanceValueCondition.class,
 		FileExistsCondition.class,
-		InputExistsCondition.class
+		InputExistsCondition.class,
+		MacroDefinedCondition.class
 	};
 
-	// ONLY TRUE IF INPUT EXISTS IS LAST ENTRY ABOVE
-	public static final String CONDITION_INPUT_EXISTS = CONDITION_NAMES[CONDITION_NAMES.length - 1];
+	// ONLY TRUE IF INPUT EXISTS IS SECOND LAST ENTRY ABOVE
+	public static final String CONDITION_INPUT_EXISTS = CONDITION_NAMES[CONDITION_NAMES.length - 2];
 
 
 	private String[] objectArray = null;

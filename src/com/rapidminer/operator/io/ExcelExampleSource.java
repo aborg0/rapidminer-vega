@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TimeZone;
 import java.util.TreeSet;
 
 import jxl.Cell;
@@ -279,7 +280,12 @@ public class ExcelExampleSource extends AbstractDataReader {
 			@Override
 			public Date getDate(int columnIndex) {
 				try {
-					return ((DateCell) cells[columnIndex]).getDate();
+					Date date = ((DateCell) cells[columnIndex]).getDate();
+					if (date == null) {
+						return null;
+					}
+					int offset = TimeZone.getDefault().getOffset(date.getTime());
+					return new Date(date.getTime() - offset);
 				} catch (ClassCastException e) {
 				}
 				return null;

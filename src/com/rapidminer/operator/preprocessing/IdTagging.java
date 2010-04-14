@@ -41,7 +41,7 @@ import com.rapidminer.operator.ports.metadata.SetRelation;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.tools.Ontology;
-import com.rapidminer.tools.math.container.Range;
+import com.rapidminer.tools.metadata.MetaDataTools;
 
 
 /**
@@ -84,13 +84,14 @@ public class IdTagging extends AbstractDataProcessing {
 					metaData.setNominalDataWasShrinked(true);
 				}
 			}
+			metaData.addAttribute(idAttribute);
 		} else {
-			idAttribute = new AttributeMetaData(Attributes.ID_NAME, Ontology.INTEGER, Attributes.ID_NAME); 
-			if (metaData.getNumberOfExamples().isKnown()) {
-				idAttribute.setValueRange(new Range(1, metaData.getNumberOfExamples().getValue().doubleValue()), SetRelation.EQUAL);
-			}
-		}
-		metaData.addAttribute(idAttribute);
+			MetaDataTools.checkAndCreateIds(metaData);
+//			idAttribute = new AttributeMetaData(Attributes.ID_NAME, Ontology.INTEGER, Attributes.ID_NAME); 
+//			if (metaData.getNumberOfExamples().isKnown()) {
+//				idAttribute.setValueRange(new Range(1, metaData.getNumberOfExamples().getValue().doubleValue()), SetRelation.EQUAL);
+//			}
+		}		
 		return metaData;		
 	}
 
