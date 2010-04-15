@@ -30,6 +30,7 @@ import java.util.Locale;
 
 import jxl.Workbook;
 import jxl.WorkbookSettings;
+import jxl.write.DateFormat;
 import jxl.write.DateTime;
 import jxl.write.Label;
 import jxl.write.Number;
@@ -48,6 +49,7 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeFile;
+import com.rapidminer.tools.DateParser;
 import com.rapidminer.tools.Ontology;
 
 /**
@@ -103,6 +105,8 @@ public class ExcelExampleSetWriter extends AbstractExampleSetWriter {
 	    WritableCellFormat nfCell = new WritableCellFormat(nf);
 		WritableFont wf2 = new WritableFont(WritableFont.ARIAL, 10, WritableFont.NO_BOLD);
 		WritableCellFormat cf2 = new WritableCellFormat(wf2);
+		DateFormat df = new DateFormat(DateParser.DEFAULT_DATE_FORMAT);
+		WritableCellFormat dfCell = new WritableCellFormat(df);
 		int rowCounter = 1;
 		for (Example example : exampleSet) {
 			a = exampleSet.getAttributes().allAttributes();
@@ -116,7 +120,7 @@ public class ExcelExampleSetWriter extends AbstractExampleSetWriter {
 					    Number number = new Number(columnCounter, rowCounter, example.getValue(attribute), nfCell);
 					    s.addCell(number);
 					} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
-						DateTime dateTime = new DateTime(columnCounter, rowCounter, new Date((long) example.getValue(attribute)));
+						DateTime dateTime = new DateTime(columnCounter, rowCounter, new Date((long) example.getValue(attribute)), dfCell);
 						s.addCell(dateTime);
 					}
 				}

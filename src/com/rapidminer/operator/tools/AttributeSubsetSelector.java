@@ -133,6 +133,9 @@ public class AttributeSubsetSelector {
 	 * This method returns the meta data of an exampleset as if it
 	 * would have been filtered. If exceptions are thrown because
 	 * of wrong or missing parameter settings, null will be returned.
+	 * Please keep in mind that the resulting ExampleSetMetaData are only
+	 * a clone of the original one. Changes must hence be performed on the
+	 * orginial exampleSetMetaData object.
 	 */
 	public ExampleSetMetaData getMetaDataSubset(ExampleSetMetaData metaData, boolean keepSpecialIfNotIncluded) {
 		try {

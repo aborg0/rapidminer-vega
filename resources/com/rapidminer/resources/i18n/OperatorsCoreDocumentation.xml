@@ -8029,4 +8029,49 @@
     <name>export_pmml</name>
     <help>Operator's description is missing in referenced OperatorDoc.</help>
   </operator>
+     <operator>
+      <key>apply_association_rules</key>
+      <name>Apply Association Rules</name>
+      <synopsis>This operator applies given association rules on an example set.</synopsis>
+      <help>This operator creates a new confidence attribute for each item occurring in at least one
+         conclusion of an association rule. Then it checks for each example and for each rule, if
+         the example fulfills the premise of the rule. An example fulfills a premise, if the example
+         covers all items in the premise. An example covers an item, if the attribute representing
+         the item contains the positive value. If the check is positive, a confidence value for each
+         item in the conclusion is derived. Which value is used, depends on the selected confidence
+         aggregation method. There are two types: The binary choice will set a 1, for any item
+         contained inside a fulfilled rule's conclusion. This is independent of how confident the
+         rule was. Any aggregation choice will select the maximum of the previous and the new value
+         of the selected confidence function.</help>
+   </operator>
+      <operator>
+      <key>generalized_sequential_patterns</key>
+      <shortName>GSP</shortName>
+      <name>Generalized Sequential Patterns</name>
+      <synopsis>This operator applies given association rules on an example set.</synopsis>
+      <help>
+      &lt;p&gt;
+        This operator searches sequential patterns in a set of transactions. Each transaction must be encoded as an single
+  example and must contain one attribute for the time and for the customer. This pair of attribute is used for generate
+  one sequence per customer containing each single transaction ordered by the time of each transaction. The algorithm
+  then searches sequential patterns in the form of: If a customer bought a and c in one transaction, he bought b in the
+  next: &amp;lt;a, c&amp;gt; then &amp;lt;b&amp;gt;. The minimal support describes how many customer must support such a pattern for regarding it
+  as frequent. Infrequent patterns will be dropped. A customer supports such a pattern, if there are some parts of his
+  sequence including the pattern. The above pattern would be supported by a customer with this transactions: &amp;lt;s, g&amp;gt;
+  then &amp;lt;a, s, c&amp;gt; then &amp;lt;b&amp;gt; then &amp;lt;f, h&amp;gt;.&lt;/p&gt;
+  
+  &lt;p&gt;
+  The parameters min_gap, max_gap and window_size determine how transaction are handled. For example, if the above
+  customer forgot to by c, and had to return 5 minutes later to buy c, then his transactions would look like that: &amp;lt;s,
+  g&amp;gt; then &amp;lt;a, s&amp;gt; then &amp;lt;c&amp;gt; then &amp;lt;b&amp;gt; then &amp;lt;f  ^111, h&amp;gt; This would not support the pattern &amp;lt;a, c&amp;gt; then &amp;lt;b&amp;gt;. To avoid this
+  problem, the window size determines, how long a subsequent transaction is treated as the same transaction. If the
+  window size is larger than 5 minutes, the &amp;lt;c&amp;gt; would be treated as being part of the second transaction and hence this
+  customer would support the above pattern.&lt;/p&gt;
+  
+  &lt;p&gt;
+  The max_gap parameter causes a customers sequence not to support a pattern, if the transactions containing this
+  pattern are to widely separated in time. The min_gap parameter does the same if they are to near.&lt;/p&gt;
+      </help>
+   </operator>
+  
 </operatorHelp>

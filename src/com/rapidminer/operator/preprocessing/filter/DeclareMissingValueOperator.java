@@ -9,10 +9,12 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.AbstractExampleSetProcessing;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MDInteger;
 import com.rapidminer.operator.ports.metadata.MetaData;
+import com.rapidminer.operator.ports.metadata.SimpleMetaDataError;
 import com.rapidminer.operator.tools.AttributeSubsetSelector;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeCategory;
@@ -20,6 +22,7 @@ import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
+import com.rapidminer.tools.Ontology;
 
 /**
  * <p>Allows the declaration of a missing value (nominal or numeric) on a selected subset. The given value 
@@ -39,7 +42,7 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 	public static final String PARAMETER_MODE = "mode";
 	
 	/** Subset Selector for parameter use */
-	private AttributeSubsetSelector mSubsetSelector = new AttributeSubsetSelector(this, getExampleSetInputPort());
+	private AttributeSubsetSelector subsetSelector = new AttributeSubsetSelector(this, getExampleSetInputPort());
 	
 	/** constant for PARAMETER_VALUE_TYPE */
 	private static final String NUMERIC = "numeric";
@@ -57,12 +60,56 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 
 	@Override
 	protected MetaData modifyMetaData(ExampleSetMetaData metaData) throws UndefinedParameterError {
-		ExampleSetMetaData subset = mSubsetSelector.getMetaDataSubset(metaData, false);
-		MDInteger missingValueNumber = new MDInteger();
-		for (AttributeMetaData attribute : subset.getAllAttributes()) {
-			missingValueNumber = attribute.getNumberOfMissingValues();
-			missingValueNumber.increaseByUnknownAmount();
-			attribute.setNumberOfMissingValues(missingValueNumber);
+		if (isParameterSet(PARAMETER_MISSING_VALUE_NOMINAL) || isParameterSet(PARAMETER_MISSING_VALUE_NUMERIC)) {
+			ExampleSetMetaData subset = subsetSelector.getMetaDataSubset(metaData, false);
+			if (subset != null) {
+				MDInteger missingValueNumber = new MDInteger();
+				boolean parameterAttributeTypeExistsInSubset = false;
+				String mode = getParameterAsString(PARAMETER_MODE);
+				for (AttributeMetaData amd : subset.getAllAttributes()) {
+					AttributeMetaData originalAMD = metaData.getAttributeByName(amd.getName());
+					missingValueNumber = originalAMD.getNumberOfMissingValues();
+					missingValueNumber.increaseByUnknownAmount();
+					
+					if (mode.equals(NUMERIC)) {
+						switch(amd.getValueType()) {
+						case Ontology.NUMERICAL:
+						case Ontology.INTEGER:
+						case Ontology.REAL:
+							parameterAttributeTypeExistsInSubset = true;
+							break;
+						default:
+							continue;
+						}
+					}
+					if (mode.equals(NOMINAL)) {
+						switch(amd.getValueType()) {
+						case Ontology.NOMINAL:
+						case Ontology.STRING:
+						case Ontology.BINOMINAL:
+						case Ontology.POLYNOMINAL:
+						case Ontology.FILE_PATH:
+						case Ontology.DATE_TIME:
+							parameterAttributeTypeExistsInSubset = true;
+							break;
+						default:
+							continue;
+						}
+					}
+				}
+				if (!parameterAttributeTypeExistsInSubset) {
+					if (subset.getAllAttributes().size() <= 0) {
+						getInputPort().addError(new SimpleMetaDataError(Severity.ERROR, getInputPort(), "attribute_selection_empty"));
+					} else {
+						if (mode.equals(NUMERIC)) {
+							getInputPort().addError(new SimpleMetaDataError(Severity.ERROR, getInputPort(), "exampleset.must_contain_numerical_attribute"));
+						}
+						if (mode.equals(NOMINAL)) {
+							getInputPort().addError(new SimpleMetaDataError(Severity.ERROR, getInputPort(), "exampleset.must_contain_nominal_attribute"));
+						}
+					}
+				}
+			}
 		}
 		
 		return metaData;		
@@ -70,7 +117,7 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 	
 	@Override
 	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
-		ExampleSet subset = mSubsetSelector.getSubset(exampleSet, false);
+		ExampleSet subset = subsetSelector.getSubset(exampleSet, false);
 		Attributes attributes = subset.getAttributes();
 		String mode = getParameterAsString(PARAMETER_MODE);
 		for (Example example : subset) {
@@ -95,7 +142,7 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> parameters = super.getParameterTypes();
 		
-		parameters.addAll(mSubsetSelector.getParameterTypes());
+		parameters.addAll(subsetSelector.getParameterTypes());
 		
 		ParameterType type = new ParameterTypeCategory(PARAMETER_MODE, "Select the value type of the missing value", VALUE_TYPES, 0);
 		type.setExpert(false);

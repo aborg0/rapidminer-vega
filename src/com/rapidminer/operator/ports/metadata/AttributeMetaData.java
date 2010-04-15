@@ -139,11 +139,12 @@ public class AttributeMetaData implements Serializable {
 	}
 
 	private AttributeMetaData(AttributeMetaData attributeMetaData) {
+		// must not keep references on mutable objects!
 		this.name = attributeMetaData.name;
 		this.role = attributeMetaData.role;
 		this.type= attributeMetaData.type;
-		this.numberOfMissingValues = attributeMetaData.numberOfMissingValues;
-		this.mean = attributeMetaData.mean;
+		this.numberOfMissingValues = new MDInteger(attributeMetaData.numberOfMissingValues);
+		this.mean = new MDReal(attributeMetaData.mean);
 		this.mode = attributeMetaData.mode;
 		this.valueSetRelation = attributeMetaData.getValueSetRelation();
 		this.valueRange = new Range(attributeMetaData.getValueRange());

@@ -144,7 +144,9 @@ public class ParetoChartPlotter extends LabelRotatingPlotterAdapter {
 		countValues = new ListeningJComboBox(PARAMETER_COUNT_VALUE, 200);
 		countValues.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				settings.setParameterAsString(PARAMETER_COUNT_VALUE, countValues.getSelectedItem().toString());
+				if (countValues.getSelectedItem() != null) {
+					settings.setParameterAsString(PARAMETER_COUNT_VALUE, countValues.getSelectedItem().toString());
+				}
 			}
 		});
 

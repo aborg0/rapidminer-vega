@@ -42,8 +42,7 @@ import com.rapidminer.tools.math.Averagable;
  * examples which have a NaN as prediction or label, but not both. In this case,
  * mean and variance stored in tie Attributes and computed here can differ.
  * 
- * @author Robert Rudolph, Ingo Mierswa
- *          Exp $
+ * @author Robert Rudolph, Ingo Mierswa, Sebastian Land
  */
 public class CorrelationCriterion extends MeasuredPerformance {
 
@@ -112,10 +111,10 @@ public class CorrelationCriterion extends MeasuredPerformance {
 		double prod = label * plabel * weight;
 		if (!Double.isNaN(prod)) {
 			sumLabelPredict += prod;
-			sumLabel += label;
-			sumLabelSqr += label * label;
-			sumPredict += plabel;
-			sumPredictSqr += plabel * plabel;
+			sumLabel += label * weight;
+			sumLabelSqr += label * label * weight;
+			sumPredict += plabel * weight;
+			sumPredictSqr += plabel * plabel * weight;
 			exampleCount += weight;
 		}
 	}
