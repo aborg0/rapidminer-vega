@@ -179,7 +179,7 @@ public class ExcelExampleSource extends AbstractDataReader {
 				boolean contentFound = false;
 				for (int r = rowOffset; r < numberOfRows; r++) {
 					for (int c = columnOffset; c < numberOfColumns; c++) {
-						if (sheet.getCell(c, r).getType() != CellType.EMPTY) {
+						if (sheet.getCell(c, r).getType() != CellType.EMPTY && !"".equals(sheet.getCell(c,r).getContents().trim())) {
 							columnOffset = c;
 							contentFound = true;
 							break;
@@ -198,7 +198,7 @@ public class ExcelExampleSource extends AbstractDataReader {
 				for (int r = rowOffset; r < numberOfRows; r++) {
 					boolean rowEmpty = true;
 					for (int c = columnOffset; c < numberOfColumns; c++) {
-						if (sheet.getCell(c, r).getType() != CellType.EMPTY) {
+						if (sheet.getCell(c, r).getType() != CellType.EMPTY && !"".equals(sheet.getCell(c,r).getContents().trim())) {
 							rowEmpty = false;
 							break;
 						}
@@ -212,7 +212,7 @@ public class ExcelExampleSource extends AbstractDataReader {
 				for (int c = columnOffset; c < numberOfColumns; c++) {
 					boolean columnEmpty = true;
 					for (int r = rowOffset; r < numberOfRows; r++) {
-						if (sheet.getCell(c, r).getType() != CellType.EMPTY) {
+						if (sheet.getCell(c, r).getType() != CellType.EMPTY  && !"".equals(sheet.getCell(c,r).getContents().trim())) {
 							columnEmpty = false;
 							break;
 						}

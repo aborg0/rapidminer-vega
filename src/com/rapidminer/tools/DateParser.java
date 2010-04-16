@@ -43,6 +43,8 @@ public class DateParser extends SimpleDateFormat {
 	
 	public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
 	
+	public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd hh:mm:ss";
+	
 	public DateParser(String dateFormat) {
 		super(dateFormat);
 	}

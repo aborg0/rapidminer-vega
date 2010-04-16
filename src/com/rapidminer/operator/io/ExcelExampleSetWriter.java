@@ -105,7 +105,10 @@ public class ExcelExampleSetWriter extends AbstractExampleSetWriter {
 	    WritableCellFormat nfCell = new WritableCellFormat(nf);
 		WritableFont wf2 = new WritableFont(WritableFont.ARIAL, 10, WritableFont.NO_BOLD);
 		WritableCellFormat cf2 = new WritableCellFormat(wf2);
-		DateFormat df = new DateFormat(DateParser.DEFAULT_DATE_FORMAT);
+		
+//		DateFormat df = new DateFormat(DateParser.DEFAULT_DATE_FORMAT);
+		DateFormat df = new DateFormat(DateParser.DEFAULT_DATE_TIME_FORMAT);
+
 		WritableCellFormat dfCell = new WritableCellFormat(df);
 		int rowCounter = 1;
 		for (Example example : exampleSet) {
@@ -116,12 +119,15 @@ public class ExcelExampleSetWriter extends AbstractExampleSetWriter {
 				if (!Double.isNaN(example.getValue(attribute))) {
 					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.NOMINAL)) {
 						s.addCell(new Label(columnCounter, rowCounter, replaceForbiddenChars(example.getValueAsString(attribute)), cf2));
-					} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.NUMERICAL)) {
-					    Number number = new Number(columnCounter, rowCounter, example.getValue(attribute), nfCell);
-					    s.addCell(number);
 					} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
 						DateTime dateTime = new DateTime(columnCounter, rowCounter, new Date((long) example.getValue(attribute)), dfCell);
 						s.addCell(dateTime);
+					} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.NUMERICAL)) {
+					    Number number = new Number(columnCounter, rowCounter, example.getValue(attribute), nfCell);
+					    s.addCell(number);
+					} else {
+						// default: write as a String
+						s.addCell(new Label(columnCounter, rowCounter, replaceForbiddenChars(example.getValueAsString(attribute)), cf2));
 					}
 				}
 				columnCounter++;

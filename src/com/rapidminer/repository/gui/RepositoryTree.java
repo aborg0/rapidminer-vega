@@ -50,6 +50,8 @@ import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import javax.swing.event.EventListenerList;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
@@ -98,6 +100,8 @@ public class RepositoryTree extends JTree {
 
 		private final Class<T> requiredSelectionType;
 		private final boolean needsWriteAccess;
+		
+		
 		
 		private AbstractRepositoryAction(Class<T> requiredSelectionType, boolean needsWriteAccess, String i18nKey) {
 			super(true, i18nKey);			
@@ -328,27 +332,33 @@ public class RepositoryTree extends JTree {
 		addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-		    	int row = getRowForLocation(e.getX(),e.getY());
-		        setSelectionInterval(row, row);
-				if (e.isPopupTrigger()) {
-					showPopup(e);
+				if (e.getButton()== MouseEvent.BUTTON3){
+			    	int row = getRowForLocation(e.getX(),e.getY());
+			        setSelectionInterval(row, row);
+					if (e.isPopupTrigger()) {
+						showPopup(e);
+					}
 				}
 			}
 			@Override
 			public void mousePressed(MouseEvent e) {
-		    	int row = getRowForLocation(e.getX(),e.getY());
-		        setSelectionInterval(row, row);
-				if (e.isPopupTrigger()) {
-					showPopup(e);
-				}				
+				if (e.getButton()== MouseEvent.BUTTON3){
+			    	int row = getRowForLocation(e.getX(),e.getY());
+			        setSelectionInterval(row, row);
+					if (e.isPopupTrigger()) {
+						showPopup(e);
+					}				
+				}
 			}
 			@Override
 			public void mouseReleased(MouseEvent e) {
-		    	int row = getRowForLocation(e.getX(),e.getY());
-		        setSelectionInterval(row, row);
-				if (e.isPopupTrigger()) {
-					showPopup(e);
-				}				
+				if (e.getButton()== MouseEvent.BUTTON3){
+			    	int row = getRowForLocation(e.getX(),e.getY());
+			        setSelectionInterval(row, row);
+					if (e.isPopupTrigger()) {
+						showPopup(e);
+					}
+				}
 			}			
 		});			
 
@@ -506,6 +516,21 @@ public class RepositoryTree extends JTree {
 			public void valueChanged(TreeSelectionEvent e) {
 				enableActions();			
 			}			
+		});
+        
+        addTreeExpansionListener(new TreeExpansionListener() {
+			
+			@Override
+			public void treeExpanded(TreeExpansionEvent event) {
+				// select the last expanded/collapsed path 
+				selectionModel.setSelectionPath(event.getPath());
+			}
+			
+			@Override
+			public void treeCollapsed(TreeExpansionEvent event) {
+				// select the last expanded/collapsed path 
+ 				treeExpanded(event);
+			}
 		});
         
         enableActions();
