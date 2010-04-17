@@ -42,8 +42,10 @@ public class Range implements Serializable {
 
 	public Range(double lowerBound, double upperBound) {
 		if (lowerBound > upperBound){
-			throw new IllegalArgumentException("Range was tried to initialized with a " +
-					"lower bound > upper bound. Lower bound = "+lowerBound+" Upper = "+upperBound+".");
+// TODO: This must be resolved but currently causes some read operators to quit operation.
+//       Needs to find solution for this before making it public.
+//			throw new IllegalArgumentException("Range was tried to initialized with a " +
+//					"lower bound > upper bound. Lower bound = "+lowerBound+" Upper = "+upperBound+".");
 		}
 		this.lower = lowerBound;
 		this.upper = upperBound;

@@ -79,7 +79,7 @@
         <parameter key="p_crossover" value="0.5"/>
         <parameter key="crossover_type" value="1"/>
         <process expanded="true" height="604" width="846">
-          <operator activated="true" class="performance_cfs" expanded="true" height="76" name="CFSFeatureSetEvaluator" width="90" x="45" y="30"/>
+          <operator activated="true" class="weka:performance_cfs" expanded="true" height="76" name="CFSFeatureSetEvaluator" width="90" x="45" y="30"/>
           <operator activated="true" class="performance_attribute_count" expanded="true" height="76" name="AttributeCounter" width="90" x="246" y="30">
             <parameter key="optimization_direction" value="0"/>
           </operator>

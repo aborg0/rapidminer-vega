@@ -60,6 +60,7 @@ import javax.swing.tree.TreeSelectionModel;
 import com.rapidminer.Process;
 import com.rapidminer.RepositoryProcessLocation;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.actions.OpenAction;
 import com.rapidminer.gui.dnd.TransferableOperator;
 import com.rapidminer.gui.operatortree.actions.CutCopyPasteAction;
 import com.rapidminer.gui.tools.ProgressThread;
@@ -682,7 +683,13 @@ public class RepositoryTree extends JTree {
 	protected static void openProcess(final ProcessEntry processEntry) {
 		ProgressThread openProgressThread = new ProgressThread("open_process") {
 			public void run() {							
-				try {
+				RepositoryProcessLocation processLocation = new RepositoryProcessLocation(processEntry.getLocation());
+				if (RapidMinerGUI.getMainFrame().close()){
+					OpenAction.open(processLocation, false);
+				}
+				/* PRE FIX OF BUG 308: When opening process with double click all changes are discarded
+				 * 
+				 * try {
 					RepositoryProcessLocation processLocation = new RepositoryProcessLocation(processEntry.getLocation());
 					String xml = processEntry.retrieveXML();
 					try {
@@ -698,7 +705,8 @@ public class RepositoryTree extends JTree {
 					}								
 				} catch (Exception e1) {
 					SwingTools.showSimpleErrorMessage("cannot_fetch_data_from_repository", e1);								
-				}
+				}*/
+				
 			}
 		};
 		openProgressThread.start();

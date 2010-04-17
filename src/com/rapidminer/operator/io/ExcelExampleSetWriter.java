@@ -23,6 +23,7 @@
 package com.rapidminer.operator.io;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -51,6 +52,7 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.tools.DateParser;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.io.Encoding;
 
 /**
  * <p>This operator can be used to write data into Microsoft Excel spreadsheets. 
@@ -73,6 +75,8 @@ public class ExcelExampleSetWriter extends AbstractExampleSetWriter {
 		File file = getParameterAsFile(PARAMETER_EXCEL_FILE, true);
 		
 		WorkbookSettings ws = new WorkbookSettings();
+		Charset encoding = Encoding.getEncoding(this);
+		ws.setEncoding(encoding.name());
 		ws.setLocale(Locale.US);
 
 		try {
@@ -144,6 +148,7 @@ public class ExcelExampleSetWriter extends AbstractExampleSetWriter {
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
 		types.add(new ParameterTypeFile(PARAMETER_EXCEL_FILE, "The Excel spreadsheet file which should be written.", "xls", false));
+		types.addAll(Encoding.getParameterTypes(this));
 		return types;
 	}
 }

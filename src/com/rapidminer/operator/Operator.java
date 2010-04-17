@@ -1697,7 +1697,8 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 				try {
 					errors.addAll(portErrors);
 				} catch (NullPointerException e) {
-					System.out.println("TEST");
+					//TODO: Can it be avoided to have NullPointerExceptions here when an error is created
+					// just after the operator has been inserted?
 				}
 		}
 		for (Port port : getOutputPorts().getAllPorts()) {

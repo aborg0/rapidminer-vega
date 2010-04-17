@@ -5281,13 +5281,22 @@
             &lt;em&gt;not&lt;/em&gt; interpreted by a shell (which?). If the
             desired command involves piping, redirection or other shell features,
             it is best to create a small shell script to handle this.&lt;/p&gt;
-            &lt;p&gt; A hint for Windows / MS DOS users: simple commands should
-            be preceeded by &lt;code&gt;cmd call&lt;/code&gt; which opens a new
+            &lt;p&gt;&lt;p&gt; A hint for Windows / MS DOS users: simple commands should
+            be preceeded by &lt;code&gt;cmd /c call&lt;/code&gt;, eg. &lt;code&gt;cmd /c notepad&lt;/code&gt; 
+            or just &lt;code&gt;notepad&lt;/code&gt; in case you are executing a program and not just a shell command.
+            Then Windows opens a new shell, executes the command, and closes the shell again.
+            However, Windows 7 does not open a new shell, it just executes the command.
+            &lt;p&gt; 
+            Another option would be to preceed the command with &lt;code&gt;cmd /c start&lt;/code&gt; which
+            opens the shell and keeps it open. The rest process will not be
+            executed until the shell is closed by the user. &lt;/p&gt; 
+            <!--     
+            which opens a new
             shell, executes the command and closes the shell again. After this,
             the rest of the process will be executed. Another option would be to
             preceed the command with &lt;code&gt;cmd start&lt;/code&gt; which
             opens the shell and keeps it open. The rest process will not be
-            executed until the shell is closed by the user. &lt;/p&gt;</help>
+            executed until the shell is closed by the user. &lt;/p&gt; --></help>
     <key>execute_program</key>
   </operator>
     <operator>
