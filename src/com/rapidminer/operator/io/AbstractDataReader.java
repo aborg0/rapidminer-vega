@@ -558,11 +558,16 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 			if (set.isMissing(i)) {
 				values[i] = Double.NaN;
 				continue;
-			} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[i].getValueType(), Ontology.NUMERICAL)) {
-				values[i] = set.getNumber(i).doubleValue();
-				continue;
-			} else	if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[i].getValueType(), Ontology.DATE_TIME)) {
+			} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[i].getValueType(), Ontology.DATE_TIME)) {
 				values[i] = set.getDate(i).getTime();
+				continue;
+			} else	if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[i].getValueType(), Ontology.NUMERICAL)) {
+				if (set.getNumber(i) == null){
+					logError("Cell value is not a numerical value. Value content: ' "+ set.getString(i)+" '.");
+					values[i] = Double.NaN;
+				} else{
+					values[i] = set.getNumber(i).doubleValue();
+				}
 				continue;
 			} else	if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[i].getValueType(), Ontology.NOMINAL)) {
 				values[i] = attributes[i].getMapping().mapString(set.getString(i));

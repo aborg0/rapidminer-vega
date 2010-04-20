@@ -42,12 +42,15 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
+import com.rapidminer.parameter.ParameterTypeChar;
 import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.ParameterTypeStringCategory;
+import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.att.AttributeSet;
@@ -114,6 +117,13 @@ public class SparseFormatExampleSource extends AbstractExampleSource {
 
 	/** The parameter name for &quot;Maps prefixes to names of special attributes.&quot; */
 	public static final String PARAMETER_PREFIX_MAP = "prefix_map";
+	
+
+	/**  Determines whether nominal values are surrounded by quotes or not. If <code>PARAMETER_USE_QUOTES == true</code> the first and last character of the nominal values are ignored. */
+	public static final String PARAMETER_USE_QUOTES = "use_quotes";
+	
+	/**   The char that is used to surround nominal values. */
+	public static final String PARAMETER_QUOTES_CHARACTER = "quotes_character";
 
 	public SparseFormatExampleSource(OperatorDescription description) {
 		super(description);
@@ -196,7 +206,7 @@ public class SparseFormatExampleSource extends AbstractExampleSource {
 		}
 
 		MemoryExampleTable table = new MemoryExampleTable(attributeSet.getAllAttributes());
-		SparseFormatDataRowReader reader = new SparseFormatDataRowReader(new DataRowFactory(getParameterAsInt(PARAMETER_DATAMANAGEMENT), getParameterAsString(PARAMETER_DECIMAL_POINT_CHARACTER).charAt(0)), format, prefixMap, attributeSet, inData, inLabels, getParameterAsInt(PARAMETER_SAMPLE_SIZE));
+		SparseFormatDataRowReader reader = new SparseFormatDataRowReader(new DataRowFactory(getParameterAsInt(PARAMETER_DATAMANAGEMENT), getParameterAsString(PARAMETER_DECIMAL_POINT_CHARACTER).charAt(0)), format, prefixMap, attributeSet, inData, inLabels, getParameterAsInt(PARAMETER_SAMPLE_SIZE), getParameterAsBoolean(PARAMETER_USE_QUOTES), getParameterAsChar(PARAMETER_QUOTES_CHARACTER));
 		table.readExamples(reader);
 		ExampleSet exampleSet = table.createExampleSet(attributeSet);
 		return exampleSet;
@@ -220,6 +230,12 @@ public class SparseFormatExampleSource extends AbstractExampleSource {
 		types.add(new ParameterTypeFile(PARAMETER_LABEL_FILE, "Name of the data file containing the labels. Only necessary if format is 'format_separate_file'.", null, true));
 		types.add(new ParameterTypeInt(PARAMETER_DIMENSION, "Dimension of the example space. Only necessary if parameter 'attribute_description_file' is not set.", -1, Integer.MAX_VALUE, -1));
 		types.add(new ParameterTypeInt(PARAMETER_SAMPLE_SIZE, "The maximum number of examples to read from the data files (-1 = all)", -1, Integer.MAX_VALUE, -1));
+		
+		types.add(new ParameterTypeBoolean(PARAMETER_USE_QUOTES, "Indicates if quotes should be regarded.", true));
+		type = new ParameterTypeChar(PARAMETER_QUOTES_CHARACTER, "The quotes character.", '"', true);
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_QUOTES, false, true));
+		types.add(type);
+		
 		types.add(new ParameterTypeCategory(PARAMETER_DATAMANAGEMENT, "Determines, how the data is represented internally.", DataRowFactory.TYPE_NAMES, DataRowFactory.TYPE_DOUBLE_ARRAY));
 		types.add(new ParameterTypeString(PARAMETER_DECIMAL_POINT_CHARACTER, "Character that is used as decimal point.", "."));
 		types.add(new ParameterTypeList(PARAMETER_PREFIX_MAP, "Maps prefixes to names of special attributes.", 

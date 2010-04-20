@@ -93,7 +93,7 @@ public class BinominalMapping implements NominalMapping {
 				secondValue = str;
 				return SECOND_VALUE_INDEX;
 			} else {
-				throw new AttributeTypeException("Cannot map another string for binary attribute: already mapped two strings!");
+				throw new AttributeTypeException("Cannot map another string for binary attribute: already mapped two strings! First string = <tt>"+firstValue+ "</tt>, Second string = <tt>" + secondValue + "</tt> The third string that was tried to add: <tt>"+str+"</tt>");
 			}
 		} else {
 			return index;

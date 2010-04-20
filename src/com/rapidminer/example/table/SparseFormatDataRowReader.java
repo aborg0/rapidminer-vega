@@ -30,6 +30,9 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.operator.io.SparseFormatExampleSource;
+import com.rapidminer.tools.LineParser;
+import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.att.AttributeSet;
 
 
@@ -99,6 +102,10 @@ public class SparseFormatDataRowReader extends AbstractDataRowReader {
 
 	/** Maps prefixes to special attribute names, e.g. "l:" to "label". */
 	private Map<String, String> prefixMap = new HashMap<String, String>();
+	
+	private boolean useQuotesForNominalValues;
+	
+	private char quoteChar;
 
 	/**
 	 * Creates a new data row reader for sparse format. The attributes indices
@@ -122,8 +129,13 @@ public class SparseFormatDataRowReader extends AbstractDataRowReader {
 	 *            FORMAT_SEPARATE_FILE.
 	 * @param sampleSize
 	 *            sample size, may be -1 for no limit.
+	 *            
+	 * @param useQuotesForNominalValues
+	 * 			  Determines whether nominal values are surrounded by quotes or not. If <code>useQuotesForNominalValues == true</code> the first and last character of the nominal values are ignored.
+	 * @param quoteChar           
+	 * 			  The char that is used to surround nominal values.
 	 */
-	public SparseFormatDataRowReader(DataRowFactory factory, int format, Map<String, String> prefixMap, AttributeSet attributeSet, Reader attributeReader, Reader labelReader, int sampleSize) {
+	public SparseFormatDataRowReader(DataRowFactory factory, int format, Map<String, String> prefixMap, AttributeSet attributeSet, Reader attributeReader, Reader labelReader, int sampleSize, boolean useQuotesForNominalValues, char quoteChar) {
 		super(factory);
 		this.format = format;
 		this.prefixMap = prefixMap;
@@ -144,6 +156,8 @@ public class SparseFormatDataRowReader extends AbstractDataRowReader {
 				throw new IllegalArgumentException("If format is not no_label, label attribute must be defined.");
 			}
 		}
+		this.useQuotesForNominalValues = useQuotesForNominalValues;
+		this.quoteChar = quoteChar;
 	}
 
 	/** Checks if further examples exist. Returns false if one of the files end. */
@@ -229,6 +243,15 @@ public class SparseFormatDataRowReader extends AbstractDataRowReader {
 
 				if (attribute != null) {
 					if (attribute.isNominal()) {
+						if (useQuotesForNominalValues){
+							String quote = Character.toString(quoteChar);
+							if (value.startsWith(quote) && value.endsWith(quote)){
+								value = value.substring(1, value.length()-1);
+							} else{
+								throw new RuntimeException("The value ' "+  value +" ' does not start and end with a quote character ' "+quote+" '.");
+							}
+							Tools.unescape(value);
+						}
 						currentDataRow.set(attribute, attribute.getMapping().mapString(value));
 					} else {
 						try {
