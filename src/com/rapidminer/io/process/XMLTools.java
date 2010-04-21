@@ -35,8 +35,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
-import javax.xml.XMLConstants;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -63,6 +63,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
 /**
  * 
@@ -183,7 +184,11 @@ public class XMLTools {
 		Transformer transformer;
 		try {
 			TransformerFactory tf = TransformerFactory.newInstance();
-			tf.setAttribute("indent-number", new Integer(2));		    
+			try {
+				tf.setAttribute("indent-number", new Integer(2));		    
+			} catch (IllegalArgumentException e) {
+				LogService.getRoot().log(Level.WARNING, "XML transformer does not support indentation.", e);
+			}
 			transformer = tf.newTransformer();
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 			if (encoding != null) {

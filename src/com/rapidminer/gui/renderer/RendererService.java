@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -57,11 +58,18 @@ public class RendererService {
 
 	private static Set<String> objectNames = new TreeSet<String>();
 
+	/** Maps names of IOObjects to lists of renderers that can render this object. These
+	 *  instances are shared! */
 	private static Map<String, List<Renderer>> objectRenderers = new HashMap<String, List<Renderer>>();
+
+	/** Maps names of IOObjects to lists of renderer classes that can render this object. */
+	private static Map<String, Map<String, Class<? extends Renderer>>> rendererNameToRendererClasses = 
+		new HashMap<String, Map<String, Class<? extends Renderer>>>();
 
 	private static Map<String, Class<? extends IOObject>> objectClasses = new HashMap<String, Class<? extends IOObject>>();
 
-	private static Map<String, Boolean> reportableMap = new HashMap<String, Boolean>();
+	/** Set of names of reportable objects. */
+	private static Set<String> reportableMap = new HashSet<String>();
 
 	private static Map<Class<?>, String> class2NameMap = new HashMap<Class<?>, String>();
 
@@ -155,30 +163,35 @@ public class RendererService {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static void registerRenderers(String name, String className, boolean reportable, List<String> rendererNames, ClassLoader classLoader) {
-		objectNames.add(name);
+	public static void registerRenderers(String reportableNames, String className, boolean reportable, List<String> rendererClassNames, ClassLoader classLoader) {
+		objectNames.add(reportableNames);
 
 		try {
 			
 			Class<? extends IOObject> clazz = (Class<? extends IOObject>) Class.forName(className, true, classLoader);
 
 			List<Renderer> renderers = new LinkedList<Renderer>();
-			for (String rendererName : rendererNames) {
-				Class<?> rendererClass;
+			Map<String,Class<? extends Renderer>> rendererClassMap = new HashMap<String,Class<? extends Renderer>>();
+			for (String rendererClassName : rendererClassNames) {
+				Class<? extends Renderer> rendererClass;
 				try {
-					rendererClass = Class.forName(rendererName, true, classLoader);
+					rendererClass = (Class<? extends Renderer>) Class.forName(rendererClassName, true, classLoader);
 				} catch (Exception e) { // should be unnecessary in most cases, because plugin loader contains core
 					// classes
-					rendererClass = Class.forName(rendererName);
+					rendererClass = (Class<? extends Renderer>) Class.forName(rendererClassName);
 				}
 				Renderer renderer = (Renderer) rendererClass.newInstance();
 				renderers.add(renderer);
+				rendererClassMap.put(renderer.getName(), rendererClass);
 			}
-
-			objectRenderers.put(name, renderers);
-			objectClasses.put(name, clazz);
-			class2NameMap.put(clazz, name);
-			reportableMap.put(name, reportable);
+			
+			rendererNameToRendererClasses.put(reportableNames, rendererClassMap);
+			objectRenderers.put(reportableNames, renderers);
+			objectClasses.put(reportableNames, clazz);
+			class2NameMap.put(clazz, reportableNames);
+			if (reportable) {
+				reportableMap.add(reportableNames);
+			}
 		} catch (Throwable e) {
 			LogService.getRoot().log(Level.WARNING, "Cannot register renderer: " + e, e);
 		}
@@ -191,14 +204,16 @@ public class RendererService {
 	public static Set<String> getAllReportableObjectNames() {
 		Set<String> result = new TreeSet<String>();
 		for (String name : objectNames) {
-			Boolean reportable = reportableMap.get(name);
-			if ((reportable != null) && (reportable)) {
+			if (reportableMap.contains(name)) {
 				result.add(name);
 			}
 		}
 		return result;
 	}
 
+	/** Returns the Reportable name for objects of the given class.
+	 * 
+	 */
 	public static String getName(Class<?> clazz) {
 		String result = class2NameMap.get(clazz);
 		if (result == null) {
@@ -222,11 +237,21 @@ public class RendererService {
 		return objectClasses.get(name);
 	}
 
-	public static List<Renderer> getRenderers(String name) {
-		List<Renderer> renderers = objectRenderers.get(name);
+	/** Returns a list of renderers defined for this IOObject name (as returned by 
+	 *  {@link #getName(Class)} for the respective object).
+	 *  It is recommended to use {@link #getRenderers(IOObject)} instead.
+	 *  */
+	public static List<Renderer> getRenderers(String reportableName) {
+		List<Renderer> renderers = objectRenderers.get(reportableName);
 		if (renderers != null)
 			return renderers;
 		return new LinkedList<Renderer>();
+	}
+	
+	/** Returns a list of shared (i.e. not thread-safe!) renderers defined for this IOObject. */
+	public static List<Renderer> getRenderers(IOObject ioo) {
+		String reportableName = RendererService.getName(ioo.getClass());
+		return getRenderers(reportableName);
 	}
 
 	public static Renderer getRenderer(String reportableName, String rendererName) {
@@ -237,5 +262,22 @@ public class RendererService {
 			}
 		}
 		return null;
+	}
+	
+	/** Creates a new renderer for the given object. 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException */
+	public static Renderer createRenderer(IOObject ioobject, String rendererName) {
+		String reportableName = getName(ioobject.getClass());
+		Map<String, Class<? extends Renderer>> rendererClassMap = rendererNameToRendererClasses.get(reportableName);
+		if (rendererClassMap == null) {
+			throw new IllegalArgumentException("Illegal renderer name: "+rendererName);
+		}
+		Class<? extends Renderer> rendererClass = rendererClassMap.get(rendererName);
+		try {
+			return rendererClass.newInstance();
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to create renderer: "+e, e);
+		}		
 	}
 }

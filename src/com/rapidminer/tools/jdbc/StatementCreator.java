@@ -332,6 +332,9 @@ public class StatementCreator {
 	}
 	
 	public String makeVarcharCreator(String columnName, int minLength) {
+		if (minLength == 0) {
+			minLength = 1;
+		}
 		StringBuilder b = new StringBuilder();
 		b.append(makeIdentifier(columnName)).append(" ");
 		

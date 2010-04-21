@@ -172,6 +172,7 @@ public class LineParser {
 	}
 	
 	public static String[] split(String line, String splitExpression, boolean trimLine, char quoteCharacter, char quoteEscapeCharacter) {
-		return Tools.quotedSplit(trimLine ? line.trim() : line, Pattern.compile(splitExpression), quoteCharacter, quoteEscapeCharacter);		
+		String s = Tools.escapeQuoteCharsInQuotes(trimLine ? line.trim() : line, Pattern.compile(splitExpression), quoteCharacter, quoteEscapeCharacter, true);
+		return Tools.quotedSplit(trimLine ? s.trim() : s, Pattern.compile(splitExpression), quoteCharacter, quoteEscapeCharacter);		
 	}
 }

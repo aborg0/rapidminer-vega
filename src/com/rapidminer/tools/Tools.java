@@ -1173,6 +1173,105 @@ public class Tools {
 		return result.toString();
 	}
 	
+	
+	
+	// quotedSplit Test:
+	public static void main(String[] args) {
+		String s = "\"C\"S,o\"\", 1968, \"US\"";
+//		s= "\"a,b\"";
+		s = "\"Charles says: \"Some people never go crazy, What truly horrible lives they must live\"\", 1968, \"US\"";
+		System.out.println(s);
+		
+		s = escapeQuoteCharsInQuotes(s, Pattern.compile(",\\s*"), '"', '\\', true);
+		String[] out = quotedSplit(s, Pattern.compile(",\\s*"), '"', '\\'); 
+		for (String t :out){
+			System.out.println(t);
+		}
+	}
+	
+	/**
+	 * Replace quote chars in-quote characters by escapeChar+quotingChar
+	 * 
+	 * Example: 
+	 * seperatorPatern = ',' , quotingChar = '"' , escapeCahr = '\\'  
+	 * 
+	 *  line    = '"Charles says: "Some people never go crazy, What truly horrible lives they must live"", 1968, "US"'
+	 *  return  = '"Charles says: \"Some people never go crazy, What truly horrible lives they must live\"", "1968", "US"' 
+	 */
+	public static String escapeQuoteCharsInQuotes(String line, Pattern separatorPattern, char quotingChar, char escapeChar, boolean showWarning){
+		// first remember quoteChar positions which should be escaped:
+		char lastChar = '0';
+		boolean openedQuote = false;
+		
+		List<Integer> rememberQuotePosition = new LinkedList<Integer>();
+		for (int i = 0; i < line.length(); i++) {
+			if (lastChar == quotingChar){
+				if (openedQuote){
+					boolean matches = Pattern.matches(separatorPattern.pattern()+".*", line.substring(i));
+					if (matches){
+						openedQuote = false;
+					} else {
+						rememberQuotePosition.add(i-1);
+					}
+					
+				} else {
+					openedQuote = true;
+				}
+			}
+			lastChar = line.charAt(i);
+		}
+		if (openedQuote && lastChar == quotingChar){
+			openedQuote = false;
+		}
+		
+		
+		// print warning
+		if (showWarning && !rememberQuotePosition.isEmpty()){
+			
+			String positions = "";
+			for (int i = 0; i < rememberQuotePosition.size();i++){
+				positions += rememberQuotePosition.get(i)+", ";
+			}
+//			for (Integer i : rememberQuotePosition){				
+//				positions += i+", ";
+//			}
+			positions = positions.substring(0, positions.length()-2);
+			
+			String lineBeginning = line;
+			if (line.length() > 10){
+				lineBeginning = line.substring(0, 10);
+			}	
+			String warning = "While reading the line starting with \n\n\t"+lineBeginning+"   ...\n\n" +
+					",an unescaped quote character was substituted by an escaped quote at the position(s) "+positions+". "+
+					"In particular der character '"+Character.toString(lastChar)+"' was replaced by '"+
+					Character.toString(escapeChar)+Character.toString(lastChar)+
+					"' at position(s) "+positions+".";
+			
+			LogService.getGlobal().logWarning(warning);
+		}
+		
+		// then build new line:
+		if (!rememberQuotePosition.isEmpty()){
+			String newLine = "";
+			int pos = rememberQuotePosition.remove(0);
+			int i = 0;
+			for (Character c : line.toCharArray()){
+				if (i==pos){
+					newLine += Character.toString(escapeChar)+c;
+					if (!rememberQuotePosition.isEmpty()){
+						pos = rememberQuotePosition.remove(0);
+					}
+				} else {
+					newLine += c; 
+				}
+				i++;
+			}
+			line= newLine;
+		}
+		return line;
+	}
+	
+	
 	public static String unescape(String escaped) {
 		StringBuilder result = new StringBuilder();
 		for (int index = 0; index < escaped.length(); index++) {
