@@ -22,7 +22,6 @@
  */
 package com.rapidminer.operator.performance;
 
-import com.rapidminer.operator.Operator;
 
 /**
  * Indicates that this criterion is able to calculate a performance for a forecasting problem.
@@ -36,6 +35,6 @@ import com.rapidminer.operator.Operator;
  */
 public interface ForecastingCriterion {
 
-	public void setParent(Operator parent);
+	public void setHorizon(int horizon);
 	
 }

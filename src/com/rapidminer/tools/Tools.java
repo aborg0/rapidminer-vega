@@ -1229,8 +1229,13 @@ public class Tools {
 		if (showWarning && !rememberQuotePosition.isEmpty()){
 			
 			String positions = "";
+			int j = 1;
 			for (int i = 0; i < rememberQuotePosition.size();i++){
+				if (j % 10 == 0){
+					positions += "\n";
+				}
 				positions += rememberQuotePosition.get(i)+", ";
+				j++;
 			}
 //			for (Integer i : rememberQuotePosition){				
 //				positions += i+", ";
@@ -1238,14 +1243,13 @@ public class Tools {
 			positions = positions.substring(0, positions.length()-2);
 			
 			String lineBeginning = line;
-			if (line.length() > 10){
-				lineBeginning = line.substring(0, 10);
+			if (line.length() > 20){
+				lineBeginning = line.substring(0, 20);
 			}	
 			String warning = "While reading the line starting with \n\n\t"+lineBeginning+"   ...\n\n" +
 					",an unescaped quote character was substituted by an escaped quote at the position(s) "+positions+". "+
 					"In particular der character '"+Character.toString(lastChar)+"' was replaced by '"+
-					Character.toString(escapeChar)+Character.toString(lastChar)+
-					"' at position(s) "+positions+".";
+					Character.toString(escapeChar)+Character.toString(lastChar)+".";
 			
 			LogService.getGlobal().logWarning(warning);
 		}

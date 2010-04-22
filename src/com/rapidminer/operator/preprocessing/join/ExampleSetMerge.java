@@ -85,14 +85,16 @@ public class ExampleSetMerge extends Operator {
 				@Override
 				public void makeAdditionalChecks(ExampleSetMetaData emd) throws UndefinedParameterError {
 					for (MetaData metaData: inputExtender.getMetaData(true)) {
-						MetaDataInfo result = emd.equalHeader((ExampleSetMetaData)metaData); 
-						if (result == MetaDataInfo.NO) {
-							addError(new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), "exampleset.sets_incompatible"));
-							break;
-						}
-						if (result == MetaDataInfo.UNKNOWN) {
-							addError(new SimpleProcessSetupError(Severity.WARNING, getPortOwner(), "exampleset.sets_incompatible"));
-							break;
+						if (metaData instanceof ExampleSetMetaData) {
+							MetaDataInfo result = emd.equalHeader((ExampleSetMetaData)metaData); 
+							if (result == MetaDataInfo.NO) {
+								addError(new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), "exampleset.sets_incompatible"));
+								break;
+							}
+							if (result == MetaDataInfo.UNKNOWN) {
+								addError(new SimpleProcessSetupError(Severity.WARNING, getPortOwner(), "exampleset.sets_incompatible"));
+								break;
+							}
 						}
 					}
 				}

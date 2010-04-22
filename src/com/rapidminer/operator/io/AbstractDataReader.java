@@ -563,7 +563,7 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 				continue;
 			} else	if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[i].getValueType(), Ontology.NUMERICAL)) {
 				if (set.getNumber(i) == null){
-					logError("Cell value is not a numerical value. Value content: ' "+ set.getString(i)+" '.");
+					logError("Cell value in the column '"+attributes[i].getName()+"' is not a numerical value. Value content: "+ set.getString(i));
 					values[i] = Double.NaN;
 				} else{
 					values[i] = set.getNumber(i).doubleValue();
@@ -601,7 +601,9 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 		} catch (IOException e) {
 			throw new UserError(this, e, 403, e.getMessage());
 		}
+		int i = 0;
 		while (set.next()) {
+			i++;
 			table.addDataRow(generateDataRow(set, attributesArray));
 		}
 		ExampleSet exampleSet = table.createExampleSet();
