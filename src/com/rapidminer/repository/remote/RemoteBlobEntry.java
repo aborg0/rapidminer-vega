@@ -31,6 +31,7 @@ import com.rapid_i.repository.wsimport.EntryResponse;
 import com.rapidminer.repository.BlobEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.remote.RemoteRepository.EntryStreamType;
+import com.rapidminer.tools.LogService;
 
 /**
  * Reference on BLOB entries in the repository, if using a remote repository.
@@ -69,20 +70,48 @@ public class RemoteBlobEntry extends RemoteDataEntry implements BlobEntry {
 	@Override
 	public OutputStream openOutputStream(String mimeType) throws RepositoryException {
 		try {
-			HttpURLConnection conn = getRepository().getHTTPConnection(getLocation().getPath(), EntryStreamType.BLOB);
+			final HttpURLConnection conn = getRepository().getHTTPConnection(getLocation().getPath(), EntryStreamType.BLOB);
 			conn.setDoOutput(true);
 			conn.setDoInput(true);
 			conn.setRequestProperty("Content-Type", mimeType);
-			OutputStream out;
+			final OutputStream out;
 			try {
 				out = conn.getOutputStream();
 			} catch (IOException e) {
 				throw new RepositoryException("Cannot upload object: " + conn.getResponseCode()+": "+conn.getResponseMessage(), e);
 			}
-			return out;
-//			Tools.copyStreamSynchronously(in, out, true);
-//			String returnMessage = Tools.readTextFile(new InputStreamReader(conn.getInputStream()));
-//			LogService.getRoot().fine("Reply from server: "+returnMessage);
+			//return out;
+			return new OutputStream() {
+				@Override
+				public void flush() throws IOException {
+					out.flush();
+				}
+				@Override
+				public void write(byte[] b) throws IOException {
+					out.write(b);
+				}
+				@Override
+				public void write(byte[] b, int off, int len) throws IOException {
+					out.write(b, off, len);
+				}
+				@Override
+				public void write(int b) throws IOException {
+					out.write(b);
+				}
+				@Override
+				public void close() throws IOException {
+					super.close();
+					out.close();
+					int code = conn.getResponseCode();
+					String error = conn.getResponseMessage();
+					if ((code < 200) || (code >= 300)) {						
+						throw new IOException("Upload failed. Server responded with code "+code+": "+error);
+					} else {
+						LogService.getRoot().info("Uploaded blob. ("+code+": "+error+")");
+					}
+				}
+				
+			};
 		} catch (IOException e) {
 			throw new RepositoryException("Cannot open connection to '"+getLocation()+"': "+e, e);
 		}		

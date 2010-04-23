@@ -234,6 +234,10 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 		rowCount          = 0;
 		columnCount       = 0;
 		columnNames       = null;
+		
+		
+		// init array  of length 0 with false
+		// will be initialized in extendToLength(length)		
 		canParseDouble    = new boolean[columnCount];
 		canParseInteger   = new boolean[columnCount];
 		canParseDate      = new boolean[columnCount];
@@ -256,7 +260,7 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 		try {
 			set = getDataSet();
 		} catch (IOException e) {
-			// TODO add user error
+			throw new UserError(this, e, 403, e.getMessage());
 		}
 		int maxNumberOfNominalMetaValues = AttributeMetaData.getMaximumNumerOfNominalValues();
 		while (set.next()) {

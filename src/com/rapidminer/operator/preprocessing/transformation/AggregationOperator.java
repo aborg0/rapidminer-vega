@@ -39,6 +39,7 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.example.table.DoubleArrayDataRow;
 import com.rapidminer.example.table.MemoryExampleTable;
+import com.rapidminer.example.table.NominalMapping;
 import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
@@ -61,6 +62,7 @@ import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeStringCategory;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.container.MultidimensionalArraySet;
@@ -80,7 +82,7 @@ import com.rapidminer.tools.math.function.aggregation.AggregationFunction;
  * <p>Please note that the known HAVING clause from SQL can be simulated
  * by an additional {@link ExampleFilter} operator following this one.</p>
  * 
- * @author Tobias Malbrecht, Ingo Mierswa
+ * @author Tobias Malbrecht, Ingo Mierswa, Sebastian Land
  */
 public class AggregationOperator extends AbstractDataProcessing {
 
@@ -94,9 +96,11 @@ public class AggregationOperator extends AbstractDataProcessing {
 
 	public static final String PARAMETER_IGNORE_MISSINGS = "ignore_missings";
 
-	private static final String GENERIC_GROUP_NAME = "group";
+	public static final String GENERIC_GROUP_NAME = "group";
 
-	private static final String GENERIC_ALL_NAME = "all";
+	public static final String GENERIC_ALL_NAME = "all";
+
+	public static final String PARAMETER_ALL_COMBINATIONS = "count_all_combinations";
 
 	public AggregationOperator(OperatorDescription desc) {
 		super(desc);
@@ -174,7 +178,8 @@ public class AggregationOperator extends AbstractDataProcessing {
 
 		Attribute weightAttribute = exampleSet.getAttributes().getWeight();
 		MemoryExampleTable resultTable = null;
-
+		boolean allCombinations = getParameterAsBoolean(PARAMETER_ALL_COMBINATIONS);
+		
 		if (isParameterSet(PARAMETER_GROUP_BY_ATTRIBUTES)) {
 			String groupByAttributesRegex = getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES);
 			
@@ -206,7 +211,7 @@ public class AggregationOperator extends AbstractDataProcessing {
 			// create aggregation functions
 			MultidimensionalArraySet<AggregationFunction[]> functionSet = new MultidimensionalArraySet<AggregationFunction[]>(mappingSizes);
 
-			if (onlyDistinctValues) {
+			if (onlyDistinctValues && !allCombinations) {
 
 				// initialize distinct value sets
 				MultidimensionalArraySet<ValueSet[]> distinctValueSet = new MultidimensionalArraySet<ValueSet[]>(mappingSizes);
@@ -250,7 +255,10 @@ public class AggregationOperator extends AbstractDataProcessing {
 					}
 				}
 			} else {
-
+				if (allCombinations) {
+					registerAllCombinations(groupByAttributes, functionSet, aggregationFunctionNames, ignoreMissings, aggregationAttributes);
+				}
+				
 				// compute aggregation function values
 				for (Example example : exampleSet) {
 					int[] indices = new int[groupByAttributes.length];
@@ -387,6 +395,33 @@ public class AggregationOperator extends AbstractDataProcessing {
 		return resultSet;
 	}
 
+	/**
+	 * This method will register for each index of the group by attributes' mapping the corresponding aggregation functions
+	 * @throws UserError 
+	 */
+	private void registerAllCombinations(Attribute[] groupByAttributes, MultidimensionalArraySet<AggregationFunction[]> functionSet, String[] aggregationFunctionNames, boolean ignoreMissings, Attribute[] aggregationAttributes) throws UserError {
+		registerAllCombinationsRecursion(groupByAttributes, functionSet, aggregationFunctionNames, ignoreMissings, aggregationAttributes, new int[groupByAttributes.length], 0);
+	}
+	
+	/**
+	 * The recursivly called method.
+	 * @throws UserError 
+	 */
+	private void registerAllCombinationsRecursion(Attribute[] groupByAttributes, MultidimensionalArraySet<AggregationFunction[]> functionSet, String[] aggregationFunctionNames, boolean ignoreMissings, Attribute[] aggregationAttributes, int[] indices, int depth) throws UserError {
+		if (depth == indices.length) {
+			AggregationFunction[] functions = new AggregationFunction[aggregationFunctionNames.length]; 
+			for (int j = 0; j < aggregationFunctionNames.length; j++) {
+				functions[j] = getAggregationFunction(aggregationFunctionNames[j], ignoreMissings, aggregationAttributes[j]);
+			}
+			functionSet.set(indices, functions);
+		} else {
+			NominalMapping mapping = groupByAttributes[depth].getMapping();
+			for (String value: mapping.getValues()) {
+				indices[depth] = mapping.getIndex(value);
+				registerAllCombinationsRecursion(groupByAttributes, functionSet, aggregationFunctionNames, ignoreMissings, aggregationAttributes, indices, depth + 1);
+			}
+		}
+	}
 	private AggregationFunction getAggregationFunction(String functionName, boolean ignoreMissings, Attribute attribute) throws UserError {
 		AggregationFunction function;
 		try {
@@ -437,7 +472,10 @@ public class AggregationOperator extends AbstractDataProcessing {
 				new ParameterTypeAttribute("aggregation_attribute", "Specifies the attribute which is aggregated.", getExampleSetInputPort()),
 				new ParameterTypeStringCategory(PARAMETER_AGGREGATION_FUNCTIONS, "The type of the used aggregation function.", AbstractAggregationFunction.KNOWN_AGGREGATION_FUNCTION_NAMES, AbstractAggregationFunction.KNOWN_AGGREGATION_FUNCTION_NAMES[0]), false));
 		types.add(new ParameterTypeAttributes(PARAMETER_GROUP_BY_ATTRIBUTES, "Performs a grouping by the values of the attributes whose names match the given regular expression.", getExampleSetInputPort(), true, false));
-		types.add(new ParameterTypeBoolean(PARAMETER_ONLY_DISTINCT, "Indicates if only rows with distinct values for the aggregation attribute should be used for the calculation of the aggregation function.", false));
+		types.add(new ParameterTypeBoolean(PARAMETER_ALL_COMBINATIONS, "Indicates that all possible combinations of the values of the group by attributes are counted, even if they don't occur. Please handle with care, since the number might be enormous.", false));
+		ParameterTypeBoolean type = new ParameterTypeBoolean(PARAMETER_ONLY_DISTINCT, "Indicates if only rows with distinct values for the aggregation attribute should be used for the calculation of the aggregation function.", false);
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_ALL_COMBINATIONS, false, false));
+		types.add(type);
 		types.add(new ParameterTypeBoolean(PARAMETER_IGNORE_MISSINGS, "Indicates if missings should be ignored and aggregation should be based only on existing values or not. In the latter case the aggregated value will be missing in the presence of missing values.", true));        
 		return types;
 	}

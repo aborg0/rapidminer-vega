@@ -23,7 +23,6 @@
 package com.rapidminer.operator.meta.branch;
 
 import com.rapidminer.operator.IOObject;
-import com.rapidminer.operator.MissingIOObjectException;
 import com.rapidminer.operator.OperatorException;
 
 /**
@@ -44,14 +43,9 @@ public class InputExistsCondition implements ProcessBranchCondition {
 	public boolean check(ProcessBranch operator, String value) throws OperatorException {
 		Class<? extends IOObject> clazz = operator.getSelectedClass();
 		if (clazz != null) {
-			try {
-				operator.getConditionInput(clazz);
-				return true;
-			} catch (MissingIOObjectException e) {
-				// do nothing
-			}
+			IOObject object = operator.getConditionInput(clazz);
+			return (object != null);
 		}
-		
 		return false;
 	}
 }

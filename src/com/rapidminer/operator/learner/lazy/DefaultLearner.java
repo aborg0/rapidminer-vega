@@ -152,6 +152,7 @@ public class DefaultLearner extends AbstractLearner {
 		case NUMERICAL_ATTRIBUTES:
 		case POLYNOMINAL_LABEL:
 		case BINOMINAL_LABEL:
+		case ONE_CLASS_LABEL:
 		case NUMERICAL_LABEL:
 		case MISSING_VALUES:
 			return true;
