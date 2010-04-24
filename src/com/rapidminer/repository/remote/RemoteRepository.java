@@ -55,6 +55,7 @@ import com.rapid_i.repository.wsimport.RepositoryService_Service;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.gui.actions.BrowseAction;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.io.Base64;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.repository.BlobEntry;
 import com.rapidminer.repository.Entry;
@@ -340,7 +341,13 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		if (type == EntryStreamType.METADATA) {
 			encoded.append("?format=binmeta");
 		}
-		return (HttpURLConnection) new URL(baseUrl, encoded.toString()).openConnection();
+		final HttpURLConnection conn = (HttpURLConnection) new URL(baseUrl, encoded.toString()).openConnection();
+//		final String userColonPass = username+":"+new String(password);		
+//		//final String base64 = Base64.encodeBytes(userColonPass.getBytes());
+//		String base64 = new sun.misc.BASE64Encoder().encode(userColonPass.getBytes());
+//		System.out.println(userColonPass+ " -> "+base64);
+//		conn.setRequestProperty("Authorization", "Basic " + base64);
+		return conn;
 	}
 	
 	@Override

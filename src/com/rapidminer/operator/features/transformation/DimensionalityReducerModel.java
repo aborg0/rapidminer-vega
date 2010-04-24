@@ -30,6 +30,7 @@ import java.util.Map;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.AttributeRole;
+import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
@@ -61,17 +62,19 @@ public class DimensionalityReducerModel extends AbstractModel {
 
 	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
 		List<Attribute> attributes = new ArrayList<Attribute>();
-		Map<Attribute, String> specialAttributes = new HashMap<Attribute, String>();
 		for (int i = 0; i < dimensions; i++) {
 			Attribute att = AttributeFactory.createAttribute("d" + i, Ontology.REAL);
 			attributes.add(att);
 		}
 
+		Map<String, Attribute> newSpecialAttributes = new HashMap<String, Attribute>();
+		Map<String, Attribute> oldSpecialAttributes = new HashMap<String, Attribute>();
 		Iterator<AttributeRole> s = exampleSet.getAttributes().specialAttributes();
 		while (s.hasNext()) {
 			AttributeRole role = s.next();
 			Attribute att = AttributeFactory.createAttribute(role.getAttribute());
-			specialAttributes.put(att, role.getSpecialName());
+			newSpecialAttributes.put(role.getSpecialName(), att);
+			oldSpecialAttributes.put(role.getSpecialName(), role.getAttribute());
 			attributes.add(att);
 		}
 		MemoryExampleTable table = new MemoryExampleTable(attributes);
@@ -83,16 +86,23 @@ public class DimensionalityReducerModel extends AbstractModel {
 			for (int j = 0; j < dimensions; j++)
 				row.set(attributes.get(j), p[i][j]);
 
-			for (Attribute specialAttribute: specialAttributes.keySet()) {
-                row.set(specialAttribute, oldExample.getValue(exampleSet.getAttributes().getSpecial(specialAttribute.getName())));
+			for (String specialAttributeRole: newSpecialAttributes.keySet()) {
+                Attribute attribute = newSpecialAttributes.get(specialAttributeRole);
+				row.set(attribute, oldExample.getValue(oldSpecialAttributes.get(specialAttributeRole)));
             }
             
 			table.addDataRow(row);
 			i++;
 		}
 
-		ExampleSet examples = table.createExampleSet(specialAttributes);
-		return examples;
+		ExampleSet resultSet = table.createExampleSet();
+		// set special roles
+		Attributes newAttributes = resultSet.getAttributes();
+		for (String specialAttributeRole: newSpecialAttributes.keySet()) {
+			newAttributes.setSpecialAttribute(newSpecialAttributes.get(specialAttributeRole), specialAttributeRole);
+		}
+		
+		return resultSet;
 	}
 
 	@Override

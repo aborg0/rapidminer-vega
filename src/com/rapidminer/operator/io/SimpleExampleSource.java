@@ -103,6 +103,8 @@ import com.rapidminer.tools.io.Encoding;
  * @rapidminer.index csv
  * @author Ingo Mierswa
  */
+
+@Deprecated
 public class SimpleExampleSource extends AbstractExampleSource {
 
 	/** The parameter name for &quot;Name of the label attribute (if empty, the column defined by label_column will be used)&quot; */
