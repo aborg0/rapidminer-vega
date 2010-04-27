@@ -187,7 +187,7 @@ public class XMLTools {
 			try {
 				tf.setAttribute("indent-number", new Integer(2));		    
 			} catch (IllegalArgumentException e) {
-				LogService.getRoot().log(Level.WARNING, "XML transformer does not support indentation.", e);
+				LogService.getRoot().log(Level.WARNING, "XML transformer does not support indentation: "+e);
 			}
 			transformer = tf.newTransformer();
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");

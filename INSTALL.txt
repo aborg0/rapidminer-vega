@@ -1,4 +1,4 @@
-RAPID MINER 4.0 INSTALLATION NOTES
+RAPID MINER 5.0 INSTALLATION NOTES
 ----------------------------------
 
 This file describes the installation of RapidMiner on your machine. You may
@@ -47,8 +47,8 @@ directories:
 	LICENSE.txt	The GNU public license
 	CHANGES.txt	Changes from previous versions
 
-1. Make sure you have Java installed. RapidMiner runs on Java 5.0 
-   (aka 1.5) or higher. Type "java -version" on the command line to 
+1. Make sure you have Java installed. RapidMiner runs on Java 6.0 
+   (aka 1.6) or higher. Type "java -version" on the command line to 
    figure out your Java version. A Java Runtime Environment can 
    be downloaded from http://java.sun.com/
    Make sure your JAVA_HOME environment variable is set to point to
@@ -72,9 +72,9 @@ directories:
 
 3. Test your installation. Use
  
-   scripts/rapidminer EXPERIMENTFILE   
+   scripts/rapidminer PROCESS   
    
-                             to execute an experiment with the the
+                             to execute an process with the
                              command line version. You can use one
 			                 of the samples from the samples 
 			                 directory.
@@ -102,8 +102,8 @@ this ordering
 
   RAPID_MINER_HOME/rapidminerrc
   RAPID_MINER_HOME/rapidminerrc.OSNAME
-  ~/.rapidminer/<VERSION>rapidminerrc
-  ~/.rapidminer/<VERSION>rapidminerrc.<OSNAME>
+  ~/.RapidMiner5/<VERSION>rapidminerrc
+  ~/.RapidMiner5/<VERSION>rapidminerrc.<OSNAME>
   rapidminerrc
   rapidminerrc.<OSNAME>
 
