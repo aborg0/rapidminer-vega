@@ -57,6 +57,7 @@ import com.rapidminer.datatable.DataTable;
 import com.rapidminer.datatable.SimpleDataTable;
 import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.io.process.XMLImporter;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.DebugMode;
 import com.rapidminer.operator.ExecutionMode;
 import com.rapidminer.operator.ExecutionUnit;
@@ -183,6 +184,8 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	/** Message generated during import by {@link XMLImporter}. */
 	private String importMessage;
 
+	private final Annotations annotations = new Annotations();
+	
 	// -------------------
 	// Constructors
 	// -------------------
@@ -1238,5 +1241,9 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 
 	public RepositoryAccessor getRepositoryAccessor() {
 		return null;
+	}
+
+	public Annotations getAnnotations() {
+		return annotations;
 	}
 }

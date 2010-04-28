@@ -195,13 +195,25 @@ public class StatementCreator {
 	}
 
 	/** Quotes and escapes the given name such that it can be used as an SQL table or column identifier. */
-	public String makeIdentifier(String identifier) {	
+	public String makeIdentifier(String identifier) {
+		if (isLegalIdentifier(identifier)) {
+			return identifier;
+		}
 		identifier = identifier.replace(identifierQuote, "_");
 		return this.identifierQuote + 
 			identifier + 
 			this.identifierQuote;
 	}
 	
+	private boolean isLegalIdentifier(String identifier) {
+		for (char c : identifier.toCharArray()) {
+			if (!Character.isLetter(c) && (c != '_')) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	/** Creates an SQL INSERT statement for filling attributes into a table.
 	 *  This can be used to make a prepared statement where the i-th parameter is mapped to
 	 *  the i-th attribute in the example set. */

@@ -117,7 +117,7 @@ public class LocalRepository extends SimpleFolder implements Repository {
 
 	@Override
 	public String getDescription() {
-		return "This is a local repository stored on your local computer only."; 
+		return "This is a local repository stored on your local computer at "+getFile()+"."; 
 	}
 
 	@Override

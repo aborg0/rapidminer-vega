@@ -55,6 +55,7 @@ import com.rapidminer.io.process.rules.SetParameterRule;
 import com.rapidminer.io.process.rules.SetRoleByNameRule;
 import com.rapidminer.io.process.rules.SwitchListEntriesRule;
 import com.rapidminer.io.process.rules.WireAllOperators;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.DummyOperator;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.ListDescription;
@@ -230,8 +231,8 @@ public class XMLImporter {
 	public void parse(Document doc, Process process, List<UnknownParameterInformation> uli) throws XMLException {
 		ProcessRootOperator rootOperator = parse(doc.getDocumentElement(), uli);
 		process.setRootOperator(rootOperator);
+		// Process context
 		NodeList contextElems = doc.getDocumentElement().getElementsByTagName("context");
-
 		switch (contextElems.getLength()) {
 		case 0:
 			break;
@@ -239,9 +240,23 @@ public class XMLImporter {
 			parseContext((Element)contextElems.item(0), process);
 			break;
 		default:
-			addMessage("&lt;context&gt; can have at most one &lt;macros&gt; tag.");
+			addMessage("&lt;process&gt; can have at most one &lt;context&gt; tag.");
 			break;
 		}
+
+		// Annotations
+		NodeList annotationsElems = doc.getDocumentElement().getElementsByTagName(Annotations.ANNOTATIONS_TAG_NAME);
+		switch (annotationsElems.getLength()) {
+		case 0:
+			break;
+		case 1:
+			process.getAnnotations().parseXML((Element)annotationsElems.item(0));
+			break;
+		default:
+			addMessage("&lt;process&gt; can have at most one &lt;annotations&gt; tag.");
+			break;
+		}
+		
 		if (hasMessage()) {
 			process.setImportMessage(getMessage());
 		}

@@ -26,6 +26,8 @@ import java.awt.Color;
 
 import com.rapidminer.datatable.DataTable;
 import com.rapidminer.datatable.DataTableRow;
+import com.rapidminer.gui.MainFrame;
+import com.rapidminer.tools.LogService;
 
 /**
  * This class delivers colors according to the user settings.
@@ -35,11 +37,11 @@ import com.rapidminer.datatable.DataTableRow;
 public class ColorProvider {
 
 	public Color getMinLegendColor() {
-		return getColorFromProperty("rapidminer.gui.plotter.legend.mincolor", Color.BLUE);
+		return getColorFromProperty(MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_LEGEND_MINCOLOR, Color.BLUE);
 	}
 
 	public Color getMaxLegendColor() {
-		return getColorFromProperty("rapidminer.gui.plotter.legend.maxcolor", Color.RED);
+		return getColorFromProperty(MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_LEGEND_MAXCOLOR, Color.RED);
 	}
 	
     private Color getColorFromProperty(String propertyName, Color errorColor) {

@@ -102,7 +102,7 @@ public class NominalToBinominalModel extends PreprocessingModel {
 					binominalAttributeValueMap.put(newAttribute, (double) sourceAttribute.getMapping().mapString(value)); 
 					dichotomizationMap.put(newAttribute, sourceAttribute);
 				}
-			} else if (changeTypeMap.containsKey(sourceAttributeName)) {
+			} else if (changeTypeAttributeNames.contains(sourceAttributeName)) {
 				// create new attribute and copy mapping
 				Attribute newAttribute = AttributeFactory.createAttribute(sourceAttributeName + "_binominal", Ontology.BINOMINAL);
 				NominalMapping mapping = new BinominalMapping();
@@ -145,7 +145,7 @@ public class NominalToBinominalModel extends PreprocessingModel {
 		Iterator<Attribute> attributeIterator = attributes.allAttributes();
 		while (attributeIterator.hasNext()) {
 			Attribute attribute = attributeIterator.next();
-			if (dichotomizationAttributeNames.contains(attribute.getName())) {
+			if (dichotomizationAttributeNames.contains(attribute.getName()) || changeTypeAttributeNames.contains(attribute.getName())) {
 				attributeIterator.remove();
 			}
 		}

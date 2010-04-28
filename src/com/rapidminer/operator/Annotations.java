@@ -26,12 +26,19 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import com.rapidminer.example.Attribute;
 import com.rapidminer.gui.viewer.MetaDataViewerTableModel;
+import com.rapidminer.io.process.XMLTools;
 
 /** Instances of this class can be used to annotate {@link IOObject}s, {@link Attribute}s, etc. 
  * 
@@ -42,6 +49,8 @@ public class Annotations implements Serializable, Map<String,String> {
 
 	private static final long serialVersionUID = 1L;
 
+	public static final String ANNOTATIONS_TAG_NAME = "annotations";
+	
 	// for IOObjects
 
 	/** Source, e.g. URI, or SQL query of data. */
@@ -225,5 +234,39 @@ public class Annotations implements Serializable, Map<String,String> {
 	@Override
 	public String toString() {
 		return keyValueMap.toString();
+	}
+	
+	public Element toXML(Document doc) {
+		Element elem = doc.createElement(ANNOTATIONS_TAG_NAME);
+		for (Map.Entry<String,String> entry : keyValueMap.entrySet()) {
+			addAnnotationToXML(elem, entry.getKey(), entry.getValue());
+		}
+		return elem;
+	}
+
+	/** Updates the XML representation to contain this annotation. */
+	public static void addAnnotationToXML(Element annotationsElement, String name, String value) {
+		XMLTools.setTagContents(annotationsElement, name, value);		
+	}
+
+	/** Updates the XML representation removing this annotation. */
+	public static void deleteAnnotationFromXML(Element annotationsElement, String name) {
+		XMLTools.deleteTagContents(annotationsElement, name);
+	}
+
+	public void parseXML(Element annotationsElem) {
+		NodeList children = annotationsElem.getChildNodes();
+		for (int i = 0; i < children.getLength(); i++) {
+			Node child = children.item(i);
+			if (child instanceof Element) {
+				setAnnotation(((Element) child).getTagName(), child.getTextContent());
+			}
+		}	
+	}
+
+	public List<String> getDefinedAnnotationNames() {
+		List<String> result = new LinkedList<String>();
+		result.addAll(keySet());
+		return result;
 	}
 }

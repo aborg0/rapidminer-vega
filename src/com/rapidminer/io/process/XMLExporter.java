@@ -35,7 +35,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.rapidminer.BreakpointListener;
+import com.rapidminer.Process;
 import com.rapidminer.ProcessContext;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorChain;
@@ -72,8 +74,12 @@ public class XMLExporter {
 			doc.appendChild(rootElement);
 			rootElement.setAttribute("version", "5.0");
 
-			if (operator.getProcess() != null) {
-				rootElement.appendChild(exportProcessContext(operator.getProcess().getContext(), doc));
+			final Process process = operator.getProcess();
+			if (process != null) {
+				rootElement.appendChild(exportProcessContext(process.getContext(), doc));
+				if (!process.getAnnotations().isEmpty()) {
+					rootElement.appendChild(exportAnnotations(process.getAnnotations(), doc));
+				}
 			}
 			rootElement.appendChild(exportOperator(operator, hideDefault, doc));			
 			return doc;
@@ -234,5 +240,9 @@ public class XMLExporter {
 			value.appendChild(doc.createTextNode(macro.getSecond()));			
 		}
 		return element;
+	}
+	
+	private Element exportAnnotations(Annotations annotations, Document doc) {
+		return annotations.toXML(doc);
 	}
 }

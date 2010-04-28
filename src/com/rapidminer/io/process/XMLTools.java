@@ -263,6 +263,14 @@ public class XMLTools {
 		child.appendChild(parent.getOwnerDocument().createTextNode(value));		
 	}
 
+	public static void deleteTagContents(Element annotationsElement, String name) {
+		NodeList children = annotationsElement.getElementsByTagName(name);
+		for (int i = 0; i < children.getLength(); i++) {
+			Element child = (Element) children.item(i);
+			annotationsElement.removeChild(child);
+		}
+	}
+
 	public static XMLGregorianCalendar getXMLGregorianCalendar(Date date) throws DatatypeConfigurationException {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(date.getTime());
@@ -276,4 +284,5 @@ public class XMLTools {
 		xmlGregorianCalendar.setSecond(calendar.get(Calendar.SECOND));
 		return xmlGregorianCalendar;
 	}
+
 }
