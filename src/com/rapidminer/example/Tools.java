@@ -133,6 +133,9 @@ public class Tools {
 		return (Attribute[]) inputAttributes.get(random.randomIndex(probs));
 	}
 
+	/**
+	 * Creates and adds the new attributes to the given example set
+	 */
 	public static Attribute createSpecialAttribute(ExampleSet exampleSet, String name, int valueType) {
 		Attribute attribute = AttributeFactory.createAttribute(name, valueType);
 		exampleSet.getExampleTable().addAttribute(attribute);

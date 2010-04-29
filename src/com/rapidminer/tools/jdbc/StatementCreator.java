@@ -46,7 +46,7 @@ import com.rapidminer.tools.Ontology;
  */
 public class StatementCreator {
 
-	private static class DataTypeSyntaxInformation {
+	protected static class DataTypeSyntaxInformation {
 		private final String literalPrefix;
 		private final String literalSuffix;
 		private final int dataType;
@@ -149,7 +149,7 @@ public class StatementCreator {
 		return typeStr.getTypeName();
 	}
 
-	private DataTypeSyntaxInformation getSQLTypeForRMValueType(int type) {
+	protected DataTypeSyntaxInformation getSQLTypeForRMValueType(int type) {
 		int parent = type;
 		while (parent != Ontology.ATTRIBUTE_VALUE) {
 			DataTypeSyntaxInformation si = typeMap.get(parent);

@@ -77,9 +77,11 @@ public class ProgressReportingInputStream extends InputStream {
 		if (increment > 0) {
 			readBytes += increment;
 			int completed = showMin + (showMax-showMin) * readBytes / streamLength;
-			if (completed != lastReportedValue) {				
-				listener.setCompleted(completed);
-				listener.setMessage(Tools.formatBytes(readBytes) + "/" +Tools.formatBytes(streamLength));
+			if (completed != lastReportedValue) {
+				if (listener != null) {
+					listener.setCompleted(completed);
+					listener.setMessage(Tools.formatBytes(readBytes) + "/" +Tools.formatBytes(streamLength));
+				}
 				lastReportedValue = completed;
 			}
 		}

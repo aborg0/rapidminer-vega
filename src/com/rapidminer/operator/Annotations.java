@@ -38,7 +38,6 @@ import org.w3c.dom.NodeList;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.gui.viewer.MetaDataViewerTableModel;
-import com.rapidminer.io.process.XMLTools;
 
 /** Instances of this class can be used to annotate {@link IOObject}s, {@link Attribute}s, etc. 
  * 
@@ -246,20 +245,37 @@ public class Annotations implements Serializable, Map<String,String> {
 
 	/** Updates the XML representation to contain this annotation. */
 	public static void addAnnotationToXML(Element annotationsElement, String name, String value) {
-		XMLTools.setTagContents(annotationsElement, name, value);		
+		if (value == null) {
+			deleteAnnotationFromXML(annotationsElement, name);
+		} else {
+			//XMLTools.setTagContents(annotationsElement, name, value);
+			final Document doc = annotationsElement.getOwnerDocument();
+			Element elem = doc.createElement("annotation");
+			annotationsElement.appendChild(elem);
+			elem.setAttribute("key", name);
+			elem.setTextContent(value);
+		}
 	}
 
 	/** Updates the XML representation removing this annotation. */
 	public static void deleteAnnotationFromXML(Element annotationsElement, String name) {
-		XMLTools.deleteTagContents(annotationsElement, name);
+		//XMLTools.deleteTagContents(annotationsElement, name);
+		NodeList children = annotationsElement.getChildNodes();
+		for (int i = 0; i < children.getLength(); i++) {
+			Node child = children.item(i);
+			if ((child instanceof Element) && name.equals(((Element) child).getAttribute("annotation"))) {
+				annotationsElement.removeChild(child);
+			}
+		}		
 	}
 
 	public void parseXML(Element annotationsElem) {
-		NodeList children = annotationsElem.getChildNodes();
+		NodeList children = annotationsElem.getElementsByTagName("annotation");
 		for (int i = 0; i < children.getLength(); i++) {
 			Node child = children.item(i);
 			if (child instanceof Element) {
-				setAnnotation(((Element) child).getTagName(), child.getTextContent());
+				String name = ((Element) child).getAttribute("key");
+				setAnnotation(name, child.getTextContent());
 			}
 		}	
 	}

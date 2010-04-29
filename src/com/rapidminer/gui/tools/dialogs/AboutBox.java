@@ -71,17 +71,19 @@ public class AboutBox extends JDialog {
 	private static final String PROPERTY_FILE = "about_infos.properties";
 
 	private static final String RAPID_MINER_LOGO_NAME = "rapidminer_logo.png";
-	public static Image rapidMinerLogo = null;
+	public static final Image RAPID_MINER_LOGO;
 	public static Image backgroundImage = null;
 	static {
 		URL url = Tools.getResource(RAPID_MINER_LOGO_NAME);
+		Image rmLogo = null;
 		if (url != null) {
 			try {
-				rapidMinerLogo = ImageIO.read(url);
+				rmLogo = ImageIO.read(url);
 			} catch (IOException e) {
 				LogService.getGlobal().logWarning("Cannot load logo for about box. Using empty image...");
 			}
 		}
+		RAPID_MINER_LOGO = rmLogo;
 		url = Tools.getResource("splashscreen_community.png");
 		if (url != null) {
 			try {
@@ -211,9 +213,9 @@ public class AboutBox extends JDialog {
 
 	public AboutBox(Frame owner, Properties properties, Image productLogo) {
 		super(owner, "About", true);
-		if (productLogo == null) {
-			productLogo = rapidMinerLogo;
-		}
+//		if (productLogo == null) {
+//			productLogo = rapidMinerLogo;
+//		}
 		setResizable(false);
 
 		setLayout(new BorderLayout());

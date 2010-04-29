@@ -27,12 +27,9 @@ import java.util.List;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
-import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.InputPortExtender;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.metadata.MetaData;
-import com.rapidminer.operator.ports.metadata.Precondition;
-import com.rapidminer.operator.ports.metadata.SimplePrecondition;
 import com.rapidminer.tools.math.AverageVector;
 import com.rapidminer.tools.math.RunVector;
 
@@ -45,12 +42,8 @@ import com.rapidminer.tools.math.RunVector;
  */
 public class AverageBuilder extends Operator {
 
-	InputPortExtender inExtender = new InputPortExtender("averagable", getInputPorts()) {
-		@Override
-		public Precondition makePrecondition(InputPort port) {
-			return new SimplePrecondition(port, new MetaData(AverageVector.class));
-		}
-	};
+	InputPortExtender inExtender = new InputPortExtender("averagable", getInputPorts(), new MetaData(AverageVector.class), 2);
+
 	private final OutputPort runOutput = getOutputPorts().createPort("average");
 	
 	public AverageBuilder(OperatorDescription description) {

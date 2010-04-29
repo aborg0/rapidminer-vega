@@ -100,7 +100,7 @@ public class BaggingModel extends PredictionModel implements MetaModel {
 				Model model = this.getModel(modelNr);
 				ExampleSet exampleSet = (ExampleSet) origExampleSet.clone();
 				exampleSet = model.apply(exampleSet);
-				this.updateEstimates(exampleSet, modelNr, specialAttributes);
+				updateEstimates(exampleSet, modelNr, specialAttributes);
 				PredictionModel.removePredictedLabel(exampleSet);
 			}
 
@@ -140,9 +140,7 @@ public class BaggingModel extends PredictionModel implements MetaModel {
 		final int numModels = this.getNumberOfModels();
 		final int numClasses = this.getLabel().getMapping().size();
 
-		Iterator<Example> reader = exampleSet.iterator();
-		while (reader.hasNext()) {
-			Example example = reader.next();
+		for (Example example: exampleSet) {
 
 			for (int i=0; i<numClasses; i++) {
 				String consideredPrediction = this.getLabel().getMapping().mapIndex(i);
@@ -150,16 +148,15 @@ public class BaggingModel extends PredictionModel implements MetaModel {
 				double value = example.getValue(specialAttributes[i]);
 				value += confidence / numModels;
 				example.setValue(specialAttributes[i], value);
+				 value = example.getValue(specialAttributes[i]);
 			}
 
 		}
 	}
 
 	private void evaluateSpecialAttributes(ExampleSet exampleSet, Attribute[] specialAttributes) {
-		Attribute exSetLabel = exampleSet.getAttributes().getLabel();
-		Iterator<Example> reader = exampleSet.iterator();
-		while (reader.hasNext()) {
-			Example example = reader.next();
+		Attribute predictedLabel = exampleSet.getAttributes().getPredictedLabel();
+		for(Example example: exampleSet) {
 			int bestLabel = 0;
 			double bestConf = -1;
 			for (int n = 0; n < specialAttributes.length; n++) {
@@ -172,8 +169,7 @@ public class BaggingModel extends PredictionModel implements MetaModel {
 					bestLabel = n;
 				}
 			}
-
-			example.setValue(example.getAttributes().getPredictedLabel(), exSetLabel.getMapping().mapString(this.getLabel().getMapping().mapIndex(bestLabel)));			
+			example.setValue(predictedLabel, predictedLabel.getMapping().mapString(this.getLabel().getMapping().mapIndex(bestLabel)));			
 		}
 	}
 

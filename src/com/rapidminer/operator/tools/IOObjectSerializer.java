@@ -41,7 +41,7 @@ import com.rapidminer.example.ExampleSet;
  */
 public class IOObjectSerializer {
 
-	private static final byte[] MAGIC_NUMBER = { (byte)0x2A, (byte)0x71, (byte)0xD1 } ;
+	public static final byte[] MAGIC_NUMBER = { (byte)0x2A, (byte)0x71, (byte)0xD1 } ;
 
 	private static final IOObjectSerializer INSTANCE = new IOObjectSerializer();
 	

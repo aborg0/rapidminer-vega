@@ -496,20 +496,7 @@ public class DatabaseHandler {
 			Attribute attribute = attributes.next().getAttribute();
 			double value = example.getValue(attribute);
 			if (Double.isNaN(value)) {
-				int sqlType;
-				if (!attribute.isNominal()) {
-					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.INTEGER)) {
-						sqlType = Types.INTEGER;
-					} else {
-						sqlType = Types.REAL;
-					}
-				} else {
-					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.STRING)) {
-						sqlType = Types.CLOB;
-					} else {
-						sqlType = Types.VARCHAR;
-					}
-				}
+				int sqlType = statementCreator.getSQLTypeForRMValueType(attribute.getValueType()).getDataType();
 				statement.setNull(counter, sqlType);
 			} else {
 				if (attribute.isNominal()) {
@@ -526,6 +513,13 @@ public class DatabaseHandler {
 //					
 //					while (valueString.indexOf(properties.getValueQuoteClose()) >= 0)
 //						valueString = valueString.replace(properties.getValueQuoteClose(), "_");
+					
+					// TODO: circumvent problem that large clobs could not be written to Oracle DB
+//					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.STRING)) {
+//						CLOB clob = oracle.sql.CLOB.createTemporary(connection, true, oracle.sql.CLOB.DURATION_CALL);
+//						clob.putString(1, valueString);
+//						statement.setClob(counter, clob);
+//					}
 					
 					statement.setString(counter, valueString);
 				} else {

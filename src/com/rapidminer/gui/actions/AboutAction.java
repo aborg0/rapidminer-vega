@@ -46,7 +46,7 @@ public class AboutAction extends ResourceAction {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		new AboutBox(mainFrame, RapidMiner.getLongVersion(), null).setVisible(true);
+		new AboutBox(mainFrame, RapidMiner.getLongVersion(), AboutBox.RAPID_MINER_LOGO).setVisible(true);
 	}
 
 }

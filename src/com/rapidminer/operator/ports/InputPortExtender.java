@@ -40,23 +40,34 @@ import com.rapidminer.operator.ports.metadata.MetaDataError;
 import com.rapidminer.operator.ports.metadata.Precondition;
 
 /**
- * @author Simon Fischer
+ * Port Extender that can be used if an operator needs to receive an arbitrary number
+ * of input objects. Delivered Collections might be unfolded automatically, so that
+ * the contained objects are presented as if they would have been forwarded one by one to the
+ * operator.
+ * This port extender can be configured to throw errors if the wrong type or to few
+ * inputs are connected.
+ * 
+ * @author Simon Fischer, Sebastian Land
  */
 public class InputPortExtender extends SinglePortExtender<InputPort> {
 
 	private MetaData desiredMetaData;
-	private boolean firstIsMandatory;
+	private int numberOfMandatory;
 	
 	public InputPortExtender(String name, Ports<InputPort> ports) {
-		super(name, ports);		
+		this(name, ports, null, 0);
 	}
 	
 	public InputPortExtender(String name, Ports<InputPort> ports, MetaData desiredMetaData, boolean firstIsMandatory) {
-		this(name, ports);
-		this.desiredMetaData = desiredMetaData;
-		this.firstIsMandatory = firstIsMandatory;
+		this(name, ports, desiredMetaData, firstIsMandatory ? 1 : 0);
 	}
 
+	public InputPortExtender(String name, Ports<InputPort> ports, MetaData desiredMetaData, int numberOfMandatory) {
+		super(name, ports);		
+		this.desiredMetaData = desiredMetaData;
+		this.numberOfMandatory = numberOfMandatory;
+	}
+	
 	@Override
 	protected InputPort createPort() {
 		InputPort port = super.createPort();
@@ -125,10 +136,10 @@ public class InputPortExtender extends SinglePortExtender<InputPort> {
 				@Override
 				public void check(MetaData metaData) {
 					if (!getManagedPorts().isEmpty()) {
-						if (getManagedPorts().iterator().next() == port) {
-							if (metaData == null && firstIsMandatory) {
-								port.addError(new InputMissingMetaDataError(port, desiredMetaData.getObjectClass(), null));
-							}
+						int portIndex = getManagedPorts().indexOf(port);
+						boolean isMandatory = (portIndex < numberOfMandatory);
+						if (metaData == null && isMandatory) {
+							port.addError(new InputMissingMetaDataError(port, desiredMetaData.getObjectClass(), null));
 						}
 						if (metaData != null) {
 							if (! desiredMetaData.isCompatible(metaData, CompatibilityLevel.VERSION_5)) {
@@ -143,7 +154,7 @@ public class InputPortExtender extends SinglePortExtender<InputPort> {
 
 				@Override
 				public String getDescription() {
-					return "requires " + ((firstIsMandatory)? " at least one " : "") + desiredMetaData.getDescription();
+					return "requires " + ((numberOfMandatory > 0)? " at least " + numberOfMandatory + " " : "") + desiredMetaData.getDescription();
 				}
 
 				@Override
