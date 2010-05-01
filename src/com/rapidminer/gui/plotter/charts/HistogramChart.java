@@ -64,6 +64,7 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.math.MathFunctions;
 
 /**
  * This is the histogram plotter based on JFreeCharts.
@@ -354,7 +355,7 @@ public class HistogramChart extends RangeablePlotterAdapter {
 				else {
 					Range newRange = getRangeForDimension(c);
 					if (newRange != null)
-						range = new Range(Math.min(range.getLowerBound(), newRange.getLowerBound()), Math.max(range.getUpperBound(), newRange.getUpperBound()));
+						range = new Range(MathFunctions.robustMin(range.getLowerBound(), newRange.getLowerBound()), MathFunctions.robustMax(range.getUpperBound(), newRange.getUpperBound()));
 				}
 			}
 		}

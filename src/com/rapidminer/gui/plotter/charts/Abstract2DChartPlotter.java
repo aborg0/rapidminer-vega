@@ -71,6 +71,7 @@ import com.rapidminer.gui.plotter.PlotterConfigurationModel;
 import com.rapidminer.gui.plotter.RangeablePlotterAdapter;
 import com.rapidminer.tools.ObjectVisualizerService;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.math.MathFunctions;
 
 
 /**
@@ -329,10 +330,10 @@ public abstract class Abstract2DChartPlotter extends RangeablePlotterAdapter {
 				data[Y_AXIS][index] = d[Y_AXIS];
 				data[COLOR_AXIS][index] = d[COLOR_AXIS];
 
-				minX = Math.min(minX, d[X_AXIS]);
-				maxX = Math.max(maxX, d[X_AXIS]);
-				minY = Math.min(minY, d[Y_AXIS]);
-				maxY = Math.max(maxY, d[Y_AXIS]);
+				minX = MathFunctions.robustMin(minX, d[X_AXIS]);
+				maxX = MathFunctions.robustMax(maxX, d[X_AXIS]);
+				minY = MathFunctions.robustMin(minY, d[Y_AXIS]);
+				maxY = MathFunctions.robustMax(maxY, d[Y_AXIS]);
 
 				index++;
 			}
@@ -418,10 +419,10 @@ public abstract class Abstract2DChartPlotter extends RangeablePlotterAdapter {
 				Iterator<double[]> j = dataList.iterator();
 				while (j.hasNext()) {
 					double[] current = j.next();
-					minX = Math.min(minX, current[X_AXIS]);
-					maxX = Math.max(maxX, current[X_AXIS]);
-					minY = Math.min(minY, current[Y_AXIS]);
-					maxY = Math.max(maxY, current[Y_AXIS]);
+					minX = MathFunctions.robustMin(minX, current[X_AXIS]);
+					maxX = MathFunctions.robustMax(maxX, current[X_AXIS]);
+					minY = MathFunctions.robustMin(minY, current[Y_AXIS]);
+					maxY = MathFunctions.robustMax(maxY, current[Y_AXIS]);
 				}
 			}
 

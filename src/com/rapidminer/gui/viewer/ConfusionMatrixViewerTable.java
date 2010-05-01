@@ -24,6 +24,8 @@ package com.rapidminer.gui.viewer;
 
 import java.awt.Color;
 
+import javax.swing.table.JTableHeader;
+
 import com.rapidminer.gui.tools.CellColorProvider;
 import com.rapidminer.gui.tools.ExtendedJTable;
 import com.rapidminer.gui.tools.SwingTools;
@@ -39,9 +41,11 @@ public class ConfusionMatrixViewerTable extends ExtendedJTable {
     private static final long serialVersionUID = 3799580633476845998L; 
     
 	public ConfusionMatrixViewerTable(String[] classNames, double[][] counter) {
-        super(new ConfusionMatrixViewerTableModel(classNames, counter), false);
+        super(new ConfusionMatrixViewerTableModel(classNames, counter), false, false, true);
         setAutoResizeMode(AUTO_RESIZE_OFF);
-        setTableHeader(null);
+        setShowPopupMenu(true);        
+        setTableHeader(new JTableHeader(getColumnModel()));
+
         setCellColorProvider(new CellColorProvider() {
             public Color getCellColor(int row, int col) {
                 if ((row == 0) || (row == (getRowCount() - 1)) || (col == 0) || (col == (getColumnCount() - 1))) {

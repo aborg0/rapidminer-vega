@@ -53,7 +53,9 @@ public class LinkButton extends ExtendedHTMLJEditorPane {
 			@Override
 			public void hyperlinkUpdate(HyperlinkEvent e) {
 				if (e.getEventType() == EventType.ACTIVATED) {
-					action.actionPerformed(new ActionEvent(LinkButton.this, ActionEvent.ACTION_PERFORMED, (String)action.getValue(Action.ACTION_COMMAND_KEY)));
+					action.actionPerformed(new ActionEvent(LinkButton.this, ActionEvent.ACTION_PERFORMED,
+							e.getDescription()));
+							//(String)action.getValue(Action.ACTION_COMMAND_KEY)));
 				}
 			}
 		});		

@@ -63,11 +63,11 @@
 
     <target name="init" depends="version.get" unless="lock.isInitialized">
         <!-- Building properties here, because they depend on version number -->
-        <property name="release.name" value="rapidminer-${extension.name}-${extension.shortversion}.jar" />
-        <property name="release.installer.name" value="rapidminer-${extension.name}-${extension.shortversion}-installer.exe" />
-        <property name="release.src.name" value="rapidminer-${extension.name}-${extension.shortversion}-src.zip" />
-        <property name="release.javadoc.name" value="rapidminer-${extension.name}-${extension.shortversion}-javadoc.zip" />
-        <property name="release.examples.name" value="rapidminer-${extension.name}-${extension.shortversion}-examples.zip" />
+        <property name="release.name" value="rapidminer-${extension.name}-${extension.longversion}.jar" />
+        <property name="release.installer.name" value="rapidminer-${extension.name}-${extension.longversion}-installer.exe" />
+        <property name="release.src.name" value="rapidminer-${extension.name}-${extension.longversion}-src.zip" />
+        <property name="release.javadoc.name" value="rapidminer-${extension.name}-${extension.longversion}-javadoc.zip" />
+        <property name="release.examples.name" value="rapidminer-${extension.name}-${extension.longversion}-examples.zip" />
 
         <tstamp />
         <taskdef resource="org/apache/ant/http/antlib.xml" classpath="${rm.dir}/ant/ant_http.jar" />
@@ -244,6 +244,10 @@ Name "${extension.name.long}"
         <exec executable="makensis.exe">
             <arg line="&quot;${rm.dir}/installation/extension_installer.nsi&quot;" />
         </exec>
+    	
+    	<!-- Now rename file to long version -->
+    	<move file="${release.targetDir}/rapidminer-${extension.name}-${extension.shortversion}-installer.exe" tofile="${release.targetDir}/${release.installer.name}"/>
+   	
     </target>
 
     <target name="release.makeAll" depends="clean, build" description="This target releases all available platform versions">

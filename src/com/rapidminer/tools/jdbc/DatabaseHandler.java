@@ -501,26 +501,25 @@ public class DatabaseHandler {
 			} else {
 				if (attribute.isNominal()) {
 					String valueString = attribute.getMapping().mapIndex((int)value);
-					
-//					while (valueString.indexOf(properties.getIdentifierQuoteOpen()) >= 0)
-//						valueString = valueString.replace(properties.getIdentifierQuoteOpen(), "_");
-//					
-//					while (valueString.indexOf(properties.getIdentifierQuoteClose()) >= 0)
-//						valueString = valueString.replace(properties.getIdentifierQuoteClose(), "_");
-//					
-//					while (valueString.indexOf(properties.getValueQuoteOpen()) >= 0)
-//						valueString = valueString.replace(properties.getValueQuoteOpen(), "_");
-//					
-//					while (valueString.indexOf(properties.getValueQuoteClose()) >= 0)
-//						valueString = valueString.replace(properties.getValueQuoteClose(), "_");
-					
 					// TODO: circumvent problem that large clobs could not be written to Oracle DB
 //					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.STRING)) {
 //						CLOB clob = oracle.sql.CLOB.createTemporary(connection, true, oracle.sql.CLOB.DURATION_CALL);
 //						clob.putString(1, valueString);
 //						statement.setClob(counter, clob);
 //					}
-					
+//					DataTypeSyntaxInformation sqlType = statementCreator.getSQLTypeForRMValueType(attribute.getValueType());
+//					switch (sqlType.getDataType()) {
+//						case Types.CLOB:
+//							//statement.setCharacterStream(counter, new StringReader(valueString));
+//							//statement.setClob(counter, new SerialClob(valueString.toCharArray()));
+//							//statement.setAsciiStream(counter, new StringInputStream(valueString));
+//							statement.setString(counter, valueString);
+//							break;
+//						case Types.VARCHAR:
+//						default:
+//							statement.setString(counter, valueString);
+//							break;
+//					}
 					statement.setString(counter, valueString);
 				} else {
 					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {

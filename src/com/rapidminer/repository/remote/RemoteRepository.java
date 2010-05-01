@@ -55,7 +55,6 @@ import com.rapid_i.repository.wsimport.RepositoryService_Service;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.gui.actions.BrowseAction;
 import com.rapidminer.gui.tools.SwingTools;
-import com.rapidminer.io.Base64;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.repository.BlobEntry;
 import com.rapidminer.repository.Entry;
@@ -100,7 +99,8 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			public PasswordAuthentication getAuthentication(URL url) {			
 				WeakReference<RemoteRepository> reposRef = null;// = ALL_REPOSITORIES.get(url);
 				for (Map.Entry<URL, WeakReference<RemoteRepository>> entry : ALL_REPOSITORIES.entrySet()) {
-					if (url.toString().startsWith(entry.getKey().toString())) {
+					if (url.toString().startsWith(entry.getKey().toString()) ||
+							url.toString().replaceAll("127\\.0\\.0\\.1", "localhost").startsWith(entry.getKey().toString())) {
 						reposRef = entry.getValue();
 						break;
 					}

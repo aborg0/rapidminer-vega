@@ -146,7 +146,7 @@
 
 	<target name="release.prepare" depends="clean, build" unless="lock.isPrepared" description="Copies all needed files to the release/files directory">
 		<echo message="Preparing Release..." />
-		<mkdir dir="${release.includes}"/>
+		<mkdir dir="${release.includes}" />
 		<copy toDir="${release.files}">
 			<fileset dir="./">
 				<include name="etc/**/*" />
@@ -184,6 +184,27 @@
 		<property name="lock.isPrepared" value="true" />
 	</target>
 
+	<target name='release.makeRPM' depends='release.prepare' description="This will create a RPM for linux distributions">
+		<echo message="Releasing RPM..." />
+		<!-- Now creating rapidminer.jar and copy from lib to release path --> 
+		<antcall target="createJar">
+			<param name="platform" value="WIN32" />
+		</antcall>
+		<copy file="${lib}/rapidminer.jar" todir="${release.files}/lib" />
+		<copy file="${lib}/launcher.jar" todir="${release.files}/lib" />
+
+		<taskdef resource="org/freecompany/redline/ant/antlib.xml" classpath="${ant.library.dir}/redline-1.1.3.jar" />
+		<rpm architecture='NOARCH' group='Applications' summary="RapidMiner ${rapidminer.shortversion} Community Edition" name='rapidminer' release="1" license="AGPL3" url="http://rapid-i.com" vendor="Rapid-I GmbH" packager="Marcin Skirzynski" version='${rapidminer.shortversion}' destination='${release}' description="RapidMiner is the world-wide leading open-source data mining solution due to the combination of its leading-edge technologies and its functional range. Applications of RapidMiner cover a wide range of real-world data mining tasks." xmlns="antlib:org.freecompany.redline.ant">
+	         <zipfileset prefix='/usr/share/rapidminer' dir="${release.files}">
+	                <include name="**/*"/>
+	                <exclude name="scripts/*.bat"/>
+            </zipfileset>
+			<depends name="java" version="1.6" />
+			<link path='/usr/bin/rapidminer' target='/usr/share/rapidminer/scripts/rapidminer' />
+			<link path='/usr/bin/rapidminer-gui' target='/usr/share/rapidminer/scripts/RapidMinerGUI' />
+		</rpm>
+	</target>
+
 	<target name="release.deleteFiles" description="This will remove all temporary stored files if the release is finished.">
 		<echo message="Deleting release files..." />
 		<delete dir="${release.files}" />
@@ -209,7 +230,7 @@
 		<copy file="${lib}/launcher.jar" todir="${release.files}/lib" />
 
 		<!-- Now zip everything together and put into release directory -->
-		<zip destfile="${release}/rapidminer-${rapidminer.shortversion}.zip">
+		<zip destfile="${release}/rapidminer-${rapidminer.longversion}.zip">
 			<zipfileset dir="${release.files}" prefix="rapidminer">
 				<include name="**" />
 			</zipfileset>
@@ -242,7 +263,9 @@
 		<exec executable="makensis.exe">
 			<arg line="installation/installer.nsi" />
 		</exec>
-
+		<!-- rename it to long version-->
+		<move tofile="${release}/rapidminer-${rapidminer.longversion}x32-install.exe" file="${release}/rapidminer-${rapidminer.shortversion}x32-install.exe"/>
+		
 		<!-- delete OS-dependent files: RapidMiner.exe, JRE -->
 		<delete file="${release.files}/RapidMiner.exe" />
 		<delete dir="${release.files}/jre" />
@@ -270,11 +293,14 @@
 			<fileset dir="${jre64}" />
 		</copy>
 
-		<!-- Now build installer: Will generate release/rapidminer-${SHORT_VERSION}x32-install.exe -->
+		<!-- Now build installer: Will generate release/rapidminer-${SHORT_VERSION}x64-install.exe -->
 		<exec executable="makensis.exe">
 			<arg line="installation/installer_x64.nsi" />
 		</exec>
+        <!-- rename it to long version-->
+        <move tofile="${release}/rapidminer-${rapidminer.longversion}x64-install.exe" file="${release}/rapidminer-${rapidminer.shortversion}x64-install.exe"/>
 
+		
 		<!-- delete OS-dependent files: RapidMiner.exe, JRE -->
 		<delete file="${release.files}/RapidMiner.exe" />
 		<delete dir="${release.files}/jre" />
@@ -345,7 +371,7 @@
 		</condition>
 
 		<antcall target="version.increaseRevision" />
-		<antcall target="javadoc.makeZip" />
+		<antcall target="javaDoc.makeZip" />
 		<antcall target="release.publish" />
 		<antcall target="update.publish" />
 	</target>

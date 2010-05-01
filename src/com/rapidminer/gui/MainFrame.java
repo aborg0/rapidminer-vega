@@ -213,6 +213,8 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	public static final String PROPERTY_RAPIDMINER_GUI_PROCESSINFO_SHOW = "rapidminer.gui.processinfo.show";
 
 	public static final String PROPERTY_RAPIDMINER_GUI_SAVE_BEFORE_RUN = "rapidminer.gui.save_before_run";
+	
+	public static final String PROPERTY_RAPIDMINER_GUI_SAVE_ON_PROCESS_CREATION = "rapidminer.gui.save_on_process_creation";
 
 	/** The property determining whether or not to switch to result view when results are produced.*/
 	public static final String PROPERTY_RAPIDMINER_GUI_AUTO_SWITCH_TO_RESULTVIEW = "rapidminer.gui.auto_switch_to_resultview";
@@ -245,6 +247,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         RapidMiner.registerRapidMinerProperty(new ParameterTypeColor(PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_LOGSERVICE, "The color for the logging service indicator in the message viewer.", new java.awt.Color(184,184,184)));
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_PROCESSINFO_SHOW, "Shows process info screen after loading?", true));
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_SAVE_BEFORE_RUN, "Save process before running process?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
+		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_SAVE_ON_PROCESS_CREATION, "Save process when creating them?", true));
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_AUTO_SWITCH_TO_RESULTVIEW, "Automatically switch to results perspective when results are created?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_RESULT_DISPLAY_TYPE, "Determines the result display style.", ResultDisplayTools.TYPE_NAMES, 0));
 	}
@@ -873,7 +876,9 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 			stopProcess();
 			setProcess(new Process(), true);
 			addToUndoList();
-			SaveAction.save(getProcess());
+			if (!"false".equals(System.getProperty(PROPERTY_RAPIDMINER_GUI_SAVE_ON_PROCESS_CREATION))) {
+				SaveAction.save(getProcess());
+			}
 		}	
 	}
 

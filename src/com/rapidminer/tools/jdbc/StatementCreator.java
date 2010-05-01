@@ -46,13 +46,14 @@ import com.rapidminer.tools.Ontology;
  */
 public class StatementCreator {
 
+	/** Type information as reported by database meta data {@link DatabaseMetaData#getTypeInfo()}. */
 	protected static class DataTypeSyntaxInformation {
 		private final String literalPrefix;
 		private final String literalSuffix;
 		private final int dataType;
 		private final String typeName;
 		private String createParams;
-		private long precision;
+		private long precision;		
 		private DataTypeSyntaxInformation(ResultSet typesResult) throws SQLException {
 			typeName = typesResult.getString("TYPE_NAME");
 			dataType = typesResult.getInt("DATA_TYPE");
@@ -106,6 +107,7 @@ public class StatementCreator {
 		DatabaseMetaData dbMetaData = con.getMetaData();
 		this.identifierQuote = dbMetaData.getIdentifierQuoteString();
 		LogService.getRoot().fine("Identifier quote character is: "+this.identifierQuote);
+		// Maps java sql Types to data types as reported by the sql driver
 		Map<Integer, DataTypeSyntaxInformation> dataTypeToMDMap = new HashMap<Integer, DataTypeSyntaxInformation>();
 		ResultSet typesResult = dbMetaData.getTypeInfo();
 		while (typesResult.next()) {
@@ -149,6 +151,7 @@ public class StatementCreator {
 		return typeStr.getTypeName();
 	}
 
+	/** Maps RM ontology attribute value types to syntax information as reported by the database driver. */
 	protected DataTypeSyntaxInformation getSQLTypeForRMValueType(int type) {
 		int parent = type;
 		while (parent != Ontology.ATTRIBUTE_VALUE) {
@@ -196,9 +199,9 @@ public class StatementCreator {
 
 	/** Quotes and escapes the given name such that it can be used as an SQL table or column identifier. */
 	public String makeIdentifier(String identifier) {
-		if (isLegalIdentifier(identifier)) {
-			return identifier;
-		}
+ //		if (isLegalIdentifier(identifier)) {
+//			return identifier;
+//		}
 		identifier = identifier.replace(identifierQuote, "_");
 		return this.identifierQuote + 
 			identifier + 

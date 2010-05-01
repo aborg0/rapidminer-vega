@@ -64,7 +64,7 @@ public abstract class AbstractStacking extends OperatorChain implements Learner 
 	protected InputPortExtender  baseModelExtender = new InputPortExtender("base model", getBaseModelLearnerProcess().getInnerSinks()) {
 		@Override
 		protected com.rapidminer.operator.ports.metadata.Precondition makePrecondition(InputPort port) {
-			return new SimplePrecondition(port, new PredictionModelMetaData(PredictionModel.class, new ExampleSetMetaData()));
+			return new SimplePrecondition(port, new PredictionModelMetaData(PredictionModel.class, new ExampleSetMetaData()), false);
 		};
 	};
 	protected OutputPort modelOutput = getOutputPorts().createPort("model");

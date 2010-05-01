@@ -31,6 +31,7 @@ import java.awt.event.MouseListener;
 import java.util.Date;
 
 import javax.swing.Action;
+import javax.swing.JMenu;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.JViewport;
@@ -44,6 +45,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.actions.MoveColumnAction;
 import com.rapidminer.gui.tools.actions.AddToSortingColumnsAction;
 import com.rapidminer.gui.tools.actions.EqualColumnWidthsAction;
 import com.rapidminer.gui.tools.actions.FitAllColumnWidthsAction;
@@ -533,11 +535,10 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
 		addRowSelectionInterval(0, getRowCount() - 1);
 	}
 
-	
-	public void mouseClicked(MouseEvent e) {}
 	public void mouseEntered(MouseEvent e) {}
 	public void mouseExited(MouseEvent e) {}
-	public void mousePressed(MouseEvent e) {}
+	public void mouseClicked(MouseEvent e) { mouseReleased(e); }
+	public void mousePressed(MouseEvent e) { mouseReleased(e); }
 	
 	public void mouseReleased(MouseEvent e) {	
 		if (showPopopUpMenu) {
@@ -588,7 +589,20 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
 				menu.addSeparator();
 				menu.add(SORT_COLUMNS_BY_NAME_ACTION);
 				menu.add(RESTORE_COLUMN_ORDER_ACTION);
+				menu.add(generateMoveColumnMenu());
 			}
 		}		
+	}
+	
+	private JMenu generateMoveColumnMenu() {
+		JMenu subMenu = new ResourceMenu("move_column_menu");
+		int first = 0;
+		if (this.fixFirstColumn) {
+			first = 1;
+		}
+		for (int i = first; i < this.getColumnCount(); i++) {
+			subMenu.add(new MoveColumnAction(this, IconSize.SMALL, i));
+		}
+		return subMenu;
 	}
 }

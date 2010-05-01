@@ -495,11 +495,14 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 			return null;
 		}
 		String database = databaseTextField.getText();
-		if (database == null || "".equals(database)) {
-			SwingTools.showVerySimpleErrorMessage("manage_db_connections.missing", I18N.getMessage(I18N.getGUIBundle(), "gui.label.manage_db_connections.database.label"));
-			databaseTextField.requestFocusInWindow();
-			return null;
+		if (database == null) {
+			database = "";
 		}
+//		if (database == null || "".equals(database)) {
+//			SwingTools.showVerySimpleErrorMessage("manage_db_connections.missing", I18N.getMessage(I18N.getGUIBundle(), "gui.label.manage_db_connections.database.label"));
+//			databaseTextField.requestFocusInWindow();
+//			return null;
+//		}
 		String user = userTextField.getText();
 		char[] password = passwordField.getPassword();
 		return new FieldConnectionEntry(alias, getProperties(), host, port, database, user, password);
@@ -519,9 +522,12 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 			return null;
 		}
 		String database = databaseTextField.getText();
-		if (database == null || "".equals(database)) {
-			return null;
+		if (database == null) {
+			database = "";
 		}
+//		if (database == null || "".equals(database)) {
+//			return null;
+//		}
 		String user = userTextField.getText();
 		char[] password = passwordField.getPassword();
 		return new FieldConnectionEntry(alias, getProperties(), host, port, database, user, password);
