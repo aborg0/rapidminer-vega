@@ -72,7 +72,7 @@ public class BugAssistant extends ButtonDialog {
 	private final JList attachments = new JList(new DefaultListModel());
 	
 	public BugAssistant(final Throwable exception) {
-		super(RapidMinerGUI.getMainFrame(), "send_bugreport", true);
+		super("send_bugreport", true);
 		Collection<AbstractButton> buttons = new LinkedList<AbstractButton>();
 		
 		JPanel panel = new JPanel(new BorderLayout());

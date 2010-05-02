@@ -43,7 +43,6 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
-import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceActionAdapter;
 import com.rapidminer.gui.tools.ResourceLabel;
@@ -97,7 +96,7 @@ public class SearchDialog extends ButtonDialog {
 	}
 	
 	public SearchDialog(Component owner, SearchableTextComponent textComponent, boolean allowReplace) {
-		super(RapidMinerGUI.getMainFrame(), "search_replace", false);
+		super("search_replace", false);
         
 		this.textComponent = textComponent;
 		this.textComponent.requestFocus();

@@ -27,7 +27,6 @@ import java.awt.Color;
 import com.rapidminer.datatable.DataTable;
 import com.rapidminer.datatable.DataTableRow;
 import com.rapidminer.gui.MainFrame;
-import com.rapidminer.tools.LogService;
 
 /**
  * This class delivers colors according to the user settings.

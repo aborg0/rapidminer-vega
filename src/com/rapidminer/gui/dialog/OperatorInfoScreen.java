@@ -25,7 +25,6 @@ package com.rapidminer.gui.dialog;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -214,9 +213,9 @@ public class OperatorInfoScreen extends ButtonDialog {
 		return capabilitiesPanel;
 	}
 
-	public OperatorInfoScreen(Frame owner, Operator operator) {
+	public OperatorInfoScreen(Operator operator) {
 		// TODO: externalize strings and icon names
-		super(owner, "operator_info", true);
+		super("operator_info", true);
 		this.operator = operator;
 
 		JTabbedPane tabs = new JTabbedPane();

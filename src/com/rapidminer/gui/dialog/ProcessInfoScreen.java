@@ -22,8 +22,6 @@
  */
 package com.rapidminer.gui.dialog;
 
-import java.awt.Frame;
-
 import javax.swing.JEditorPane;
 import javax.swing.JScrollPane;
 
@@ -44,8 +42,8 @@ public class ProcessInfoScreen extends ButtonDialog {
 
 	private static final long serialVersionUID = 7687035897010730802L;
 
-	public ProcessInfoScreen(Frame owner, String file, String text) {
-		super(owner, "process_info", true, file);
+	public ProcessInfoScreen(String file, String text) {
+		super("process_info", true, file);
 
 		JEditorPane description = new ExtendedHTMLJEditorPane("text/html", SwingTools.text2DisplayHtml(text));
 		description.setToolTipText("A short description of this process");

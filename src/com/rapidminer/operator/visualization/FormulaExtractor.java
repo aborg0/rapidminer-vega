@@ -58,14 +58,6 @@ public class FormulaExtractor extends Operator {
 			return "Formula";
 		}
 		
-		public String getExtension() {
-			return ".for";
-		}
-
-		public String getFileDescription() {
-			return "formula file";
-		}
-		
 		@Override
 		public String toString() {
 			return formula;

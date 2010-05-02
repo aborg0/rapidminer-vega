@@ -69,7 +69,6 @@ import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.IOObjectEntry;
-import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.RMUrlHandler;
 

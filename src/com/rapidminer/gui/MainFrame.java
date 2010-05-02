@@ -1191,7 +1191,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 				if ((text != null) && (text.length() != 0)) {
 					SwingUtilities.invokeLater(new Runnable() {
 						public void run() {
-							ProcessInfoScreen infoScreen = new ProcessInfoScreen(MainFrame.this, sourceName, text);
+							ProcessInfoScreen infoScreen = new ProcessInfoScreen(sourceName, text);
 							infoScreen.setVisible(true);
 						}
 					});

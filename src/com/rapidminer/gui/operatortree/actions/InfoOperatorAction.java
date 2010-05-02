@@ -24,7 +24,6 @@ package com.rapidminer.gui.operatortree.actions;
 
 import java.awt.event.ActionEvent;
 
-import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.dialog.OperatorInfoScreen;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.operator.Operator;
@@ -47,7 +46,7 @@ public abstract class InfoOperatorAction extends ResourceAction {
 	public void actionPerformed(ActionEvent e) {
 		Operator selectedOperator = getOperator();
 		if (selectedOperator != null) {
-			OperatorInfoScreen infoScreen = new OperatorInfoScreen(RapidMinerGUI.getMainFrame(), selectedOperator);
+			OperatorInfoScreen infoScreen = new OperatorInfoScreen(selectedOperator);
 			infoScreen.setVisible(true);
 		}	
 	}

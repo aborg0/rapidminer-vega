@@ -208,6 +208,7 @@ public class StatementCreator {
 			this.identifierQuote;
 	}
 	
+	/*
 	private boolean isLegalIdentifier(String identifier) {
 		for (char c : identifier.toCharArray()) {
 			if (!Character.isLetter(c) && (c != '_')) {
@@ -216,6 +217,7 @@ public class StatementCreator {
 		}
 		return true;
 	}
+	*/
 
 	/** Creates an SQL INSERT statement for filling attributes into a table.
 	 *  This can be used to make a prepared statement where the i-th parameter is mapped to

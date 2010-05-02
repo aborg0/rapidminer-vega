@@ -49,7 +49,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.actions.Actions;
 import com.rapidminer.gui.tools.CamelCaseFilter;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
@@ -117,7 +116,7 @@ public class NewOperatorDialog extends ButtonDialog {
 	}
 
 	public NewOperatorDialog(Actions actions, final Class<? extends IOObject> inputClass, final Class<? extends IOObject> outputClass, final OperatorCapability firstCapability, final OperatorCapability secondCapability, boolean modal) {
-		super(RapidMinerGUI.getMainFrame(), "new_operator", modal);
+		super("new_operator", modal);
 		this.actions = actions;
 		this.inputClass = inputClass;
 		this.outputClass = outputClass;

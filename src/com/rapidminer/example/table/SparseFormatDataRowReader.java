@@ -30,8 +30,6 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import com.rapidminer.example.Attribute;
-import com.rapidminer.operator.io.SparseFormatExampleSource;
-import com.rapidminer.tools.LineParser;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.att.AttributeSet;
 
