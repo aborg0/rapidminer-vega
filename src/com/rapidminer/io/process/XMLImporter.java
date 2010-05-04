@@ -225,7 +225,7 @@ public class XMLImporter {
 
 	private void setVersion(int version) {
 		this.version = version;		
-		LogService.getRoot().info("Process file version is "+version);		
+		LogService.getRoot().finest("Process file version is "+version);		
 	}
 
 	public void parse(Document doc, Process process, List<UnknownParameterInformation> uli) throws XMLException {
