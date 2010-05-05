@@ -38,6 +38,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -245,7 +246,7 @@ public class DatabaseHandler {
 		return getConnectedDatabaseHandler(databaseURL, username, password, true);
 	}
 	
-	public static DatabaseHandler getConnectedDatabaseHandler(String databaseURL, String username, String password, boolean autoCommit) throws OperatorException, SQLException {
+	public static DatabaseHandler getConnectedDatabaseHandler(String databaseURL, String username, String password, boolean autoCommit) throws SQLException {
 		//		synchronized (POOL_LOCK) {
 //			DHIdentifier id = new DHIdentifier(databaseURL, username);
 //    		DatabaseHandler pooled = POOL.get(id);
@@ -286,11 +287,13 @@ public class DatabaseHandler {
 		}
 		LogService.getRoot().config("Connecting to "+databaseURL+" as "+this.user+".");
 		DriverManager.setLoginTimeout(30);
-		if ((this.user == null) || user.isEmpty()) {			
-			connection = DriverManager.getConnection(databaseURL);
-		} else {
-			connection = DriverManager.getConnection(databaseURL, this.user, new String(passwd));
+		Properties props = new Properties();
+		props.put("SetBigStringTryClob", "true");
+		if ((this.user != null) && !user.isEmpty()) {
+			props.put("user", user );
+			props.put("password", new String(passwd));
 		}
+		connection = DriverManager.getConnection(databaseURL, props);
 		connection.setAutoCommit(autoCommit);
 		statementCreator = new StatementCreator(connection);
 		

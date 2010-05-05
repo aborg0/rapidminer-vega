@@ -86,7 +86,7 @@ public class SimplePrecondition extends AbstractPrecondition {
 
 	@Override
 	public void assumeSatisfied() {
-		if (desiredMetaData != null) {
+		if (mandatory && (desiredMetaData != null)) {
 			getInputPort().receiveMD(desiredMetaData.clone());
 		}
 	}

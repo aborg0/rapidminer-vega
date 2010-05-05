@@ -28,6 +28,7 @@ import java.util.List;
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Tools;
+import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
@@ -130,5 +131,28 @@ public class BinominalClassificationPerformanceEvaluator extends AbstractPerform
 	@Override
 	protected boolean canEvaluate(int valueType) {
 		return Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.BINOMINAL);
+	}
+
+	@Override
+	public boolean supportsCapability(OperatorCapability capability) {
+		switch (capability) {
+		case BINOMINAL_LABEL:
+			return true;
+		case POLYNOMINAL_LABEL:		
+		case NUMERICAL_LABEL:
+		case ONE_CLASS_LABEL:
+			return false;
+		case POLYNOMINAL_ATTRIBUTES:
+		case BINOMINAL_ATTRIBUTES:
+		case NUMERICAL_ATTRIBUTES:
+		case WEIGHTED_EXAMPLES:
+		case MISSING_VALUES:
+			return true;
+		case NO_LABEL:
+		case UPDATABLE:
+		case FORMULA_PROVIDER:
+		default:
+			return false;
+		}		
 	}
 }

@@ -283,6 +283,14 @@ Name "${extension.name.long}"
             <fileset dir="${release.targetDir}/scp" includes="**/*.*" />
         </scp>
 
+        <!-- correcting file permissions -->
+        <for param="file">
+            <fileset dir="${release}/scp" includes="**/*.*" />
+            <sequential>
+                <sshexec command="chmod 775 ${file}"  host="frs.sourceforge.net:${server.sf.url}" username="${server.sf.user},${server.sf.project}" password="${server.sf.password}" />
+            </sequential>
+        </for>
+    	
         <!-- move back and delete dir -->
         <move todir="${release.targetDir}">
             <fileset dir="${release.targetDir}/scp/2. Extensions/${extension.name}/${extension.shortversion}">

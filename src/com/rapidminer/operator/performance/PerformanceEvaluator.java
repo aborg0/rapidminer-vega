@@ -28,6 +28,7 @@ import java.util.List;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
+import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.parameter.ParameterType;
@@ -180,5 +181,27 @@ public class PerformanceEvaluator extends AbstractPerformanceEvaluator {
 	@Override
 	protected boolean canEvaluate(int valueType) {
 		return true;
+	}
+	
+	@Override
+	public boolean supportsCapability(OperatorCapability capability) {
+		switch (capability) {
+		case NUMERICAL_LABEL:					
+		case BINOMINAL_LABEL:
+		case POLYNOMINAL_LABEL:
+		case ONE_CLASS_LABEL:
+			return true;
+		case POLYNOMINAL_ATTRIBUTES:
+		case BINOMINAL_ATTRIBUTES:
+		case NUMERICAL_ATTRIBUTES:
+		case WEIGHTED_EXAMPLES:
+		case MISSING_VALUES:
+			return true;
+		case NO_LABEL:
+		case UPDATABLE:
+		case FORMULA_PROVIDER:
+		default:
+			return false;
+		}		
 	}
 }

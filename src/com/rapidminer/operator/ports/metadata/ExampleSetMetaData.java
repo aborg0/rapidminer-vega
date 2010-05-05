@@ -267,37 +267,35 @@ public class ExampleSetMetaData extends MetaData {
 		if ((this.attributeMetaData == null) || (es2.attributeMetaData == null)) {
 			return result;
 		}
-		if ((this.attributesRelation == SetRelation.UNKNOWN) || 
-				(es2.attributesRelation == SetRelation.UNKNOWN) || 
-				((this.attributesRelation == SetRelation.SUPERSET) && 
-						(es2.attributesRelation == SetRelation.SUBSET)) ||
-						((this.attributesRelation == SetRelation.SUBSET) && 
-								(es2.attributesRelation == SetRelation.SUPERSET))) {
-
-			result.attributesRelation = SetRelation.UNKNOWN;
-			result.attributeMetaData.clear();
-		} else {
-			for (AttributeMetaData a : es2.attributeMetaData.values()) {
-				AttributeMetaData clone = a.clone();
-				if (a.getRole() == null || !a.getRole().equals(Attributes.ID_NAME)) {
-					switch (result.containsAttributeName(a.getName())) {
-					case YES:
-						if (prefixForDuplicates != null) {
-							clone.setName(a.getName() + prefixForDuplicates);
-							result.attributeMetaData.put(clone.getName(), clone);
-						}
-						break;
-					case NO:
+		// joining
+		for (AttributeMetaData a : es2.attributeMetaData.values()) {
+			AttributeMetaData clone = a.clone();
+			if (a.getRole() == null || !a.getRole().equals(Attributes.ID_NAME)) {
+				switch (result.containsAttributeName(a.getName())) {
+				case YES:
+					if (prefixForDuplicates != null) {
+						clone.setName(a.getName() + prefixForDuplicates);
 						result.attributeMetaData.put(clone.getName(), clone);
-						break;
-					case UNKNOWN:
-						result.attributeMetaData.put(clone.getName(), clone); 
-						// at least one with this name will be there, but the duplicate may be as well
-						result.attributesAreSubset();
-						break;
 					}
+					break;
+				case NO:
+					result.attributeMetaData.put(clone.getName(), clone);
+					break;
+				case UNKNOWN:
+					result.attributeMetaData.put(clone.getName(), clone); 
+					// at least one with this name will be there, but the duplicate may be as well
+					result.attributesAreSubset();
+					break;
 				}
 			}
+		}
+		// check how sure we can be to have the correct attribute meta data
+		if (this.attributesRelation == SetRelation.EQUAL && es2.attributesRelation == SetRelation.EQUAL) {
+			result.attributesRelation = SetRelation.EQUAL;
+		} else if (es2.attributesRelation == SetRelation.SUPERSET || attributesRelation == SetRelation.SUPERSET) {
+			result.attributesRelation = SetRelation.SUPERSET;
+		} else {
+			result.attributesRelation = SetRelation.UNKNOWN;
 		}
 		return result;
 	}

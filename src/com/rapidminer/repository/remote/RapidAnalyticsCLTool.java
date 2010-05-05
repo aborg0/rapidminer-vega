@@ -9,11 +9,17 @@ import com.rapid_i.repository.wsimport.ExecutionResponse;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryManager;
 
-public class RemoteRepositoryCLTool {
+/** This class can be used to access a RapidAnalytics installation from a remote machine.
+ *  Currently, it can only be used to trigger the execution of jobs.
+ * 
+ * @author Simon Fischer
+ *
+ */
+public class RapidAnalyticsCLTool {
 
 	private Map<String,String> argsMap = new HashMap<String,String>();
 	
-	private RemoteRepositoryCLTool(String[] args) {
+	private RapidAnalyticsCLTool(String[] args) {
 		extractArguments(args);	
 	}
 
@@ -40,7 +46,7 @@ public class RemoteRepositoryCLTool {
 	}	
 	
 	private void printUsage() {
-		System.out.println(RemoteRepositoryCLTool.class.getName()+" [OPTIONS]");
+		System.out.println(RapidAnalyticsCLTool.class.getName()+" [OPTIONS]");
 		System.out.println("   --url=URL ");
 		System.out.println("       Base URL of the RapidAnalytics installation.");
 		System.out.println("   --user=USER ");
@@ -88,6 +94,6 @@ public class RemoteRepositoryCLTool {
 	}
 	
 	public static void main(String[] args) throws MalformedURLException, RepositoryException {
-		new RemoteRepositoryCLTool(args).run();
+		new RapidAnalyticsCLTool(args).run();
 	}
 }

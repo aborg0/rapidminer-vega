@@ -38,10 +38,11 @@ import com.rapidminer.operator.SimpleProcessSetupError;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ValueDouble;
 import com.rapidminer.operator.ProcessSetupError.Severity;
+import com.rapidminer.operator.learner.CapabilityProvider;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
+import com.rapidminer.operator.ports.metadata.CapabilityPrecondition;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
-import com.rapidminer.operator.ports.metadata.ExampleSetPrecondition;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.MetaDataInfo;
 import com.rapidminer.operator.ports.metadata.MetaDataUnderspecifiedError;
@@ -88,7 +89,7 @@ import com.rapidminer.tools.Ontology;
  * 
  * @author Ingo Mierswa
  */
-public abstract class AbstractPerformanceEvaluator extends Operator {
+public abstract class AbstractPerformanceEvaluator extends Operator implements CapabilityProvider {
 
 	/** The parameter name for &quot;The criterion used for comparing performance vectors.&quot; */
 	public static final String PARAMETER_MAIN_CRITERION = "main_criterion";
@@ -116,7 +117,8 @@ public abstract class AbstractPerformanceEvaluator extends Operator {
 	public AbstractPerformanceEvaluator(OperatorDescription description) {
 		super(description);
 
-		exampleSetInput.addPrecondition(new ExampleSetPrecondition(exampleSetInput, Ontology.VALUE_TYPE, Attributes.LABEL_NAME, Attributes.PREDICTION_NAME));
+		//exampleSetInput.addPrecondition(new ExampleSetPrecondition(exampleSetInput, Ontology.VALUE_TYPE, Attributes.LABEL_NAME, Attributes.PREDICTION_NAME));
+		exampleSetInput.addPrecondition(new CapabilityPrecondition(this, exampleSetInput));
 		exampleSetInput.addPrecondition(new SimplePrecondition(exampleSetInput, new ExampleSetMetaData()) {
 			@Override
 			public void makeAdditionalChecks(MetaData metaData) {

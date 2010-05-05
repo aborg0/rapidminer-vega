@@ -29,6 +29,7 @@ import com.rapidminer.operator.Model;
 import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.learner.functions.LogisticRegressionOptimization;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
@@ -114,22 +115,37 @@ public class KernelLogisticRegression extends AbstractKernelBasedLearner {
 	public Model learn(ExampleSet exampleSet) throws OperatorException {
 		// kernel
 		Kernel kernel = Kernel.createKernel(this);
-
 		RandomGenerator random = RandomGenerator.getRandomGenerator(this);
-		KernelLogisticRegressionOptimization optimization = 
-			new KernelLogisticRegressionOptimization(
-					exampleSet,
-					kernel,
-					getParameterAsDouble(PARAMETER_C),
-					getParameterAsInt(PARAMETER_START_POPULATION_TYPE), 
-					getParameterAsInt(PARAMETER_MAX_GENERATIONS), getParameterAsInt(PARAMETER_GENERATIONS_WITHOUT_IMPROVAL), 
-					getParameterAsInt(PARAMETER_POPULATION_SIZE), getParameterAsInt(PARAMETER_SELECTION_TYPE),
-					getParameterAsDouble(PARAMETER_TOURNAMENT_FRACTION), 
-					getParameterAsBoolean(PARAMETER_KEEP_BEST), getParameterAsInt(PARAMETER_MUTATION_TYPE), getParameterAsDouble(PARAMETER_CROSSOVER_PROB),
-					getParameterAsBoolean(PARAMETER_SHOW_CONVERGENCE_PLOT), 
-					random,
-					this);
-		return optimization.train();
+		if (kernel.getType() != Kernel.KERNEL_DOT) {
+			KernelLogisticRegressionOptimization optimization = 
+				new KernelLogisticRegressionOptimization(
+						exampleSet,
+						kernel,
+						getParameterAsDouble(PARAMETER_C),
+						getParameterAsInt(PARAMETER_START_POPULATION_TYPE), 
+						getParameterAsInt(PARAMETER_MAX_GENERATIONS), getParameterAsInt(PARAMETER_GENERATIONS_WITHOUT_IMPROVAL), 
+						getParameterAsInt(PARAMETER_POPULATION_SIZE), getParameterAsInt(PARAMETER_SELECTION_TYPE),
+						getParameterAsDouble(PARAMETER_TOURNAMENT_FRACTION), 
+						getParameterAsBoolean(PARAMETER_KEEP_BEST), getParameterAsInt(PARAMETER_MUTATION_TYPE), getParameterAsDouble(PARAMETER_CROSSOVER_PROB),
+						getParameterAsBoolean(PARAMETER_SHOW_CONVERGENCE_PLOT), 
+						random,
+						this);
+			return optimization.train();
+		} else {
+			LogisticRegressionOptimization optimization = 
+				new LogisticRegressionOptimization(
+						exampleSet,
+						true,
+						getParameterAsInt(PARAMETER_START_POPULATION_TYPE), 
+						getParameterAsInt(PARAMETER_MAX_GENERATIONS), getParameterAsInt(PARAMETER_GENERATIONS_WITHOUT_IMPROVAL), 
+						getParameterAsInt(PARAMETER_POPULATION_SIZE), getParameterAsInt(PARAMETER_SELECTION_TYPE),
+						getParameterAsDouble(PARAMETER_TOURNAMENT_FRACTION), 
+						getParameterAsBoolean(PARAMETER_KEEP_BEST), getParameterAsInt(PARAMETER_MUTATION_TYPE), getParameterAsDouble(PARAMETER_CROSSOVER_PROB),
+						getParameterAsBoolean(PARAMETER_SHOW_CONVERGENCE_PLOT), 
+						random,
+						this);
+			return optimization.train();
+		}
 	}
 
 	public boolean supportsCapability(OperatorCapability lc) {

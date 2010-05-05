@@ -45,7 +45,6 @@ import com.rapidminer.operator.ports.OutputPortExtender;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.GeneratePredictionModelTransformationRule;
 import com.rapidminer.operator.ports.metadata.PredictionModelMetaData;
-import com.rapidminer.operator.ports.metadata.SimplePrecondition;
 import com.rapidminer.operator.ports.metadata.SubprocessTransformRule;
 
 
@@ -61,12 +60,8 @@ public abstract class AbstractStacking extends OperatorChain implements Learner 
 
 	protected InputPort exampleSetInput = getInputPorts().createPort("training set", ExampleSet.class);
 	protected OutputPortExtender baseInputExtender = new OutputPortExtender("training set", getBaseModelLearnerProcess().getInnerSources());
-	protected InputPortExtender  baseModelExtender = new InputPortExtender("base model", getBaseModelLearnerProcess().getInnerSinks()) {
-		@Override
-		protected com.rapidminer.operator.ports.metadata.Precondition makePrecondition(InputPort port) {
-			return new SimplePrecondition(port, new PredictionModelMetaData(PredictionModel.class, new ExampleSetMetaData()), false);
-		};
-	};
+	protected InputPortExtender  baseModelExtender = new InputPortExtender("base model", getBaseModelLearnerProcess().getInnerSinks(),new PredictionModelMetaData(PredictionModel.class, new ExampleSetMetaData()), 2);
+	
 	protected OutputPort modelOutput = getOutputPorts().createPort("model");
 
 	public AbstractStacking(OperatorDescription description, String ... subprocessNames) {
