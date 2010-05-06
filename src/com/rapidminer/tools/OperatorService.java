@@ -290,6 +290,10 @@ public class OperatorService {
 						LogService.getRoot().log(Level.WARNING, "Cannot load operator class: " + e, e);
 					} catch (NoClassDefFoundError e) {
 						LogService.getRoot().log(Level.WARNING, "Cannot load operator class: " + e, e);
+					} catch (Exception e) {
+						LogService.getRoot().log(Level.WARNING, "Failed to register operator: "+e, e);
+					} catch (AbstractMethodError e) {
+						LogService.getRoot().log(Level.WARNING, "Failed to register operator: "+e, e);
 					}
 				} else if (childElement.getTagName().equals("factory")) {
 					String factoryClassName = childElement.getTextContent();
@@ -385,7 +389,11 @@ public class OperatorService {
 			String name1 = opName.trim();
 			OperatorDescription description = new OperatorDescription(classLoader, name1, name1, classAttr.getValue(), group, icon, deprecationString, provider);
 			// add to group
-			registerOperator(description);
+			try {
+				registerOperator(description);
+			} catch (Exception e) {
+				LogService.getRoot().log(Level.WARNING, "Failed to register operator "+description.getKey()+": "+e, e);
+			}
 			i++;
 		}
 	}

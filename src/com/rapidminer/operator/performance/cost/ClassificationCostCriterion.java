@@ -59,7 +59,7 @@ public class ClassificationCostCriterion extends MeasuredPerformance {
 
 	@Override
 	public String getName() {
-		return "Misclassifiactioncosts";
+		return "Misclassificationcosts";
 	}
 
 	@Override

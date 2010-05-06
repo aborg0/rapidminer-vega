@@ -747,4 +747,12 @@
 <arg value="http://localhost:8080/RAWS/ProcessService?wsdl" />
 </exec>
 </target>
+
+<target name="signJars" depends="createJar" description="Don't forget to add jarsign.alias and jarsign.storepass to the file server.properties">
+	<signjar lazy="true" alias="${jarsign.alias}" storepass="${jarsign.storepass}">
+		<path>
+		    <fileset dir="${lib}" includes="**/*.jar" />
+		</path>
+	</signjar>
+</target>	
 </project>

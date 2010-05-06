@@ -605,9 +605,7 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 		} catch (IOException e) {
 			throw new UserError(this, e, 403, e.getMessage());
 		}
-		int i = 0;
 		while (set.next()) {
-			i++;
 			table.addDataRow(generateDataRow(set, attributesArray));
 		}
 		ExampleSet exampleSet = table.createExampleSet();

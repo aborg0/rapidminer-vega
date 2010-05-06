@@ -7710,6 +7710,21 @@
   <operator>
     <key>flatten_collection</key>
     <name>Flatten Collection</name>
+  <synopsis>
+    Receives a collection of collections and unions all content into a single collection.
+  </synopsis>
+    <help>
+    This operator receives a collection of collections and unions the content of each
+    collection into a single collection. If your collection contains three collections
+    which contain 5 IOObject the result will be a single collection with 15 IOObjects. 
+	&lt;br/&gt;
+	After merging objects into a collection, 
+    the &lt;a href="rm://opdoc/loop_collection"&gt;Loop Collection&lt;/a&gt; operator can be used to iterate over this 
+    collection. The &lt;a href="rm://opdoc/select"&gt;Select&lt;/a&gt; operator can be used to retrieve a certain 
+    element of the collection.&lt;br/&gt;
+    
+    Note: In the process layout view, collections are indicated by double lines.
+  </help>
   </operator>
   <operator>
     <key>collect</key>
@@ -7721,7 +7736,7 @@
     This operator joins a variable number of input objects to a single 
     collection. If the input objects are collections themselves and the 
     &amp;quot;unfold&amp;quot; parameter is checked, the output will be the union of the 
-    elements of all input collections. After mergin objects into a collection, 
+    elements of all input collections. After merging objects into a collection, 
     the &lt;a href="rm://opdoc/loop_collection"&gt;Loop Collection&lt;/a&gt; operator can be used to iterate over this 
     collection. The &lt;a href="rm://opdoc/select"&gt;Select&lt;/a&gt; operator can be used to retrieve a certain 
     element of the collection.&lt;br/&gt;

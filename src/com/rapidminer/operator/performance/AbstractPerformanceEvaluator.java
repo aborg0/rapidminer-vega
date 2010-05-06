@@ -32,6 +32,7 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Statistics;
 import com.rapidminer.operator.Operator;
+import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.SimpleProcessSetupError;
@@ -507,6 +508,11 @@ public abstract class AbstractPerformanceEvaluator extends Operator implements C
 				quickFixes.add(new ParameterSettingQuickFix(AbstractPerformanceEvaluator.this, getCriteria().get(1).getName(), "true"));
 		}
 		return super.checkDeprecations();
+	}
+	
+	@Override
+	public boolean supportsCapability(OperatorCapability capability) {
+		return true;
 	}
 }
 

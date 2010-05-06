@@ -285,4 +285,17 @@ public class XMLTools {
 		return xmlGregorianCalendar;
 	}
 
+	public static Element getUniqueInnerTag(Element element, String tagName) throws XMLException {
+		NodeList children = element.getElementsByTagName(tagName);
+		switch (children.getLength()) {
+		case 0:
+			throw new XMLException("Missing inner tag <"+tagName+"> inside <"+element.getTagName()+">.");
+		case 1:
+			return (Element) children.item(0);
+		default:
+			throw new XMLException("Inner tag <"+tagName+"> inside <"+element.getTagName()+"> must be unique, but found "+children.getLength()+".");
+		}
+		
+	}
+
 }
