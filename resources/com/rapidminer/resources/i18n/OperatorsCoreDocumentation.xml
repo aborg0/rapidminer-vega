@@ -200,6 +200,17 @@
       <key>loop_batches</key>
    </operator>
    <operator>
+        <name>Generate top k Predictions</name>
+        <synopsis>This operator will generate k attributes containing the k most probable classes.</synopsis>
+        <help>This operator will use the generated confidence values of a model application to create k new 
+        attributes for storing the t-th most confident assigning and k new attributes for storing the 
+        respective confidence.&lt;br /&gt; 
+        Therefore all confidence values are taken and sorted. The label with the highest confidence will be 
+        number one followed by the second highest and so on.&lt;br /&gt;
+        You can choose if the old confidence attributes should be removed after creating the top k predictions.</help>
+        <key>generate_topk_predictions</key>
+   </operator>
+   <operator>
       <name>Clone Parameters</name>
       <synopsis>Applies a set of parameters of a source operator on a target operator.</synopsis>
       <help>Sets a list of parameters using existing parameter values. &lt;br/&gt; The operator is

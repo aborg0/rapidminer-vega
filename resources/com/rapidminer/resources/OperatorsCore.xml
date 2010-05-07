@@ -2088,6 +2088,10 @@
                <replaces>ModelUngrouper</replaces>
             </operator>
             <operator>
+                <key>generate_topk_predictions</key>
+                <class>com.rapidminer.operator.postprocessing.GenerateTopPredictionsOperator</class>
+            </operator>
+            <operator>
                <key>create_formula</key>
                <class>com.rapidminer.operator.visualization.FormulaExtractor</class>
                <icon>text_formula.png</icon>

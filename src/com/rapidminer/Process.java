@@ -186,6 +186,8 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 
 	private final Annotations annotations = new Annotations();
 	
+	private RepositoryAccessor repositoryAccessor;
+
 	// -------------------
 	// Constructors
 	// -------------------
@@ -1059,7 +1061,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 			fireUpdate();
 		}		
 	};
-
+	
 	public void addProcessSetupListener(ProcessSetupListener listener) {
 		processSetupListeners.add(ProcessSetupListener.class, listener);
 	}
@@ -1240,7 +1242,11 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	}
 
 	public RepositoryAccessor getRepositoryAccessor() {
-		return null;
+		return repositoryAccessor;
+	}
+	
+	public void setRepositoryAccessor(RepositoryAccessor repositoryAccessor ) {
+		this.repositoryAccessor = repositoryAccessor;
 	}
 
 	public Annotations getAnnotations() {

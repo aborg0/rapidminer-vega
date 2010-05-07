@@ -95,6 +95,30 @@ public class VectorRegressionModel extends PredictionModel {
 		return exampleSet;
 	}
 	
+	public String[] getLabelNames() {
+		return labelNames;
+	}
+	
+	public String[] getAttributeNames() {
+		return attributeNames;
+	}
+	
+	public double[] getCoefficients(String labelName) {
+		double[] coefficients = new double[this.coefficients.getRowDimension()];
+		int i = 0;
+		for (String label : labelNames) {
+			if (label.equals(labelName)) {
+				for (int j = 0; j < coefficients.length - 1; j++) {
+					coefficients[j] = this.coefficients.get(j + 1, i);
+				}
+				coefficients[coefficients.length - 1] = this.coefficients.get(0, i);
+				return coefficients;
+			}
+			i++;
+		}
+		return null;
+	}
+	
 	@Override
 	public String toString() {
 		StringBuffer result = new StringBuffer();

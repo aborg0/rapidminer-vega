@@ -65,10 +65,17 @@ public class PredictionModelMetaData extends ModelMetaData {
 				// creating confidence attributes
 				generatedPredictionAttributes.add(predictedLabelMetaData);
 				if (predictedLabelMetaData.isNominal()) {
-					for (String value: predictedLabelMetaData.getValueSet()) {
-						AttributeMetaData confidence = new AttributeMetaData(Attributes.CONFIDENCE_NAME + "(" + value + ")", Ontology.REAL, Attributes.CONFIDENCE_NAME + "_" + value);
+					if (predictedLabelMetaData.getValueSet().isEmpty()) {
+						AttributeMetaData confidence = new AttributeMetaData(Attributes.CONFIDENCE_NAME + "(?)", Ontology.REAL, Attributes.CONFIDENCE_NAME + "_" + "?");
 						confidence.setValueRange(new Range(0, 1), SetRelation.SUBSET);
 						generatedPredictionAttributes.add(confidence);
+						predictedLabelMetaData.setValueSetRelation(SetRelation.SUPERSET);
+					} else {
+						for (String value: predictedLabelMetaData.getValueSet()) {
+							AttributeMetaData confidence = new AttributeMetaData(Attributes.CONFIDENCE_NAME + "(" + value + ")", Ontology.REAL, Attributes.CONFIDENCE_NAME + "_" + value);
+							confidence.setValueRange(new Range(0, 1), SetRelation.SUBSET);
+							generatedPredictionAttributes.add(confidence);
+						}
 					}
 				}
 			}

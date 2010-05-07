@@ -91,7 +91,7 @@ public abstract class AbstractAttributes implements Attributes {
 	public boolean remove(Attribute attribute) {
         AttributeRole role = getRole(attribute);
         if (role != null)
-            return remove(getRole(attribute));
+            return remove(role);
         else
             return false;
 	}
@@ -200,6 +200,11 @@ public abstract class AbstractAttributes implements Attributes {
 		return getSpecial(PREDICTION_NAME);
 	}
 
+	@Override
+	public Attribute getConfidence(String classLabel) {
+		return getSpecial(CONFIDENCE_NAME + "_" + classLabel);
+	}
+	
 	public void setPredictedLabel(Attribute predictedLabel) {
 		setSpecialAttribute(predictedLabel, PREDICTION_NAME);
 	}

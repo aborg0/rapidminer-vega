@@ -199,6 +199,7 @@ public class ProcessEmbeddingOperator extends Operator {
 			Process process;
 			try {
 				process = new RepositoryProcessLocation(location).load(null);
+				process.setRepositoryAccessor(getProcess().getRepositoryAccessor());
 			} catch (IOException e) {
 				throw new UserError(this, 302, location, e.getMessage());
 			} catch (XMLException e) {

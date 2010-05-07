@@ -23,6 +23,7 @@
 package com.rapidminer.operator.learner.functions;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Attributes;
@@ -105,6 +106,45 @@ public class SeeminglyUnrelatedRegressionModel extends PredictionModel {
 	 */
 	public ExampleSet performPrediction(ExampleSet exampleSet, Attribute predictedLabel) throws OperatorException {
 		return null;
+	}
+	
+	public double[] getCoefficients(String labelName) {
+		int offset = 0;
+		int length = 0;
+		int i = 0;
+		for (String label : labelNames) {
+			String[] selectedAttributes = usedAttributeNames.get(i);
+			length = selectedAttributes.length;
+			if (label.equals(labelName)) {
+				break;
+			}
+			offset += 1 + length;
+			i++;
+		}
+		if (offset < this.coefficients.length) {
+			double[] coefficients = new double[length + 1];
+			for (int j = 0; j < coefficients.length - 1; j++) {
+				coefficients[j] = this.coefficients[offset + j + 1];
+			}
+			coefficients[coefficients.length - 1] = this.coefficients[offset];
+			return coefficients;
+		}
+		return null;
+	}
+	
+	public String[] getSelectedAttributeNames(String labelName) {
+		int i = 0;
+		for (String label : labelNames) {
+			if (label.equals(labelName)) {
+				return usedAttributeNames.get(i);
+			}
+			i++;
+		}
+		return null;
+	}
+	
+	public List<String> getLabelNames() {
+		return labelNames;
 	}
 
 	

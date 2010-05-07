@@ -201,6 +201,9 @@ public interface Attributes extends Iterable<Attribute>, Cloneable, Serializable
 	/** Returns the predicted label attribute or null if no label attribute is defined. */
 	public Attribute getPredictedLabel();
 
+	/** This method will return the confidence attribute of the given class or null if no confidence attribute exists for this class */
+	public Attribute getConfidence(String classLabel);
+	
 	/** Sets the predicted label attribute. If the given attribute is null, no predicted label attribute will be used. */
 	public void setPredictedLabel(Attribute predictedLabel);
 

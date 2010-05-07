@@ -42,6 +42,7 @@ import java.util.logging.LogRecord;
 
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -64,6 +65,7 @@ import com.rapidminer.operator.ProcessRootOperator;
 import com.rapidminer.parameter.ParameterTypeColor;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.ParameterService;
 import com.vlsolutions.swing.docking.DockKey;
 import com.vlsolutions.swing.docking.Dockable;
 
@@ -82,11 +84,32 @@ public class LoggingViewer extends JPanel implements MouseListener, Dockable {
 
 	private static final long serialVersionUID = 551259537624386372L;
 
+	public static final Level[] SELECTABLE_LEVELS = {
+		Level.ALL,
+		Level.FINEST,
+		Level.FINER,
+		Level.FINE,
+		Level.CONFIG,
+		Level.INFO,
+		Level.WARNING,
+		Level.SEVERE,
+		Level.OFF
+	};
+	public static final int DEFAULT_LEVEL_INDEX = 4;
+	public static final String[] SELECTABLE_LEVEL_NAMES = new String[SELECTABLE_LEVELS.length];
+	static {
+		for (int i = 0; i < SELECTABLE_LEVELS.length; i++) {
+			SELECTABLE_LEVEL_NAMES[i] = SELECTABLE_LEVELS[i].getName();
+		}
+	}
+	
 	public transient final Action CLEAR_MESSAGE_VIEWER_ACTION = new ClearMessageAction(this);
 	
 	public transient final Action SAVE_LOGFILE_ACTION = new SaveLogFileAction(this);
 	
 	public transient final Action SEARCH_ACTION = new LoggingSearchAction(this);
+	
+	public transient final JMenu LEVEL_MENU = new LoggingLevelMenu(this);
 
     private transient final SimpleAttributeSet attributeSet = new SimpleAttributeSet();
 
@@ -175,6 +198,7 @@ public class LoggingViewer extends JPanel implements MouseListener, Dockable {
 
 	private LoggingViewer(JTextPane textArea) {
 		super(new BorderLayout());
+		handler.setLevel(getSpecifiedLogLevelIndex());
 		maxRows = 1000;
 		try {
 			String maxRowsString = System.getProperty(MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_ROWLIMIT);
@@ -200,6 +224,25 @@ public class LoggingViewer extends JPanel implements MouseListener, Dockable {
         JScrollPane scrollPane = new ExtendedJScrollPane(textArea);
         scrollPane.setBorder(null);
         add(scrollPane, BorderLayout.CENTER);
+	}
+	
+	private Level getSpecifiedLogLevelIndex() {
+		String value = System.getProperty(MainFrame.PROPERTY_RAPIDMINER_GUI_LOG_LEVEL);
+		if (value == null) {
+			return Level.CONFIG;
+		} else {
+			for (int i = 0; i < SELECTABLE_LEVEL_NAMES.length; i++) {
+				if (SELECTABLE_LEVEL_NAMES[i].equals(value)) {
+					return SELECTABLE_LEVELS[i]; 
+				}
+			}
+			return Level.CONFIG;
+		}
+	}
+	
+	public void setLevel(Level level) {
+		handler.setLevel(level);
+		ParameterService.writePropertyIntoMainUserConfigFile(MainFrame.PROPERTY_RAPIDMINER_GUI_LOG_LEVEL, level.getName());
 	}
 
 	protected Object readResolve() {
@@ -230,7 +273,8 @@ public class LoggingViewer extends JPanel implements MouseListener, Dockable {
 		JPopupMenu menu = new JPopupMenu();
 		menu.add(CLEAR_MESSAGE_VIEWER_ACTION);
 		menu.add(SAVE_LOGFILE_ACTION);
-		menu.add(SEARCH_ACTION);
+		menu.add(SEARCH_ACTION);		
+		menu.add(LEVEL_MENU);
 		return menu;
 	}
 
@@ -315,6 +359,7 @@ public class LoggingViewer extends JPanel implements MouseListener, Dockable {
 	}
 
 	public static final String LOG_VIEWER_DOCK_KEY = "log_viewer";
+	
 	private final DockKey DOCK_KEY = new ResourceDockKey(LOG_VIEWER_DOCK_KEY);
 	{
 		DOCK_KEY.setDockGroup(MainFrame.DOCK_GROUP_ROOT);

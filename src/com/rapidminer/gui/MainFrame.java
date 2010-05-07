@@ -222,6 +222,9 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	/** Determines whether we build a {@link TabbedResultDisplay} or a {@link DockableResultDisplay}. */
 	public static final String PROPERTY_RAPIDMINER_GUI_RESULT_DISPLAY_TYPE = "rapidminer.gui.result_display_type";
 
+	/** Log level of the LoggingViewer. */
+	public static final String PROPERTY_RAPIDMINER_GUI_LOG_LEVEL = "rapidminer.gui.log_level";
+	
 	private static final long serialVersionUID = -1602076945350148969L;
 		
 	/**
@@ -250,6 +253,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_SAVE_ON_PROCESS_CREATION, "Save process when creating them?", true));
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_AUTO_SWITCH_TO_RESULTVIEW, "Automatically switch to results perspective when results are created?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_RESULT_DISPLAY_TYPE, "Determines the result display style.", ResultDisplayTools.TYPE_NAMES, 0));
+		RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_LOG_LEVEL , "Minimum level of messages that are logged in the GUIs log view.", LoggingViewer.SELECTABLE_LEVEL_NAMES, LoggingViewer.DEFAULT_LEVEL_INDEX));
 	}
 
 	/** The title of the frame. */
