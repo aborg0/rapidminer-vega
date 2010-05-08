@@ -81,6 +81,20 @@ public interface ProcessService {
 
     /**
      * 
+     * @param jobId
+     * @return
+     *     returns java.util.List<java.lang.Integer>
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "getProcessIdsForJobId", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetProcessIdsForJobId")
+    @ResponseWrapper(localName = "getProcessIdsForJobIdResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetProcessIdsForJobIdResponse")
+    public List<Integer> getProcessIdsForJobId(
+        @WebParam(name = "jobId", targetNamespace = "")
+        int jobId);
+
+    /**
+     * 
      * @param since
      * @return
      *     returns java.util.List<java.lang.Integer>

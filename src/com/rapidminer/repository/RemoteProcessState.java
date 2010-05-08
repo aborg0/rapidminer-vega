@@ -28,16 +28,18 @@ package com.rapidminer.repository;
  *
  */
 public enum RemoteProcessState {	
-	PENDING(false, "clock_run.png"), 
-	RUNNING(false, "media_play.png"), 
-	COMPLETED(true, "check.png"), 
-	FAILED(true, "error.png"), 
-	STOPPED(true, "media_stop.png"); 
+	PENDING(false, false, "clock_run.png"), 
+	RUNNING(false, false, "media_play.png"), 
+	COMPLETED(true, true, "check.png"), 
+	FAILED(true, false, "error.png"), 
+	STOPPED(true, false, "media_stop.png"); 
 	//STOP_REQUESTED(false, "media_stop.png");
 
 	private String iconName;
 	private boolean terminated;
-	private RemoteProcessState(boolean terminated, String iconName) {
+	private boolean successful;
+	
+	private RemoteProcessState(boolean terminated, boolean successful, String iconName) {
 		this.terminated = terminated;
 		this.iconName = iconName;
 	}
@@ -47,5 +49,8 @@ public enum RemoteProcessState {
 	
 	public String getIconName() {
 		return iconName;
+	}
+	public boolean isSuccessful() {		
+		return successful;
 	}
 }

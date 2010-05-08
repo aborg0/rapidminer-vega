@@ -3,7 +3,9 @@ package com.rapid_i.repository.wsimport;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 
 /**
@@ -16,7 +18,8 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;extension base="{http://service.web.rapidrepository.com/}response">
  *       &lt;sequence>
- *         &lt;element name="firstExecution" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="firstExecution" type="{http://www.w3.org/2001/XMLSchema}dateTime" minOccurs="0"/>
+ *         &lt;element name="jobId" type="{http://www.w3.org/2001/XMLSchema}int"/>
  *       &lt;/sequence>
  *     &lt;/extension>
  *   &lt;/complexContent>
@@ -27,23 +30,26 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "executionResponse", propOrder = {
-    "firstExecution"
+    "firstExecution",
+    "jobId"
 })
 public class ExecutionResponse
     extends Response
 {
 
-    protected String firstExecution;
+    @XmlSchemaType(name = "dateTime")
+    protected XMLGregorianCalendar firstExecution;
+    protected int jobId;
 
     /**
      * Gets the value of the firstExecution property.
      * 
      * @return
      *     possible object is
-     *     {@link String }
+     *     {@link XMLGregorianCalendar }
      *     
      */
-    public String getFirstExecution() {
+    public XMLGregorianCalendar getFirstExecution() {
         return firstExecution;
     }
 
@@ -52,11 +58,27 @@ public class ExecutionResponse
      * 
      * @param value
      *     allowed object is
-     *     {@link String }
+     *     {@link XMLGregorianCalendar }
      *     
      */
-    public void setFirstExecution(String value) {
+    public void setFirstExecution(XMLGregorianCalendar value) {
         this.firstExecution = value;
+    }
+
+    /**
+     * Gets the value of the jobId property.
+     * 
+     */
+    public int getJobId() {
+        return jobId;
+    }
+
+    /**
+     * Sets the value of the jobId property.
+     * 
+     */
+    public void setJobId(int value) {
+        this.jobId = value;
     }
 
 }

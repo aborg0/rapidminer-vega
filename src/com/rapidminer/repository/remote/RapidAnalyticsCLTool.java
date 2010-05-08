@@ -1,13 +1,21 @@
 package com.rapidminer.repository.remote;
 
+import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.rapid_i.repository.wsimport.ExecutionResponse;
+import com.rapid_i.repository.wsimport.ProcessResponse;
+import com.rapid_i.repository.wsimport.ProcessService;
+import com.rapid_i.repository.wsimport.ProcessStackTrace;
+import com.rapid_i.repository.wsimport.ProcessStackTraceElement;
+import com.rapidminer.repository.RemoteProcessState;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.tools.Tools;
 
 /** This class can be used to access a RapidAnalytics installation from a remote machine.
  *  Currently, it can only be used to trigger the execution of jobs.
@@ -18,6 +26,9 @@ import com.rapidminer.repository.RepositoryManager;
 public class RapidAnalyticsCLTool {
 
 	private Map<String,String> argsMap = new HashMap<String,String>();
+	private long delay = 1000;
+	private boolean dumpStatus = false;
+	private boolean watch = false;
 	
 	private RapidAnalyticsCLTool(String[] args) {
 		extractArguments(args);	
@@ -55,6 +66,12 @@ public class RapidAnalyticsCLTool {
 		System.out.println("       Password to use for logging in.");
 		System.out.println("   --execute-process=/PATH/TO/PROCESS");
 		System.out.println("       Process location to execute.");
+		System.out.println("   --watch={true|false}");
+		System.out.println("       Watch process until completed.");
+		System.out.println("   --process-id=ID");
+		System.out.println("       Manually specify process ID (for --watch). Unnecessary for --execute process.");
+		System.out.println("   --delay=MILLIS");
+		System.out.println("       Loop delay in milliseconds when --watch is enabled.");
 	}
 
 	private String getArgument(String argName, String defaultValue) {
@@ -69,7 +86,20 @@ public class RapidAnalyticsCLTool {
 		}
 	}
 
-	public void run() throws MalformedURLException, RepositoryException {
+	private int getArgumentInt(String argName, int defaultValue) {
+		String value = argsMap.get(argName);
+		if (value != null) {
+			try {
+				return Integer.parseInt(value);
+			} catch (NumberFormatException e) {
+				throw new IllegalArgumentException("Parameter "+argName+" must be a number.");
+			}
+		} else {			
+			return defaultValue;
+		}
+	}
+	
+	public void run() throws IllegalArgumentException, MalformedURLException, RepositoryException {
 		
 		String url = getArgument("url", "http://localhost:8080");
 		String user = getArgument("user", "admin");
@@ -79,7 +109,14 @@ public class RapidAnalyticsCLTool {
 		RemoteRepository repository = new RemoteRepository(new URL(url), 
 				"Temp", user, password.toCharArray(), true);
 		RepositoryManager.getInstance(null).addRepository(repository);
+
+		delay = getArgumentInt("deleay", 1000);
+		if ("true".equals(getArgument("watch", "false"))) {
+			watch = true;
+			dumpStatus = true;
+		}
 		
+		int processId = -1;
 		String executeProcess = getArgument("execute-process", null);
 		if (executeProcess != null) {
 			System.err.println("Scheduling process execution for process "+executeProcess);
@@ -89,11 +126,98 @@ public class RapidAnalyticsCLTool {
 				System.exit(result.getStatus());
 			} else {
 				System.out.println("Process scheduled for "+result.getFirstExecution());
+				int jobId = result.getJobId();
+				if (dumpStatus) {
+					processId = getJobId(jobId, repository.getProcessService());
+				} else {
+					processId = -1;
+				}
+			}
+		} else {
+			processId = getArgumentInt("process-id", -1);
+			if (processId != -1) {
+				dumpStatus = true;
+			}			
+		}
+			
+
+		if (dumpStatus) {
+			if (processId == -1) {
+				throw new IllegalArgumentException("You must use --process-id or --execute-service if --watch=true.");
+			}
+			RemoteProcessState state;
+			do {
+				ProcessResponse pInfo = repository.getProcessService().getRunningProcessesInfo(processId);
+				if (pInfo == null) {
+					throw new IllegalArgumentException("Process with id "+processId + " does not exist.");
+				}
+				dump(pInfo, System.out);
+				if (watch) {
+					try {
+						Thread.sleep(delay);
+					} catch (InterruptedException e) {	}
+				}
+				state = RemoteProcessState.valueOf(pInfo.getState());
+			} while (watch && !state.isTerminated());
+			if (!state.isSuccessful()) {
+				System.exit(1);				
+			} else {
+				System.exit(0);
+			}
+		}		
+	}
+	
+	private int getJobId(int jobId, ProcessService processService) {
+		while (true) {
+			System.err.println("Waiting for server to assign process id to scheduled job id "+jobId+"...");
+			List<Integer> result = processService.getProcessIdsForJobId(jobId);
+			if ((result == null) || result.isEmpty()) {
+				try {
+					Thread.sleep(delay);
+				} catch (InterruptedException e) { }
+			} else {
+				if (result.size() == 1) {
+					final Integer id = result.get(0);
+					System.err.println("Process id is "+id+".");					
+					return id;
+				} else {
+					throw new RuntimeException("Server delivered non-unique process id: "+result);
+				}
+			}
+		}		
+	}
+
+	private void dump(ProcessResponse pInfo, PrintStream out) {
+		out.println("State of process " + pInfo.getProcessLocation()+ " (id="+pInfo.getId()+")");
+		out.println("  Started:   "+pInfo.getStartTime());
+		if (pInfo.getCompletionTime() != null) {
+			out.println("  Completed: "+pInfo.getCompletionTime());
+		}
+		out.println("  State:     "+pInfo.getState());
+		if (pInfo.getException() != null) {
+			out.println("  Exception: "+pInfo.getException());
+		}
+		final ProcessStackTrace trace = pInfo.getTrace();
+		if (trace != null) {
+			out.println("  Trace:");
+			for (ProcessStackTraceElement ste : trace.getElements()) {
+				System.out.println("     "+ste.getOperatorName()+" ("+ste.getApplyCount()+", "+Tools.formatDuration(ste.getExecutionTime())+")");
 			}
 		}
 	}
-	
-	public static void main(String[] args) throws MalformedURLException, RepositoryException {
-		new RapidAnalyticsCLTool(args).run();
+
+	public static void main(String[] args) {
+		try {
+			new RapidAnalyticsCLTool(args).run();
+		} catch (IllegalArgumentException e) {
+			System.err.println(e.getMessage());
+			System.exit(1);
+		} catch (MalformedURLException e) {
+			System.err.println(e.getMessage());
+			System.exit(1);
+		} catch (RepositoryException e) {
+			System.err.println(e.getMessage());
+			System.exit(1);
+		}
 	}
 }

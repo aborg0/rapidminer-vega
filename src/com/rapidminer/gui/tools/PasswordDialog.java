@@ -77,10 +77,11 @@ public class PasswordDialog extends ButtonDialog {
 		super("authentication", url);
 		setModal(true);
 		if (preset != null) {
-			usernameField.setText(preset.getUserName());
+			usernameField.setText(preset.getUserName());			
 		}
 		if (preset!= null) {
 			passwordField.setText(new String(preset.getPassword()));
+			rememberBox.setSelected(true);
 		}
 		
 		JPanel main = new JPanel(new GridBagLayout());
@@ -112,8 +113,9 @@ public class PasswordDialog extends ButtonDialog {
 		return new PasswordAuthentication(usernameField.getText(), passwordField.getPassword());
 	}
 	
-	public static PasswordAuthentication getPasswordAuthentication(String forUrl, boolean forceRefresh) {
+	public static PasswordAuthentication getPasswordAuthentication(String forUrl, boolean forceRefresh) {		
 		PasswordAuthentication authentication = CACHE.get(forUrl);
+		// clear cache if refresh forced
 		if (forceRefresh && authentication != null) {
 			authentication = new PasswordAuthentication(authentication.getUserName(), null);
 			CACHE.put(forUrl, authentication);

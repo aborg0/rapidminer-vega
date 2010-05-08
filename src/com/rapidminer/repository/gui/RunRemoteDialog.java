@@ -389,7 +389,8 @@ public class RunRemoteDialog extends ButtonDialog {
 				SwingTools.showSimpleErrorMessage("run_proc_remote", response.getErrorMessage());
 			} else {
 				dispose();
-				JOptionPane.showMessageDialog(this, "Process will first run on: " + response.getFirstExecution(), "Process scheduled", JOptionPane.INFORMATION_MESSAGE);
+				Date firstExec = response.getFirstExecution().toGregorianCalendar().getTime();
+				JOptionPane.showMessageDialog(this, "Process will first run on: " + firstExec, "Process scheduled", JOptionPane.INFORMATION_MESSAGE);
 			}
 		}
 	}

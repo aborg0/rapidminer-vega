@@ -24,18 +24,20 @@ import javax.xml.namespace.QName;
 @XmlRegistry
 public class ObjectFactory {
 
-    private final static QName _CancelTriggerResponse_QNAME = new QName("http://service.web.rapidrepository.com/", "cancelTriggerResponse");
     private final static QName _GetRunningProcesses_QNAME = new QName("http://service.web.rapidrepository.com/", "getRunningProcesses");
-    private final static QName _GetRunningProcessesResponse_QNAME = new QName("http://service.web.rapidrepository.com/", "getRunningProcessesResponse");
     private final static QName _ExecuteProcessCronResponse_QNAME = new QName("http://service.web.rapidrepository.com/", "executeProcessCronResponse");
-    private final static QName _StopProcessResponse_QNAME = new QName("http://service.web.rapidrepository.com/", "stopProcessResponse");
     private final static QName _ExecuteProcessSimple_QNAME = new QName("http://service.web.rapidrepository.com/", "executeProcessSimple");
+    private final static QName _CancelTrigger_QNAME = new QName("http://service.web.rapidrepository.com/", "cancelTrigger");
+    private final static QName _CancelTriggerResponse_QNAME = new QName("http://service.web.rapidrepository.com/", "cancelTriggerResponse");
+    private final static QName _GetRunningProcessesResponse_QNAME = new QName("http://service.web.rapidrepository.com/", "getRunningProcessesResponse");
+    private final static QName _StopProcessResponse_QNAME = new QName("http://service.web.rapidrepository.com/", "stopProcessResponse");
+    private final static QName _GetProcessIdsForJobId_QNAME = new QName("http://service.web.rapidrepository.com/", "getProcessIdsForJobId");
     private final static QName _GetRunningProcessesInfo_QNAME = new QName("http://service.web.rapidrepository.com/", "getRunningProcessesInfo");
     private final static QName _StopProcess_QNAME = new QName("http://service.web.rapidrepository.com/", "stopProcess");
     private final static QName _GetRunningProcessesInfoResponse_QNAME = new QName("http://service.web.rapidrepository.com/", "getRunningProcessesInfoResponse");
-    private final static QName _CancelTrigger_QNAME = new QName("http://service.web.rapidrepository.com/", "cancelTrigger");
     private final static QName _ExecuteProcessCron_QNAME = new QName("http://service.web.rapidrepository.com/", "executeProcessCron");
     private final static QName _ExecuteProcessSimpleResponse_QNAME = new QName("http://service.web.rapidrepository.com/", "executeProcessSimpleResponse");
+    private final static QName _GetProcessIdsForJobIdResponse_QNAME = new QName("http://service.web.rapidrepository.com/", "getProcessIdsForJobIdResponse");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: com.rapid_i.repository.wsimport
@@ -45,43 +47,75 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link ExecutionResponse }
+     * Create an instance of {@link ProcessStackTrace }
      * 
      */
-    public ExecutionResponse createExecutionResponse() {
-        return new ExecutionResponse();
+    public ProcessStackTrace createProcessStackTrace() {
+        return new ProcessStackTrace();
     }
 
     /**
-     * Create an instance of {@link GetRunningProcessesInfo }
+     * Create an instance of {@link ExecuteProcessCron }
      * 
      */
-    public GetRunningProcessesInfo createGetRunningProcessesInfo() {
-        return new GetRunningProcessesInfo();
+    public ExecuteProcessCron createExecuteProcessCron() {
+        return new ExecuteProcessCron();
     }
 
     /**
-     * Create an instance of {@link ExecuteProcessSimple }
+     * Create an instance of {@link StopProcess }
      * 
      */
-    public ExecuteProcessSimple createExecuteProcessSimple() {
-        return new ExecuteProcessSimple();
+    public StopProcess createStopProcess() {
+        return new StopProcess();
     }
 
     /**
-     * Create an instance of {@link ProcessResponse }
+     * Create an instance of {@link ProcessStackTraceElement }
      * 
      */
-    public ProcessResponse createProcessResponse() {
-        return new ProcessResponse();
+    public ProcessStackTraceElement createProcessStackTraceElement() {
+        return new ProcessStackTraceElement();
     }
 
     /**
-     * Create an instance of {@link Response }
+     * Create an instance of {@link GetProcessIdsForJobId }
      * 
      */
-    public Response createResponse() {
-        return new Response();
+    public GetProcessIdsForJobId createGetProcessIdsForJobId() {
+        return new GetProcessIdsForJobId();
+    }
+
+    /**
+     * Create an instance of {@link GetRunningProcessesResponse }
+     * 
+     */
+    public GetRunningProcessesResponse createGetRunningProcessesResponse() {
+        return new GetRunningProcessesResponse();
+    }
+
+    /**
+     * Create an instance of {@link GetRunningProcesses }
+     * 
+     */
+    public GetRunningProcesses createGetRunningProcesses() {
+        return new GetRunningProcesses();
+    }
+
+    /**
+     * Create an instance of {@link GetProcessIdsForJobIdResponse }
+     * 
+     */
+    public GetProcessIdsForJobIdResponse createGetProcessIdsForJobIdResponse() {
+        return new GetProcessIdsForJobIdResponse();
+    }
+
+    /**
+     * Create an instance of {@link StopProcessResponse }
+     * 
+     */
+    public StopProcessResponse createStopProcessResponse() {
+        return new StopProcessResponse();
     }
 
     /**
@@ -93,11 +127,59 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link GetRunningProcesses }
+     * Create an instance of {@link GetRunningProcessesInfoResponse }
      * 
      */
-    public GetRunningProcesses createGetRunningProcesses() {
-        return new GetRunningProcesses();
+    public GetRunningProcessesInfoResponse createGetRunningProcessesInfoResponse() {
+        return new GetRunningProcessesInfoResponse();
+    }
+
+    /**
+     * Create an instance of {@link ProcessResponse }
+     * 
+     */
+    public ProcessResponse createProcessResponse() {
+        return new ProcessResponse();
+    }
+
+    /**
+     * Create an instance of {@link ExecuteProcessCronResponse }
+     * 
+     */
+    public ExecuteProcessCronResponse createExecuteProcessCronResponse() {
+        return new ExecuteProcessCronResponse();
+    }
+
+    /**
+     * Create an instance of {@link GetRunningProcessesInfo }
+     * 
+     */
+    public GetRunningProcessesInfo createGetRunningProcessesInfo() {
+        return new GetRunningProcessesInfo();
+    }
+
+    /**
+     * Create an instance of {@link ExecutionResponse }
+     * 
+     */
+    public ExecutionResponse createExecutionResponse() {
+        return new ExecutionResponse();
+    }
+
+    /**
+     * Create an instance of {@link Response }
+     * 
+     */
+    public Response createResponse() {
+        return new Response();
+    }
+
+    /**
+     * Create an instance of {@link ExecuteProcessSimple }
+     * 
+     */
+    public ExecuteProcessSimple createExecuteProcessSimple() {
+        return new ExecuteProcessSimple();
     }
 
     /**
@@ -117,94 +199,12 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link ExecuteProcessCronResponse }
-     * 
-     */
-    public ExecuteProcessCronResponse createExecuteProcessCronResponse() {
-        return new ExecuteProcessCronResponse();
-    }
-
-    /**
-     * Create an instance of {@link ProcessStackTraceElement }
-     * 
-     */
-    public ProcessStackTraceElement createProcessStackTraceElement() {
-        return new ProcessStackTraceElement();
-    }
-
-    /**
-     * Create an instance of {@link ExecuteProcessCron }
-     * 
-     */
-    public ExecuteProcessCron createExecuteProcessCron() {
-        return new ExecuteProcessCron();
-    }
-
-    /**
-     * Create an instance of {@link GetRunningProcessesInfoResponse }
-     * 
-     */
-    public GetRunningProcessesInfoResponse createGetRunningProcessesInfoResponse() {
-        return new GetRunningProcessesInfoResponse();
-    }
-
-    /**
-     * Create an instance of {@link ProcessStackTrace }
-     * 
-     */
-    public ProcessStackTrace createProcessStackTrace() {
-        return new ProcessStackTrace();
-    }
-
-    /**
-     * Create an instance of {@link GetRunningProcessesResponse }
-     * 
-     */
-    public GetRunningProcessesResponse createGetRunningProcessesResponse() {
-        return new GetRunningProcessesResponse();
-    }
-
-    /**
-     * Create an instance of {@link StopProcessResponse }
-     * 
-     */
-    public StopProcessResponse createStopProcessResponse() {
-        return new StopProcessResponse();
-    }
-
-    /**
-     * Create an instance of {@link StopProcess }
-     * 
-     */
-    public StopProcess createStopProcess() {
-        return new StopProcess();
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link CancelTriggerResponse }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://service.web.rapidrepository.com/", name = "cancelTriggerResponse")
-    public JAXBElement<CancelTriggerResponse> createCancelTriggerResponse(CancelTriggerResponse value) {
-        return new JAXBElement<CancelTriggerResponse>(_CancelTriggerResponse_QNAME, CancelTriggerResponse.class, null, value);
-    }
-
-    /**
      * Create an instance of {@link JAXBElement }{@code <}{@link GetRunningProcesses }{@code >}}
      * 
      */
     @XmlElementDecl(namespace = "http://service.web.rapidrepository.com/", name = "getRunningProcesses")
     public JAXBElement<GetRunningProcesses> createGetRunningProcesses(GetRunningProcesses value) {
         return new JAXBElement<GetRunningProcesses>(_GetRunningProcesses_QNAME, GetRunningProcesses.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetRunningProcessesResponse }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://service.web.rapidrepository.com/", name = "getRunningProcessesResponse")
-    public JAXBElement<GetRunningProcessesResponse> createGetRunningProcessesResponse(GetRunningProcessesResponse value) {
-        return new JAXBElement<GetRunningProcessesResponse>(_GetRunningProcessesResponse_QNAME, GetRunningProcessesResponse.class, null, value);
     }
 
     /**
@@ -217,6 +217,42 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link ExecuteProcessSimple }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://service.web.rapidrepository.com/", name = "executeProcessSimple")
+    public JAXBElement<ExecuteProcessSimple> createExecuteProcessSimple(ExecuteProcessSimple value) {
+        return new JAXBElement<ExecuteProcessSimple>(_ExecuteProcessSimple_QNAME, ExecuteProcessSimple.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link CancelTrigger }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://service.web.rapidrepository.com/", name = "cancelTrigger")
+    public JAXBElement<CancelTrigger> createCancelTrigger(CancelTrigger value) {
+        return new JAXBElement<CancelTrigger>(_CancelTrigger_QNAME, CancelTrigger.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link CancelTriggerResponse }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://service.web.rapidrepository.com/", name = "cancelTriggerResponse")
+    public JAXBElement<CancelTriggerResponse> createCancelTriggerResponse(CancelTriggerResponse value) {
+        return new JAXBElement<CancelTriggerResponse>(_CancelTriggerResponse_QNAME, CancelTriggerResponse.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetRunningProcessesResponse }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://service.web.rapidrepository.com/", name = "getRunningProcessesResponse")
+    public JAXBElement<GetRunningProcessesResponse> createGetRunningProcessesResponse(GetRunningProcessesResponse value) {
+        return new JAXBElement<GetRunningProcessesResponse>(_GetRunningProcessesResponse_QNAME, GetRunningProcessesResponse.class, null, value);
+    }
+
+    /**
      * Create an instance of {@link JAXBElement }{@code <}{@link StopProcessResponse }{@code >}}
      * 
      */
@@ -226,12 +262,12 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link ExecuteProcessSimple }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetProcessIdsForJobId }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://service.web.rapidrepository.com/", name = "executeProcessSimple")
-    public JAXBElement<ExecuteProcessSimple> createExecuteProcessSimple(ExecuteProcessSimple value) {
-        return new JAXBElement<ExecuteProcessSimple>(_ExecuteProcessSimple_QNAME, ExecuteProcessSimple.class, null, value);
+    @XmlElementDecl(namespace = "http://service.web.rapidrepository.com/", name = "getProcessIdsForJobId")
+    public JAXBElement<GetProcessIdsForJobId> createGetProcessIdsForJobId(GetProcessIdsForJobId value) {
+        return new JAXBElement<GetProcessIdsForJobId>(_GetProcessIdsForJobId_QNAME, GetProcessIdsForJobId.class, null, value);
     }
 
     /**
@@ -262,15 +298,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link CancelTrigger }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://service.web.rapidrepository.com/", name = "cancelTrigger")
-    public JAXBElement<CancelTrigger> createCancelTrigger(CancelTrigger value) {
-        return new JAXBElement<CancelTrigger>(_CancelTrigger_QNAME, CancelTrigger.class, null, value);
-    }
-
-    /**
      * Create an instance of {@link JAXBElement }{@code <}{@link ExecuteProcessCron }{@code >}}
      * 
      */
@@ -286,6 +313,15 @@ public class ObjectFactory {
     @XmlElementDecl(namespace = "http://service.web.rapidrepository.com/", name = "executeProcessSimpleResponse")
     public JAXBElement<ExecuteProcessSimpleResponse> createExecuteProcessSimpleResponse(ExecuteProcessSimpleResponse value) {
         return new JAXBElement<ExecuteProcessSimpleResponse>(_ExecuteProcessSimpleResponse_QNAME, ExecuteProcessSimpleResponse.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetProcessIdsForJobIdResponse }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://service.web.rapidrepository.com/", name = "getProcessIdsForJobIdResponse")
+    public JAXBElement<GetProcessIdsForJobIdResponse> createGetProcessIdsForJobIdResponse(GetProcessIdsForJobIdResponse value) {
+        return new JAXBElement<GetProcessIdsForJobIdResponse>(_GetProcessIdsForJobIdResponse_QNAME, GetProcessIdsForJobIdResponse.class, null, value);
     }
 
 }

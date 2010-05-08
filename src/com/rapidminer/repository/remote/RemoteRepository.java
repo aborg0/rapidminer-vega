@@ -52,8 +52,8 @@ import com.rapid_i.repository.wsimport.ProcessService;
 import com.rapid_i.repository.wsimport.ProcessService_Service;
 import com.rapid_i.repository.wsimport.RepositoryService;
 import com.rapid_i.repository.wsimport.RepositoryService_Service;
-import com.rapidminer.RapidMiner;
 import com.rapidminer.gui.actions.BrowseAction;
+import com.rapidminer.gui.tools.PasswordDialog;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.repository.BlobEntry;
@@ -67,7 +67,6 @@ import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryListener;
 import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.tools.GlobalAuthenticator;
-import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
 /**
@@ -81,7 +80,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	private final URL baseUrl;
 	private String alias;
-	private final String username;
+	private String username;
 	private char[] password;
 	private RepositoryService repositoryService;
 	private ProcessService processService;
@@ -265,13 +264,13 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	private PasswordAuthentication getAuthentiaction() {
 		if (this.password == null) {
 			LogService.getRoot().info("Authentication requested for URL: "+baseUrl);
-			String passwdString = RapidMiner.getInputHandler().inputPassword(I18N.getMessage(I18N.getGUIBundle(),
-					"gui.label.repositorydialog.askpassword.message", username, baseUrl.toString()));
-			if (passwdString == null) {
-				return null;
-			}
-			this.password = passwdString.toCharArray();
-			return new PasswordAuthentication(username, passwdString.toCharArray());
+			PasswordAuthentication passwordAuthentication = PasswordDialog.getPasswordAuthentication(baseUrl.toString(), false);			
+			if (passwordAuthentication != null) {
+				this.password = passwordAuthentication.getPassword();
+				this.username = passwordAuthentication.getUserName();
+				RepositoryManager.getInstance(null).save();
+			}			
+			return passwordAuthentication;
 		} else {
 			return new PasswordAuthentication(username, this.password);
 		}
