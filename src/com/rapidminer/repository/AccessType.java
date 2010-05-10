@@ -28,5 +28,11 @@ package com.rapidminer.repository;
  *
  */
 public enum AccessType {
-	READ, WRITE, EXECUTE;
+	READ, WRITE, EXECUTE,
+	/** This one is not an access type of its own, but
+	 *  is only used as a possible argument to
+	 *  when checking access rights. This is then mapped
+	 *  to WRITE unless the username equals the owner
+	 *  in which case access is immediately granted. */
+	CHANGE_PERMISSIONS;
 }
