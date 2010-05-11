@@ -66,28 +66,29 @@ import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.RepositoryLocation;
 
-/** Displays an overview of a single IOObject. Does not remember the
- *  IOObject itself.
- *  
+/**
+ * Displays an overview of a single IOObject. Does not remember the IOObject itself.
+ * 
  * @author Simon Fischer
- *
+ * 
  */
 public class SingleResultOverview extends JPanel {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private final JLabel title;
 	private final Component main;
 	private String repositoryLocation = null;
 	private SoftReference<ResultObject> ioObject;
-	
+
 	static final int MIN_HEIGHT = 300;
-	static final int MIN_WIDTH  = 300;
+	static final int MIN_WIDTH = 300;
 
 	private final Action RESTORE_FROM_REPOSITORY = new ResourceAction("resulthistory.restore_data") {
 		private static final long serialVersionUID = 1L;
+
 		@Override
-		public void actionPerformed(ActionEvent e) {			
+		public void actionPerformed(ActionEvent e) {
 			final ProgressThread downloadProgressThread = new ProgressThread("download_from_repository") {
 				public void run() {
 					try {
@@ -95,36 +96,38 @@ public class SingleResultOverview extends JPanel {
 						Entry entry = location.locateEntry();
 						if (entry instanceof IOObjectEntry) {
 							IOObjectEntry data = (IOObjectEntry) entry;
-							ResultObject result = (ResultObject)data.retrieveData(this.getProgressListener());
+							ResultObject result = (ResultObject) data.retrieveData(this.getProgressListener());
 							result.setSource(data.getLocation().toString());
 							RapidMinerGUI.getMainFrame().getResultDisplay().showResult(result);
 						} else {
-							SwingTools.showSimpleErrorMessage("cannot_fetch_data_from_repository", "Not an IOObject.");	
+							SwingTools.showSimpleErrorMessage("cannot_fetch_data_from_repository", "Not an IOObject.");
 						}
 					} catch (Exception e1) {
 						SwingTools.showSimpleErrorMessage("cannot_fetch_data_from_repository", e1);
 					}
 				}
 			};
-			downloadProgressThread.start();			
-		}		
+			downloadProgressThread.start();
+		}
 	};
 
 	private final Action OPEN_DATA = new ResourceAction("resulthistory.open_data") {
 		private static final long serialVersionUID = 1L;
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			ResultObject referenced = ioObject.get();
 			if (referenced != null) {
 				RapidMinerGUI.getMainFrame().getResultDisplay().showResult(referenced);
 			}
-		}		
+		}
 	};
-	
+
 	public SingleResultOverview(IOObject result, Process process, int resultIndex) {
 		setLayout(null);
 		setOpaque(false);
-		setBorder(new RapidBorder(ProcessRenderer.getColorFor(MetaData.forIOObject(result)), 15, 35));
+		MetaData metaData = MetaData.forIOObject(result, true);
+		setBorder(new RapidBorder(ProcessRenderer.getColorFor(metaData), 15, 35));
 		setBackground(Color.WHITE);
 
 		if (result instanceof ResultObject) {
@@ -134,64 +137,66 @@ public class SingleResultOverview extends JPanel {
 		if (process.getRootOperator().getSubprocess(0).getInnerSinks().getNumberOfPorts() > resultIndex) {
 			InputPort resultPort = process.getRootOperator().getSubprocess(0).getInnerSinks().getPortByIndex(resultIndex);
 			IOObject other = resultPort.getAnyDataOrNull();
-			if (result == other) { // make sure result does not come from collecting unconnected outputs, but is really from inner sink
+			if (result == other) { // make sure result does not come from collecting unconnected outputs, but is really
+									// from inner sink
 				if (process.getContext().getOutputRepositoryLocations().size() > resultIndex) {
 					repositoryLocation = process.getContext().getOutputRepositoryLocations().get(resultIndex).toString();
 				}
 			}
-		}		
-		
+		}
+
 		String name = result.getClass().getSimpleName();
 		if (result instanceof ExampleSet) {
-			main = makeMainLabel("<html>"+(MetaData.forIOObject(result).getDescription())+"</html>");
-			name = ((ResultObject)result).getName();
+			main = makeMainLabel("<html>" + metaData.getDescription() + "</html>");
+			name = ((ResultObject) result).getName();
 		} else {
 			name = RendererService.getName(result.getClass());
 			List<Renderer> renderers = RendererService.getRenderers(name);
 			if (renderers.isEmpty()) {
-				main = makeTextRenderer(result);				
+				main = makeTextRenderer(result);
 			} else {
 				Component component = null;
 				for (Renderer renderer : renderers) {
 					if (!(renderer instanceof DefaultTextRenderer)) {
 						IOContainer dummy = new IOContainer();
-						int imgWidth = MIN_WIDTH-10;
-						int imgHeight = MIN_HEIGHT-65;
+						int imgWidth = MIN_WIDTH - 10;
+						int imgHeight = MIN_HEIGHT - 65;
 						Reportable reportable = renderer.createReportable(result, dummy, imgWidth, imgHeight);
 						if (reportable instanceof Renderable) {
 							Renderable renderable = (Renderable) reportable;
-							renderable.prepareRendering();							
-							int preferredWidth  = renderable.getRenderWidth(800);
+							renderable.prepareRendering();
+							int preferredWidth = renderable.getRenderWidth(800);
 							int preferredHeight = renderable.getRenderHeight(800);
-							final BufferedImage img = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_INT_RGB);							
+							final BufferedImage img = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_INT_RGB);
 							Graphics2D graphics = (Graphics2D) img.getGraphics();
 							graphics.setColor(Color.WHITE);
 							graphics.fillRect(0, 0, imgWidth, imgHeight);
-							double scale = Math.min((double)imgWidth / (double)preferredWidth , (double)imgHeight / (double)preferredHeight);
+							double scale = Math.min((double) imgWidth / (double) preferredWidth, (double) imgHeight / (double) preferredHeight);
 							graphics.scale(scale, scale);
 							renderable.render(graphics, preferredWidth, preferredHeight);
 							component = new JPanel() {
 								private static final long serialVersionUID = 1L;
+
 								@Override
 								protected void paintComponent(java.awt.Graphics g) {
 									g.drawImage(img, 0, 0, null);
 								}
 							};
 							break;
-						}						
+						}
 					} else {
 						component = makeTextRenderer(result);
 						break;
-					}					
+					}
 				}
 				if (component == null) {
 					main = makeTextRenderer(result);
 				} else {
 					main = component;
 				}
-			}			
-		}		
-		
+			}
+		}
+
 		StringBuilder b = new StringBuilder();
 		b.append("<html><strong>").append(name);
 		b.append("</strong> (").append(result.getSource()).append(")");
@@ -201,13 +206,13 @@ public class SingleResultOverview extends JPanel {
 			b.append("<br/><small>Result not stored in repository.</small>");
 		}
 		b.append("</html>");
-		title = new JLabel(b.toString());		
+		title = new JLabel(b.toString());
 		add(title);
-		title.setBounds(5, 0, MIN_WIDTH-15, 40);
-				
+		title.setBounds(5, 0, MIN_WIDTH - 15, 40);
+
 		add(main);
-		main.setBounds(5, 45, MIN_WIDTH-10, MIN_HEIGHT-65);
-				
+		main.setBounds(5, 45, MIN_WIDTH - 10, MIN_HEIGHT - 65);
+
 		addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseReleased(MouseEvent e) {
@@ -215,12 +220,14 @@ public class SingleResultOverview extends JPanel {
 					showContextMenu(e.getPoint());
 				}
 			}
+
 			@Override
 			public void mousePressed(MouseEvent e) {
 				if (e.isPopupTrigger()) {
 					showContextMenu(e.getPoint());
 				}
 			}
+
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.isPopupTrigger()) {
@@ -228,26 +235,26 @@ public class SingleResultOverview extends JPanel {
 				}
 			}
 		});
-		
+
 		addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(ComponentEvent e) {
-				main.setBounds(5, 45, getWidth()-10, getHeight()-65);
+				main.setBounds(5, 45, getWidth() - 10, getHeight() - 65);
 			}
 		});
 	}
 
 	private Component makeTextRenderer(IOObject result) {
 		if (result instanceof ResultObject) {
-			return makeMainLabel("<html><pre>"+((ResultObject)result).toResultString()+"</pre></html>");
+			return makeMainLabel("<html><pre>" + ((ResultObject) result).toResultString() + "</pre></html>");
 		} else {
-			return makeMainLabel("No information available.");	
+			return makeMainLabel("No information available.");
 		}
 	}
 
-	private Component makeMainLabel(String text) {		
+	private Component makeMainLabel(String text) {
 		JEditorPane label = new ExtendedHTMLJEditorPane("text/html", text);
-		StyleSheet css = ((HTMLEditorKit)label.getEditorKit()).getStyleSheet();
+		StyleSheet css = ((HTMLEditorKit) label.getEditorKit()).getStyleSheet();
 		css.addRule("body {font-family:Sans;font-size:11pt}");
 		css.addRule("h3 {margin:0; padding:0}");
 		css.addRule("h4 {margin-bottom:0; margin-top:1ex; padding:0}");
@@ -257,19 +264,19 @@ public class SingleResultOverview extends JPanel {
 		css.addRule("li.outPorts {padding-bottom: 0px}");
 		css.addRule("ul li ul {margin-top:0; margin-bottom:1ex; list-style-image: url(" + getClass().getResource("/com/rapidminer/resources/icons/modern/help/line.png") + ")");
 		css.addRule("li ul li {padding-bottom:0}");
-		
-		//label.setOpaque(false);
+
+		// label.setOpaque(false);
 		label.setEditable(false);
 		label.setBackground(Color.WHITE);
-		//label.setVerticalTextPosition(SwingConstants.TOP);
-		//label.setHorizontalTextPosition(SwingConstants.LEFT);
-		
+		// label.setVerticalTextPosition(SwingConstants.TOP);
+		// label.setHorizontalTextPosition(SwingConstants.LEFT);
+
 		JScrollPane pane = new JScrollPane(label);
 		pane.setBackground(Color.WHITE);
 		pane.setBorder(null);
 		return pane;
 	}
-	
+
 	protected void showContextMenu(Point point) {
 		JPopupMenu menu = new JPopupMenu();
 		boolean empty = true;
@@ -282,7 +289,7 @@ public class SingleResultOverview extends JPanel {
 			empty = false;
 		}
 		if (!empty) {
-			menu.show(this, (int)point.getX(), (int)point.getY());
+			menu.show(this, (int) point.getX(), (int) point.getY());
 		}
 	}
 }

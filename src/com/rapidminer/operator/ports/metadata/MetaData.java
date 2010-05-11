@@ -202,15 +202,24 @@ public class MetaData implements Serializable {
 		return errors;		
 	}
 
-	public static MetaData forIOObject(IOObject ioo) {
+	/**
+	 * This will return the meta data description of the given IOObject.
+	 * If the shortened flag is true, the meta data will be incomplete to 
+	 * avoid to generate too much data if this is supported by the actual meta data implementation.
+	 */
+	public static MetaData forIOObject(IOObject ioo, boolean shortened) {
 		MetaData result;
 		if (ioo instanceof ExampleSet) {
-			result = new ExampleSetMetaData((ExampleSet)ioo);
+			result = new ExampleSetMetaData((ExampleSet)ioo, shortened);
 		} else {
 			result = new MetaData(ioo.getClass());
 		}
 		result.annotations = new Annotations(ioo.getAnnotations());
-		return result;
+		return result;	
+	}
+	
+	public static MetaData forIOObject(IOObject ioo) {
+		return forIOObject(ioo, false);
 	}
 
 	public Annotations getAnnotations() {

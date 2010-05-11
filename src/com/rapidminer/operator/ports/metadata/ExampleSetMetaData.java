@@ -37,7 +37,9 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.Tools;
 /**
- * @author Simon Fischer
+ * This class stores detailed meta data information about ExampleSets.
+ * 
+ * @author Simon Fischer, Sebastian Land
  */
 public class ExampleSetMetaData extends MetaData {
 
@@ -72,13 +74,31 @@ public class ExampleSetMetaData extends MetaData {
 		addAllAttributes(attributeMetaData);
 	}
 
+	/**
+	 * This constructor will generate a complete meta data description of the 
+	 * given example set. Please pay attention to the fact that it might be
+	 * very big since the meta data will contain each nominal value stored in the
+	 * data. With large, id-like data this will become very big.
+	 */
 	public ExampleSetMetaData(ExampleSet exampleSet) {
+		this(exampleSet, false);
+	}
+	
+	public ExampleSetMetaData(ExampleSet exampleSet, boolean shortened) {
 		super(ExampleSet.class);
-		exampleSet.recalculateAllAttributeStatistics();
+		int maxNumber = Integer.MAX_VALUE;
+		if (shortened) {
+			maxNumber = getMaximumNumberOfAttributes();
+		} else {
+			exampleSet.recalculateAllAttributeStatistics();
+		}
 		Iterator<AttributeRole> i = exampleSet.getAttributes().allAttributeRoles(); 
 		while (i.hasNext()) {
 			AttributeRole role = i.next();
-			addAttribute(new AttributeMetaData(role, exampleSet));
+			addAttribute(new AttributeMetaData(role, exampleSet, shortened));
+			maxNumber--;
+			if (maxNumber == 0)
+				break;
 		}
 		numberOfExamples = new MDInteger(exampleSet.size());
 	}
@@ -549,5 +569,19 @@ public class ExampleSetMetaData extends MetaData {
 
 	public void setNominalDataWasShrinked(boolean b) {
 		nominalDataWasShrinked = true;
+	}
+	
+	/** Returns the maximum number of attributes to be used for shortened meta data generation as specified by  
+	 *  {@link RapidMiner#PROPERTY_RAPIDMINER_GENERAL_MAX_META_DATA_ATTRIBUTES}. */
+	public static int getMaximumNumberOfAttributes() {
+		int maxSize = 250;
+		String maxSizeString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_MAX_META_DATA_ATTRIBUTES);
+		if (maxSizeString != null) {
+			maxSize = Integer.parseInt(maxSizeString);
+			if (maxSize == 0) {
+				maxSize = Integer.MAX_VALUE;
+			}
+		}
+		return maxSize;
 	}
 }

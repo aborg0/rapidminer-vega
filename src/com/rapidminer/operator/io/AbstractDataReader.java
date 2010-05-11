@@ -262,7 +262,7 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 		} catch (IOException e) {
 			throw new UserError(this, e, 403, e.getMessage());
 		}
-		int maxNumberOfNominalMetaValues = AttributeMetaData.getMaximumNumerOfNominalValues();
+		int maxNumberOfNominalMetaValues = AttributeMetaData.getMaximumNumberOfNominalValues();
 		while (set.next()) {
 			rowCount++;
 			if (columnCount < set.getNumberOfColumnsInCurrentRow()) {

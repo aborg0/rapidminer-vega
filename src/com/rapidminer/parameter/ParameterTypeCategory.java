@@ -99,6 +99,8 @@ public class ParameterTypeCategory extends ParameterTypeSingle {
 	@Override
 	public String toString(Object value) {
 		try {
+			if (value == null)
+				return null;
 			int index = Integer.parseInt(value.toString());
 			if (index >= categories.length)
 				return "";

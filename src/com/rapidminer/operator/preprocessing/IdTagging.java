@@ -70,7 +70,7 @@ public class IdTagging extends AbstractDataProcessing {
 			idAttribute = new AttributeMetaData(Attributes.ID_NAME, Ontology.NOMINAL, Attributes.ID_NAME);			
 			if (metaData.getNumberOfExamples().isKnown()) {
 				Set<String> values = new TreeSet<String>();
-				int maxNumberOfNominals = AttributeMetaData.getMaximumNumerOfNominalValues();				
+				int maxNumberOfNominals = AttributeMetaData.getMaximumNumberOfNominalValues();				
 				boolean incomplete = false;
 				for (int i = 1; i <= metaData.getNumberOfExamples().getValue().intValue(); i++) {
 					values.add("id_" + i);

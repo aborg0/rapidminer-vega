@@ -384,7 +384,8 @@ public class ManagedExtension {
 		// we only mark as uninstalled if 
 		//   (1) File does not exist, probably was removed manually
 		//   (2) We were able to remove it (requires administrator permissions if installed globally).
-		file.delete();
+		if (file != null && file.exists())
+			file.delete();
 		installedVersions.remove(selectedVersion);
 		selectedVersion = null;
 		active = false;

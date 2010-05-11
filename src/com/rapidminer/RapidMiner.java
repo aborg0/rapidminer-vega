@@ -184,6 +184,9 @@ public class RapidMiner {
 	/** The property name for &quot;The number of fraction digits of formatted percent values.&quot; */
 	public static final String PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_PERCENT = "rapidminer.general.fractiondigits.percent";
 
+	/** The name of the property indicating the maximum number of attributes stored for shortened meta data transformation. */
+	public static final String PROPERTY_RAPIDMINER_GENERAL_MAX_META_DATA_ATTRIBUTES = "rapidminer.general.md_attributes_limit";
+
 	/** The name of the property indicating the maximum number of nominal values to store for meta data transformation. */
 	public static final String PROPERTY_RAPIDMINER_GENERAL_MAX_NOMINAL_VALUES = "rapidminer.general.md_nominal_values_limit";
 	

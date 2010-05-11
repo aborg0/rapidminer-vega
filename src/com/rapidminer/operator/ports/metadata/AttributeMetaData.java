@@ -72,12 +72,32 @@ public class AttributeMetaData implements Serializable {
 		this(name, type, null);
 	}
 
+	/**
+	 * This will generate the complete meta data with all values.
+	 */
 	public AttributeMetaData(AttributeRole role, ExampleSet exampleSet) {
+		this(role, exampleSet, false);
+	}
+	
+	/**
+	 * This will generate the attribute meta data with the data's values shortened if the number of values exceeds the
+	 * respective property and the boolean flag is set to true.
+	 * If shortened only the first 100 characters of each nominal value is returned.
+	 */
+	public AttributeMetaData(AttributeRole role, ExampleSet exampleSet, boolean shortened) {
 		this(role.getAttribute().getName(), role.getAttribute().getValueType(), role.getSpecialName());		
 		Attribute att = role.getAttribute();
 		if (att.isNominal()) {
+			int maxValues = shortened ? getMaximumNumberOfNominalValues(): Integer.MAX_VALUE;
 			valueSet.clear();
-			valueSet.addAll(att.getMapping().getValues());
+			for (String value: att.getMapping().getValues()) {
+				if (shortened && value.length() > 100) 
+					value = value.substring(0, 100);
+				valueSet.add(value);
+				maxValues --;
+				if (maxValues == 0)
+					break;
+			}
 			valueSetRelation = SetRelation.EQUAL;
 		}		
 		if (exampleSet != null) {
@@ -618,13 +638,13 @@ public class AttributeMetaData implements Serializable {
 	/** Throws away nominal values until the value set size is at most the value specified by property
 	 *  {@link RapidMiner#PROPERTY_RAPIDMINER_GENERAL_MAX_NOMINAL_VALUES}. */
 	public void shrinkValueSet() {
-		int maxSize = getMaximumNumerOfNominalValues();
+		int maxSize = getMaximumNumberOfNominalValues();
 		shrinkValueSet(maxSize);
 	}
 
 	/** Returns the maximum number of values to be used for meta data generation as specified by  
 	 *  {@link RapidMiner#PROPERTY_RAPIDMINER_GENERAL_MAX_NOMINAL_VALUES}. */
-	public static int getMaximumNumerOfNominalValues() {
+	public static int getMaximumNumberOfNominalValues() {
 		int maxSize = 100;
 		String maxSizeString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_MAX_NOMINAL_VALUES);
 		if (maxSizeString != null) {

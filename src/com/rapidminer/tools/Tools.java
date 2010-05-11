@@ -22,6 +22,7 @@
  */
 package com.rapidminer.tools;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -78,7 +79,7 @@ public class Tools {
 
 	/** Units for sizes in bytes. */
 	private static final String[] MEMORY_UNITS = { "b", "kB", "MB", "GB", "TB" };
-	
+
 	/** The line separator depending on the operating system. */
 	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
@@ -100,15 +101,14 @@ public class Tools {
 	/** Used for formatting values in the {@link #formatDateTime(Date)} method. */
 	private static final DateFormat DATE_TIME_FORMAT = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.LONG, Locale.getDefault());
 
-
 	private static Locale FORMAT_LOCALE = Locale.US;
-	
+
 	/** Used for formatting values in the {@link #formatNumber(double)} method. */
 	private static NumberFormat NUMBER_FORMAT = NumberFormat.getInstance(FORMAT_LOCALE);
 
 	/** Used for formatting values in the {@link #formatNumber(double)} method. */
 	private static NumberFormat INTEGER_FORMAT = NumberFormat.getIntegerInstance(FORMAT_LOCALE);
-	
+
 	/** Used for formatting values in the {@link #formatPercent(double)} method. */
 	private static NumberFormat PERCENT_FORMAT = NumberFormat.getPercentInstance(FORMAT_LOCALE);
 
@@ -136,19 +136,18 @@ public class Tools {
 		System.arraycopy(allTimeZoneNames, 0, availableTimeZoneNames, 1, allTimeZoneNames.length);
 	}
 
-
 	public static void setFormatLocale(Locale locale) {
 		FORMAT_LOCALE = locale;
 		NUMBER_FORMAT = NumberFormat.getInstance(locale);
 		INTEGER_FORMAT = NumberFormat.getIntegerInstance(locale);
-		PERCENT_FORMAT = NumberFormat.getPercentInstance(locale); 
+		PERCENT_FORMAT = NumberFormat.getPercentInstance(locale);
 		FORMAT_SYMBOLS = new DecimalFormatSymbols(locale);
 	}
 
 	public static Locale getFormatLocale() {
 		return FORMAT_LOCALE;
 	}
-	
+
 	public static String[] getAllTimeZones() {
 		return availableTimeZoneNames;
 	}
@@ -157,7 +156,7 @@ public class Tools {
 		if (index == SYSTEM_TIME_ZONE)
 			return TimeZone.getDefault();
 		else
-			return TimeZone.getTimeZone(availableTimeZoneNames[index]);		
+			return TimeZone.getTimeZone(availableTimeZoneNames[index]);
 	}
 
 	public static TimeZone getPreferredTimeZone() {
@@ -190,11 +189,10 @@ public class Tools {
 	public static Calendar getPreferredCalendar() {
 		return Calendar.getInstance(getPreferredTimeZone(), Locale.getDefault());
 	}
-	
+
 	/**
-	 * Formats the value according to the given valueType. The value must be
-	 * an object of type String for nominal values, an object of type Date for
-	 * date_time values or of type Double for numerical values.
+	 * Formats the value according to the given valueType. The value must be an object of type String for nominal
+	 * values, an object of type Date for date_time values or of type Double for numerical values.
 	 * 
 	 * @param value
 	 * @param valueType
@@ -223,8 +221,7 @@ public class Tools {
 	}
 
 	/**
-	 * Returns a formatted string of the given number (percent format with two
-	 * fraction digits).
+	 * Returns a formatted string of the given number (percent format with two fraction digits).
 	 */
 	public static String formatPercent(double value) {
 		if (Double.isNaN(value))
@@ -243,8 +240,7 @@ public class Tools {
 	}
 
 	/**
-	 * Returns a formatted string of the given number (number format with
-	 * usually three fraction digits).
+	 * Returns a formatted string of the given number (number format with usually three fraction digits).
 	 */
 	public static String formatNumber(double value) {
 		if (Double.isNaN(value))
@@ -253,25 +249,24 @@ public class Tools {
 		try {
 			String numberDigitsString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_NUMBERS);
 			numberDigits = Integer.parseInt(numberDigitsString);
-		} catch (NumberFormatException e) {}
+		} catch (NumberFormatException e) {
+		}
 		// TODO: read property for grouping characters
 		return formatNumber(value, numberDigits, false);
 	}
 
 	/**
-	 * Returns a formatted string of the given number (uses the property
-	 * rapidminer.gui.fractiondigits.numbers if the given number of digits is 
-	 * smaller than 0 (usually 3)).
+	 * Returns a formatted string of the given number (uses the property rapidminer.gui.fractiondigits.numbers if the
+	 * given number of digits is smaller than 0 (usually 3)).
 	 */
 	public static String formatNumber(double value, int numberOfDigits) {
 		// TODO: read property for grouping characters
 		return formatNumber(value, numberOfDigits, false);
 	}
-	
+
 	/**
-	 * Returns a formatted string of the given number (uses the property
-	 * rapidminer.gui.fractiondigits.numbers if the given number of digits is 
-	 * smaller than 0 (usually 3)).
+	 * Returns a formatted string of the given number (uses the property rapidminer.gui.fractiondigits.numbers if the
+	 * given number of digits is smaller than 0 (usually 3)).
 	 */
 	public static String formatNumber(double value, int numberOfDigits, boolean groupingCharacters) {
 		if (Double.isNaN(value))
@@ -291,27 +286,34 @@ public class Tools {
 		return NUMBER_FORMAT.format(value);
 	}
 
-	/** Returns a number string with no fraction digits if possible. Otherwise the default 
-	 *  number of digits will be returned. */
+	/**
+	 * Returns a number string with no fraction digits if possible. Otherwise the default number of digits will be
+	 * returned.
+	 */
 	public static String formatIntegerIfPossible(double value) {
 		int numberDigits = 3;
 		try {
 			String numberDigitsString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_NUMBERS);
 			numberDigits = Integer.parseInt(numberDigitsString);
-		} catch (NumberFormatException e) {}
+		} catch (NumberFormatException e) {
+		}
 		// TODO: read property for grouping characters
 		return formatIntegerIfPossible(value, numberDigits, false);
 	}
 
-	/** Returns a number string with no fraction digits if possible. Otherwise the given 
-	 *  number of digits will be returned. */
+	/**
+	 * Returns a number string with no fraction digits if possible. Otherwise the given number of digits will be
+	 * returned.
+	 */
 	public static String formatIntegerIfPossible(double value, int numberOfDigits) {
 		// TODO: read property for grouping characters
 		return formatIntegerIfPossible(value, numberOfDigits, false);
 	}
-	
-	/** Returns a number string with no fraction digits if possible. Otherwise the given 
-	 *  number of digits will be returned. */
+
+	/**
+	 * Returns a number string with no fraction digits if possible. Otherwise the given number of digits will be
+	 * returned.
+	 */
 	public static String formatIntegerIfPossible(double value, int numberOfDigits, boolean groupingCharacter) {
 		if (Double.isNaN(value))
 			return "?";
@@ -391,12 +393,12 @@ public class Tools {
 
 	/** Returns true if the d1 is greater than d2 and they are not equal. */
 	public static boolean isGreater(double d1, double d2) {
-		return ((Double.compare(d1, d2)> 0) && isNotEqual(d1, d2)) || (Double.isNaN(d1) || Double.isNaN(d2));
+		return ((Double.compare(d1, d2) > 0) && isNotEqual(d1, d2)) || (Double.isNaN(d1) || Double.isNaN(d2));
 	}
 
-	/** Returns true if the d1 is greater than d1 or both are equal, or if one of the values is NaN*/
+	/** Returns true if the d1 is greater than d1 or both are equal, or if one of the values is NaN */
 	public static boolean isGreaterEqual(double d1, double d2) {
-		return (Double.compare(d1, d2)> 0) || isEqual(d1, d2) || (Double.isNaN(d1) || Double.isNaN(d2));
+		return (Double.compare(d1, d2) > 0) || isEqual(d1, d2) || (Double.isNaN(d1) || Double.isNaN(d2));
 	}
 
 	/** Returns true if the d1 is less than d2 and they are not equal. */
@@ -416,8 +418,9 @@ public class Tools {
 		return LINE_SEPARATOR;
 	}
 
-	/** Returns the correct line separator for the current operating system concatenated 
-	 *  for the given number of times. */
+	/**
+	 * Returns the correct line separator for the current operating system concatenated for the given number of times.
+	 */
 	public static String getLineSeparators(int number) {
 		if (number < 0)
 			number = 0;
@@ -427,9 +430,10 @@ public class Tools {
 		return result.toString();
 	}
 
-	/** Replaces all possible line feed character combinations by &quot;\n&quot;. This
-	 *  might be important for GUI purposes like tool tip texts which do not support
-	 *  carriage return combinations. */
+	/**
+	 * Replaces all possible line feed character combinations by &quot;\n&quot;. This might be important for GUI
+	 * purposes like tool tip texts which do not support carriage return combinations.
+	 */
 	public static String transformAllLineSeparators(String text) {
 		Pattern crlf = Pattern.compile("(\r\n|\r|\n|\n\r)");
 		Matcher m = crlf.matcher(text);
@@ -439,9 +443,10 @@ public class Tools {
 		return text;
 	}
 
-	/** Removes all possible line feed character combinations. This
-	 *  might be important for GUI purposes like tool tip texts which do not support
-	 *  carriage return combinations. */
+	/**
+	 * Removes all possible line feed character combinations. This might be important for GUI purposes like tool tip
+	 * texts which do not support carriage return combinations.
+	 */
 	public static String removeAllLineSeparators(String text) {
 		Pattern crlf = Pattern.compile("(\r\n|\r|\n|\n\r)");
 		Matcher m = crlf.matcher(text);
@@ -452,8 +457,8 @@ public class Tools {
 	}
 
 	/**
-	 * Returns the class name of the given class without the package
-	 * information.
+	 * Returns the class name of the given class without the package information.
+	 * 
 	 * @deprecated Call c.getSimpleName() directly.
 	 */
 	@Deprecated
@@ -477,8 +482,7 @@ public class Tools {
 	}
 
 	/**
-	 * Creates a file relative to the given parent if name is not an absolute
-	 * file name. Returns null if name is null.
+	 * Creates a file relative to the given parent if name is not an absolute file name. Returns null if name is null.
 	 */
 	public static File getFile(File parent, String name) {
 		if (name == null)
@@ -490,24 +494,25 @@ public class Tools {
 			return new File(parent, name);
 	}
 
-	/** This method checks if the given file is a Zip file containing one entry (in case of file extension .zip). 
-	 *  If this is the case, a reader based on a ZipInputStream for this entry is returned. 
-	 *  Otherwise, this method checks if the file has the extension .gz. If this applies, a gzipped
-	 *  stream reader is returned. Otherwise, this method just returns a BufferedReader
-	 *  for the given file (file was not zipped at all). */
+	/**
+	 * This method checks if the given file is a Zip file containing one entry (in case of file extension .zip). If this
+	 * is the case, a reader based on a ZipInputStream for this entry is returned. Otherwise, this method checks if the
+	 * file has the extension .gz. If this applies, a gzipped stream reader is returned. Otherwise, this method just
+	 * returns a BufferedReader for the given file (file was not zipped at all).
+	 */
 	public static BufferedReader getReader(File file, Charset encoding) throws IOException {
 		// handle zip files if necessary
 		if (file.getAbsolutePath().endsWith(".zip")) {
-			ZipFile zipFile = new ZipFile(file);	                 
-			if (zipFile.size() == 0) {	 
-				throw new IOException("Input of Zip file failed: the file archive does not contain any entries.");	 
-			}	 
-			if (zipFile.size() > 1) {	 
-				throw new IOException("Input of Zip file failed: the file archive contains more than one entry.");	 
-			}	 
-			Enumeration<? extends ZipEntry> entries = zipFile.entries();	 
-			InputStream zipIn = zipFile.getInputStream(entries.nextElement());	 
-			return new BufferedReader(new InputStreamReader(zipIn, encoding));        	
+			ZipFile zipFile = new ZipFile(file);
+			if (zipFile.size() == 0) {
+				throw new IOException("Input of Zip file failed: the file archive does not contain any entries.");
+			}
+			if (zipFile.size() > 1) {
+				throw new IOException("Input of Zip file failed: the file archive contains more than one entry.");
+			}
+			Enumeration<? extends ZipEntry> entries = zipFile.entries();
+			InputStream zipIn = zipFile.getInputStream(entries.nextElement());
+			return new BufferedReader(new InputStreamReader(zipIn, encoding));
 		} else if (file.getAbsolutePath().endsWith(".gz")) {
 			return new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(file)), encoding));
 		} else {
@@ -515,11 +520,12 @@ public class Tools {
 		}
 	}
 
-	/** This method tries to identify the encoding if a GUI is running and a process
-	 *  is defined. In this case, the encoding is taken from the process. 
-	 *  Otherwise, the method tries to identify the encoding via the property
-	 *  {@link RapidMiner#PROPERTY_RAPIDMINER_GENERAL_DEFAULT_ENCODING}. If this is not 
-	 *  possible, this method just returns the default system encoding. */
+	/**
+	 * This method tries to identify the encoding if a GUI is running and a process is defined. In this case, the
+	 * encoding is taken from the process. Otherwise, the method tries to identify the encoding via the property
+	 * {@link RapidMiner#PROPERTY_RAPIDMINER_GENERAL_DEFAULT_ENCODING}. If this is not possible, this method just
+	 * returns the default system encoding.
+	 */
 	public static Charset getDefaultEncoding() {
 		Charset result = null;
 
@@ -591,8 +597,7 @@ public class Tools {
 	}
 
 	/**
-	 * Waits for process to die and writes log messages. Terminates if exit
-	 * value is not 0.
+	 * Waits for process to die and writes log messages. Terminates if exit value is not 0.
 	 */
 	public static void waitForProcess(Operator operator, Process process, String name) throws OperatorException {
 		try {
@@ -609,8 +614,7 @@ public class Tools {
 	}
 
 	/**
-	 * Sends a mail to the given address, using the specified subject and
-	 * contents. Subject must contain no whitespace!
+	 * Sends a mail to the given address, using the specified subject and contents. Subject must contain no whitespace!
 	 */
 	public static void sendEmail(String address, String subject, String content) {
 		try {
@@ -639,7 +643,7 @@ public class Tools {
 				mailSender = new MailSenderSendmail();
 				break;
 			default:
-				LogService.getGlobal().log("Illegal send mail method: "+method + ".", LogService.ERROR);
+				LogService.getGlobal().log("Illegal send mail method: " + method + ".", LogService.ERROR);
 			}
 
 			if (mailSender != null) {
@@ -660,18 +664,20 @@ public class Tools {
 		ALL_RESOURCE_SOURCES.addFirst(source);
 	}
 
-	public static URL getResource(ClassLoader loader, String name) {	 
-		return getResource(loader, RESOURCE_PREFIX, name);	 
+	public static URL getResource(ClassLoader loader, String name) {
+		return getResource(loader, RESOURCE_PREFIX, name);
 	}
 
-	public static URL getResource(ClassLoader loader, String prefix, String name) {	 
-		return loader.getResource(prefix + name);	 
+	public static URL getResource(ClassLoader loader, String prefix, String name) {
+		return loader.getResource(prefix + name);
 	}
 
-	/** Returns the desired resource. Tries first to find a resource in the core RapidMiner resources
-	 *  directory. If no resource with the given name is found, it is tried to load with help of
-	 *  the ResourceSource which might have been added by plugins. Please note that resource names
-	 *  are only allowed to use '/' as separator instead of File.separator! */
+	/**
+	 * Returns the desired resource. Tries first to find a resource in the core RapidMiner resources directory. If no
+	 * resource with the given name is found, it is tried to load with help of the ResourceSource which might have been
+	 * added by plugins. Please note that resource names are only allowed to use '/' as separator instead of
+	 * File.separator!
+	 */
 	public static URL getResource(String name) {
 		Iterator<ResourceSource> i = ALL_RESOURCE_SOURCES.iterator();
 		while (i.hasNext()) {
@@ -693,7 +699,7 @@ public class Tools {
 	public static String readTextFile(InputStream in) throws IOException {
 		return readTextFile(new InputStreamReader(in, "UTF-8"));
 	}
-	
+
 	/** Reads a text file into a single string. */
 	public static String readTextFile(File file) throws IOException {
 		return readTextFile(new FileReader(file));
@@ -750,7 +756,8 @@ public class Tools {
 				clazz = clazz.getDeclaringClass();
 			String filename = clazz.getName().replace('.', File.separatorChar);
 			return ParameterService.getSourceFile(filename + ".java");
-		} catch (Throwable t) {}
+		} catch (Throwable t) {
+		}
 		String filename = e.getClassName().replace('.', File.separatorChar);
 		return ParameterService.getSourceFile(filename + ".java");
 	}
@@ -768,14 +775,14 @@ public class Tools {
 	public static String escapeXML(String string) {
 		if (string == null)
 			return "null";
-		string = string.replaceAll("&",  "&amp;");
+		string = string.replaceAll("&", "&amp;");
 		string = string.replaceAll("\"", "&quot;");
-		string = string.replaceAll("'",  "&#39;");
-		string = string.replaceAll("<",  "&lt;");
-		string = string.replaceAll(">",  "&gt;");
+		string = string.replaceAll("'", "&#39;");
+		string = string.replaceAll("<", "&lt;");
+		string = string.replaceAll(">", "&gt;");
 		string = transformAllLineSeparators(string);
-		string = string.replaceAll("\n",  "&#10;");
-		string = string.replaceAll("\t",  "&#09;");
+		string = string.replaceAll("\n", "&#10;");
+		string = string.replaceAll("\t", "&#09;");
 		return string;
 	}
 
@@ -809,10 +816,12 @@ public class Tools {
 	public static Class classForName(String className) throws ClassNotFoundException {
 		try {
 			return Class.forName(className);
-		} catch (ClassNotFoundException e) {}
+		} catch (ClassNotFoundException e) {
+		}
 		try {
 			return ClassLoader.getSystemClassLoader().loadClass(className);
-		} catch (ClassNotFoundException e) {}	
+		} catch (ClassNotFoundException e) {
+		}
 		Iterator i = Plugin.getAllPlugins().iterator();
 		while (i.hasNext()) {
 			Plugin p = (Plugin) i.next();
@@ -825,19 +834,21 @@ public class Tools {
 		throw new ClassNotFoundException(className);
 	}
 
-	/** Splits the given line according to the given separator pattern while only those
-	 *  separators will be regarded not lying inside of a quoting string. Please note
-	 *  that quoting characters will not be regarded if they are escaped by an escaping
-	 *  character. The usual double quote (&quot;) is used for quoting and can be 
-	 *  escaped by a backslash, i.e. \&quot;. */
+	/**
+	 * Splits the given line according to the given separator pattern while only those separators will be regarded not
+	 * lying inside of a quoting string. Please note that quoting characters will not be regarded if they are escaped by
+	 * an escaping character. The usual double quote (&quot;) is used for quoting and can be escaped by a backslash,
+	 * i.e. \&quot;.
+	 */
 	public static String[] quotedSplit(String line, Pattern separatorPattern) {
 		return quotedSplit(line, separatorPattern, '"', '\\');
 	}
 
-	/** Splits the given line according to the given separator pattern while only those
-	 *  separators will be regarded not lying inside of a quoting string. Please note
-	 *  that quoting characters will not be regarded if they are escaped by an escaping
-	 *  character. */
+	/**
+	 * Splits the given line according to the given separator pattern while only those separators will be regarded not
+	 * lying inside of a quoting string. Please note that quoting characters will not be regarded if they are escaped by
+	 * an escaping character.
+	 */
 	public static String[] quotedSplit(String line, Pattern separatorPattern, char quotingChar, char escapeChar) {
 		// determine split positions according to non-escaped quotes
 		int[] quoteSplitIndices = new int[line.length()];
@@ -884,26 +895,33 @@ public class Tools {
 
 		// now handle split and non split parts
 		// ALGORITHM:
-		// *** at Split-Parts: remove empty starts and endings, use empty parts in the middle (as missing), use also non-empty parts (as non missing)
-		// - Exception: the first and the last split parts. Here also the start and the beginning must be used even if they are empty (they are missing then)
+		// *** at Split-Parts: remove empty starts and endings, use empty parts in the middle (as missing), use also
+		// non-empty parts (as non missing)
+		// - Exception: the first and the last split parts. Here also the start and the beginning must be used even if
+		// they are empty (they are missing then)
 		// *** at Non-Split-Parts: simply use the whole value. It is missing if is empty.
-		// IMPORTANT: a negative limit for the split method (here: -1) is very important in order to get empty trailing values
+		// IMPORTANT: a negative limit for the split method (here: -1) is very important in order to get empty trailing
+		// values
 		List<String> result = new LinkedList<String>();
 		boolean isSplitPart = true;
 		int index = 0;
 		for (String part : quotedSplits) {
-			if ((index > 0) || (part.trim().length() > 0)) { // skip first split if part is empty (coming from leading quotes in the line) 
+			if ((index > 0) || (part.trim().length() > 0)) { // skip first split if part is empty (coming from leading
+																// quotes in the line)
 				if (isSplitPart) {
-					String[] separatedParts = separatorPattern.split(part, -1); // ATTENTION: a negative Limit is very important to get trailing empty strings
+					String[] separatedParts = separatorPattern.split(part, -1); // ATTENTION: a negative Limit is very
+																				// important to get trailing empty
+																				// strings
 					for (int s = 0; s < separatedParts.length; s++) {
 						String currentPart = separatedParts[s].trim();
-						if (currentPart.length() == 0) { // part is empty -- missing if in the middle or at line start or end
+						if (currentPart.length() == 0) { // part is empty -- missing if in the middle or at line start
+															// or end
 							if ((s == 0) && (index == 0)) {
 								result.add(currentPart);
 							} else if ((s == separatedParts.length - 1) && (index == quotedSplits.size() - 1)) {
 								result.add(currentPart);
 							} else if ((s > 0) && (s < separatedParts.length - 1)) {
-								result.add(currentPart);	
+								result.add(currentPart);
 							}
 						} else {
 							result.add(currentPart);
@@ -923,16 +941,21 @@ public class Tools {
 	}
 
 	/**
-	 * This method merges quoted splits, e.g. if a string line should be splitted by comma and
-	 * commas inside of a quoted string should not be used as splitting point.
-	 *  
-	 * @param line the original line
-	 * @param splittedTokens the tokens as they were originally splitted
-	 * @param quoteString the string which should be used as quote indicator, e.g. &quot; or '
-	 * @return the array of strings where the given quoteString was regarded
-	 * @throws IOException if an open quote was not ended
+	 * This method merges quoted splits, e.g. if a string line should be splitted by comma and commas inside of a quoted
+	 * string should not be used as splitting point.
 	 * 
-	 * @deprecated Please use {@link #quotedSplit(String, Pattern, char, char)} or {@link #quotedSplit(String, Pattern)} instead
+	 * @param line
+	 *            the original line
+	 * @param splittedTokens
+	 *            the tokens as they were originally splitted
+	 * @param quoteString
+	 *            the string which should be used as quote indicator, e.g. &quot; or '
+	 * @return the array of strings where the given quoteString was regarded
+	 * @throws IOException
+	 *             if an open quote was not ended
+	 * 
+	 * @deprecated Please use {@link #quotedSplit(String, Pattern, char, char)} or {@link #quotedSplit(String, Pattern)}
+	 *             instead
 	 */
 	@Deprecated
 	public static String[] mergeQuotedSplits(String line, String[] splittedTokens, String quoteString) throws IOException {
@@ -982,8 +1005,9 @@ public class Tools {
 
 					// add correct separator
 					if (lastToken != null) {
-						//int lastIndex = line.indexOf(lastToken, totalCounter - lastToken.length()) + lastToken.length();
-						int lastIndex = tokenStarts[a-1] + lastToken.length();
+						// int lastIndex = line.indexOf(lastToken, totalCounter - lastToken.length()) +
+						// lastToken.length();
+						int lastIndex = tokenStarts[a - 1] + lastToken.length();
 						int thisIndex = tokenStarts[a];
 						if (lastIndex >= 0 && thisIndex >= lastIndex) {
 							String separator = line.substring(lastIndex, thisIndex);
@@ -1008,7 +1032,9 @@ public class Tools {
 	/** Delivers the next token and skip empty lines. */
 	public static void getFirstToken(StreamTokenizer tokenizer) throws IOException {
 		// skip empty lines
-		while (tokenizer.nextToken() == StreamTokenizer.TT_EOL) {};
+		while (tokenizer.nextToken() == StreamTokenizer.TT_EOL) {
+		}
+		;
 
 		if ((tokenizer.ttype == '\'') || (tokenizer.ttype == '"')) {
 			tokenizer.ttype = StreamTokenizer.TT_WORD;
@@ -1034,8 +1060,7 @@ public class Tools {
 			throw new IOException("unexpected end of file in line " + tokenizer.lineno());
 		} else if ((tokenizer.ttype == '\'') || (tokenizer.ttype == '"')) {
 			tokenizer.ttype = StreamTokenizer.TT_WORD;
-		} else if ((tokenizer.ttype == StreamTokenizer.TT_WORD) &&
-				(tokenizer.sval.equals("?"))){
+		} else if ((tokenizer.ttype == StreamTokenizer.TT_WORD) && (tokenizer.sval.equals("?"))) {
 			tokenizer.ttype = '?';
 		}
 	}
@@ -1043,12 +1068,14 @@ public class Tools {
 	/** Skips all tokens before next end of line (EOL). */
 	public static void waitForEOL(StreamTokenizer tokenizer) throws IOException {
 		// skip everything until EOL
-		while (tokenizer.nextToken() != StreamTokenizer.TT_EOL) {};
+		while (tokenizer.nextToken() != StreamTokenizer.TT_EOL) {
+		}
+		;
 		tokenizer.pushBack();
 	}
 
 	/** Deletes the file. If it is a directory, deletes recursively. */
-	public static boolean delete(File file) {		
+	public static boolean delete(File file) {
 		if (file.isDirectory()) {
 			boolean success = true;
 			File[] files = file.listFiles();
@@ -1064,8 +1091,8 @@ public class Tools {
 		} else {
 			boolean result = file.delete();
 			if (!result) {
-				LogService.getRoot().warning("Unable to delete file " + file);				
-			} 
+				LogService.getRoot().warning("Unable to delete file " + file);
+			}
 			return result;
 		}
 	}
@@ -1109,15 +1136,15 @@ public class Tools {
 			s.append(" ");
 		return s.toString();
 	}
-	
+
 	public static String formatBytes(long numberOfBytes) {
-		if (numberOfBytes > 1024*1024) {			
-			long mBytes = numberOfBytes / (1024*1024);
+		if (numberOfBytes > 1024 * 1024) {
+			long mBytes = numberOfBytes / (1024 * 1024);
 			if (mBytes >= 100) {
 				return mBytes + " MB";
 			} else {
-				long remainder = (numberOfBytes - mBytes * 1024*1024) / 1024;
-				return mBytes + "."+Long.toString(remainder).charAt(0)+" MB";
+				long remainder = (numberOfBytes - mBytes * 1024 * 1024) / 1024;
+				return mBytes + "." + Long.toString(remainder).charAt(0) + " MB";
 			}
 		} else if (numberOfBytes > 1024) {
 			return numberOfBytes / 1024 + " kB";
@@ -1125,17 +1152,19 @@ public class Tools {
 			return numberOfBytes + " bytes";
 		}
 	}
-	
-	
-	/** Copies the contents read from the input stream to the output
-	 *  stream in the current thread. Both streams will be closed,
-	 *  even in case of a failure. 
-	 * @param closeOutputStream TODO*/
+
+	/**
+	 * Copies the contents read from the input stream to the output stream in the current thread. Both streams will be
+	 * closed, even in case of a failure.
+	 * 
+	 * @param closeOutputStream
+	 *            TODO
+	 */
 	public static void copyStreamSynchronously(InputStream in, OutputStream out, boolean closeOutputStream) throws IOException {
-		byte[] buffer = new byte[1024*20];
+		byte[] buffer = new byte[1024 * 20];
 		try {
-//			in = new BufferedInputStream(in);
-//			out = new BufferedOutputStream(out);
+			// in = new BufferedInputStream(in);
+			// out = new BufferedOutputStream(out);
 			int length;
 			while ((length = in.read(buffer)) != -1) {
 				out.write(buffer, 0, length);
@@ -1148,134 +1177,137 @@ public class Tools {
 			if (closeOutputStream && (out != null)) {
 				try {
 					out.close();
-				} catch (IOException ex) { }
+				} catch (IOException ex) {
+				}
 			}
 			if (in != null) {
 				try {
 					in.close();
-				} catch (IOException ex) {}
+				} catch (IOException ex) {
+				}
 			}
 		}
 
 	}
 
-    /** Esacapes quotes, newlines, and backslashes. */
+	/** Esacapes quotes, newlines, and backslashes. */
 	public static String escape(String unescaped) {
 		StringBuilder result = new StringBuilder();
 		for (char c : unescaped.toCharArray()) {
 			switch (c) {
-			case '"': result.append("\\\""); break;
-			case '\\': result.append("\\\\"); break;
-			case '\n': result.append("\\n"); break;
-			default: result.append(c); break;
+			case '"':
+				result.append("\\\"");
+				break;
+			case '\\':
+				result.append("\\\\");
+				break;
+			case '\n':
+				result.append("\\n");
+				break;
+			default:
+				result.append(c);
+				break;
 			}
 		}
 		return result.toString();
 	}
-	
-	
-	
+
 	// quotedSplit Test:
 	public static void main(String[] args) {
 		String s = "\"C\"S,o\"\", 1968, \"US\"";
-//		s= "\"a,b\"";
+		// s= "\"a,b\"";
 		s = "\"Charles says: \"Some people never go crazy, What truly horrible lives they must live\"\", 1968, \"US\"";
 		System.out.println(s);
-		
+
 		s = escapeQuoteCharsInQuotes(s, Pattern.compile(",\\s*"), '"', '\\', true);
-		String[] out = quotedSplit(s, Pattern.compile(",\\s*"), '"', '\\'); 
-		for (String t :out){
+		String[] out = quotedSplit(s, Pattern.compile(",\\s*"), '"', '\\');
+		for (String t : out) {
 			System.out.println(t);
 		}
 	}
-	
+
 	/**
 	 * Replace quote chars in-quote characters by escapeChar+quotingChar
 	 * 
-	 * Example: 
-	 * seperatorPatern = ',' , quotingChar = '"' , escapeCahr = '\\'  
+	 * Example: seperatorPatern = ',' , quotingChar = '"' , escapeCahr = '\\'
 	 * 
-	 *  line    = '"Charles says: "Some people never go crazy, What truly horrible lives they must live"", 1968, "US"'
-	 *  return  = '"Charles says: \"Some people never go crazy, What truly horrible lives they must live\"", "1968", "US"' 
+	 * line = '"Charles says: "Some people never go crazy, What truly horrible lives they must live"", 1968, "US"'
+	 * return = '"Charles says: \"Some people never go crazy, What truly horrible lives they must live\"", "1968", "US"'
 	 */
-	public static String escapeQuoteCharsInQuotes(String line, Pattern separatorPattern, char quotingChar, char escapeChar, boolean showWarning){
+	public static String escapeQuoteCharsInQuotes(String line, Pattern separatorPattern, char quotingChar, char escapeChar, boolean showWarning) {
 		// first remember quoteChar positions which should be escaped:
 		char lastChar = '0';
 		boolean openedQuote = false;
-		
+
 		List<Integer> rememberQuotePosition = new LinkedList<Integer>();
 		for (int i = 0; i < line.length(); i++) {
-			if (lastChar == quotingChar){
-				if (openedQuote){
-					boolean matches = Pattern.matches(separatorPattern.pattern()+".*", line.substring(i));
-					if (matches){
+			if (lastChar == quotingChar) {
+				if (openedQuote) {
+					boolean matches = Pattern.matches(separatorPattern.pattern() + ".*", line.substring(i));
+					if (matches) {
 						openedQuote = false;
 					} else {
-						rememberQuotePosition.add(i-1);
+						rememberQuotePosition.add(i - 1);
 					}
-					
+
 				} else {
 					openedQuote = true;
 				}
 			}
 			lastChar = line.charAt(i);
 		}
-		if (openedQuote && lastChar == quotingChar){
+		if (openedQuote && lastChar == quotingChar) {
 			openedQuote = false;
 		}
-		
-		
+
 		// print warning
-		if (showWarning && !rememberQuotePosition.isEmpty()){
-			
+		if (showWarning && !rememberQuotePosition.isEmpty()) {
+
 			String positions = "";
 			int j = 1;
-			for (int i = 0; i < rememberQuotePosition.size();i++){
-				if (j % 10 == 0){
+			for (int i = 0; i < rememberQuotePosition.size(); i++) {
+				if (j % 10 == 0) {
 					positions += "\n";
 				}
-				positions += rememberQuotePosition.get(i)+", ";
+				positions += rememberQuotePosition.get(i) + ", ";
 				j++;
 			}
-//			for (Integer i : rememberQuotePosition){				
-//				positions += i+", ";
-//			}
-			positions = positions.substring(0, positions.length()-2);
-			
+			// for (Integer i : rememberQuotePosition){
+			// positions += i+", ";
+			// }
+			positions = positions.substring(0, positions.length() - 2);
+
 			String lineBeginning = line;
-			if (line.length() > 20){
+			if (line.length() > 20) {
 				lineBeginning = line.substring(0, 20);
-			}	
-			String warning = "While reading the line starting with \n\n\t"+lineBeginning+"   ...\n\n" +
-					",an unescaped quote character was substituted by an escaped quote at the position(s) "+positions+". "+
-					"In particular der character '"+Character.toString(lastChar)+"' was replaced by '"+
-					Character.toString(escapeChar)+Character.toString(lastChar)+".";
-			
+			}
+			String warning = "While reading the line starting with \n\n\t" + lineBeginning + "   ...\n\n" + ",an unescaped quote character was substituted by an escaped quote at the position(s) " + positions + ". " + "In particular der character '" + Character.toString(lastChar) + "' was replaced by '" + Character.toString(escapeChar)
+					+ Character.toString(lastChar) + ".";
+
 			LogService.getGlobal().logWarning(warning);
 		}
-		
+
 		// then build new line:
-		if (!rememberQuotePosition.isEmpty()){
+		if (!rememberQuotePosition.isEmpty()) {
 			String newLine = "";
 			int pos = rememberQuotePosition.remove(0);
 			int i = 0;
-			for (Character c : line.toCharArray()){
-				if (i==pos){
-					newLine += Character.toString(escapeChar)+c;
-					if (!rememberQuotePosition.isEmpty()){
+			for (Character c : line.toCharArray()) {
+				if (i == pos) {
+					newLine += Character.toString(escapeChar) + c;
+					if (!rememberQuotePosition.isEmpty()) {
 						pos = rememberQuotePosition.remove(0);
 					}
 				} else {
-					newLine += c; 
+					newLine += c;
 				}
 				i++;
 			}
-			line= newLine;
+			line = newLine;
 		}
 		return line;
 	}
-	
-	
+
 	public static String unescape(String escaped) {
 		StringBuilder result = new StringBuilder();
 		for (int index = 0; index < escaped.length(); index++) {
@@ -1286,11 +1318,18 @@ public class Tools {
 					index++;
 					char next = escaped.charAt(index);
 					switch (next) {
-					case 'n': result.append('\n'); break;
-					case '\\': result.append('\\'); break;
-					case '"': result.append('"'); break;
+					case 'n':
+						result.append('\n');
+						break;
+					case '\\':
+						result.append('\\');
+						break;
+					case '"':
+						result.append('"');
+						break;
 					// UGLY: Actually we should throw an exception when encountering undefined escape character
-					default: result.append('\\').append(next); 
+					default:
+						result.append('\\').append(next);
 					}
 				} else {
 					result.append('\\');
@@ -1300,7 +1339,7 @@ public class Tools {
 				result.append(c);
 				break;
 			}
-		}		
+		}
 		return result.toString();
 	}
 
@@ -1308,15 +1347,17 @@ public class Tools {
 	public static String toString(Collection<?> collection) {
 		return toString(collection, ", ");
 	}
-	
-	/** Returns a string containing the toString()-representation of the elements
-	 *  of collection, separated by the given separator. */
+
+	/**
+	 * Returns a string containing the toString()-representation of the elements of collection, separated by the given
+	 * separator.
+	 */
 	public static String toString(Collection<?> collection, String separator) {
-		boolean first= true;
+		boolean first = true;
 		StringBuilder b = new StringBuilder();
 		for (Object o : collection) {
 			if (first) {
-				first = false;				
+				first = false;
 			} else {
 				b.append(separator);
 			}
@@ -1324,10 +1365,11 @@ public class Tools {
 		}
 		return b.toString();
 	}
-	
+
 	public static String toString(Object[] collection) {
 		return toString(collection, ", ");
 	}
+
 	public static String toString(Object[] collection, String separator) {
 		if (collection == null) {
 			return null;
@@ -1354,4 +1396,44 @@ public class Tools {
 		}
 	}
 
+	/**
+	 * This method will return a byte array containing the raw data from the given url. If any error occurs null will be
+	 * returned.
+	 * Please keep in mind that in order to load the data, the data will be stored in memory twice.
+	 */
+	public static byte[] readUrl(URL url) {
+		try {
+			class Part {
+				byte[] partData;
+				int len;
+			}
+			BufferedInputStream in = new BufferedInputStream(url.openStream());
+			LinkedList<Part> parts = new LinkedList<Part>();
+			int len = 1;
+			while (len > 0) {
+				byte[] data = new byte[1024];
+				len = in.read(data);
+				if (len > 0) {
+					Part part = new Part();
+					part.partData = data;
+					part.len = len;
+					parts.add(part);
+				}
+			}
+
+			int length = 0;
+			for (Part part : parts)
+				length += part.len;
+
+			byte[] result = new byte[length];
+			int pos = 0;
+			for (Part part : parts) {
+				System.arraycopy(part.partData, 0, result, pos, part.len);
+				pos += part.len;
+			}
+			return result;
+		} catch (IOException e) {
+			return null;
+		}
+	}
 }
