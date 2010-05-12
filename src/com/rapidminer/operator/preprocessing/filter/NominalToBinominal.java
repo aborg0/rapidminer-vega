@@ -66,7 +66,7 @@ public class NominalToBinominal extends PreprocessingOperator {
 		boolean transformBinominal = getParameterAsBoolean(PARAMETER_TRANSFORM_BINOIMINAL);
 		if (amd.isNominal()) {
 			Collection<AttributeMetaData> newAttributeMetaDataCollection = new LinkedList<AttributeMetaData>();
-			if (!transformBinominal && (amd.getValueSetRelation() == SetRelation.EQUAL) && (amd.getValueSet().size() == 2)) {
+			if (!transformBinominal && (amd.getValueSet().size() == 2)) {
 				amd.setType(Ontology.BINOMINAL);
 				return Collections.singletonList(amd);
 			} else {

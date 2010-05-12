@@ -65,6 +65,7 @@ public class InternalBinominalRemapping extends AbstractDataProcessing {
 	
 	public InternalBinominalRemapping(OperatorDescription description) {
 		super(description);
+		getExampleSetInputPort().addPrecondition(attributeSelector.makePrecondition());
 	}
 
 	@Override
@@ -72,33 +73,10 @@ public class InternalBinominalRemapping extends AbstractDataProcessing {
 		String negativeValue = getParameterAsString(PARAMETER_NEGATIVE_VALUE);
 		String positiveValue = getParameterAsString(PARAMETER_POSITIVE_VALUE);
 		
-//	    String attributeNameRegex = getParameterAsString(PARAMETER_ATTRIBUTES);
-//		Pattern pattern = null;
-//	    try {
-//	        pattern = Pattern.compile(attributeNameRegex);
-//	    } catch (PatternSyntaxException e) {
-//            throw new UserError(this, 206, attributeNameRegex, e.getMessage());
-//	    }
-
-//		ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-//		Iterator<Attribute> iterator = getParameterAsBoolean(PARAMETER_APPLY_TO_SPECIAL_FEATURES) ? exampleSet.getAttributes().allAttributes() : exampleSet.getAttributes().iterator();
-//		while (iterator.hasNext()) {
-//			Attribute attribute = iterator.next();
-//			Matcher matcher = pattern.matcher(attribute.getName());
-//			if (matcher.matches()) {
-//				if (attribute.isNominal()) {
-//					attributes.add(attribute);
-//				}
-//			}
-//			checkForStop();
-//		}
-		
 		Set<Attribute> attributes = attributeSelector.getAttributeSubset(exampleSet, false);
 
 		HashMap<Attribute, HashMap<Double, Double>> mappings = new HashMap<Attribute, HashMap<Double,Double>>();
-//		for (int i = 0; i < attributes.size(); i++) {
 		for (Attribute attribute : attributes) {
-//			Attribute attribute = attributes.get(i);
 			if (negativeValue.equals(attribute.getMapping().getNegativeString()) && positiveValue.equals(attribute.getMapping().getPositiveString())) {
 				continue;
 			}
@@ -137,9 +115,7 @@ public class InternalBinominalRemapping extends AbstractDataProcessing {
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
-//		types.add(new ParameterTypeString(PARAMETER_ATTRIBUTES, "The attributes to which the mapping correction should be applied.", false));
 		types.addAll(attributeSelector.getParameterTypes());
-//	    types.add(new ParameterTypeBoolean(PARAMETER_APPLY_TO_SPECIAL_FEATURES, "Consider also special attributes (label, id...).", false));
 		types.add(new ParameterTypeString(PARAMETER_NEGATIVE_VALUE, "The first/negative/false value.", false));
 		types.add(new ParameterTypeString(PARAMETER_POSITIVE_VALUE, "The second/positive/true value.", false));
 		return types;

@@ -476,7 +476,7 @@ public class StackedBarChartPlotter extends LabelRotatingPlotterAdapter implemen
 			if ((stackGroupColumn >= 0) && this.dataTable.isNominal(stackGroupColumn)) {
 				length = this.dataTable.getNumberOfValues(stackGroupColumn);
 			} else {
-				length = categoryDataSet.getColumnCount();
+				length = categoryDataSet.getRowCount();
 			}
     		final double[] colorValues = new double[length];
 			for (int i = 0; i < colorValues.length; i++) {
@@ -501,7 +501,7 @@ public class StackedBarChartPlotter extends LabelRotatingPlotterAdapter implemen
 				
 				@Override
 				public Paint getSeriesPaint(int series) {
-					if ((colorValues == null) || (minColor == maxColor)) {
+					if ((colorValues == null) || (minColor == maxColor) || series >= colorValues.length) {
 						return Color.RED;
 					} else {
 						double normalized = (colorValues[series] - minColor) / (maxColor - minColor);

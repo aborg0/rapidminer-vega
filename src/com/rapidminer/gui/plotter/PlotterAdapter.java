@@ -1100,8 +1100,8 @@ public abstract class PlotterAdapter extends JPanel implements Plotter {
 		// jitter?
 		if (canHandleJitter()) {
 			compareKey = transformParameterName(getPlotterName()) + PARAMETER_JITTER_AMOUNT;
-			if (compareKey.equals(key)) {
-				int jitterAmount = Integer.valueOf(value);
+			if (compareKey.equals(key)) {				
+				int jitterAmount = Integer.valueOf(value);				
 				setJitter(jitterAmount);
 				return;
 			}
