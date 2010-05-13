@@ -76,7 +76,7 @@ public class CorpusBasedFeatureWeighting extends AbstractWeighting {
 		int i = 0;
 		for (Attribute attribute : es.getAttributes()) {
 			if (maxWeight > 0.0d) {
-				attWeights.setWeight(attribute.getName(), 1.0d - (weights[i++] / maxWeight));
+				attWeights.setWeight(attribute.getName(), weights[i++] / maxWeight);
 			} else {
 				attWeights.setWeight(attribute.getName(), 0.0d);
 			}
