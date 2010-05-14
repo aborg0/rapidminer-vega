@@ -23,16 +23,11 @@
 package com.rapidminer.tools;
 
 import java.util.Date;
-import java.util.Properties;
 
-import javax.mail.Authenticator;
 import javax.mail.Message;
-import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.MimeMessage;
-
-import com.rapidminer.RapidMiner;
 
 /**
  * Sends a mail via SMTP.
@@ -42,40 +37,16 @@ import com.rapidminer.RapidMiner;
 public class MailSenderSMTP implements MailSender {
 
 	public void sendEmail(String address, String subject, String content) throws Exception {
-		String host = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SMTP_HOST);
-		if (host == null) {
-			LogService.getGlobal().log("Must specify SMTP host to use SMTP.", LogService.ERROR);
-		} else {
-			Properties props = new Properties();
-			props.put("mail.smtp.host", host);
-			props.put("mail.from", "no-reply@rapidminer.com");
-			final String user = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SMTP_USER);
-			props.put("mail.user", user);
-			final String passwd = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SMTP_PASSWD);
-			Authenticator authenticator = null;				
-			if ((passwd != null) && (passwd.length() > 0)) {
-				props.setProperty("mail.smtp.submitter", user);
-				props.setProperty("mail.smtp.auth", "true");
-				authenticator = new Authenticator() {
-					@Override
-					protected PasswordAuthentication getPasswordAuthentication() {
-						return new PasswordAuthentication(user, passwd);
-					}
-				};
-			}
-			String port = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SMTP_PORT);
-			if (port != null) {
-				props.setProperty("mail.smtp.port", port);
-			}
-			Session session = Session.getInstance(props, authenticator);
-
-			MimeMessage msg = new MimeMessage(session);				
-			msg.setRecipients(Message.RecipientType.TO, address);
-			msg.setFrom();
-			msg.setSubject(subject);
-			msg.setSentDate(new Date());
-			msg.setText(content);					
-			Transport.send(msg);
+		Session session = MailUtilities.makeSession();
+		if (session == null) {
+			LogService.getRoot().warning("Unable to create mail session. Not sending mail to "+address+".");
 		}
+		MimeMessage msg = new MimeMessage(session);				
+		msg.setRecipients(Message.RecipientType.TO, address);
+		msg.setFrom();
+		msg.setSubject(subject);
+		msg.setSentDate(new Date());
+		msg.setText(content);					
+		Transport.send(msg);
 	}
 }

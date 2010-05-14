@@ -51,6 +51,7 @@ import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.MailUtilities;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.io.Encoding;
 
@@ -288,7 +289,7 @@ public final class ProcessRootOperator extends OperatorChain {
 				}
 			}
 		}
-		Tools.sendEmail(email, subject, content.toString());
+		MailUtilities.sendEmail(email, subject, content.toString());
 	}
 
 	@Override
