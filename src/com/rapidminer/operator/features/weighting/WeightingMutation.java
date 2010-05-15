@@ -35,7 +35,6 @@ import com.rapidminer.operator.features.IndividualOperator;
  * distribution.
  * 
  * @author Ingo Mierswa
- *          Exp $
  */
 public class WeightingMutation extends IndividualOperator {
 
@@ -44,11 +43,17 @@ public class WeightingMutation extends IndividualOperator {
 	private boolean bounded;
 
 	private Random random;
+	
+	private boolean[] isNominal;
+	
+	private double nominalMutationProb;
 
-	public WeightingMutation(double variance, boolean bounded, Random random) {
+	public WeightingMutation(double variance, boolean bounded, boolean[] isNominal, double nominalMutationProb, Random random) {
 		this.variance = variance;
 		this.bounded = bounded;
 		this.random = random;
+		this.isNominal = isNominal;
+		this.nominalMutationProb = nominalMutationProb;
 	}
 
 	public void setVariance(double variance) {
@@ -64,9 +69,18 @@ public class WeightingMutation extends IndividualOperator {
 		double[] weights = individual.getWeightsClone();
 		List<Individual> l = new LinkedList<Individual>();
 		for (int i = 0; i < weights.length; i++) {
-			double weight = weights[i] + random.nextGaussian() * variance;
-			if ((!bounded) || ((weight >= 0) && (weight <= 1)))
-				weights[i] = weight;
+			if (!isNominal[i]) {
+				if (random.nextDouble() < nominalMutationProb) {
+					if (weights[i] > 0)
+						weights[i] = 0;
+					else
+						weights[i] = 1;
+				}
+			} else {
+				double weight = weights[i] + random.nextGaussian() * variance;
+				if ((!bounded) || ((weight >= 0) && (weight <= 1)))
+					weights[i] = weight;
+			} 
 		}
 		Individual newIndividual = new Individual(weights);
 		if (newIndividual.getNumberOfUsedAttributes() > 0)

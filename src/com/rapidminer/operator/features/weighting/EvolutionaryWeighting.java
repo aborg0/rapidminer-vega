@@ -27,6 +27,7 @@ import java.util.List;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.AttributeWeights;
+import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
@@ -43,15 +44,13 @@ import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.UndefinedParameterError;
-
+import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 
 /**
- * This operator performs the weighting of features with an evolutionary
- * strategies approach. The variance of the gaussian additive mutation can be
- * adapted by a 1/5-rule.
+ * This operator performs the weighting of features with an evolutionary strategies approach. The variance of the
+ * gaussian additive mutation can be adapted by a 1/5-rule.
  * 
- * @author Ingo Mierswa
- *          ingomierswa Exp $
+ * @author Ingo Mierswa, Sebastian Land
  */
 public class EvolutionaryWeighting extends AbstractGeneticAlgorithm {
 
@@ -72,7 +71,13 @@ public class EvolutionaryWeighting extends AbstractGeneticAlgorithm {
 
 	public static final String PARAMETER_INITIALIZE_WITH_INPUT_WEIGHTS = "initialize_with_input_weights";
 
+	public static final String PARAMETER_NOMINAL_MUTATION_RATE = "nominal_mutation_rate";
+
+	public static final String PARAMETER_DEFAULT_NOMINAL_MUTATION_RATE = "use_default_mutation_rate";
+
 	private WeightingMutation weighting = null;
+
+	private boolean useBoundedMutation = false;
 
 	private final InputPort attributeWeightsInput = getInputPorts().createPort("attribute weights in");
 
@@ -89,7 +94,18 @@ public class EvolutionaryWeighting extends AbstractGeneticAlgorithm {
 
 	@Override
 	public PopulationOperator getMutationPopulationOperator(ExampleSet eSet) throws UndefinedParameterError {
-		this.weighting = new WeightingMutation(getParameterAsDouble(PARAMETER_MUTATION_VARIANCE), getParameterAsBoolean(PARAMETER_BOUNDED_MUTATION), getRandom());
+		Attributes attributes = eSet.getAttributes();
+		boolean[] isNominal = new boolean[attributes.size()];
+		int i = 0;
+		for (Attribute attribute : attributes) {
+			isNominal[i] = attribute.isNominal();
+			i++;
+		}
+		double nominalMutationProb = 1d / attributes.size();
+		if (!getParameterAsBoolean(PARAMETER_DEFAULT_NOMINAL_MUTATION_RATE))
+			nominalMutationProb = getParameterAsDouble(PARAMETER_NOMINAL_MUTATION_RATE);
+
+		this.weighting = new WeightingMutation(getParameterAsDouble(PARAMETER_MUTATION_VARIANCE), useBoundedMutation, isNominal, nominalMutationProb, getRandom());
 		return weighting;
 	}
 
@@ -100,6 +116,28 @@ public class EvolutionaryWeighting extends AbstractGeneticAlgorithm {
 			otherPostOps.add(new VarianceAdaption(weighting, eSet.getAttributes().size()));
 		}
 		return otherPostOps;
+	}
+
+	@Override
+	public void doWork() throws OperatorException {
+		// first test if nominal attributes are present to make warning and check bound mutation for nominal values
+		// handling
+		boolean useBoundedMutation = getParameterAsBoolean(PARAMETER_BOUNDED_MUTATION);
+		if (!useBoundedMutation) {
+			ExampleSet exampleSet = getExampleSetInput().getData();
+			boolean containsNominalAttributes = false;
+			for (Attribute attribute : exampleSet.getAttributes()) {
+				if (attribute.isNominal()) {
+					containsNominalAttributes = true;
+					break;
+				}
+			}
+			if (containsNominalAttributes) {
+				useBoundedMutation = true;
+				logWarning("If ExampleSet contains nominal attributes, bounded mutation must be used: Switched to bounded mutation automatically.");
+			}
+		}
+		super.doWork();
 	}
 
 	@Override
@@ -129,7 +167,7 @@ public class EvolutionaryWeighting extends AbstractGeneticAlgorithm {
 				for (int w = 0; w < weights.length; w++) {
 					weights[w] = Math.min(1.0d, Math.max(0.0d, initialWeights[w] + (getRandom().nextGaussian() * 0.1d)));
 				}
-				initPop.add(new Individual(weights));			
+				initPop.add(new Individual(weights));
 			}
 		}
 
@@ -154,7 +192,12 @@ public class EvolutionaryWeighting extends AbstractGeneticAlgorithm {
 		ParameterType type = new ParameterTypeDouble(PARAMETER_P_CROSSOVER, "Probability for an individual to be selected for crossover.", 0.0d, 1.0d, 0.0d);
 		types.add(type);
 		types.add(new ParameterTypeCategory(PARAMETER_CROSSOVER_TYPE, "Type of the crossover.", SelectionCrossover.CROSSOVER_TYPES, SelectionCrossover.UNIFORM));
+		types.add(new ParameterTypeBoolean(PARAMETER_DEFAULT_NOMINAL_MUTATION_RATE, "Use the default mutation rate for nominal attributes.", true));
+		type = new ParameterTypeDouble(PARAMETER_NOMINAL_MUTATION_RATE, "The probability to switch nominal attributes between 0 and 1.", 0, 1);
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_DEFAULT_NOMINAL_MUTATION_RATE, true, false));
+		types.add(type);
 		types.add(new ParameterTypeBoolean(PARAMETER_INITIALIZE_WITH_INPUT_WEIGHTS, "Indicates if this operator should look for attribute weights in the given input and use the input weights of all known attributes as starting point for the optimization.", false));
+
 		return types;
 	}
 }

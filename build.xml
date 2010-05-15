@@ -57,7 +57,7 @@
 
 	<target name="init" depends="version.get" unless="lock.isInitialized">
 		<tstamp />
-		<taskdef resource="org/apache/ant/http/antlib.xml" classpath="${basedir}/ant/ant_http.jar" />
+		<taskdef onerror="report" resource="org/apache/ant/http/antlib.xml" classpath="${basedir}/ant/ant_http.jar" />
 		<mkdir dir="${build}" />
 		<mkdir dir="${pluginslib}" />
 		<echo file="${pluginslib}/Readme.txt">Copy downloaded plugins into this directory.</echo>
@@ -168,7 +168,7 @@
 				<exclude name="server.properties" />
 				<include name=".project" />
 				<include name=".classpath" />
-				<include name="licenses/README*" />
+				<include name="licenses/**/*" />
 				<include name="scripts/**/*" />
 				<include name="src/**/*" />
 				<include name="src_generated/**/*" />

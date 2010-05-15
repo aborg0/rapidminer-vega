@@ -60,7 +60,7 @@ ShowUninstDetails show
 Section -Main SEC0000
     SetOutPath $INSTDIR
     SetOverwrite on
-    File "..\release\rapidminer-${PLUGIN_NAME}-${SHORT_VERSION}*.jar"
+    File "..\release\rapidminer-${PLUGIN_NAME}-${RM_LONG_VERSION}.jar"
     WriteRegStr HKCU "${REGKEY}\Components" Main 1
 SectionEnd
 

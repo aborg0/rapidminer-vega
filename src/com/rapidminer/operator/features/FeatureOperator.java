@@ -518,6 +518,10 @@ public abstract class FeatureOperator extends OperatorChain {
 	protected boolean getCheckForMaximum() {
 		return this.checkForMaximalFitness;
 	}
+	
+	public InputPort getExampleSetInput() {
+		return exampleSetInput;
+	}
 
 	@Override
 	public List<ParameterType> getParameterTypes() {

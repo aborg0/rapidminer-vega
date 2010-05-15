@@ -88,7 +88,9 @@ public class AttributeWeightedExampleSet extends AbstractExampleSet {
 		
 		AttributeTransformationWeighting transformation = new AttributeTransformationWeighting(this.attributeWeights);
 		for (Attribute attribute : this.parent.getAttributes()) {            
-			attribute.addTransformation(transformation);
+			// We have to check if the attribute is numerical at all, since otherwise weighting by multiplying with weight does not make sense
+			if (attribute.isNumerical())
+				attribute.addTransformation(transformation);
         }
 	}
 

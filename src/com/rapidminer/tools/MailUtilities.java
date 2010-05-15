@@ -39,6 +39,9 @@ public class MailUtilities {
 					}
 				}
 			}
+			if (methodIndex == -1) {
+				methodIndex = RapidMiner.PROPERTY_RAPIDMINER_TOOLS_MAIL_METHOD_SMTP;
+			}
 	
 			MailSender mailSender = null;
 			switch (methodIndex) {

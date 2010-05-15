@@ -263,7 +263,7 @@ public final class ProcessRootOperator extends OperatorChain {
 
 		String subject = "Process " + getName() + " finished";
 		StringBuilder content = new StringBuilder("Hello " + name + "," + Tools.getLineSeparator() + Tools.getLineSeparator());
-		content.append("I'm sending you a notification message on your process '" + getName() + "'." + Tools.getLineSeparator());
+		content.append("I'm sending you a notification message on your process '" + getProcess().getProcessLocation() + "'." + Tools.getLineSeparator());
 
 		//		File logFile = getLog().getLogFile();
 		//		if (logFile != null) {

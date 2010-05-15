@@ -98,7 +98,7 @@ public class ChangeAttributeRole extends AbstractDataProcessing {
 							amd.setRegular();
 						} else {
 							AttributeMetaData oldRole = metaData.getAttributeByRole(role);
-							if (oldRole != null)
+							if (oldRole != null && oldRole != amd)
 								metaData.removeAttribute(oldRole);
 							amd.setRole(role);
 						}
