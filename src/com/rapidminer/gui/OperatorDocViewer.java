@@ -24,9 +24,12 @@ package com.rapidminer.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
@@ -121,7 +124,15 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 			}
 
 			buf.append("</td><td style=\"padding-left:4px;\">"); 
-			buf.append("<h2>" + descr.getName() + "</h2>");
+			buf.append("<h2>" + descr.getName());
+			String wikiName;
+			try {
+				wikiName = URLEncoder.encode(descr.getName(), "UTF-8");
+				buf.append(" <small><a href=\"http://rapid-i.com/wiki/index.php?title=").append(wikiName).append("\">(Wiki)</a></small>");
+			} catch (UnsupportedEncodingException e) {
+				LogService.getRoot().log(Level.WARNING, "Failed to URL-encode operator name: "+descr.getName()+": "+e, e);
+			}
+			buf.append("</h2>");
 			buf.append("</td></tr></table>");
 			//#"+Integer.toHexString(SwingTools.RAPID_I_ORANGE.getRGB()).substring(0,6)+"
 			buf.append("<hr noshade=\"true\"/><br/>");

@@ -76,7 +76,6 @@ public class ProgressReportingOutputStream extends OutputStream {
 		for (int offset = 0; offset < b.length; offset += chunkSize) {
 			int chunkLength = Math.min(chunkSize, b.length - offset);				
 			write(b, offset, chunkLength);
-			report(chunkSize);
 		}
 	}
 	
@@ -84,5 +83,15 @@ public class ProgressReportingOutputStream extends OutputStream {
 	public void write(byte[] b, int off, int len) throws IOException {
 		parent.write(b, off, len);
 		report(len);
+	}
+	
+	@Override
+	public void flush() throws IOException {
+		parent.flush();
+	}
+	
+	@Override
+	public void close() throws IOException {
+		parent.close();
 	}
 }

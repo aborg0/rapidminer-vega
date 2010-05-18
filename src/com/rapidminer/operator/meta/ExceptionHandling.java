@@ -22,11 +22,16 @@
  */
 package com.rapidminer.operator.meta;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.SimpleOperatorChain;
 import com.rapidminer.operator.Value;
 import com.rapidminer.operator.ports.OutputPort;
+import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeString;
 
 /**
  * <p>This operator performs the inner operators and delivers the result of the
@@ -42,6 +47,8 @@ import com.rapidminer.operator.ports.OutputPort;
  * @author Ingo Mierswa
  */
 public class ExceptionHandling extends SimpleOperatorChain {
+	
+	public static final String PARAMETER_EXCEPTION_MACRO = "exception_macro";
 
 	private boolean withoutError = true;
 	private Exception exception;
@@ -80,11 +87,22 @@ public class ExceptionHandling extends SimpleOperatorChain {
 			super.doWork();
 		} catch (Exception e) {
 			logWarning("Error occurred and will be neglected by " + getName() + ": " + e.getMessage());
+			if (isParameterSet(PARAMETER_EXCEPTION_MACRO)) {
+				getProcess().getMacroHandler().addMacro(getParameterAsString(PARAMETER_EXCEPTION_MACRO), e.getMessage());
+			}
 			withoutError = false;
 			this.exception = e;
 			for (OutputPort port : getOutputPorts().getAllPorts()) {
 				port.deliver(null);
 			}
 		}
+	}
+	
+	@Override
+	public List<ParameterType> getParameterTypes() {
+		List<ParameterType> types = new LinkedList<ParameterType>();
+		types.add(new ParameterTypeString(PARAMETER_EXCEPTION_MACRO, "The name of the macro a potentially occuring exception message will be stored in.", true));
+		types.addAll(super.getParameterTypes());
+		return types;
 	}
 }
