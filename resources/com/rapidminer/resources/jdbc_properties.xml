@@ -139,7 +139,6 @@
       />
    -->   
    
-   <!-- 
     <driver name="Oracle"
     	    drivers="oracle.jdbc.driver.OracleDriver"
 			defaultport="1521"			
@@ -157,7 +156,7 @@
 			value_quote_open="'"
 			value_quote_close="'"							
 	/>	
- -->
+
 <!-- 
    <driver name="IBM DB2"
    			drivers="COM.ibm.db2.jdbc.app.DB2Driver,com.ibm.as400.access.AS400JDBCDriver,com.ibm.db2.jcc.DB2Driver,com.ibm.db2.jcc.DB2Driver"

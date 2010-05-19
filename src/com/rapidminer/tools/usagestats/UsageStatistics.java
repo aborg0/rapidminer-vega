@@ -40,6 +40,7 @@ import java.util.logging.Level;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.ws.BindingProvider;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -58,6 +59,7 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.ProgressListener;
+import com.rapidminer.tools.WebServiceTools;
 
 /** Collects statistics about usage of operators.
  *  Statistics can be sent to a server collecting them.
@@ -348,7 +350,10 @@ public class UsageStatistics {
 				LogService.getRoot().info("Transferring operator usage statistics to "+url+".");
 				RapidHomeService rapidHomeService = new RapidHomeService(url, 
 						new QName("http://ws.rapidhome.rapid_i.com/", "RapidHomeService"));
-				return rapidHomeService.getRapidHomePort();
+				
+				final RapidHome port = rapidHomeService.getRapidHomePort();
+				WebServiceTools.setTimeout((BindingProvider) port);
+				return port;
 			} catch (Exception e) {
 				LogService.getRoot().warning("Failed to connect to usage statistics service "+urlString+".");
 				continue;
@@ -377,5 +382,9 @@ public class UsageStatistics {
 
 	public boolean hasFailedToday() {
 		return failedToday;
+	}
+	
+	public static void main(String[] args) {
+		UsageStatistics.getInstance().getPort();
 	}
 }

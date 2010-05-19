@@ -22,6 +22,10 @@
  */
 package com.rapidminer.gui.tools;
 
+import java.util.logging.Level;
+
+import com.rapidminer.tools.LogService;
+
 /** A queue of runnables in which only execution of the last is relevant.
  *  Older runnables become obsolete as soon as a new is inserted. 
  * 
@@ -60,7 +64,11 @@ public class UpdateQueue extends Thread {
 				pending = null;				
 			}
 			if (target != null) {
-				target.run();
+				try {
+					target.run();
+				} catch (Exception e) {
+					LogService.getRoot().log(Level.WARNING, "Error executing task in "+getName()+": "+e, e);
+				}
 			}
 			synchronized (lock) {
 				if (pending == null) {
