@@ -710,7 +710,7 @@ public class DatabaseHandler {
         ResultSet tableNames = metaData.getTables(null, null, "%", types);        
         List<String> tableNameList = new LinkedList<String>();
         while (tableNames.next()) {        	
-            String tableName    = tableNames.getString("TABLE_NAME");
+            String tableName = tableNames.getString("TABLE_NAME");
             tableNameList.add(tableName);
         }
         

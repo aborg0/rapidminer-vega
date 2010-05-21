@@ -22,6 +22,15 @@
  */
 package com.rapidminer.tools.jdbc.connection;
 
+import java.security.Key;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.rapidminer.io.process.XMLTools;
+import com.rapidminer.tools.cipher.CipherException;
+import com.rapidminer.tools.cipher.CipherTools;
+import com.rapidminer.tools.jdbc.DatabaseService;
 import com.rapidminer.tools.jdbc.JDBCProperties;
 
 /**
@@ -31,6 +40,8 @@ import com.rapidminer.tools.jdbc.JDBCProperties;
  * @author Tobias Malbrecht, Sebastian Land
  */
 public class FieldConnectionEntry extends ConnectionEntry {
+
+	static final String XML_TAG_NAME = "field-entry";
 
 	private String host;
 		
@@ -58,7 +69,7 @@ public class FieldConnectionEntry extends ConnectionEntry {
 	public String getUser() {
 		return user;
 	}
-
+	
 	public void setUser(String user) {
 		this.user = user;
 	}
@@ -122,5 +133,32 @@ public class FieldConnectionEntry extends ConnectionEntry {
 		equals &= user.equals(entry.user);
 		equals &= password.equals(entry.password);
 		return equals;
+	}
+
+	public Element toXML(Document doc, Key key) throws CipherException {
+		Element element = doc.createElement(XML_TAG_NAME);
+		XMLTools.setTagContents(element, "name", name);
+		if (properties != null) {
+			XMLTools.setTagContents(element, "system", properties.getName());
+		}
+		XMLTools.setTagContents(element, "host", host);
+		XMLTools.setTagContents(element, "port", port);
+		XMLTools.setTagContents(element, "database", database);
+		XMLTools.setTagContents(element, "user", database);		
+		XMLTools.setTagContents(element, "password", CipherTools.encrypt(new String(password), key));
+		return element;
+	}
+	
+	public FieldConnectionEntry(Element element, Key key) throws CipherException {
+		this.name = XMLTools.getTagContents(element, "name");
+		this.host = XMLTools.getTagContents(element, "host");
+		this.port  = XMLTools.getTagContents(element, "port");
+		this.database = XMLTools.getTagContents(element, "database");
+		this.database = XMLTools.getTagContents(element, "user");
+		this.password = CipherTools.decrypt(XMLTools.getTagContents(element, "password"), key).toCharArray();
+		String system = XMLTools.getTagContents(element, "system");
+		if (system != null) {
+			properties = DatabaseService.getJDBCProperties(system);
+		}		
 	}
 }

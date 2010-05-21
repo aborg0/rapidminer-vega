@@ -28,6 +28,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.security.Key;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,8 +36,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
+import com.rapidminer.tools.XMLException;
 import com.rapidminer.tools.cipher.CipherException;
 import com.rapidminer.tools.cipher.CipherTools;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
@@ -200,6 +210,29 @@ public class DatabaseConnectionService {
 			}
 		}
 	}
+	
+	public static Document toXML(Collection<FieldConnectionEntry> connectionEntries, Key key) throws ParserConfigurationException, DOMException, CipherException {
+		Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+		Element root = doc.createElement("jdbc-entries");
+		doc.appendChild(root);
+		for (FieldConnectionEntry entry : connectionEntries) {
+			root.appendChild(entry.toXML(doc, key));
+		}
+		return doc;
+	}
+	
+	public static Collection<FieldConnectionEntry> parseEntries(Element entries, Key key) throws XMLException, CipherException {
+		if (!entries.getTagName().equals("jdbc-entries")) {
+			throw new XMLException("Outer tag must be <jdbc-entries>");
+		}
+		Collection<FieldConnectionEntry> result = new LinkedList<FieldConnectionEntry>();
+		NodeList children = entries.getElementsByTagName(FieldConnectionEntry.XML_TAG_NAME);
+		for (int i = 0; i < children.getLength(); i++) {
+			result.add(new FieldConnectionEntry((Element) children.item(i), key));
+		}
+		return result;
+	}
+
 	
 	public static boolean testConnection(ConnectionEntry entry) throws SQLException {
     	if (entry != null) {

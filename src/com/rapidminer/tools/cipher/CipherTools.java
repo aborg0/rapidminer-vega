@@ -65,7 +65,10 @@ public class CipherTools {
 		} catch (IOException e) {
 			throw new CipherException("Cannot retrieve key, probably no one was created: " + e.getMessage());
 		}
-		
+		return encrypt(text, key);
+	}
+	
+	public static String encrypt(String text, Key key) throws CipherException {		
         try { 
             Cipher cipher = Cipher.getInstance(CIPHER_TYPE); 
             cipher.init(Cipher.ENCRYPT_MODE, key); 
@@ -96,7 +99,10 @@ public class CipherTools {
 		} catch (IOException e) {
 			throw new CipherException("Cannot retrieve key, probably no one was created: " + e.getMessage());
 		}
-		
+		return decrypt(text, key);
+	}
+	
+	public static String decrypt(String text, Key key) throws CipherException {	
         try { 
             //BASE64Decoder decoder = new BASE64Decoder();
         	//byte[] encrypted = decoder.decodeBuffer(text);

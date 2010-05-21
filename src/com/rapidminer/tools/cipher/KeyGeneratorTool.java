@@ -48,44 +48,47 @@ import com.rapidminer.tools.ParameterService;
  * @author Ingo Mierswa
  */
 public class KeyGeneratorTool {
-	
+
 	private static final String GENERATOR_TYPE = "DESede";
-	
+
 	private static final String KEY_FILE_NAME = "cipher.key";
-	
-	public static void createAndStoreKey() throws KeyGenerationException {
+
+	public static SecretKey createSecretKey() throws KeyGenerationException {
 		KeyGenerator keyGenerator = null;
 		try {
 			keyGenerator = KeyGenerator.getInstance(GENERATOR_TYPE);
 		} catch (NoSuchAlgorithmException e) {
 			throw new KeyGenerationException("Cannot generate key, generation algorithm not known.");
 		}
-		
-		if (keyGenerator != null) {
-			keyGenerator.init(168, new SecureRandom());
-			
-			// actual generation
-			SecretKey key = keyGenerator.generateKey();
-			
-			File keyFile = new File(ParameterService.getUserRapidMinerDir(), KEY_FILE_NAME);
-			boolean result = keyFile.delete();
-			if (!result)
-				LogService.getGlobal().logError("Cannot delete old key file.");
-			
-			byte[] rawKey = key.getEncoded();
-			
-	        try {
-	        	ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(keyFile));
-	        	out.writeInt(rawKey.length);
-	        	out.write(rawKey);
-	        	out.close();
-	        } catch (Exception e) {
-	        	e.printStackTrace();
-	        	throw new KeyGenerationException("Cannot store key: " + e.getMessage());
-	        }
-		}
+
+		keyGenerator.init(168, new SecureRandom());
+
+		// actual generation
+		return keyGenerator.generateKey();
 	}
 	
+	public static void createAndStoreKey() throws KeyGenerationException {
+		// actual generation
+		SecretKey key = createSecretKey();
+
+		File keyFile = new File(ParameterService.getUserRapidMinerDir(), KEY_FILE_NAME);
+		boolean result = keyFile.delete();
+		if (!result)
+			LogService.getGlobal().logError("Cannot delete old key file.");
+
+		byte[] rawKey = key.getEncoded();
+
+		try {
+			ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(keyFile));
+			out.writeInt(rawKey.length);
+			out.write(rawKey);
+			out.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new KeyGenerationException("Cannot store key: " + e.getMessage());
+		}
+	}
+
 	public static Key getUserKey() throws IOException {
 		File keyFile = new File(ParameterService.getUserRapidMinerDir(), KEY_FILE_NAME);
 		ObjectInputStream in = null;
