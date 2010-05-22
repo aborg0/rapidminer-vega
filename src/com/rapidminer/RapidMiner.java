@@ -392,12 +392,12 @@ public class RapidMiner {
 		RapidMiner.splashMessage("xml_transformer");
 		XMLImporter.init();
 
-		RapidMiner.splashMessage("init_repository");
-		RepositoryManager.init();
-
 		RapidMiner.splashMessage("load_jdbc_drivers");
 		DatabaseService.init();
 		DatabaseConnectionService.init();
+
+		RapidMiner.splashMessage("init_repository");
+		RepositoryManager.init();
 
 		RapidMiner.splashMessage("xml_serialization");
 		XMLSerialization.init(Plugin.getMajorClassLoader());

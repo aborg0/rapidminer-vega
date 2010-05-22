@@ -49,8 +49,11 @@ import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.XMLException;
 import com.rapidminer.tools.cipher.CipherException;
 import com.rapidminer.tools.cipher.CipherTools;
+import com.rapidminer.tools.cipher.KeyGeneratorTool;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
 import com.rapidminer.tools.jdbc.DatabaseService;
+import com.sun.org.apache.xml.internal.security.exceptions.Base64DecodingException;
+import com.sun.org.apache.xml.internal.security.utils.Base64;
 
 /**
  * The central service for registering DatabaseConnections. They are used for
@@ -211,20 +214,32 @@ public class DatabaseConnectionService {
 		}
 	}
 	
-	public static Document toXML(Collection<FieldConnectionEntry> connectionEntries, Key key) throws ParserConfigurationException, DOMException, CipherException {
+	/**
+	 * @param replacementForLocalhost The hostname "localhost" will be replaced by this string. Useful if 
+	 *   this is exported to another machine where "localhost" has a different meaning. null=don't replace anything.
+	 * 
+	 */
+	public static Document toXML(Collection<FieldConnectionEntry> connectionEntries, Key key, String replacementForLocalhost) throws ParserConfigurationException, DOMException, CipherException {
 		Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 		Element root = doc.createElement("jdbc-entries");
+		String base64key = Base64.encode(key.getEncoded());
+		root.setAttribute("key", base64key);
 		doc.appendChild(root);
 		for (FieldConnectionEntry entry : connectionEntries) {
-			root.appendChild(entry.toXML(doc, key));
+			root.appendChild(entry.toXML(doc, key, replacementForLocalhost));
 		}
 		return doc;
 	}
 	
-	public static Collection<FieldConnectionEntry> parseEntries(Element entries, Key key) throws XMLException, CipherException {
+	public static Collection<FieldConnectionEntry> parseEntries(Element entries) throws XMLException, CipherException, Base64DecodingException {
 		if (!entries.getTagName().equals("jdbc-entries")) {
 			throw new XMLException("Outer tag must be <jdbc-entries>");
 		}
+		String base64Key = entries.getAttribute("key");
+		if (base64Key == null) {
+			throw new XMLException("Cipher key attribute missing.");
+		}
+		Key key = KeyGeneratorTool.makeKey(Base64.decode(base64Key));
 		Collection<FieldConnectionEntry> result = new LinkedList<FieldConnectionEntry>();
 		NodeList children = entries.getElementsByTagName(FieldConnectionEntry.XML_TAG_NAME);
 		for (int i = 0; i < children.getLength(); i++) {

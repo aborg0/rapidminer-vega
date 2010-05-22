@@ -169,5 +169,14 @@ public class LocalRepository extends SimpleFolder implements Repository {
 	public boolean shouldSave() {
 		return true;
 	}
+	
+	@Override
+	public void postInstall() {
+	}
+
+	@Override
+	public void preRemove() {
+	}
+
 }
 

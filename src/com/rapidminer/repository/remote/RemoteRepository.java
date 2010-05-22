@@ -46,6 +46,7 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 import com.rapid_i.repository.wsimport.EntryResponse;
 import com.rapid_i.repository.wsimport.ProcessService;
@@ -69,6 +70,10 @@ import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.tools.GlobalAuthenticator;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
+import com.rapidminer.tools.cipher.CipherException;
+import com.rapidminer.tools.jdbc.connection.DatabaseConnectionService;
+import com.rapidminer.tools.jdbc.connection.FieldConnectionEntry;
+import com.sun.org.apache.xml.internal.security.exceptions.Base64DecodingException;
 /**
  * @author Simon Fischer
  */
@@ -99,7 +104,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 				WeakReference<RemoteRepository> reposRef = null;// = ALL_REPOSITORIES.get(url);
 				for (Map.Entry<URL, WeakReference<RemoteRepository>> entry : ALL_REPOSITORIES.entrySet()) {
 					if (url.toString().startsWith(entry.getKey().toString()) ||
-							url.toString().replaceAll("127\\.0\\.0\\.1", "localhost").startsWith(entry.getKey().toString())) {
+							url.toString().replace("127\\.0\\.0\\.1", "localhost").startsWith(entry.getKey().toString())) {
 						reposRef = entry.getValue();
 						break;
 					}
@@ -207,6 +212,9 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	
 	private Map<String,RemoteEntry> cachedEntries = new HashMap<String,RemoteEntry>();
 	
+	/** Connection entries fetched from server. */
+	private Collection<FieldConnectionEntry> connectionEntries;
+	
 	protected void register(RemoteEntry entry) {
 		cachedEntries.put(entry.getPath(), entry);
 	}
@@ -280,6 +288,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 //		if (offline) {
 //			throw new RepositoryException("Repository "+getName()+" is offline. Connect first.");
 //		}
+		installJDBCConnectionEntries();
 		if (repositoryService == null){
 			try {
 				RepositoryService_Service serviceService = new RepositoryService_Service(getRepositoryServiceWSDLUrl(), 
@@ -326,6 +335,8 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		offline = false;
 		cachedEntries.clear();
 		super.refresh();
+		removeJDBCConnectionEntries();
+		installJDBCConnectionEntries();
 	}
 		
 	protected HttpURLConnection getHTTPConnection(String location, EntryStreamType type) throws IOException {		
@@ -491,5 +502,50 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	@Override
 	public boolean shouldSave() {
 		return !isHome;
+	}
+	
+	
+	// JDBC entries provided by server
+		
+	private Collection<FieldConnectionEntry> fetchJDBCEntries() throws Base64DecodingException, XMLException, CipherException, SAXException, IOException {
+		URL xmlURL = new URL(baseUrl, "RAWS/jdbc_connections.xml");
+		Document doc = XMLTools.parse(xmlURL.openStream());
+		final Collection<FieldConnectionEntry> result = DatabaseConnectionService.parseEntries(doc.getDocumentElement());
+		for (FieldConnectionEntry entry : result) {
+			entry.setDynamic(true);
+		}
+		return result;		
+	}
+	
+	@Override
+	public void postInstall() {		
+	}
+
+	private void installJDBCConnectionEntries() {
+		if (this.connectionEntries != null) {
+			return;
+		}
+		try {		
+			this.connectionEntries = fetchJDBCEntries();
+			for (FieldConnectionEntry entry : connectionEntries) {
+				DatabaseConnectionService.addConnectionEntry(entry);
+			}
+			LogService.getRoot().config("Added "+connectionEntries.size()+ " jdbc connections exported by "+getName()+".");
+		} catch (Exception e) {
+			LogService.getRoot().log(Level.WARNING, "Failed to fetch JDBC connection entries from server "+getName()+".", e);
+		}
+	}
+
+	private void removeJDBCConnectionEntries() {
+		if (this.connectionEntries != null) {
+			for (FieldConnectionEntry entry : connectionEntries) {
+				DatabaseConnectionService.deleteConnectionEntry(entry);			
+			}
+			this.connectionEntries = null;
+		}
+	}
+
+	@Override
+	public void preRemove() {		
 	}
 }

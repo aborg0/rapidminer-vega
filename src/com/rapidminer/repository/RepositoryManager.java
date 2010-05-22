@@ -80,7 +80,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 	public static RepositoryManager getInstance(RepositoryAccessor repositoryAccessor) {
 		synchronized (INSTANCE_LOCK) {
 			if (instance == null) {
-				init();
+				init();				
 			}
 			if (repositoryAccessor != null) {
 				RepositoryManager manager = CACHED_MANAGERS.get(repositoryAccessor);
@@ -125,7 +125,14 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 	public static void init() {
 		synchronized (INSTANCE_LOCK) {
 			instance = new RepositoryManager();
+			instance.postInstall();
 		}
+	}
+
+	private void postInstall() {
+		for (Repository repository : getRepositories()) {
+			repository.postInstall();
+		}		
 	}
 
 	public static void registerFactory(RepositoryFactory factory) {
@@ -136,14 +143,21 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 	
 	public void addRepository(Repository repository) {
 		LOGGER.config("Adding repository "+repository.getName());
-		repositories.add(repository);
-		save();
+		repositories.add(repository);		
+		if (instance != null) {
+			// we cannot call post install during init(). The reason is that
+			// post install may access RepositoryManager.getInstance() which will be null and hence
+			// trigger further recursive, endless calls to init()
+			repository.postInstall();
+			save();
+		}
 		fireUpdate(repository);
 	}
 
 	public void removeRepository(Repository repository) {
+		repository.preRemove();
 		repositories.remove(repository);
-		fireUpdate(null);
+		fireUpdate(null);		
 	}
 
 	public List<Repository> getRepositories() {

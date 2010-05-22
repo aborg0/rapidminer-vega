@@ -48,7 +48,9 @@ public class FieldConnectionEntry extends ConnectionEntry {
 	private String port;
 		
 	private String database;
-		
+
+	private boolean dynamic = false;
+	
 	public String getPort() {
 		return port;
 	}
@@ -135,16 +137,20 @@ public class FieldConnectionEntry extends ConnectionEntry {
 		return equals;
 	}
 
-	public Element toXML(Document doc, Key key) throws CipherException {
+	public Element toXML(Document doc, Key key, String replacementForLocalhost) throws CipherException {
 		Element element = doc.createElement(XML_TAG_NAME);
 		XMLTools.setTagContents(element, "name", name);
 		if (properties != null) {
 			XMLTools.setTagContents(element, "system", properties.getName());
+		}		
+		String host = this.host;
+		if (replacementForLocalhost != null) {
+			host = host.replace("localhost", replacementForLocalhost);
 		}
 		XMLTools.setTagContents(element, "host", host);
 		XMLTools.setTagContents(element, "port", port);
 		XMLTools.setTagContents(element, "database", database);
-		XMLTools.setTagContents(element, "user", database);		
+		XMLTools.setTagContents(element, "user", user);		
 		XMLTools.setTagContents(element, "password", CipherTools.encrypt(new String(password), key));
 		return element;
 	}
@@ -154,11 +160,20 @@ public class FieldConnectionEntry extends ConnectionEntry {
 		this.host = XMLTools.getTagContents(element, "host");
 		this.port  = XMLTools.getTagContents(element, "port");
 		this.database = XMLTools.getTagContents(element, "database");
-		this.database = XMLTools.getTagContents(element, "user");
+		this.user  = XMLTools.getTagContents(element, "user");
 		this.password = CipherTools.decrypt(XMLTools.getTagContents(element, "password"), key).toCharArray();
 		String system = XMLTools.getTagContents(element, "system");
 		if (system != null) {
 			properties = DatabaseService.getJDBCProperties(system);
 		}		
+	}
+
+	public void setDynamic(boolean dynamic) {
+		this.dynamic = dynamic;
+	}
+
+	@Override
+	public boolean isDynamic() {
+		return dynamic;
 	}
 }

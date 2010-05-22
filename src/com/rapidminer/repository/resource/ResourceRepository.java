@@ -102,4 +102,12 @@ public class ResourceRepository extends ResourceFolder implements Repository {
 	public boolean shouldSave() {
 		return false;
 	}
+	
+	@Override
+	public void postInstall() {
+	}
+
+	@Override
+	public void preRemove() {
+	}
 }

@@ -43,4 +43,10 @@ public interface Repository extends Folder {
 
 	public abstract boolean shouldSave();
 
+	/** Called after the repository is added. Currently unused, but may be useful. Was once
+	 *  used to fetch JDBC connection entries from remote server. */
+	public void postInstall();
+	
+	public void preRemove();
+
 }

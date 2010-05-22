@@ -99,12 +99,16 @@ public class KeyGeneratorTool {
 			int actualLength = in.read(rawKey);
 			if (length != actualLength)
 				throw new IOException("Cannot read key file (unexpected length)");
-			return new SecretKeySpec(rawKey, GENERATOR_TYPE);
+			return makeKey(rawKey);
 		} catch (Exception e) {
 			throw new IOException("Cannot retrieve key: " + e.getMessage());
 		} finally {
 			if (in != null)
 				in.close();
 		}
+	}
+
+	public static SecretKeySpec makeKey(byte[] rawKey) {
+		return new SecretKeySpec(rawKey, GENERATOR_TYPE);
 	}
 }
