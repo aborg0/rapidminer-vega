@@ -44,6 +44,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.rapidminer.io.Base64;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.XMLException;
@@ -52,8 +53,6 @@ import com.rapidminer.tools.cipher.CipherTools;
 import com.rapidminer.tools.cipher.KeyGeneratorTool;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
 import com.rapidminer.tools.jdbc.DatabaseService;
-import com.sun.org.apache.xml.internal.security.exceptions.Base64DecodingException;
-import com.sun.org.apache.xml.internal.security.utils.Base64;
 
 /**
  * The central service for registering DatabaseConnections. They are used for
@@ -222,7 +221,7 @@ public class DatabaseConnectionService {
 	public static Document toXML(Collection<FieldConnectionEntry> connectionEntries, Key key, String replacementForLocalhost) throws ParserConfigurationException, DOMException, CipherException {
 		Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 		Element root = doc.createElement("jdbc-entries");
-		String base64key = Base64.encode(key.getEncoded());
+		String base64key = Base64.encodeBytes(key.getEncoded());
 		root.setAttribute("key", base64key);
 		doc.appendChild(root);
 		for (FieldConnectionEntry entry : connectionEntries) {
@@ -231,7 +230,7 @@ public class DatabaseConnectionService {
 		return doc;
 	}
 	
-	public static Collection<FieldConnectionEntry> parseEntries(Element entries) throws XMLException, CipherException, Base64DecodingException {
+	public static Collection<FieldConnectionEntry> parseEntries(Element entries) throws XMLException, CipherException, IOException {
 		if (!entries.getTagName().equals("jdbc-entries")) {
 			throw new XMLException("Outer tag must be <jdbc-entries>");
 		}

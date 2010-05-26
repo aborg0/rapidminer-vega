@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 /**
- * @author Tobias Malbrecht
+ * @author Tobias Malbrecht, Marco Boeck
  */
 public class LineParser {
 	
@@ -168,6 +168,7 @@ public class LineParser {
 		if (splitExpression == null) {
 			return new String[] { line };
 		}
+		//FIXME: needs to be checked globally, not for every single line
 		try {
 			Pattern.compile(splitExpression);
 		} catch (PatternSyntaxException e) {
@@ -194,6 +195,18 @@ public class LineParser {
 		return Tools.quotedSplit(trimLine ? s.trim() : s, Pattern.compile(splitExpression), quoteCharacter, quoteEscapeCharacter);		
 	}
 	
+	/**
+	 * Splits the given line at each split character which is not in quotes and not following an escape character.
+	 * 
+	 * @param line the string to be splitted
+	 * @param splitChar the character which seperates the values, e.g. for the line {@code value1;"30.545";value3} it would be ';'
+	 * @param trimLine true if preceding and appending whitespaces of the line should be removed; false otherwise
+	 * @param quoteChar the character used for value quotes, e.g. for the line {@code value1;"30.545";value3} it would be '"'
+	 * @param escapeChar the character used to escape the following character. The character following an escape character will always be part of the result
+	 * 			and will not be used as a quote or split character. For example, if set to '\', the line {@code val\;ue1;"30.545";value3} would result in
+	 * 			[val;ue1],[30.545],[value3]
+	 * @return an array with the splitted strings
+	 */
 	public static String[] fastSplit(String line, char splitChar, boolean trimLine, char quoteChar, char escapeChar) {
 		List<String> resultList = new ArrayList<String>();
 		/** holding the temporary split string */
@@ -218,7 +231,11 @@ public class LineParser {
 			// read current character and next character (if applicaple)
 			currentChar = line.charAt(i);
 			if (i<line.length()-1) {
-				nextChar = line.charAt(i+1);
+				try {
+					nextChar = line.charAt(i+1);
+				} catch (IndexOutOfBoundsException e) {
+					nextChar = null;
+				}
 			} else {
 				nextChar = null;
 			}
@@ -236,6 +253,7 @@ public class LineParser {
 				}
 				if (currentChar == quoteChar) {
 					tempString.append(currentChar);
+					
 					machineState = SplitMachineState.QUOTE_OPENED;
 					continue;
 				}
@@ -307,7 +325,26 @@ public class LineParser {
 					errorMessage = "Value quote misplaced";
 					errorColumnIndex = i;
 					if (tempString.length() < 10) {
-						errorLastFewReadChars = tempString.toString() + currentChar;
+						StringBuffer errorCharBuf = new StringBuffer();
+						errorCharBuf.append(tempString);
+						if (errorCharBuf.length() > 0) {
+							errorCharBuf.insert(0, splitChar);
+						}
+						for (int j=errorCharBuf.length(), k = resultList.size()-1;j<20;j++, k--) {
+							if (k < 0) {
+								break;
+							}
+							errorCharBuf.insert(0, resultList.get(k));
+							if (errorCharBuf.length() < 18) {
+								errorCharBuf.insert(0, splitChar);
+							}
+							j = errorCharBuf.length();
+						}
+						errorCharBuf.reverse();
+						errorCharBuf.setLength(19);
+						errorCharBuf.reverse();
+						errorCharBuf.append(currentChar);
+						errorLastFewReadChars = errorCharBuf.toString();
 					} else {
 						errorLastFewReadChars = tempString.substring(tempString.length()-9).toString() + currentChar;
 					}
@@ -331,7 +368,26 @@ public class LineParser {
 						errorMessage = "Value quotes malformed";
 						errorColumnIndex = i;
 						if (tempString.length() < 10) {
-							errorLastFewReadChars = tempString.toString() + currentChar;
+							StringBuffer errorCharBuf = new StringBuffer();
+							errorCharBuf.append(tempString);
+							if (errorCharBuf.length() > 0) {
+								errorCharBuf.insert(0, splitChar);
+							}
+							for (int j=errorCharBuf.length(), k = resultList.size()-1;j<20;j++, k--) {
+								if (k < 0) {
+									break;
+								}
+								errorCharBuf.insert(0, resultList.get(k));
+								if (errorCharBuf.length() < 18) {
+									errorCharBuf.insert(0, splitChar);
+								}
+								j = errorCharBuf.length();
+							}
+							errorCharBuf.reverse();
+							errorCharBuf.setLength(19);
+							errorCharBuf.reverse();
+							errorCharBuf.append(currentChar);
+							errorLastFewReadChars = errorCharBuf.toString();
 						} else {
 							errorLastFewReadChars = tempString.substring(tempString.length()-9).toString() + currentChar;
 						}
@@ -359,12 +415,32 @@ public class LineParser {
 						errorMessage = "Value quotes malformed";
 						errorColumnIndex = i;
 						if (tempString.length() < 10) {
-							errorLastFewReadChars = tempString.toString() + currentChar;
+							StringBuffer errorCharBuf = new StringBuffer();
+							errorCharBuf.append(tempString);
+							if (errorCharBuf.length() > 0) {
+								errorCharBuf.insert(0, splitChar);
+							}
+							for (int j=errorCharBuf.length(), k = resultList.size()-1;j<20;j++, k--) {
+								if (k < 0) {
+									break;
+								}
+								errorCharBuf.insert(0, resultList.get(k));
+								if (errorCharBuf.length() < 18) {
+									errorCharBuf.insert(0, splitChar);
+								}
+								j = errorCharBuf.length();
+							}
+							errorCharBuf.reverse();
+							errorCharBuf.setLength(19);
+							errorCharBuf.reverse();
+							errorCharBuf.append(currentChar);
+							errorLastFewReadChars = errorCharBuf.toString();
 						} else {
 							errorLastFewReadChars = tempString.substring(tempString.length()-9).toString() + currentChar;
 						}
 						machineState = SplitMachineState.ERROR;
-						continue;
+						// needs to be thrown here as the loop exists after this pass
+						throw new IllegalArgumentException(errorMessage + " at position " + i + ". Last characters read: " + errorLastFewReadChars);
 					}
 					// next character was escaped, therefore add it to the string and bypass it in loop
 					tempString.append(nextChar);
@@ -380,12 +456,32 @@ public class LineParser {
 					continue;
 				}
 				if (currentChar == ' ' || currentChar == '\t') {
+					// delete whitespaces after closing quotes
 					continue;
 				}
 				errorMessage = "Unexpected character after closed value quote";
 				errorColumnIndex = i;
 				if (tempString.length() < 10) {
-					errorLastFewReadChars = tempString.toString() + currentChar;
+					StringBuffer errorCharBuf = new StringBuffer();
+					errorCharBuf.append(tempString);
+					if (errorCharBuf.length() > 0) {
+						errorCharBuf.insert(0, splitChar);
+					}
+					for (int j=errorCharBuf.length(), k = resultList.size()-1;j<20;j++, k--) {
+						if (k < 0) {
+							break;
+						}
+						errorCharBuf.insert(0, resultList.get(k));
+						if (errorCharBuf.length() < 18) {
+							errorCharBuf.insert(0, splitChar);
+						}
+						j = errorCharBuf.length();
+					}
+					errorCharBuf.reverse();
+					errorCharBuf.setLength(19);
+					errorCharBuf.reverse();
+					errorCharBuf.append(currentChar);
+					errorLastFewReadChars = errorCharBuf.toString();
 				} else {
 					errorLastFewReadChars = tempString.substring(tempString.length()-9).toString() + currentChar;
 				}
@@ -401,7 +497,25 @@ public class LineParser {
 			errorMessage = "Value quotes not closed";
 			errorColumnIndex = line.length()-1;
 			if (tempString.length() < 10) {
-				errorLastFewReadChars = tempString.toString();
+				StringBuffer errorCharBuf = new StringBuffer();
+				errorCharBuf.append(tempString);
+				if (errorCharBuf.length() > 0) {
+					errorCharBuf.insert(0, splitChar);
+				}
+				for (int j=errorCharBuf.length(), k = resultList.size()-1;j<20;j++, k--) {
+					if (k < 0) {
+						break;
+					}
+					errorCharBuf.insert(0, resultList.get(k));
+					if (errorCharBuf.length() < 18) {
+						errorCharBuf.insert(0, splitChar);
+					}
+					j = errorCharBuf.length();
+				}
+				errorCharBuf.reverse();
+				errorCharBuf.setLength(20);
+				errorCharBuf.reverse();
+				errorLastFewReadChars = errorCharBuf.toString();
 			} else {
 				errorLastFewReadChars = tempString.substring(tempString.length()-10).toString();
 			}
@@ -411,15 +525,21 @@ public class LineParser {
 				resultList.add(tempString.toString());
 			}
 		}
-		for (String s : resultList) {
-			s = s.trim();
-			if (s.charAt(0) == quoteChar && s.charAt(s.length()-1) == quoteChar) {
-				s = s.substring(1, s.length()-1);
-				s.trim();
-			}
-		}
+		
 		String[] resultArray = new String[resultList.size()];
 		resultList.toArray(resultArray);
+		
+		for (int i=0; i<resultArray.length; i++) {
+			String s = resultArray[i];
+			s = s.trim();
+			if (s.length() < 2) {
+				continue;
+			}
+			if (s.charAt(0) == quoteChar && s.charAt(s.length()-1) == quoteChar) {
+				s = s.substring(1, s.length()-1);
+			}
+			resultArray[i] = s;
+		}
 		
 		return resultArray;
 	}

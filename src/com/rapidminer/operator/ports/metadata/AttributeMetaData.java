@@ -109,7 +109,7 @@ public class AttributeMetaData implements Serializable {
 			}
 			if (att.isNominal()) {
 				int modeIndex = (int)exampleSet.getStatistics(att, Statistics.MODE);
-				if (modeIndex >= 0) {
+				if (modeIndex >= 0 && modeIndex < att.getMapping().size()) {
 					setMode(att.getMapping().mapIndex(modeIndex));
 				}
 			}

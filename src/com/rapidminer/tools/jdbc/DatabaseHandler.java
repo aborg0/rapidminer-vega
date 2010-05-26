@@ -706,7 +706,12 @@ public class DatabaseHandler {
         }
 
         DatabaseMetaData metaData = connection.getMetaData();
-        String[] types = new String[] { "TABLE" };
+        String[] types;
+        if (!"false".equals(System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_DB_ONLY_STANDARD_TABLES))) {
+        	types = new String[] { "TABLE" };
+        } else {
+        	types = null;
+        }
         ResultSet tableNames = metaData.getTables(null, null, "%", types);        
         List<String> tableNameList = new LinkedList<String>();
         while (tableNames.next()) {        	

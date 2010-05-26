@@ -73,7 +73,6 @@ import com.rapidminer.tools.XMLException;
 import com.rapidminer.tools.cipher.CipherException;
 import com.rapidminer.tools.jdbc.connection.DatabaseConnectionService;
 import com.rapidminer.tools.jdbc.connection.FieldConnectionEntry;
-import com.sun.org.apache.xml.internal.security.exceptions.Base64DecodingException;
 /**
  * @author Simon Fischer
  */
@@ -507,7 +506,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	
 	// JDBC entries provided by server
 		
-	private Collection<FieldConnectionEntry> fetchJDBCEntries() throws Base64DecodingException, XMLException, CipherException, SAXException, IOException {
+	private Collection<FieldConnectionEntry> fetchJDBCEntries() throws XMLException, CipherException, SAXException, IOException {
 		URL xmlURL = new URL(baseUrl, "RAWS/jdbc_connections.xml");
 		Document doc = XMLTools.parse(xmlURL.openStream());
 		final Collection<FieldConnectionEntry> result = DatabaseConnectionService.parseEntries(doc.getDocumentElement());

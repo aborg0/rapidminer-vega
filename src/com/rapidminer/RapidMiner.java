@@ -220,6 +220,10 @@ public class RapidMiner {
 	/** The property name for the &quot;SMTP pssword (is necessary). Used for email notifications.&quot; */
 	public static final String PROPERTY_RAPIDMINER_TOOLS_SMTP_PASSWD = "rapidminer.tools.smtp.passwd";
 
+	/** If set to true, the query builders and database assistants and query_builders show only standard
+	 *  tables (no views and system tables). */
+	public static final String PROPERTY_RAPIDMINER_TOOLS_DB_ONLY_STANDARD_TABLES = "rapidminer.tools.db.assist.show_only_standard_tables";
+
 	/** The property name for &quot;Use unix special characters for logfile highlighting (requires new RapidMiner instance).&quot; */
 	public static final String PROPERTY_RAPIDMINER_GENERAL_LOGFILE_FORMAT = "rapidminer.general.logfile.format";
 
@@ -262,6 +266,8 @@ public class RapidMiner {
 		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_GENERAL_DEFAULT_ENCODING, "The default encoding used for file operations (default: 'SYSTEM' uses the underlying system encoding, 'UTF-8' or 'ISO-8859-1' are other common options)", SYSTEM_ENCODING_NAME));
 		registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GENERAL_TIME_ZONE, "The default time zone used for displaying date and time information (default: 'SYSTEM' uses the underlying system encoding, 'UCT', 'GMT' or 'CET' are other common options)", Tools.getAllTimeZones(), Tools.SYSTEM_TIME_ZONE));
 
+		registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_TOOLS_DB_ONLY_STANDARD_TABLES, "If checked, assistants and query builders will only show standard database tables, hiding system tables, views, etc.", true));
+		
 		registerRapidMinerProperty(new ParameterTypeBoolean(CapabilityProvider.PROPERTY_RAPIDMINER_GENERAL_CAPABILITIES_WARN, "Indicates if only a warning should be made if learning capabilities are not fulfilled (instead of breaking the process).", false));
 		
 		// INIT
