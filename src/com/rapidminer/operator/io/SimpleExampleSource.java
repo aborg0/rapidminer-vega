@@ -158,7 +158,11 @@ public class SimpleExampleSource extends AbstractExampleSource {
 		final LineParser parser = new LineParser();
 		parser.setTrimLine(getParameterAsBoolean(PARAMETER_TRIM_LINES));
 		parser.setSkipComments(getParameterAsBoolean(PARAMETER_SKIP_COMMENTS));
-		parser.setSplitExpression(getParameterAsString(PARAMETER_COLUMN_SEPARATORS));
+		try {
+			parser.setSplitExpression(getParameterAsString(PARAMETER_COLUMN_SEPARATORS));
+		} catch (OperatorException e) {
+			throw new UndefinedParameterError(e.getMessage());
+		}
 		parser.setUseQuotes(getParameterAsBoolean(PARAMETER_USE_QUOTES));
 		parser.setQuoteCharacter(getParameterAsChar(PARAMETER_QUOTES_CHARACTER));
 		parser.setCommentCharacters(getParameterAsString(PARAMETER_COMMENT_CHARS));

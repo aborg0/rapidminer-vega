@@ -108,7 +108,7 @@
 		<property name="lock.isBuilt" value="true" />
 	</target>
 
-	<target name="createJar" depends="clean, build" description="Generate the lib/rapidminer.jar file">
+	<target name="createJar" depends="build" description="Generate the lib/rapidminer.jar file">
 		<echo message="Creating jar..." />
 		<pathconvert pathsep=" " property="manifest.classpath" refid="rm.classpath" dirsep="/">
 			<map from="${lib}/" to="" />

@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import com.rapidminer.operator.OperatorException;
+
 /**
  * @author Tobias Malbrecht, Marco Boeck
  */
@@ -66,7 +68,7 @@ public class LineParser {
 	
 	private String commentCharacterString = DEFAULT_COMMENT_CHARACTER_STRING;
 
-	private String splitExpression = DEFAULT_SPLIT_EXPRESSION;
+	private Pattern splitPattern = Pattern.compile(DEFAULT_SPLIT_EXPRESSION);
 
 	private boolean useQuotes = true;
 
@@ -93,7 +95,7 @@ public class LineParser {
 	}
 
 	public String getSplitExpression() {
-		return splitExpression;
+		return splitPattern.toString();
 	}
 	
 	public String getCommentCharacters() {
@@ -124,8 +126,12 @@ public class LineParser {
 		this.commentCharacterString = commentCharacters; 
 	}
 	
-	public void setSplitExpression(String splitExpression) {
-		this.splitExpression = splitExpression;
+	public void setSplitExpression(String splitExpression) throws OperatorException {
+		try {
+			this.splitPattern = Pattern.compile(splitExpression);
+		} catch (PatternSyntaxException e) {
+			throw new OperatorException("Malformed split expression: " + splitExpression);
+		}
 	}
 	
 	public void setUseQuotes(boolean useQuotes) {
@@ -165,34 +171,28 @@ public class LineParser {
 	}
 
 	public String[] split(String line) {
-		if (splitExpression == null) {
-			return new String[] { line };
-		}
-		//FIXME: needs to be checked globally, not for every single line
-		try {
-			Pattern.compile(splitExpression);
-		} catch (PatternSyntaxException e) {
+		if (splitPattern == null) {
 			return new String[] { line };
 		}
 		if (useQuotes) {
-			if (splitExpression.length() > 1) {
-				return split(line, splitExpression, trimLine, quoteCharacter, quoteEscapeCharacter);
+			if (splitPattern.toString().length() > 1) {
+				return split(line, splitPattern, trimLine, quoteCharacter, quoteEscapeCharacter);
 			} else {
-				return fastSplit(line, splitExpression.charAt(0), trimLine, quoteCharacter, quoteEscapeCharacter);
+				return fastSplit(line, splitPattern.toString().charAt(0), trimLine, quoteCharacter, quoteEscapeCharacter);
 			}
 		} else {
-			return split(line, splitExpression, trimLine);
+			return split(line, splitPattern, trimLine);
 		}
 	}
 	
-	public static String[] split(String line, String splitExpression, boolean trimLine) {
-		String[] splittedString = trimLine ? line.trim().split(splitExpression) : line.split(splitExpression);
+	public static String[] split(String line, Pattern splitPattern, boolean trimLine) {
+		String[] splittedString = splitPattern.split(trimLine ? line.trim() : line);
 		return splittedString;
 	}
 	
-	public static String[] split(String line, String splitExpression, boolean trimLine, char quoteCharacter, char quoteEscapeCharacter) {
-		String s = Tools.escapeQuoteCharsInQuotes(trimLine ? line.trim() : line, Pattern.compile(splitExpression), quoteCharacter, quoteEscapeCharacter, true);
-		return Tools.quotedSplit(trimLine ? s.trim() : s, Pattern.compile(splitExpression), quoteCharacter, quoteEscapeCharacter);		
+	public static String[] split(String line, Pattern splitPattern, boolean trimLine, char quoteCharacter, char quoteEscapeCharacter) {
+		String s = Tools.escapeQuoteCharsInQuotes(trimLine ? line.trim() : line, splitPattern, quoteCharacter, quoteEscapeCharacter, true);
+		return Tools.quotedSplit(trimLine ? s.trim() : s, splitPattern, quoteCharacter, quoteEscapeCharacter);		
 	}
 	
 	/**
@@ -305,14 +305,14 @@ public class LineParser {
 				continue;
 			case WRITE_NOT_QUOTE:
 				if (currentChar == splitChar) {
-					resultList.add(tempString.toString());
+					resultList.add(tempString.toString().trim());
 					machineState = SplitMachineState.NEW_SPLIT;
 					continue;
 				}
 				if (currentChar == escapeChar) {
 					if (nextChar == null) {
 						// special case: escape char followed by EndOfLine -> string read so far w/o escape char
-						resultList.add(tempString.toString());
+						resultList.add(tempString.toString().trim());
 						machineState = SplitMachineState.END_OF_LINE;
 						continue;
 					}
@@ -322,6 +322,7 @@ public class LineParser {
 					continue;
 				}
 				if (currentChar == quoteChar) {
+					// error handling
 					errorMessage = "Value quote misplaced";
 					errorColumnIndex = i;
 					if (tempString.length() < 10) {
@@ -451,7 +452,14 @@ public class LineParser {
 				continue;
 			case QUOTE_CLOSED:
 				if (currentChar == splitChar) {
-					resultList.add(tempString.toString());
+					// remove quotes
+					if (tempString.charAt(0) == quoteChar && tempString.charAt(tempString.length()-1) == quoteChar) {
+						resultList.add(tempString.substring(1, tempString.length()-1));
+					} else {
+						// this should not occur, malformed quotes should be caught earlier
+						resultList.add(tempString.toString());
+					}
+					
 					machineState = SplitMachineState.NEW_SPLIT;
 					continue;
 				}
@@ -459,6 +467,7 @@ public class LineParser {
 					// delete whitespaces after closing quotes
 					continue;
 				}
+				// error handling
 				errorMessage = "Unexpected character after closed value quote";
 				errorColumnIndex = i;
 				if (tempString.length() < 10) {
@@ -485,14 +494,15 @@ public class LineParser {
 				} else {
 					errorLastFewReadChars = tempString.substring(tempString.length()-9).toString() + currentChar;
 				}
-				machineState = SplitMachineState.ERROR;
-				continue;
+				// needs to be thrown here as the loop exists after this pass
+				throw new IllegalArgumentException(errorMessage + " at position " + i + ". Last characters read: " + errorLastFewReadChars);
 			case ERROR:
 				throw new IllegalArgumentException(errorMessage + " at position " + i + ". Last characters read: " + errorLastFewReadChars);
 			}
 		}
 		
 		// last string handling
+		// error state, malformed quote
 		if (machineState == SplitMachineState.QUOTE_OPENED || machineState == SplitMachineState.WRITE_QUOTE) {
 			errorMessage = "Value quotes not closed";
 			errorColumnIndex = line.length()-1;
@@ -521,25 +531,20 @@ public class LineParser {
 			}
 			throw new IllegalArgumentException(errorMessage + " at position " + errorColumnIndex + ". Last characters read: " + errorLastFewReadChars);
 		} else {
+			// add the last string to the list
 			if (tempString.length() > 0) {
-				resultList.add(tempString.toString());
+				// remove quotes if state QUOTE_CLOSED was reached
+				if (machineState == SplitMachineState.QUOTE_CLOSED && tempString.charAt(0) == quoteChar && tempString.charAt(tempString.length()-1) == quoteChar) {
+					resultList.add(tempString.substring(1, tempString.length()-1));
+				} else {
+					// this should not occur, malformed quotes should be caught earlier
+					resultList.add(tempString.toString());
+				}
 			}
 		}
 		
 		String[] resultArray = new String[resultList.size()];
 		resultList.toArray(resultArray);
-		
-		for (int i=0; i<resultArray.length; i++) {
-			String s = resultArray[i];
-			s = s.trim();
-			if (s.length() < 2) {
-				continue;
-			}
-			if (s.charAt(0) == quoteChar && s.charAt(s.length()-1) == quoteChar) {
-				s = s.substring(1, s.length()-1);
-			}
-			resultArray[i] = s;
-		}
 		
 		return resultArray;
 	}
