@@ -164,10 +164,15 @@ public class BayBoostStream extends AbstractMetaLearner {
 	 */
 	@Override
 	public boolean supportsCapability(OperatorCapability lc) {
-		if (lc == OperatorCapability.NUMERICAL_LABEL)
+		switch (lc) {
+		case NUMERICAL_LABEL:
+		case NO_LABEL:
+		case UPDATABLE:
+		case FORMULA_PROVIDER:
 			return false;
-		else
-			return super.supportsCapability(lc);
+		default:
+			return true;
+		}
 	}
 
 	protected void prepareWeights(ExampleSet exampleSet) {

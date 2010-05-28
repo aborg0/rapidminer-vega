@@ -26,6 +26,7 @@ import java.util.Iterator;
 
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.Model;
+import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
@@ -92,6 +93,21 @@ public class Tree2RuleConverter extends AbstractMetaLearner {
 				clonedRule.addTerm(condition);
 				addRules(ruleModel, clonedRule, child);
 			}
+		}
+	}
+	@Override
+	public boolean supportsCapability(OperatorCapability capability) {
+		switch (capability) {
+		case BINOMINAL_ATTRIBUTES:
+		case POLYNOMINAL_ATTRIBUTES:
+		case NUMERICAL_ATTRIBUTES:
+		case POLYNOMINAL_LABEL:
+		case BINOMINAL_LABEL:
+		case WEIGHTED_EXAMPLES:
+		case MISSING_VALUES:
+			return true;
+		default:
+			return false;
 		}
 	}
 }

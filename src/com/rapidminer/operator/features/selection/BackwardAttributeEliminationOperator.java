@@ -97,8 +97,6 @@ public class BackwardAttributeEliminationOperator extends OperatorChain {
 	public static final int WITH_DECREASE_EXCEEDS = 1;
 	public static final int WITH_DECREASE_SIGNIFICANT = 2;
 
-	private double currentPerformanceDeviationValue = 0;
-	private double currentPerformanceValue = 0;
 	private double currentNumberOfFeatures = 0;
 	
 	private InputPort exampleSetInput = getInputPorts().createPort("example set", ExampleSet.class);
@@ -120,18 +118,6 @@ public class BackwardAttributeEliminationOperator extends OperatorChain {
 		getTransformer().addGenerationRule(performanceOutput, PerformanceVector.class);
 		getTransformer().addGenerationRule(weightsOutput, AttributeWeights.class);
 		
-		addValue(new ValueDouble("performance", "The performance using the current number of attributes.") {
-			@Override
-			public double getDoubleValue() {
-				return currentPerformanceValue;
-			}
-		});
-		addValue(new ValueDouble("deviation", "The performance deviation using the current number of attributes.") {
-			@Override
-			public double getDoubleValue() {
-				return currentPerformanceDeviationValue;
-			}
-		});
 		addValue(new ValueDouble("number of attributes", "The current number of attributes.") {
 			@Override
 			public double getDoubleValue() {
@@ -173,16 +159,12 @@ public class BackwardAttributeEliminationOperator extends OperatorChain {
 		boolean earlyAbort = false;
 		List<Integer> speculativeList = new ArrayList<Integer>(maxNumberOfFails);
 		int numberOfFails = maxNumberOfFails;
-		currentNumberOfFeatures = 0;
-		currentPerformanceValue = Double.NaN;
-		currentPerformanceDeviationValue = Double.NaN; 
+		currentNumberOfFeatures = numberOfAttributes;
 		PerformanceVector lastPerformance = getPerformance(exampleSet);
 		PerformanceVector bestPerformanceEver = lastPerformance;
 		for (i = 0; i < maxNumberOfAttributes && !earlyAbort; i++) {
 			// setting values for logging
-			currentNumberOfFeatures = numberOfAttributes - i;
-			currentPerformanceValue = lastPerformance.getMainCriterion().getAverage();
-			currentPerformanceDeviationValue = lastPerformance.getMainCriterion().getVariance();
+			currentNumberOfFeatures = numberOfAttributes - i - 1;
 
 			// performing a round
 			int bestIndex = 0;

@@ -80,21 +80,21 @@ public class LiftChartGenerator extends Operator {
 			throw new UserError(this, 114, "Lift Charts", exampleSet.getAttributes().getLabel());
 		}
 
-		if (exampleSet.getAttributes().getPredictedLabel() != null) {
-			logWarning("Input example already has a predicted label which will be removed.");
-			PredictionModel.removePredictedLabel(exampleSet);
+		ExampleSet workingSet = (ExampleSet) exampleSet.clone();
+		if (workingSet.getAttributes().getPredictedLabel() != null) {
+			PredictionModel.removePredictedLabel(workingSet);
 		}
 
-		exampleSet = model.apply(exampleSet);
-		if (exampleSet.getAttributes().getPredictedLabel() == null) {
+		workingSet = model.apply(workingSet);
+		if (workingSet.getAttributes().getPredictedLabel() == null) {
 			throw new UserError(this, 107);
 		}
 
 		LiftDataGenerator liftDataGenerator = new LiftDataGenerator();
-		List<double[]> liftPoints = liftDataGenerator.createLiftDataList(exampleSet);
+		List<double[]> liftPoints = liftDataGenerator.createLiftDataList(workingSet);
 		liftDataGenerator.createLiftChartPlot(liftPoints);
 
-		PredictionModel.removePredictedLabel(exampleSet);
+		PredictionModel.removePredictedLabel(workingSet);
 
 		exampleSetOutput.deliver(exampleSet);
 		modelOutput.deliver(model);

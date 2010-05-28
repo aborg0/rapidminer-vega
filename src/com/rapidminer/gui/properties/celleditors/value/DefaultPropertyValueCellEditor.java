@@ -334,6 +334,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 						d = type.getMinValue();
 					if (d > type.getMaxValue())
 						d = type.getMaxValue();
+					((JTextField) editorComponent).setText(Double.valueOf(d).toString());
 					return Double.valueOf(d).toString();
 				} catch (NumberFormatException e) {
 					// try macro...

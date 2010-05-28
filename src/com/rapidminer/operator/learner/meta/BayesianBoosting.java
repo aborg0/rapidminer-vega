@@ -193,13 +193,16 @@ public class BayesianBoosting extends AbstractMetaLearner {
 	 */
 	@Override
 	public boolean supportsCapability(OperatorCapability lc) {
-		if (lc == OperatorCapability.NUMERICAL_LABEL || lc == OperatorCapability.POLYNOMINAL_LABEL)
+		switch (lc) {
+		case NUMERICAL_LABEL:
+		case POLYNOMINAL_LABEL:
+		case NO_LABEL:
+		case UPDATABLE:
+		case FORMULA_PROVIDER:
 			return false;
-
-		if (lc == OperatorCapability.WEIGHTED_EXAMPLES)
+		default:
 			return true;
-
-		return super.supportsCapability(lc);
+		}
 	}
 
 	/**

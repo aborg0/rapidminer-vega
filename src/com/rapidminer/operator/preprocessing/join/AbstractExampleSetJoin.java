@@ -124,7 +124,9 @@ public abstract class AbstractExampleSetJoin extends Operator {
             if ((id1 == null) || (id2 == null)) {
                 throw new UserError(this, 129);
             }
-            if (id1.getValueType() != id2.getValueType()) {
+            if (!Ontology.ATTRIBUTE_VALUE_TYPE.isA(id1.getValueType(), id2.getValueType()) 
+        	    && !Ontology.ATTRIBUTE_VALUE_TYPE.isA(id2.getValueType(), id1.getValueType()) ){
+//            if (id1.getValueType() != id2.getValueType()) {
                 throw new UserError(this, 120, new Object[] {
                         id2.getName(), Ontology.VALUE_TYPE_NAMES[id2.getValueType()], Ontology.VALUE_TYPE_NAMES[id1.getValueType()]
                 });

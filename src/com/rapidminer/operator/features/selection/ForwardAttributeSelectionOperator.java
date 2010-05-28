@@ -96,9 +96,6 @@ public class ForwardAttributeSelectionOperator extends OperatorChain {
 	public static final int WITHOUT_INCREASE_OF_AT_LEAST = 1;
 	public static final int WITHOUT_INCREASE_SIGNIFICANT = 2;
 
-	
-	private double currentPerformanceDeviationValue = 0;	
-	private double currentPerformanceValue = 0;
 	private double currentNumberOfFeatures = 0;
 	
 	private InputPort exampleSetInput = getInputPorts().createPort("example set", ExampleSet.class);
@@ -120,18 +117,6 @@ public class ForwardAttributeSelectionOperator extends OperatorChain {
 		getTransformer().addGenerationRule(performanceOutput, PerformanceVector.class);
 		getTransformer().addGenerationRule(weightsOutput, AttributeWeights.class);
 		
-		addValue(new ValueDouble("performance", "The performance using the current number of attributes.") {
-			@Override
-			public double getDoubleValue() {
-				return currentPerformanceValue;
-			}
-		});
-		addValue(new ValueDouble("deviation", "The performance deviation using the current number of attributes.") {
-			@Override
-			public double getDoubleValue() {
-				return currentPerformanceDeviationValue;
-			}
-		});
 		addValue(new ValueDouble("number of attributes", "The current number of attributes.") {
 			@Override
 			public double getDoubleValue() {
@@ -177,13 +162,7 @@ public class ForwardAttributeSelectionOperator extends OperatorChain {
 		for (i = 0; i < maxNumberOfAttributes && !earlyAbort; i++) {
 			// setting values for logging
 			currentNumberOfFeatures = i + 1;
-			if (lastPerformance != null) {
-				currentPerformanceValue = lastPerformance.getMainCriterion().getAverage();
-				currentPerformanceDeviationValue = lastPerformance.getMainCriterion().getVariance();
-			} else {
-				currentPerformanceValue = Double.NaN;
-				currentPerformanceDeviationValue = Double.NaN;
-			}	
+	
 			// performing a round
 			int bestIndex = 0;
 			PerformanceVector currentBestPerformance = null;

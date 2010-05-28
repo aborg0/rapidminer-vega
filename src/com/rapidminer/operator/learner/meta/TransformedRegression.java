@@ -32,6 +32,7 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Statistics;
 import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.operator.Model;
+import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ProcessSetupError.Severity;
@@ -230,5 +231,19 @@ public class TransformedRegression extends AbstractMetaLearner {
 		type.setExpert(true);
 		types.add(type);
 		return types;
+	}
+
+	@Override
+	public boolean supportsCapability(OperatorCapability capability) {
+		switch (capability) {
+		case POLYNOMINAL_LABEL:
+		case BINOMINAL_LABEL:
+		case NO_LABEL:
+		case UPDATABLE:
+		case FORMULA_PROVIDER:
+			return false;
+		default:
+			return true;
+		}
 	}
 }

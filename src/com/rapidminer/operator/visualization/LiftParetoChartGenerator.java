@@ -184,6 +184,7 @@ public class LiftParetoChartGenerator extends Operator {
 		PreprocessingOperator noiseGeneration;
 		try {
 			noiseGeneration = OperatorService.createOperator(NoiseOperator.class);
+			noiseGeneration.setParameter(NoiseOperator.PARAMETER_LABEL_NOISE, 0d + "");
 			noiseGeneration.setParameter(NoiseOperator.PARAMETER_DEFAULT_ATTRIBUTE_NOISE, 0.000001 + "");
 			noiseGeneration.setParameter(PreprocessingOperator.PARAMETER_CREATE_VIEW, false + "");
 
@@ -268,7 +269,7 @@ public class LiftParetoChartGenerator extends Operator {
 		if (cleanUp)
 			PredictionModel.removePredictedLabel(exampleSet);
 
-		exampleSetOutput.deliver(discretizedData);
+		exampleSetOutput.deliver(exampleSet);
 		modelOutput.deliver(model);
 		chartOutput.deliver(new LiftParetoChart(dataTable, targetClass, getParameterAsBoolean(PARAMETER_SHOW_BAR_LABELS), getParameterAsBoolean(PARAMETER_SHOW_CUMULATIVE_LABELS), getParameterAsBoolean(PARAMETER_ROTATE_LABELS)));
 	}

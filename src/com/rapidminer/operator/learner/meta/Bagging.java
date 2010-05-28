@@ -28,6 +28,7 @@ import java.util.Vector;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.set.SplittedExampleSet;
 import com.rapidminer.operator.Model;
+import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ValueDouble;
@@ -114,5 +115,17 @@ public class Bagging extends AbstractMetaLearner {
 		types.addAll(RandomGenerator.getRandomGeneratorParameters(this));
 
 		return types;
+	}
+
+	@Override
+	public boolean supportsCapability(OperatorCapability capability) {
+		switch (capability) {
+		case NO_LABEL:
+		case UPDATABLE:
+		case FORMULA_PROVIDER:
+			return false;
+		default: 
+			return true;
+		}
 	}
 }

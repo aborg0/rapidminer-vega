@@ -148,7 +148,7 @@ public class ImprovedNeuralNetLearner extends AbstractLearner {
 		type.setExpert(false);
 		types.add(type);
 
-		type = new ParameterTypeDouble(PARAMETER_LEARNING_RATE, "The learning rate determines by how much we change the weights at each step.", 0.0d, 1.0d, 0.3d);
+		type = new ParameterTypeDouble(PARAMETER_LEARNING_RATE, "The learning rate determines by how much we change the weights at each step. May not be 0.", Double.MIN_VALUE, 1.0d, 0.3d);
 		type.setExpert(false);
 		types.add(type);
 

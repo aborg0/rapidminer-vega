@@ -25,7 +25,6 @@ package com.rapidminer.operator.learner.meta;
 import com.rapidminer.example.AttributeWeights;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.Model;
-import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
@@ -193,9 +192,5 @@ public abstract class AbstractMetaLearner extends OperatorChain implements Learn
 	 */
 	public AttributeWeights getWeights(ExampleSet exampleSet) throws OperatorException {
 		throw new UserError(this, 916, getName(), "calculation of weights not supported.");
-	}
-
-	public boolean supportsCapability(OperatorCapability capability) {		
-		return true;
 	}
 }

@@ -116,10 +116,14 @@ public class RelativeRegression extends AbstractMetaLearner {
 	@Override
 	public boolean supportsCapability(OperatorCapability capability) {
 		switch (capability) {
-		case NUMERICAL_LABEL:
+		case POLYNOMINAL_LABEL:
+		case BINOMINAL_LABEL:
+		case NO_LABEL:
+		case UPDATABLE:
+		case FORMULA_PROVIDER:
+			return false;
+		default:
 			return true;
-		default: 
-			return super.supportsCapability(capability);
 		}
 	}
 }

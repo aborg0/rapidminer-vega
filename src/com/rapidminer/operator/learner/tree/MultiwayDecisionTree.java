@@ -32,6 +32,7 @@ import java.util.Map;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.GroupedModel;
 import com.rapidminer.operator.Model;
+import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
@@ -48,12 +49,13 @@ import com.rapidminer.tools.container.Pair;
 
 /**
  * This operator is a meta learner for numerical tree builder. It might be used to flatten decision trees, which
- * consists of many splits on the same attribute. All numerical attributes used for at least one decision in a tree will be
- * discretized with the decisions' split points as borders. For example, if attribute att1 is splitted on the points 4.5
- * and 2.1 then it will be discretized in three values: -Infinity to 2.1, 2.1 to 4.5 and 4.5 to Infinity. After this, a
- * new tree is grown on the transformed data. Since the used attributes are now numerical, all splits will be made
- * immediately and hence the depth might be reduced. Please note: The resulting tree might be easier to comprehend, but this
- * have to make it perform neither better nor worse! To get an impression of the reliability of the result perform a XValidation.
+ * consists of many splits on the same attribute. All numerical attributes used for at least one decision in a tree will
+ * be discretized with the decisions' split points as borders. For example, if attribute att1 is splitted on the points
+ * 4.5 and 2.1 then it will be discretized in three values: -Infinity to 2.1, 2.1 to 4.5 and 4.5 to Infinity. After
+ * this, a new tree is grown on the transformed data. Since the used attributes are now numerical, all splits will be
+ * made immediately and hence the depth might be reduced. Please note: The resulting tree might be easier to comprehend,
+ * but this have to make it perform neither better nor worse! To get an impression of the reliability of the result
+ * perform a XValidation.
  * 
  * @author Sebastian Land
  */
@@ -155,6 +157,22 @@ public class MultiwayDecisionTree extends AbstractMetaLearner {
 			attributePointMap.put(attributeName, valueList);
 		}
 		valueList.add(value);
+	}
+
+	@Override
+	public boolean supportsCapability(OperatorCapability capability) {
+		switch (capability) {
+		case BINOMINAL_ATTRIBUTES:
+		case POLYNOMINAL_ATTRIBUTES:
+		case NUMERICAL_ATTRIBUTES:
+		case POLYNOMINAL_LABEL:
+		case BINOMINAL_LABEL:
+		case WEIGHTED_EXAMPLES:
+		case MISSING_VALUES:
+			return true;
+		default:
+			return false;
+		}
 	}
 
 }

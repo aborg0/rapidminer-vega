@@ -106,11 +106,15 @@ public class MetaCost extends AbstractMetaLearner {
 	 */
 	@Override
 	public boolean supportsCapability(OperatorCapability capability) {		
-		if (capability == OperatorCapability.POLYNOMINAL_LABEL)
+		switch (capability) {
+		case NUMERICAL_LABEL:
+		case NO_LABEL:
+		case UPDATABLE:
+		case FORMULA_PROVIDER:
+			return false;
+		default:
 			return true;
-		if (capability == OperatorCapability.BINOMINAL_LABEL)
-			return true;
-		return super.supportsCapability(capability);
+		}
 	}
 
 

@@ -41,14 +41,14 @@ import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.tools.OperatorService;
 
-
 /**
- * <p>This operator uses  regression learner as a base learner. The learner starts with a default
- * model (mean or mode) as a first prediction model. In each iteration it learns a 
- * new base model and applies it to the example set. Then, the residuals of the labels are
- * calculated and the next base model is learned. The learned meta model predicts the label
- * by adding all base model predictions.</p>
- *
+ * <p>
+ * This operator uses regression learner as a base learner. The learner starts with a default model (mean or mode) as a
+ * first prediction model. In each iteration it learns a new base model and applies it to the example set. Then, the
+ * residuals of the labels are calculated and the next base model is learned. The learned meta model predicts the label
+ * by adding all base model predictions.
+ * </p>
+ * 
  * @author Ingo Mierswa
  */
 public class AdditiveRegression extends AbstractMetaLearner {
@@ -56,7 +56,10 @@ public class AdditiveRegression extends AbstractMetaLearner {
 	/** The parameter name for &quot;The number of iterations.&quot; */
 	public static final String PARAMETER_ITERATIONS = "iterations";
 
-	/** The parameter name for &quot;Reducing this learning rate prevent overfitting but increases the learning time.&quot; */
+	/**
+	 * The parameter name for &quot;Reducing this learning rate prevent overfitting but increases the learning
+	 * time.&quot;
+	 */
 	public static final String PARAMETER_SHRINKAGE = "shrinkage";
 
 	public AdditiveRegression(OperatorDescription description) {
@@ -65,7 +68,7 @@ public class AdditiveRegression extends AbstractMetaLearner {
 
 	public Model learn(ExampleSet exampleSet) throws OperatorException {
 		// create temporary label attribute
-		ExampleSet workingExampleSet = (ExampleSet)exampleSet.clone();
+		ExampleSet workingExampleSet = (ExampleSet) exampleSet.clone();
 		Attribute originalLabel = workingExampleSet.getAttributes().getLabel();
 		Attribute workingLabel = AttributeFactory.createAttribute(originalLabel, "working_label");
 		workingExampleSet.getExampleTable().addAttribute(workingLabel);
@@ -101,9 +104,10 @@ public class AdditiveRegression extends AbstractMetaLearner {
 		return new AdditiveRegressionModel(exampleSet, defaultModel, residualModels, getParameterAsDouble(PARAMETER_SHRINKAGE));
 	}
 
-	/** This methods replaces the labels of the given example set with the label residuals 
-	 *  after using the given model. Please note that the label column will be overwritten
-	 *  and the original label should be stored! */
+	/**
+	 * This methods replaces the labels of the given example set with the label residuals after using the given model.
+	 * Please note that the label column will be overwritten and the original label should be stored!
+	 */
 	private void residualReplace(ExampleSet exampleSet, Model model, boolean shrinkage) throws OperatorException {
 		ExampleSet resultSet = model.apply(exampleSet);
 		Attribute label = exampleSet.getAttributes().getLabel();
@@ -123,11 +127,16 @@ public class AdditiveRegression extends AbstractMetaLearner {
 
 	@Override
 	public boolean supportsCapability(OperatorCapability capability) {
-		if (capability.equals(OperatorCapability.BINOMINAL_LABEL))
+		switch (capability) {
+		case BINOMINAL_LABEL:
+		case POLYNOMINAL_LABEL:
+		case NO_LABEL:
+		case UPDATABLE:
+		case FORMULA_PROVIDER:
 			return false;
-		if (capability.equals(OperatorCapability.POLYNOMINAL_LABEL))
-			return false;
-		return super.supportsCapability(capability);
+		default:
+			return true;
+		}
 	}
 
 	@Override

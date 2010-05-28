@@ -108,9 +108,9 @@ public class AttributeMetaData implements Serializable {
 				setMean(new MDReal(exampleSet.getStatistics(att, Statistics.AVERAGE)));
 			}
 			if (att.isNominal()) {
-				int modeIndex = (int)exampleSet.getStatistics(att, Statistics.MODE);
-				if (modeIndex >= 0 && modeIndex < att.getMapping().size()) {
-					setMode(att.getMapping().mapIndex(modeIndex));
+				double modeIndex = exampleSet.getStatistics(att, Statistics.MODE);
+				if (!Double.isNaN(modeIndex) && modeIndex >= 0 && modeIndex < att.getMapping().size()) {
+					setMode(att.getMapping().mapIndex((int) modeIndex));
 				}
 			}
 		} else {
