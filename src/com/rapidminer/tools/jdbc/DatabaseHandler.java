@@ -33,12 +33,14 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Level;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -67,6 +69,7 @@ import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.LoggingHandler;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 import com.rapidminer.tools.jdbc.connection.DatabaseConnectionService;
@@ -694,9 +697,16 @@ public class DatabaseHandler {
 	private boolean existsColumnInTable(String tableName, String columnName) throws SQLException {
 		return connection.getMetaData().getColumns(null, null, tableName, columnName).next();
 	}
-
-
-    public Map<String, List<ColumnIdentifier>> getAllTableMetaData() throws SQLException {
+	
+	public Map<String, List<ColumnIdentifier>> getAllTableMetaData() throws SQLException {
+		return getAllTableMetaData(null, 0, 0, true);
+	}
+	
+	/** Fetches meta data about all tables and, if selected, all columns in the database.
+	 *  The returned map maps table names to column descriptions. 
+	 *  If fetchColumns is false, all lists in the returned map will be empty lists, so basically
+	 *  only the key set contains useful information. */
+    public Map<String, List<ColumnIdentifier>> getAllTableMetaData(ProgressListener progressListener, int minProgress, int maxProgress, boolean fetchColumns) throws SQLException {
         if (connection == null) {
             throw new SQLException("Could not retrieve all table names: no open connection to database '" + databaseURL + "' !");
         }
@@ -712,47 +722,85 @@ public class DatabaseHandler {
         } else {
         	types = null;
         }
-        ResultSet tableNames = metaData.getTables(null, null, "%", types);        
+        //ResultSet tableNames = metaData.getTables(null, null, "%", types);        
+        ResultSet tableNames = metaData.getTables(null, null, null, types);
         List<String> tableNameList = new LinkedList<String>();
         while (tableNames.next()) {        	
             String tableName = tableNames.getString("TABLE_NAME");
             tableNameList.add(tableName);
         }
+        tableNames.close();
         
         Map<String, List<ColumnIdentifier>> result = new LinkedHashMap<String, List<ColumnIdentifier>>();
         Iterator<String> i = tableNameList.iterator();
-        while (i.hasNext()) {
+        final int size = tableNameList.size();
+        int count = 0;
+        while (i.hasNext()) {        	
             String tableName = i.next();
-            try {
-                // test: will fail if user can not use this table
-                List<ColumnIdentifier> columnNames = getAllColumnNames(tableName);
-                result.put(tableName, columnNames);
-            } catch (SQLException e) {
-            	// does nothing
-            } 
+            if ((progressListener != null) && (size > 0)) {            	
+				progressListener.setCompleted(count * (maxProgress - minProgress) / size + minProgress);
+            }
+            count++;
+            if (fetchColumns) {
+            	try {
+            		// test: will fail if user can not use this table
+            		List<ColumnIdentifier> columnNames = getAllColumnNames(tableName, metaData);
+            		result.put(tableName, columnNames);
+            	} catch (SQLException e) {
+            		LogService.getRoot().log(Level.WARNING, "Failed to fetch column meta data for table '"+tableName+"': "+e, e);
+            		result.put(tableName, Collections.<ColumnIdentifier>emptyList());
+            	}            
+            } else {
+            	result.put(tableName, Collections.<ColumnIdentifier>emptyList());
+            }
         }
         return result;
     }
+
+//    private List<ColumnIdentifier> getAllColumnNames(String tableName) throws SQLException {
+//    	return getAllColumnNames(tableName, connection.getMetaData());
+//    }
     
-    private List<ColumnIdentifier> getAllColumnNames(String tableName) throws SQLException {
+    private List<ColumnIdentifier> getAllColumnNames(String tableName, DatabaseMetaData metaData) throws SQLException {
         if (tableName == null) {
             throw new SQLException("Cannot read column names: table name must not be null!");
         }
 
         Statement statement = null;
+        ResultSet columnResult = null;
+        ResultSet emptyQueryResult = null;
         try {
         	statement = createStatement(false);
-        	ResultSet columnResult = connection.getMetaData().getColumns(null, null, tableName, "%");
-        	List<ColumnIdentifier> result = new LinkedList<ColumnIdentifier>();
-        	while (columnResult.next()) {
-        		result.add(new ColumnIdentifier(this, tableName, columnResult.getString("COLUMN_NAME")));
+        	try {
+        		columnResult = metaData.getColumns(null, null, tableName, "%");
+        		List<ColumnIdentifier> result = new LinkedList<ColumnIdentifier>();
+        		while (columnResult.next()) {
+        			result.add(new ColumnIdentifier(this, tableName, columnResult.getString("COLUMN_NAME")));
+        		}
+        		columnResult.close();
+        		return result;
+        	} catch (SQLException e) {
+        		// Fallback for Oracle with illegal characters in table name. (Will throw exception in
+        		// getMetaData().getColumns())
+        		List<ColumnIdentifier> result = new LinkedList<ColumnIdentifier>();
+        		String emptySelect = "SELECT * FROM "+statementCreator.makeIdentifier(tableName)+" WHERE 0=1";
+        		emptyQueryResult = statement.executeQuery(emptySelect);
+        		final ResultSetMetaData resultSetMetaData = emptyQueryResult.getMetaData();
+				for (int i = 0; i < resultSetMetaData.getColumnCount(); i++) {
+        			result.add(new ColumnIdentifier(this, tableName, resultSetMetaData.getColumnName(i+1)));
+        		}
+        		return result;
         	}
-            return result;
-        } catch (SQLException e) {
-        	throw e;
         } finally {
-        	if (statement != null)
+        	if ((columnResult != null) && !columnResult.isClosed()) {
+        		columnResult.close();
+        	}
+        	if ((emptyQueryResult != null) && !emptyQueryResult.isClosed()) {        		
+        		emptyQueryResult.close();
+        	}
+        	if ((statement != null) && !statement.isClosed()) {
                 statement.close();
+        	}
         }
     }
 

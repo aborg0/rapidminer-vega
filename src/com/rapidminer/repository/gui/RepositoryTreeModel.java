@@ -185,27 +185,28 @@ public class RepositoryTreeModel implements TreeModel {
 				try {
 					children.addAll(folder.getSubfolders()); // this may take some time				
 					children.addAll(folder.getDataEntries()); // this may take some time
-				} catch (RepositoryException e) {
+				} catch (Exception e) {
 					SwingTools.showSimpleErrorMessage("error_fetching_folder_contents_from_server", e);
-				}
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						TreeModelEvent removeEvent = new TreeModelEvent(RepositoryTreeModel.this, getPathTo(folder), new int[] {0}, new Object[] { "Pending..." });					
-						for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
-							l.treeNodesRemoved(removeEvent);
-						}
+				} finally {
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							TreeModelEvent removeEvent = new TreeModelEvent(RepositoryTreeModel.this, getPathTo(folder), new int[] {0}, new Object[] { "Pending..." });					
+							for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
+								l.treeNodesRemoved(removeEvent);
+							}
 
-						int index[] = new int[children.size()];	
-						for (int i = 0; i < index.length; i++) {
-							index[i] = i;
+							int index[] = new int[children.size()];	
+							for (int i = 0; i < index.length; i++) {
+								index[i] = i;
+							}
+							Object[] childArray = children.toArray();				
+							TreeModelEvent insertEvent = new TreeModelEvent(RepositoryTreeModel.this, getPathTo(folder), index, childArray);					
+							for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
+								l.treeNodesInserted(insertEvent);
+							}		
 						}
-						Object[] childArray = children.toArray();				
-						TreeModelEvent insertEvent = new TreeModelEvent(RepositoryTreeModel.this, getPathTo(folder), index, childArray);					
-						for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
-							l.treeNodesInserted(insertEvent);
-						}		
-					}
-				});
+					});
+				}
 			}
 		}.start();
 

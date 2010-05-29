@@ -32,6 +32,7 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.AbstractListModel;
@@ -46,6 +47,7 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeDatabaseTable;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
@@ -84,19 +86,23 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 								try {
 									handler = DatabaseHandler.getConnectedDatabaseHandler(entry);
 								} catch (SQLException e1) {
+									LogService.getRoot().log(Level.WARNING, "Failed to fetch database tables: "+e1, e1);									
+									SwingTools.showVerySimpleErrorMessage("Retrieval of table names failed");
+									return;
 								}
 
-								getProgressListener().setCompleted(40);
+								getProgressListener().setCompleted(20);
 
 								if (handler != null) {
 									Map<String, List<ColumnIdentifier>> tableMap;
 									try {
-										tableMap = handler.getAllTableMetaData();
+										tableMap = handler.getAllTableMetaData(getProgressListener(), 20, 90, false);
 										list.addAll(tableMap.keySet());
-										getProgressListener().setCompleted(70);
+										getProgressListener().setCompleted(90);
 									} catch (SQLException e) {
-										// TODO: appropriate error message
-										SwingTools.showVerySimpleErrorMessage("Retrieval of table names failed");
+										LogService.getRoot().log(Level.WARNING, "Failed to fetch database tables: "+e, e);
+										SwingTools.showVerySimpleErrorMessage("Retrieval of table names failed.");
+										return;
 									}
 									try {
 										handler.disconnect();

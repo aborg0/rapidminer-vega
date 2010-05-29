@@ -523,15 +523,21 @@ public class Plugin {
 
 	/** Returns a list of plugins found in the plugins directory. */
 	private static void findPlugins(File pluginDir, boolean showWarningForNonPluginJars) {
-		if (!(pluginDir.exists() && pluginDir.isDirectory()))
-			return;
-
 		List<File> files = new LinkedList<File>();
-		files.addAll(Arrays.asList(pluginDir.listFiles(new FilenameFilter() {
-			public boolean accept(File dir, String name) {
-				return name.endsWith(".jar");
+		if (pluginDir != null) {
+			if (!(pluginDir.exists() && pluginDir.isDirectory())) {
+				LogService.getRoot().config("Plugin directory "+pluginDir+" does not exist.");
+			} else {
+				LogService.getRoot().config("Scanning plugins in " + pluginDir + ".");
+				files.addAll(Arrays.asList(pluginDir.listFiles(new FilenameFilter() {
+					public boolean accept(File dir, String name) {
+						return name.endsWith(".jar");
+					}
+				})));
 			}
-		})));
+		} else {
+			LogService.getRoot().config("Plugin directory not defined.");
+		}
 		files.addAll(ManagedExtension.getActivePluginJars());
 
 		allPlugins = new LinkedList<Plugin>();
@@ -742,14 +748,11 @@ public class Plugin {
 				try {
 					pluginDir = getPluginLocation();
 				} catch (IOException e) {
-					LogService.getRoot().warning("None of the properties "+RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS+" and "+Launcher.PROPERTY_RAPIDMINER_HOME+" is set. No globally installed plugins will be loaded.");
+					LogService.getRoot().warning("None of the properties "+RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS+" and "+Launcher.PROPERTY_RAPIDMINER_HOME+" is set. No globally installed plugins will be loaded.");			
 				}
 			}
 
-			if (pluginDir != null) {
-				LogService.getRoot().config("Scanning plugins in " + pluginDir + ".");
-				registerAllPluginDescriptions(pluginDir, true);
-			}
+			registerAllPluginDescriptions(pluginDir, true);
 			initPlugins();
 		} else {
 			LogService.getRoot().config("Plugins skipped.");

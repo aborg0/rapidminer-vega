@@ -22,6 +22,7 @@
  */
 package com.rapidminer.repository;
 
+
 /** Contains error codes for exceptions etc.
  * 
  * @author Simon Fischer
@@ -67,5 +68,4 @@ public interface RepositoryConstants {
 
 	public static final int NO_SUCH_PROCESS = -18;
 
-		
 }

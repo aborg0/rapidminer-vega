@@ -261,7 +261,7 @@ public class SQLQueryBuilder extends ButtonDialog {
 	                    if (databaseHandler != null) {
 	                        Map<String, List<ColumnIdentifier>> newAttributeMap;
 							try {
-								newAttributeMap = databaseHandler.getAllTableMetaData();
+								newAttributeMap = databaseHandler.getAllTableMetaData(getProgressListener(), 10, 100, true);
 		                        attributeNameMap.putAll(newAttributeMap);
 							} catch (SQLException e) {
 								SwingTools.showSimpleErrorMessage("db_connection_failed_simple", e, e.getMessage());
