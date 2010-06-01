@@ -271,9 +271,12 @@ public class RendererService {
 		String reportableName = getName(ioobject.getClass());
 		Map<String, Class<? extends Renderer>> rendererClassMap = rendererNameToRendererClasses.get(reportableName);
 		if (rendererClassMap == null) {
-			throw new IllegalArgumentException("Illegal renderer name: "+rendererName);
+			throw new IllegalArgumentException("Illegal reportable name: "+rendererName);
 		}
 		Class<? extends Renderer> rendererClass = rendererClassMap.get(rendererName);
+		if (rendererClass == null) {
+			throw new IllegalArgumentException("Illegal renderer name: "+rendererName);
+		}
 		try {
 			return rendererClass.newInstance();
 		} catch (Exception e) {

@@ -35,7 +35,7 @@ public class MailSenderSendmail implements MailSender {
 
 	public void sendEmail(String address, String subject, String content) throws Exception {
 		String command = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SENDMAIL_COMMAND);
-		if ((command == null) || (command.length() > 0)) {
+		if ((command == null) || command.isEmpty()) {
 			LogService.getGlobal().log("Must specify sendmail command to use sendmail.", LogService.ERROR);
 		} else {					
 			LogService.getGlobal().log("Executing '" + command + "'", LogService.MINIMUM);

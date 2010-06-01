@@ -792,13 +792,13 @@ public class DatabaseHandler {
         		return result;
         	}
         } finally {
-        	if ((columnResult != null) && !columnResult.isClosed()) {
+        	if (columnResult != null) {
         		columnResult.close();
         	}
-        	if ((emptyQueryResult != null) && !emptyQueryResult.isClosed()) {        		
+        	if (emptyQueryResult != null) {        		
         		emptyQueryResult.close();
         	}
-        	if ((statement != null) && !statement.isClosed()) {
+        	if (statement != null) {
                 statement.close();
         	}
         }

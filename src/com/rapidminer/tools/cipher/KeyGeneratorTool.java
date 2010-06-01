@@ -31,11 +31,13 @@ import java.io.ObjectOutputStream;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.logging.Level;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import com.rapidminer.RapidMiner;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 
@@ -68,13 +70,17 @@ public class KeyGeneratorTool {
 	}
 	
 	public static void createAndStoreKey() throws KeyGenerationException {
+		if (!RapidMiner.getExecutionMode().canAccessFilesystem()) {
+			LogService.getRoot().config("Skip key generation in execution mode "+RapidMiner.getExecutionMode());
+			return;
+		}
 		// actual generation
 		SecretKey key = createSecretKey();
 
 		File keyFile = new File(ParameterService.getUserRapidMinerDir(), KEY_FILE_NAME);
-		boolean result = keyFile.delete();
-		if (!result)
-			LogService.getGlobal().logError("Cannot delete old key file.");
+		if (!keyFile.delete()) {
+			LogService.getRoot().warning("Failed to delete old key file.");
+		}
 
 		byte[] rawKey = key.getEncoded();
 
@@ -84,7 +90,7 @@ public class KeyGeneratorTool {
 			out.write(rawKey);
 			out.close();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LogService.getRoot().log(Level.WARNING, "Failed to generate key: "+e, e);
 			throw new KeyGenerationException("Cannot store key: " + e.getMessage());
 		}
 	}

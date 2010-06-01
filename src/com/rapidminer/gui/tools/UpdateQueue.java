@@ -42,6 +42,7 @@ public class UpdateQueue extends Thread {
 	}
 
 	private Object lock = new Object();
+	private boolean shutdownRequested = false;
 
 	/** Queues runnable for execution. Will be executed as soon as the current
 	 *  runnable has terminated. If there is no current executable, will be
@@ -57,7 +58,7 @@ public class UpdateQueue extends Thread {
 
 	@Override
 	public void run() {
-		while (true) {
+		while (!shutdownRequested ) {
 			final Runnable target;
 			synchronized (lock) {				
 				target = pending;
@@ -78,5 +79,13 @@ public class UpdateQueue extends Thread {
 				}
 			}
 		}
-	}		
+	}
+	
+	public void shutdown() {
+		synchronized (lock) {
+			pending = null;
+			shutdownRequested = true;
+			lock.notifyAll();
+		}		
+	}
 }
