@@ -100,6 +100,8 @@ public class RapidMiner {
 		EMBEDDED_WITH_UI(false, true, false),    	
 		/** RM is embedded into another program. */
 		EMBEDDED_WITHOUT_UI(true, true, false),    	
+		/** RM is embedded into an applet. */
+		EMBEDDED_AS_APPLET(false, false, false),    	
 		/** RM is running within Java Web Start. */
 		WEBSTART(false, true, true);
 

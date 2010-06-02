@@ -201,7 +201,7 @@ public class ExecutionUnit extends AbstractObservable<ExecutionUnit> {
 		operators.remove(operator);
 		unregister(operator);
 		operator.disconnectPorts();
-		transformMDNeighbourhood();
+		//transformMDNeighbourhood();
 		Process process = getEnclosingOperator().getProcess();
 		if (process != null) {
 			process.fireOperatorRemoved(operator, oldIndex, oldIndexAmongEnabled);
