@@ -22,6 +22,7 @@
  */
 package com.rapidminer.gui.processeditor;
 
+import java.awt.Color;
 import java.awt.Component;
 
 import javax.swing.JLabel;
@@ -30,6 +31,10 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.tools.GroupTree;
+import com.rapidminer.tools.usagestats.OperatorStatisticsValue;
+import com.rapidminer.tools.usagestats.OperatorUsageStatistics;
+import com.rapidminer.tools.usagestats.UsageStatistics;
+import com.rapidminer.tools.usagestats.UsageStatistics.StatisticsScope;
 
 
 /**
@@ -40,7 +45,8 @@ import com.rapidminer.tools.GroupTree;
 public class NewOperatorGroupTreeRenderer extends DefaultTreeCellRenderer {
 
     private static final long serialVersionUID = -6092290820461444236L;
-
+	private int maxVisibleUsage;
+	
     public NewOperatorGroupTreeRenderer() {
 		setLeafIcon(getDefaultClosedIcon());
     }
@@ -61,13 +67,33 @@ public class NewOperatorGroupTreeRenderer extends DefaultTreeCellRenderer {
         	return super.getTreeCellRendererComponent(tree, groupTree.toString(), isSelected, expanded, leaf, row, hasFocus);
         } else {
         	OperatorDescription op = (OperatorDescription)value;
+        	OperatorUsageStatistics operatorStatistics = UsageStatistics.getInstance().getOperatorStatistics(StatisticsScope.ALL_TIME, op);
+        	int usageCount = operatorStatistics.getStatistics(OperatorStatisticsValue.EXECUTION);
+        	
         	setToolTipText(null);
-        	JLabel label = (JLabel)super.getTreeCellRendererComponent(tree, op.getName(), isSelected, expanded, leaf, row, hasFocus);
+        	String labelText = op.getName();
+        	
+        	int grayLevel;       
+        	if (hasFocus || (maxVisibleUsage == 0)) {
+        		grayLevel = 0;        	
+        	} else {
+        		int colorOffset = 100;
+            	grayLevel = (int)((255d - colorOffset) * ((usageCount+1) / (maxVisibleUsage+1d)) + colorOffset);
+            	grayLevel = 255 - Math.min(255, grayLevel);	
+        	}
+        	
+			JLabel label = (JLabel)super.getTreeCellRendererComponent(tree, labelText, isSelected, expanded, leaf, row, hasFocus);
         	label.setIcon(op.getSmallIcon());
+        	label.setForeground(new Color(grayLevel, grayLevel, grayLevel));
         	if (op.getDeprecationInfo() != null) {
         		label.setEnabled(false);
         	}
         	return label;
         }        
     }
+    
+    public void setMaxVisibleUsageCount(int count) {
+    	this.maxVisibleUsage = count;
+    }
+
 }

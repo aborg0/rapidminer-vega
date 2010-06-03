@@ -102,6 +102,7 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.ProcessRootOperator;
 import com.rapidminer.operator.ResultObject;
 import com.rapidminer.operator.ProcessSetupError.Severity;
+import com.rapidminer.operator.io.RepositorySource;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.InputPorts;
 import com.rapidminer.operator.ports.OutputPort;
@@ -116,6 +117,8 @@ import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.MetaDataError;
 import com.rapidminer.operator.ports.metadata.Precondition;
 import com.rapidminer.operator.ports.quickfix.QuickFix;
+import com.rapidminer.repository.RepositoryLocation;
+import com.rapidminer.repository.gui.RepositoryLocationChooser;
 import com.rapidminer.tools.ClassColorMap;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParentResolvingMap;
@@ -515,7 +518,7 @@ public class ProcessRenderer extends JPanel {
 				if (newOperators.isEmpty()) {
 					return true;
 				}
-				
+								
 				List<Operator> selection = getSelection();
 				// if we don't have a loc, we can use the mouse cursor
 				if ((loc == null) && 
@@ -545,6 +548,20 @@ public class ProcessRenderer extends JPanel {
 							// this is a drop
 							Operator firstOperator = newOperators.get(0);
 							Point dest = toProcessSpace(loc, processIndex);
+
+							// if we drop a single Retrieve operator on an inner source of the root op,
+							// we immediately attach the repository location to the port.
+							boolean isRoot = displayedChain instanceof ProcessRootOperator;
+							boolean dropsSource = (firstOperator instanceof RepositorySource);
+							if (isRoot && dropsSource && (newOperators.size() == 1)) {
+								if (checkPortUnder(processes[processIndex].getInnerSources(), (int)dest.getX(), (int)dest.getY())) {					
+									String location = firstOperator.getParameters().getParameterOrNull(RepositorySource.PARAMETER_REPOSITORY_ENTRY);
+									int index = hoveringPort.getPorts().getAllPorts().indexOf(hoveringPort);
+									displayedChain.getProcess().getContext().setInputRepositoryLocation(index, location);
+									return true;
+								}
+							}
+
 							operatorRects.put(firstOperator, new Rectangle2D.Double(dest.getX() - OPERATOR_WIDTH/2, dest.getY() - MIN_OPERATOR_HEIGHT/2, OPERATOR_WIDTH, MIN_OPERATOR_HEIGHT));
 
 							// index at which the first operator is inserted
@@ -1571,30 +1588,6 @@ public class ProcessRenderer extends JPanel {
 
 		private boolean pressHasSelected = false;
 
-		private boolean checkPortUnder(Ports<? extends Port> ports, int x, int y, MouseEvent e) {
-			for (Port port : ports.getAllPorts()) {
-				Point2D location = getPortLocation(port);
-				if (location == null) {
-					continue;
-				}
-				double dx = location.getX() - x;
-				double dy= location.getY() - y;
-				if (dx*dx + dy*dy < 3*PORT_SIZE*PORT_SIZE/2) {
-					if (hoveringPort != port) {
-						hoveringPort = port;						
-						if (hoveringPort instanceof OutputPort) {							
-							showStatus("Click to connect, ALT to disconnect.");
-						}						
-						setHoveringOperator(null);
-						updateCursor();
-						repaint();						
-					}
-					return true;
-				}
-			}
-			return false;
-		}
-
 		@Override
 		public void mouseEntered(MouseEvent e) { }
 
@@ -1618,16 +1611,16 @@ public class ProcessRenderer extends JPanel {
 				}				
 				
 				// find inner sinks/sources under mouse
-				if (checkPortUnder(processes[hoveringProcessIndex].getInnerSinks(), relativeX, relativeY, e) || 
-						checkPortUnder(processes[hoveringProcessIndex].getInnerSources(), relativeX, relativeY, e)) {					
+				if (checkPortUnder(processes[hoveringProcessIndex].getInnerSinks(), relativeX, relativeY) || 
+						checkPortUnder(processes[hoveringProcessIndex].getInnerSources(), relativeX, relativeY)) {					
 					return;
 				}
 
 				// find operator under mouse
 				for (Operator op : processes[hoveringProcessIndex].getOperators()) {
 					// first, check whether we are over a port
-					if (checkPortUnder(op.getInputPorts(), relativeX, relativeY, e) || 
-							checkPortUnder(op.getOutputPorts(), relativeX, relativeY, e)) {
+					if (checkPortUnder(op.getInputPorts(), relativeX, relativeY) || 
+							checkPortUnder(op.getOutputPorts(), relativeX, relativeY)) {
 						return;
 					}
 					// If not, check operator.
@@ -1974,7 +1967,23 @@ public class ProcessRenderer extends JPanel {
 			switch (e.getButton()) {
 			case MouseEvent.BUTTON1:
 				if (e.getClickCount() == 2) {
-					if (getHoveringOperator() != null) {
+					if ((hoveringPort != null) && (hoveringPort.getPorts().getOwner().getOperator() instanceof ProcessRootOperator)) {
+						RepositoryLocation procLoc = displayedChain.getProcess().getRepositoryLocation();
+						RepositoryLocation resolveRelativeTo = null;
+						if (procLoc != null) {
+							resolveRelativeTo = procLoc.parent();
+						}
+						String loc = RepositoryLocationChooser.selectLocation(resolveRelativeTo, ProcessRenderer.this);
+						if (loc != null) {
+							int index = hoveringPort.getPorts().getAllPorts().indexOf(hoveringPort);
+							// This looks weird, but it is correct: The input ports are OutputPorts!
+							if (hoveringPort instanceof OutputPort) {
+								displayedChain.getProcess().getContext().setInputRepositoryLocation(index, loc);
+							} else {
+								displayedChain.getProcess().getContext().setOutputRepositoryLocation(index, loc);
+							}
+						}
+					} else if (getHoveringOperator() != null) {
 						if (getHoveringOperator() instanceof OperatorChain) {					
 							processPanel.showOperatorChain((OperatorChain)getHoveringOperator());
 						}
@@ -3060,4 +3069,31 @@ public class ProcessRenderer extends JPanel {
 
 		}
 	}
+
+	/** Checks whether we have a port under the given point (in process space)
+	 *  and, as a side effect, remembers the {@link #hoveringPort}. */
+	private boolean checkPortUnder(Ports<? extends Port> ports, int x, int y) {
+		for (Port port : ports.getAllPorts()) {
+			Point2D location = getPortLocation(port);
+			if (location == null) {
+				continue;
+			}
+			double dx = location.getX() - x;
+			double dy= location.getY() - y;
+			if (dx*dx + dy*dy < 3*PORT_SIZE*PORT_SIZE/2) {
+				if (hoveringPort != port) {
+					hoveringPort = port;						
+					if (hoveringPort instanceof OutputPort) {							
+						showStatus("Click to connect, ALT to disconnect.");
+					}						
+					setHoveringOperator(null);
+					updateCursor();
+					repaint();						
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+
 }

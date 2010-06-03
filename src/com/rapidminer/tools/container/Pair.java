@@ -22,17 +22,21 @@
  */
 package com.rapidminer.tools.container;
 
+import java.io.Serializable;
+
 /**
  * A basic container class for a pair of objects.
  * 
  * @author Sebastian Land
  */
-public class Pair<T, K> {
+public class Pair<T, K> implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	private T first;
 
 	private K second;
-
+	
 	public Pair(T t, K k) {
 		this.setFirst(t);
 		this.setSecond(k);

@@ -37,6 +37,7 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ValueDouble;
+import com.rapidminer.operator.ValueString;
 import com.rapidminer.operator.performance.PerformanceCriterion;
 import com.rapidminer.operator.performance.PerformanceVector;
 import com.rapidminer.operator.ports.InputPort;
@@ -98,6 +99,7 @@ public class BackwardAttributeEliminationOperator extends OperatorChain {
 	public static final int WITH_DECREASE_SIGNIFICANT = 2;
 
 	private double currentNumberOfFeatures = 0;
+	private Attributes currentAttributes;
 	
 	private InputPort exampleSetInput = getInputPorts().createPort("example set", ExampleSet.class);
 	
@@ -124,6 +126,21 @@ public class BackwardAttributeEliminationOperator extends OperatorChain {
 				return currentNumberOfFeatures;
 			}
 		});
+		
+		addValue(new ValueString("feature_names", "A comma separated list of all features of this round.") {
+
+			@Override
+			public String getStringValue() {
+				StringBuffer buffer = new StringBuffer();
+				for (Attribute attribute: currentAttributes) {
+					if (buffer.length() > 0)
+						buffer.append(", ");
+					buffer.append(attribute.getName());
+				}
+				return buffer.toString();
+			}
+		});
+
 	}
 
 	@Override
@@ -173,7 +190,8 @@ public class BackwardAttributeEliminationOperator extends OperatorChain {
 				if (selected[current]) {
 					// switching off
 					attributes.remove(attributeArray[current]);
-
+					currentAttributes = attributes;
+					
 					// evaluate performance
 					PerformanceVector performance = getPerformance(exampleSet);
 					if (currentBestPerformance == null || performance.compareTo(currentBestPerformance) > 0) {
@@ -183,6 +201,7 @@ public class BackwardAttributeEliminationOperator extends OperatorChain {
 
 					// switching on
 					attributes.addRegular(attributeArray[current]);
+					currentAttributes = null; // removing reference
 				}
 			}
 			double currentFitness = currentBestPerformance.getMainCriterion().getFitness();  

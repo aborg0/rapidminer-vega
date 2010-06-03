@@ -35,6 +35,7 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ValueDouble;
+import com.rapidminer.operator.ValueString;
 import com.rapidminer.operator.performance.PerformanceCriterion;
 import com.rapidminer.operator.performance.PerformanceVector;
 import com.rapidminer.operator.ports.InputPort;
@@ -97,6 +98,7 @@ public class ForwardAttributeSelectionOperator extends OperatorChain {
 	public static final int WITHOUT_INCREASE_SIGNIFICANT = 2;
 
 	private double currentNumberOfFeatures = 0;
+	private Attributes currentAttributes;
 	
 	private InputPort exampleSetInput = getInputPorts().createPort("example set", ExampleSet.class);
 	
@@ -121,6 +123,20 @@ public class ForwardAttributeSelectionOperator extends OperatorChain {
 			@Override
 			public double getDoubleValue() {
 				return currentNumberOfFeatures;
+			}
+		});
+		
+		addValue(new ValueString("feature_names", "A comma separated list of all features of this round.") {
+
+			@Override
+			public String getStringValue() {
+				StringBuffer buffer = new StringBuffer();
+				for (Attribute attribute: currentAttributes) {
+					if (buffer.length() > 0)
+						buffer.append(", ");
+					buffer.append(attribute.getName());
+				}
+				return buffer.toString();
 			}
 		});
 	}
@@ -170,7 +186,8 @@ public class ForwardAttributeSelectionOperator extends OperatorChain {
 				if (!selected[current]) {
 					// switching on
 					attributes.addRegular(attributeArray[current]);
-
+					currentAttributes = attributes;
+					
 					// evaluate performance
 					innerExampleSetSource.deliver(exampleSet);
 
@@ -184,6 +201,7 @@ public class ForwardAttributeSelectionOperator extends OperatorChain {
 
 					// switching off
 					attributes.remove(attributeArray[current]);
+					currentAttributes = null;
 				}
 			}
 			double currentFitness = currentBestPerformance.getMainCriterion().getFitness();  

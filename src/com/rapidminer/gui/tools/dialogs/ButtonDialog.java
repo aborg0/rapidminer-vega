@@ -57,7 +57,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import com.rapidminer.gui.ApplicationFrame;
-import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.FixedWidthLabel;
@@ -298,7 +297,7 @@ public class ButtonDialog extends JDialog {
 	}
 
 	protected void setDefaultLocation() {
-		setLocationRelativeTo(RapidMinerGUI.getMainFrame());
+		setLocationRelativeTo(ApplicationFrame.getApplicationFrame());
 	}
 
 	protected void setDefaultSize() {

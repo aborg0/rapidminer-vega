@@ -44,6 +44,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
@@ -71,6 +73,10 @@ import com.rapidminer.tools.GroupTree;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.ParameterService;
+import com.rapidminer.tools.usagestats.OperatorStatisticsValue;
+import com.rapidminer.tools.usagestats.OperatorUsageStatistics;
+import com.rapidminer.tools.usagestats.UsageStatistics;
+import com.rapidminer.tools.usagestats.UsageStatistics.StatisticsScope;
 
 /**
  * This tree displays all groups and can be used to change the selected operators. 
@@ -116,6 +122,18 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
 			operatorGroupTree.setSelectionPath(selectedPath);
 		}
     };
+    
+    private transient final ToggleAction SORT_BY_USAGE_ACTION = new ToggleAction(true, "sort_by_usage") {
+		private static final long serialVersionUID = 1L;
+		{
+			setSelected(true);
+			actionToggled(null);
+		}
+    	@Override
+		public void actionToggled(ActionEvent e) {
+    		model.setSortByUsage(isSelected());
+    	}
+    };
 
     public transient final Action INFO_OPERATOR_ACTION = new InfoOperatorAction() {
 		private static final long serialVersionUID = 7157100643209732656L;
@@ -143,6 +161,8 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
 			ParameterService.writePropertyIntoMainUserConfigFile(RapidMinerGUI.PROPERTY_AUTOWIRE_OUTPUT, Boolean.toString(autoWireOutputsItem.isSelected()));		
 		}    	
     });
+
+	private NewOperatorGroupTreeRenderer renderer;
         
     public NewOperatorGroupTree(NewOperatorEditor editor) {
         this.editor = editor;
@@ -154,8 +174,8 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
 
         //operatorGroupTree.setRootVisible(true);
         operatorGroupTree.setShowsRootHandles(true);
-        //ToolTipManager.sharedInstance().registerComponent(operatorGroupTree);
-        operatorGroupTree.setCellRenderer(new NewOperatorGroupTreeRenderer());
+        renderer = new NewOperatorGroupTreeRenderer();
+		operatorGroupTree.setCellRenderer(renderer);
         operatorGroupTree.expandRow(0);
 
         JScrollPane scrollPane = new ExtendedJScrollPane(operatorGroupTree);
@@ -188,6 +208,11 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
         JToggleButton filterDeprecatedButton = FILTER_DEPRECATED_ACTION.createToggleButton();
         filterDeprecatedButton.setText("");
         toolBar.add(filterDeprecatedButton);
+        
+        JToggleButton sortButton = SORT_BY_USAGE_ACTION.createToggleButton();
+        sortButton.setText("");
+        toolBar.add(sortButton);
+
         add(toolBar, BorderLayout.NORTH);
 
         operatorGroupTree.setRootVisible(false);
@@ -202,6 +227,19 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
 				}
 			}
 		});
+        operatorGroupTree.addTreeExpansionListener(new TreeExpansionListener() {
+			
+			@Override
+			public void treeExpanded(TreeExpansionEvent event) {
+				updateMaxUsageCount();
+			}
+			
+			@Override
+			public void treeCollapsed(TreeExpansionEvent event) {
+				updateMaxUsageCount();
+			}
+		});
+        
         operatorGroupTree.setTransferHandler(new OperatorTransferHandler() {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -437,4 +475,27 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
 	public void selected() {
 		insertSelected();
 	}
+
+	private void updateMaxUsageCount() {
+		if (SORT_BY_USAGE_ACTION.isSelected()) {
+			renderer.setMaxVisibleUsageCount(getMaxVisibleUsage());
+		} else {
+			renderer.setMaxVisibleUsageCount(0);
+		}
+	}
+	 
+    private int getMaxVisibleUsage() {
+		int max = 0;
+		for (int i = 0; i < operatorGroupTree.getRowCount(); i++) {
+			TreePath path = operatorGroupTree.getPathForRow(i);
+			Object leaf = path.getLastPathComponent();
+			if (leaf instanceof OperatorDescription) {
+				OperatorUsageStatistics operatorStatistics1 = UsageStatistics.getInstance().getOperatorStatistics(StatisticsScope.ALL_TIME, (OperatorDescription) leaf);
+				int usageCount1 = (operatorStatistics1 == null) ? 0 : operatorStatistics1.getStatistics(OperatorStatisticsValue.EXECUTION);
+				max = Math.max(max, usageCount1);				
+			}
+		}
+		return max;
+	}
+    
 }

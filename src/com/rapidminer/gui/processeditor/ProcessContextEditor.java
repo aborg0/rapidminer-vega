@@ -34,8 +34,16 @@ import com.rapidminer.operator.ports.InputPorts;
 import com.rapidminer.operator.ports.OutputPorts;
 import com.rapidminer.repository.gui.RunRemoteDialog;
 
-/** An editor to editor {@link ProcessContext}s. This is used in the {@link RunRemoteDialog} and
- *  in the {@link ProcessContextProcessEditor}.
+/** <p>An editor to editor {@link ProcessContext}s. This is used in the {@link RunRemoteDialog} and
+ *  in the {@link ProcessContextProcessEditor}.</p>
+ *  
+ *  <p>
+ *  The editor keeps a reference to the edited {@link Process} and a {@link ProcessContext}.
+ *  Typically, the context will be the one provided by the process itself. Passing null
+ *  to one of the methods expecting a context will automatically use the one provided by
+ *  the process. However, if you want to edit a context that you want to superimpose on the
+ *  processes context later, you can pass in an alternative context. 
+ *  </p>
  *  
  * @author Simon Fischer, Tobias Malbrecht
  *
@@ -48,7 +56,9 @@ public class ProcessContextEditor extends JPanel {
 	private final RepositoryLocationsEditor<InputPorts> outputEditor;
 	private final MacroEditor macroEditor;
 
-	public ProcessContextEditor(Process process) {
+	/** Constructs an editor for the given process and edited context. See class comment to find out why you can pass in
+	 *  a context here. */
+	public ProcessContextEditor(Process process, ProcessContext alternativeContext) {
 		inputEditor = new RepositoryLocationsEditor<OutputPorts>(true, "context.input", "input"); 
 		outputEditor = new RepositoryLocationsEditor<InputPorts>(false, "context.output", "result");
 		macroEditor = new MacroEditor(true);
@@ -64,27 +74,19 @@ public class ProcessContextEditor extends JPanel {
 		add(outputEditor);
 		add(macroEditor);
 		
-		setProcess(process);
+		setProcess(process, alternativeContext);
 	}
 	
-	protected void setProcess(Process process) {
-		ProcessContext context = process != null ? process.getContext() : null;
+	/** Sets the process and edited context. See class comment to find out why you can pass in
+	 *  a context here. */
+	protected void setProcess(Process process, ProcessContext context) {		
+		if (context == null) {
+			context = process != null ? process.getContext() : null;		
+		}
 		macroEditor.setContext(context);
 		if (context != null) {
-			inputEditor.setData(process.getContext(), process.getRootOperator().getSubprocess(0).getInnerSources());
-			outputEditor.setData(process.getContext(), process.getRootOperator().getSubprocess(0).getInnerSinks());
-		} else {
-//			inputEditor.clear();
-//			outputEditor.clear();
+			inputEditor.setData(context, process.getRootOperator().getSubprocess(0).getInnerSources());
+			outputEditor.setData(context, process.getRootOperator().getSubprocess(0).getInnerSinks());
 		}
 	}
-
-//	public List<String> getInputRepositoryLocations() {
-//		return inputEditor.getRepositoryLocations();
-//	}
-//
-//	public List<String> getOutputRepositoryLocations() {
-//		return outputEditor.getRepositoryLocations();
-//	}
-
 }

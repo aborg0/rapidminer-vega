@@ -469,9 +469,9 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		fireProcessUpdated();
 	}
 		
-	private final Observer<Operator> processObserver = new Observer<Operator>() {
+	private final Observer<Process> processObserver = new Observer<Process>() {
 		@Override
-		public void update(Observable<Operator> observable, Operator arg) {
+		public void update(Observable<Process> observable, Process arg) {
 //			if (process.getProcessState() == Process.PROCESS_STATE_RUNNING) {
 //				return;
 //			}
@@ -970,7 +970,8 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	public void setProcess(Process process, boolean newProcess) {
 		boolean firstProcess = this.process == null;
 		if (this.process != null) {
-			this.process.getRootOperator().removeObserver(processObserver);
+			//this.process.getRootOperator().removeObserver(processObserver);
+			this.process.removeObserver(processObserver);
 		}
 		
 		if (getProcessState() != Process.PROCESS_STATE_STOPPED) {
@@ -980,7 +981,8 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		}
 		
 		if (process != null) {
-			process.getRootOperator().addObserver(processObserver, true);
+			//process.getRootOperator().addObserver(processObserver, true);
+			process.addObserver(processObserver, true);
 		}
 		
 		synchronized (process) {			

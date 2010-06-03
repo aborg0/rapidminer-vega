@@ -45,31 +45,19 @@ public class ProcessContextProcessEditor extends JPanel implements ProcessEditor
 
 	private static final long serialVersionUID = 1L;
 	
-	private final ProcessContextEditor editor = new ProcessContextEditor(null);
-
-//	private final Action APPLY_ACTION = new ResourceAction(true, "context.apply") {
-//		private static final long serialVersionUID = 1L;
-//		@Override
-//		public void actionPerformed(ActionEvent e) {
-//			if (context != null) {
-//				context.setInputRepositoryLocations(editor.getInputRepositoryLocations());
-//				context.setOutputRepositoryLocations(editor.getOutputRepositoryLocations());
-//			}
-//		}			
-//	};
+	private final ProcessContextEditor editor = new ProcessContextEditor(null, null);
 	
 	public ProcessContextProcessEditor() {
 		super(null);
 		setLayout(new BorderLayout());
 		ViewToolBar toolBar = new ViewToolBar();
-		//toolBar.add(APPLY_ACTION);
 		add(toolBar, BorderLayout.NORTH);
 		add(editor, BorderLayout.CENTER);
 	}
 
 	@Override
 	public void processChanged(Process process) {		
-		editor.setProcess(process);		
+		editor.setProcess(process, null);		
 	}
 
 	@Override

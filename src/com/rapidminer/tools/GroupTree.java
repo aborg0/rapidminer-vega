@@ -23,6 +23,8 @@
 package com.rapidminer.tools;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -361,5 +363,12 @@ public class GroupTree implements Comparable<GroupTree> {
 		}
 		return count;
 		
+	}
+
+	public void sort(Comparator<OperatorDescription> comparator) {
+		Collections.sort(operators, comparator);
+		for (GroupTree child : children.values()) {
+			child.sort(comparator);
+		}		
 	}
 }

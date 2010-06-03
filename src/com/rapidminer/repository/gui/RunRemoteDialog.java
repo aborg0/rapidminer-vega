@@ -48,6 +48,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.michaelbaranov.microba.calendar.DatePicker;
 import com.rapid_i.repository.wsimport.ExecutionResponse;
 import com.rapidminer.Process;
+import com.rapidminer.ProcessContext;
 import com.rapidminer.ProcessLocation;
 import com.rapidminer.RepositoryProcessLocation;
 import com.rapidminer.gui.processeditor.ProcessContextEditor;
@@ -157,7 +158,7 @@ public class RunRemoteDialog extends ButtonDialog {
 		}, true);
 		
 		JPanel schedulePanel = makeSchedulePanel();
-		JComponent contextPanel = new ProcessContextEditor(null);
+		JComponent contextPanel = new ProcessContextEditor(process, new ProcessContext());
 		tabs.addTabI18N("schedule", schedulePanel);
 		tabs.addTabI18N("context", contextPanel);
 		

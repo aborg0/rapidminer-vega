@@ -265,7 +265,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	}
 	
 	private void initContext() {
-		getContext().addObserver(delegatingObserver, false);		
+		getContext().addObserver(delegatingContextObserver, false);		
 	}
 	
 	/** Clone constructor. Makes a deep clone of the operator tree and the process file. 
@@ -481,7 +481,11 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 
 	/** Sets the current root operator. This might lead to a new registering of operator names. */
 	public void setRootOperator(ProcessRootOperator root) {
+		if (this.rootOperator != null) {
+			this.rootOperator.removeObserver(delegatingOperatorObserver);	
+		}
 		this.rootOperator = root;
+		this.rootOperator.addObserver(delegatingOperatorObserver, false);
 		this.operatorNameMap.clear();
 		this.rootOperator.setProcess(this);
 	}
@@ -1054,10 +1058,15 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	private final EventListenerList processSetupListeners = new EventListenerList();
 
 	/** Delegates any changes in the ProcessContext to the root operator. */
-	private final Observer<ProcessContext> delegatingObserver = new Observer<ProcessContext>() {
+	private final Observer<ProcessContext> delegatingContextObserver = new Observer<ProcessContext>() {
 		@Override
 		public void update(Observable<ProcessContext> observable, ProcessContext arg) {
-			//getRootOperator().transformMetaData();
+			fireUpdate();
+		}		
+	};
+	private final Observer<Operator> delegatingOperatorObserver = new Observer<Operator>() {
+		@Override
+		public void update(Observable<Operator> observable, Operator arg) {
 			fireUpdate();
 		}		
 	};
@@ -1143,10 +1152,10 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 
 	public void setContext(ProcessContext context) {
 		if (this.context != null) {
-			this.context.removeObserver(delegatingObserver);
+			this.context.removeObserver(delegatingContextObserver);
 		}
 		this.context = context;
-		this.context.addObserver(delegatingObserver, false);
+		this.context.addObserver(delegatingContextObserver, false);
 		fireUpdate();
 	}
 

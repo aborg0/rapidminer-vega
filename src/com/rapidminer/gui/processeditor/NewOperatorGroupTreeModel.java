@@ -22,6 +22,7 @@
  */
 package com.rapidminer.gui.processeditor;
 
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,6 +37,10 @@ import com.rapidminer.gui.tools.CamelCaseFilter;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.ProcessRootOperator;
 import com.rapidminer.tools.GroupTree;
+import com.rapidminer.tools.usagestats.OperatorStatisticsValue;
+import com.rapidminer.tools.usagestats.OperatorUsageStatistics;
+import com.rapidminer.tools.usagestats.UsageStatistics;
+import com.rapidminer.tools.usagestats.UsageStatistics.StatisticsScope;
 
 
 /**
@@ -44,6 +49,20 @@ import com.rapidminer.tools.GroupTree;
  * @author Ingo Mierswa, Tobias Malbrecht
  */
 public class NewOperatorGroupTreeModel implements TreeModel {
+
+	/** Compares operator descriptions based on their usage statistics. */
+	private final class UsageStatsComparator implements Comparator<OperatorDescription> {
+		@Override
+		public int compare(OperatorDescription op1, OperatorDescription op2) {				
+			OperatorUsageStatistics operatorStatistics1 = UsageStatistics.getInstance().getOperatorStatistics(StatisticsScope.ALL_TIME, op1);
+			int usageCount1 = (operatorStatistics1 == null) ? 0 : operatorStatistics1.getStatistics(OperatorStatisticsValue.EXECUTION);
+
+			OperatorUsageStatistics operatorStatistics2 = UsageStatistics.getInstance().getOperatorStatistics(StatisticsScope.ALL_TIME, op2);
+			int usageCount2 = (operatorStatistics2 == null) ? 0 : operatorStatistics2.getStatistics(OperatorStatisticsValue.EXECUTION);
+
+			return usageCount2 - usageCount1;
+		}
+	}
 
 	private final GroupTree completeTree;
 	
@@ -55,6 +74,8 @@ public class NewOperatorGroupTreeModel implements TreeModel {
 	
 	/** The list of all tree model listeners. */
 	private final List<TreeModelListener> treeModelListeners = new LinkedList<TreeModelListener>();
+
+	private boolean sortByUsage = false;	
 	
 	public NewOperatorGroupTreeModel(GroupTree root) {
 		this.completeTree = root;
@@ -161,7 +182,7 @@ public class NewOperatorGroupTreeModel implements TreeModel {
     }
     
     public int updateTree() {
-    	int hits = Integer.MAX_VALUE;
+    	int hits = Integer.MAX_VALUE;    	
     	GroupTree filteredTree = (GroupTree) this.completeTree.clone();    	
     	if (!"true".equals(System.getProperty(RapidMiner.PROPERTY_DEVELOPER_MODE))) {
     		removeDeprecatedGroup(filteredTree);
@@ -174,11 +195,15 @@ public class NewOperatorGroupTreeModel implements TreeModel {
         	hits = removeDeprecated(filteredTree);
         }
         this.displayedTree = filteredTree;
-        fireCompleteTreeChanged(this);
+        if (sortByUsage) {
+        	filteredTree.sort(new UsageStatsComparator());        	
+        }    
+        fireCompleteTreeChanged(this);        
         return hits;
     }
-    
-    public GroupTree getNonDeprecatedGroupTree(GroupTree tree) {
+   
+
+	public GroupTree getNonDeprecatedGroupTree(GroupTree tree) {
     	GroupTree filteredTree = (GroupTree) tree.clone();
     	removeDeprecated(filteredTree);
     	return filteredTree;
@@ -271,4 +296,11 @@ public class NewOperatorGroupTreeModel implements TreeModel {
         }
         return hits;
     }
+
+	public void setSortByUsage(boolean sort) {
+		if (sort != this.sortByUsage ) {
+			this.sortByUsage = sort;
+			updateTree();
+		}		
+	}
 }

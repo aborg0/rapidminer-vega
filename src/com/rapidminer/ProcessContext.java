@@ -22,6 +22,8 @@
  */
 package com.rapidminer;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -51,19 +53,24 @@ import com.rapidminer.tools.container.Pair;
  *  </p><p>
  *  The data is saved as strings rather than, e.g. using {@link RepositoryLocation}s.  
  *  </p>
- *  
+ *  <p>
+ *  Since this class is saved as a Lob with the ProcessExecutionParameters entity, serializability must
+ *  be ensured. This is guaranteed by the fact that this class only contains {@link List}s of 
+ *  strings or {@link Pair}s of strings, where {@link Pair} is serializable.
+ *  </p>
  * @author Simon Fischer
  */
-public class ProcessContext extends AbstractObservable<ProcessContext> {
+public class ProcessContext extends AbstractObservable<ProcessContext> implements Serializable {
 
-	private List<String> inputRepositoryLocations = new LinkedList<String>();
+	private static final long serialVersionUID = 1L;
 
-	private List<String> outputRepositoryLocations= new LinkedList<String>();
+	private List<String> inputRepositoryLocations = new ArrayList<String>();
+
+	private List<String> outputRepositoryLocations= new ArrayList<String>();
 
 	private List<Pair<String,String>> macros = new LinkedList<Pair<String,String>>();
 
 	public ProcessContext() {
-
 	}
 
 	public List<String> getInputRepositoryLocations() {
@@ -146,5 +153,31 @@ public class ProcessContext extends AbstractObservable<ProcessContext> {
 			throw new NullPointerException("Location must not be null");
 		}
 		inputRepositoryLocations.add(location);
+	}
+	
+	/** Merges the current context with the given one.
+	 *  Macros will be simply added, input and output locations override
+	 *  their respective counterparts if not null. This modifies this instance. */
+	public void superimpose(ProcessContext other) {
+		if (other == null) {
+			return;
+		}
+		for (Pair<String, String> macro : other.macros) {
+			this.macros.add(macro);
+		}
+		
+		for (int i = 0; i < other.inputRepositoryLocations.size(); i++) {
+			String loc = other.inputRepositoryLocations.get(i);
+			if (loc != null) {
+				this.setInputRepositoryLocation(i, loc);
+			}
+		}
+		
+		for (int i = 0; i < other.outputRepositoryLocations.size(); i++) {
+			String loc = other.outputRepositoryLocations.get(i);
+			if (loc != null) {
+				this.setOutputRepositoryLocation(i, loc);
+			}
+		}
 	}
 }
