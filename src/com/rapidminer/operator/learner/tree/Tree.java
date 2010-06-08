@@ -107,7 +107,10 @@ public class Tree implements Serializable {
     	if (children.size() == 0) {
     		// then its leaf: Add all counted frequencies
     		for (String key: this.counterMap.keySet()) {
-    			counterMap.put(key, this.counterMap.get(key));
+    			int newValue = this.counterMap.get(key);
+    			if (counterMap.containsKey(key))
+    				newValue += counterMap.get(key);
+    			counterMap.put(key, newValue);
     		}
     	} else {
     		for (Edge edge: children) {
@@ -157,9 +160,9 @@ public class Tree implements Serializable {
             buffer.append(condition.toString());
         }
         if (!tree.isLeaf()) {
-            Iterator<Edge> childIterator = tree.childIterator();
-            while (childIterator.hasNext()) {
-                buffer.append(Tools.getLineSeparator());
+        	Iterator<Edge> childIterator = tree.childIterator();
+        	while (childIterator.hasNext()) {
+            	buffer.append(Tools.getLineSeparator());
                 buffer.append(indent);
                 Edge edge = childIterator.next();
                 toString(edge.getCondition(), edge.getChild(), indent + "|   ", buffer);

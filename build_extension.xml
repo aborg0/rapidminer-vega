@@ -327,7 +327,7 @@ Name "${extension.name.long}"
 
 		<antcall target="version.get" />
         <antcall target="release.publish" />
-		<!--<antcall target="update.publish" />-->
+		<antcall target="update.publish" />
     </target>
 
 
