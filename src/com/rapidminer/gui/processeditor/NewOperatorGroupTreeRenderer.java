@@ -84,7 +84,11 @@ public class NewOperatorGroupTreeRenderer extends DefaultTreeCellRenderer {
         	
 			JLabel label = (JLabel)super.getTreeCellRendererComponent(tree, labelText, isSelected, expanded, leaf, row, hasFocus);
         	label.setIcon(op.getSmallIcon());
-        	label.setForeground(new Color(grayLevel, grayLevel, grayLevel));
+        	if (isSelected) {
+        		label.setForeground(Color.WHITE);
+        	} else {
+        		label.setForeground(new Color(grayLevel, grayLevel, grayLevel));
+        	}
         	if (op.getDeprecationInfo() != null) {
         		label.setEnabled(false);
         	}
