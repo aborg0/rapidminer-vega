@@ -55,6 +55,7 @@ public class AssociationRuleTableViewer extends JPanel implements AssociationRul
 			this.model = new AssociationRuleTableModel(rules);
 			setLayout(new BorderLayout());
 			JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+			splitPane.setBorder(null);
 			
 			// conclusion list
 			{
@@ -76,6 +77,7 @@ public class AssociationRuleTableViewer extends JPanel implements AssociationRul
 
 				table.setModel(model);
 				JScrollPane tablePane = new ExtendedJScrollPane(table);
+				tablePane.setBorder(null);
 				layout.setConstraints(tablePane, c);
 				mainPanel.add(tablePane);
 

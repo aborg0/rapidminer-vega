@@ -33,6 +33,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
+import com.rapidminer.gui.properties.PropertyPanel;
+import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.Annotations;
@@ -195,7 +197,10 @@ public class AnnotationsRenderer extends AbstractRenderer {
 		JPanel component = new JPanel(new BorderLayout());		
 		final AnnotationsTableModel model = new AnnotationsTableModel(ioobject);
 		final JTable table = new JTable(model);
-		component.add(new JScrollPane(table), BorderLayout.CENTER);
+		table.setRowHeight(PropertyPanel.VALUE_CELL_EDITOR_HEIGHT);
+		JScrollPane scrollPane = new ExtendedJScrollPane(table);
+		scrollPane.setBorder(null);
+		component.add(scrollPane, BorderLayout.CENTER);
 		
 		JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		buttons.add(new JButton(new ResourceAction("add_annotation") {

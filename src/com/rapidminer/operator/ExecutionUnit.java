@@ -818,8 +818,9 @@ public class ExecutionUnit extends AbstractObservable<ExecutionUnit> {
 			operators.add(newIndex, op);
 			if (process != null) {
 				process.fireOperatorAdded(op);
-			}
+			}			
 			fireUpdate();
+			updateExecutionOrder();
 		}		
 	}
 

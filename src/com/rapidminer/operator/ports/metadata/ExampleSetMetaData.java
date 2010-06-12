@@ -509,6 +509,9 @@ public class ExampleSetMetaData extends MetaData {
 				getAttributeSetRelation() == SetRelation.EQUAL) {
 			for (AttributeMetaData amd: getAllAttributes()) {
 				AttributeMetaData otherAMD = other.getAttributeByName(amd.getName());
+				if (otherAMD == null) {
+					return MetaDataInfo.NO;
+				}
 				String otherRole = otherAMD.getRole();
 				if (otherRole != null)
 					if (!otherAMD.getRole().equals(amd.getRole()))

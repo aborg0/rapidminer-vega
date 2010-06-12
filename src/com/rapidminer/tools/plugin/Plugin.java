@@ -713,6 +713,9 @@ public class Plugin {
 	}
 
 	public boolean showAboutBox() {
+		if (pluginInitClassName == null) {
+			return true;
+		}
 		try {
 			Class<?> pluginInitator = Class.forName(pluginInitClassName, false, getOriginalClassLoader());
 			Method initGuiMethod = pluginInitator.getMethod("showAboutBox", new Class[] {});
