@@ -50,7 +50,7 @@ import com.rapidminer.report.Tableable;
  */
 public class AnnotationsRenderer extends AbstractRenderer {
 
-	private final class AnnotationsTableModel extends AbstractTableModel {
+	private static final class AnnotationsTableModel extends AbstractTableModel {
 		private final IOObject ioobject;
 		private static final long serialVersionUID = 1L;
 

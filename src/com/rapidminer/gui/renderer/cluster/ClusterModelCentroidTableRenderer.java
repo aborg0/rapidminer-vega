@@ -36,7 +36,7 @@ import com.rapidminer.operator.clustering.CentroidClusterModel;
  */
 public class ClusterModelCentroidTableRenderer extends AbstractTableModelTableRenderer {
 
-	private class CentroidTableModel extends AbstractTableModel {
+	private static class CentroidTableModel extends AbstractTableModel {
 		private static final long serialVersionUID = 2196512073454635516L;
 		private CentroidClusterModel model;
 		

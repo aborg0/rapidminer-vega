@@ -181,6 +181,7 @@ public class LineParser {
 				return fastSplit(line, splitPattern.toString().charAt(0), trimLine, quoteCharacter, quoteEscapeCharacter);
 			}
 		} else {
+//			return fastSplit(line, splitPattern.toString().charAt(0), trimLine, quoteCharacter, quoteEscapeCharacter);
 			return split(line, splitPattern, trimLine);
 		}
 	}
@@ -191,7 +192,8 @@ public class LineParser {
 	}
 	
 	public static String[] split(String line, Pattern splitPattern, boolean trimLine, char quoteCharacter, char quoteEscapeCharacter) {
-		String s = Tools.escapeQuoteCharsInQuotes(trimLine ? line.trim() : line, splitPattern, quoteCharacter, quoteEscapeCharacter, true);
+//		String s = Tools.escapeQuoteCharsInQuotes(trimLine ? line.trim() : line, splitPattern, quoteCharacter, quoteEscapeCharacter, true);
+		String s = line;
 		return Tools.quotedSplit(trimLine ? s.trim() : s, splitPattern, quoteCharacter, quoteEscapeCharacter);		
 	}
 	
@@ -210,11 +212,11 @@ public class LineParser {
 	public static String[] fastSplit(String line, char splitChar, boolean trimLine, char quoteChar, char escapeChar) {
 		List<String> resultList = new ArrayList<String>();
 		/** holding the temporary split string */
-		StringBuffer tempString = new StringBuffer();
+		StringBuilder tempString = new StringBuilder();
 		/** character read in iteration i */
-		Character currentChar;
+		Character currentChar = null;
 		/** character which would be read in iteration i+1 */
-		Character nextChar;
+		Character nextChar = null;
 		/** error message to display */
 		String errorMessage = "";
 		/** column index where the error occured */
@@ -230,19 +232,19 @@ public class LineParser {
 		for (int i = 0; i<line.length(); i++) {
 			// read current character and next character (if applicaple)
 			currentChar = line.charAt(i);
-			if (i<line.length()-1) {
-				try {
-					nextChar = line.charAt(i+1);
-				} catch (IndexOutOfBoundsException e) {
-					nextChar = null;
-				}
-			} else {
+//			if (currentChar.equals('n')){
+//				System.out.println(" ");
+//			}
+			try {
+				nextChar = line.charAt(i+1);
+			} catch (IndexOutOfBoundsException e) {
 				nextChar = null;
 			}
 			// run through our split machine
 			switch(machineState) {
-			case NEW_SPLIT:
-				tempString = new StringBuffer();
+			case NEW_SPLIT:			
+				tempString.setLength(0); //faster??
+//				tempString = new StringBuilder();
 				if (currentChar == splitChar) {
 					resultList.add("");
 					continue;
@@ -290,7 +292,7 @@ public class LineParser {
 				if (currentChar == escapeChar) {
 					if (nextChar == null) {
 						// special case: escape char followed by EndOfLine -> empty value
-						resultList.add("");
+						resultList.add(null);
 						machineState = SplitMachineState.END_OF_LINE;
 						continue;
 					}
@@ -305,7 +307,15 @@ public class LineParser {
 				continue;
 			case WRITE_NOT_QUOTE:
 				if (currentChar == splitChar) {
-					resultList.add(tempString.toString().trim());
+//					resultList.add(tempString.toString().trim());
+					resultList.add(tempString.toString());
+					// splitChar at end of line handling
+					if (nextChar == null) {
+						resultList.add("");
+						tempString = new StringBuilder();
+						machineState = SplitMachineState.END_OF_LINE;
+						continue;
+					}
 					machineState = SplitMachineState.NEW_SPLIT;
 					continue;
 				}
@@ -326,7 +336,7 @@ public class LineParser {
 					errorMessage = "Value quote misplaced";
 					errorColumnIndex = i;
 					if (tempString.length() < 10) {
-						StringBuffer errorCharBuf = new StringBuffer();
+						StringBuilder errorCharBuf = new StringBuilder();
 						errorCharBuf.append(tempString);
 						if (errorCharBuf.length() > 0) {
 							errorCharBuf.insert(0, splitChar);
@@ -369,7 +379,7 @@ public class LineParser {
 						errorMessage = "Value quotes malformed";
 						errorColumnIndex = i;
 						if (tempString.length() < 10) {
-							StringBuffer errorCharBuf = new StringBuffer();
+							StringBuilder errorCharBuf = new StringBuilder();
 							errorCharBuf.append(tempString);
 							if (errorCharBuf.length() > 0) {
 								errorCharBuf.insert(0, splitChar);
@@ -405,6 +415,12 @@ public class LineParser {
 				machineState = SplitMachineState.WRITE_QUOTE;
 				continue;
 			case WRITE_QUOTE:
+				// special case: double quotes (eg. "") are used to escape the quote character. Excel exports it so...
+				if (nextChar != null && nextChar == quoteChar && currentChar == quoteChar ){
+					tempString.append(nextChar);
+					i++;
+					continue;
+				}
 				if (currentChar == quoteChar) {
 					tempString.append(currentChar);
 					machineState = SplitMachineState.QUOTE_CLOSED;
@@ -416,7 +432,7 @@ public class LineParser {
 						errorMessage = "Value quotes malformed";
 						errorColumnIndex = i;
 						if (tempString.length() < 10) {
-							StringBuffer errorCharBuf = new StringBuffer();
+							StringBuilder errorCharBuf = new StringBuilder();
 							errorCharBuf.append(tempString);
 							if (errorCharBuf.length() > 0) {
 								errorCharBuf.insert(0, splitChar);
@@ -448,22 +464,30 @@ public class LineParser {
 					i++;
 					continue;
 				}
+				
 				tempString.append(currentChar);
 				continue;
 			case QUOTE_CLOSED:
 				if (currentChar == splitChar) {
 					// remove quotes
 					if (tempString.charAt(0) == quoteChar && tempString.charAt(tempString.length()-1) == quoteChar) {
-						resultList.add(tempString.substring(1, tempString.length()-1));
+						// IF YOU DO NOT WANT "abc   " to become "abc", (w/o the quotes) remove .trim() ! Check the last string handling for similiar case!
+						resultList.add(tempString.substring(1, tempString.length()-1).trim());
 					} else {
 						// this should not occur, malformed quotes should be caught earlier
 						resultList.add(tempString.toString());
 					}
-					
+					// splitChar at end of line handling
+					if (nextChar == null) {
+						resultList.add("");
+						tempString = new StringBuilder();
+						machineState = SplitMachineState.END_OF_LINE;
+						continue;
+					}
 					machineState = SplitMachineState.NEW_SPLIT;
 					continue;
 				}
-				if (currentChar == ' ' || currentChar == '\t') {
+				if (currentChar == ' ' || (currentChar == '\t')) {
 					// delete whitespaces after closing quotes
 					continue;
 				}
@@ -471,7 +495,7 @@ public class LineParser {
 				errorMessage = "Unexpected character after closed value quote";
 				errorColumnIndex = i;
 				if (tempString.length() < 10) {
-					StringBuffer errorCharBuf = new StringBuffer();
+					StringBuilder errorCharBuf = new StringBuilder();
 					errorCharBuf.append(tempString);
 					if (errorCharBuf.length() > 0) {
 						errorCharBuf.insert(0, splitChar);
@@ -507,7 +531,7 @@ public class LineParser {
 			errorMessage = "Value quotes not closed";
 			errorColumnIndex = line.length()-1;
 			if (tempString.length() < 10) {
-				StringBuffer errorCharBuf = new StringBuffer();
+				StringBuilder errorCharBuf = new StringBuilder();
 				errorCharBuf.append(tempString);
 				if (errorCharBuf.length() > 0) {
 					errorCharBuf.insert(0, splitChar);
@@ -535,17 +559,18 @@ public class LineParser {
 			if (tempString.length() > 0) {
 				// remove quotes if state QUOTE_CLOSED was reached
 				if (machineState == SplitMachineState.QUOTE_CLOSED && tempString.charAt(0) == quoteChar && tempString.charAt(tempString.length()-1) == quoteChar) {
-					resultList.add(tempString.substring(1, tempString.length()-1));
+					// IF YOU DO NOT WANT "abc   " to become "abc", (w/o the quotes) remove .trim() !
+					resultList.add(tempString.substring(1, tempString.length()-1).trim());
+					tempString = new StringBuilder();
 				} else {
-					// this should not occur, malformed quotes should be caught earlier
 					resultList.add(tempString.toString());
+					tempString = new StringBuilder();
 				}
 			}
 		}
 		
 		String[] resultArray = new String[resultList.size()];
 		resultList.toArray(resultArray);
-		
 		return resultArray;
 	}
 }

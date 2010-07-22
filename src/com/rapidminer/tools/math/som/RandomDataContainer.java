@@ -34,6 +34,8 @@ import java.util.Vector;
  */
 public class RandomDataContainer implements KohonenTrainingsData {
 
+	private static final long serialVersionUID = -3565717014239190320L;
+
 	private Vector<double[]> data = new Vector<double[]>();
 
 	private Random generator;

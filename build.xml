@@ -343,12 +343,13 @@
 		</scp>
 
 		<!-- correcting file permissions -->
-		<for param="file">
+		<!--<for param="file">
 			<fileset dir="${release}/scp" includes="**/*.*" />
 			<sequential>
 			    <sshexec command="chmod 775 ${file}"  host="frs.sourceforge.net:${server.sf.url}" username="${server.sf.user},${server.sf.project}" password="${server.sf.password}" />
 			</sequential>
 		</for>
+        -->
 
 		<!-- move back and delete dir -->
 		<move todir="${release}">
@@ -393,7 +394,7 @@
 
 		<!-- Same as platfrom independent zip file: Call it and rename result-->
 		<antcall target="release.makePlatformIndependent" />
-		<copy file="${release}/rapidminer-${rapidminer.shortversion}.zip" tofile="${release}/update_rapidminer-${rapidminer.longversion}.zip" />
+		<copy file="${release}/rapidminer-${rapidminer.longversion}.zip" tofile="${release}/update_rapidminer-${rapidminer.longversion}.zip" />
 	</target>
 
 	<target name="update.makeWin32" depends="release.prepare" description="This creates the installer for the Windows32 platform">
@@ -479,7 +480,7 @@
 
 	<!-- Uploading updates -->
 
-	<target name="update.publish" depends="update.makeAll" description="This will generate a new update and upload files for all platforms. The update number will ne increased automatically.">
+	<target name="update.publish" depends="init" description="This will generate a new update and upload files for all platforms. The update number will ne increased automatically.">
 		<echo message="Publishing update ${rapidminer.longversion} using ${server.update.user}..." />
 		<echo message="...Platform Independent" />
 		<put targetUrl="${server.update.url}/rapidminer/${rapidminer.longversion}/ANY?force=true" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}.zip" username="${server.update.user}" password="${server.update.password}" />
@@ -504,6 +505,7 @@
 			<equals arg1="${update.input}" arg2="republish" />
 		</condition>
 		<antcall target="version.increaseUpdate" />
+		<antcall target="update.makeAll" />
 		<antcall target="update.publish" />
 	</target>
 
@@ -634,7 +636,7 @@
 
 	<target name="javaDoc.makeZip" depends="javaDoc.generate" description="This generates new java doc from source files a zips them for relase into the release dir.">
 		<echo message="Releasing java doc..." />
-		<zip destfile="${release}/rapidminer-${rapidminer.shortversion}-javadoc.zip">
+		<zip destfile="${release}/rapidminer-${rapidminer.longversion}-javadoc.zip">
 			<zipfileset dir="./javadoc" prefix="rapidminer-${rapidminer.shortversion}/javadoc/">
 				<include name="**/*" />
 			</zipfileset>

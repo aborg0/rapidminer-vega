@@ -29,11 +29,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -65,13 +70,14 @@ import org.xml.sax.SAXException;
 
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
+
 /**
  * 
  * @author Sebastian Land
  */
 public class XMLTools {
 
-	private static final Map<URL,Validator> VALIDATORS = new HashMap<URL,Validator>();
+	private static final Map<URI, Validator> VALIDATORS = new HashMap<URI, Validator>();
 
 	private final static DocumentBuilder BUILDER;
 
@@ -85,40 +91,56 @@ public class XMLTools {
 		} catch (ParserConfigurationException e) {
 			builder = null;
 		}
-		BUILDER =  builder;
-	}	
+		BUILDER = builder;
+	}
 
-	private static  Validator getValidator(URL schemaURL) {
-		if (schemaURL == null) {
+	private static Validator getValidator(URI schemaURI) {
+		if (schemaURI == null) {
 			throw new NullPointerException("SchemaURL is null!");
 		}
 		synchronized (VALIDATORS) {
-			if (VALIDATORS.containsKey(schemaURL)) {
-				return VALIDATORS.get(schemaURL);
-			} else {		
-				SchemaFactory factory  = null;
+			if (VALIDATORS.containsKey(schemaURI)) {
+				return VALIDATORS.get(schemaURI);
+			} else {
+				SchemaFactory factory = null;
 				if (factory == null) {
 					throw new RuntimeException("XMLConstants.W3C_XML_SCHEMA_NS_URI cannot be resolved at compile time for JBoss.");
-					//SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+					// SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 				}
 				Validator validator;
-				try {					
-					validator = factory.newSchema(schemaURL).newValidator();
+				try {
+					validator = factory.newSchema(schemaURI.toURL()).newValidator();
 				} catch (SAXException e1) {
 					validator = null;
-					//throw new XMLException("Cannot parse XML schema: "+e1, e1);
+					// throw new XMLException("Cannot parse XML schema: "+e1, e1);
+				} catch (MalformedURLException e) {
+					validator = null;
 				}
-				VALIDATORS.put(schemaURL, validator);
+				VALIDATORS.put(schemaURI, validator);
 				return validator;
-			}		
+			}
 		}
 	}
 
+	/**
+	 * This method should not be called since it is slower than {@link #parseAndValidate(InputStream, URI, String)}
+	 */
 	public static Document parseAndValidate(InputStream in, URL schemaURL, String sourceName) throws XMLException, IOException {
+		try {
+			return parseAndValidate(in, new URI(schemaURL.toString()), sourceName);
+		} catch (URISyntaxException e) {
+			throw new XMLException("Could not resolve URL.", e);
+		}
+	}
+
+	/**
+	 * The schema URL might be given as URI for performance reasons. 
+	 */
+	public static Document parseAndValidate(InputStream in, URI schemaURL, String sourceName) throws XMLException, IOException {
 		XMLErrorHandler errorHandler = new XMLErrorHandler(sourceName);
 
 		Document doc;
-		try {			
+		try {
 			doc = BUILDER.parse(in);
 		} catch (SAXException e) {
 			throw new XMLException(errorHandler.toString(), e);
@@ -131,20 +153,20 @@ public class XMLTools {
 		try {
 			validator.validate(source, result);
 		} catch (SAXException e) {
-			throw new XMLException(errorHandler.toString(), e);			
+			throw new XMLException(errorHandler.toString(), e);
 		}
 		if (errorHandler.hasErrors()) {
 			throw new XMLException(errorHandler.toString());
 		}
-		return (Document)result.getNode();
+		return (Document) result.getNode();
 	}
-	
+
 	public static Document parse(InputStream in) throws SAXException, IOException {
 		return BUILDER.parse(in);
 	}
 
 	public static Document parse(File file) throws SAXException, IOException {
-		return BUILDER.parse(file);	
+		return BUILDER.parse(file);
 	}
 
 	public static String toString(Document document, Charset encoding) throws XMLException {
@@ -153,59 +175,59 @@ public class XMLTools {
 		stream(document, result, encoding);
 		return buf.toString();
 	}
-	
+
 	public static void stream(Document document, File file, Charset encoding) throws XMLException {
-		
+
 		OutputStream out = null;
 		try {
 			out = new FileOutputStream(file);
 			stream(document, out, encoding);
 		} catch (IOException e) {
-			throw new XMLException("Cannot save XML to "+file+": "+e, e);
+			throw new XMLException("Cannot save XML to " + file + ": " + e, e);
 		} finally {
 			if (out != null) {
 				try {
 					out.close();
-				} catch (IOException e) { }
+				} catch (IOException e) {
+				}
 			}
 		}
 	}
-	
+
 	public static void stream(Document document, OutputStream out, Charset encoding) throws XMLException {
-		// we wrap this in a Writer to fix a Java bug 
+		// we wrap this in a Writer to fix a Java bug
 		// see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6296446
 		if (encoding == null) {
 			encoding = Charset.forName("UTF-8");
 		}
 		stream(document, new StreamResult(new OutputStreamWriter(out, encoding)), encoding);
 	}
-	
+
 	public static void stream(Document document, Result result, Charset encoding) throws XMLException {
 		Transformer transformer;
 		try {
 			TransformerFactory tf = TransformerFactory.newInstance();
 			try {
-				tf.setAttribute("indent-number", new Integer(2));		    
+				tf.setAttribute("indent-number", Integer.valueOf(2));
 			} catch (IllegalArgumentException e) {
-				LogService.getRoot().log(Level.WARNING, "XML transformer does not support indentation: "+e);
+				LogService.getRoot().log(Level.WARNING, "XML transformer does not support indentation: " + e);
 			}
 			transformer = tf.newTransformer();
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 			if (encoding != null) {
 				transformer.setOutputProperty(OutputKeys.ENCODING, encoding.name());
-			}					
-		} catch (TransformerConfigurationException e) {			
-			throw new XMLException("Cannot transform XML: "+e, e);
+			}
+		} catch (TransformerConfigurationException e) {
+			throw new XMLException("Cannot transform XML: " + e, e);
 		} catch (TransformerFactoryConfigurationError e) {
-			throw new XMLException("Cannot transform XML: "+e, e);			
+			throw new XMLException("Cannot transform XML: " + e, e);
 		}
 		try {
 			transformer.transform(new DOMSource(document), result);
 		} catch (TransformerException e) {
-			throw new XMLException("Cannot transform XML: "+e, e);
-		}		
+			throw new XMLException("Cannot transform XML: " + e, e);
+		}
 	}
-	
 
 	/** As {@link #getTagContents(Element, String, boolean)}, but never throws an exception. */
 	public static String getTagContents(Element element, String tag) {
@@ -214,29 +236,30 @@ public class XMLTools {
 		} catch (XMLException e) {
 			// cannot happen
 			return null;
-		}		
+		}
 	}
-	
+
 	/** For a tag <tag>content</tag> returns content. */
 	public static String getTagContents(Element element, String tag, boolean throwExceptionOnError) throws XMLException {
 		NodeList nodeList = element.getChildNodes();
 		for (int i = 0; i < nodeList.getLength(); i++) {
 			Node node = nodeList.item(i);
-			if ((node instanceof Element) && ((Element)node).getTagName().equals(tag)) {
+			if ((node instanceof Element) && ((Element) node).getTagName().equals(tag)) {
 				Element child = (Element) node;
 				return child.getTextContent();
 			}
 		}
 		if (throwExceptionOnError) {
-			throw new XMLException("Missing tag: <"+tag+"> in <"+element.getTagName()+">.");
+			throw new XMLException("Missing tag: <" + tag + "> in <" + element.getTagName() + ">.");
 		} else {
 			return null;
 		}
 	}
-	
-	/** If parent has a direct child with the given name, the child's children are removed 
-	 *  and are replaced by a single text node with the given text. If no direct child of parent
-	 *  with the given tag name exists, a new one is created. */
+
+	/**
+	 * If parent has a direct child with the given name, the child's children are removed and are replaced by a single
+	 * text node with the given text. If no direct child of parent with the given tag name exists, a new one is created.
+	 */
 	public static void setTagContents(Element parent, String tagName, String value) {
 		if (value == null) {
 			value = "";
@@ -246,7 +269,7 @@ public class XMLTools {
 		for (int i = 0; i < list.getLength(); i++) {
 			Node node = list.item(i);
 			if (node instanceof Element) {
-				if (((Element)node).getTagName().equals(tagName)) {
+				if (((Element) node).getTagName().equals(tagName)) {
 					child = (Element) node;
 					break;
 				}
@@ -254,13 +277,13 @@ public class XMLTools {
 		}
 		if (child == null) {
 			child = parent.getOwnerDocument().createElement(tagName);
-			parent.appendChild(child);			
+			parent.appendChild(child);
 		} else {
 			while (child.hasChildNodes()) {
 				child.removeChild(child.getFirstChild());
 			}
 		}
-		child.appendChild(parent.getOwnerDocument().createTextNode(value));		
+		child.appendChild(parent.getOwnerDocument().createTextNode(value));
 	}
 
 	public static void deleteTagContents(Element annotationsElement, String name) {
@@ -286,16 +309,45 @@ public class XMLTools {
 	}
 
 	public static Element getUniqueInnerTag(Element element, String tagName) throws XMLException {
+		return getUniqueInnerTag(element, tagName, true);
+	}
+
+	/**
+	 * This method will return null if the element doesn't exist if obligatory is false. Otherwise
+	 * an exception is thrown.
+	 * If the element is not unique, an exception is thrown in any cases.
+	 */
+	public static Element getUniqueInnerTag(Element element, String tagName, boolean obligatory) throws XMLException {
 		NodeList children = element.getElementsByTagName(tagName);
 		switch (children.getLength()) {
 		case 0:
-			throw new XMLException("Missing inner tag <"+tagName+"> inside <"+element.getTagName()+">.");
+			if (obligatory)
+				throw new XMLException("Missing inner tag <" + tagName + "> inside <" + element.getTagName() + ">.");
+			else
+				return null;
 		case 1:
 			return (Element) children.item(0);
 		default:
-			throw new XMLException("Inner tag <"+tagName+"> inside <"+element.getTagName()+"> must be unique, but found "+children.getLength()+".");
+			throw new XMLException("Inner tag <" + tagName + "> inside <" + element.getTagName() + "> must be unique, but found " + children.getLength() + ".");
 		}
-		
+
+	}
+
+	/**
+	 * This method will return a Collection of all Elements that are direct child elements of the given element and have
+	 * the given tag name.
+	 */
+	public static Collection<Element> getChildElements(Element father, String tagName) {
+		LinkedList<Element> elements = new LinkedList<Element>();
+		NodeList list = father.getChildNodes();
+		for (int i = 0; i < list.getLength(); i++) {
+			Node node = list.item(i);
+			if (node instanceof Element) {
+				if (node.getNodeName().equals(tagName))
+					elements.add((Element) node);
+			}
+		}
+		return elements;
 	}
 
 }

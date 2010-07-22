@@ -73,7 +73,7 @@ public class SubgroupDiscovery extends AbstractLearner {
 
 	// comparator class that compares rules according to
 	// the specified utility function
-	private class RuleComparator implements Comparator<Rule> {
+	private static class RuleComparator implements Comparator<Rule> {
 		Class<? extends UtilityFunction> functionClass;
 
 		public RuleComparator(Class<? extends UtilityFunction> functionClass) {
@@ -85,7 +85,7 @@ public class SubgroupDiscovery extends AbstractLearner {
 		}
 	}
 
-	private class HypothesisComparator implements Comparator<Hypothesis> {
+	private static class HypothesisComparator implements Comparator<Hypothesis> {
 		public int compare(Hypothesis firstHypothesis, Hypothesis secondHypothesis) {
 			return Double.compare(secondHypothesis.getCoveredWeight(), firstHypothesis.getCoveredWeight());
 		}

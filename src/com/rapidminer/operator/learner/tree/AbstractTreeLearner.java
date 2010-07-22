@@ -30,15 +30,16 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.learner.AbstractLearner;
 import com.rapidminer.operator.learner.PredictionModel;
+import com.rapidminer.operator.learner.tree.criterions.AbstractCriterion;
 import com.rapidminer.operator.learner.tree.criterions.AccuracyCriterion;
 import com.rapidminer.operator.learner.tree.criterions.Criterion;
 import com.rapidminer.operator.learner.tree.criterions.GainRatioCriterion;
 import com.rapidminer.operator.learner.tree.criterions.GiniIndexCriterion;
+import com.rapidminer.operator.learner.tree.criterions.InfoGainCriterion;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.ParameterTypeStringCategory;
-import com.rapidminer.tools.Tools;
 
 /**
  * This is the abstract super class for all decision tree learners. The actual
@@ -124,37 +125,7 @@ public abstract class AbstractTreeLearner extends AbstractLearner {
 	protected abstract TreeBuilder getTreeBuilder(ExampleSet exampleSet) throws OperatorException;
 
 	protected Criterion createCriterion(double minimalGain) throws OperatorException {
-		String criterionName = getParameterAsString(PARAMETER_CRITERION);
-		Class criterionClass = null;
-		for (int i = 0; i < CRITERIA_NAMES.length; i++) {
-			if (CRITERIA_NAMES[i].equals(criterionName)) {
-				criterionClass = CRITERIA_CLASSES[i];
-			}
-		}
-
-		if ((criterionClass == null) && (criterionName != null)) {
-			try {
-				criterionClass = Tools.classForName(criterionName);
-			} catch (ClassNotFoundException e) {
-				throw new OperatorException("Cannot find criterion '"+criterionName+"' and cannot instantiate a class with this name.");
-			}
-		}
-
-		if (criterionClass != null) {
-			try {
-				Criterion criterion = (Criterion)criterionClass.newInstance();
-				if (criterion instanceof MinimalGainHandler) {
-					((MinimalGainHandler)criterion).setMinimalGain(minimalGain);
-				}
-				return criterion;
-			} catch (InstantiationException e) {
-				throw new OperatorException("Cannot instantiate criterion class '"+criterionClass.getName()+"'.");
-			} catch (IllegalAccessException e) {
-				throw new OperatorException("Cannot access criterion class '"+criterionClass.getName()+"'.");
-			}
-		} else {
-			throw new OperatorException("No relevance criterion defined.");
-		}
+		return AbstractCriterion.createCriterion(this, minimalGain);
 	}
 
 	@Override

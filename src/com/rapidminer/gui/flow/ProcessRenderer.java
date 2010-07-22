@@ -438,16 +438,16 @@ public class ProcessRenderer extends JPanel {
 	//private static int PROCESS_HEIGHT = 400;	
 
 	/** The widths of the individual subprocesses. */
-	private final Map<ExecutionUnit,Dimension> processSizes = new WeakHashMap<ExecutionUnit,Dimension>();
+	private transient final Map<ExecutionUnit,Dimension> processSizes = new WeakHashMap<ExecutionUnit,Dimension>();
 
 	/** Distances between ports. */
-	private final Map<Port,Double> portSpacings = new WeakHashMap<Port,Double>();
+	private transient final Map<Port,Double> portSpacings = new WeakHashMap<Port,Double>();
 
 	/** The displayed processes. */
 	private ExecutionUnit[] processes = new ExecutionUnit[0];	
 
 	/** Maps operators to their positions (in process coordinate space). */
-	private final Map<Operator,Rectangle2D> operatorRects = new WeakHashMap<Operator,Rectangle2D>();
+	private transient final Map<Operator,Rectangle2D> operatorRects = new WeakHashMap<Operator,Rectangle2D>();
 
 	private static int PORT_OFFSET = OPERATOR_FONT.getSize() + 6 + PORT_SIZE;
 

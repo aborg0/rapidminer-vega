@@ -191,8 +191,12 @@ public class BinaryClassificationPerformance extends MeasuredPerformance {
 		super.startCounting(eSet, useExampleWeights);
 		this.predictedLabelAttribute = eSet.getAttributes().getPredictedLabel();
 		this.labelAttribute = eSet.getAttributes().getLabel();
-		if (!labelAttribute.isNominal() || (labelAttribute.getMapping().size() != 2))
+		if (!labelAttribute.isNominal() || (labelAttribute.getMapping().size() != 2 || !predictedLabelAttribute.isNominal() || predictedLabelAttribute.getMapping().size() != 2))
 			throw new UserError(null, 118, new Object[] { "'" + labelAttribute.getName() + "'", Integer.valueOf(labelAttribute.getMapping().getValues().size()), "2 for calculation of '" + getName() + "'" });
+		if (!labelAttribute.getMapping().equals(predictedLabelAttribute.getMapping())) {
+			throw new UserError(null, 157);
+		}
+		
 		this.negativeClassName = predictedLabelAttribute.getMapping().getNegativeString();
 		this.positiveClassName = predictedLabelAttribute.getMapping().getPositiveString();
 		if (useExampleWeights)
@@ -203,7 +207,7 @@ public class BinaryClassificationPerformance extends MeasuredPerformance {
 	@Override
 	public void countExample(Example example) {
 		String labelString = example.getNominalValue(labelAttribute);
-		int label = predictedLabelAttribute.getMapping().getIndex(labelString);
+		int label = labelAttribute.getMapping().getIndex(labelString);
 		String predString = example.getNominalValue(predictedLabelAttribute);
 		int plabel = predictedLabelAttribute.getMapping().getIndex(predString);
 

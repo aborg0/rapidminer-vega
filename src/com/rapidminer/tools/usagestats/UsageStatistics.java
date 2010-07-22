@@ -329,16 +329,24 @@ public class UsageStatistics {
 			report.getRecords().add(record);
 		}			
 
-		progressListener.setCompleted(25);
+		if (progressListener != null) {
+			progressListener.setCompleted(25);
+		}
 
 		RapidHome rapidHome = getPort();
 		if (rapidHome != null) {
-			progressListener.setCompleted(40);
+			if (progressListener != null) {
+				progressListener.setCompleted(40);
+			}
 			rapidHome.uploadUsageStatistics(report);
-			progressListener.setCompleted(80);
+			if (progressListener != null) {
+				progressListener.setCompleted(80);
+			}
 			return true;
 		} else {
-			progressListener.setCompleted(80);
+			if (progressListener != null) {
+				progressListener.setCompleted(80);
+			}
 			return false;
 		}		
 	}	
@@ -355,7 +363,7 @@ public class UsageStatistics {
 				WebServiceTools.setTimeout((BindingProvider) port);
 				return port;
 			} catch (Exception e) {
-				LogService.getRoot().warning("Failed to connect to usage statistics service "+urlString+".");
+				LogService.getRoot().log(Level.WARNING, "Failed to connect to usage statistics service "+urlString+".", e);
 				continue;
 			}
 		}

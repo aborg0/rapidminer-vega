@@ -35,7 +35,7 @@ import com.rapidminer.operator.learner.bayes.DistributionModel;
  */
 public class DistributionModelTableRenderer extends AbstractTableModelTableRenderer {
 
-	private class DistributionTableModel extends AbstractTableModel {
+	private static class DistributionTableModel extends AbstractTableModel {
 		private static final long serialVersionUID = 2196512073454635516L;
 		private DistributionModel model;
 		private int totalNumberOfParameters = 0;

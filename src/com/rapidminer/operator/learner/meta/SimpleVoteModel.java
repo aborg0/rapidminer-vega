@@ -48,9 +48,9 @@ public class SimpleVoteModel extends SimplePredictionModel implements MetaModel 
 
 	private static final long serialVersionUID = 1089932073805038503L;
 
-	private List<SimplePredictionModel> baseModels;
+	private List<? extends SimplePredictionModel> baseModels;
 
-	public SimpleVoteModel(ExampleSet exampleSet, List<SimplePredictionModel> baseModels) {
+	public SimpleVoteModel(ExampleSet exampleSet, List<? extends SimplePredictionModel> baseModels) {
 		super(exampleSet);
 		this.baseModels = baseModels;
 	}
@@ -59,7 +59,7 @@ public class SimpleVoteModel extends SimplePredictionModel implements MetaModel 
 	public double predict(Example example) throws OperatorException {
 		if (getLabel().isNominal()) {
 			Map<Double, AtomicInteger> classVotes = new TreeMap<Double, AtomicInteger>();
-			Iterator<SimplePredictionModel> iterator = baseModels.iterator();
+			Iterator<? extends SimplePredictionModel> iterator = baseModels.iterator();
 			while (iterator.hasNext()) {
 				double prediction = iterator.next().predict(example);
 				AtomicInteger counter = classVotes.get(prediction);
@@ -93,7 +93,7 @@ public class SimpleVoteModel extends SimplePredictionModel implements MetaModel 
 			}
 		} else {
 			double sum = 0.0d;
-			Iterator<SimplePredictionModel> iterator = baseModels.iterator();
+			Iterator<? extends SimplePredictionModel> iterator = baseModels.iterator();
 			while (iterator.hasNext()) {
 				sum += iterator.next().predict(example);
 			}

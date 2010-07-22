@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -29,14 +30,25 @@ import com.rapidminer.io.process.XMLTools;
 /** When started for the first time, listens on a given socket.
  *  If started for the second time, contacts this socket and 
  *  passes command line options to this socket.
- * 
+ *  The port number on which we listen is stored in a file in the users
+ *  home directory.
+ *  
+ *  In order to use this class, first try to contact another instance by calling
+ *  {@link #sendToOtherInstanceIfUp(String...)}. If true is returned, commands were
+ *  sent to the other instance and we can terminate. If false is returned, the other
+ *  instance is not running. In that case, call {@link #installListener(RemoteControlHandler)}.
+ *  Now, when another instance is started, callbacks are made to the {@link RemoteControlHandler}
+ *  passed. Precisely this is done when calling {@link #defaultLaunchWithArguments(String[], RemoteControlHandler)}.
+ *  
  * @author Simon Fischer
  *
  */
 public class LaunchListener {
 
+	/** Callbacks will be made to this interface when another client contacts us. */
 	public static interface RemoteControlHandler {
 
+		/** Callback method called when another client starts. */
 		boolean handleArguments(String[] args);
 
 	}
@@ -68,11 +80,13 @@ public class LaunchListener {
 		return INSTANCE;
 	}
 
-	private void installListener(RemoteControlHandler handler) throws IOException {
-		ServerSocket serverSocket = new ServerSocket(0); // 0 = let system assign port
-		int port = serverSocket.getLocalPort();
+	private void installListener(final RemoteControlHandler handler) throws IOException {
+		// port 0 = let system assign port
+		// backlog 1 = we don't expect simultaneous requests
+		final ServerSocket serverSocket = new ServerSocket(0, 1, InetAddress.getLocalHost()); 
+		final int port = serverSocket.getLocalPort();
 		final File socketFile = getSocketFile();
-		LOGGER.info("Listening for other instances on port "+port+". Writing "+socketFile);
+		LOGGER.info("Listening for other instances on port "+port+". Writing "+socketFile+".");
 		PrintStream socketOut = new PrintStream(socketFile);
 		socketOut.println(""+port);
 		socketOut.close();
@@ -83,13 +97,25 @@ public class LaunchListener {
 				socketFile.delete();				
 			}
 		});
-		this.handler = handler;
-		while (true) {
-			Socket client = serverSocket.accept();
-			// We don't spawn another thread here. 
-			// Assume no malicious client and communication is quick.
-			talkToSecondClient(client);
-		}
+		
+		Thread listenerThread = new Thread("Launch-Listener") {
+			public void run() {
+				LaunchListener.this.handler = handler;
+				while (true) {
+					Socket client;
+					try {
+						client = serverSocket.accept();
+						// We don't spawn another thread here. 
+						// Assume no malicious client and communication is quick.
+						talkToSecondClient(client);
+					} catch (IOException e) {
+						LogService.getRoot().log(Level.WARNING, "Error accepting socket connection: "+e, e);
+					}
+				}
+			}
+		};
+		listenerThread.setDaemon(true);
+		listenerThread.start();
 	}
 
 	private void talkToSecondClient(Socket client) {
@@ -104,7 +130,7 @@ public class LaunchListener {
 				NodeList argsElems = doc.getDocumentElement().getElementsByTagName("arg");
 				List<String> args = new LinkedList<String>();
 				for (int i = 0; i < argsElems.getLength(); i++) {
-					args.add(argsElems.item(0).getTextContent());
+					args.add(argsElems.item(i).getTextContent());
 				}
 				if (handler != null) {
 					LOGGER.config("Handling <args> command from other client.");
@@ -244,19 +270,17 @@ public class LaunchListener {
 		}
 	}
 
-	public static void main(String[] args) throws IOException {
-		LogService.getRoot();
+	/** Sends the arguments to the other client, if up.
+	 * @return true if other client is not up, so we must continue launching our APP. 
+	 * */
+	public static boolean defaultLaunchWithArguments(String[] args, RemoteControlHandler handler) throws IOException {
+		//LogService.getRoot();
 		ParameterService.init();
-		if (!getInstance().sendToOtherInstanceIfUp("hallo", "du", "da")) {
-			getInstance().installListener(new RemoteControlHandler() {				
-				@Override
-				public boolean handleArguments(String[] args) {
-					System.out.println("Received args: "+Arrays.toString(args));
-					return true;
-				}
-			});
+		if (!getInstance().sendToOtherInstanceIfUp(args)) {
+			getInstance().installListener(handler);
+			return true;
 		} else {
-			LOGGER.config("Other client already up. Exiting.");
+			return false;
 		}
 	}
 }

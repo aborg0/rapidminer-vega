@@ -63,6 +63,7 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorDescription;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.ProcessRootOperator;
 import com.rapidminer.operator.UnknownParameterInformation;
 import com.rapidminer.operator.ports.InputPort;
@@ -214,6 +215,11 @@ public class XMLImporter {
 		progressListener = listener;
 	}
 
+	public XMLImporter(ProgressListener listener, int version) {
+		this(listener);
+		this.version = version;
+	}
+	
 	private int messageCount = 0;
 	public void addMessage(String msg) {
 		LogService.getRoot().info(msg);
@@ -443,7 +449,27 @@ public class XMLImporter {
 			throw new XMLException("Cannot create operator: " + e.getMessage(), e);
 		}
 		operator.rename(opElement.getAttribute("name"));		
-
+		String versionString = opElement.getAttribute("compatibility");
+		OperatorVersion opVersion;
+		if ((versionString != null) && !versionString.isEmpty()) {
+			try {
+				opVersion = new OperatorVersion(versionString);
+			} catch (IllegalArgumentException e) {
+				addMessage("Failed to parse version string '"+versionString+"' for operator "+operator.getName()+".");
+				opVersion = new OperatorVersion(5,0,0);
+			}
+		} else {
+			opVersion = new OperatorVersion(5,0,0);
+		}
+		operator.setCompatibilityLevel(opVersion);
+		OperatorVersion incompatibleVersions[] = operator.getIncompatibleVersionChanges();
+		if ((incompatibleVersions != null) && (incompatibleVersions.length > 0)) {
+			OperatorVersion latest = incompatibleVersions[incompatibleVersions.length-1];
+			if (latest.ordinal() > opVersion.ordinal()) {
+				addMessage("Operator '"+operator.getName()+"' was created with version '"+opVersion+"'. The operator's behaviour has changed as of version and can be adapted to the latest version in the parameter panel.");
+			}
+		}
+		
 		if (opElement.hasAttribute("breakpoints")) {
 			String breakpointString = opElement.getAttribute("breakpoints");
 			boolean ok = false;

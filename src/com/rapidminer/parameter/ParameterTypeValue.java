@@ -60,9 +60,6 @@ public class ParameterTypeValue extends ParameterTypeSingle {
 		public boolean isValue() {
 			return isValue;
 		}
-		public boolean isParameter() {
-			return isParameter();
-		}
 	}
 	
 	private static final long serialVersionUID = -5863628921324775010L;

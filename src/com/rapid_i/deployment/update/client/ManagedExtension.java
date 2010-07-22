@@ -152,7 +152,7 @@ public class ManagedExtension {
 		return new File(Plugin.getPluginLocation(), "managed");
 	}
 	
-	private static File getUserExtensionsDir() {
+	public static File getUserExtensionsDir() {
 		return ParameterService.getUserConfigFile("managed");
 	}	
 

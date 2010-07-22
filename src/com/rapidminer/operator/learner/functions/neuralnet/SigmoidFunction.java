@@ -34,6 +34,8 @@ import com.rapidminer.example.Example;
  */
 public class SigmoidFunction extends ActivationFunction {
 	
+	private static final long serialVersionUID = 1L;
+
 	@Override
 	public String getTypeName() {
 		return "Sigmoid";

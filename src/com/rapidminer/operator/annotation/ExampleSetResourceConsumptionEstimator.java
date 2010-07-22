@@ -3,6 +3,7 @@ package com.rapidminer.operator.annotation;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
+import com.rapidminer.operator.tools.AttributeSubsetSelector;
 
 /** Computes resource consumption based on an example set taken from a
  *  given port.
@@ -14,10 +15,13 @@ public abstract class ExampleSetResourceConsumptionEstimator implements Resource
 
 	private InputPort inputPort;
 
+	private AttributeSubsetSelector selector;
 
-	public ExampleSetResourceConsumptionEstimator(InputPort inputPort) {
+
+	public ExampleSetResourceConsumptionEstimator(InputPort inputPort, AttributeSubsetSelector selector) {
 		super();
 		this.inputPort = inputPort;
+		this.selector = selector;
 	}
 
 	public abstract long estimateMemory(ExampleSetMetaData exampleSet);
@@ -43,10 +47,14 @@ public abstract class ExampleSetResourceConsumptionEstimator implements Resource
 		}
 	}
 
-	private ExampleSetMetaData getExampleSet() {
+	protected ExampleSetMetaData getExampleSet() {
 		final MetaData md = inputPort.getMetaData();
 		if (md instanceof ExampleSetMetaData) {
-			return (ExampleSetMetaData) md;
+			if (selector != null) {
+				return selector.getMetaDataSubset((ExampleSetMetaData) md, false);
+			} else {
+				return (ExampleSetMetaData) md;
+			}
 		} else {
 			return null;
 		}

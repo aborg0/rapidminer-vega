@@ -27,6 +27,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.sql.Date;
+import java.text.DateFormat;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -41,13 +43,16 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypeString;
+import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.io.Encoding;
 
 /**
- * <p>This operator can be used to write data into CSV files (Comma Separated Values). 
- * The values and columns are separated by &quot;;&quot;. Missing data values are 
- * indicated by empty cells.</p>
- *
+ * <p>
+ * This operator can be used to write data into CSV files (Comma Separated
+ * Values). The values and columns are separated by &quot;;&quot;. Missing data
+ * values are indicated by empty cells.
+ * </p>
+ * 
  * @author Ingo Mierswa
  */
 public class CSVExampleSetWriter extends AbstractExampleSetWriter {
@@ -61,19 +66,29 @@ public class CSVExampleSetWriter extends AbstractExampleSetWriter {
 	/** Indicates if the attribute names should be written as first row. */
 	public static final String PARAMETER_WRITE_ATTRIBUTE_NAMES = "write_attribute_names";
 
-	/** Indicates if nominal values should be quoted with double quotes. Quotes inside of nominal values will be escaped by a backslash. */
+	/**
+	 * Indicates if nominal values should be quoted with double quotes. Quotes
+	 * inside of nominal values will be escaped by a backslash.
+	 */
 	public static final String PARAMETER_QUOTE_NOMINAL_VALUES = "quote_nominal_values";
 
+	/**
+	 * Indicates if date attributes are written as a formated string or as
+	 * milliseconds past since January 1, 1970, 00:00:00 GMT
+	 */
+	// TODO introduce parameter which allows to determine the written format see
+	// Nominal2Date operator
+	public static final String PARAMETER_FORMAT_DATE = "format_date_attributes";
 
 	public CSVExampleSetWriter(OperatorDescription description) {
 		super(description);
 	}
 
 	@Override
-	public ExampleSet write(ExampleSet exampleSet) throws OperatorException {		
+	public ExampleSet write(ExampleSet exampleSet) throws OperatorException {
 		String columnSeparator = getParameterAsString(PARAMETER_COLUMN_SEPARATOR);
 		File file = getParameterAsFile(PARAMETER_CSV_FILE, true);
-		boolean quoteNominalValues = getParameterAsBoolean(PARAMETER_QUOTE_NOMINAL_VALUES); 
+		boolean quoteNominalValues = getParameterAsBoolean(PARAMETER_QUOTE_NOMINAL_VALUES);
 		PrintWriter out = null;
 		try {
 			out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(file), Encoding.getEncoding(this)));
@@ -107,14 +122,26 @@ public class CSVExampleSetWriter extends AbstractExampleSetWriter {
 						out.print(columnSeparator);
 					if (!Double.isNaN(example.getValue(attribute))) {
 						if (attribute.isNominal()) {
-							String stringValue = example.getValueAsString(attribute); 
+							String stringValue = example.getValueAsString(attribute);
 							if (quoteNominalValues) {
 								stringValue = stringValue.replaceAll("\"", "'");
 								stringValue = "\"" + stringValue + "\"";
 							}
 							out.print(stringValue);
 						} else {
-							out.print(example.getValue(attribute));
+							Double value = example.getValue(attribute);
+							if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
+								if (getParameterAsBoolean(PARAMETER_FORMAT_DATE)) {
+									Date date = new Date(value.longValue());
+									String s = DateFormat.getInstance().format(date);
+									out.print(s);
+								} else {
+									out.print(value);
+								}
+							} else {
+								out.print(value);
+							}
+
 						}
 					}
 					first = false;
@@ -142,8 +169,15 @@ public class CSVExampleSetWriter extends AbstractExampleSetWriter {
 		List<ParameterType> types = new LinkedList<ParameterType>();
 		types.add(new ParameterTypeFile(PARAMETER_CSV_FILE, "The CSV file which should be written.", "csv", false));
 		types.add(new ParameterTypeString(PARAMETER_COLUMN_SEPARATOR, "The column separator.", ";", false));
-		types.add(new ParameterTypeBoolean(PARAMETER_WRITE_ATTRIBUTE_NAMES, "Indicates if the attribute names should be written as first row.", true, false));
-		types.add(new ParameterTypeBoolean(PARAMETER_QUOTE_NOMINAL_VALUES, "Indicates if nominal values should be quoted with double quotes.", true, false));
+		types.add(new ParameterTypeBoolean(PARAMETER_WRITE_ATTRIBUTE_NAMES,
+				"Indicates if the attribute names should be written as first row.", true, false));
+		types.add(new ParameterTypeBoolean(PARAMETER_QUOTE_NOMINAL_VALUES,
+				"Indicates if nominal values should be quoted with double quotes.", true, false));
+		types
+				.add(new ParameterTypeBoolean(
+						PARAMETER_FORMAT_DATE,
+						"Indicates if date attributes are written as a formated string or as milliseconds past since January 1, 1970, 00:00:00 GMT",
+						true, true));
 		types.addAll(super.getParameterTypes());
 		return types;
 	}

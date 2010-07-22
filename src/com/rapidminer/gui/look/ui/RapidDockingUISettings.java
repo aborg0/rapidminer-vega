@@ -47,7 +47,7 @@ public class RapidDockingUISettings extends DockingUISettings {
 		UIManager.put("DockViewTitleBarUI",	"com.vlsolutions.swing.docking.ui.DockViewTitleBarUI");
 
 		// TODO: internationalize strings
-		UIManager.put("DockViewTitleBar.height", new Integer(20));
+		UIManager.put("DockViewTitleBar.height", Integer.valueOf(20));
 		UIManager.put("DockViewTitleBar.closeButtonText", UIManager.getString("InternalFrameTitlePane.closeButtonText"));
 		UIManager.put("DockViewTitleBar.minimizeButtonText", UIManager.getString("InternalFrameTitlePane.minimizeButtonText"));
 		UIManager.put("DockViewTitleBar.restoreButtonText", UIManager.getString("InternalFrameTitlePane.restoreButtonText"));

@@ -23,9 +23,11 @@
 package com.rapidminer.operator.visualization;
 
 import java.awt.Graphics;
+import java.io.ObjectStreamException;
 import java.util.Collections;
 
 import com.rapidminer.datatable.DataTable;
+import com.rapidminer.datatable.SimpleDataTable;
 import com.rapidminer.gui.plotter.Plotter;
 import com.rapidminer.gui.plotter.PlotterConfigurationModel;
 import com.rapidminer.operator.IOObject;
@@ -47,9 +49,9 @@ public class LiftParetoChart extends ResultObjectAdapter implements Renderable {
 	
 	private static final long serialVersionUID = 7559555964863472326L;
 
-	private transient final Plotter plotter;
+	private transient Plotter plotter;
 
-	private final DataTable liftChartData;
+	private final SimpleDataTable liftChartData;
 
 	private final String targetValue;
 
@@ -60,7 +62,7 @@ public class LiftParetoChart extends ResultObjectAdapter implements Renderable {
 	private final boolean rotateLabels;
 
 
-	public LiftParetoChart(DataTable liftChartData, String targetValue, boolean showBarLabels, boolean showCumulativeLabels, boolean rotateLabels) {
+	public LiftParetoChart(SimpleDataTable liftChartData, String targetValue, boolean showBarLabels, boolean showCumulativeLabels, boolean rotateLabels) {
 		this.liftChartData = liftChartData;
 		this.targetValue = targetValue;
 		this.showBarLabels = showBarLabels;
@@ -68,6 +70,7 @@ public class LiftParetoChart extends ResultObjectAdapter implements Renderable {
 		this.rotateLabels = rotateLabels;
 		
 		PlotterConfigurationModel settings = new PlotterConfigurationModel(PlotterConfigurationModel.PARETO_PLOT, liftChartData);
+		
 		this.plotter = settings.getPlotter();
 	}
 
@@ -127,5 +130,11 @@ public class LiftParetoChart extends ResultObjectAdapter implements Renderable {
 
 	public void render(Graphics graphics, int width, int height) {
 		plotter.render(graphics, width, height);
+	}
+	
+	private Object readResolve() throws ObjectStreamException {
+		PlotterConfigurationModel settings = new PlotterConfigurationModel(PlotterConfigurationModel.PARETO_PLOT, liftChartData);
+		this.plotter = settings.getPlotter();
+		return this;
 	}
 }

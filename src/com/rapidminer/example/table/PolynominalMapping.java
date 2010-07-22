@@ -84,6 +84,17 @@ public class PolynominalMapping implements NominalMapping {
 		return new PolynominalMapping(this);
 	}
 
+	@Override
+	public boolean equals(NominalMapping mapping) {
+		if (mapping.size() != size())
+			return false;
+		for(String value: mapping.getValues()) {
+			if (!symbolToIndexMap.containsKey(value))
+				return false;
+		}
+		return true;
+	}
+
 	/**
 	 * Returns the index for the nominal attribute value <code>str</code>. If
 	 * the string is unknown, a new index value is assigned. Returns -1, if str

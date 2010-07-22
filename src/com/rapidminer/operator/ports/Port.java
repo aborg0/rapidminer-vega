@@ -70,6 +70,13 @@ public interface Port extends Observable<Port> {
 	 *   @throws PortException if no data is available. */
 	public MetaData getMetaData();	
 
+	/**
+	 * This method returns the object of the desired class or throws an
+	 * UserError if no object is present or cannot be casted to the desiredClass.
+	 * * @throws UserError if data is missing or of wrong class. 
+	 */
+	public <T extends IOObject> T getData(Class<T> desiredClass) throws UserError;
+	
 	/** Same as {@link #getData(true)}. 
 	 * @throws UserError if data is missing. */
 	public <T extends IOObject> T getData() throws OperatorException;

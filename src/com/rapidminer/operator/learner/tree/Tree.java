@@ -148,6 +148,10 @@ public class Tree implements Serializable {
         return children.iterator();
     }
     
+    public int getNumberOfChildren() {
+    	return children.size();
+    }
+    
     @Override
 	public String toString() {
         StringBuffer buffer = new StringBuffer();

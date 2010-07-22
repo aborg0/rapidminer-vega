@@ -37,7 +37,7 @@ import com.rapidminer.tools.Tools;
  * <ul>
  * <li>Open the file <code>UserErrorMessages.properties</code> in the
  * <code>resources</code> directory. Look for an appropriate message. If you
- * find one, remember its id number. If not, create a new one in the correct
+ * find one, remember its id. If not, create a new one in the correct
  * group</li>
  * <li>The entry must include name, short message and long message. The name
  * and long message will be presented to the user literally. The short message
@@ -48,8 +48,15 @@ import com.rapidminer.tools.Tools;
  * of another exception, e.g. a FileNotFoundException, this exception should be
  * passed to the UserError in the constructor.</li>
  * </ul>
+ * <b>Attention!</b><br>
+ * Although the current UserErrorMessages.properties only contain numbers,
+ * the current implementation supports arbitrary strings as identifiers.
+ * Writers of Extensions are encouraged to use Strings for separating their 
+ * self defined errors from the errors defined in the core. 
+ * You should prepend a insert the namespace of the extension like:
+ * error.<extensions namespace>.error_id.short = ...
  * 
- * @author Simon Fischer, Ingo Mierswa
+ * @author Simon Fischer, Ingo Mierswa, Sebastian Land
  */
 public class UserError extends OperatorException implements NoBugError {
 
@@ -59,6 +66,8 @@ public class UserError extends OperatorException implements NoBugError {
 
 	private static final MessageFormat formatter = new MessageFormat("");
 
+	private String errorIdentifier = null; 
+	
 	private final int code;
 
 	private transient Operator operator;
@@ -97,12 +106,39 @@ public class UserError extends OperatorException implements NoBugError {
 		this(operator, null, code, new Object[0]);
 	}
 
+	public UserError(Operator operator, Throwable cause,  String errorId, Object ... arguments) {
+		super(getErrorMessage(errorId, arguments), cause);
+		this.code = -1;
+		this.errorIdentifier = errorId;
+		this.operator = operator;
+	}
+
+	/** Convenience constructor for messages with no arguments and cause. */
+	public UserError(Operator operator, Throwable cause,  String errorId) {
+		this(operator, errorId, new Object[0], cause);
+	}
+
+	public UserError(Operator operator, String errorId, Object ... arguments) {
+		this(operator, null, errorId, arguments);
+	}
+
+	/** Convenience constructor for messages with no arguments. */
+	public UserError(Operator operator, String errorId) {
+		this(operator, null, errorId, new Object[0]);
+	}
+	
 	public String getDetails() {
-		return getResourceString(code, "long", "Description missing.");
+		if (errorIdentifier == null)
+			return getResourceString(code, "long", "Description missing.");
+		else
+			return getResourceString(errorIdentifier, "long", "Description missing.");
 	}
 
 	public String getErrorName() {
-		return getResourceString(code, "name", "Unnamed error.");
+		if (errorIdentifier == null)
+			return getResourceString(code, "name", "Unnamed error.");
+		else
+			return getResourceString(errorIdentifier, "name", "Unnamed error.");
 	}
 
 	public int getCode() {
@@ -127,6 +163,18 @@ public class UserError extends OperatorException implements NoBugError {
 			return message;
 		}
 	}
+	
+	public static String getErrorMessage(String identifier, Object[] arguments) {
+		String message = getResourceString(identifier, "short", "No message.");
+		try {
+			formatter.applyPattern(message);
+			String formatted = formatter.format(arguments);
+			return formatted;
+		} catch (Throwable t) {
+			return message;
+		}
+ 
+	}
 
 	/**
 	 * Returns a resource message for the given error code.
@@ -136,10 +184,24 @@ public class UserError extends OperatorException implements NoBugError {
 	 *            &quot;long&quot;
 	 */
 	public static String getResourceString(int code, String key, String deflt) {
+		return getResourceString(code + "", key, deflt);
+	}
+	/**
+	 * This returns a resource message of the internationalized error messages
+	 * identified by an id. Compared to the legacy method {@link #getResourceString(int, String, String)}
+	 * this supports a more detailed identifier.
+	 * This makes it easier to ensure extensions don't reuse already defined core errors. It is common sense to 
+	 * add the extensions namespace identifier as second part of the key, just after error.
+	 * For example: error.rmx_web.operator.unusable = This operator {0} is unusable.
+	 * @param id The identifier of the error. "error." will be automatically prepended-
+	 * @param key The part of the error description that should be shown.
+	 * @param deflt The default if no resource bundle is available. 
+	 */ 
+	public static String getResourceString(String id, String key, String deflt) {
 		if (messages == null)
 			return deflt;
 		try {
-			return messages.getString("error." + code + "." + key);
+			return messages.getString("error." + id + "." + key);
 		} catch (java.util.MissingResourceException e) {
 			return deflt;
 		}

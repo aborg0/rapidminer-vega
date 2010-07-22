@@ -23,6 +23,9 @@
 package com.rapidminer.operator.io;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.Iterator;
@@ -80,19 +83,40 @@ public class ExcelExampleSetWriter extends AbstractExampleSetWriter {
 		ws.setLocale(Locale.US);
 
 		try {
-			WritableWorkbook workbook = Workbook.createWorkbook(file, ws);
-			WritableSheet s = workbook.createSheet("RapidMiner Data", 0);
-			writeDataSheet(s, exampleSet);
-			workbook.write();
-			workbook.close(); 
+			OutputStream out = new FileOutputStream(file);
+			write(exampleSet, encoding, out);			
+//			WritableWorkbook workbook = Workbook.createWorkbook(file, ws);
+//			WritableSheet s = workbook.createSheet("RapidMiner Data", 0);
+//			writeDataSheet(s, exampleSet);
+//			workbook.write();
+//			workbook.close(); 
 		} catch (Exception e) {
 			throw new UserError(this, 303, file.getName(), e.getMessage());
 		}
-		
 		return exampleSet;
 	}
 	
-	private void writeDataSheet(WritableSheet s, ExampleSet exampleSet) throws WriteException {
+	public static void write(ExampleSet exampleSet, Charset encoding, OutputStream out) throws IOException, WriteException {
+		try {
+			WorkbookSettings ws = new WorkbookSettings();		
+			ws.setEncoding(encoding.name());
+			ws.setLocale(Locale.US);
+
+			WritableWorkbook workbook = Workbook.createWorkbook(out, ws);
+			WritableSheet s = workbook.createSheet("RapidMiner Data", 0);
+			writeDataSheet(s, exampleSet);
+			workbook.write();
+			workbook.close();
+		} finally {
+			try {
+				out.close();
+			} catch (Exception e) {
+				// silent. exception will trigger warning anyway
+			}
+		}
+	}
+	
+	private static void writeDataSheet(WritableSheet s, ExampleSet exampleSet) throws WriteException {
 
 		// Format the Font
 		WritableFont wf = new WritableFont(WritableFont.ARIAL, 10, WritableFont.BOLD);
@@ -140,7 +164,7 @@ public class ExcelExampleSetWriter extends AbstractExampleSetWriter {
 		}
 	}
 	
-	private String replaceForbiddenChars(String originalValue) {
+	private static String replaceForbiddenChars(String originalValue) {
 		return originalValue.replace((char) 0, ' ');
 	}	
 	

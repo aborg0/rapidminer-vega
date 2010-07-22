@@ -24,8 +24,8 @@ package com.rapidminer.gui.actions;
 
 import java.awt.event.ActionEvent;
 
-import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.ApplicationPerspectives;
+import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.InputDialog;
@@ -39,7 +39,7 @@ public class NewPerspectiveAction extends ResourceAction {
 
 	private static final long serialVersionUID = 5526646387968616318L;
 	
-	private class NewPerspectiveDialog extends InputDialog {
+	private static class NewPerspectiveDialog extends InputDialog {
 		private static final long serialVersionUID = -7106546247629834518L;
 
 		private final ApplicationPerspectives perspectives;

@@ -25,7 +25,6 @@ package com.rapidminer.operator.io;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.Reader;
 import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -33,6 +32,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.rapidminer.example.ExampleSet;
@@ -44,6 +44,7 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
+import com.rapidminer.tools.jdbc.StatementCreator;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 import com.rapidminer.tools.jdbc.connection.ConnectionProvider;
 
@@ -53,11 +54,6 @@ import com.rapidminer.tools.jdbc.connection.ConnectionProvider;
  * database. The SQL query can be passed to RapidMiner via a parameter or, in case of
  * long SQL statements, in a separate file. Please note that column names are
  * often case sensitive. Databases may behave differently here.</p>
- * 
- * <p>The most convenient way of defining the necessary parameters is the 
- * configuration wizard. The most important parameters (database URL and user name) will
- * be automatically determined by this wizard and it is also possible to define
- * the special attributes like labels or ids.</p>
  * 
  * <p>Please note that this operator supports two basic working modes:</p>
  * <ol>
@@ -110,6 +106,7 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 	
 	public DatabaseDataReader(OperatorDescription description) {
 		super(description);
+		getParameterType(DatabaseDataReader.PARAMETER_ERROR_TOLERANT).setHidden(true);
 	}
 
 	public void tearDown() {
@@ -123,7 +120,7 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 		}
 	}
 	
-	private String getQuery() throws OperatorException {
+	private String getQuery(StatementCreator sc) throws OperatorException {
 		switch (getParameterAsInt(DatabaseHandler.PARAMETER_DEFINE_QUERY)) {
 		case DatabaseHandler.QUERY_QUERY:
 		{
@@ -150,7 +147,8 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 			}
 		}
 		case DatabaseHandler.QUERY_TABLE:
-			return "SELECT * FROM " + getParameterAsString(DatabaseHandler.PARAMETER_TABLE_NAME);
+			final String tableName = getParameterAsString(DatabaseHandler.PARAMETER_TABLE_NAME);
+			return "SELECT * FROM " + sc.makeIdentifier(tableName);
 		}
 		return null;
 	}
@@ -164,11 +162,11 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 		ResultSet rs = null;
 		try {
 			databaseHandler = DatabaseHandler.getConnectedDatabaseHandler(this);
-			String query = getQuery();
+			String query = getQuery(databaseHandler.getStatementCreator());
 			if (query == null) {
 				throw new UserError(this, 202, new Object[] { "query", "query_file", "table_name" });
 			}
-			log("Executing query: '" + query + "'");
+			getLogger().info("Executing query: '" + query + "'");
 			this.statement = databaseHandler.createStatement(false);
 			rs = this.statement.executeQuery(query);
 			log("Query executed.");
@@ -213,7 +211,10 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 			
 			private ResultSetMetaData metaData = null; 
 			{
+//				if (!attributeNamesDefinedByUser()){
+				
 				try {
+					clearAllReaderSettings();
 					metaData = resultSet.getMetaData(); 
 					int numberOfColumns = metaData.getColumnCount();
 					String[] columnNames = new String[numberOfColumns];
@@ -222,11 +223,19 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 						columnNames[i] = metaData.getColumnLabel(i + 1);
 						columnTypes[i] = DatabaseHandler.getRapidMinerTypeIndex(metaData.getColumnType(i + 1));
 					}
-					setColumnNames(columnNames);
-					setValueTypes(columnTypes);
+					setAttributeNames(columnNames);
+					setAttributeNamesDefinedByUser(true);
+					
+					List<Integer> list = new LinkedList<Integer>();
+					for (int i = 0; i<columnTypes.length; i++){
+						list.add(columnTypes[i]);
+					}
+					setValueTypes(list);
 				} catch (SQLException e) {
 					throw new OperatorException("Could not read result set meta data.");
 				}
+				
+//				}
 			}
 			
 			private Object[] values = new Object[getColumnCount()];
@@ -244,17 +253,23 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 							} else if (metaData.getColumnType(i + 1) == Types.CLOB) {
 								Clob clob = resultSet.getClob(i + 1);
 								if (clob != null) {
-									Reader reader = clob.getCharacterStream();
-									BufferedReader in = new BufferedReader(reader);
-									String line = null;
+									BufferedReader in = null;
 									try {
-										StringBuffer buffer = new StringBuffer();
-										while ((line = in.readLine()) != null) {
-											buffer.append(line + "\n");
+										in = new BufferedReader(clob.getCharacterStream());
+										String line = null;
+										try {
+											StringBuffer buffer = new StringBuffer();
+											while ((line = in.readLine()) != null) {
+												buffer.append(line + "\n");
+											}
+											values[i] = buffer.toString();
+										} catch (IOException e) {
+											values[i] = null;
 										}
-										values[i] = buffer.toString();
-									} catch (IOException e) {
-										values[i] = null;
+									} finally {
+										try {
+											in.close();
+										} catch (IOException e) {}
 									}
 								} else {
 									values[i] = null;
@@ -270,6 +285,7 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 					}
 					return false;					
 				} catch (SQLException e) {
+//					throw new OperatorException(e.getMessage(), e);
 					return false;
 				}
 			}
@@ -310,9 +326,13 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 			@Override
 			public String getString(int columnIndex) {
 				try {
+					if (values[columnIndex] == null){
+						return "";
+					}
 					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(DatabaseHandler.getRapidMinerTypeIndex(metaData.getColumnType(columnIndex + 1)), Ontology.NOMINAL)) {
 						return (String) values[columnIndex];
 					}
+					return values[columnIndex].toString();
 				} catch (SQLException e) {
 				}
 				return null;					
@@ -333,7 +353,7 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 	@Override
 	protected void addAnnotations(ExampleSet result) {
 		try {
-			result.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, getQuery());
+			result.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, getQuery(databaseHandler.getStatementCreator()));
 		} catch (OperatorException e) {
 		}
 	}

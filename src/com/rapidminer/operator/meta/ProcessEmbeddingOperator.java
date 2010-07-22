@@ -182,7 +182,7 @@ public class ProcessEmbeddingOperator extends Operator {
 		// run process
 		IOContainer result = null;
 		if (getParameterAsBoolean(PARAMETER_USE_INPUT)) {			
-			result = process.run(new IOContainer(inputExtender.getData(true)),LogService.UNKNOWN_LEVEL, true, macroMap);
+			result = process.run(new IOContainer(inputExtender.getData(false)),LogService.UNKNOWN_LEVEL, true, macroMap);
 		} else {
 			result = process.run(new IOContainer(),LogService.UNKNOWN_LEVEL, true, macroMap);
 		}

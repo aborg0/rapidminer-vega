@@ -24,72 +24,135 @@ package com.rapidminer.gui.tools.dialogs.wizards.dataimport.csv;
 
 import java.io.File;
 import java.util.LinkedList;
+import java.util.List;
 
+import javax.swing.SwingUtilities;
+
+import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.SimpleFileFilter;
-import com.rapidminer.gui.tools.dialogs.wizards.dataimport.AttributeSelectionWizardStep;
+import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DataImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.FileSelectionWizardStep;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.RepositoryLocationSelectionWizardStep;
+import com.rapidminer.gui.wizards.AbstractConfigurationWizardCreator;
+import com.rapidminer.gui.wizards.ConfigurationListener;
 import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.io.CSVDataReader;
-import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
+import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.Parameters;
+import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.repository.RepositoryLocation;
-import com.rapidminer.tools.DateParser;
 import com.rapidminer.tools.OperatorService;
-import com.rapidminer.tools.StrictDecimalFormat;
 import com.rapidminer.tools.io.Encoding;
-
 
 /**
  * A wizard to import CSV files into the repository.
  * 
- * @author Tobias Malbrecht
+ * @author Tobias Malbrecht, Sebastian Loh
  */
 public class CSVImportWizard extends DataImportWizard {
 
 	private static final long serialVersionUID = -4308448171060612833L;
-	
+
 	private File file = null;
-	
+
 	private CSVDataReader reader = null;
-	
-	private ExampleSetMetaData metaData = null;
-	
-	public CSVImportWizard(String i18nKey, Object ... i18nArgs) {
-		this(i18nKey, (File) null, (RepositoryLocation) null, i18nArgs);
+
+	private Parameters parametersBackup = null;
+
+	public CSVImportWizard(String i18nKey, Object... i18nArgs) {
+		this(i18nKey, (ConfigurationListener) null, (File) null, true, (RepositoryLocation) null, i18nArgs);
 	}
-	
-	public CSVImportWizard(String i18nKey, final File preselectedFile, final RepositoryLocation preselectedLocation, Object ... i18nArgs) {
+
+	public CSVImportWizard(String i18nKey, ConfigurationListener listener, final File preselectedFile, final boolean showStoreInRepositoryStep,
+			final RepositoryLocation preselectedLocation, Object... i18nArgs) {
 		super(i18nKey, i18nArgs);
+
 		file = preselectedFile;
-		try { 
-			reader = OperatorService.createOperator(com.rapidminer.operator.io.CSVDataReader.class);
-		} catch (OperatorCreationException e) {
-			
+		if (listener != null) {
+			reader = (CSVDataReader) listener;
+		} else {
+			try {
+				reader = OperatorService.createOperator(com.rapidminer.operator.io.CSVDataReader.class);
+			} catch (OperatorCreationException e) {
+				// TODO fix this
+				e.printStackTrace();
+			}
 		}
-		if (preselectedFile == null) {
-			addStep(new FileSelectionWizardStep(this, new SimpleFileFilter("CSV File (.csv)", ".csv")) {
-				@Override
-				protected boolean performLeavingAction() {
-					file = getSelectedFile();
-					return true;
-				}
-			});
-		}
-		addStep(new ParseFileWizardStep("specify_csv_parsing_options") {
+
+		parametersBackup = (Parameters) reader.getParameters().clone();
+
+		addStep(new FileSelectionWizardStep(this, new SimpleFileFilter("CSV File (.csv)", ".csv")) {
+
 			@Override
-			protected boolean canGoBack() {
+			protected boolean performEnteringAction() {
+				if (file != null && file.exists()) {
+					this.fileChooser.setSelectedFile(file);
+				}
 				return true;
 			}
 
 			@Override
-			protected boolean canProceed() {
+			protected boolean performLeavingAction() {
+				file = getSelectedFile();
+				File oldFile = null;
+				try {
+					oldFile = reader.getParameterAsFile(CSVDataReader.PARAMETER_CSV_FILE);
+				} catch (UndefinedParameterError e) {
+					oldFile = null;
+				}
+				if (oldFile == null || !oldFile.equals(file)) {
+					reader.clearAllReaderSettings();
+				}
+				reader.setParameter(CSVDataReader.PARAMETER_CSV_FILE, file.getAbsolutePath());
 				return true;
 			}
-			
+		});
+		addStep(new ParseFileWizardStep("specify_csv_parsing_options", reader) {
 			@Override
+			protected boolean performEnteringAction() {
+				reader.stopReading();
+				if (reader.attributeNamesDefinedByUser()) {
+					reader.loadMetaDataFromParameters();
+
+					List<Object[]> dummyData = new LinkedList<Object[]>();
+					setData(dummyData);
+
+					new ProgressThread("load_csv_file") {
+						@Override
+						public void run() {
+							final List<Object[]> data;
+							try {
+								data = reader.getPreviewAsList(getProgressListener(), true);
+							} catch (OperatorException e) {
+								// TODO fix this
+								SwingTools.showVerySimpleErrorMessage(e.getMessage(), e);
+								return;
+							}
+							SwingUtilities.invokeLater(new Runnable() {
+								@Override
+								public void run() {
+									setData(data);
+								}
+							});
+						}
+					}.start();
+
+				} else {
+					settingsChanged();
+				}
+				return true;
+			}
+
+			@Override
+			protected boolean performLeavingAction() {
+				reader.stopReading();
+				return true;
+			}
+
 			protected void settingsChanged() {
+				reader.clearAllReaderSettings();
 				reader.setParameter(Encoding.PARAMETER_ENCODING, getEncoding().displayName());
 				reader.setParameter(CSVDataReader.PARAMETER_TRIM_LINES, Boolean.toString(trimLines()));
 				reader.setParameter(CSVDataReader.PARAMETER_SKIP_COMMENTS, Boolean.toString(skipComments()));
@@ -97,29 +160,32 @@ public class CSVImportWizard extends DataImportWizard {
 				reader.setParameter(CSVDataReader.PARAMETER_USE_FIRST_ROW_AS_ATTRIBUTE_NAMES, Boolean.toString(getUseFirstRowAsColumnNames()));
 				reader.setParameter(CSVDataReader.PARAMETER_USE_QUOTES, Boolean.toString(useQuotes()));
 				reader.setParameter(CSVDataReader.PARAMETER_QUOTES_CHARACTER, Character.toString(getQuotesCharacter()));
+				reader.setParameter(CSVDataReader.PARAMETER_ESCAPE_CHARACTER, Character.toString(getEscapeCharacter()));
 				reader.setParameter(CSVDataReader.PARAMETER_COLUMN_SEPARATORS, getSplitExpression());
-				reader.setCachePreview(true);
-				try {
-					metaData = (ExampleSetMetaData) reader.getGeneratedMetaData();
-				} catch (OperatorException e) {
-				}
-				LinkedList<Object[]> data = reader.getPreview();
-				setData(metaData, data);
+				List<Object[]> dummyData = new LinkedList<Object[]>();
+				setData(dummyData);
+
+				new ProgressThread("load_csv_file") {
+					@Override
+					public void run() {
+						final List<Object[]> data;
+						try {
+							data = reader.getPreviewAsList(getProgressListener(), true);
+						} catch (OperatorException e) {
+							// TODO fix this
+							SwingTools.showVerySimpleErrorMessage(e.getMessage(), e);
+							return;
+						}
+						SwingUtilities.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								setData(data);
+							}
+						});
+					}
+				}.start();
 			}
-			
-			@Override
-			protected boolean performEnteringAction() {
-				reader.setParameter(CSVDataReader.PARAMETER_FILE_NAME, file.getAbsolutePath());
-				settingsChanged();
-				return true;
-			}
-			
-			@Override
-			protected boolean performLeavingAction() {
-				return true;
-			}
-		});
-		addStep(new ParseValueTypesWizardStep("value_type_selection") {
+
 			@Override
 			protected boolean canGoBack() {
 				return true;
@@ -129,33 +195,9 @@ public class CSVImportWizard extends DataImportWizard {
 			protected boolean canProceed() {
 				return true;
 			}
-			
-			protected void settingsChanged() {
-				reader.setParameter(StrictDecimalFormat.PARAMETER_DECIMAL_CHARACTER, Character.toString(getDecimalPointCharacter()));
-				reader.setParameter(StrictDecimalFormat.PARAMETER_GROUPED_DIGITS, Boolean.toString(this.groupDigits()));
-				reader.setParameter(StrictDecimalFormat.PARAMETER_GROUPING_CHARACTER, Character.toString(getGroupingSeparator()));
-				reader.setParameter(DateParser.PARAMETER_DATE_FORMAT, getDateFormat());
-				reader.setCachePreview(true);
-				try {
-					metaData = (ExampleSetMetaData) reader.getGeneratedMetaData();
-				} catch (OperatorException e) {
-				}
-				LinkedList<Object[]> data = reader.getPreview();
-				setData(metaData, data);
-			}
 
-			@Override
-			protected boolean performEnteringAction() {
-				settingsChanged();
-				return true;
-			}
-			
-			@Override
-			protected boolean performLeavingAction() {
-				return true;
-			}
 		});
-		addStep(new AttributeSelectionWizardStep("select_attributes") {
+		addStep(new ParseValueTypesWizardStep("value_type_selection", reader) {
 			@Override
 			protected boolean canGoBack() {
 				return true;
@@ -168,16 +210,90 @@ public class CSVImportWizard extends DataImportWizard {
 
 			@Override
 			protected boolean performEnteringAction() {
-				setMetaData(metaData);
+				if (
+				reader.attributeNamesDefinedByUser()) {
+					reader.loadMetaDataFromParameters();
+				}
+				super.performEnteringAction();
+				return true;
+			}
+
+			@Override
+			protected boolean performLeavingAction() {
+				// MetaData is saved to the ParameterType
+				reader.stopReading();
+				reader.writeMetaDataInParameter();
 				return true;
 			}
 		});
-		addStep(new RepositoryLocationSelectionWizardStep("select_repository_location", this, null, preselectedLocation != null ? preselectedLocation.getAbsoluteLocation() : null) {
-			@Override
-			protected boolean performLeavingAction() {
-				return transferData(reader, metaData, getRepositoryLocation());
+
+		if (showStoreInRepositoryStep) {
+			addStep(new RepositoryLocationSelectionWizardStep("select_repository_location", this, null,
+					preselectedLocation != null ? preselectedLocation.getAbsoluteLocation() : null) {
+				@Override
+				protected boolean performLeavingAction() {
+					return transferData(reader, getRepositoryLocation());
+				}
+			});
+		}
+		layoutDefault(HUGE);
+	}
+
+	@Override
+	public void cancel() {
+		reader.getParameters().setAll(parametersBackup);
+		reader.stopReading();
+		super.cancel();
+	}
+
+	@Override
+	public void finish() {
+		reader.stopReading();
+		super.finish();
+	}
+
+	/**
+	 * Creates a {@link CSVImportWizard}.
+	 * 
+	 * @author Sebastian Loh (06.05.2010)
+	 * 
+	 */
+	public static class CSVDataReaderWizardCreator extends AbstractConfigurationWizardCreator {
+
+		private static final long serialVersionUID = 1L;
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @seecom.rapidminer.gui.wizards.ConfigurationWizardCreator#
+		 * createConfigurationWizard(com.rapidminer.parameter.ParameterType,
+		 * com.rapidminer.gui.wizards.ConfigurationListener)
+		 */
+		@Override
+		public void createConfigurationWizard(ParameterType type, ConfigurationListener listener) {
+			// create wizard depending on the operator context
+			String fileLocation = "";
+			try {
+				fileLocation = listener.getParameters().getParameter(CSVDataReader.PARAMETER_CSV_FILE);
+				if (fileLocation == null) {
+					throw new UndefinedParameterError("");
+				}
+				File file = new File(fileLocation);
+				(new CSVImportWizard(getI18NKey(), listener, file, false, null)).setVisible(true);
+			} catch (UndefinedParameterError e) {
+				(new CSVImportWizard(getI18NKey(), listener, null, false, null)).setVisible(true);
 			}
-		});
-		layoutDefault();
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see
+		 * com.rapidminer.gui.wizards.ConfigurationWizardCreator#getI18NKey()
+		 */
+		@Override
+		public String getI18NKey() {
+			return "data_import_wizard";
+		}
 	}
 }

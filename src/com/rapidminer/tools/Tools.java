@@ -616,6 +616,7 @@ public class Tools {
 	/** 
 	 * @deprecated Use {@link MailUtilities#sendEmail(String,String,String)} instead
 	 */
+	@Deprecated
 	public static void sendEmail(String address, String subject, String content) {
 		MailUtilities.sendEmail(address, subject, content);
 	}
@@ -1191,6 +1192,34 @@ public class Tools {
 			System.out.println(t);
 		}
 	}
+	
+	
+	/**
+	 * 
+	 * Returns the column name of the the n'th column like excel names it.
+	 * 
+	 * @param index
+	 *            the index of the column
+	 * 
+	 * @return
+	 */
+	public static String getExcelColumnName(int index) {
+		if (index < 0) {
+			return "error";
+		}
+		final Character[] alphabet = new Character[] { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
+				'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
+
+//		 index -= 1; // adjust so it matches 0-indexed array rather than
+		// 1-indexed column
+
+		int quotient = index / 26;
+		if (quotient > 0) {
+			return getExcelColumnName(quotient-1) + alphabet[index % 26].toString();
+		} else {
+			return alphabet[(index) % 26].toString();
+		}
+	}
 
 	/**
 	 * Replace quote chars in-quote characters by escapeChar+quotingChar
@@ -1368,12 +1397,13 @@ public class Tools {
 	 * Please keep in mind that in order to load the data, the data will be stored in memory twice.
 	 */
 	public static byte[] readUrl(URL url) {
+		BufferedInputStream in = null;
 		try {
 			class Part {
 				byte[] partData;
 				int len;
 			}
-			BufferedInputStream in = new BufferedInputStream(url.openStream());
+			in = new BufferedInputStream(url.openStream());
 			LinkedList<Part> parts = new LinkedList<Part>();
 			int len = 1;
 			while (len > 0) {
@@ -1400,6 +1430,13 @@ public class Tools {
 			return result;
 		} catch (IOException e) {
 			return null;
+		} finally {
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException e) {
+				}
+			}
 		}
 	}
 }

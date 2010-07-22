@@ -55,7 +55,7 @@ public class ExtendedJTablePacker {
 				Rectangle viewRect = viewport.getViewRect();
 				from = table.rowAtPoint(new Point(0, viewRect.y));
 				from = Math.max(0, from);
-				to = table.rowAtPoint(new Point(0, viewRect.y + viewRect.height - 1));
+				to = table.rowAtPoint(new Point(0, viewRect.y + viewRect.height - 2));
 				to = Math.min(to, table.getRowCount());
 			}
 			

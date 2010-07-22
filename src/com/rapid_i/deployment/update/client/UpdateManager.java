@@ -55,7 +55,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.rapid_i.Launcher;
+import com.rapidminer.RapidMiner;
 import com.rapidminer.Version;
+import com.rapidminer.RapidMiner.ExecutionMode;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.deployment.client.wsimport.UpdateService;
 import com.rapidminer.deployment.client.wsimport.UpdateServiceException_Exception;
@@ -367,6 +369,10 @@ public class UpdateManager {
 		if (Tools.booleanValue(updateProperty, true)) {
 			if (Launcher.isDevelopmentBuild()) {
 				LogService.getRoot().config("This is a development build. Ignoring update check.");
+				return;
+			}
+			if (RapidMiner.getExecutionMode() == ExecutionMode.WEBSTART) {
+				LogService.getRoot().config("Ignoring update check in Webstart mode.");
 				return;
 			}
 			

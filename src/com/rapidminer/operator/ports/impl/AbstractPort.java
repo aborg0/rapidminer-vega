@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.rapidminer.gui.renderer.RendererService;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ports.Port;
@@ -90,10 +91,19 @@ public abstract class AbstractPort extends AbstractObservable<Port> implements P
 		}
 	}
 	
+	public final <T extends IOObject> T getData(Class<T> desiredClass) throws UserError {
+		IOObject data = getAnyDataOrNull();
+		if (desiredClass.isAssignableFrom(data.getClass())) {
+			return desiredClass.cast(data);
+		} else { 
+			throw new UserError(getPorts().getOwner().getOperator(), 156, RendererService.getName(data.getClass()), this.getName(), RendererService.getName(desiredClass));
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public final <T extends IOObject> T getDataOrNull() throws UserError {
-		IOObject data = getAnyDataOrNull();
+		IOObject data = getAnyDataOrNull();		
 		try {
 			return (T)data;
 		} catch (ClassCastException e) {

@@ -94,7 +94,7 @@ public abstract class DropDownButton extends JButton {
 
 	private JButton mainButton = this;
 	
-	public class DropDownArrowButton extends ArrowButton {
+	public static class DropDownArrowButton extends ArrowButton {
 		private static final long serialVersionUID = -398619111521186260L;
 
 		public DropDownArrowButton() {

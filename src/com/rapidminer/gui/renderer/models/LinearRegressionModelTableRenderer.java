@@ -36,7 +36,7 @@ import com.rapidminer.operator.learner.functions.LinearRegressionModel;
  */
 public class LinearRegressionModelTableRenderer extends AbstractTableModelTableRenderer {
 
-	private class LinearRegressionModelTableModel extends AbstractTableModel {
+	private static class LinearRegressionModelTableModel extends AbstractTableModel {
 
 		private static final long serialVersionUID = -2112928170124291591L;
 

@@ -26,14 +26,19 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 
+import javax.accessibility.Accessible;
 import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JList;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 
 /**
- * A combo box which can use a predefined preferred size. Can also show the full value as
- * tool tip in cases where the strings were too short.
+ * A combo box which can use a predefined preferred size. Can also show the full value as tool tip in cases where the
+ * strings were too short.
  * 
  * @author Ingo Mierswa
  */
@@ -46,7 +51,7 @@ public class ExtendedJComboBox extends JComboBox {
 		private static final long serialVersionUID = -6192190927539294311L;
 
 		@Override
-		public Component getListCellRendererComponent(JList list, Object value,	int index, boolean isSelected, boolean cellHasFocus) {
+		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
 			if (isSelected) {
 				setBackground(list.getSelectionBackground());
 				setForeground(list.getSelectionForeground());
@@ -63,14 +68,39 @@ public class ExtendedJComboBox extends JComboBox {
 		}
 	}
 
+	private boolean isScrollingToTopOnChange = false;
+
+	// this listener is used to scroll back on top, if the data has been changed.
+	private ListDataListener scrollToTopListener = new ListDataListener() {
+		@Override
+		public void intervalRemoved(ListDataEvent e) {
+		}
+
+		@Override
+		public void intervalAdded(ListDataEvent e) {
+			if (isScrollingToTopOnChange) {
+				Accessible accessibleChild = ExtendedJComboBox.this.getUI().getAccessibleChild(ExtendedJComboBox.this, 0);
+				if (!(accessibleChild instanceof JPopupMenu)) {
+					return;
+				}
+				Object scrollPaneObject = ((JPopupMenu) accessibleChild).getComponent(0);
+				if (scrollPaneObject instanceof JScrollPane)
+					((JScrollPane) scrollPaneObject).getVerticalScrollBar().setValue(0);
+			}
+		}
+
+		@Override
+		public void contentsChanged(ListDataEvent e) {
+		}
+	};
 
 	private int preferredWidth = -1;
 
 	private int minimumWidth = -1;
 
-	private boolean layingOut = false; 
+	private boolean layingOut = false;
 
-	private boolean wide = true; 
+	private boolean wide = true;
 
 	public ExtendedJComboBox(String[] values) {
 		this(-1, -1, true, values);
@@ -95,14 +125,16 @@ public class ExtendedJComboBox extends JComboBox {
 	public ExtendedJComboBox(ComboBoxModel model) {
 		this(-1, -1, true, model);
 	}
-	
+
 	public ExtendedJComboBox(int preferredWidth, int minimumWidth, boolean wide, ComboBoxModel model) {
 		super(model);
 		this.preferredWidth = preferredWidth;
 		this.minimumWidth = minimumWidth;
 		this.wide = wide;
-	}	
-	
+		
+		model.addListDataListener(scrollToTopListener);
+	}
+
 	public ExtendedJComboBox(int preferredWidth, int minimumWidth, boolean wide, String[] values) {
 		super(values);
 		this.preferredWidth = preferredWidth;
@@ -112,20 +144,38 @@ public class ExtendedJComboBox extends JComboBox {
 		setRenderer(new ExtendedComboBoxRenderer());
 	}
 
-	public boolean isWide() { 
-		return wide; 
+	@Override
+	public void setModel(ComboBoxModel aModel) {
+		super.setModel(aModel);
+		aModel.addListDataListener(scrollToTopListener);
+	}
+	
+	public boolean isScrollingToTopOnChange() {
+		return isScrollingToTopOnChange;
+	}
+	
+	/**
+	 * If the scrolling is enabled, the scroll bar of the combo box pop up list will be scrolled to top
+	 * when the model's data changed.
+	 */
+	public void enableScrollingToTopOnChange(boolean enable) {
+		isScrollingToTopOnChange = enable;
+	}
+	
+	public boolean isWide() {
+		return wide;
 	}
 
-	public void setWide(boolean wide) { 
-		this.wide = wide; 
-	} 
+	public void setWide(boolean wide) {
+		this.wide = wide;
+	}
 
 	@Override
 	public Dimension getPreferredSize() {
 		Dimension dim = super.getPreferredSize();
 		if (this.preferredWidth != -1) {
 			if (preferredWidth < dim.getWidth()) {
-				return new Dimension(preferredWidth, (int)dim.getHeight());
+				return new Dimension(preferredWidth, (int) dim.getHeight());
 			} else {
 				return dim;
 			}
@@ -139,7 +189,7 @@ public class ExtendedJComboBox extends JComboBox {
 		Dimension dim = super.getMinimumSize();
 		if (this.minimumWidth != -1) {
 			if (minimumWidth < dim.getWidth()) {
-				return new Dimension(minimumWidth, (int)dim.getHeight());
+				return new Dimension(minimumWidth, (int) dim.getHeight());
 			} else {
 				return dim;
 			}
@@ -149,21 +199,21 @@ public class ExtendedJComboBox extends JComboBox {
 	}
 
 	@Override
-	public void doLayout(){ 
-		try { 
-			layingOut = true; 
-			super.doLayout(); 
-		} finally { 
-			layingOut = false; 
-		} 
-	} 
+	public void doLayout() {
+		try {
+			layingOut = true;
+			super.doLayout();
+		} finally {
+			layingOut = false;
+		}
+	}
 
 	@Override
-	public Dimension getSize(){ 
-		Dimension dim = super.getSize(); 
-		if (!layingOut && isWide()) 
-			dim.width = Math.max(dim.width, super.getPreferredSize().width); 
-		dim.width = Math.min(dim.width, Toolkit.getDefaultToolkit().getScreenSize().width - 40); 
-		return dim; 
-	} 
+	public Dimension getSize() {
+		Dimension dim = super.getSize();
+		if (!layingOut && isWide())
+			dim.width = Math.max(dim.width, super.getPreferredSize().width);
+		dim.width = Math.min(dim.width, Toolkit.getDefaultToolkit().getScreenSize().width - 40);
+		return dim;
+	}
 }

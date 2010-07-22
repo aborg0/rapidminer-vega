@@ -81,9 +81,11 @@ public class ButtonDialog extends JDialog {
 	public static final int NORMAL = 1;
 	public static final int NARROW = 2;
 	public static final int LARGE = 3;
+	public static final int HUGE = 9;
 	public static final int MESSAGE = 4;
 	public static final int MESSAGE_EXTENDED = 5;
 	public static final int DEFAULT_SIZE = 8;
+	
 
 	public static final int GAP = 6;
 
@@ -312,6 +314,9 @@ public class ButtonDialog extends JDialog {
 			return new Dimension(720, 540);
 		case LARGE:
 			return new Dimension(800, 600);
+		case HUGE:
+			return new Dimension(1000,760);		
+		
 		case MESSAGE:
 			return new Dimension(600, 200);
 		case MESSAGE_EXTENDED:

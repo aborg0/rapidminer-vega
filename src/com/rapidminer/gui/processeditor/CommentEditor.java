@@ -33,6 +33,7 @@ import javax.swing.JTextArea;
 
 import com.rapidminer.Process;
 import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ResourceDockKey;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.syntax.TextAreaDefaults;
@@ -95,7 +96,7 @@ public class CommentEditor extends JPanel implements ProcessEditor, Dockable {
 //		toolBar.addSeparator();
 //		toolBar.add(editor.SEARCH_AND_REPLACE_ACTION);
 //		add(toolBar, BorderLayout.NORTH);
-		add(editor, BorderLayout.CENTER);
+		add(new ExtendedJScrollPane(editor), BorderLayout.CENTER);
 	}
 	
 	public void setSelection(List<Operator> selection) {

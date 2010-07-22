@@ -5,7 +5,7 @@
     <output/>
     <macros/>
   </context>
-  <operator activated="true" breakpoints="after" class="process" expanded="true" name="Root">
+  <operator activated="true" class="process" expanded="true" name="Root">
     <description>&lt;p&gt;This process loads a data set containing missing values. The following operator is the ExampleFilter operator which is able to filter out examples fulfilling a given condition. In this case, only examples without missing values should be kept. Unfortunately, only one example is kept which isn't actually very useful for learning purposes :-) &lt;/p&gt;&lt;p&gt; Another useful possibility of this operator is to filter the data set according to values of a single attribute, e.g. to keep only those examples where a certain attribute is greater than, let's say, 5. You can specify several attribute value conditions with || for a logical OR and you can use several ExampleFilter operators in order to simulate a logical AND. &lt;/p&gt;</description>
     <parameter key="logverbosity" value="3"/>
     <parameter key="random_seed" value="2001"/>

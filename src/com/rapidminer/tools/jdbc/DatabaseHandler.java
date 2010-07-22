@@ -777,7 +777,7 @@ public class DatabaseHandler {
         		while (columnResult.next()) {
         			result.add(new ColumnIdentifier(this, tableName, columnResult.getString("COLUMN_NAME")));
         		}
-        		columnResult.close();
+        		//columnResult.close();
         		return result;
         	} catch (SQLException e) {
         		// Fallback for Oracle with illegal characters in table name. (Will throw exception in

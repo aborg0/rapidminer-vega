@@ -95,7 +95,7 @@ public abstract class ToggleDropDownButton extends JToggleButton implements Togg
 
 	protected JToggleButton mainButton = this;
 	
-	public class DropDownArrowButton extends ArrowButton {
+	public static class DropDownArrowButton extends ArrowButton {
 		private static final long serialVersionUID = -398619111521186260L;
 
 		public DropDownArrowButton() {

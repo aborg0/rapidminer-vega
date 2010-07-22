@@ -59,10 +59,6 @@ public class Parameters extends AbstractObservable<String> implements Cloneable,
 	/** Maps parameter keys (i.e. Strings) to their <code>ParameterType</code>. */
 	private final Map<String, ParameterType> keyToTypeMap = new LinkedHashMap<String, ParameterType>();
 
-	// /** A list with all keys in insertion order. */
-	// private final List<String> keys = new LinkedList<String>();
-	// private List<ParameterType> parameterTypes;
-
 	/** Creates an empty parameters object without any parameter types. */
 	public Parameters() {
 	}
@@ -93,9 +89,7 @@ public class Parameters extends AbstractObservable<String> implements Cloneable,
 	@Override
 	public Object clone() {
 		Parameters clone = new Parameters();
-		//clone.copyObserversFrom(this);
-		
-		// clone.parameterTypes = this.parameterTypes;
+
 		Iterator<String> i = keyToValueMap.keySet().iterator();
 		while (i.hasNext()) {
 			String key = i.next();
@@ -111,10 +105,6 @@ public class Parameters extends AbstractObservable<String> implements Cloneable,
 			clone.keyToTypeMap.put(key, keyToTypeMap.get(key));
 		}
 
-		// clone.keys.clear();
-		// for (String key : this.keys) {
-		// clone.keys.add(key);
-		// }
 		return clone;
 	}
 
@@ -355,5 +345,28 @@ public class Parameters extends AbstractObservable<String> implements Cloneable,
 
 	public void copyFrom(Parameters parameters) {
 		this.keyToValueMap.putAll(parameters.keyToValueMap);		
+	}
+
+
+	/**
+	 * Clears the parameters map and adds all given parameters.
+	 * This will not reset the already registered types so you have to keep
+	 * track that you don't set parameters not defined for this operator!
+	 * 
+	 * @param parameters
+	 */
+	public void setAll(Parameters parameters) {
+		keyToValueMap.clear();
+		keyToValueMap.putAll(parameters.keyToValueMap);		
+		fireUpdate();
+	}
+	
+	/**
+	 * Adds all Parameters to the parameters map.
+	 * @param parameters
+	 */
+	public void addAll(Parameters parameters){
+		keyToValueMap.putAll(parameters.keyToValueMap);		
+		fireUpdate();
 	}
 }

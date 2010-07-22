@@ -680,5 +680,5 @@ public class OperatorService {
 				LogService.getRoot().log(Level.WARNING, "Error in operator creation hooK: " + e, e);
 			}
 		}
-	}
+	}	
 }

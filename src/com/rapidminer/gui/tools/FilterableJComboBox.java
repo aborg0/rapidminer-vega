@@ -37,7 +37,7 @@ import ca.odell.glazedlists.swing.AutoCompleteSupport;
 public class FilterableJComboBox extends ExtendedJComboBox{
 
 	private static final long serialVersionUID = -4910048606664095221L;
-	private AutoCompleteSupport<String> autoCompl;
+	private transient AutoCompleteSupport<String> autoCompl;
 
 	public FilterableJComboBox(String[] values) {
 		super(values);

@@ -33,6 +33,8 @@ import com.rapidminer.example.Example;
  */
 public class LinearFunction extends ActivationFunction {
 	
+	private static final long serialVersionUID = 1L;
+
 	@Override
 	public String getTypeName() {
 		return "Linear";

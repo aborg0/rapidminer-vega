@@ -98,6 +98,11 @@ public class CHAIDLearner extends DecisionTreeLearner {
 			@Override
 			public void swapExample(Example example) {
 				throw new UnsupportedOperationException("Incremental calculation not supported.");				
+			}
+
+			@Override
+			public double getBenefit(double[][] weightCounts) {
+				throw new UnsupportedOperationException("Method not supported.");
 			}			
 		};
 	}

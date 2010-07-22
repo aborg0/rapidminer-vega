@@ -30,14 +30,18 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.set.SplittedExampleSet;
 import com.rapidminer.operator.Model;
+import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ValueDouble;
+import com.rapidminer.operator.learner.CapabilityCheck;
+import com.rapidminer.operator.learner.CapabilityProvider;
 import com.rapidminer.operator.learner.PredictionModel;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.PortPairExtender;
+import com.rapidminer.operator.ports.metadata.CapabilityPrecondition;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetPassThroughRule;
 import com.rapidminer.operator.ports.metadata.MDInteger;
@@ -52,22 +56,22 @@ import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.tools.RandomGenerator;
 
-
 /**
- * Operator chain that splits an {@link ExampleSet} into a training and test
- * sets similar to XValidation, but returns the test set predictions instead of
- * a performance vector. The inner two operators must be a learner returning a
- * {@link Model} and an operator or operator chain that can apply this model
- * (usually a model applier)
+ * Operator chain that splits an {@link ExampleSet} into a training and test sets similar to XValidation, but returns
+ * the test set predictions instead of a performance vector. The inner two operators must be a learner returning a
+ * {@link Model} and an operator or operator chain that can apply this model (usually a model applier)
  * 
  * @author Stefan Rueping, Ingo Mierswa, Sebastian Land
  */
-public class XVPrediction extends OperatorChain {
+public class XVPrediction extends OperatorChain implements CapabilityProvider {
 
 	/** The parameter name for &quot;Number of subsets for the crossvalidation.&quot; */
 	public static final String PARAMETER_NUMBER_OF_VALIDATIONS = "number_of_validations";
 
-	/** The parameter name for &quot;Set the number of validations to the number of examples. If set to true, number_of_validations is ignored.&quot; */
+	/**
+	 * The parameter name for &quot;Set the number of validations to the number of examples. If set to true,
+	 * number_of_validations is ignored.&quot;
+	 */
 	public static final String PARAMETER_LEAVE_ONE_OUT = "leave_one_out";
 
 	/** The parameter name for &quot;Defines the sampling type of the cross validation.&quot; */
@@ -87,16 +91,17 @@ public class XVPrediction extends OperatorChain {
 
 	// testing
 	private final OutputPort applyProcessModelSource = getSubprocess(1).getInnerSources().createPort("model");
-	private final OutputPort applyProcessExampleSource = getSubprocess(1).getInnerSources().createPort("unlabelled data");		
+	private final OutputPort applyProcessExampleSource = getSubprocess(1).getInnerSources().createPort("unlabelled data");
 	private final InputPort applyProcessExampleInnerSink = getSubprocess(1).getInnerSinks().createPort("labelled data");
 
-	// output	
+	// output
 	private final OutputPort exampleSetOutput = getOutputPorts().createPort("labelled data");
-
 
 	public XVPrediction(OperatorDescription description) {
 		super(description, "Training", "Model Application");
 
+		exampleSetInput.addPrecondition(new CapabilityPrecondition(this, exampleSetInput));
+		
 		throughExtender.start();
 
 		getTransformer().addRule(new ExampleSetPassThroughRule(exampleSetInput, trainingProcessExampleSource, SetRelation.EQUAL) {
@@ -108,7 +113,7 @@ public class XVPrediction extends OperatorChain {
 				}
 				return super.modifyExampleSet(metaData);
 			}
-		});		
+		});
 		getTransformer().addRule(new ExampleSetPassThroughRule(exampleSetInput, applyProcessExampleSource, SetRelation.EQUAL) {
 			@Override
 			public ExampleSetMetaData modifyExampleSet(ExampleSetMetaData metaData) throws UndefinedParameterError {
@@ -120,12 +125,10 @@ public class XVPrediction extends OperatorChain {
 			}
 		});
 		getTransformer().addRule(new SubprocessTransformRule(getSubprocess(0)));
-		getTransformer().addRule(new PassThroughRule(trainingProcessModelSink, applyProcessModelSource, false));		
+		getTransformer().addRule(new PassThroughRule(trainingProcessModelSink, applyProcessModelSource, false));
 		getTransformer().addRule(throughExtender.makePassThroughRule());
-		getTransformer().addRule(new SubprocessTransformRule(getSubprocess(1)));		
+		getTransformer().addRule(new SubprocessTransformRule(getSubprocess(1)));
 		getTransformer().addPassThroughRule(applyProcessExampleInnerSink, exampleSetOutput);
-
-
 
 		addValue(new ValueDouble("iteration", "The number of the current iteration.") {
 			@Override
@@ -138,6 +141,12 @@ public class XVPrediction extends OperatorChain {
 	@Override
 	public void doWork() throws OperatorException {
 		ExampleSet inputSet = exampleSetInput.getData();
+
+		// check capabilities and produce errors if they are not fulfilled
+		CapabilityCheck check = new CapabilityCheck(this, false);
+		check.checkLearnerCapabilities(this, inputSet);
+
+		
 		if (getParameterAsBoolean(PARAMETER_LEAVE_ONE_OUT)) {
 			number = inputSet.size();
 		} else {
@@ -153,13 +162,13 @@ public class XVPrediction extends OperatorChain {
 
 		// Split training / test set
 		int samplingType = getParameterAsInt(PARAMETER_SAMPLING_TYPE);
-		SplittedExampleSet splittedSet = new SplittedExampleSet(inputSet, number, samplingType,getParameterAsBoolean(RandomGenerator.PARAMETER_USE_LOCAL_RANDOM_SEED), getParameterAsInt(RandomGenerator.PARAMETER_LOCAL_RANDOM_SEED));
+		SplittedExampleSet splittedSet = new SplittedExampleSet(inputSet, number, samplingType, getParameterAsBoolean(RandomGenerator.PARAMETER_USE_LOCAL_RANDOM_SEED), getParameterAsInt(RandomGenerator.PARAMETER_LOCAL_RANDOM_SEED));
 
 		for (iteration = 0; iteration < number; iteration++) {
 			splittedSet.selectAllSubsetsBut(iteration);
 			trainingProcessExampleSource.deliver(splittedSet);
 			getSubprocess(0).execute();
-			//IOContainer learnResult = getLearner().apply(new IOContainer(new IOObject[] { splittedSet }));
+			// IOContainer learnResult = getLearner().apply(new IOContainer(new IOObject[] { splittedSet }));
 
 			splittedSet.selectSingleSubset(iteration);
 			applyProcessExampleSource.deliver(splittedSet);
@@ -190,7 +199,7 @@ public class XVPrediction extends OperatorChain {
 		if (getParameterAsBoolean(PARAMETER_LEAVE_ONE_OUT)) {
 			return new MDInteger(1);
 		} else {
-			return originalSize.multiply(1d/getParameterAsDouble(PARAMETER_NUMBER_OF_VALIDATIONS));
+			return originalSize.multiply(1d / getParameterAsDouble(PARAMETER_NUMBER_OF_VALIDATIONS));
 		}
 	}
 
@@ -198,7 +207,7 @@ public class XVPrediction extends OperatorChain {
 		if (getParameterAsBoolean(PARAMETER_LEAVE_ONE_OUT)) {
 			return originalSize.add(-1);
 		} else {
-			return originalSize.multiply(1d-1d/getParameterAsDouble(PARAMETER_NUMBER_OF_VALIDATIONS));
+			return originalSize.multiply(1d - 1d / getParameterAsDouble(PARAMETER_NUMBER_OF_VALIDATIONS));
 		}
 	}
 
@@ -217,5 +226,15 @@ public class XVPrediction extends OperatorChain {
 		types.addAll(RandomGenerator.getRandomGeneratorParameters(this));
 
 		return types;
+	}
+
+	@Override
+	public boolean supportsCapability(OperatorCapability capability) {
+		switch (capability) {
+		case NO_LABEL:
+			return false;
+		default:
+			return true;
+		}
 	}
 }

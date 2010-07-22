@@ -83,7 +83,7 @@ public class AttributeParameterPrecondition extends AbstractPrecondition {
 					if (containsRelation == MetaDataInfo.YES) {
 						AttributeMetaData amd = emd.getAttributeByName(attributeName);
 						if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(amd.getValueType(), attributeType)) {
-							if (attributeRole != null && !attributeRole.equals(attributeRole)) {
+							if (attributeRole != null && !attributeRole.equals(amd.getRole())) {
 								createError(Severity.ERROR, "attribute_must_have_role", attributeName, attributeRole);							
 							}
 						} else {

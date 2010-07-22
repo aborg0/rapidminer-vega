@@ -115,7 +115,7 @@ public class ScriptingOperator extends Operator {
 		try {	
 			GroovyShell shell = new GroovyShell(Plugin.getMajorClassLoader());
 			//GroovyShell shell = new GroovyShell(ScriptingOperator.class.getClassLoader());
-			List<IOObject> input = inExtender.getData(true);		
+			List<IOObject> input = inExtender.getData(false);		
 			shell.setVariable("input", input);
 			shell.setVariable("operator", this);
 

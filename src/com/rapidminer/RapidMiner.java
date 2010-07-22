@@ -103,7 +103,9 @@ public class RapidMiner {
 		/** RM is embedded into an applet. */
 		EMBEDDED_AS_APPLET(false, false, false),    	
 		/** RM is running within Java Web Start. */
-		WEBSTART(false, true, true);
+		WEBSTART(false, true, true),
+		/** We are executing unit tests. */
+		TEST(true, false, false);
 
 		private final boolean isHeadless;
 		private final boolean canAccessFilesystem;
@@ -514,10 +516,30 @@ public class RapidMiner {
 		registerRapidMinerProperty(type);
 	}
 
+	/**
+	 * This registers a property with the name of the given ParameterType. For convenience
+	 * the property is of this type, for offering the user a reasonable interface.
+	 */
 	public static void registerRapidMinerProperty(ParameterType type) {
 		PROPERTY_TYPES.add(type);
 	}
 	
+	/**
+	 * This method will return the value of an registered RapidMiner Property or null
+	 * if no property is known with the given identifier.
+	 * @param property The identifier of the property
+	 * @return the String value of the property or null if property is unknown.
+	 */
+	public static String getRapidMinerPropertyValue(String property) {
+		return System.getProperty(property);
+	}
+	
+	/**
+	 * This method will set the given property to the given value.
+	 */
+	public static void setRapidMinerPropertyValue(String property, String value) {
+		System.setProperty(property, value);
+	}
 	public synchronized static void addShutdownHook(Runnable runnable) {
 		shutdownHooks.add(runnable);
 	}
@@ -562,4 +584,8 @@ public class RapidMiner {
 		System.setProperty(PROPERTY_RAPIDMINER_INIT_LOCALE_VARIANT, variant);
 		
 	}
+
+	public static final String PROPERTY_HOME_REPOSITORY_URL = "rapidminer.homerepository.url";
+
+	public static final String PROPERTY_HOME_REPOSITORY_USER = "rapidminer.homerepository.user";
 }

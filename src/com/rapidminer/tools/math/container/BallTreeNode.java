@@ -22,6 +22,8 @@
  */
 package com.rapidminer.tools.math.container;
 
+import java.io.Serializable;
+
 /**
  * The node for a ball tree.
  * 
@@ -30,8 +32,9 @@ package com.rapidminer.tools.math.container;
  * @param <T> This is the type of value with is stored with the points and retrieved on nearest
  * neighbour search
  */
-public class BallTreeNode<T> {
+public class BallTreeNode<T> implements Serializable {
 	
+	private static final long serialVersionUID = 5250382342093166168L;
 	private double[] center;
 	private double radius;
 	private T value;

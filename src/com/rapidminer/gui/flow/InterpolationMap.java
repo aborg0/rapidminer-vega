@@ -53,7 +53,7 @@ public class InterpolationMap {
 		}
 	});
 	
-	private class InterpolatedValue {
+	private static class InterpolatedValue {
 		private final long startTime = System.currentTimeMillis();
 		/** True if interpolating from 0 to {@link #extensionValue} and false
 		 *  if interpolating from {@link #extensionValue} to 0. */

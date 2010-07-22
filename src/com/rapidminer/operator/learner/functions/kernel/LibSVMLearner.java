@@ -122,6 +122,9 @@ public class LibSVMLearner extends AbstractKernelBasedLearner {
 	/** The parameter name for &quot;Indicates if proper confidence values should be calculated.&quot; */
 	public static final String PARAMETER_CALCULATE_CONFIDENCES = "calculate_confidences";
 
+	/** The parameter name for &quot;Indicates if the traditional libsvm one-class classification behavior should be used.&quot; */
+	public static final String PARAMETER_ONECLASS_CLASSIFICATION = "one_class_classification";
+	
 	/** The parameter name for &quot;Indicates if proper confidence values should be calculated.&quot; */
 	public static final String PARAMETER_CONFIDENCE_FOR_MULTICLASS = "confidence_for_multiclass";
 
@@ -134,14 +137,14 @@ public class LibSVMLearner extends AbstractKernelBasedLearner {
 	 */
 
 	/** The different SVM types implemented by the LibSVM package. */
-	public static final String[] SVM_TYPES = { "C-SVC", "nu-SVC", "one-class", "epsilon-SVR", "nu-SVR" };
+	public static final String[] SVM_TYPES = { "C-SVC", "nu-SVC", "one-class", "epsilon-SVR", "nu-SVR"};
 
 	public static final int SVM_TYPE_C_SVC = 0;
 	public static final int SVM_TYPE_NU_SVC = 1;
 	public static final int SVM_TYPE_ONE_CLASS = 2;
 	public static final int SVM_TYPE_EPS_SVR = 3;
 	public static final int SVM_TYPE_NU_SVR = 4;
-
+	
 	/** The different kernel types implemented by the LibSVM package. */
 	public static final String[] KERNEL_TYPES = { "linear", "poly", "rbf", "sigmoid", "precomputed" };
 
@@ -332,7 +335,7 @@ public class LibSVMLearner extends AbstractKernelBasedLearner {
 				throw new UserError(this, 101, SVM_TYPES[params.svm_type], label.getName());
 			}
 		}
-
+			
 		svm_problem problem = getProblem(exampleSet);
 		String errorMsg = Svm.svm_check_parameter(problem, params);
 		if (errorMsg != null)
@@ -389,6 +392,7 @@ public class LibSVMLearner extends AbstractKernelBasedLearner {
 		type.setExpert(false);
 		types.add(type);
 		types.add(new ParameterTypeBoolean(PARAMETER_CONFIDENCE_FOR_MULTICLASS, "Indicates if the class with the highest confidence should be selected in the multiclass setting. Uses binary majority vote over all 1-vs-1 classifiers otherwise (selected class must not be the one with highest confidence in that case).", true));
+
 		return types;
 	}
 }

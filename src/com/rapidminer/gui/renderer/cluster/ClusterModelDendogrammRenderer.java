@@ -25,6 +25,7 @@ package com.rapidminer.gui.renderer.cluster;
 import java.awt.Component;
 
 import com.rapidminer.gui.renderer.AbstractRenderer;
+import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.viewer.DendrogramPlotter;
 import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.clustering.HierarchicalClusterModel;
@@ -43,7 +44,8 @@ public class ClusterModelDendogrammRenderer extends AbstractRenderer {
 
 	public Component getVisualizationComponent(Object renderable, IOContainer ioContainer) {
 		HierarchicalClusterModel cm = (HierarchicalClusterModel) renderable;
-		return new DendrogramPlotter(cm);
+		ExtendedJScrollPane scrollPane = new ExtendedJScrollPane(new DendrogramPlotter(cm));
+		return scrollPane;
 	}
 
 	public Reportable createReportable(Object renderable, IOContainer ioContainer, int width, int height) {

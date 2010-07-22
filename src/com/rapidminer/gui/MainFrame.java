@@ -103,6 +103,8 @@ import com.rapidminer.gui.processeditor.NewOperatorEditor;
 import com.rapidminer.gui.processeditor.ProcessContextProcessEditor;
 import com.rapidminer.gui.processeditor.ProcessEditor;
 import com.rapidminer.gui.processeditor.XMLEditor;
+import com.rapidminer.gui.processeditor.profiler.ProfilingListener;
+import com.rapidminer.gui.processeditor.profiler.ProfilingViewer;
 import com.rapidminer.gui.processeditor.results.DockableResultDisplay;
 import com.rapidminer.gui.processeditor.results.ResultDisplay;
 import com.rapidminer.gui.processeditor.results.ResultDisplayTools;
@@ -397,6 +399,8 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	private final ProcessPanel processPanel = new ProcessPanel(this);
 	private final RepositoryBrowser repositoryBrowser = new RepositoryBrowser();
 	private final RemoteProcessViewer remoteProcessViewer = new RemoteProcessViewer();
+	private final ProfilingListener profilingListener = new ProfilingListener();
+	private final ProfilingViewer profilingViewer = new ProfilingViewer(profilingListener);
 
 	private final Perspectives perspectives = new Perspectives(dockingContext);
 
@@ -510,6 +514,10 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	
 	/** Creates a new main frame containing the RapidMiner GUI. */
 	public MainFrame() {
+		this("welcome");
+	}
+	
+	public MainFrame(String initialPerspective) {
 		super(TITLE);
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		addWindowListener(this);
@@ -525,7 +533,8 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		addProcessEditor(processContextEditor);
 		addProcessEditor(getStatusBar());
 		addProcessEditor(resultDisplay);
-
+		addProcessEditor(profilingListener);
+		
 		SwingTools.setFrameIcon(this);
 		
 		dockingContext.addDesktop(dockingDesktop);		
@@ -545,6 +554,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		dockingDesktop.registerDockable(processContextEditor);
 		dockingDesktop.registerDockable(remoteProcessViewer);
 		dockingDesktop.registerDockable(processPanel.getProcessRenderer().getOverviewPanel());
+		dockingDesktop.registerDockable(profilingViewer);
 		
 		ToolBarContainer toolBarContainer = ToolBarContainer.createDefaultContainer(true, true, true, true);
 		getContentPane().add(toolBarContainer, BorderLayout.CENTER);
@@ -778,7 +788,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		selectOperator(process.getRootOperator());
 		addToUndoList();
 		
-		perspectives.showPerspective("welcome");
+		perspectives.showPerspective(initialPerspective);
 		pack();
 		metaDataUpdateQueue.start();
 	}

@@ -104,7 +104,8 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 
 			@Override
 			public Object getCellEditorValue() {
-				return Integer.valueOf(((JComboBox) editorComponent).getSelectedIndex()).toString();
+				return ((JComboBox) editorComponent).getSelectedItem();
+//				return Integer.valueOf(((JComboBox) editorComponent).getSelectedIndex()).toString();
 			}
 		};
 
@@ -131,8 +132,8 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 			@Override
 			public void setValue(Object x) {
 				if (x == null) {
-					super.setValue(x);
-					((JComboBox) editorComponent).setSelectedItem(x);
+					super.setValue(null);
+					((JComboBox) editorComponent).setSelectedItem(null);
 				} else {
 					String value = x.toString();
 					super.setValue(value);

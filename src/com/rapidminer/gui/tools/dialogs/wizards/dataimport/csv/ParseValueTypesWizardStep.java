@@ -27,7 +27,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.LinkedList;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -36,20 +35,20 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import com.rapidminer.gui.tools.CharTextField;
-import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
-import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
-import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DataEditor;
-import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
+import com.rapidminer.gui.tools.dialogs.wizards.dataimport.MetaDataDeclerationWirzardStep;
+import com.rapidminer.operator.io.AbstractDataReader;
+import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.DateParser;
 import com.rapidminer.tools.StrictDecimalFormat;
 
 
 /**
  * 
- * @author Tobias Malbrecht
+ * @author Tobias Malbrecht, Sebastian Loh
  */
-public abstract class ParseValueTypesWizardStep extends WizardStep {
+
+public abstract class ParseValueTypesWizardStep extends MetaDataDeclerationWirzardStep {
 	private final KeyAdapter textFieldKeyListener = new KeyAdapter() {
 		@Override
 		public void keyReleased(KeyEvent e) {
@@ -57,11 +56,11 @@ public abstract class ParseValueTypesWizardStep extends WizardStep {
 		}
 	};
 	
-//	private static final String DEFAULT_USER_MISSING = "?";
-	
-	private final DataEditor editor = new DataEditor(true, true);
-		
-//	private final JComboBox localeComboBox = new JComboBox(AbstractDateDataProcessing.availableLocaleNames);
+	protected void settingsChanged() {
+		reader.setParameter(DateParser.PARAMETER_DATE_FORMAT, getDateFormat());
+		reader.setParameter(StrictDecimalFormat.PARAMETER_DECIMAL_CHARACTER, Character.toString(getDecimalPointCharacter()));
+		reader.setParameter(StrictDecimalFormat.PARAMETER_GROUPING_CHARACTER, Character.toString(getGroupingSeparator()));
+	}
 	
 	private final CharTextField decimalPointCharacterTextField = new CharTextField(StrictDecimalFormat.DEFAULT_DECIMAL_CHARACTER);
 	{
@@ -84,32 +83,27 @@ public abstract class ParseValueTypesWizardStep extends WizardStep {
 			}
 		});
 	}
+	
 
 	// TODO add cell editor of custom date format parameter type (still to implement also)
-	private final JTextField dateFormatTextField = new JTextField(DateParser.DEFAULT_DATE_FORMAT);
+	private final JTextField dateFormatTextField = new JTextField();
 	{
+		String format = DateParser.DEFAULT_DATE_TIME_FORMAT;
+		try {
+			format = reader.getParameter(DateParser.PARAMETER_DATE_FORMAT);
+		} catch (UndefinedParameterError e) {
+			// nothing to do
+		}
+		dateFormatTextField.setText(format);
 		dateFormatTextField.addKeyListener(textFieldKeyListener);
 	}
 	
-//	private final JTextField userMissingTextField = new JTextField(DEFAULT_USER_MISSING);
-//	{
-//		// TODO add action listener
-//	}
-//	
-//	private final JCheckBox defineUserMissingBox = new JCheckBox("Missing Value");
-//	{
-//		// TODO add action listener
-//	}
-	
-	public ParseValueTypesWizardStep(String key) {
-		super(key);
+	public ParseValueTypesWizardStep(String key, AbstractDataReader reader) {
+		super(key, reader);
+		// a different text for the CSV version 
+		super.tolerateErrorCheckBox.setText("Read non matching values as missings and tolerate too short rows.");
 	}
 	
-	protected abstract void settingsChanged();
-	
-	protected void setData(ExampleSetMetaData metaData, LinkedList<Object[]> data) {
-		editor.setData(metaData, data);
-	}
 	
 	protected char getDecimalPointCharacter() {
 		return decimalPointCharacterTextField.getCharacter();
@@ -128,10 +122,14 @@ public abstract class ParseValueTypesWizardStep extends WizardStep {
 	}
 	
 	@Override
+	protected void doAfterEnteringAction(){
+	}
+	
+	@Override
 	protected JComponent getComponent() {
-		JPanel detectionPanel = new JPanel(ButtonDialog.createGridLayout(3, 2));
-//		detectionPanel.add(new JLabel("Locale"));
-//		detectionPanel.add(localeComboBox);
+		JPanel detectionPanel = new JPanel(ButtonDialog.createGridLayout(4, 2));
+		detectionPanel.add(new JLabel("Guess the value types of all attributes"));
+		detectionPanel.add(super.guessingButtonsPanel);
 		detectionPanel.add(new JLabel("Decimal Character"));
 		detectionPanel.add(decimalPointCharacterTextField);
 		detectionPanel.add(groupNumbersBox);
@@ -140,23 +138,16 @@ public abstract class ParseValueTypesWizardStep extends WizardStep {
 		detectionPanel.add(dateFormatTextField);
 		detectionPanel.setBorder(ButtonDialog.createTitledBorder("Type Detection"));
 
-//		JPanel optionPanel = new JPanel(ButtonDialog.createGridLayout(2, 2));
-//		optionPanel.add(defineUserMissingBox);
-//		optionPanel.add(userMissingTextField);
-//		optionPanel.add(new JCheckBox("Trim Nominal"));
-//		optionPanel.setBorder(ButtonDialog.createTitledBorder("Value Transformation"));
 		
 		JPanel parsingPanel = new JPanel(ButtonDialog.createGridLayout(1, 2));
 		parsingPanel.add(detectionPanel);
-//		parsingPanel.add(optionPanel);
 
-		editor.setBorder(null);
-		ExtendedJScrollPane tablePane = new ExtendedJScrollPane(editor);
-		tablePane.setBorder(ButtonDialog.createBorder());
+		JComponent editorPanel = super.getComponent();
+		editorPanel.setBorder(null);
 
 		JPanel panel = new JPanel(new BorderLayout(0, ButtonDialog.GAP));
 		panel.add(parsingPanel, BorderLayout.NORTH);
-		panel.add(tablePane, BorderLayout.CENTER);
+		panel.add(editorPanel, BorderLayout.CENTER);
 		return panel;
 	}
 }

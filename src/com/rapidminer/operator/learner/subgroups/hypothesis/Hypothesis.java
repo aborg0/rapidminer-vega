@@ -37,7 +37,7 @@ import java.util.LinkedHashMap;
  */
 public class Hypothesis implements Serializable {
 
-	private class AttributeQueue extends LinkedList<Attribute> {
+	private static class AttributeQueue extends LinkedList<Attribute> {
 		private static final long serialVersionUID = 8693212785374243323L;
 		
 		private AttributeQueue() {

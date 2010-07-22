@@ -39,6 +39,7 @@ import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.remote.RemoteRepository.EntryStreamType;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ProgressListener;
+
 /**
  * @author Simon Fischer
  */
@@ -52,8 +53,8 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 	}
 
 	@Override
-	public IOObject retrieveData(ProgressListener l) throws RepositoryException {		
-		if (l != null) {	
+	public IOObject retrieveData(ProgressListener l) throws RepositoryException {
+		if (l != null) {
 			l.setTotal(100);
 		}
 		try {
@@ -63,47 +64,47 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 			connection.setRequestMethod("GET");
 			InputStream in;
 			try {
-				in = connection.getInputStream();			
+				in = connection.getInputStream();
 			} catch (IOException e) {
-				throw new RepositoryException("Cannot download IOObject: " + connection.getResponseCode()+": "+connection.getResponseMessage(), e);
+				throw new RepositoryException("Cannot download IOObject: " + connection.getResponseCode() + ": " + connection.getResponseMessage(), e);
 			}
 			Object result = IOObjectSerializer.getInstance().deserialize(in);
 			if (result instanceof IOObject) {
-				return (IOObject)result;
+				return (IOObject) result;
 			} else {
-				throw new RepositoryException("Server did not send I/O-Object, but instance of "+result.getClass());	
+				throw new RepositoryException("Server did not send I/O-Object, but instance of " + result.getClass());
 			}
 		} catch (Exception e) {
-			throw new RepositoryException("Cannot parse I/O-Object: "+e, e);
+			throw new RepositoryException("Cannot parse I/O-Object: " + e, e);
 		} finally {
-			if (l != null) {	
+			if (l != null) {
 				l.complete();
 			}
-		}		
+		}
 	}
 
 	@Override
 	public MetaData retrieveMetaData() throws RepositoryException {
-		synchronized (metaDatalLock ) {
+		synchronized (metaDatalLock) {
 			if (metaData == null) {
 				try {
 					HttpURLConnection connection = getRepository().getHTTPConnection(getLocation().getPath(), EntryStreamType.METADATA);
 					connection.setRequestMethod("GET");
 					InputStream in;
 					try {
-						in = connection.getInputStream();			
+						in = connection.getInputStream();
 					} catch (IOException e) {
-						throw new RepositoryException("Cannot download meta data: " + connection.getResponseCode()+": "+connection.getResponseMessage(), e);
+						throw new RepositoryException("Cannot download meta data: " + connection.getResponseCode() + ": " + connection.getResponseMessage(), e);
 					}
 					Object result = IOObjectSerializer.getInstance().deserialize(in);
 					if (result instanceof MetaData) {
 						this.metaData = (MetaData) result;
 					} else {
-						throw new RepositoryException("Server did not send MetaData, but instance of "+result.getClass());	
+						throw new RepositoryException("Server did not send MetaData, but instance of " + result.getClass());
 					}
 				} catch (IOException e) {
-					throw new RepositoryException("Cannot parse I/O-Object: "+e, e);
-				}				
+					throw new RepositoryException("Cannot parse I/O-Object: " + e, e);
+				}
 			}
 		}
 		return metaData;
@@ -113,7 +114,7 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 	public void storeData(IOObject ioobject, Operator callingOperator, ProgressListener l) throws RepositoryException {
 		storeData(ioobject, getPath(), getRepository(), l);
 	}
-	
+
 	protected static void storeData(IOObject ioobject, String location, RemoteRepository repository, ProgressListener l) throws RepositoryException {
 		if (l != null) {
 			l.setTotal(100);
@@ -124,7 +125,7 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 		try {
 			conn = repository.getHTTPConnection(location, EntryStreamType.IOOBJECT);
 		} catch (IOException e1) {
-			throw new RepositoryException("Cannot store object at "+location+": "+e1, e1);
+			throw new RepositoryException("Cannot store object at " + location + ": " + e1, e1);
 		}
 		OutputStream out = null;
 		try {
@@ -135,37 +136,51 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 			try {
 				out = conn.getOutputStream();
 			} catch (IOException e) {
-				throw new RepositoryException("Cannot upload object: " + conn.getResponseCode()+": "+conn.getResponseMessage(), e);
+				throw new RepositoryException("Cannot upload object: " + conn.getResponseCode() + ": " + conn.getResponseMessage(), e);
 			}
 			IOObjectSerializer.getInstance().serialize(out, ioobject);
 			out.close();
-			BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-			LogService.getRoot().fine("BEGIN Reply of server:");
-			String line;
-			while ((line = in.readLine()) != null) {
-				LogService.getRoot().fine(line);
+			BufferedReader in = null;
+			try {
+				try {
+					in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+					LogService.getRoot().fine("BEGIN Reply of server:");
+					String line;
+					while ((line = in.readLine()) != null) {
+						LogService.getRoot().fine(line);
+					}
+					LogService.getRoot().fine("END Reply of server.");
+				} catch (IOException e) {
+				}
+			} finally {
+				try {
+					if (in != null) {
+						in.close();
+					}
+				} catch (IOException e) {
+				}
 			}
-			LogService.getRoot().fine("END Reply of server.");
 		} catch (IOException e) {
 			try {
-				throw new RepositoryException("Cannot store object at "+location+": "+conn.getResponseCode()+": "+conn.getResponseMessage(), e);
+				throw new RepositoryException("Cannot store object at " + location + ": " + conn.getResponseCode() + ": " + conn.getResponseMessage(), e);
 			} catch (IOException e1) {
-				throw new RepositoryException("Cannot store object at "+location+": "+e, e);
+				throw new RepositoryException("Cannot store object at " + location + ": " + e, e);
 			}
 		} finally {
 			if (out != null) {
 				try {
 					out.close();
-				} catch (IOException e) { }
+				} catch (IOException e) {
+				}
 			}
 		}
-		
-		if (l != null) {		
+
+		if (l != null) {
 			l.setCompleted(100);
 			l.complete();
 		}
 	}
-	
+
 	@Override
 	public boolean willBlock() {
 		return metaData == null;

@@ -51,7 +51,7 @@ public class LicenseConflictDialog extends ButtonDialog {
 		GridBagConstraints c = new GridBagConstraints();
 		c.anchor = GridBagConstraints.FIRST_LINE_START;
 		c.fill = GridBagConstraints.BOTH;
-		c.weightx = c.weightx = 1;
+		c.weightx = c.weighty = 1;
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		main.add(makeListLabel(gpl, "GPL"), c);
 		main.add(makeListLabel(comm, "Commercial License"), c);		

@@ -222,13 +222,9 @@ public class ArffExampleSource extends AbstractDataReader {
 				}
 				String[] attributeNames = new String[attributeNamesList.size()];
 				attributeNames = attributeNamesList.toArray(attributeNames);
-				setColumnNames(attributeNames);
+				setAttributeNames(attributeNames);
 
-				int[] valueTypes = new int[valueTypesList.size()];
-				for (int i = 0; i < valueTypesList.size(); i++) {
-					valueTypes[i] = valueTypesList.get(i).intValue();
-				}
-				setValueTypes(valueTypes);
+				setValueTypes(valueTypesList);
 
 				// expect data declaration
 				if (!"@data".equalsIgnoreCase(tokenizer.sval)) {

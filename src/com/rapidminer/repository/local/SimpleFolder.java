@@ -137,9 +137,18 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 	@Override
 	public Folder createFolder(String name) throws RepositoryException {
 		ensureLoaded();
-		if (containsEntry(name)) {
-			throw new RepositoryException("Entry '"+name+"' exists");
+		
+		for (Folder folder : folders) {
+			if (folder.getName().equals(name)) {
+				return folder;
+			}
 		}
+		for (DataEntry entry : data) {
+			if (entry.getName().equals(name)) {
+				throw new RepositoryException("Entry '"+name+"' exists but is not a folder.");
+			}
+		}
+
 		SimpleFolder folder = new SimpleFolder(name, this, getRepository());		
 		folders.add(folder);
 		folder.mkdir();

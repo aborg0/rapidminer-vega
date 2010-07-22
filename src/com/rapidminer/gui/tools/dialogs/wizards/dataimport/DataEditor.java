@@ -23,8 +23,7 @@
 package com.rapidminer.gui.tools.dialogs.wizards.dataimport;
 
 import java.awt.Component;
-import java.util.Date;
-import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultCellEditor;
@@ -39,7 +38,6 @@ import com.rapidminer.gui.tools.ExtendedJTable;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.tools.Ontology;
-import com.rapidminer.tools.Tools;
 
 
 /**
@@ -114,9 +112,9 @@ public class DataEditor extends ExtendedJTable {
 
 		private AttributeMetaData[] attributes = null;
 		
-		private LinkedList<Object[]> data = null;
+		private List<Object[]> data = null;
 		
-		private void setData(ExampleSetMetaData metaData, LinkedList<Object[]> data) {
+		private void setData(ExampleSetMetaData metaData, List<Object[]> data) {
 			attributes = new AttributeMetaData[metaData.getAllAttributes().size()];
 			int i = 0;
 			for (AttributeMetaData amd : metaData.getAllAttributes()) {
@@ -166,24 +164,24 @@ public class DataEditor extends ExtendedJTable {
 					return "";
 				}
 //				if (showValueTypes) {
-					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[column].getValueType(), Ontology.INTEGER)) {
-						return Tools.formatIntegerIfPossible(((Number) values[column]).intValue());
-					}
-					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[column].getValueType(), Ontology.REAL)) {
-						return Tools.formatNumber(((Number) values[column]).doubleValue());
-					}
-					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[column].getValueType(), Ontology.NUMERICAL)) {
-						return Tools.formatNumber(((Number) values[column]).doubleValue());
-					}
-					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[column].getValueType(), Ontology.DATE)) {
-						return Tools.formatDate((Date) values[column]);
-					}
-					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[column].getValueType(), Ontology.TIME)) {
-						return Tools.formatTime((Date) values[column]);
-					}
-					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[column].getValueType(), Ontology.DATE_TIME)) {
-						return Tools.formatDateTime((Date) values[column]);
-					}
+//					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[column].getValueType(), Ontology.INTEGER)) {
+//						return Tools.formatIntegerIfPossible(((Number) values[column]).intValue());
+//					}
+//					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[column].getValueType(), Ontology.REAL)) {
+//						return Tools.formatNumber(((Number) values[column]).doubleValue());
+//					}
+//					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[column].getValueType(), Ontology.NUMERICAL)) {
+//						return Tools.formatNumber(((Number) values[column]).doubleValue());
+//					}
+//					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[column].getValueType(), Ontology.DATE)) {
+//						return Tools.formatDate((Date) values[column]);
+//					}
+//					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[column].getValueType(), Ontology.TIME)) {
+//						return Tools.formatTime((Date) values[column]);
+//					}
+//					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributes[column].getValueType(), Ontology.DATE_TIME)) {
+//						return Tools.formatDateTime((Date) values[column]);
+//					}
 					return values[column].toString();
 //				}
 //				return values[columnIndex].toString();
@@ -230,7 +228,7 @@ public class DataEditor extends ExtendedJTable {
 		this.editValueTypes = editValueTypes;
 	}
 	
-	public void setData(ExampleSetMetaData metaData, LinkedList<Object[]> data) {
+	public void setData(ExampleSetMetaData metaData, List<Object[]> data) {
 		valueTypeCellEditors = new ValueTypeCellEditor[metaData.getAllAttributes().size()];
 		int i = 0;
 		for (AttributeMetaData amd : metaData.getAllAttributes()) {

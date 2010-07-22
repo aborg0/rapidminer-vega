@@ -47,8 +47,7 @@ import com.rapidminer.tools.Tools;
 /**
  * Plots the current generation's Pareto set.
  * 
- * @author Ingo Mierswa
- *          ingomierswa Exp $;
+ * @author Ingo Mierswa, Sebastian Land
  */
 public class AggregationPopulationPlotter implements ObjectVisualizer {
 

@@ -26,6 +26,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
@@ -35,11 +37,11 @@ import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JToggleButton;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
@@ -53,10 +55,12 @@ import com.rapidminer.gui.properties.celleditors.value.PropertyValueCellEditor;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceDockKey;
+import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.ViewToolBar;
 import com.rapidminer.gui.tools.components.ToggleDropDownButton;
 import com.rapidminer.operator.Operator;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.Parameters;
 import com.rapidminer.tools.Observable;
@@ -181,14 +185,17 @@ public class OperatorPropertyPanel extends PropertyPanel implements Dockable, Pr
 		}
 	};
 
+	private JSpinner compatibilityLevelSpinner = new JSpinner(new CompatibilityLevelSpinnerModel());
+	private ResourceLabel compatibilityLabel = new ResourceLabel("compatibility_level");
+	private JPanel compatibilityPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));;
+
 	public OperatorPropertyPanel(final MainFrame mainFrame) {
 		super();
 		this.mainFrame = mainFrame;
 		breakpointButton = new BreakpointButton();
 		headerLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		expertModeHintLabel.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
+		expertModeHintLabel.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 		expertModeHintLabel.setIcon(WARNING_ICON);
-		expertModeHintLabel.setForeground(Color.GRAY);
 		expertModeHintLabel.addMouseListener(new MouseListener() {
 			public void mouseReleased(MouseEvent e) {
 				mainFrame.TOGGLE_EXPERT_MODE_ACTION.actionPerformed(null);
@@ -201,11 +208,6 @@ public class OperatorPropertyPanel extends PropertyPanel implements Dockable, Pr
 		expertModeHintLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		expertModeHintLabel.setHorizontalAlignment(SwingConstants.LEFT);
 		setupComponents();
-	}
-	
-	@Override
-	protected JComponent getMessage() {
-		return expertModeHintLabel;
 	}
 	
 	@Override
@@ -285,6 +287,12 @@ public class OperatorPropertyPanel extends PropertyPanel implements Dockable, Pr
 		this.operator = operator;	
 		if (operator != null) {
 			this.operator.getParameters().addObserver(parameterObserver, true);
+			((CompatibilityLevelSpinnerModel)this.compatibilityLevelSpinner.getModel()).setOperator(operator);
+			if (OperatorVersion.getLatestVersion(operator.getOperatorDescription()).equals(operator.getCompatibilityLevel())) {
+				compatibilityLabel.setIcon(SwingTools.createIcon("16/ok.png"));
+			} else {
+				compatibilityLabel.setIcon(WARNING_ICON);				
+			}
 			breakpointButton.setEnabled(true);
 		} else {
 			breakpointButton.setEnabled(false);
@@ -340,9 +348,20 @@ public class OperatorPropertyPanel extends PropertyPanel implements Dockable, Pr
 			headerPanel.add(headerLabel);
 			headerPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
 			toolBarPanel.add(headerPanel, BorderLayout.SOUTH);
-
+			
 			dockableComponent.add(toolBarPanel, BorderLayout.NORTH);
 			dockableComponent.add(scrollPane, BorderLayout.CENTER);
+				
+			//compatibility level and warnings
+			JPanel southPanel = new JPanel(new BorderLayout());
+			southPanel.add(expertModeHintLabel, BorderLayout.CENTER);
+			compatibilityLabel.setLabelFor(compatibilityLevelSpinner);
+			compatibilityLevelSpinner.setPreferredSize(new Dimension(80, (int) compatibilityLevelSpinner.getPreferredSize().getHeight()));			
+			compatibilityPanel.add(compatibilityLabel);
+			compatibilityPanel.add(compatibilityLevelSpinner);
+			southPanel.add(compatibilityPanel, BorderLayout.SOUTH);
+			
+			dockableComponent.add(southPanel, BorderLayout.SOUTH);
 		}
 		return dockableComponent;
 	}

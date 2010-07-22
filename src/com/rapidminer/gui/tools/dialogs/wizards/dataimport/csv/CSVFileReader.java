@@ -53,10 +53,7 @@ import com.rapidminer.tools.Ontology;
  * @author Tobias Malbrecht
  */
 public class CSVFileReader {
-	class FileUnreadException extends Exception {
-		private static final long serialVersionUID = -7405104573592793158L;
-	}
-	
+
 	private static final int MAX_LINES = 2000;
 	
  	private final File file;

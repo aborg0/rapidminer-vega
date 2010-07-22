@@ -459,7 +459,9 @@ public class SwingTools {
 	}
 
 	/**
-	 * The key will be used for the properties gui.dialog.-key-.title and
+	 * This method will present a dialog to enter a text. This text will be returned
+	 * if the user confirmed the edit. Otherwise null is returned.
+	 * The key will be used for the properties gui.dialog.-key-.title, gui.dialog.-key-.message and
 	 * gui.dialog.input.-key-.icon
 	 */
 	public static String showInputDialog(final String key, String text, Object...keyArguments) {

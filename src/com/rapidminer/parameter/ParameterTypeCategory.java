@@ -65,7 +65,7 @@ public class ParameterTypeCategory extends ParameterTypeSingle {
 		if (defaultValue == -1) {
 			return null;
 		} else {
-			return Integer.valueOf(defaultValue);
+			return categories[defaultValue];
 		}
 	}
 

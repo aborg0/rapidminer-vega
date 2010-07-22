@@ -4,7 +4,7 @@ import com.rapidminer.operator.Operator;
 
 /** Estimates the resource consumption (CPU time and memory usage) 
  *  of an {@link Operator} based on its current input. The methods
- *  in this interface do not take any araguments. Instead, they are
+ *  in this interface do not take any arguments. Instead, they are
  *  backed by an operator and consider its current input.
  *  
  * @author Simon Fischer

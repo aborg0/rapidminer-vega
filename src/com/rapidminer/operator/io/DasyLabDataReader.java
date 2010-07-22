@@ -73,7 +73,7 @@ public class DasyLabDataReader extends BytewiseExampleSource {
 	
 	private static final int FILE_TYPE_UNIVERSAL_FORMAT_1 = 1;
 	
-	private class Channel {
+	private static class Channel {
 //		private static final int CONTINUOUS_TIME_DEPENDENT_SIGNAL = 0;
 //		
 //		private static final int FREQUENCY_DEPENDENT_FULL_BLOCK_SIZE = 10;

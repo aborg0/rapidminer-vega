@@ -293,10 +293,10 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
 		this.columnNames.add("Type");
 		this.columnNames.add("Last Modified");
 
-		this.originalColumsWidth.add(new Integer(0));
-		this.originalColumsWidth.add(new Integer(0));
-		this.originalColumsWidth.add(new Integer(0));
-		this.originalColumsWidth.add(new Integer(0));
+		this.originalColumsWidth.add(Integer.valueOf(0));
+		this.originalColumsWidth.add(Integer.valueOf(0));
+		this.originalColumsWidth.add(Integer.valueOf(0));
+		this.originalColumsWidth.add(Integer.valueOf(0));
 
 		this.setBackground(Color.white);
 		this.setShowGrid(false);
@@ -686,7 +686,7 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
 			this.getColumnModel().getColumn(index).setMaxWidth(2147483647);
 			this.getColumnModel().getColumn(index).setPreferredWidth(this.originalColumsWidth.get(this.columnNames.indexOf(col)).intValue());
 			this.getColumnModel().getColumn(index).setWidth(this.originalColumsWidth.get(this.columnNames.indexOf(col)).intValue());
-			this.originalColumsWidth.set(this.columnNames.indexOf(col), new Integer(0));
+			this.originalColumsWidth.set(this.columnNames.indexOf(col), Integer.valueOf(0));
 			this.getTableHeader().resizeAndRepaint();
 		}
 	}

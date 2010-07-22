@@ -36,6 +36,7 @@ import com.rapidminer.operator.ports.metadata.SubprocessTransformRule;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeDirectory;
+import com.rapidminer.parameter.ParameterTypeRegexp;
 import com.rapidminer.parameter.ParameterTypeString;
 
 /**
@@ -126,7 +127,7 @@ public class FileIterator extends OperatorChain {
 		type.setExpert(false);
 		types.add(type);
 
-		types.add(new ParameterTypeString(PARAMETER_FILTER, "Specifies a regular expression which is used as filter for the file and directory names, e.g. 'a.*b' for all files starting with 'a' and ending with 'b'.", true, false));
+		types.add(new ParameterTypeRegexp(PARAMETER_FILTER, "Specifies a regular expression which is used as filter for the file and directory names, e.g. 'a.*b' for all files starting with 'a' and ending with 'b'.", true, false));
 
 		types.add(new ParameterTypeString(PARAMETER_FILE_NAME_MACRO, "Specifies the name of the macro, which delievers the current file name without path. Use %{macro_name} to use the file name in suboperators.", "file_name", false));
 		types.add(new ParameterTypeString(PARAMETER_FILE_PATH_MACRO, "Specifies the name of the macro containing the absolute path and file name of the current file. Use %{macro_name} to address the file in suboperators.", "file_path", false));

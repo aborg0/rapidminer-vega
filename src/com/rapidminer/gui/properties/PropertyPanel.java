@@ -293,9 +293,9 @@ public abstract class PropertyPanel extends JPanel {
 
 		c.gridx = 0;
 		c.gridy = row;
-		JComponent message = getMessage();
-		message.setOpaque(isOpaque());
-		add(message, c);
+//		JComponent message = getMessage();
+//		message.setOpaque(isOpaque());
+//		add(message, c);
 
 		JPanel dummyPanel = new JPanel(new GridLayout(1,2));
 		//dummyPanel.setBackground(getBackground());
@@ -310,11 +310,11 @@ public abstract class PropertyPanel extends JPanel {
 		repaint();
 	}
 
-	protected JComponent getMessage() {
-		JPanel panel = new JPanel();
-		panel.setBackground(getBackground());
-		return panel;
-	}
+//	protected JComponent getMessage() {
+//		JPanel panel = new JPanel();
+//		panel.setBackground(getBackground());
+//		return panel;
+//	}
 
 	protected boolean hasEditorFor(ParameterType type) {
 		return currentEditors.containsKey(type.getKey());

@@ -62,7 +62,7 @@ public class GiniIndexCriterion extends AbstractCriterion {
         for (int v = 0; v < weightCounts.length; v++) {
             double[] partitionWeights = weightCounts[v];
             double partitionWeight = frequencyCalculator.getTotalWeight(partitionWeights);
-            gain += getGiniIndex(partitionWeights, partitionWeight) * partitionWeight / totalWeight;
+            gain += getGiniIndex(partitionWeights, partitionWeight) * partitionWeight / totalClassWeight;
         }
         return totalEntropy - gain;
     }

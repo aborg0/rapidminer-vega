@@ -35,6 +35,8 @@ import com.rapidminer.tools.RandomGenerator;
  */
 public class InnerNode extends Node {
 
+	private static final long serialVersionUID = 8187951447455119892L;
+
 	/** The weights for the inputs, the first weight is used for the threshold. */
 	private double[] weights;
 

@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator.learner;
 
+import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Tools;
 import com.rapidminer.operator.Operator;
@@ -68,23 +69,30 @@ public class CapabilityCheck {
 				throw new UserError(learningOperator, 501, learningOperator.getName(), OperatorCapability.NUMERICAL_ATTRIBUTES.getDescription());
 
 			// label
-			if (exampleSet.getAttributes().getLabel().isNominal()) {
-				if (exampleSet.getAttributes().getLabel().getMapping().size() == 1) {
-					if (!(capabilityProvider.supportsCapability(OperatorCapability.ONE_CLASS_LABEL))) {
-						throw new UserError(learningOperator, 502, learningOperator.getName());						
+			Attribute labelAttribute = exampleSet.getAttributes().getLabel();
+			if (labelAttribute != null) {
+				if (labelAttribute.isNominal()) {
+					if (labelAttribute.getMapping().size() == 1) {
+						if (!(capabilityProvider.supportsCapability(OperatorCapability.ONE_CLASS_LABEL))) {
+							throw new UserError(learningOperator, 502, learningOperator.getName());						
+						}
+					} else {
+						if (labelAttribute.getMapping().size() == 2) {
+							if (!capabilityProvider.supportsCapability(OperatorCapability.BINOMINAL_LABEL))
+								throw new UserError(learningOperator, 501, learningOperator.getName(), OperatorCapability.BINOMINAL_LABEL.getDescription());
+						} else {
+							if (!capabilityProvider.supportsCapability(OperatorCapability.POLYNOMINAL_LABEL))
+								throw new UserError(learningOperator, 501, learningOperator.getName(), OperatorCapability.POLYNOMINAL_LABEL.getDescription());
+						}
 					}
 				} else {
-					if (exampleSet.getAttributes().getLabel().getMapping().size() == 2) {
-						if (!capabilityProvider.supportsCapability(OperatorCapability.BINOMINAL_LABEL))
-							throw new UserError(learningOperator, 501, learningOperator.getName(), OperatorCapability.BINOMINAL_LABEL.getDescription());
-					} else {
-						if (!capabilityProvider.supportsCapability(OperatorCapability.POLYNOMINAL_LABEL))
-							throw new UserError(learningOperator, 501, learningOperator.getName(), OperatorCapability.POLYNOMINAL_LABEL.getDescription());
-					}
+					if (labelAttribute.isNumerical() && !capabilityProvider.supportsCapability(OperatorCapability.NUMERICAL_LABEL))
+						throw new UserError(learningOperator, 501, learningOperator.getName(), OperatorCapability.NUMERICAL_LABEL.getDescription());
 				}
 			} else {
-				if (exampleSet.getAttributes().getLabel().isNumerical() && !capabilityProvider.supportsCapability(OperatorCapability.NUMERICAL_LABEL))
-					throw new UserError(learningOperator, 501, learningOperator.getName(), OperatorCapability.NUMERICAL_LABEL.getDescription());
+				if (!(capabilityProvider.supportsCapability(OperatorCapability.NO_LABEL))) {
+					throw new UserError(learningOperator, 501, learningOperator.getName(), OperatorCapability.NO_LABEL.getDescription());						
+				}
 			}
 			// missing values will only be checked with meta data to avoid data scan only for capability check.
 		} catch (UserError e) {

@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
-import com.rapidminer.example.set.MappedExampleSet;
+import com.rapidminer.example.set.SortedExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.preprocessing.AbstractDataProcessing;
@@ -39,8 +39,10 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttributes;
 
 /**
+ * This operator sorts a given example set according to a subset of attributes
+ * and will sort pareto dominated examples after non dominated.
  * 
- * @author Ingo Mierswa
+ * @author Ingo Mierswa, Sebastian Land
  */
 public class NonDominatedSorting extends AbstractDataProcessing{
 
@@ -115,7 +117,8 @@ public class NonDominatedSorting extends AbstractDataProcessing{
 			index++;
 		}
 
-		ExampleSet result = new MappedExampleSet(exampleSet, mapping, true, false);
+		
+		ExampleSet result = new SortedExampleSet(exampleSet, mapping);
 
 		return result;
 	}

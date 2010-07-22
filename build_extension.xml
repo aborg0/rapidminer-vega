@@ -63,13 +63,15 @@
 
 	<taskdef onerror="report" resource="net/sf/antcontrib/antlib.xml"/>
 	
-    <target name="init" depends="version.get" unless="lock.isInitialized">
+    <target name="init" depends="version.get, init.setEncoding" unless="lock.isInitialized">
         <!-- Building properties here, because they depend on version number -->
         <property name="release.name" value="rapidminer-${extension.name}-${extension.longversion}.jar" />
         <property name="release.installer.name" value="rapidminer-${extension.name}-${extension.longversion}-installer.exe" />
         <property name="release.src.name" value="rapidminer-${extension.name}-${extension.longversion}-src.zip" />
         <property name="release.javadoc.name" value="rapidminer-${extension.name}-${extension.longversion}-javadoc.zip" />
         <property name="release.examples.name" value="rapidminer-${extension.name}-${extension.longversion}-examples.zip" />
+        
+        <antcall target="init.setEncoding" />
 
         <tstamp />
 		<taskdef onerror="report" resource="org/apache/ant/http/antlib.xml" classpath="${rm.dir}/ant/ant_http.jar" />
@@ -78,6 +80,10 @@
         <mkdir dir="${release.targetDir}" />
 
         <property name="lock.isInitialized" value="true" />
+    </target>
+    
+    <target name="init.setEncoding" unless="build.encoding">
+       <property name="build.encoding" value="Cp1252" />
     </target>
 
     <target name="clean" unless="lock.isCleaned" description="Delete the build directory, java doc, rapidminer.jar, plugin files">
@@ -113,7 +119,7 @@
         <!-- building extension-->
         <echo message="RapidMiner Extension: Compile with Java from dir: ${java.home}" />
         <echo message="RapidMiner Extension: using Java version: ${java.version}" />
-        <javac debug="${compiler.debug}" destdir="${build.build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" fork="true" memorymaximumsize="400m">
+        <javac encoding="${build.encoding}" debug="${compiler.debug}" destdir="${build.build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" fork="true" memorymaximumsize="400m">
             <src>
                 <path refid="build.sources.path" />
             </src>

@@ -131,7 +131,11 @@ public class KNNClassificationModel extends UpdateablePredictionModel {
 				}
 			}
 			// setting prediction
-			example.setValue(predictedLabel, mostFrequentIndex);
+			if (mostFrequentIndex == Integer.MIN_VALUE)
+				example.setValue(predictedLabel, Double.NaN);
+			else
+				example.setValue(predictedLabel, mostFrequentIndex);
+
 			// setting confidence
 			for (int index = 0; index < counter.length; index++) {
 				example.setConfidence(predictedLabel.getMapping().mapIndex(index), counter[index]);

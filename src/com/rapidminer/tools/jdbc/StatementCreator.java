@@ -202,7 +202,17 @@ public class StatementCreator {
  //		if (isLegalIdentifier(identifier)) {
 //			return identifier;
 //		}
-		identifier = identifier.replace(identifierQuote, "_");
+		// for performance reasons, don't use regexp when identifier has length 1
+		if (identifierQuote != null) {
+			switch (identifierQuote.length()) {
+			case 0: break;
+			case 1:
+				identifier = identifier.replace(identifierQuote.charAt(0), '_');
+				break;
+			default:			
+				identifier = identifier.replace(identifierQuote, "_");
+			}
+		}
 		return this.identifierQuote + 
 			identifier + 
 			this.identifierQuote;

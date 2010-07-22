@@ -73,7 +73,10 @@ import com.rapidminer.tools.XMLException;
 import com.rapidminer.tools.cipher.CipherException;
 import com.rapidminer.tools.jdbc.connection.DatabaseConnectionService;
 import com.rapidminer.tools.jdbc.connection.FieldConnectionEntry;
+
 /**
+ * A repository connecting to a RapidAnalytics installation.
+ * 
  * @author Simon Fischer
  */
 public class RemoteRepository extends RemoteFolder implements Repository {
@@ -90,34 +93,33 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	private ProcessService processService;
 	private final EventListenerList listeners = new EventListenerList();
 
-	private static final Map<URL,WeakReference<RemoteRepository>> ALL_REPOSITORIES = new HashMap<URL,WeakReference<RemoteRepository>>();
+	private static final Map<URL, WeakReference<RemoteRepository>> ALL_REPOSITORIES = new HashMap<URL, WeakReference<RemoteRepository>>();
 	private static final Object MAP_LOCK = new Object();
 
-	private boolean offline = true; 
+	private boolean offline = true;
 	private boolean isHome;
-	
+
 	static {
 		GlobalAuthenticator.register(new GlobalAuthenticator.URLAuthenticator() {
 			@Override
-			public PasswordAuthentication getAuthentication(URL url) {			
+			public PasswordAuthentication getAuthentication(URL url) {
 				WeakReference<RemoteRepository> reposRef = null;// = ALL_REPOSITORIES.get(url);
 				for (Map.Entry<URL, WeakReference<RemoteRepository>> entry : ALL_REPOSITORIES.entrySet()) {
-					if (url.toString().startsWith(entry.getKey().toString()) ||
-							url.toString().replace("127\\.0\\.0\\.1", "localhost").startsWith(entry.getKey().toString())) {
+					if (url.toString().startsWith(entry.getKey().toString()) || url.toString().replace("127\\.0\\.0\\.1", "localhost").startsWith(entry.getKey().toString())) {
 						reposRef = entry.getValue();
 						break;
 					}
 				}
-				
+
 				if (reposRef == null) {
 					return null;
 				}
 				RemoteRepository repository = reposRef.get();
 				if (repository != null) {
-					return repository.getAuthentiaction();					
-				} else {					
+					return repository.getAuthentiaction();
+				} else {
 					return null;
-				}				
+				}
 			}
 
 			@Override
@@ -126,8 +128,8 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			}
 		});
 	}
-	
-	public RemoteRepository(URL baseUrl, String alias, String username, char[] password, boolean isHome) {		
+
+	public RemoteRepository(URL baseUrl, String alias, String username, char[] password, boolean isHome) {
 		super("/");
 		setRepository(this);
 		this.alias = alias;
@@ -141,7 +143,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		}
 		register(this);
 	}
-	
+
 	private static void register(RemoteRepository remoteRepository) {
 		synchronized (MAP_LOCK) {
 			ALL_REPOSITORIES.put(remoteRepository.baseUrl, new WeakReference<RemoteRepository>(remoteRepository));
@@ -153,17 +155,17 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			return new URL(baseUrl, "RAWS/RepositoryService?wsdl");
 		} catch (MalformedURLException e) {
 			// cannot happen
-			LogService.getRoot().log(Level.WARNING, "Cannot create web service url: "+e, e);
+			LogService.getRoot().log(Level.WARNING, "Cannot create Web service url: " + e, e);
 			return null;
 		}
 	}
-	
+
 	private URL getProcessServiceWSDLUrl() {
 		try {
 			return new URL(baseUrl, "RAWS/ProcessService?wsdl");
 		} catch (MalformedURLException e) {
 			// cannot happen
-			LogService.getRoot().log(Level.WARNING, "Cannot create web service url: "+e, e);
+			LogService.getRoot().log(Level.WARNING, "Cannot create Web service url: " + e, e);
 			return null;
 		}
 	}
@@ -175,28 +177,28 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	@Override
 	public void removeRepositoryListener(RepositoryListener l) {
-		listeners.remove(RepositoryListener.class, l);		
+		listeners.remove(RepositoryListener.class, l);
 	}
-	
+
 	@Override
 	public boolean rename(String newName) {
 		this.alias = newName;
 		fireEntryRenamed(this);
 		return true;
 	}
-	
+
 	protected void fireEntryRenamed(Entry entry) {
 		for (RepositoryListener l : listeners.getListeners(RepositoryListener.class)) {
 			l.entryRenamed(entry);
 		}
 	}
-	
+
 	protected void fireEntryAdded(Entry newEntry, Folder parent) {
 		for (RepositoryListener l : listeners.getListeners(RepositoryListener.class)) {
 			l.entryAdded(newEntry, parent);
 		}
 	}
-	
+
 	protected void fireEntryRemoved(Entry removedEntry, Folder parent, int index) {
 		for (RepositoryListener l : listeners.getListeners(RepositoryListener.class)) {
 			l.entryRemoved(removedEntry, parent, index);
@@ -206,18 +208,18 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	protected void fireRefreshed(Folder folder) {
 		for (RepositoryListener l : listeners.getListeners(RepositoryListener.class)) {
 			l.folderRefreshed(folder);
-		}		
+		}
 	}
-	
-	private Map<String,RemoteEntry> cachedEntries = new HashMap<String,RemoteEntry>();
-	
+
+	private Map<String, RemoteEntry> cachedEntries = new HashMap<String, RemoteEntry>();
+
 	/** Connection entries fetched from server. */
 	private Collection<FieldConnectionEntry> connectionEntries;
-	
+
 	protected void register(RemoteEntry entry) {
 		cachedEntries.put(entry.getPath(), entry);
 	}
-	
+
 	@Override
 	public Entry locate(String string) throws RepositoryException {
 		Entry cached = cachedEntries.get(string);
@@ -228,11 +230,11 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		if (firstTry != null) {
 			return firstTry;
 		}
-		
+
 		if (!string.startsWith("/")) {
 			string = "/" + string;
 		}
-		
+
 		EntryResponse response = getRepositoryService().getEntry(string);
 		if (response.getStatus() != RepositoryConstants.OK) {
 			if (response.getStatus() == RepositoryConstants.NO_SUCH_ENTRY) {
@@ -255,28 +257,28 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	@Override
 	public String getName() {
-		return alias; 
+		return alias;
 	}
-	
+
 	@Override
 	public String getState() {
 		return (offline ? "offline" : (repositoryService != null ? "connected" : "disconnected"));
 	}
-	
+
 	@Override
 	public String toString() {
 		return "<html>" + alias + "<br/><small style=\"color:gray\">(" + baseUrl + ")</small></html>";
 	}
-	
+
 	private PasswordAuthentication getAuthentiaction() {
 		if (this.password == null) {
-			LogService.getRoot().info("Authentication requested for URL: "+baseUrl);
-			PasswordAuthentication passwordAuthentication = PasswordDialog.getPasswordAuthentication(baseUrl.toString(), false);			
+			LogService.getRoot().info("Authentication requested for URL: " + baseUrl);
+			PasswordAuthentication passwordAuthentication = PasswordDialog.getPasswordAuthentication(baseUrl.toString(), false);
 			if (passwordAuthentication != null) {
 				this.password = passwordAuthentication.getPassword();
 				this.username = passwordAuthentication.getUserName();
 				RepositoryManager.getInstance(null).save();
-			}			
+			}
 			return passwordAuthentication;
 		} else {
 			return new PasswordAuthentication(username, this.password);
@@ -284,41 +286,39 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	}
 
 	public RepositoryService getRepositoryService() throws RepositoryException {
-//		if (offline) {
-//			throw new RepositoryException("Repository "+getName()+" is offline. Connect first.");
-//		}
+		// if (offline) {
+		// throw new RepositoryException("Repository "+getName()+" is offline. Connect first.");
+		// }
 		installJDBCConnectionEntries();
-		if (repositoryService == null){
+		if (repositoryService == null) {
 			try {
-				RepositoryService_Service serviceService = new RepositoryService_Service(getRepositoryServiceWSDLUrl(), 
-						new QName("http://service.web.rapidrepository.com/", "RepositoryService"));
+				RepositoryService_Service serviceService = new RepositoryService_Service(getRepositoryServiceWSDLUrl(), new QName("http://service.web.rapidrepository.com/", "RepositoryService"));
 				repositoryService = serviceService.getRepositoryServicePort();
 				offline = false;
 			} catch (Exception e) {
 				offline = true;
 				password = null;
 				repositoryService = null;
-				throw new RepositoryException("Cannot connect to "+baseUrl+": "+e, e);				
+				throw new RepositoryException("Cannot connect to " + baseUrl + ": " + e, e);
 			}
 		}
 		return repositoryService;
 	}
 
 	public ProcessService getProcessService() throws RepositoryException {
-//		if (offline) {
-//			throw new RepositoryException("Repository "+getName()+" is offline. Connect first.");
-//		}
-		if (processService == null){
+		// if (offline) {
+		// throw new RepositoryException("Repository "+getName()+" is offline. Connect first.");
+		// }
+		if (processService == null) {
 			try {
-				ProcessService_Service serviceService = new ProcessService_Service(getProcessServiceWSDLUrl(), 
-						new QName("http://service.web.rapidrepository.com/", "ProcessService"));
+				ProcessService_Service serviceService = new ProcessService_Service(getProcessServiceWSDLUrl(), new QName("http://service.web.rapidrepository.com/", "ProcessService"));
 				processService = serviceService.getProcessServicePort();
 				offline = false;
 			} catch (Exception e) {
 				offline = true;
 				password = null;
 				processService = null;
-				throw new RepositoryException("Cannot connect to "+baseUrl+": "+e, e);				
+				throw new RepositoryException("Cannot connect to " + baseUrl + ": " + e, e);
 			}
 		}
 		return processService;
@@ -326,7 +326,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	@Override
 	public String getDescription() {
-		return "Remote repository at "+baseUrl;
+		return "Remote repository at " + baseUrl;
 	}
 
 	@Override
@@ -337,59 +337,56 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		removeJDBCConnectionEntries();
 		installJDBCConnectionEntries();
 	}
-		
-	protected HttpURLConnection getHTTPConnection(String location, EntryStreamType type) throws IOException {		
+
+	protected HttpURLConnection getHTTPConnection(String location, EntryStreamType type) throws IOException {
 		String split[] = location.split("/");
 		StringBuilder encoded = new StringBuilder();
 		encoded.append("RAWS/resources");
-		for (String fraction : split) {
-			encoded.append('/');
-			encoded.append(URLEncoder.encode(fraction, "UTF-8"));
-			//encoded.append(fraction);
+		for (String fraction : split) {		
+			if (!fraction.isEmpty()) { // only for non empty to prevent double //
+				encoded.append('/');
+				encoded.append(URLEncoder.encode(fraction, "UTF-8"));
+			}
 		}
 		if (type == EntryStreamType.METADATA) {
 			encoded.append("?format=binmeta");
 		}
 		final HttpURLConnection conn = (HttpURLConnection) new URL(baseUrl, encoded.toString()).openConnection();
-//		final String userColonPass = username+":"+new String(password);		
-//		//final String base64 = Base64.encodeBytes(userColonPass.getBytes());
-//		String base64 = new sun.misc.BASE64Encoder().encode(userColonPass.getBytes());
-//		System.out.println(userColonPass+ " -> "+base64);
-//		conn.setRequestProperty("Authorization", "Basic " + base64);
+		// final String userColonPass = username+":"+new String(password);
+		// //final String base64 = Base64.encodeBytes(userColonPass.getBytes());
+		// String base64 = new sun.misc.BASE64Encoder().encode(userColonPass.getBytes());
+		// System.out.println(userColonPass+ " -> "+base64);
+		// conn.setRequestProperty("Authorization", "Basic " + base64);
 		return conn;
 	}
-	
+
 	@Override
 	public Element createXML(Document doc) {
 		Element repositoryElement = doc.createElement("remoteRepository");
-		
+
 		Element url = doc.createElement("url");
 		url.appendChild(doc.createTextNode(this.baseUrl.toString()));
 		repositoryElement.appendChild(url);
-		
+
 		Element alias = doc.createElement("alias");
 		alias.appendChild(doc.createTextNode(this.alias));
 		repositoryElement.appendChild(alias);
-		
+
 		Element user = doc.createElement("user");
 		user.appendChild(doc.createTextNode(this.username));
 		repositoryElement.appendChild(user);
-		
+
 		return repositoryElement;
 	}
-	
+
 	public static RemoteRepository fromXML(Element element) throws XMLException {
 		String url = XMLTools.getTagContents(element, "url", true);
 		try {
-			return new RemoteRepository(new URL(url),
-					XMLTools.getTagContents(element, "alias", true),
-					XMLTools.getTagContents(element, "user", true),
-					null, false);
+			return new RemoteRepository(new URL(url), XMLTools.getTagContents(element, "alias", true), XMLTools.getTagContents(element, "user", true), null, false);
 		} catch (MalformedURLException e) {
-			throw new XMLException("Illegal url '"+url+"': "+e, e);
+			throw new XMLException("Illegal url '" + url + "': " + e, e);
 		}
 	}
-	
 
 	@Override
 	public void delete() {
@@ -406,7 +403,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		}
 		return result;
 	}
-	
+
 	public boolean isConnected() {
 		return !offline;
 	}
@@ -450,14 +447,13 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	public URI getURIForResource(String path) {
 		try {
-			return baseUrl.toURI().resolve("RA/faces/restricted/browse.xhtml?location="+URLEncoder.encode(path, "UTF-8"));
+			return baseUrl.toURI().resolve("RA/faces/restricted/browse.xhtml?location=" + URLEncoder.encode(path, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			throw new RuntimeException(e);			
+			throw new RuntimeException(e);
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
 	}
-	
 
 	private URI getURIWebInterfaceURI() {
 		try {
@@ -472,24 +468,24 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			Desktop.getDesktop().browse(getURIForResource(location));
 		} catch (Exception e) {
 			SwingTools.showSimpleErrorMessage("cannot_open_browser", e);
-		}		
+		}
 	}
-	
+
 	public void showLog(int id) {
 		try {
 			Desktop.getDesktop().browse(getProcessLogURI(id));
 		} catch (Exception e) {
 			SwingTools.showSimpleErrorMessage("cannot_open_browser", e);
-		}				
+		}
 	}
 
 	public URI getProcessLogURI(int id) {
 		try {
-			return baseUrl.toURI().resolve("/RA/processlog?id="+id);
+			return baseUrl.toURI().resolve("/RA/processlog?id=" + id);
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
-	}	
+	}
 
 	@Override
 	public Collection<Action> getCustomActions() {
@@ -502,10 +498,9 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	public boolean shouldSave() {
 		return !isHome;
 	}
-	
-	
+
 	// JDBC entries provided by server
-		
+
 	private Collection<FieldConnectionEntry> fetchJDBCEntries() throws XMLException, CipherException, SAXException, IOException {
 		URL xmlURL = new URL(baseUrl, "RAWS/jdbc_connections.xml");
 		Document doc = XMLTools.parse(xmlURL.openStream());
@@ -513,38 +508,38 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		for (FieldConnectionEntry entry : result) {
 			entry.setDynamic(true);
 		}
-		return result;		
+		return result;
 	}
-	
+
 	@Override
-	public void postInstall() {		
+	public void postInstall() {
 	}
 
 	private void installJDBCConnectionEntries() {
 		if (this.connectionEntries != null) {
 			return;
 		}
-		try {		
+		try {
 			this.connectionEntries = fetchJDBCEntries();
 			for (FieldConnectionEntry entry : connectionEntries) {
 				DatabaseConnectionService.addConnectionEntry(entry);
 			}
-			LogService.getRoot().config("Added "+connectionEntries.size()+ " jdbc connections exported by "+getName()+".");
+			LogService.getRoot().config("Added " + connectionEntries.size() + " jdbc connections exported by " + getName() + ".");
 		} catch (Exception e) {
-			LogService.getRoot().log(Level.WARNING, "Failed to fetch JDBC connection entries from server "+getName()+".", e);
+			LogService.getRoot().log(Level.WARNING, "Failed to fetch JDBC connection entries from server " + getName() + ".", e);
 		}
 	}
 
 	private void removeJDBCConnectionEntries() {
 		if (this.connectionEntries != null) {
 			for (FieldConnectionEntry entry : connectionEntries) {
-				DatabaseConnectionService.deleteConnectionEntry(entry);			
+				DatabaseConnectionService.deleteConnectionEntry(entry);
 			}
 			this.connectionEntries = null;
 		}
 	}
 
 	@Override
-	public void preRemove() {		
+	public void preRemove() {
 	}
 }

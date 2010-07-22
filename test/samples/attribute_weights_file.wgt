@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="windows-1252"?>
-<attributeweights version="4.3">
+<attributeweights version="5.0">
     <weight name="att1" value="0.0"/>
     <weight name="att2" value="1.0"/>
 </attributeweights>

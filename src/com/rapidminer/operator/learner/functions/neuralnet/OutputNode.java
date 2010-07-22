@@ -34,6 +34,8 @@ import com.rapidminer.example.Example;
  */
 public class OutputNode extends Node {
 	
+	private static final long serialVersionUID = 23423534L;
+
 	private Attribute label;
 	
 	private int classIndex = 0;

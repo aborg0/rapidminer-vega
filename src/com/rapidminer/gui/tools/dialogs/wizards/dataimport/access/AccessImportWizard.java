@@ -33,9 +33,11 @@ import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.AttributeSelectionWizardStep;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DataImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.FileSelectionWizardStep;
+import com.rapidminer.gui.tools.dialogs.wizards.dataimport.MetaDataDeclarationEditor;
+import com.rapidminer.gui.tools.dialogs.wizards.dataimport.MetaDataDeclerationWirzardStep;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.RepositoryLocationSelectionWizardStep;
 import com.rapidminer.operator.OperatorCreationException;
-import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.io.AbstractDataReader;
 import com.rapidminer.operator.io.DatabaseDataReader;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.repository.RepositoryLocation;
@@ -81,7 +83,7 @@ public class AccessImportWizard extends DataImportWizard {
 			});
 		}
 		addStep(new WizardStep("database_query") {
-			private final SQLQueryBuilder dialog = new SQLQueryBuilder(DatabaseHandler.getConnectedDatabaseHandler(connectionEntry));
+			private final SQLQueryBuilder dialog = new SQLQueryBuilder(null); //DatabaseHandler.getConnectedDatabaseHandler(connectionEntry));
 			{
 				dialog.addChangeListener(AccessImportWizard.this);
 			}
@@ -116,36 +118,27 @@ public class AccessImportWizard extends DataImportWizard {
 				reader.setParameter(DatabaseHandler.PARAMETER_PASSWORD, new String(connectionEntry.getPassword()));
 				reader.setParameter(DatabaseHandler.PARAMETER_DEFINE_QUERY, DatabaseHandler.QUERY_MODES[DatabaseHandler.QUERY_QUERY]);
 				reader.setParameter(DatabaseHandler.PARAMETER_QUERY, dialog.getQuery());
-				try {
-					metaData = (ExampleSetMetaData) reader.getGeneratedMetaData();
-				} catch (OperatorException e) {
-					System.err.println(e.getMessage());
-					return false;
-				}
+				metaData = (ExampleSetMetaData) reader.getGeneratedMetaData();
 				return true;
 			}
 		});
-		addStep(new AttributeSelectionWizardStep("select_attributes") {
-			@Override
-			protected boolean canGoBack() {
-				return true;
-			}
-
-			@Override
-			protected boolean canProceed() {
-				return true;
-			}
-
-			@Override
-			protected boolean performEnteringAction() {
-				setMetaData(metaData);
-				return true;
-			}
-		});
+		
+//		addStep(new MetaDataDeclerationWirzardStep("select_attributes", (AbstractDataReader)reader){
+//			@Override
+//			protected boolean canGoBack() {
+//				return true;
+//			}
+//
+//			@Override
+//			protected boolean canProceed() {
+//				return true;
+//			}
+//
+//		});
 		addStep(new RepositoryLocationSelectionWizardStep("select_repository_location", this, null, preselectedLocation != null ? preselectedLocation.getAbsoluteLocation() : null) {
 			@Override
 			protected boolean performLeavingAction() {
-				return transferData(reader, metaData, getRepositoryLocation());
+				return transferData(reader, getRepositoryLocation());
 			}
 		});
 		layoutDefault();

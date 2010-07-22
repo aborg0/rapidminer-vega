@@ -22,16 +22,20 @@
  */
 package com.rapidminer.operator.learner.functions.neuralnet;
 
+import java.io.Serializable;
+
 import com.rapidminer.example.Example;
 
 /** 
- * A node is the abstract superclass for all types of nodes and also represents
+ * A node is the abstract superclass for all types of neural net nodes and also represents
  * the connection between other nodes of the neural net. It performs
  * most of the calculations and the feedforward / backpropagation mechanism.
  *
- * @author Ingo Mierswa
+ * @author Ingo Mierswa, Sebastian Land
  */
-public abstract class Node {
+public abstract class Node implements Serializable {
+
+	private static final long serialVersionUID = -4888796462060891114L;
 
 	public static final int INPUT  = -1;
 	public static final int HIDDEN = 0;

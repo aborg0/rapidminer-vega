@@ -85,6 +85,7 @@ public class RunRemoteDialog extends ButtonDialog {
 																// Date()), 30);
 	private final JTextField cronField = new JTextField(30);
 	private final JComboBox repositoryBox = new JComboBox();
+	private static int lastRepositoryIndexSelected = 0;
 	private final JLabel dateLabel = new ResourceLabel("runremotedialog.date");
 	private final JLabel cronLabel = new ResourceLabel("runremotedialog.cronexpression");
 	private final JCheckBox startBox = new JCheckBox(new ResourceAction("runremotedialog.cronstart") {
@@ -140,10 +141,15 @@ public class RunRemoteDialog extends ButtonDialog {
 		final JButton cancelButton = makeCancelButton();
 		
 		repositoryBox.setModel(new DefaultComboBoxModel(RepositoryManager.getInstance(null).getRemoteRepositories().toArray()));
+		if (repositoryBox.getItemCount() < lastRepositoryIndexSelected){
+			lastRepositoryIndexSelected = 0;
+		}
+		repositoryBox.setSelectedIndex(lastRepositoryIndexSelected);
 		repositoryBox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				okButton.setEnabled(repositoryBox.getSelectedItem() != null);
+				lastRepositoryIndexSelected = repositoryBox.getSelectedIndex();
 			}
 		});
 		RepositoryManager.getInstance(null).addObserver(new Observer<Repository>() {

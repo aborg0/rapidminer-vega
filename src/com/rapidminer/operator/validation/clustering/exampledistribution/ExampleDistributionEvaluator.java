@@ -113,7 +113,7 @@ public class ExampleDistributionEvaluator extends Operator {
 		MEASURE_MAP = new ClassNameMapper(DEFAULT_MEASURES);
 		List<ParameterType> types = super.getParameterTypes();
 
-		ParameterType type = new ParameterTypeStringCategory(PARAMETER_MEASURE, "the item distribution measure to apply", MEASURE_MAP.getShortClassNames());
+		ParameterType type = new ParameterTypeStringCategory(PARAMETER_MEASURE, "the item distribution measure to apply", MEASURE_MAP.getShortClassNames(), "SumOfSquares", true);
 		type.setExpert(false);
 		types.add(type);
 

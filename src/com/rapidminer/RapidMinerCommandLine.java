@@ -53,7 +53,7 @@ public class RapidMinerCommandLine extends RapidMiner implements BreakpointListe
 	 * This tread waits for pressing an arbitrary key. Used for resuming an
 	 * process if a breakpoint was reached in command line mode.
 	 */
-	private class WaitForKeyThread extends Thread {
+	private static class WaitForKeyThread extends Thread {
 
 		private final Process process;
 

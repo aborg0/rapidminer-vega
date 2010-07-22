@@ -70,6 +70,10 @@ public class ClassNameMapper {
 		if (completeClassName == null)
 			completeClassName = shortName;
 
+		if (completeClassName == null) {
+			throw new UserError(null, 904, shortName, "No such class.");
+		}
+		
 		try {
 			return Class.forName(completeClassName);
 		} catch (ClassNotFoundException e) {
@@ -91,6 +95,9 @@ public class ClassNameMapper {
 		Object result = null;
 		try {
 			result = getClassByShortName(shortName).newInstance();
+			if (result == null) {
+				throw new UserError(null, 904, shortName, "No such class");
+			}
 		} catch (InstantiationException e) {
 			throw new UserError(null, 904, shortName, e.getMessage());
 		} catch (IllegalAccessException e) {

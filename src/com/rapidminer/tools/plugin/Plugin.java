@@ -26,6 +26,7 @@ import java.awt.Frame;
 import java.awt.Image;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,13 +36,17 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -49,16 +54,23 @@ import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import com.rapid_i.Launcher;
 import com.rapid_i.deployment.update.client.ManagedExtension;
 import com.rapidminer.RapidMiner;
+import com.rapidminer.RapidMiner.ExecutionMode;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.flow.ProcessRenderer;
 import com.rapidminer.gui.renderer.RendererService;
 import com.rapidminer.gui.templates.BuildingBlock;
 import com.rapidminer.gui.tools.SplashScreen;
 import com.rapidminer.gui.tools.dialogs.AboutBox;
+import com.rapidminer.io.Base64;
 import com.rapidminer.io.process.XMLImporter;
+import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.OperatorService;
@@ -97,7 +109,7 @@ public class Plugin {
 	/**
 	 * The jar archive of the plugin which must be placed in the <code>lib/plugins</code> subdirectory of RapidMiner.
 	 */
-	private JarFile archive;
+	private final JarFile archive;
 
 	/** The file for this plugin. */
 	private final File file;
@@ -146,7 +158,7 @@ public class Plugin {
 	private boolean disabled = false;
 
 	/** The collection of all plugins. */
-	private static List<Plugin> allPlugins = new LinkedList<Plugin>();
+	private static final List<Plugin> allPlugins = new LinkedList<Plugin>();
 
 	/** Creates a new plugin based on the plugin .jar file. */
 	public Plugin(File file) throws IOException {
@@ -155,7 +167,7 @@ public class Plugin {
 		URL url = new URL("file", null, this.file.getAbsolutePath());
 		this.classLoader = new PluginClassLoader(new URL[] { url });
 		Tools.addResourceSource(new ResourceSource(this.classLoader));
-		getMetaData();
+		fetchMetaData();
 	}
 
 	/** Returns the name of the plugin. */
@@ -232,7 +244,7 @@ public class Plugin {
 	 */
 	public ClassLoader getOriginalClassLoader() {
 		try {
-			this.archive = new JarFile(this.file);
+			//this.archive = new JarFile(this.file);
 			URL url = new URL("file", null, this.file.getAbsolutePath());
 			return new URLClassLoader(new URL[] { url }, Plugin.class.getClassLoader());
 		} catch (IOException e) {
@@ -259,7 +271,7 @@ public class Plugin {
 	}
 
 	/** Collects all meta data of the plugin from the manifest file. */
-	private void getMetaData() {
+	private void fetchMetaData() {
 		try {
 			java.util.jar.Attributes atts = archive.getManifest().getMainAttributes();
 			name = getValue(atts, "Implementation-Title");
@@ -521,33 +533,41 @@ public class Plugin {
 		return new AboutBox(owner, name, version, "Vendor: " + ((vendor != null) ? vendor : "unknown"), url, about, true, productLogo);
 	}
 
-	/** Returns a list of plugins found in the plugins directory. */
-	private static void findPlugins(File pluginDir, boolean showWarningForNonPluginJars) {
+	/** Scans the directory for jar files and calls {@link #registerPlugins(List, boolean)} on the list of files. */
+	private static void findAndRegisterPlugins(File pluginDir, boolean showWarningForNonPluginJars) {
 		List<File> files = new LinkedList<File>();
-		if (pluginDir != null) {
-			if (!(pluginDir.exists() && pluginDir.isDirectory())) {
-				LogService.getRoot().config("Plugin directory "+pluginDir+" does not exist.");
-			} else {
-				LogService.getRoot().config("Scanning plugins in " + pluginDir + ".");
-				files.addAll(Arrays.asList(pluginDir.listFiles(new FilenameFilter() {
-					public boolean accept(File dir, String name) {
-						return name.endsWith(".jar");
-					}
-				})));
-			}
-		} else {
-			LogService.getRoot().config("Plugin directory not defined.");
+		if (pluginDir == null) {
+			LogService.getRoot().warning("findAndRegisterPlugins called with null directory.");
+			return;
 		}
-		files.addAll(ManagedExtension.getActivePluginJars());
+		if (!(pluginDir.exists() && pluginDir.isDirectory())) {
+			LogService.getRoot().config("Plugin directory "+pluginDir+" does not exist.");
+		} else {
+			LogService.getRoot().config("Scanning plugins in " + pluginDir + ".");
+			files.addAll(Arrays.asList(pluginDir.listFiles(new FilenameFilter() {
+				public boolean accept(File dir, String name) {
+					return name.endsWith(".jar");
+				}
+			})));
+		}
+		registerPlugins(files, showWarningForNonPluginJars);
+	}
 
-		allPlugins = new LinkedList<Plugin>();
+	/** Makes {@link Plugin} s from all files and adds them to {@link #allPlugins}. */
+	private static void registerPlugins(List<File> files, boolean showWarningForNonPluginJars) {
 		for (File file : files) {
 			try {
 				JarFile jarFile = new JarFile(file);
 				Manifest manifest = jarFile.getManifest();
 				Attributes attributes = manifest.getMainAttributes();
 				if (RAPIDMINER_TYPE_PLUGIN.equals(attributes.getValue(RAPIDMINER_TYPE))) {
-					allPlugins.add(new Plugin(file));
+					final Plugin plugin = new Plugin(file);
+					final Plugin conflict = getPluginByExtensionId(plugin.getExtensionId());
+					if (conflict == null) {
+						allPlugins.add(plugin);
+					} else {
+						LogService.getRoot().warning("Duplicate plugin definition for plugin "+plugin.getExtensionId()+" in "+conflict.file+" and "+file+". Keeping the first.");
+					}
 				} else {
 					if (showWarningForNonPluginJars)
 						LogService.getRoot().warning("The jar file '" + jarFile.getName() + "' does not contain an entry '" + RAPIDMINER_TYPE + "' in its manifest and will therefore not be loaded (if this file actually is a plugin updating the plugin file might help).");
@@ -566,8 +586,7 @@ public class Plugin {
 	/**
 	 * Finds all plugins in lib/plugins directory and initializes them.
 	 */
-	private static void registerAllPluginDescriptions(File pluginDir, boolean showWarningForNonPluginJars) {
-		findPlugins(pluginDir, showWarningForNonPluginJars);
+	private static void registerAllPluginDescriptions() {
 		Iterator<Plugin> i = allPlugins.iterator();
 		while (i.hasNext()) {
 			Plugin plugin = i.next();
@@ -640,7 +659,7 @@ public class Plugin {
 	}
 	*/
 	/** Returns the plugin with the given extension id. */
-	private static Plugin getPluginByExtensionId(String name) {
+	public static Plugin getPluginByExtensionId(String name) {
 		Iterator<Plugin> i = allPlugins.iterator();
 		while (i.hasNext()) {
 			Plugin plugin = i.next();
@@ -741,6 +760,13 @@ public class Plugin {
 		String loadPluginsString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS);
 		boolean loadPlugins = Tools.booleanValue(loadPluginsString, true);
 		if (loadPlugins) {
+			File webstartPluginDir; 
+			if (RapidMiner.getExecutionMode() == ExecutionMode.WEBSTART) {
+				webstartPluginDir = updateWebstartPluginsCache();
+			} else {
+				webstartPluginDir = null;
+			}
+			
 			File pluginDir = null;
 			String pluginDirString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS_LOCATION);
 			if ((pluginDirString != null) && !pluginDirString.isEmpty()) {
@@ -755,11 +781,91 @@ public class Plugin {
 				}
 			}
 
-			registerAllPluginDescriptions(pluginDir, true);
+			if (webstartPluginDir != null) {
+				findAndRegisterPlugins(webstartPluginDir, true);
+			}
+			registerPlugins(ManagedExtension.getActivePluginJars(), true);
+			if (pluginDir != null) {
+				findAndRegisterPlugins(pluginDir, true);
+			}
+			
+			registerAllPluginDescriptions();
 			initPlugins();
 		} else {
 			LogService.getRoot().config("Plugins skipped.");
 		}
+	}
+
+	/** Updates plugins from the server and returns a cache directory containing the jar files. */
+	private static File updateWebstartPluginsCache() {
+		// We hash the home URL to a directory name, so we don't have special characters.
+		final String homeUrl = System.getProperty(RapidMiner.PROPERTY_HOME_REPOSITORY_URL);
+		String dirName;
+		try {
+			final byte[] md5hash = MessageDigest.getInstance("MD5").digest(homeUrl.getBytes());
+			dirName = Base64.encodeBytes(md5hash);
+		} catch (NoSuchAlgorithmException e) {
+			LogService.getRoot().log(Level.WARNING, "Failed to hash remote url: "+e, e);
+			return null;
+		} 
+		
+		File cacheDir = new File(ManagedExtension.getUserExtensionsDir(), dirName);
+		cacheDir.mkdirs();
+		File readmeFile = new File(cacheDir, "README.txt");
+		try {
+			Tools.writeTextFile(readmeFile, 
+					"This directory contains plugins downloaded from RapidAnalytics instance \n" +
+					"  "+homeUrl+".\n" +
+					"These plugins are only used if RapidMiner is started via WebStart from this \n"+
+					"server. You can delete the directory if you no longer need the cached plugins.");
+		} catch (IOException e1) {
+			LogService.getRoot().log(Level.WARNING, "Failed to create file "+readmeFile+": "+e1, e1);
+		}
+		
+		Document pluginsDoc; 
+		try {
+			URL pluginsListUrl = new URL(homeUrl+"/RAWS/dependencies/resources.xml");
+			pluginsDoc = XMLTools.parse(pluginsListUrl.openStream());
+		} catch (Exception e) {
+			LogService.getRoot().log(Level.WARNING, "Failed to load extensions list from server: "+e, e);
+			return null;
+		}
+
+		Set<File> cachedFiles = new HashSet<File>();
+		NodeList pluginElements = pluginsDoc.getElementsByTagName("extension");
+		boolean errorOccurred = false;
+		for (int i = 0; i < pluginElements.getLength(); i++) {
+			Element pluginElem = (Element) pluginElements.item(i);
+			String pluginName = pluginElem.getTextContent();
+			String pluginVersion = pluginElem.getAttribute("version"); 
+			File pluginFile = new File(cacheDir, pluginName+"-"+pluginVersion+".jar");
+			cachedFiles.add(pluginFile);
+			if (pluginFile.exists()) {
+				LogService.getRoot().log(Level.CONFIG, "Found extension on server: "+pluginName+". Local cache exists.");		
+			} else {
+				LogService.getRoot().log(Level.CONFIG, "Found extension on server: "+pluginName+". Downloading to local cache.");
+				try {
+					URL pluginUrl = new URL(homeUrl+"/RAWS/dependencies/plugins/"+pluginName);
+					Tools.copyStreamSynchronously(pluginUrl.openStream(), new FileOutputStream(pluginFile), true);					
+				} catch (Exception e) {
+					LogService.getRoot().log(Level.WARNING, "Failed to download extension from server: "+e, e);
+					errorOccurred = true; // Don't clear unknown files in this case.
+				}
+			}
+		}
+		// clear out of date cache files unless error occurred
+		if (!errorOccurred) {
+			for (File file : cacheDir.listFiles()) {
+				if (file.getName().equals("README.txt")) {
+					continue;
+				}
+				if (!cachedFiles.contains(file)) {
+					LogService.getRoot().log(Level.CONFIG, "Deleting obsolete file "+file+" from extension cache.");
+					file.delete();
+				}
+			}
+		}
+		return cacheDir;
 	}
 
 	/** Specifies whether plugins should be initialized on startup. */
@@ -781,10 +887,15 @@ public class Plugin {
 		return archive;
 	}
 	
+	public File getFile() {
+		return file;
+	}
+	
 	public String getExtensionId() {
 		return extensionId;
 	}
 
+	/** Returns the directory where plugin files are expected. */
 	public static File getPluginLocation() throws IOException {
 		String locationProperty = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS_LOCATION);
 		if (locationProperty == null) {

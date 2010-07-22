@@ -107,13 +107,28 @@ public class OperatorDescription implements Comparable<OperatorDescription> {
 	}
 	
 	/** Constructor for programmatic (non-parsed) creation of OperatorDescriptions, e.g. by a {@link GenericOperatorFactory}. */
-	public OperatorDescription(String key, Class<? extends Operator> clazz, GroupTree groupTree, ClassLoader classLoader, String iconName, Plugin provider) {		
+	public OperatorDescription(String key, Class<? extends Operator> clazz, GroupTree groupTree, ClassLoader classLoader, String iconName, Plugin provider) {
+		this(key, clazz, groupTree, classLoader, iconName, provider, null); 
+	}
+	
+	/** Constructor for programmatic (non-parsed) creation of OperatorDescriptions, e.g. by a {@link GenericOperatorFactory}.
+	 * Additionally this allows to specify an operator documentation bundle where the docu is retrieved from.
+	 *  */
+	public OperatorDescription(String key, Class<? extends Operator> clazz, GroupTree groupTree, ClassLoader classLoader, String iconName, Plugin provider, OperatorDocBundle bundle) {		
 		this.key = key;
 		this.clazz = clazz;
 		this.groupTree = groupTree;
 		this.provider = provider;
 		this.iconName = iconName;
-		this.documentation = new OperatorDocumentation(key);
+		if (bundle == null) {
+			this.documentation = new OperatorDocumentation(key);
+		} else {
+			this.documentation = (OperatorDocumentation) bundle.getObject("operator."+key);
+			if (documentation.getName().equals("")) {
+				documentation.setName(key);
+				documentation.setDocumentation("Operator's description is missing in referenced OperatorDoc.");
+			}
+		}
 		groupTree.addOperatorDescription(this);
 		loadIcons();
 	}
@@ -367,5 +382,9 @@ public class OperatorDescription implements Comparable<OperatorDescription> {
 		} else {
 			return groupTree.getIcons();
 		}
+	}
+	
+	public Plugin getProvider() {
+		return provider;
 	}
 }

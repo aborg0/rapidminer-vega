@@ -56,16 +56,19 @@ public class RapidLookAndFeel extends BasicLookAndFeel {
 	public RapidLookAndFeel() {}
 
 	
+	@Override
 	public void initialize() {
 		super.initialize();
 		RoundedPopupFactory.install();
 	}
 
+	@Override
 	public void uninitialize() {
 		super.uninitialize();
 		RoundedPopupFactory.uninstall();
 	}
 
+	@Override
 	public UIDefaults getDefaults() {
 		getColors();
 		UIDefaults table = new UIDefaults();
@@ -76,26 +79,32 @@ public class RapidLookAndFeel extends BasicLookAndFeel {
 		return table;
 	}
 
+	@Override
 	public boolean isNativeLookAndFeel() {
 		return false;
 	}
 
+	@Override
 	public boolean isSupportedLookAndFeel() {
 		return true;
 	}
 
+	@Override
 	public String getDescription() {
 		return "RapidLook Look And Feel";
 	}
 
+	@Override
 	public String getID() {
 		return "RapidLook";
 	}
 
+	@Override
 	public String getName() {
 		return "RapidLook Look And Feel";
 	}
 
+	@Override
 	protected void initSystemColorDefaults(UIDefaults table) {
 		Object[] systemColors = { "desktop", getDesktopColor(), /* Color of the desktop background */
 				"activeCaption", getWindowTitleBackground(),
@@ -135,6 +144,7 @@ public class RapidLookAndFeel extends BasicLookAndFeel {
 		}
 	}
 
+	@Override
 	protected void initComponentDefaults(UIDefaults table) {
 		super.initComponentDefaults(table);
 		
@@ -471,7 +481,7 @@ public class RapidLookAndFeel extends BasicLookAndFeel {
 										new UIDefaults.LazyInputMap(new Object[] { "UP", "increment", "KP_UP", "increment", "DOWN", "decrement", "KP_DOWN", "decrement", }),
 										//SplitPane
 										"SplitPane.dividerSize",
-										new Integer(9),
+										Integer.valueOf(9),
 										"SplitPane.highlight",
 										new ColorUIResource(250, 250, 250),
 										"SplitPane.shadow",
@@ -649,6 +659,7 @@ public class RapidLookAndFeel extends BasicLookAndFeel {
 		return Color.WHITE;
 	}
 
+	@Override
 	protected void initClassDefaults(UIDefaults table) {
 		super.initClassDefaults(table);
 		Object uiDefaults[] = {

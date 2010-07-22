@@ -33,6 +33,8 @@ import com.rapidminer.example.Example;
  */
 public class InputNode extends Node {
 
+	private static final long serialVersionUID = -7509629595651602261L;
+
 	private Attribute attribute;
 
 	private double attributeRange;

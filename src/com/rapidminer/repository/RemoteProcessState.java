@@ -32,7 +32,8 @@ public enum RemoteProcessState {
 	RUNNING(false, false, "media_play.png"), 
 	COMPLETED(true, true, "check.png"), 
 	FAILED(true, false, "error.png"), 
-	STOPPED(true, false, "media_stop.png"); 
+	STOPPED(true, false, "media_stop.png"),
+	ZOMBIE(true, false, "skull.png");
 	//STOP_REQUESTED(false, "media_stop.png");
 
 	private String iconName;

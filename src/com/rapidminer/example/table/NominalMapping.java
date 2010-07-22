@@ -36,7 +36,13 @@ import com.rapidminer.example.Example;
  * @author Ingo Mierswa
  */
 public interface NominalMapping extends Cloneable, Serializable {
-
+	
+	/**
+	 * This should return true if all the mappings contain the same values regardless of their 
+	 * internal order.
+	 */
+	public boolean equals(NominalMapping mapping);
+	
 	/** Should return a deep clone of this nominal mapping. */
 	public Object clone();
 	

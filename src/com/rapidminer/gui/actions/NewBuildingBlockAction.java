@@ -37,6 +37,7 @@ import com.rapidminer.gui.templates.BuildingBlock;
 import com.rapidminer.gui.templates.NewBuildingBlockDialog;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.UnknownParameterInformation;
 
@@ -72,7 +73,7 @@ public class NewBuildingBlockAction extends ResourceAction {
 							InputSource source = new InputSource(new StringReader(xmlDescription));
 							Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(source);
 							Element element = document.getDocumentElement();
-                            Operator operator = Operator.createFromXML(element, new LinkedList<UnknownParameterInformation>());
+                            Operator operator = Operator.createFromXML(element, new LinkedList<UnknownParameterInformation>(), null, XMLImporter.CURRENT_VERSION);
                             operator.setUserDescription(buildingBlock.getDescription());
 							actions.insert(Collections.singletonList(operator));
 						} catch (Exception ex) {

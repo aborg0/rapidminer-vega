@@ -85,7 +85,7 @@ public class KennardStoneSampling extends AbstractSamplingOperator {
 	/** The parameter name for &quot;This ratio determines the size of the new example set.&quot; */
 	public static final String PARAMETER_SAMPLE_RATIO = "sample_ratio";
 	
-	private class Candidate implements Comparable<Candidate>{
+	private static class Candidate implements Comparable<Candidate>{
 		private double[] attributeValues;
 		private double distance;
 		private int exampleIndex;

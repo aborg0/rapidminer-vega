@@ -679,7 +679,7 @@ public class RepositoryTree extends JTree {
 	}
 
 	/** Opens the process held by the given entry (in the background) and opens it. */
-	protected static void openProcess(final ProcessEntry processEntry) {
+	public static void openProcess(final ProcessEntry processEntry) {
 		ProgressThread openProgressThread = new ProgressThread("open_process") {
 			public void run() {							
 				RepositoryProcessLocation processLocation = new RepositoryProcessLocation(processEntry.getLocation());

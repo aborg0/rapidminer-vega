@@ -524,6 +524,10 @@
                <class>com.rapidminer.operator.CommandLineOperator</class>
                <replaces>CommandLineOperator</replaces>
             </operator>
+            <operator>
+                <key>print_to_console</key>
+                <class>com.rapidminer.operator.tools.ConsolePrintOperator</class>
+            </operator>
          </group>
          <group key="files">
             <icon>floppy_disk.png</icon>
@@ -663,8 +667,13 @@
                <key>read_excel</key>
                <class>com.rapidminer.operator.io.ExcelExampleSource</class>
                <replaces>ExcelExampleSource</replaces>
-            </operator>
+            </operator><!--
             <operator>
+               <key>read_excel_new</key>
+               <class>com.rapidminer.operator.io.ExcelDataReader</class>
+               <replaces>ExcelExampleSource</replaces>
+            </operator>
+            --><operator>
                <key>read_access</key>
                <class>com.rapidminer.operator.io.AccessDataReader</class>
                <replaces>AccessExampleSource</replaces>
@@ -1687,6 +1696,10 @@
                   <replaces>JMySVMLearner</replaces>
                </operator>
                <operator>
+                  <key>support_vector_machine_linear</key>
+                  <class>com.rapidminer.operator.learner.functions.kernel.LinearMySVMLearner</class>
+               </operator>
+               <operator>
                   <key>support_vector_machine_libsvm</key>
                   <class>com.rapidminer.operator.learner.functions.kernel.LibSVMLearner</class>
                   <replaces>LibSVMLearner</replaces>
@@ -1741,6 +1754,10 @@
                   <key>polynomial_by_binomial_classification</key>
                   <class>com.rapidminer.operator.learner.meta.Binary2MultiClassLearner</class>
                   <replaces>Binary2MultiClassLearner</replaces>
+               </operator>
+               <operator>
+                  <key>hierarchical_classification</key>
+                  <class>com.rapidminer.operator.learner.meta.HierarchicalLearner</class>
                </operator>
                <operator>
                   <key>classification_by_regression</key>
@@ -1840,6 +1857,10 @@
                <key>weight_by_gini_index</key>
                <class>com.rapidminer.operator.features.weighting.GiniWeighting</class>
                <replaces>GiniIndexWeighting</replaces>
+            </operator>
+            <operator>
+               <key>weight_by_forest</key>
+               <class>com.rapidminer.operator.features.weighting.ForestBasedWeighting</class>
             </operator>
             <operator>
                <key>weight_by_uncertainty</key>
@@ -2088,10 +2109,6 @@
                <replaces>ModelUngrouper</replaces>
             </operator>
             <operator>
-                <key>generate_topk_predictions</key>
-                <class>com.rapidminer.operator.postprocessing.GenerateTopPredictionsOperator</class>
-            </operator>
-            <operator>
                <key>create_formula</key>
                <class>com.rapidminer.operator.visualization.FormulaExtractor</class>
                <icon>text_formula.png</icon>
@@ -2126,7 +2143,15 @@
                   </class>
                   <replaces>UncertainPredictionsTransformation</replaces>
                </operator>
-            </group>
+               <operator>
+                 <key>generate_prediction</key>
+                 <class>com.rapidminer.operator.postprocessing.GeneratePredictionOperator</class>
+	           </operator>
+               <operator>
+                 <key>generate_prediction_ranking</key>
+                 <class>com.rapidminer.operator.postprocessing.GeneratePredictionRankingOperator</class>
+	           </operator>
+               </group>
          </group>
       </group>
       <group key="evaluation">

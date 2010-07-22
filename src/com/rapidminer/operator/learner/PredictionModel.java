@@ -72,7 +72,7 @@ public abstract class PredictionModel extends AbstractModel {
 	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
         ExampleSet mappedExampleSet = new RemappedExampleSet(exampleSet, getTrainingHeader());
         checkCompatibility(mappedExampleSet);
-		Attribute predictedLabel = createPredictedLabel(mappedExampleSet, getLabel());
+		Attribute predictedLabel = createPredictionAttributes(mappedExampleSet, getLabel());
 		ExampleSet result = performPrediction(mappedExampleSet, predictedLabel);
 		
 		copyPredictedLabel(result, exampleSet);
@@ -135,6 +135,38 @@ public abstract class PredictionModel extends AbstractModel {
 				}
 			}
 		}		
+	}
+	
+	/**
+	 * This method creates prediction attributes like the predicted label and confidences if 
+	 * needed.
+	 */
+	protected Attribute createPredictionAttributes(ExampleSet exampleSet, Attribute label) {
+		// create and add prediction attribute
+		Attribute predictedLabel = AttributeFactory.createAttribute(label, Attributes.PREDICTION_NAME);
+		predictedLabel.clearTransformations();
+		ExampleTable table = exampleSet.getExampleTable();
+		table.addAttribute(predictedLabel);
+		exampleSet.getAttributes().setPredictedLabel(predictedLabel);
+		
+		// check whether confidence labels should be constructed
+		if (supportsConfidences(label)) {
+			for (String value: predictedLabel.getMapping().getValues()) {
+				Attribute confidence = AttributeFactory.createAttribute(Attributes.CONFIDENCE_NAME + "(" + value + ")", Ontology.REAL);
+				table.addAttribute(confidence);
+				exampleSet.getAttributes().setSpecialAttribute(confidence, Attributes.CONFIDENCE_NAME + "_" + value);
+			}
+		}
+		return predictedLabel;
+	}
+	
+	/**
+	 * This method determines if confidence attributes are created depending on the current label.
+	 * Usually this depends only on the fact that the label is nominal, but subclasses might override this to
+	 * avoid attribute construction for confidences.
+	 */
+	protected boolean supportsConfidences(Attribute label) {
+		return (label != null && label.isNominal());
 	}
 	
 	/**

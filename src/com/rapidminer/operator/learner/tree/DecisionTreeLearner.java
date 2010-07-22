@@ -98,7 +98,7 @@ public class DecisionTreeLearner extends AbstractTreeLearner {
 		case NUMERICAL_ATTRIBUTES:
 		case POLYNOMINAL_LABEL:
 		case BINOMINAL_LABEL:
-		case WEIGHTED_EXAMPLES:
+		//case WEIGHTED_EXAMPLES:
 		case MISSING_VALUES:
 			return true;
 		default:

@@ -41,6 +41,7 @@ import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorChain;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.OutputPorts;
@@ -103,6 +104,12 @@ public class XMLExporter {
 		Element opElement = doc.createElement("operator");
 		opElement.setAttribute("name", operator.getName());
 		opElement.setAttribute("class", operator.getOperatorDescription().getKey());
+		OperatorVersion opVersion = operator.getCompatibilityLevel();
+		if (opVersion == null) {
+			opVersion = OperatorVersion.getLatestVersion(operator.getOperatorDescription());
+		}
+		opElement.setAttribute("compatibility", opVersion.toString());
+		
 		
 		StringBuilder breakpointString = new StringBuilder();
 		boolean first = true;

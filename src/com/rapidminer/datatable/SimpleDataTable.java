@@ -22,6 +22,7 @@
  */
 package com.rapidminer.datatable;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,8 +39,10 @@ import com.rapidminer.tools.Tools;
  * 
  * @author Ingo Mierswa, Simon Fischer
  */
-public class SimpleDataTable extends AbstractDataTable {
+public class SimpleDataTable extends AbstractDataTable implements Serializable {
     
+	private static final long serialVersionUID = 4459570725439894361L;
+
 	private List<DataTableRow> data = new ArrayList<DataTableRow>();
 
 	private String[] columns;

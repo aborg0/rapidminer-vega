@@ -92,7 +92,7 @@ public class DateAttribute extends AbstractAttribute {
 
 	/** Returns null. */
 	public NominalMapping getMapping() {
-		return null;
+		throw new UnsupportedOperationException("The method getNominalMapping() is not supported by date attributes! You probably tried to execute an operator on a date or time data which is only able to handle nominal values. You could use one of the Date to Nominal operator before this application.");
 	}
 
 	/** Returns false. */

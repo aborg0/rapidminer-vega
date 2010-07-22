@@ -22,6 +22,7 @@
  */
 package com.rapidminer.tools.math.container;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
@@ -30,8 +31,10 @@ import java.util.Comparator;
  * @author Sebastian Land
  * @param <F> the type of the comparable
  */
-public class ReverseComparator<F> implements Comparator<F> {
+public class ReverseComparator<F> implements Comparator<F>, Serializable {
 	
+	private static final long serialVersionUID = 3141613972925245131L;
+
 	private Comparator<? super F> comparator;
 	
 	public ReverseComparator(Comparator<? super F> comp) {

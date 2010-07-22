@@ -57,11 +57,9 @@ import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 
-
 /**
- * The manage templates dialog assists the user in managing his created process templates.
- * Template processes are saved in the local &quot;.rapidminer&quot;
- * directory of the user. The name, description and additional parameters to set
+ * The manage templates dialog assists the user in managing his created process templates. Template processes are saved
+ * in the local &quot;.rapidminer&quot; directory of the user. The name, description and additional parameters to set
  * can be specified by the user. In this dialog he can also delete one of the templates.
  * 
  * @author Ingo Mierswa, Tobias Malbrecht
@@ -77,64 +75,65 @@ public class TemplatesDialog extends ButtonDialog {
 
 			@Override
 			public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-				JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus); 
+				JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 				if (value instanceof Template) {
 					Template template = (Template) value;
-					label.setText(((Template)template).getHTMLDescription());
+					label.setText((template).getHTMLDescription());
 					label.setIcon(SwingTools.createIcon("16/package.png"));
 					label.setBorder(BorderFactory.createEmptyBorder(GAP, GAP, GAP, GAP));
 					label.setVerticalAlignment(SwingConstants.TOP);
 					label.setVerticalTextPosition(SwingConstants.TOP);
 					label.setHorizontalTextPosition(SwingConstants.RIGHT);
-					//label.setHorizontalAlignment(SwingConstants.RIGHT);
+					// label.setHorizontalAlignment(SwingConstants.RIGHT);
 				} else if (value instanceof String) {
-					label.setText("<html><strong>"+value.toString()+"</strong></html>");
+					label.setText("<html><strong>" + value.toString() + "</strong></html>");
 					label.setIcon(null);
 					label.setBorder(BorderFactory.createEmptyBorder(GAP, GAP, GAP, GAP));
 					label.setVerticalAlignment(SwingConstants.TOP);
 					label.setVerticalTextPosition(SwingConstants.TOP);
 					label.setHorizontalTextPosition(SwingConstants.LEFT);
-					//label.setHorizontalAlignment(SwingConstants.LEFT);
+					// label.setHorizontalAlignment(SwingConstants.LEFT);
 					label.setBackground(SwingTools.LIGHT_BLUE);
 				}
 				return label;
 			}
-			
-		});		
-		
+
+		});
+
 		templateList.addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				if (!(templateList.getSelectedValue() instanceof Template)) {
 					templateList.setSelectedValue(null, false);
 				}
-				fireStateChanged();				
+				fireStateChanged();
 			}
 		});
-//		templateList.addMouseListener(new MouseAdapter() {
-//			@Override
-//			public void mouseClicked(MouseEvent e) {
-//				if (e.getClickCount() == 2) {
-//					actOnDoubleClick();
-//				}
-//			}
-//		});
+		// templateList.addMouseListener(new MouseAdapter() {
+		// @Override
+		// public void mouseClicked(MouseEvent e) {
+		// if (e.getClickCount() == 2) {
+		// actOnDoubleClick();
+		// }
+		// }
+		// });
 	}
 
 	private final Map<String, Template> templateMap = new TreeMap<String, Template>();
-	
+
 	protected final ExtendedJScrollPane listPane = new ExtendedJScrollPane(templateList);
 	{
 		listPane.setBorder(createBorder());
 	}
-	
+
 	protected transient final Action DELETE_ACTION = new ResourceAction("delete_template") {
 		private static final long serialVersionUID = 1L;
+
 		public void actionPerformed(ActionEvent e) {
 			delete();
 		}
 	};
-	
+
 	private void readUserTemplates() {
 		File[] templateFiles = ParameterService.getUserRapidMinerDir().listFiles(new FileFilter() {
 			public boolean accept(File file) {
@@ -150,42 +149,45 @@ public class TemplatesDialog extends ButtonDialog {
 			}
 		}
 	}
-	
+
 	private void readSystemTemplates() {
 		InputStream in = TemplatesDialog.class.getResourceAsStream("/com/rapidminer/resources/templates/Templates");
 		if (in != null) {
-			BufferedReader reader;
+			BufferedReader reader = null;
 			try {
 				reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+				String line;
+				try {
+					while ((line = reader.readLine()) != null) {
+						try {
+							String templateName = "/com/rapidminer/resources/templates/" + line.trim() + ".template";
+							InputStream tin = TemplatesDialog.class.getResourceAsStream(templateName);
+							if (tin != null) {
+								Template template = new Template(tin);
+								templateMap.put(template.getName(), template);
+							} else {
+								LogService.getRoot().warning("Cannot find template " + templateName);
+							}
+						} catch (Exception e) {
+							SwingTools.showSimpleErrorMessage("cannot_load_template_file", e, line);
+						}
+					}
+				} catch (IOException e) {
+					LogService.getRoot().log(Level.WARNING, "Error reading template list: " + e, e);
+				}
 			} catch (UnsupportedEncodingException e) {
 				LogService.getRoot().warning("Resource /com/rapidminer/resources/templates/Templates cannot be read. UTF-8 not supported.");
 				return;
+			} finally {
+				try {
+					reader.close();
+				} catch (IOException e) {}
 			}
-			String line;
-			try {
-				while ((line = reader.readLine()) != null) {
-					try {
-						String templateName = "/com/rapidminer/resources/templates/"+line.trim()+".template";
-						InputStream tin = TemplatesDialog.class.getResourceAsStream(templateName);
-						if (tin != null) {
-							Template template = new Template(tin);
-							templateMap.put(template.getName(), template);
-						} else {
-							LogService.getRoot().warning("Cannot find template "+templateName);
-						}
-					} catch (Exception e) {
-						SwingTools.showSimpleErrorMessage("cannot_load_template_file", e, line);
-					}
-				}
-			} catch (IOException e) {
-				LogService.getRoot().log(Level.WARNING, "Error reading template list: "+e, e);
-			}		
+
 		} else {
 			LogService.getRoot().warning("Resource com/rapidminer/resources/templates/Templates not found.");
 		}
 	}
-	
-
 
 	public TemplatesDialog(int templateSource) {
 		super("manage_templates", true);
@@ -204,25 +206,25 @@ public class TemplatesDialog extends ButtonDialog {
 		}
 		update();
 	}
-	
+
 	public JPanel createTemplateManagementPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
-		panel.add(listPane,//		try {
-//			if (oldFormat) {
-//				saveAsUserTemplate(getProcess());
-//			}
-//		} catch (XMLException e) {
-//			throw new IOException(e);
-//		}
- BorderLayout.CENTER);
+		panel.add(listPane,// try {
+				// if (oldFormat) {
+				// saveAsUserTemplate(getProcess());
+				// }
+				// } catch (XMLException e) {
+				// throw new IOException(e);
+				// }
+				BorderLayout.CENTER);
 		return panel;
 	}
-		
-	//protected void actOnDoubleClick() {}
+
+	// protected void actOnDoubleClick() {}
 
 	private void update() {
-		Map<String,List<Template>> groupToTemplateList = new TreeMap<String,List<Template>>();
-				
+		Map<String, List<Template>> groupToTemplateList = new TreeMap<String, List<Template>>();
+
 		for (Template template : templateMap.values()) {
 			List<Template> groupList = groupToTemplateList.get(template.getGroup());
 			if (groupList == null) {
@@ -238,16 +240,16 @@ public class TemplatesDialog extends ButtonDialog {
 				data.add(template);
 			}
 		}
-//		String lastGroup = null;
-//		Iterator<Template> i = templateMap.values().iterator();
-//		while (i.hasNext()) {
-//			Template template = i.next();
-//			if (!template.getGroup().equals(lastGroup)) {
-//				lastGroup = template.getGroup();
-//				data.add(lastGroup);
-//			}
-//			data.add(template);
-//		}		
+		// String lastGroup = null;
+		// Iterator<Template> i = templateMap.values().iterator();
+		// while (i.hasNext()) {
+		// Template template = i.next();
+		// if (!template.getGroup().equals(lastGroup)) {
+		// lastGroup = template.getGroup();
+		// data.add(lastGroup);
+		// }
+		// data.add(template);
+		// }
 		templateList.setListData(data);
 		repaint();
 	}
@@ -261,8 +263,8 @@ public class TemplatesDialog extends ButtonDialog {
 		}
 		update();
 	}
-	
-	public Template getSelectedTemplate() {		 
+
+	public Template getSelectedTemplate() {
 		final Object selectedValue = templateList.getSelectedValue();
 		if (selectedValue instanceof Template) {
 			return (Template) selectedValue;

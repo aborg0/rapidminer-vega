@@ -51,7 +51,7 @@ import com.rapidminer.tools.usagestats.UsageStatistics.StatisticsScope;
 public class NewOperatorGroupTreeModel implements TreeModel {
 
 	/** Compares operator descriptions based on their usage statistics. */
-	private final class UsageStatsComparator implements Comparator<OperatorDescription> {
+	private static final class UsageStatsComparator implements Comparator<OperatorDescription> {
 		@Override
 		public int compare(OperatorDescription op1, OperatorDescription op2) {				
 			OperatorUsageStatistics operatorStatistics1 = UsageStatistics.getInstance().getOperatorStatistics(StatisticsScope.ALL_TIME, op1);

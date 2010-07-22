@@ -48,4 +48,11 @@ public interface Criterion {
     
 	public double getIncrementalBenefit();
 
+	/**
+	 * This method will return the calculated benefit if the weights would have distributed
+	 * over the labels as given. The first index specifies the split fraction, the second index the label.
+	 * Henve the first index is always between 0 and 1 included for numerical splits, since only two sides
+	 * can occur there. For splits on nominal attributes, the number of split sides is determined by the number of possible values.
+	 */
+	public double getBenefit(double[][] weightCounts);
 }

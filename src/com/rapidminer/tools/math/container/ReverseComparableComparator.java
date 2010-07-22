@@ -22,6 +22,7 @@
  */
 package com.rapidminer.tools.math.container;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
@@ -30,7 +31,9 @@ import java.util.Comparator;
  * @author Sebastian Land
  * @param <E>
  */
-public class ReverseComparableComparator<E> implements Comparator<E> {
+public class ReverseComparableComparator<E> implements Comparator<E>, Serializable {
+
+	private static final long serialVersionUID = -4734179337205283604L;
 
 	@SuppressWarnings("unchecked")
 	public int compare(E o1, E o2) {

@@ -1,6 +1,14 @@
 History of changes of the RapidMiner versions
 ====================================================
 
+Changes from RapidMiner 5.0 to 5.1
+----------------------------------
+
+ * Added annotations to IOObjects
+ * Versioned operators allow easier updates
+ * Added new Operators: 
+   - Print to Console
+
 Changes from RapidMiner 5.0beta to RapidMiner 5.0 [2009/12/8]
 ---------------------------------------------------------------
   * Added an operator for performing a local polynomial regression

@@ -118,7 +118,7 @@ public class ExtendedTriStateCheckBox extends JCheckBox {
 	 * extending functionality and "decorating" the original model with a more
 	 * powerful model.
 	 */
-	private class TristateDecorator implements ButtonModel {
+	private static class TristateDecorator implements ButtonModel {
 
 		private final ButtonModel other;
 

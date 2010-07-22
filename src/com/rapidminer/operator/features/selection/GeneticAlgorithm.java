@@ -278,7 +278,7 @@ public class GeneticAlgorithm extends AbstractGeneticAlgorithm {
 				maxNumber = eSet.getAttributes().size();
 		}
 
-		return new SelectionMutation(pMutation, getRandom(), minNumber, restrictMaxNumber? -1 : maxNumber, useExactNumber ? -1: exactNumber);
+		return new SelectionMutation(pMutation, getRandom(), minNumber, restrictMaxNumber? maxNumber : -1, useExactNumber ? exactNumber: -1);
 	}
 
 	/**
@@ -306,7 +306,7 @@ public class GeneticAlgorithm extends AbstractGeneticAlgorithm {
 			} else
 				maxNumber = eSet.getAttributes().size();
 		}
-		return new SelectionCrossover(crossoverType, pCrossover, getRandom(), minNumber, restrictMaxNumber? -1 : maxNumber, useExactNumber ? -1 : exactNumber);
+		return new SelectionCrossover(crossoverType, pCrossover, getRandom(), minNumber, restrictMaxNumber? maxNumber : -1, useExactNumber ? exactNumber : -1);
 	}
 
 	@Override

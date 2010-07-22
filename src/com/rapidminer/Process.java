@@ -97,26 +97,29 @@ import com.rapidminer.tools.usagestats.OperatorStatisticsValue;
 import com.rapidminer.tools.usagestats.UsageStatistics;
 
 /**
- * <p>This class was introduced to avoid confusing handling of operator maps and
- * other stuff when a new process definition is created. It is also necessary for file
- * name resolving and breakpoint handling.</p>
+ * <p>
+ * This class was introduced to avoid confusing handling of operator maps and other stuff when a new process definition
+ * is created. It is also necessary for file name resolving and breakpoint handling.
+ * </p>
  * 
- * <p>If you want to use RapidMiner from your own application the best way is often to
- * create a process definition from scratch (by adding the complete operator tree
- * to the process' root operator) or from a file (for example created with the
- * GUI beforehand) and start it by invoking the {@link #run()} method.</p>
+ * <p>
+ * If you want to use RapidMiner from your own application the best way is often to create a process definition from
+ * scratch (by adding the complete operator tree to the process' root operator) or from a file (for example created with
+ * the GUI beforehand) and start it by invoking the {@link #run()} method.
+ * </p>
  * 
  * <p>
  * Observers can listen to changes of the associated file, repository location, and context.
  * </p>
  * TODO: Add reasonable class comment
+ * 
  * @author Ingo Mierswa
  */
 public class Process extends AbstractObservable<Process> implements Cloneable {
-	
+
 	public static final int PROCESS_STATE_UNKNOWN = -1;
 	public static final int PROCESS_STATE_STOPPED = 0;
-	public static final int PROCESS_STATE_PAUSED  = 1;
+	public static final int PROCESS_STATE_PAUSED = 1;
 	public static final int PROCESS_STATE_RUNNING = 2;
 
 	/** The root operator of the process. */
@@ -125,8 +128,10 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	/** This is the operator which is currently applied. */
 	private Operator currentOperator;
 
-	/** The process might be connected to this file or repository location which is then used to resolve relative
-	 *  file names which might be defined as parameters. */
+	/**
+	 * The process might be connected to this file or repository location which is then used to resolve relative file
+	 * names which might be defined as parameters.
+	 */
 	private ProcessLocation processLocation;
 
 	/** Version of the format in which the file is stored. */
@@ -144,13 +149,15 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	/** The macro handler can be used to replace (user defined) macro strings. */
 	private final MacroHandler macroHandler = new MacroHandler(this);
 
-	/** This map holds the names of all operators in the process. Operators are
-	 *  automatically registered during adding and unregistered after removal. */
+	/**
+	 * This map holds the names of all operators in the process. Operators are automatically registered during adding
+	 * and unregistered after removal.
+	 */
 	private Map<String, Operator> operatorNameMap = new HashMap<String, Operator>();
 
 	/**
-	 * Maps names of ProcessLog operators to Objects, that these Operators use
-	 * for collecting statistics (objects of type {@link DataTable}).
+	 * Maps names of ProcessLog operators to Objects, that these Operators use for collecting statistics (objects of
+	 * type {@link DataTable}).
 	 */
 	private final Map<String, DataTable> dataTableMap = new HashMap<String, DataTable>();
 
@@ -159,8 +166,8 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	 */
 	private final Map<String, ReportStream> reportStreamMap = new HashMap<String, ReportStream>();
 
-	/** 
-	 * Stores IOObjects according to a specified name.  
+	/**
+	 * Stores IOObjects according to a specified name.
 	 */
 	private final Map<String, IOObject> storageMap = new HashMap<String, IOObject>();
 
@@ -172,7 +179,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 
 	/** Indicates whether we are updating meta data. */
 	private transient DebugMode debugMode = DebugMode.DEBUG_OFF;
-	
+
 	private transient final Logger logger = makeLogger();
 
 	/** @deprecated Use {@link #getLogger()} */
@@ -185,7 +192,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	private String importMessage;
 
 	private final Annotations annotations = new Annotations();
-	
+
 	private RepositoryAccessor repositoryAccessor;
 
 	// -------------------
@@ -197,7 +204,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		try {
 			ProcessRootOperator root = OperatorService.createOperator(ProcessRootOperator.class);
 			root.rename(root.getOperatorDescription().getName());
-			setRootOperator(root);	
+			setRootOperator(root);
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot initialize root operator of the process: " + e.getMessage(), e);
 		}
@@ -206,10 +213,11 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 
 	public Process(File file) throws IOException, XMLException {
 		this(file, null);
-	}	
+	}
 
-	/** Creates a new process from the given process file. This might have been created 
-	 *  with the GUI beforehand. */
+	/**
+	 * Creates a new process from the given process file. This might have been created with the GUI beforehand.
+	 */
 	public Process(File file, ProgressListener progressListener) throws IOException, XMLException {
 		this.processLocation = new FileProcessLocation(file);
 		initContext();
@@ -222,11 +230,13 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		} finally {
 			if (in != null)
 				in.close();
-		}		
-	}	
+		}
+	}
 
-	/** Creates a new process from the given XML copying state information not
-	 *  covered by the XML from the parameter process. */
+	/**
+	 * Creates a new process from the given XML copying state information not covered by the XML from the parameter
+	 * process.
+	 */
 	public Process(String xml, Process process) throws IOException, XMLException {
 		this(xml);
 		this.processLocation = process.processLocation;
@@ -261,25 +271,27 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	}
 
 	protected Logger makeLogger() {
-		 return Logger.getLogger(Process.class.getName());
+		return Logger.getLogger(Process.class.getName());
 	}
-	
+
 	private void initContext() {
-		getContext().addObserver(delegatingContextObserver, false);		
+		getContext().addObserver(delegatingContextObserver, false);
 	}
-	
-	/** Clone constructor. Makes a deep clone of the operator tree and the process file. 
-	 *  The same applies for the operatorNameMap. The breakpoint listeners are copied by reference
-	 *  and all other fields are initialized like for a fresh process. */
+
+	/**
+	 * Clone constructor. Makes a deep clone of the operator tree and the process file. The same applies for the
+	 * operatorNameMap. The breakpoint listeners are copied by reference and all other fields are initialized like for a
+	 * fresh process.
+	 */
 	private Process(Process other) {
 		this();
-		setRootOperator((ProcessRootOperator)other.rootOperator.cloneOperator(other.rootOperator.getName(), false));
+		setRootOperator((ProcessRootOperator) other.rootOperator.cloneOperator(other.rootOperator.getName(), false));
 		this.currentOperator = null;
 		if (other.processLocation != null)
 			this.processLocation = other.processLocation;
 		else
 			this.processLocation = null;
-	}	
+	}
 
 	private void initLogging(int logVerbosity) {
 		if (logVerbosity >= 0) {
@@ -302,7 +314,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		setProcessState(state);
 	}
 
-	private void setProcessState(int state) {		
+	private void setProcessState(int state) {
 		this.processState = state;
 	}
 
@@ -401,7 +413,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		DataTable table = getDataTable(name);
 		if (table != null) {
 			if (table instanceof SimpleDataTable) {
-				((SimpleDataTable)table).clear();
+				((SimpleDataTable) table).clear();
 			}
 		}
 	}
@@ -418,8 +430,8 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	}
 
 	/**
-	 * Returns the data table associated with the given name. If the name was
-	 * not used yet, an empty DataTable object is created with the given columnNames.
+	 * Returns the data table associated with the given name. If the name was not used yet, an empty DataTable object is
+	 * created with the given columnNames.
 	 */
 	public DataTable getDataTable(String name) {
 		return dataTableMap.get(name);
@@ -434,7 +446,6 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	private void clearDataTables() {
 		dataTableMap.clear();
 	}
-
 
 	// ------------------------------
 	// Report Streams
@@ -463,9 +474,10 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	}
 
 	/**
-	 * Removes this reportStream from process. This report Stream will not be
-	 * notified about new report items.
-	 * @param name of the report stream given in the ReportGenerator operator
+	 * Removes this reportStream from process. This report Stream will not be notified about new report items.
+	 * 
+	 * @param name
+	 *            of the report stream given in the ReportGenerator operator
 	 */
 	public void removeReportStream(String name) {
 		reportStreamMap.remove(name);
@@ -482,7 +494,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	/** Sets the current root operator. This might lead to a new registering of operator names. */
 	public void setRootOperator(ProcessRootOperator root) {
 		if (this.rootOperator != null) {
-			this.rootOperator.removeObserver(delegatingOperatorObserver);	
+			this.rootOperator.removeObserver(delegatingOperatorObserver);
 		}
 		this.rootOperator = root;
 		this.rootOperator.addObserver(delegatingOperatorObserver, false);
@@ -528,7 +540,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 
 	// -------------------------------------
 	// start, stop, resume, breakpoints
-	// -------------------------------------	
+	// -------------------------------------
 
 	/** We synchronize on this object to wait and resume operation. */
 	private final Object breakpointLock = new Object();
@@ -536,12 +548,13 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	/** Pauses the process at a breakpoint. */
 	public void pause(Operator operator, IOContainer iocontainer, int breakpointType) {
 		setProcessState(PROCESS_STATE_PAUSED);
-		fireBreakpointEvent(operator, iocontainer, breakpointType);		
+		fireBreakpointEvent(operator, iocontainer, breakpointType);
 		while (getProcessState() == Process.PROCESS_STATE_PAUSED) {
 			synchronized (breakpointLock) {
 				try {
 					breakpointLock.wait();
-				} catch (InterruptedException e) { }
+				} catch (InterruptedException e) {
+				}
 			}
 		}
 	}
@@ -551,7 +564,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		setProcessState(PROCESS_STATE_RUNNING);
 		synchronized (breakpointLock) {
 			breakpointLock.notifyAll();
-		}		
+		}
 		fireResumeEvent();
 	}
 
@@ -565,7 +578,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 
 	/** Stops the process as soon as possible. */
 	public void pause() {
-		this.setProcessState(PROCESS_STATE_PAUSED);		
+		this.setProcessState(PROCESS_STATE_PAUSED);
 	}
 
 	/** Returns true iff the process should be stopped. */
@@ -593,8 +606,8 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	}
 
 	/** Fires the event that the process was paused. */
-	private void fireBreakpointEvent(Operator operator, IOContainer ioContainer, int location) {		
-		for (BreakpointListener l : breakpointListeners) {			
+	private void fireBreakpointEvent(Operator operator, IOContainer ioContainer, int location) {
+		for (BreakpointListener l : breakpointListeners) {
 			l.breakpointReached(this, operator, ioContainer, location);
 		}
 	}
@@ -611,18 +624,27 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	// Checks
 	// -----------------
 
-	/** Delivers the information about unknown parameter types which occurred during process creation (from streams or files). */
+	/**
+	 * Delivers the information about unknown parameter types which occurred during process creation (from streams or
+	 * files).
+	 */
 	public List<UnknownParameterInformation> getUnknownParameters() {
 		return this.unknownParameterInformation;
 	}
 
-	/** Clears the information about unknown parameter types which occurred during process creation (from streams or files). */
+	/**
+	 * Clears the information about unknown parameter types which occurred during process creation (from streams or
+	 * files).
+	 */
 	public void clearUnknownParameters() {
 		this.unknownParameterInformation.clear();
 	}
 
-	/** Checks for correct number of inner operators, properties, and io. 
-	 * @deprecated Use {@link #checkProcess(IOContainer)} instead*/
+	/**
+	 * Checks for correct number of inner operators, properties, and io.
+	 * 
+	 * @deprecated Use {@link #checkProcess(IOContainer)} instead
+	 */
 	@Deprecated
 	public boolean checkExperiment(IOContainer inputContainer) {
 		return checkProcess(inputContainer);
@@ -630,7 +652,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 
 	/** Checks for correct number of inner operators, properties, and io. */
 	public boolean checkProcess(IOContainer inputContainer) {
-		rootOperator.checkAll();			
+		rootOperator.checkAll();
 		return true;
 	}
 
@@ -638,8 +660,10 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	// Running
 	// ------------------
 
-	/** This method initializes the process, the operators, and the services and must be invoked
-	 *  at the beginning of run. It also resets all apply counts. */
+	/**
+	 * This method initializes the process, the operators, and the services and must be invoked at the beginning of run.
+	 * It also resets all apply counts.
+	 */
 	private final void prepareRun(int logVerbosity) throws OperatorException {
 		initLogging(logVerbosity);
 
@@ -649,7 +673,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		RandomGenerator.init(this);
 		ResultService.init(this);
 
-		//checkProcess(null);
+		// checkProcess(null);
 		clearDataTables();
 		clearReportStreams();
 		clearMacros();
@@ -657,8 +681,8 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		if (getExecutionMode() != ExecutionMode.ONLY_DIRTY) {
 			getRootOperator().clear(Port.CLEAR_DATA);
 		}
-		AttributeFactory.resetNameCounters();		
-		
+		AttributeFactory.resetNameCounters();
+
 		getLogger().fine("Process initialised.");
 	}
 
@@ -668,14 +692,14 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		if (context.getInputRepositoryLocations().isEmpty()) {
 			return;
 		}
-		getLogger().info("Loading initial data.");		
+		getLogger().info("Loading initial data.");
 		for (int i = 0; i < context.getInputRepositoryLocations().size(); i++) {
 			String location = context.getInputRepositoryLocations().get(i);
 			if ((location == null) || (location.length() == 0)) {
-				getLogger().fine("Input #"+(i+1)+" not specified.");
+				getLogger().fine("Input #" + (i + 1) + " not specified.");
 			} else {
 				if (i >= rootOperator.getSubprocess(0).getInnerSources().getNumberOfPorts()) {
-					getLogger().warning("No input port available for process input #"+(i+1)+": "+location);
+					getLogger().warning("No input port available for process input #" + (i + 1) + ": " + location);
 				} else {
 					OutputPort port = rootOperator.getSubprocess(0).getInnerSources().getPortByIndex(i);
 					RepositoryLocation loc;
@@ -687,12 +711,13 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 					try {
 						Entry entry = loc.locateEntry();
 						if (entry == null) {
-							throw new UserError(rootOperator, 312, loc, "Entry "+loc+" does not exist.");	
-						} if (entry instanceof IOObjectEntry) {
-							getLogger().info("Assigning "+loc+" to input port "+port.getSpec()+".");
-							port.deliver(((IOObjectEntry)entry).retrieveData(null));
+							throw new UserError(rootOperator, 312, loc, "Entry " + loc + " does not exist.");
+						}
+						if (entry instanceof IOObjectEntry) {
+							getLogger().info("Assigning " + loc + " to input port " + port.getSpec() + ".");
+							port.deliver(((IOObjectEntry) entry).retrieveData(null));
 						} else {
-							getLogger().info("Cannot assigning "+loc+" to input port "+port.getSpec()+": Repository location does not reference an IOObject entry.");
+							getLogger().info("Cannot assigning " + loc + " to input port " + port.getSpec() + ": Repository location does not reference an IOObject entry.");
 							throw new UserError(rootOperator, 312, loc, "Not an IOObject entry.");
 						}
 					} catch (RepositoryException e) {
@@ -713,10 +738,10 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		for (int i = 0; i < context.getOutputRepositoryLocations().size(); i++) {
 			String locationStr = context.getOutputRepositoryLocations().get(i);
 			if ((locationStr == null) || (locationStr.length() == 0)) {
-				getLogger().fine("Output #"+(i+1)+" not specified.");
+				getLogger().fine("Output #" + (i + 1) + " not specified.");
 			} else {
 				if (i >= rootOperator.getSubprocess(0).getInnerSinks().getNumberOfPorts()) {
-					getLogger().warning("No output port corresponding to process output #"+(i+1)+": "+locationStr);
+					getLogger().warning("No output port corresponding to process output #" + (i + 1) + ": " + locationStr);
 				} else {
 					InputPort port = rootOperator.getSubprocess(0).getInnerSinks().getPortByIndex(i);
 					RepositoryLocation location;
@@ -727,9 +752,9 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 					}
 					IOObject data = port.getDataOrNull();
 					if (data == null) {
-						getLogger().warning("Nothing to store at "+location+": No results produced at "+port.getSpec()+".");
+						getLogger().warning("Nothing to store at " + location + ": No results produced at " + port.getSpec() + ".");
 					} else {
-						try {						
+						try {
 							RepositoryAccessor repositoryAccessor = getRepositoryAccessor();
 							location.setAccessor(repositoryAccessor);
 							RepositoryManager.getInstance(repositoryAccessor).store(data, location, rootOperator);
@@ -737,15 +762,15 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 						} catch (RepositoryException e) {
 							throw new UserError(rootOperator, e, 315, location, e.getMessage());
 						}
-					}		
+					}
 				}
-			}		
+			}
 		}
 	}
 
 	private void applyContextMacros() {
-		for (Pair<String,String> macro : context.getMacros()) {
-			getLogger().fine("Defining context macro: "+macro.getFirst() + " = " + macro.getSecond()+".");
+		for (Pair<String, String> macro : context.getMacros()) {
+			getLogger().fine("Defining context macro: " + macro.getFirst() + " = " + macro.getSecond() + ".");
 			getMacroHandler().addMacro(macro.getFirst(), macro.getSecond());
 		}
 	}
@@ -770,51 +795,59 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		return run(input, logVerbosity, null);
 	}
 
-	/** Starts the process with the given input. The process uses a default log verbosity.
-	 * 	The boolean flag indicates if some static initializations should be cleaned
-	 *  before the process is started. This should usually be true but it might be useful
-	 *  to set this to false if, for example, several process runs uses the same
-	 *  object visualizer which would have been cleaned otherwise.
+	/**
+	 * Starts the process with the given input. The process uses a default log verbosity. The boolean flag indicates if
+	 * some static initializations should be cleaned before the process is started. This should usually be true but it
+	 * might be useful to set this to false if, for example, several process runs uses the same object visualizer which
+	 * would have been cleaned otherwise.
 	 */
 	@Deprecated
 	public final IOContainer run(IOContainer input, boolean unused) throws OperatorException {
 		return run(input, LogService.UNKNOWN_LEVEL);
 	}
 
-	/** Starts the process with the given input. The process uses the given log verbosity. 
-	 *  The boolean flag indicates if some static initializations should be cleaned
-	 *  before the process is started. This should usually be true but it might be useful
-	 *  to set this to false if, for example, several process runs uses the same
-	 *  object visualizer which would have been cleaned otherwise. */
+	/**
+	 * Starts the process with the given input. The process uses the given log verbosity. The boolean flag indicates if
+	 * some static initializations should be cleaned before the process is started. This should usually be true but it
+	 * might be useful to set this to false if, for example, several process runs uses the same object visualizer which
+	 * would have been cleaned otherwise.
+	 */
 	@Deprecated
 	public final IOContainer run(IOContainer input, int logVerbosity, boolean cleanUp) throws OperatorException {
 		return run(input, logVerbosity, null);
 	}
-	
-	/** Starts the process with the given input. The process uses the given log verbosity. 
-	 *  The boolean flag indicates if some static initializations should be cleaned
-	 *  before the process is started. This should usually be true but it might be useful
-	 *  to set this to false if, for example, several process runs uses the same
-	 *  object visualizer which would have been cleaned otherwise. 
-	 *  
-	 *  Since the macros are cleaned then as well it is not possible to set macros to a process
-	 *  but with the given macroMap of this method.
+
+	/**
+	 * Starts the process with the given input. The process uses the given log verbosity. The boolean flag indicates if
+	 * some static initializations should be cleaned before the process is started. This should usually be true but it
+	 * might be useful to set this to false if, for example, several process runs uses the same object visualizer which
+	 * would have been cleaned otherwise.
+	 * 
+	 * Since the macros are cleaned then as well it is not possible to set macros to a process but with the given
+	 * macroMap of this method.
 	 */
 	@Deprecated
 	public final IOContainer run(IOContainer input, int logVerbosity, boolean cleanUp, Map<String, String> macroMap) throws OperatorException {
 		return run(input, logVerbosity, macroMap);
-		
+
 	}
-	/** Starts the process with the given input. The process uses the given log verbosity. 
-	 *  The boolean flag indicates if some static initializations should be cleaned
-	 *  before the process is started. This should usually be true but it might be useful
-	 *  to set this to false if, for example, several process runs uses the same
-	 *  object visualizer which would have been cleaned otherwise. 
-	 *  
-	 *  Since the macros are cleaned then as well it is not possible to set macros to a process
-	 *  but with the given macroMap of this method.
+
+	/**
+	 * Starts the process with the given input. The process uses the given log verbosity. The boolean flag indicates if
+	 * some static initializations should be cleaned before the process is started. This should usually be true but it
+	 * might be useful to set this to false if, for example, several process runs uses the same object visualizer which
+	 * would have been cleaned otherwise.
+	 * 
+	 * Since the macros are cleaned then as well it is not possible to set macros to a process but with the given
+	 * macroMap of this method.
 	 */
 	public final IOContainer run(IOContainer input, int logVerbosity, Map<String, String> macroMap) throws OperatorException {
+		// fetching process name for logging
+		String name = null;
+		if (getProcessLocation() != null) {
+			name = getProcessLocation().toString();
+		}
+		
 		int myVerbosity = rootOperator.getParameterAsInt(ProcessRootOperator.PARAMETER_LOGVERBOSITY);
 		if (logVerbosity == LogService.UNKNOWN_LEVEL) {
 			logVerbosity = LogService.OFF;
@@ -828,9 +861,9 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 				logHandler = new FileHandler(logFilename);
 				logHandler.setFormatter(new SimpleFormatter());
 				logHandler.setLevel(Level.ALL);
-				getLogger().config("Logging process to file "+logFilename);
+				getLogger().config("Logging process to file " + logFilename);
 			} catch (Exception e) {
-				getLogger().warning("Cannot create log file '"+logFilename+"': "+e);
+				getLogger().warning("Cannot create log file '" + logFilename + "': " + e);
 			}
 		}
 		if (logHandler != null) {
@@ -839,19 +872,22 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 
 		setProcessState(PROCESS_STATE_RUNNING);
 		prepareRun(logVerbosity);
-		
-		loadInitialData();		
-		
+
+		loadInitialData();
+
 		// macros
+		applyContextMacros();
 		if (macroMap != null) {
 			for (Map.Entry<String, String> entry : macroMap.entrySet()) {
 				getMacroHandler().addMacro(entry.getKey(), entry.getValue());
 			}
 		}
-		applyContextMacros();
-		
+
 		long start = System.currentTimeMillis();
-		getLogger().info("Process starts");
+		if (name != null)
+			getLogger().info("Process " + name + " starts");
+		else
+			getLogger().info("Process starts");
 		getLogger().fine("Process:" + Tools.getLineSeparator() + getRootOperator().createProcessTree(3));
 
 		rootOperator.processStarts();
@@ -861,23 +897,26 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 				rootOperator.deliverInput(Arrays.asList(input.getIOObjects()));
 			}
 			rootOperator.execute();
-			
+
 			saveResults();
 			IOContainer result = rootOperator.getResults();
 			long end = System.currentTimeMillis();
 
-			getLogger().fine("Process:" + Tools.getLineSeparator() + getRootOperator().createProcessTree(3));			
-			getLogger().info("Process finished successfully after " + Tools.formatDuration(end - start));
+			getLogger().fine("Process:" + Tools.getLineSeparator() + getRootOperator().createProcessTree(3));
+			if (name != null)
+				getLogger().info("Process " + name + " finished successfully after " + Tools.formatDuration(end - start));
+			else
+				getLogger().info("Process finished successfully after " + Tools.formatDuration(end - start));
 
 			return result;
 		} catch (OperatorException e) {
-			if (e instanceof ProcessStoppedException) {	
-				Operator op = getOperator(((ProcessStoppedException)e).getOperatorName());
+			if (e instanceof ProcessStoppedException) {
+				Operator op = getOperator(((ProcessStoppedException) e).getOperatorName());
 				UsageStatistics.getInstance().count(op, OperatorStatisticsValue.STOPPED);
-			} else {				
+			} else {
 				UsageStatistics.getInstance().count(getCurrentOperator(), OperatorStatisticsValue.FAILURE);
 				if (e instanceof UserError) {
-					UsageStatistics.getInstance().count(((UserError)e).getOperator(), OperatorStatisticsValue.USER_ERROR);
+					UsageStatistics.getInstance().count(((UserError) e).getOperator(), OperatorStatisticsValue.USER_ERROR);
 				} else {
 					UsageStatistics.getInstance().count(getCurrentOperator(), OperatorStatisticsValue.OPERATOR_EXCEPTION);
 				}
@@ -885,7 +924,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 			throw e;
 		} finally {
 			stop();
-			tearDown();			
+			tearDown();
 			if (logHandler != null) {
 				getLogger().removeHandler(logHandler);
 				logHandler.close();
@@ -949,13 +988,12 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	}
 
 	/** Saves the process to the given process file. */
-	public void save(File file) throws IOException {	
+	public void save(File file) throws IOException {
 		new FileProcessLocation(file).store(this, null);
 	}
 
 	/**
-	 * Resolves the given filename against the directory containing the
-	 * process file.
+	 * Resolves the given filename against the directory containing the process file.
 	 */
 	public File resolveFileName(String name) {
 		File absolute = new File(name);
@@ -963,16 +1001,22 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 			return absolute;
 		}
 		if (processLocation instanceof FileProcessLocation) {
-			File processFile = ((FileProcessLocation)processLocation).getFile();
+			File processFile = ((FileProcessLocation) processLocation).getFile();
 			return Tools.getFile(processFile.getParentFile(), name);
-		} else {			
-			String homeName = System.getProperty("user.home");
+		} else {
+			String homeName;
+			String resolvedir = System.getProperty("rapidminer.test.resolvedir");
+			if (resolvedir == null) {
+				homeName = System.getProperty("user.home");
+			} else {
+				homeName = resolvedir;
+			}
 			if (homeName != null) {
 				File file = new File(new File(homeName), name);
-				getLogger().warning("Process not attached to a file. Resolving against user directory: '"+file+"'.");				
+				getLogger().warning("Process not attached to a file. Resolving against user directory: '" + file + "'.");
 				return file;
 			} else {
-				getLogger().warning("Process not attached to a file. Trying abolute filename '"+name+"'.");
+				getLogger().warning("Process not attached to a file. Trying abolute filename '" + name + "'.");
 				return new File(name);
 			}
 		}
@@ -998,10 +1042,10 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 			}
 			unknownParameterInformation.clear();
 			XMLImporter xmlImporter = new XMLImporter(progressListener);
-			xmlImporter.parse(document, this, unknownParameterInformation); 
+			xmlImporter.parse(document, this, unknownParameterInformation);
 
 			nameMapBackup = operatorNameMap;
-			rootOperator.clear(Port.CLEAR_ALL);		
+			rootOperator.clear(Port.CLEAR_ALL);
 		} catch (javax.xml.parsers.ParserConfigurationException e) {
 			throw new XMLException(e.toString(), e);
 		} catch (SAXException e) {
@@ -1016,8 +1060,9 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		}
 	}
 
-	/** Returns a &quot;name (i)&quot; if name is already in use. This new name should then
-	 *  be used as operator name. */
+	/**
+	 * Returns a &quot;name (i)&quot; if name is already in use. This new name should then be used as operator name.
+	 */
 	public String registerName(String name, Operator operator) {
 		if (operatorNameMap.get(name) != null) {
 			String baseName = name;
@@ -1052,7 +1097,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		if (rootOperator == null)
 			return "empty process";
 		else
-			return "Process:" + Tools.getLineSeparator() + rootOperator.getXML(true);        
+			return "Process:" + Tools.getLineSeparator() + rootOperator.getXML(true);
 	}
 
 	private final EventListenerList processSetupListeners = new EventListenerList();
@@ -1062,15 +1107,15 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		@Override
 		public void update(Observable<ProcessContext> observable, ProcessContext arg) {
 			fireUpdate();
-		}		
+		}
 	};
 	private final Observer<Operator> delegatingOperatorObserver = new Observer<Operator>() {
 		@Override
 		public void update(Observable<Operator> observable, Operator arg) {
 			fireUpdate();
-		}		
+		}
 	};
-	
+
 	public void addProcessSetupListener(ProcessSetupListener listener) {
 		processSetupListeners.add(ProcessSetupListener.class, listener);
 	}
@@ -1082,25 +1127,25 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	public void fireOperatorAdded(Operator operator) {
 		for (ProcessSetupListener l : processSetupListeners.getListeners(ProcessSetupListener.class)) {
 			l.operatorAdded(operator);
-		}		
+		}
 	}
 
 	public void fireOperatorChanged(Operator operator) {
 		for (ProcessSetupListener l : processSetupListeners.getListeners(ProcessSetupListener.class)) {
 			l.operatorChanged(operator);
-		}		
+		}
 	}
 
 	public void fireOperatorRemoved(Operator operator, int oldIndex, int oldIndexAmongEnabled) {
-		for (ProcessSetupListener l : processSetupListeners.getListeners(ProcessSetupListener.class)) {			
+		for (ProcessSetupListener l : processSetupListeners.getListeners(ProcessSetupListener.class)) {
 			l.operatorRemoved(operator, oldIndex, oldIndexAmongEnabled);
-		}		
+		}
 	}
 
 	public void fireExecutionOrderChanged(ExecutionUnit unit) {
 		for (ProcessSetupListener l : processSetupListeners.getListeners(ProcessSetupListener.class)) {
 			l.executionOrderChanged(unit);
-		}		
+		}
 	}
 
 	public ExecutionMode getExecutionMode() {
@@ -1110,18 +1155,17 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	public void setExecutionMode(ExecutionMode mode) {
 		this.executionMode = mode;
 	}
-	
+
 	public DebugMode getDebugMode() {
 		return debugMode;
 	}
-	
+
 	public void setDebugMode(DebugMode mode) {
 		this.debugMode = mode;
 		if (mode == DebugMode.DEBUG_OFF) {
 			getRootOperator().clear(Port.CLEAR_REAL_METADATA);
 		}
 	}
-
 
 	/** Resolves a repository location relative to {@link #getRepositoryLocation()}. */
 	public RepositoryLocation resolveRepositoryLocation(String loc) throws UserError, MalformedRepositoryLocationException {
@@ -1133,10 +1177,10 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		RepositoryLocation repositoryLocation = getRepositoryLocation();
 		if (repositoryLocation != null) {
 			RepositoryLocation repositoryLocation2 = new RepositoryLocation(repositoryLocation.parent(), loc);
-			repositoryLocation2.setAccessor(getRepositoryAccessor());			
+			repositoryLocation2.setAccessor(getRepositoryAccessor());
 			return repositoryLocation2;
 		} else {
-			throw new UserError(null, 317, loc); 
+			throw new UserError(null, 317, loc);
 		}
 	}
 
@@ -1167,8 +1211,9 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		this.importMessage = importMessage;
 	}
 
-	/** Returns some user readable messages generated during import by
-	 *  {@link XMLImporter}. */
+	/**
+	 * Returns some user readable messages generated during import by {@link XMLImporter}.
+	 */
 	public String getImportMessage() {
 		return importMessage;
 	}
@@ -1180,26 +1225,34 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		return (processLocation != null);
 	}
 
-	/** Returns the current process file. 
-	 * @deprecated Use {@link #getProcessFile()} instead*/
+	/**
+	 * Returns the current process file.
+	 * 
+	 * @deprecated Use {@link #getProcessFile()} instead
+	 */
 	@Deprecated
 	public File getExperimentFile() {
 		return getProcessFile();
 	}
 
-	/** Returns the current process file. 
-	 * @deprecated Use {@link #getProcessLocation()} */
+	/**
+	 * Returns the current process file.
+	 * 
+	 * @deprecated Use {@link #getProcessLocation()}
+	 */
 	@Deprecated
 	public File getProcessFile() {
 		if (processLocation instanceof FileProcessLocation) {
-			return ((FileProcessLocation)processLocation).getFile();
+			return ((FileProcessLocation) processLocation).getFile();
 		} else {
 			return null;
 		}
 	}
 
-	/** Sets the process file. This file might be used for resolving relative filenames. 
-	 *  @deprecated Please use {@link #setProcessFile(File)} instead. 
+	/**
+	 * Sets the process file. This file might be used for resolving relative filenames.
+	 * 
+	 * @deprecated Please use {@link #setProcessFile(File)} instead.
 	 */
 	@Deprecated
 	public void setExperimentFile(File file) {
@@ -1215,9 +1268,9 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		// keep process file version if same file, otherwise overwrite
 		if ((this.processLocation != null) && !this.processLocation.equals(processLocation)) {
 			this.lastProcessFileVersion = XMLImporter.CURRENT_VERSION;
-		}		
+		}
 		if (this.processLocation != null) {
-			getLogger().info("Decoupling process from location "+this.processLocation+". Process is now associated with file "+processLocation+".");
+			getLogger().info("Decoupling process from location " + this.processLocation + ". Process is now associated with file " + processLocation + ".");
 			this.processLocation = null;
 		}
 		this.processLocation = processLocation;
@@ -1230,7 +1283,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 
 	public RepositoryLocation getRepositoryLocation() {
 		if (processLocation instanceof RepositoryProcessLocation) {
-			return ((RepositoryProcessLocation)processLocation).getRepositoryLocation();
+			return ((RepositoryProcessLocation) processLocation).getRepositoryLocation();
 		} else {
 			return null;
 		}
@@ -1243,9 +1296,11 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	public int getProcessFileVersion() {
 		return lastProcessFileVersion;
 	}
-	
-	/** Can be called by GUI components if visual representation or any other state
-	 *  not known to the process itself has changed. */
+
+	/**
+	 * Can be called by GUI components if visual representation or any other state not known to the process itself has
+	 * changed.
+	 */
 	public void updateNotify() {
 		fireUpdate(this);
 	}
@@ -1253,8 +1308,8 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	public RepositoryAccessor getRepositoryAccessor() {
 		return repositoryAccessor;
 	}
-	
-	public void setRepositoryAccessor(RepositoryAccessor repositoryAccessor ) {
+
+	public void setRepositoryAccessor(RepositoryAccessor repositoryAccessor) {
 		this.repositoryAccessor = repositoryAccessor;
 	}
 

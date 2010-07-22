@@ -58,6 +58,7 @@ import com.rapidminer.tools.LoggingHandler;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.math.function.expressions.Average;
+import com.rapidminer.tools.math.function.expressions.Concat;
 import com.rapidminer.tools.math.function.expressions.Constant;
 import com.rapidminer.tools.math.function.expressions.LogarithmDualis;
 import com.rapidminer.tools.math.function.expressions.Maximum;
@@ -213,6 +214,7 @@ public class ExpressionParser {
 		parser.addFunction("parse", new ParseNumber());
 		parser.addFunction("cut", new Substring());
 		parser.addFunction("const", new Constant());
+		parser.addFunction("concat", new Concat());
 	}
 
 	public void addMacro(MacroHandler macroHandler, String name, String function) throws GenerationException {
@@ -409,6 +411,10 @@ public class ExpressionParser {
 			}
 		}
 		return newAttribute;
+	}
+	
+	public JEP getParser() {
+		return parser;
 	}
 	
 	/** Parses all lines of the AttributeConstruction file and returns a list containing all newly generated

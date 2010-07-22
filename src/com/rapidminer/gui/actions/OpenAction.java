@@ -32,9 +32,14 @@ import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.repository.Entry;
+import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.MalformedRepositoryLocationException;
+import com.rapidminer.repository.ProcessEntry;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryLocationChooser;
+import com.rapidminer.repository.gui.RepositoryTree;
 import com.rapidminer.tools.XMLException;
 
 
@@ -93,5 +98,21 @@ public class OpenAction extends ResourceAction {
 			}
 		};
 		openProgressThread.start();
+	}
+
+	public static void open(String openLocation, boolean showInfo) {
+		try {
+			final RepositoryLocation location = new RepositoryLocation(openLocation);
+			Entry entry = location.locateEntry();
+			if (entry instanceof ProcessEntry) {
+				open(new RepositoryProcessLocation(location), false);
+			} else if (entry instanceof IOObjectEntry){
+				RepositoryTree.showAsResult((IOObjectEntry) entry);
+			} else {
+				throw new RepositoryException("Cannot open entries of type "+entry.getType()+".");	
+			}
+		} catch (Exception e) {
+			SwingTools.showSimpleErrorMessage("while_loading", e, openLocation, e.getMessage());
+		}		
 	}
 }

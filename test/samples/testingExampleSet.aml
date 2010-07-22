@@ -1,19 +1,6 @@
-<?xml version="1.0" encoding="windows-1252"?>
-<attributeset default_source="testingExampleSet.dat">
-
-  <attribute
-    name         = "att1"
-    sourcecol    = "1"
-    valuetype    = "real"/>
-
-  <label
-    name         = "label"
-    sourcecol    = "2"
-    valuetype    = "real"/>
-
-  <prediction
-    name         = "prediction(label)"
-    sourcecol    = "3"
-    valuetype    = "real"/>
-
+<?xml version="1.0" encoding="windows-1252" standalone="no"?>
+<attributeset default_source="testingExampleSet.dat" encoding="windows-1252">
+  <attribute name="att1" sourcecol="1" valuetype="real"/>
+  <label name="label" sourcecol="2" valuetype="real"/>
+  <prediction name="prediction(label)" sourcecol="3" valuetype="real"/>
 </attributeset>

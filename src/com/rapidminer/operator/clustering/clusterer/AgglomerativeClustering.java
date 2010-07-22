@@ -108,6 +108,7 @@ public class AgglomerativeClustering extends Operator {
 		// filling the distance matrix
 		int nextClusterId = 0;
 		for (Example example1: exampleSet) {
+			checkForStop();
 			clusterIds[nextClusterId] = nextClusterId;
 			int y = 0;
 			for (Example example2: exampleSet) {

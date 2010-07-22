@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator.clustering;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -33,8 +34,10 @@ import java.util.LinkedList;
  * 
  * @author Sebastian Land
  */
-public class HierarchicalClusterNode {
+public class HierarchicalClusterNode implements Serializable {
 	
+	private static final long serialVersionUID = 2249266864895013348L;
+
 	private Collection<HierarchicalClusterNode> subNodes;
 	
 	private double distance;

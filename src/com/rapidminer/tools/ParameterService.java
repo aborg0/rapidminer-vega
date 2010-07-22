@@ -22,12 +22,12 @@
  */
 package com.rapidminer.tools;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -46,7 +46,7 @@ import com.rapidminer.parameter.ParameterType;
  * the parameter is not set, the <code>System.getProperty(String)</code>
  * methods should be used if this is not desired.
  * 
- * @author Simon Fischer, Ingo Mierswa
+ * @author Simon Fischer, Ingo Mierswa, Sebastian Land
  */
 public class ParameterService {
 
@@ -54,6 +54,8 @@ public class ParameterService {
 	public static final String PROPERTY_RAPIDMINER_SRC_ROOT = "rapidminer.src.root";
 	private static final String ENVIRONMENT_RAPIDMINER_CONFIG_DIR = "RAPIDMINER_CONFIG_DIR";
 	private static final String PROPERTY_RAPIDMINER_CONFIG_DIR    = "rapidminer.config.dir";
+	
+	private static boolean intialized = false;
 
 	/**
 	 * Tries to find the rapidminer.home directory if the property is not set and sets
@@ -61,68 +63,6 @@ public class ParameterService {
 	 */
 	public static void ensureRapidMinerHomeSet() {
 		Launcher.ensureRapidMinerHomeSet();
-//		String home = System.getProperty(Launcher.PROPERTY_RAPIDMINER_HOME);
-//		if (home != null) {
-//			LogService.getRoot().config(Launcher.PROPERTY_RAPIDMINER_HOME + " is '" + home + "'.");
-//		} else {
-//			LogService.getRoot().config("Property " + Launcher.PROPERTY_RAPIDMINER_HOME+ " is not set. Guessing.");
-//			String classpath = System.getProperty("java.class.path");
-//			String pathComponents[] = classpath.split(File.pathSeparator);
-//			boolean found = false;
-//			for (int i = 0; i < pathComponents.length; i++) {
-//				String path = pathComponents[i].trim();
-//				if (path.endsWith("rapidminer.jar")) {
-//					File jar = new File(path).getAbsoluteFile();
-//					String message = "Trying parent directory of '" + jar + "'...";
-//					File dir = jar.getParentFile();
-//					if (dir != null) {
-//						dir = dir.getParentFile();
-//						if (dir != null) {
-//							message += "gotcha!";
-//							found = true;
-//							System.setProperty(Launcher.PROPERTY_RAPIDMINER_HOME, dir.getAbsolutePath());
-//						} else {
-//							message += "failed";
-//						}
-//					} else {
-//						message += "failed";
-//					}
-//					LogService.getRoot().log(Level.CONFIG, message);
-//				}
-//			}
-//
-//			if (!found) {
-//				String message = "Trying base directory of classes (build) '";
-//				URL url = ParameterService.class.getClassLoader().getResource(".");
-//				if (url != null) {
-//					try {
-//						File dir = new File(new URI(url.toString()));
-//						if (dir.exists()) {
-//							dir = dir.getParentFile();
-//							message += dir + "'...";
-//							if (dir != null) {
-//								message += "gotcha!";
-//								try {
-//									System.setProperty(Launcher.PROPERTY_RAPIDMINER_HOME, dir.getCanonicalPath());
-//								} catch (IOException e) {
-//									System.setProperty(Launcher.PROPERTY_RAPIDMINER_HOME, dir.getAbsolutePath());
-//								}
-//							} else {
-//								message += "failed";
-//							}
-//						} else {
-//							message += "failed";
-//						}
-//					} catch (URISyntaxException e) {
-//						message += "failed";    
-//					}
-//				} else {
-//					message += "failed";
-//				}
-//				LogService.getRoot().log(Level.CONFIG, message);
-//			}
-//		}
-//		getProperty(Launcher.PROPERTY_RAPIDMINER_HOME); // throws exception if necessary
 	}
 
 
@@ -136,7 +76,11 @@ public class ParameterService {
 	/** Reads user and system wide configuration files (as long as this is allowed
 	 *  by the {@link ExecutionMode}). */
 	public static void init(InputStream operatorsXMLStream) {
+		if (intialized ) {
+			return;
+		}
 		loadAllRCFiles();
+		intialized = true;
 	}
 
 	public static void copyMainUserConfigFile(VersionNumber oldVersion, VersionNumber newVersion) {
@@ -200,33 +144,34 @@ public class ParameterService {
 		return properties;
 	}
 
+	/**
+	 * This method writes all known RapidMiner properties to the given config file.
+	 */
 	public static void writeProperties(Properties properties, File file) {
 		if (!RapidMiner.getExecutionMode().canAccessFilesystem()) {
 			LogService.getRoot().config("Ignoring request to save properties file in execution mode "+RapidMiner.getExecutionMode()+".");
 			return;
 		}
-		PrintWriter out = null;
-		try {
-			out = new PrintWriter(new FileWriter(getMainUserConfigFile()));
-			for (Map.Entry<Object,Object> entry : properties.entrySet()) {				
-				String typeKey = (String)entry.getKey();
-				String typeValue = (String)entry.getValue();							
-				if (typeValue != null) {					
-					for (ParameterType type : RapidMiner.getRapidMinerProperties()) {					
-						if (type.getKey().equals(typeKey)) {
-							typeValue = type.toString(typeValue);
-							break;
-						}
-					}	
-					//System.setProperty(typeKey, typeValue);
-					out.println(typeKey + " = " + typeValue);
-				}
+		Properties writeableProperties = new Properties();
+		for (ParameterType type : RapidMiner.getRapidMinerProperties()) {
+			String value = (String) properties.get(type.getKey());
+			if (value != null) {
+				writeableProperties.setProperty(type.getKey(), value);
 			}
-		} catch (IOException e) {
+		}
+		
+		BufferedOutputStream out = null;
+		try {
+			out = new BufferedOutputStream(new FileOutputStream(file));
+			writeableProperties.store(out, "");
+			} catch (IOException e) {
 			LogService.getRoot().log(Level.WARNING, "Cannot write user properties: " + e.getMessage(), e);
 		} finally {
 			if (out != null) {
-				out.close();
+				try {
+					out.close();
+				} catch (IOException e) {
+				}
 			}
 		}
 	}

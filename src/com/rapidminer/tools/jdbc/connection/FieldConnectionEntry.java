@@ -107,15 +107,24 @@ public class FieldConnectionEntry extends ConnectionEntry {
 		return createURL(properties, host, port, database);
 	}
 	
-	public static String createURL(JDBCProperties properties, String host, String port, String database) {
-		StringBuffer urlBuffer = new StringBuffer(properties.getUrlPrefix());
+	public static String createURL(JDBCProperties properties, String host, String port, String database) {		
+		StringBuffer urlBuffer = new StringBuffer();
+		if (properties != null) {
+			urlBuffer.append(properties.getUrlPrefix());
+		} else {
+			urlBuffer.append("unkown:prefix://");
+		}
 		if (host != null && !"".equals(host)) {
 			urlBuffer.append(host);
 			if (port != null && !"".equals(port)) {
 				urlBuffer.append(":" + port);
 			}
 			if (database != null && !"".equals(database)) {
-				urlBuffer.append(properties.getDbNameSeperator());
+				if (properties != null) {
+					urlBuffer.append(properties.getDbNameSeperator());
+				} else {
+					urlBuffer.append("/");
+				}
 				urlBuffer.append(database);
 			}
 		}
@@ -126,15 +135,20 @@ public class FieldConnectionEntry extends ConnectionEntry {
 		return host;
 	}
 	
-	public boolean equals(FieldConnectionEntry entry) {
-		boolean equals = true;
-		equals &= name.equals(entry.name);
-		equals &= host.equals(entry.host);
-		equals &= port.equals(entry.port);
-		equals &= database.equals(entry.database);
-		equals &= user.equals(entry.user);
-		equals &= password.equals(entry.password);
-		return equals;
+	@Override
+	public boolean equals(Object object) {
+		if (object instanceof FieldConnectionEntry) {
+			FieldConnectionEntry entry = (FieldConnectionEntry) object;
+			boolean equals = true;
+			equals &= name.equals(entry.name);
+			equals &= host.equals(entry.host);
+			equals &= port.equals(entry.port);
+			equals &= database.equals(entry.database);
+			equals &= user.equals(entry.user);
+			equals &= password.equals(entry.password);
+			return equals;
+		}
+		return false;
 	}
 
 	public Element toXML(Document doc, Key key, String replacementForLocalhost) throws CipherException {

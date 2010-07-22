@@ -42,6 +42,7 @@ import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.Tools;
 
 /**
  * <p>(Re-)Define macros for the current process. Macros will be replaced in the value strings
@@ -188,7 +189,11 @@ public class DataMacroDefinitionOperator extends Operator {
 			}
 
 			Example example = exampleSet.getExample(exampleIndex);
-			macroValue = example.getValueAsString(attribute);
+			if (attribute.isNumerical()) {
+				macroValue = Tools.formatIntegerIfPossible(example.getValue(attribute));
+			} else {
+				macroValue = example.getValueAsString(attribute);
+			}
 			break;
 		case MACRO_TYPE_STATISTICS:
 			attribute = exampleSet.getAttributes().get(getParameter(PARAMETER_ATTRIBUTE_NAME));

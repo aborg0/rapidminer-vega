@@ -23,8 +23,8 @@
 package com.rapidminer.operator.features.weighting;
 
 import com.rapidminer.operator.OperatorDescription;
-import com.rapidminer.operator.learner.tree.InfoGainCriterion;
 import com.rapidminer.operator.learner.tree.criterions.Criterion;
+import com.rapidminer.operator.learner.tree.criterions.InfoGainCriterion;
 
 /**
  * This operator calculates the relevance of a feature by computing the information gain in class distribution, if exampleSet would be splitted after

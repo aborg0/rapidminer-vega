@@ -200,15 +200,21 @@
       <key>loop_batches</key>
    </operator>
    <operator>
-        <name>Generate top k Predictions</name>
-        <synopsis>This operator will generate k attributes containing the k most probable classes.</synopsis>
-        <help>This operator will use the generated confidence values of a model application to create k new 
-        attributes for storing the t-th most confident assigning and k new attributes for storing the 
-        respective confidence.&lt;br /&gt; 
-        Therefore all confidence values are taken and sorted. The label with the highest confidence will be 
-        number one followed by the second highest and so on.&lt;br /&gt;
-        You can choose if the old confidence attributes should be removed after creating the top k predictions.</help>
-        <key>generate_topk_predictions</key>
+        <name>Generate Prediction</name>
+        <synopsis>Generates a prediction attribute from given confidence attributes.</synopsis>
+        <help>This operator generates a prediction attribute from given confidence attributes. As
+        	  a prediction, the value that has the highest associated confidence attribute value is set
+        	  for each example.</help>
+        <key>generate_prediction</key>
+   </operator>
+   <operator>
+        <name>Generate Prediction Ranking</name>
+        <synopsis>Generates attributes containing the most probable classes and their corresponding confidence values.</synopsis>
+        <help>This operator will use the confidence values generated during model application to create new 
+        attributes which contains a ranking of the most probable classes and their corresponding confidence values.&lt;br /&gt;
+        The size of the ranking (i.e. number of classes stored per example) can be specified. Additionally, you can choose if
+        the old prediction and confidence attributes should be removed after the creation of the ranking attribtues.</help>
+        <key>generate_prediction_ranking</key>
    </operator>
    <operator>
       <name>Clone Parameters</name>
@@ -298,6 +304,13 @@
         </help>
     <key>fixedsplitvalidation</key>
   </operator>
+    <operator>
+        <name>Print to Console</name>
+        <key>print_to_console</key>
+        <synopsis>This operator simply prints the given parameter value to the console.</synopsis>
+        <help>Parameter values can be enriched using macros like the apply count using the %{a} default macro. This is usually used for
+        execute processes in the background without gui in order to protocol progress.</help>
+    </operator>
     <operator>
         <name>Batch-X-Validation</name>
         <synopsis>A batched cross-validation in order to estimate the
@@ -1257,7 +1270,7 @@
             columns, especially if columns which were nominal before can be
             handled as numerical columns. With this operator, the value types of
             all attributes do not have to be transformed manually with operators
-            like &lt;i&gt;NominalNumbers2Numerical&lt;/i&gt;.</help>
+            like &lt;i&gt;Parse Numbers&lt;/i&gt;.</help>
     <key>guess_types</key>
   </operator>
     <operator>
@@ -3789,11 +3802,31 @@
         <name>Weight by Gini Index</name>
         <synopsis>This operator calculates the relevance of the attributes
             based on the Gini impurity index.</synopsis>
-        <help>This operator calculates the relevance of a feature by computing
+        <help>This operator calculates the relevance of an attribute by computing
             the Gini index of the class distribution, if the given example set
             would have been splitted according to the feature.</help>
     <key>weight_by_gini_index</key>
   </operator>
+    <operator>
+        <name>Weight by Tree Importance</name>
+        <synopsis>This operator calculates the importance of the attributes
+            by analysing the split points of a Random Forest model.</synopsis>
+        <help>
+            &lt;p&gt;This weighting schema will use a given random forest to extract the implicit
+ importance of the used attributes. Therefore each node of each tree is visited and the benefit created
+ by the respective split is retrieved. This benefit is summed per attribute, that had been used for the split.
+ The mean benefit over all trees is used as importance.&lt;/p&gt;
+ &lt;p&gt;
+ This algorithm is implemented following the idea from "A comparison of random forest and its Gini importance with standard chemometric methods for the feature selection and classification of spectral data"
+ by Menze, Bjoen H et all (2009). It has been extended by additional criterias for computing the benefit created from a 
+ certain split. The original paper only mentioned Gini Index, this operator additionally supports the more reliable criterions Information Gain
+  and Information Gain Ratio.
+ &lt;/p&gt;
+ 
+ </help>
+    <key>weight_by_forest</key>
+  </operator>
+
     <operator>
         <name>SplitChain</name>
         <synopsis>Splits an example set in two parts based on a user defined
@@ -4705,7 +4738,7 @@
             stored nominal mappings for all attributes. If (old) mappings are
             still stored which actually are nominal (without the corresponding
             data being part of the example set), the attribute will not be
-            converted. Please use the operator &lt;i&gt;GuessValueTypes&lt;/i&gt;
+            converted. Please use the operator &lt;i&gt;Guess Types&lt;/i&gt;
             in these cases.&lt;/p&gt;</help>
     <key>parse_numbers</key>
   </operator>
@@ -4764,6 +4797,15 @@
             classification including procedures which are capable of using
             error-correcting output codes for increased accuracy.</help>
     <key>polynomial_by_binomial_classification</key>
+  </operator>
+  <operator>
+        <name>Hierarchical Classification</name>
+        <synopsis>Builds a hierarchical classification model due to the specified class taxonomy.</synopsis>
+        <help>This meta learner builds a hierarchical classification model due to a
+        	  class taxonomy. This class taxonomy has to be specified within the
+        	  hierarchy parameter list. Each list entry represents an edge in the
+        	  class hierarchy which in fact represents a parent-child class relationship.</help>
+        <key>hierarchical_classification</key>
   </operator>
         <operator>
         <name>Loop Until</name>
@@ -5307,7 +5349,7 @@
             the rest of the process will be executed. Another option would be to
             preceed the command with &lt;code&gt;cmd start&lt;/code&gt; which
             opens the shell and keeps it open. The rest process will not be
-            executed until the shell is closed by the user. &lt;/p&gt; --></help>
+            executed until the shell is closed by the user. &lt;/p&gt;--></help>
     <key>execute_program</key>
   </operator>
     <operator>
@@ -6771,7 +6813,7 @@
             &lt;p&gt;Before acutally sending a statement to a database, you need to create a database connection. You might either choose &lt;i&gt;Manage Database Connections...&lt;/i&gt; from the &lt;i&gt;Tools&lt;/i&gt; menu in the main window, or
             click on the button on the right of the drop down box of the &lt;b&gt;connection&lt;/b&gt; parameter. The window showing up asks for several details as Host, Port, Database system, schema and username. The &lt;i&gt;Test&lt;/i&gt; button will allow you to check wheter the connection can be made. After saving a new connection, it might be chosen from the drop down box of the &lt;b&gt;connection&lt;/b&gt; parameter.&lt;/p&gt;
             
-            &lt;p&gt;&lt;br/&gt;When the operator is executed, the table delivered by the query will be copied into the memory of your computer. This will give all subsequent operators a fast access on the data so that even learning schemes like the &lt;a href="rm://opdoc/svm"&gt;SVM&lt;/a&gt; with their high number of random accesses will run fast. If the table is too big for your main memory, you might use the &lt;a href="rm://opdoc/stream_database"&gt;Stream Database&lt;/a&gt; operator. It will hold only a part of the table in memory for the cost of several magnitudes slower access if the desired example isn't cached.&lt;/p&gt; 
+            &lt;p&gt;&lt;br/&gt;When the operator is executed, the table delivered by the query will be copied into the memory of your computer. This will give all subsequent operators a fast access on the data so that even learning schemes like the &lt;a href="rm://opdoc/support_vector_machine"&gt;SVM&lt;/a&gt; with their high number of random accesses will run fast. If the table is too big for your main memory, you might use the &lt;a href="rm://opdoc/stream_database"&gt;Stream Database&lt;/a&gt; operator. It will hold only a part of the table in memory for the cost of several magnitudes slower access if the desired example isn't cached.&lt;/p&gt; 
             
             &lt;h5&gt;Warning&lt;/h5&gt; 
             &lt;p&gt;
@@ -6792,7 +6834,7 @@
             the classes can be specified using the
             &lt;code&gt;classes&lt;/code&gt; parameter and hence, all learning
             schemes intended to use with nominal data are safe to use.&lt;/p&gt;
-            &lt;p&gt;You migth avoid this problem, if you first combine both &lt;i&gt;ExampleSets&lt;/i&gt; using the &lt;a href="rm://opdoc/append"&gt;Append&lt;/a&gt; operator and then split it again using two &lt;a href="rm://opdoc/filter_example"&gt;Filter Example&lt;/a&gt; operators.&lt;/p&gt;</help>
+            &lt;p&gt;You migth avoid this problem, if you first combine both &lt;i&gt;ExampleSets&lt;/i&gt; using the &lt;a href="rm://opdoc/append"&gt;Append&lt;/a&gt; operator and then split it again using two &lt;a href="rm://opdoc/filter_examples"&gt;Filter Examples&lt;/a&gt; operators.&lt;/p&gt;</help>
     <key>read_database</key>
   </operator>
     <operator>
@@ -7420,7 +7462,7 @@
         <name>X-Validation</name>
         <synopsis>X-Validation encapsulates a cross-validation in order to
             estimate the performance of a learning operator.</synopsis>
-        <help>&lt;p&gt;      &lt;code&gt;X-Validation&lt;/code&gt; performs a cross-validation process. The input &lt;i&gt;ExampleSet&lt;/i&gt;       &lt;i&gt;S&lt;/i&gt; is split up into &lt;var&gt;number of validations&lt;/var&gt; subsets &lt;i&gt;S_i&lt;/i&gt;.       The inner subprocesses are applied &lt;var&gt;number of validations&lt;/var&gt;       times using &lt;i&gt;S_i&lt;/i&gt; as the test set (input of the &lt;i&gt;Testing&lt;/i&gt;       subprocess) and &lt;i&gt;S \ S_i&lt;/i&gt; as training set (input of the &lt;i&gt;Training&lt;/i&gt;       subprocess).    &lt;/p&gt;    &lt;p&gt;      The &lt;i&gt;Training&lt;/i&gt; subprocess must return a model, which is usually       trained on the input &lt;i&gt;ExampleSet.&lt;/i&gt; The &lt;i&gt;Testing&lt;/i&gt; subprocess       must return a &lt;i&gt;PerformanceVector&lt;/i&gt;. This is usually generated by       applying the model and measuring it's performance. Additional objects       might be passed from the &lt;i&gt;Training&lt;/i&gt; to the &lt;i&gt;Testing&lt;/i&gt;       subprocess using the through ports.    &lt;/p&gt;    &lt;p&gt;          &lt;/p&gt;    &lt;p&gt;      Like other validation schemes the RapidMiner cross validation can use       several types of sampling for building the subsets    &lt;/p&gt;    &lt;p&gt;      Linear sampling simply divides the example set into partitions without       changing the order of the examples. Shuffled sampling build random       subsets from the data. Stratifed sampling builds random subsets and       ensures that the class distribution in the subsets is the same as in the       whole example set. For having the random splits independent from the       previous process, a local random seed might be used. See the parameters       for details.    &lt;/p&gt;    &lt;p&gt;          &lt;/p&gt;    &lt;p&gt;      The cross validation operator provides several values which can be       logged by means of a     &lt;/p&gt;    &lt;a href="rm://opdoc/log"&gt;Log&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;    &lt;p&gt;      . Of course the number of the current iteration can be logged which       might be useful for ProcessLog operators wrapped inside a cross       validation. Beside that, all performance estimation operators of       RapidMiner provide access to the average values calculated during the       estimation. Since the operator cannot ensure the names of the delivered       criteria, the ProcessLog operator can access the values via the generic       value names:    &lt;/p&gt;    &lt;ul&gt;      &lt;li&gt;        performance: the value for the main criterion calculated by this         validation operator      &lt;/li&gt;      &lt;li&gt;        performance1: the value of the first criterion of the performance         vector calculated      &lt;/li&gt;      &lt;li&gt;        performance2: the value of the second criterion of the performance         vector calculated      &lt;/li&gt;      &lt;li&gt;        performance3: the value of the third criterion of the performance         vector calculated      &lt;/li&gt;      &lt;li&gt;        for the main criterion, also the variance and the standard deviation         can be accessed where applicable.      &lt;/li&gt;    &lt;/ul&gt;</help>
+        <help>&lt;p&gt;      &lt;code&gt;X-Validation&lt;/code&gt; performs a cross-validation process. The input &lt;i&gt;ExampleSet&lt;/i&gt;       &lt;i&gt;S&lt;/i&gt; is split up into &lt;var&gt;number of validations&lt;/var&gt; subsets &lt;i&gt;S_i&lt;/i&gt;.       The inner subprocesses are applied &lt;var&gt;number of validations&lt;/var&gt;       times using &lt;i&gt;S_i&lt;/i&gt; as the test set (input of the &lt;i&gt;Testing&lt;/i&gt;       subprocess) and &lt;i&gt;S \ S_i&lt;/i&gt; as training set (input of the &lt;i&gt;Training&lt;/i&gt;       subprocess).    &lt;/p&gt;    &lt;p&gt;      The &lt;i&gt;Training&lt;/i&gt; subprocess must return a model, which is usually       trained on the input &lt;i&gt;ExampleSet.&lt;/i&gt; The &lt;i&gt;Testing&lt;/i&gt; subprocess       must return a &lt;i&gt;PerformanceVector&lt;/i&gt;. This is usually generated by       applying the model and measuring it's performance. Additional objects       might be passed from the &lt;i&gt;Training&lt;/i&gt; to the &lt;i&gt;Testing&lt;/i&gt;       subprocess using the through ports. Please note that the performance calculated by this estimation scheme is only an estimation of the performance which would be achieved with the model built on the complete delivered data set instead of an exact calculation. Exactly this model, hence the one built on the complete input data, is delivered at the corresponding port in order to give convenient access to this model. &lt;/p&gt;    &lt;p&gt;          &lt;/p&gt;    &lt;p&gt;      Like other validation schemes the RapidMiner cross validation can use       several types of sampling for building the subsets    &lt;/p&gt;    &lt;p&gt;      Linear sampling simply divides the example set into partitions without       changing the order of the examples. Shuffled sampling build random       subsets from the data. Stratifed sampling builds random subsets and       ensures that the class distribution in the subsets is the same as in the       whole example set. For having the random splits independent from the rest of the process, a local random seed might be used. See the parameters       for details.    &lt;/p&gt;    &lt;p&gt;          &lt;/p&gt;    &lt;p&gt;      The cross validation operator provides several values which can be       logged by means of a     &lt;/p&gt;    &lt;a href="rm://opdoc/log"&gt;Log&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;    &lt;p&gt;      . Of course the number of the current iteration can be logged which       might be useful for ProcessLog operators wrapped inside a cross       validation. Beside that, all performance estimation operators of       RapidMiner provide access to the average values calculated during the       estimation. Since the operator cannot ensure the names of the delivered       criteria, the ProcessLog operator can access the values via the generic       value names:    &lt;/p&gt;    &lt;ul&gt;      &lt;li&gt;        performance: the value for the main criterion calculated by this         validation operator      &lt;/li&gt;      &lt;li&gt;        performance1: the value of the first criterion of the performance         vector calculated      &lt;/li&gt;      &lt;li&gt;        performance2: the value of the second criterion of the performance         vector calculated      &lt;/li&gt;      &lt;li&gt;        performance3: the value of the third criterion of the performance         vector calculated      &lt;/li&gt;      &lt;li&gt;        for the main criterion, also the variance and the standard deviation         can be accessed where applicable.      &lt;/li&gt;    &lt;/ul&gt;</help>
     <key>x_validation</key>
     <shortName>Validation</shortName>
   </operator>

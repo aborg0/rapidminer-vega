@@ -166,7 +166,7 @@ public class EvolutionaryParameterOptimizationOperator extends ParameterOptimiza
 
 			ParameterType targetType = parameterValueRange.getParameterType();
 			if (targetType == null) {
-				throw new UserError(this, 906, parameterValueRange.getOperator() + "." + targetType.getKey());
+				throw new UserError(this, 906, parameterValueRange.getOperator() + "." + parameterValueRange.getKey());
 			}
 			if (targetType instanceof ParameterTypeDouble) {
 				types[index] = OptimizationValueType.VALUE_TYPE_DOUBLE;

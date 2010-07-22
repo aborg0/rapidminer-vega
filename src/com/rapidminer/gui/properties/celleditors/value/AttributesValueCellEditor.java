@@ -75,16 +75,17 @@ public class AttributesValueCellEditor extends AbstractCellEditor implements Pro
 				AttributesPropertyDialog dialog = new AttributesPropertyDialog(type, preSelectedAttributeNames);
 				dialog.setVisible(true);
 				if (dialog.isOk()) {
-					attributeListString = new String();
+					StringBuilder builder = new StringBuilder();
 					boolean first = true;
 					Collection<String> attributeNames = dialog.getSelectedAttributeNames(); 
 					for (String attributeName : attributeNames) {
 						if (!first) {
-							attributeListString = attributeListString.concat("|");
+							builder.append("|");
 						}
-						attributeListString = attributeListString.concat(attributeName);
+						builder.append(attributeName);
 						first = false;
 					}
+					attributeListString = builder.toString();
 					fireEditingStopped();
 				} else {
 					fireEditingCanceled();

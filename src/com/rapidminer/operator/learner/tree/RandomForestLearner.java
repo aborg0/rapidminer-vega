@@ -32,18 +32,16 @@ import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.learner.PredictionModel;
-import com.rapidminer.operator.learner.SimplePredictionModel;
-import com.rapidminer.operator.learner.meta.SimpleVoteModel;
 import com.rapidminer.operator.preprocessing.sampling.BootstrappingOperator;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.tools.OperatorService;
 
 /**
- * This operators learns a random forest. The resulting forest model contains serveral 
+ * This operators learns a random forest. The resulting forest model contains several 
  * single random tree models.
  *
- * @author Ingo Mierswa
+ * @author Ingo Mierswa, Sebastian Land
  */
 public class RandomForestLearner extends RandomTreeLearner {
 
@@ -56,7 +54,7 @@ public class RandomForestLearner extends RandomTreeLearner {
 
 	@Override
 	public Class<? extends PredictionModel> getModelClass() {
-		return PredictionModel.class;
+		return RandomForestModel.class;
 	}
 
 	@Override
@@ -71,15 +69,16 @@ public class RandomForestLearner extends RandomTreeLearner {
 		}
 
 		// learn base models
-		List<SimplePredictionModel> baseModels = new LinkedList<SimplePredictionModel>();
+		List<TreeModel> baseModels = new LinkedList<TreeModel>();
 		int numberOfTrees = getParameterAsInt(PARAMETER_NUMBER_OF_TREES);
 		for (int i = 0; i < numberOfTrees; i++) {
 			TreeModel model = (TreeModel)super.learn((ExampleSet)exampleSet.clone());
+			model.setSource(getName());
 			baseModels.add(model);
 		}
 
 		// create and return model
-		return new SimpleVoteModel(exampleSet, baseModels);
+		return new RandomForestModel(exampleSet, baseModels);
 	}
 
 	@Override
@@ -95,7 +94,7 @@ public class RandomForestLearner extends RandomTreeLearner {
 		if (capability == com.rapidminer.operator.OperatorCapability.BINOMINAL_LABEL)
 			return true;
 		if (capability == com.rapidminer.operator.OperatorCapability.WEIGHTED_EXAMPLES)
-			return true;
+			return false;
 		return false;
 	}
 

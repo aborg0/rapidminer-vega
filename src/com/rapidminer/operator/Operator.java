@@ -57,6 +57,7 @@ import com.rapidminer.io.process.XMLExporter;
 import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.ProcessSetupError.Severity;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.InputPorts;
 import com.rapidminer.operator.ports.OutputPort;
@@ -77,6 +78,7 @@ import com.rapidminer.parameter.ParameterHandler;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
+import com.rapidminer.parameter.ParameterTypeInnerOperator;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeTupel;
 import com.rapidminer.parameter.Parameters;
@@ -143,6 +145,8 @@ import com.rapidminer.tools.math.StringToMatrixConverter;
  */
 public abstract class Operator extends AbstractObservable<Operator> implements ConfigurationListener, PreviewListener, LoggingHandler, ParameterHandler {
 	
+	private static final OperatorVersion[] EMPTY_OPERATOR_VERSIONS_ARRAY = new OperatorVersion[0];
+
 	/** Indicates if before / within / after this operator a breakpoint is set. */
 	private boolean breakPoint[] = new boolean[BreakpointListener.BREAKPOINT_POS_NAME.length];
 
@@ -208,6 +212,8 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 	
 	private boolean shouldStopStandaloneExecution = false;
 
+	private OperatorVersion compatibilityLevel;
+	
 	// -------------------- INITIALISATION --------------------
 
 	/**
@@ -820,6 +826,11 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		}			
 	}
 
+	/**
+	 * This method should be called within long running loops of an operator to check if the 
+	 * user has canceled the execution in the mean while. This then will throw a {@link ProcessStoppedException}
+	 * to cancel the execution.
+	 */
 	public final void checkForStop() throws ProcessStoppedException {
 		if (getParent() != null)
 			checkForStop(getParent().getProcess());
@@ -1273,6 +1284,10 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		}
 	}
 
+	/**
+	 * This method returns the parameter identified by key as a RepositoryLocation. For this the 
+	 * string is resolved against this operators process location in the Repository.
+	 */
 	public RepositoryLocation getParameterAsRepositoryLocation(String key) throws UserError {
 		String loc = getParameter(key);
 		Process process = getProcess();
@@ -1524,6 +1539,10 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		writeXML(out, hideDefault);
 	}
 
+	/**
+	 * This will report this operator with all its parameter settings to the given writer
+	 * as XML.
+	 */
 	public void writeXML(Writer out, boolean hideDefault) throws IOException {
 		try {
 			XMLTools.stream(new XMLExporter().exportProcess(this, hideDefault), new StreamResult(out), XMLImporter.PROCESS_FILE_CHARSET);
@@ -1532,6 +1551,9 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		}
 	}
 
+	/**
+	 * This returns this operator with all its parameter settings as a {@link Document}
+	 */
 	public Document getDOMRepresentation() throws IOException {
 		return new XMLExporter().exportProcess(this, false);
 	}
@@ -1567,6 +1589,15 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 
 	public static Operator createFromXML(Element element, List<UnknownParameterInformation> unknownParameterInformation, ProgressListener l) throws XMLException {
 		XMLImporter importer = new XMLImporter(l);
+		return importer.parseOperator(element, unknownParameterInformation);
+	}
+
+	/**
+	 * This will create an operator from a XML element describing this operator. The given version will be passed to the XMLImporter
+	 * to enable the handling of this element as if it would have been created from this version. See {@link XMLImporter#VERSION_RM_5} for details.
+	 */
+	public static Operator createFromXML(Element element, List<UnknownParameterInformation> unknownParameterInformation, ProgressListener l, int version) throws XMLException {
+		XMLImporter importer = new XMLImporter(l, version);
 		return importer.parseOperator(element, unknownParameterInformation);
 	}
 
@@ -1840,14 +1871,34 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		}		
 	}
 
+	/**
+	 * This method returns the {@link InputPorts} object that gives access to all
+	 * defined {@link InputPort}s of this operator. This object can be used to create 
+	 * a new {@link InputPort} for an operator using one of the {@link InputPorts#createPort(String)}
+	 * methods.   
+	 */
 	public final InputPorts getInputPorts() {
 		return inputPorts;
 	}
 
+	/**
+	 * This method returns the {@link OutputPorts} object that gives access to all
+	 * defined {@link OutputPort}s of this operator. This object can be used to create 
+	 * a new {@link OutputPort} for an operator using one of the {@link OutputPorts#createPort(String)}
+	 * methods.   
+	 */
 	public final OutputPorts getOutputPorts() {
 		return outputPorts;
 	}
 
+	/**
+	 * This method returns the {@link MDTransformer} object of this operator. This object
+	 * will process all meta data of all ports of this operator according to the rules registered
+	 * to it.
+	 * This method can be used to get the transformer and register new Rules for MetaDataTransformation
+	 * for the ports using the {@link MDTransformer#addRule(com.rapidminer.operator.ports.metadata.MDTransformationRule)}
+	 * method or one of it's more specialized sisters.
+	 */
 	protected final MDTransformer getTransformer() {
 		return transformer;
 	}
@@ -1883,6 +1934,10 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		}
 	}
 
+	/**
+	 * This method will disconnect all ports from as well the input ports as
+	 * well as the outputports.
+	 */
 	public void disconnectPorts() {
 		for (OutputPort port : getOutputPorts().getAllPorts()) {
 			if (port.isConnected()) {
@@ -1896,6 +1951,10 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		}
 	}
 
+	/**
+	 * If this method is called for perform the meta data transformation on this operator. It needs
+	 * the meta data on the input Ports to be already calculated.
+	 */
 	public void transformMetaData() {
 		clear(Port.CLEAR_META_DATA_ERRORS);
 		if (!isEnabled()) {
@@ -1935,6 +1994,12 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		}
 	}
 
+	/**
+	 * This method is called when the operator with "oldName" is renamed
+	 * to "newName". It provides a hook, when this operator's parameter are depending
+	 * on operator names. The {@link ParameterTypeInnerOperator} is an example for such an
+	 * dependency. This way it is possible to change the parameter's according to the renaming.
+	 */
 	public void notifyRenaming(String oldName, String newName) {		
 		getParameters().notifyRenaming(oldName, newName);		
 	}
@@ -1947,6 +2012,9 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		}
 	}
 
+	/**
+	 * This method will flag this operator's results as dirty. Currently unused feature.
+	 */
 	public void makeDirty() {
 		if (!dirty) {
 			this.dirty = true;
@@ -1976,10 +2044,18 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		fireUpdate();		
 	}
 
+	/**
+	 * Returns whether the results on the output ports of this operator are 
+	 * dirty. This is the case when the results depend on old parameter settings or old data
+	 * from an input port, whose connected output port is flaged as dirty.
+	 */
 	public boolean isDirty() {
 		return dirty;
 	}
 
+	/**
+	 * This returns the number of breakpoints: 0, 1 or 2.
+	 */
 	public int getNumberOfBreakpoints() {
 		int num = 0;
 		for (boolean bp : breakPoint) {
@@ -2014,7 +2090,10 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		return false;
 	}
 
-
+	/**
+	 * This returns the {@link PortOwner} of this operator. See {@link PortOwner} for more
+	 * details.
+	 */
 	public PortOwner getPortOwner() {
 		return portOwner;
 	}
@@ -2061,7 +2140,41 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		}
 	}
 	
+	/**
+	 * Returns if this operators {@link #execute()} method is currently executed.
+	 */
 	public boolean isRunning() {
 		return isRunning;
 	}
+
+	/** @see OperatorVersion */
+	public void setCompatibilityLevel(OperatorVersion compatibilityLevel) {
+		this.compatibilityLevel = compatibilityLevel;
+		fireUpdate();
+	}
+
+	/** @see OperatorVersion */
+	public OperatorVersion getCompatibilityLevel() {
+		if (compatibilityLevel == null) {
+			compatibilityLevel = OperatorVersion.getLatestVersion(this.getOperatorDescription());
+		}
+		return compatibilityLevel;
+	}
+	
+	/** Returns the versions of an operator <strong>at which its behaviour
+	 *  incompatibly changed</strong> in ascending order. Only the versions in which the new behaviour was introduced
+	 *  are returned. See comment of {@link OperatorVersion} for details. */
+	public OperatorVersion[] getIncompatibleVersionChanges() {
+		return EMPTY_OPERATOR_VERSIONS_ARRAY;
+	}
+	
+	
+	// Resource consumption estimation
+
+	
+	/** Subclasses can override this method if they are able to estimate the consumed resources
+	 *  (CPU time and memory), based on their input. The default implementation returns null. */
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return null;
+	}	
 }

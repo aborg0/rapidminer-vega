@@ -54,7 +54,7 @@ public class ConfirmDialog extends ButtonDialog {
 	
 	public static final int CANCEL_OPTION = JOptionPane.CANCEL_OPTION;
 	
-	public static final int CLOSED_OPTION = JOptionPane.CANCEL_OPTION;
+	public static final int CLOSED_OPTION = JOptionPane.CLOSED_OPTION;
 	
 	public static final int OK_CANCEL_OPTION = JOptionPane.OK_CANCEL_OPTION;
 	

@@ -228,7 +228,7 @@ public class AttributeMetaData implements Serializable {
 	}
 
 	public String getDescription() {
-		StringBuffer buf = new StringBuffer();		
+		StringBuilder buf = new StringBuilder();		
 		if (role != null && !role.equals(Attributes.ATTRIBUTE_NAME)) {
 			buf.append("<em>");
 			buf.append(role);
@@ -236,76 +236,10 @@ public class AttributeMetaData implements Serializable {
 		}
 		buf.append(getName());
 		buf.append(" (");
-		buf.append(Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(getValueType()));
+		buf.append(getValueTypeName());
 		if (valueSetRelation != SetRelation.UNKNOWN) {
-			if (isNominal()) {
-				buf.append(" in " + valueSetRelation + " {");
-				boolean first = true;
-				String mode = getMode();
-				int index = 0;
-				for (String value : valueSet) {
-					index++;
-					if (first) {
-						first = false;
-					} else {
-						buf.append(", ");
-					}
-
-					if (index >= 10) {
-						buf.append("...");
-						break;
-					}
-
-					boolean isMode = value.equals(mode);					
-					if (isMode) {
-						buf.append("<span style=\"text-decoration:underline\">");
-					}
-					buf.append(value);
-					if (isMode) {
-						buf.append("</span>");
-					}
-				}
-				buf.append("}");
-			}
-			if (isNumerical()) {
-				buf.append(" in " + valueSetRelation + " [");
-				if (getValueRange() != null) {
-					buf.append(Tools.formatNumber(getValueRange().getLower(), 3));
-					buf.append("...");
-					buf.append(Tools.formatNumber(getValueRange().getUpper(), 3));
-					buf.append("]");
-				}
-				if (getMean().isKnown()) {
-					buf.append("; mean ");
-					buf.append(getMean().toString());
-				}
-			}
-			if (valueRange != null &&
-				Ontology.ATTRIBUTE_VALUE_TYPE.isA(getValueType(), Ontology.DATE_TIME) &&
-				!Double.isInfinite(getValueRange().getLower()) &&
-				!Double.isInfinite(getValueRange().getUpper())) {
-				buf.append(" in " + valueSetRelation + " [");
-				switch (getValueType()) {
-				case Ontology.DATE:
-					buf.append(Tools.formatDate(new Date((long) getValueRange().getLower())));
-					buf.append("...");
-					buf.append(Tools.formatDate(new Date((long) getValueRange().getUpper())));
-					buf.append("]");
-					break;
-				case Ontology.TIME:
-					buf.append(Tools.formatTime(new Date((long) getValueRange().getLower())));
-					buf.append("...");
-					buf.append(Tools.formatTime(new Date((long) getValueRange().getUpper())));
-					buf.append("]");
-					break;
-				case Ontology.DATE_TIME:
-					buf.append(Tools.formatDateTime(new Date((long) getValueRange().getLower())));
-					buf.append("...");
-					buf.append(Tools.formatDateTime(new Date((long) getValueRange().getUpper())));
-					buf.append("]");
-					break;
-				}
-			}
+			buf.append(" in ");
+			appendValueSetDescription(buf);
 		} else {
 			if (isNominal())
 				buf.append(", values unkown");
@@ -329,6 +263,87 @@ public class AttributeMetaData implements Serializable {
 		return buf.toString();
 	}
 
+	public String getValueTypeName() {
+		return Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(getValueType());
+	}
+
+	public String getValueSetDescription() {
+		StringBuilder buf = new StringBuilder();
+		appendValueSetDescription(buf);
+		return buf.toString();
+	}
+	
+	private void appendValueSetDescription(StringBuilder buf) {
+		if (isNominal()) {
+			buf.append(valueSetRelation + " {");
+			boolean first = true;
+			String mode = getMode();
+			int index = 0;
+			for (String value : valueSet) {
+				index++;
+				if (first) {
+					first = false;
+				} else {
+					buf.append(", ");
+				}
+
+				if (index >= 10) {
+					buf.append("...");
+					break;
+				}
+
+				boolean isMode = value.equals(mode);					
+				if (isMode) {
+					buf.append("<span style=\"text-decoration:underline\">");
+				}
+				buf.append(value);
+				if (isMode) {
+					buf.append("</span>");
+				}
+			}
+			buf.append("}");
+		}
+		if (isNumerical()) {
+			buf.append(valueSetRelation + " [");
+			if (getValueRange() != null) {
+				buf.append(Tools.formatNumber(getValueRange().getLower(), 3));
+				buf.append("...");
+				buf.append(Tools.formatNumber(getValueRange().getUpper(), 3));
+				buf.append("]");
+			}
+			if (getMean().isKnown()) {
+				buf.append("; mean ");
+				buf.append(getMean().toString());
+			}
+		}
+		if (valueRange != null &&
+				Ontology.ATTRIBUTE_VALUE_TYPE.isA(getValueType(), Ontology.DATE_TIME) &&
+				!Double.isInfinite(getValueRange().getLower()) &&
+				!Double.isInfinite(getValueRange().getUpper())) {
+			buf.append(valueSetRelation + " [");
+			switch (getValueType()) {
+			case Ontology.DATE:
+				buf.append(Tools.formatDate(new Date((long) getValueRange().getLower())));
+				buf.append("...");
+				buf.append(Tools.formatDate(new Date((long) getValueRange().getUpper())));
+				buf.append("]");
+				break;
+			case Ontology.TIME:
+				buf.append(Tools.formatTime(new Date((long) getValueRange().getLower())));
+				buf.append("...");
+				buf.append(Tools.formatTime(new Date((long) getValueRange().getUpper())));
+				buf.append("]");
+				break;
+			case Ontology.DATE_TIME:
+				buf.append(Tools.formatDateTime(new Date((long) getValueRange().getLower())));
+				buf.append("...");
+				buf.append(Tools.formatDateTime(new Date((long) getValueRange().getUpper())));
+				buf.append("]");
+				break;
+			}
+		}
+	}
+
 	protected String getDescriptionAsTableRow() {
 		StringBuilder b = new StringBuilder();
 		b.append("<tr><td>");
@@ -343,77 +358,10 @@ public class AttributeMetaData implements Serializable {
 			b.append(" <em>[").append(unit).append("]</em>");
 		}
 		b.append("</td><td>");
-		b.append(Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(getValueType())).append("</td><td>");
+		b.append(getValueTypeName()).append("</td><td>");
 
 		if (valueSetRelation != SetRelation.UNKNOWN) {
-			if (isNominal()) {
-				b.append(valueSetRelation + " {");
-				boolean first = true;
-				String mode = getMode();
-				int index = 0;
-				for (String value : valueSet) {
-					index++;
-					if (first) {
-						first = false;
-					} else {
-						b.append(", ");
-					}
-
-					if (index >= 10) {
-						b.append("...");
-						break;
-					}
-
-					boolean isMode = value.equals(mode);					
-					if (isMode) {
-						b.append("<span style=\"text-decoration:underline\">");
-					}
-					b.append(value);
-					if (isMode) {
-						b.append("</span>");
-					}
-				}
-				b.append("}");
-			}
-			if (isNumerical()) {
-				b.append(valueSetRelation + " [");
-				if (getValueRange() != null) {
-					b.append(Tools.formatNumber(getValueRange().getLower(), 3));
-					b.append("...");
-					b.append(Tools.formatNumber(getValueRange().getUpper(), 3));
-					b.append("]");
-				}
-				if (getMean().isKnown()) {
-					b.append("; mean ");
-					b.append(getMean().toString());
-				}
-			}
-			if (valueRange != null &&
-				Ontology.ATTRIBUTE_VALUE_TYPE.isA(getValueType(), Ontology.DATE_TIME) &&
-				!Double.isInfinite(getValueRange().getLower()) &&
-				!Double.isInfinite(getValueRange().getUpper())) {
-				b.append(valueSetRelation + " [");
-				switch (getValueType()) {
-				case Ontology.DATE:
-					b.append(Tools.formatDate(new Date((long) getValueRange().getLower())));
-					b.append("...");
-					b.append(Tools.formatDate(new Date((long) getValueRange().getUpper())));
-					b.append("]");
-					break;
-				case Ontology.TIME:
-					b.append(Tools.formatTime(new Date((long) getValueRange().getLower())));
-					b.append("...");
-					b.append(Tools.formatTime(new Date((long) getValueRange().getUpper())));
-					b.append("]");
-					break;
-				case Ontology.DATE_TIME:
-					b.append(Tools.formatDateTime(new Date((long) getValueRange().getLower())));
-					b.append("...");
-					b.append(Tools.formatDateTime(new Date((long) getValueRange().getUpper())));
-					b.append("]");
-					break;
-				}
-			}
+			appendValueSetDescription(b);
 		} else {
 			if (isNominal())
 				b.append("values unkown");

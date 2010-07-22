@@ -22,13 +22,14 @@
  */
 package com.rapidminer.tools.math.som;
 
+import java.io.Serializable;
 import java.util.Random;
 
 /** This interface describes the training data for a Kohonen net. 
  * 
  *  @author Sebastian Land
  */
-public interface KohonenTrainingsData {
+public interface KohonenTrainingsData extends Serializable {
 
 	public double[] getNext();
 

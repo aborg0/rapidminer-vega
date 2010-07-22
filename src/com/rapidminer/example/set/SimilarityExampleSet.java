@@ -85,14 +85,9 @@ public class SimilarityExampleSet extends AbstractExampleSet {
 
 		Attribute firstIdAttribute = null;
 		Attribute secondIdAttribute = null;
-		if (parentIdAttribute.isNominal()) {
-			firstIdAttribute = AttributeFactory.createAttribute("FIRST_ID", Ontology.NOMINAL);
-			secondIdAttribute = AttributeFactory.createAttribute("SECOND_ID", Ontology.NOMINAL);
-		} else {
-			firstIdAttribute = AttributeFactory.createAttribute("FIRST_ID", Ontology.NUMERICAL);
-			secondIdAttribute = AttributeFactory.createAttribute("SECOND_ID", Ontology.NUMERICAL);
-		}
-	
+		firstIdAttribute = AttributeFactory.createAttribute("FIRST_ID", this.parentIdAttribute.getValueType());
+		secondIdAttribute = AttributeFactory.createAttribute("SECOND_ID", this.parentIdAttribute.getValueType());
+
 		this.attributes.addRegular(firstIdAttribute);
 		this.attributes.addRegular(secondIdAttribute);
 		firstIdAttribute.setTableIndex(0);
@@ -101,8 +96,8 @@ public class SimilarityExampleSet extends AbstractExampleSet {
 		// copying mapping of original id attribute
 		if (parentIdAttribute.isNominal()) {
 			NominalMapping mapping = parentIdAttribute.getMapping();
-			firstIdAttribute.setMapping(mapping);
-			secondIdAttribute.setMapping(mapping);
+			firstIdAttribute.setMapping((NominalMapping) mapping.clone());
+			secondIdAttribute.setMapping((NominalMapping) mapping.clone());
 		}
 		
 		String name = "SIMILARITY";
@@ -120,6 +115,7 @@ public class SimilarityExampleSet extends AbstractExampleSet {
 	/** Clone constructor. */
 	public SimilarityExampleSet(SimilarityExampleSet exampleSet) {
     	this.parent = (ExampleSet)exampleSet.parent.clone();
+    	this.parentIdAttribute = (Attribute) exampleSet.parentIdAttribute.clone();
 		this.attributes = (Attributes)exampleSet.attributes.clone();
 		this.measure = exampleSet.measure;
 	}
@@ -152,7 +148,7 @@ public class SimilarityExampleSet extends AbstractExampleSet {
 		
 		Example firstExample = this.parent.getExample(firstIndex);
 		Example secondExample = this.parent.getExample(secondIndex);
-		
+
 		double[] data = new double[3];
 		data[0] = firstExample.getValue(parentIdAttribute);
 		data[1] = secondExample.getValue(parentIdAttribute);

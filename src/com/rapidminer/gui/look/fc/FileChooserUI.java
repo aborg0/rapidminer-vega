@@ -167,7 +167,7 @@ public class FileChooserUI extends BasicFileChooserUI {
 		}
 	}
     
-	private class AlignedLabel extends JLabel {
+	private static class AlignedLabel extends JLabel {
 		
 		private static final long serialVersionUID = 4912090609095372381L;
 
@@ -560,7 +560,7 @@ public class FileChooserUI extends BasicFileChooserUI {
 		}
 	}
 	
-	private class ChangeViewAction extends ResourceActionAdapter {
+	private static class ChangeViewAction extends ResourceActionAdapter {
 		
 		private static final long serialVersionUID = 6720057807081456009L;
 		

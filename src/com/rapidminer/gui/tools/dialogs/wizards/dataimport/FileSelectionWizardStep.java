@@ -39,7 +39,7 @@ import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
  */
 public class FileSelectionWizardStep extends WizardStep {
 
-	private final JFileChooser fileChooser;
+	protected final JFileChooser fileChooser;
 	
 	public FileSelectionWizardStep(AbstractWizard parent, FileFilter ... fileFilters) {
 		super("select_file");

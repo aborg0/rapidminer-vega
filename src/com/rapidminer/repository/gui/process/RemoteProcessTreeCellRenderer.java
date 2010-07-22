@@ -50,8 +50,9 @@ public class RemoteProcessTreeCellRenderer extends DefaultTreeCellRenderer {
 	private Icon PROCESS_PENDING_ICON = SwingTools.createIcon("16/gear_new.png");
 	private Icon PROCESS_RUNNING_ICON = SwingTools.createIcon("16/gear_run.png");
 	private Icon PROCESS_STOPPED_ICON = SwingTools.createIcon("16/gear_stop.png");
-	private Icon PROCESS_FAILED_ICON = SwingTools.createIcon("16/gear_error.png");
-	private Icon PROCESS_DONE_ICON = SwingTools.createIcon("16/gear_ok.png");
+	private Icon PROCESS_FAILED_ICON  = SwingTools.createIcon("16/gear_error.png");
+	private Icon PROCESS_DONE_ICON    = SwingTools.createIcon("16/gear_ok.png");
+	private Icon PROCESS_ZOMBIE_ICON       = SwingTools.createIcon("16/skull.png");
 	
 	private Icon SERVER_ICON = SwingTools.createIcon("16/application_server_run.png");	
 	private Icon OPERATOR_ICON = SwingTools.createIcon("16/element_selection.png");
@@ -109,6 +110,9 @@ public class RemoteProcessTreeCellRenderer extends DefaultTreeCellRenderer {
 				break;
 			case STOPPED:
 				label.setIcon(PROCESS_STOPPED_ICON);
+				break;
+			case ZOMBIE:
+				label.setIcon(PROCESS_ZOMBIE_ICON);
 				break;
 			}			
 		} else if (value instanceof ProcessStackTraceElement) {

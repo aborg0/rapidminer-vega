@@ -22,6 +22,8 @@
  */
 package com.rapidminer.operator.learner.functions.neuralnet;
 
+import java.io.Serializable;
+
 import com.rapidminer.example.Example;
 
 /**
@@ -30,7 +32,9 @@ import com.rapidminer.example.Example;
  *
  * @author Ingo Mierswa
  */
-public abstract class ActivationFunction {
+public abstract class ActivationFunction implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	/** 
 	 * Delivers the name of this activation function.

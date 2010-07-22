@@ -45,7 +45,7 @@ import com.rapidminer.tools.container.Tupel;
  */
 public class FrequentItemSetUnificator extends Operator {
 
-	private class FrequencyIgnoringSetComparator implements Comparator<FrequentItemSet> {
+	private static class FrequencyIgnoringSetComparator implements Comparator<FrequentItemSet> {
 		public int compare(FrequentItemSet o1, FrequentItemSet o2) {
 			// compare size
 			Collection<Item> items = o1.getItems();

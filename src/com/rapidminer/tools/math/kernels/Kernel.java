@@ -110,7 +110,7 @@ public abstract class Kernel implements Serializable {
 	public static final int KERNEL_MULTIQUADRIC = 7;
 
 	/** The complete distance matrix for this kernel and a given example set. */
-	private KernelCache cache;
+	private transient KernelCache cache;
 
 	private ExampleSet exampleSet;
 

@@ -209,7 +209,7 @@ public class SPSSExampleSource extends BytewiseExampleSource {
 	private static final long GREGORIAN_CALENDAR_OFFSET_IN_MILLISECONDS = -12219379200000L;
 
 	/** SPSS file variable header definition. */
-	private class Variable {
+	private static class Variable {
 		private static final int TYPE_NUMERICAL = 0;
 
 		private static final int MEASURE_NOMINAL = 1;

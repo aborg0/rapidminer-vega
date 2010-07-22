@@ -258,7 +258,7 @@ public class FastLargeMargin extends AbstractLearner {
 		types.add(new ParameterTypeDouble(PARAMETER_EPSILON, "Tolerance of termination criterion.", Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 0.01));
 
 		types.add(new ParameterTypeList(PARAMETER_CLASS_WEIGHTS, "The weights w for all classes, i.e. set the parameters C of each class w * C (empty: using 1 for all classes where the weight was not defined).", 
-				new ParameterTypeString("class_name", "The class name."),
+				new ParameterTypeString("class_name", "The class name (possible value of your label attribute)."),
 				new ParameterTypeDouble("weight", "The weight for this class.", 0.0d, Double.POSITIVE_INFINITY, 1.0d)));
 
 		types.add(new ParameterTypeBoolean(PARAMETER_USE_BIAS, "Indicates if an intercept value should be calculated.", true));

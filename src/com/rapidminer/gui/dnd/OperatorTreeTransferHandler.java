@@ -74,7 +74,7 @@ public class OperatorTreeTransferHandler extends ReceivingOperatorTransferHandle
 	
 	public enum Position { ABOVE, BELOW, INTO, UNMARKED  };
 	
-	private class DnDMarker {
+	private static class DnDMarker {
 		private final ExecutionUnit markedUnit;
 		private final Operator markedOperator;
 		private final Position markerPosition;

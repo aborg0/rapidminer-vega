@@ -74,6 +74,17 @@ public class BinominalMapping implements NominalMapping {
 		return new BinominalMapping(this);
 	}
 	
+	@Override
+	public boolean equals(NominalMapping mapping) {
+		if (mapping.size() != size())
+			return false;
+		for(String value: mapping.getValues()) {
+			if (!value.equals(firstValue) && ! value.equals(secondValue))
+				return false;
+		}
+		return true;
+	}
+	
 	/**
 	 * Returns the index for the nominal attribute value <code>str</code>. If
 	 * the string is unknown, a new index value is assigned. Returns -1, if str

@@ -25,8 +25,10 @@ package com.rapidminer.operator.io;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -71,11 +73,23 @@ public class XrffExampleSetWriter extends AbstractExampleSetWriter {
 	}
 
 	@Override
-	public ExampleSet write(ExampleSet exampleSet) throws OperatorException {		
-		try {
+	public ExampleSet write(ExampleSet exampleSet) throws OperatorException {
+		try {	
 			File xrffFile = getParameterAsFile(PARAMETER_EXAMPLE_SET_FILE, true);
-			PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(xrffFile), Encoding.getEncoding(this)));
-			out.println("<?xml version=\"1.0\" encoding=\"" + Encoding.getEncoding(this) + "\"?>");
+			final Charset encoding = Encoding.getEncoding(this);
+			final FileOutputStream outputStream = new FileOutputStream(xrffFile);
+			writeXrff(exampleSet, outputStream, encoding);
+		} catch (IOException e) {
+			throw new UserError(this, e, 303, new Object[] { getParameterAsString(PARAMETER_EXAMPLE_SET_FILE), e.getMessage() });
+		}
+		return exampleSet;
+	}
+
+	public static void writeXrff(ExampleSet exampleSet, final OutputStream outputStream, final Charset encoding) {
+		PrintWriter out = null;
+		try {
+			out = new PrintWriter(new OutputStreamWriter(outputStream, encoding));
+			out.println("<?xml version=\"1.0\" encoding=\"" + encoding + "\"?>");
 			out.println("<dataset name=\"RapidMinerData\" version=\"3.5.4\">");
 
 			out.println("  <header>");
@@ -119,14 +133,14 @@ public class XrffExampleSetWriter extends AbstractExampleSetWriter {
 			out.println("    </instances>");
 			out.println("  </body>");
 			out.println("</dataset>");
-			out.close();
-		} catch (IOException e) {
-			throw new UserError(this, e, 303, new Object[] { getParameterAsString(PARAMETER_EXAMPLE_SET_FILE), e.getMessage() });
+		} finally {
+			if (out != null) {
+				out.close();
+			}
 		}
-		return exampleSet;
 	}
 
-	private void printAttribute(Attribute attribute, PrintWriter out, boolean isClass) {
+	private static void printAttribute(Attribute attribute, PrintWriter out, boolean isClass) {
 		String classString = isClass ? "class=\"yes\" " : "";
 		if (attribute.isNominal()) {
 			out.println("      <attribute name=\"" + Tools.escapeXML(attribute.getName()) + "\" " + classString + "type=\"nominal\">");

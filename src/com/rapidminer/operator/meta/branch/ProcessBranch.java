@@ -99,7 +99,8 @@ public class ProcessBranch extends OperatorChain {
 		"max_performance_value",
 		"file_exists",
 		"input_exists",
-		"macro_defined"
+		"macro_defined",
+		"expression"
 	};
 
 	public static final Class[]  CONDITION_CLASSES = {
@@ -115,7 +116,8 @@ public class ProcessBranch extends OperatorChain {
 		MaxPerformanceValueCondition.class,
 		FileExistsCondition.class,
 		InputExistsCondition.class,
-		MacroDefinedCondition.class
+		MacroDefinedCondition.class,
+		ExpressionCondition.class
 	};
 
 	// ONLY TRUE IF INPUT EXISTS IS SECOND LAST ENTRY ABOVE

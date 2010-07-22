@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -53,7 +54,7 @@ import com.rapidminer.Process;
 import com.rapidminer.ProcessLocation;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.RepositoryProcessLocation;
-import com.rapidminer.gui.actions.ImportProcessAction;
+import com.rapidminer.gui.actions.OpenAction;
 import com.rapidminer.gui.dialog.ResultHistory;
 import com.rapidminer.gui.docking.RapidDockableContainerFactory;
 import com.rapidminer.gui.look.RapidLookAndFeel;
@@ -70,9 +71,11 @@ import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.tools.LaunchListener;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.LaunchListener.RemoteControlHandler;
 import com.rapidminer.tools.jdbc.connection.DatabaseConnectionService;
 import com.rapidminer.tools.plugin.Plugin;
 import com.rapidminer.tools.usagestats.UsageStatistics;
@@ -186,7 +189,7 @@ public class RapidMinerGUI extends RapidMiner {
 
 	//private static UpdateManager updateManager = new CommunityUpdateManager();
 
-	public void run(File file) throws Exception {
+	public void run(final String openLocation) throws Exception {
 		// check if resources were copied
 		URL logoURL = Tools.getResource("rapidminer_logo.png");
 		if (logoURL == null) {
@@ -227,7 +230,7 @@ public class RapidMinerGUI extends RapidMiner {
 		SwingUtilities.invokeAndWait(new Runnable() {
 			@Override
 			public void run() {
-				setMainFrame(new MainFrame());				
+				setMainFrame(new MainFrame((openLocation != null) ? "design" : "welcome"));				
 			}
 		});
 
@@ -251,8 +254,11 @@ public class RapidMinerGUI extends RapidMiner {
 		RapidMiner.hideSplash();
 
 		// file from command line or Welcome Dialog
-		if (file != null) {
-			ImportProcessAction.open(file);
+//		if (file != null) {
+//			ImportProcessAction.open(file);
+//		}
+		if (openLocation != null) {			
+			OpenAction.open(openLocation, false);
 		}
 
 		// check for updates
@@ -504,26 +510,47 @@ public class RapidMinerGUI extends RapidMiner {
 
 	public static void main(String[] args) throws Exception {
 		System.setSecurityManager(null);
-		setExecutionMode(ExecutionMode.UI);
 		RapidMiner.addShutdownHook(new ShutdownHook());
+		setExecutionMode(
+				(System.getProperty(PROPERTY_HOME_REPOSITORY_URL) == null) ?
+				ExecutionMode.UI : ExecutionMode.WEBSTART);
+		
+		boolean shouldLaunch = true;
+		if (args.length > 0) {
+			if (!LaunchListener.defaultLaunchWithArguments(args, new RemoteControlHandler() {			
+				@Override
+				public boolean handleArguments(String[] args) {
+					LogService.getRoot().info("Received message from second launching client: "+Arrays.toString(args));
+					mainFrame.requestFocus();
+					if (args.length >= 1) {
+						OpenAction.open(args[0], false);
+					}
+					return true;
+				}
+			})) {
+				shouldLaunch = false;
+			}
+		}
+		
+		if (shouldLaunch) {
+			launch(args);
+		} else {
+			LogService.getRoot().config("Other RapidMiner instance already up. Exiting.");
+		}
+	}
 	
-		File file = null;
+	private static void launch(String[] args) throws Exception {	
+		String openLocation = null;
+		
+//		File file = null;
 		if (args.length > 0) {
 			if (args.length != 1) {
 				System.out.println("java " + RapidMinerGUI.class.getName() + " [processfile]");
 				return;
 			}
-			file = new File(args[0]);
-			if (!file.exists()) {
-				System.err.println("File '" + args[0] + "' not found.");
-				return;
-			}
-			if (!file.canRead()) {
-				System.err.println("Cannot read file '" + args[0] + "'.");
-				return;
-			}
+			openLocation = args[0];
 		}
 		RapidMiner.setInputHandler(new GUIInputHandler());
-		new RapidMinerGUI().run(file);
+		new RapidMinerGUI().run(openLocation);
 	}
 }

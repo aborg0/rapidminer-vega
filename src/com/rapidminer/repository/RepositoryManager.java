@@ -72,9 +72,6 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 	private static final Map<RepositoryAccessor,RepositoryManager> CACHED_MANAGERS = new HashMap<RepositoryAccessor,RepositoryManager>();
 	private static final List<RepositoryFactory> FACTORIES = new LinkedList<RepositoryFactory>();
 
-	private static final String PROPERTY_HOME_REPOSITORY_URL = "rapidminer.homerepository.url";
-	private static final String PROPERTY_HOME_REPOSITORY_USER = "rapidminer.homerepository.user";
-	
 	private final List<Repository> repositories = new LinkedList<Repository>();
 	
 	public static RepositoryManager getInstance(RepositoryAccessor repositoryAccessor) {
@@ -109,10 +106,10 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 		}
 		repositories.add(sampleRepository);
 		
-		final String homeUrl = System.getProperty(PROPERTY_HOME_REPOSITORY_URL);
+		final String homeUrl = System.getProperty(RapidMiner.PROPERTY_HOME_REPOSITORY_URL);
 		if (homeUrl != null) {
 			try {
-				RemoteRepository homeRepository = new RemoteRepository(new URL(homeUrl), "Home", System.getProperty(PROPERTY_HOME_REPOSITORY_USER), null, true);
+				RemoteRepository homeRepository = new RemoteRepository(new URL(homeUrl), "Home", System.getProperty(RapidMiner.PROPERTY_HOME_REPOSITORY_USER), null, true);
 				repositories.add(homeRepository);
 				LogService.getRoot().config("Adding home repository "+homeUrl+".");
 			} catch (MalformedURLException e) {

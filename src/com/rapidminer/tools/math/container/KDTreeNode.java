@@ -22,6 +22,8 @@
  */
 package com.rapidminer.tools.math.container;
 
+import java.io.Serializable;
+
 /**
  * The node for a KD tree.
  * 
@@ -30,7 +32,9 @@ package com.rapidminer.tools.math.container;
  * @param <T> This is the type of value with is stored with the points and retrieved on nearest
  * neighbour search
  */
-public class KDTreeNode<T> {
+public class KDTreeNode<T> implements Serializable {
+	
+	private static final long serialVersionUID = -4204535347268139613L;
 	
 	private T storeValue;
 	private double[] values;

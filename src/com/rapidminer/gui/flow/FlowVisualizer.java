@@ -155,7 +155,6 @@ public class FlowVisualizer {
 								processRenderer.repaint();
 							}
 						} else if (dependentOps != null) {							
-							dependentOps.remove(dependentOps);							
 							startOperator.getExecutionUnit().bringToFront(dependentOps, startOperator);
 							startOperator = endOperator = null;
 							dependentOps = null;

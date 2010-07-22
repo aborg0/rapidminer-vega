@@ -46,7 +46,7 @@ public class AccuracyCriterion extends AbstractCriterion {
     	return getBenefit(weightCounts);
     }
     
-    protected double getBenefit(double[][] weightCounts) {
+    public double getBenefit(double[][] weightCounts) {
     	double sum = 0.0d;
     	for (int v = 0; v < weightCounts.length; v++) {
             int maxIndex = -1;
