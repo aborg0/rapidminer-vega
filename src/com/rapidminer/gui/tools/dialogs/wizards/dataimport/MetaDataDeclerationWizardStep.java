@@ -46,16 +46,15 @@ import com.rapidminer.operator.io.AbstractDataReader;
 /**
  * 
  * @author Tobias Malbrecht
- * @author Sebastian Loh 
- * (22.04.2010)
- *
+ * @author Sebastian Loh (22.04.2010)
+ * 
  */
-public abstract class MetaDataDeclerationWirzardStep extends WizardStep {
-	
-	protected  MetaDataDeclarationEditor editor = null;
-	
+public abstract class MetaDataDeclerationWizardStep extends WizardStep {
+
+	protected MetaDataDeclarationEditor editor = null;
+
 	protected AbstractDataReader reader;
-	
+
 	protected final JCheckBox tolerateErrorCheckBox = new JCheckBox("Read non matching values as missings.", true);
 	{
 		tolerateErrorCheckBox.setToolTipText("Values which does not match to the specified value typed are considered as missings. A binomial attribute is changed to a nominal, if more than two different values are read.");
@@ -66,9 +65,10 @@ public abstract class MetaDataDeclerationWirzardStep extends WizardStep {
 			}
 		});
 	}
-	
+
 	private JButton abortValueTypeValidationButton = new JButton(new ResourceAction("wizard.abort_validate_value_types") {
 		private static final long serialVersionUID = 1L;
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			reader.stopReading();
@@ -76,18 +76,22 @@ public abstract class MetaDataDeclerationWirzardStep extends WizardStep {
 	});
 	private JButton validateValueTypesButton = new JButton(new ResourceAction("wizard.validate_value_types") {
 		private static final long serialVersionUID = 1L;
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			new ProgressThread("validate_value_types") {
 				@Override
-				public void run() {	
+				public void run() {
 					abortValueTypeValidationButton.setEnabled(true);
 					validateValueTypesButton.setEnabled(false);
 					reader.setDetectErrorsInPreview(true);
-					
+
 					final List<Object[]> previewAsList;
 					try {
-						previewAsList = reader.getPreviewAsList(getProgressListener(), false);
+						reader.stopReading();
+						synchronized (reader) {
+							previewAsList = reader.getPreviewAsList(getProgressListener(), false);
+						}
 					} catch (OperatorException e1) {
 						// TODO fix this
 						SwingTools.showVerySimpleErrorMessage(e1.getMessage(), e1);
@@ -98,7 +102,7 @@ public abstract class MetaDataDeclerationWirzardStep extends WizardStep {
 							setData(previewAsList);
 							reader.setDetectErrorsInPreview(false);
 							validateValueTypesButton.setEnabled(true);
-							abortValueTypeValidationButton.setEnabled(false);							
+							abortValueTypeValidationButton.setEnabled(false);
 						};
 					});
 				}
@@ -111,9 +115,10 @@ public abstract class MetaDataDeclerationWirzardStep extends WizardStep {
 		validationButtonsPanel.add(abortValueTypeValidationButton, 1);
 		abortValueTypeValidationButton.setEnabled(false);
 	}
-	
+
 	private JButton abortShowErrorRowsButton = new JButton(new ResourceAction("wizard.abort_show_error_rows") {
 		private static final long serialVersionUID = 1L;
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			reader.stopReading();
@@ -121,16 +126,20 @@ public abstract class MetaDataDeclerationWirzardStep extends WizardStep {
 	});
 	private JButton showErrorRowsButton = new JButton(new ResourceAction("wizard.show_error_rows") {
 		private static final long serialVersionUID = 1L;
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			new ProgressThread("show_error_rows") {
 				@Override
-				public void run() {	
+				public void run() {
 					abortShowErrorRowsButton.setEnabled(true);
 					showErrorRowsButton.setEnabled(false);
 					final List<Object[]> previewAsList;
 					try {
-						previewAsList = reader.getErrorPreviewAsList(getProgressListener());
+						reader.stopReading();
+						synchronized (reader) {
+							previewAsList = reader.getErrorPreviewAsList(getProgressListener());
+						}
 					} catch (OperatorException e1) {
 						// TODO fix this
 						SwingTools.showVerySimpleErrorMessage(e1.getMessage(), e1);
@@ -140,7 +149,7 @@ public abstract class MetaDataDeclerationWirzardStep extends WizardStep {
 						public void run() {
 							setData(previewAsList);
 							showErrorRowsButton.setEnabled(true);
-							abortShowErrorRowsButton.setEnabled(false);							
+							abortShowErrorRowsButton.setEnabled(false);
 						};
 					});
 				}
@@ -154,30 +163,32 @@ public abstract class MetaDataDeclerationWirzardStep extends WizardStep {
 		abortShowErrorRowsButton.setEnabled(false);
 	}
 
-	
-	
 	private JButton abortGuessingButton = new JButton(new ResourceAction("wizard.abort_guess_value_types") {
 		private static final long serialVersionUID = 1L;
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			reader.stopReading();
 		}
 	});
-	
+
 	private JButton guessValueTypesButton = new JButton(new ResourceAction("wizard.guess_value_types") {
 		private static final long serialVersionUID = 1L;
+
 		@Override
-		public void actionPerformed(ActionEvent e) {			
+		public void actionPerformed(ActionEvent e) {
 			new ProgressThread("guessing_value_types") {
 				@Override
-				public void run() {					
+				public void run() {
 					final List<Object[]> previewAsList;
 					try {
 						abortGuessingButton.setEnabled(true);
 						guessValueTypesButton.setEnabled(false);
-
-						reader.guessValueTypes(getProgressListener());
-						previewAsList = reader.getPreviewAsList(getProgressListener(), false);
+						reader.stopReading();
+						synchronized (reader) {
+							reader.guessValueTypes(getProgressListener());
+							previewAsList = reader.getPreviewAsList(getProgressListener(), false);
+						}
 					} catch (OperatorException e1) {
 						// TODO fix this
 						SwingTools.showVerySimpleErrorMessage(e1.getMessage(), e1);
@@ -187,41 +198,39 @@ public abstract class MetaDataDeclerationWirzardStep extends WizardStep {
 						public void run() {
 							setData(previewAsList);
 							guessValueTypesButton.setEnabled(true);
-							abortGuessingButton.setEnabled(false);										
+							abortGuessingButton.setEnabled(false);
 						};
 					});
 				}
 			}.start();
-			
+
 		}
 	});
-	
+
 	protected JPanel guessingButtonsPanel = new JPanel(ButtonDialog.createGridLayout(1, 2));
 	{
 		guessingButtonsPanel.add(guessValueTypesButton, 0);
 		guessingButtonsPanel.add(abortGuessingButton, 1);
 		abortGuessingButton.setEnabled(false);
 	}
-	
-	
-		
-	public MetaDataDeclerationWirzardStep(String key, AbstractDataReader reader) {
+
+	public MetaDataDeclerationWizardStep(String key, AbstractDataReader reader) {
 		super(key);
-		 editor = new MetaDataDeclarationEditor(reader, true);
-		 this.reader = reader;
+		editor = new MetaDataDeclarationEditor(reader, true);
+		this.reader = reader;
 	}
-	
+
 	protected void setData(List<Object[]> data) {
 		editor.setData(data);
 	}
-	
+
 	@Override
 	protected JComponent getComponent() {
 		JPanel errorTolerancePanel = new JPanel(ButtonDialog.createGridLayout(2, 2));
 		errorTolerancePanel.setBorder(ButtonDialog.createTitledBorder("Error Handling"));
 		errorTolerancePanel.add(tolerateErrorCheckBox, 0);
 		errorTolerancePanel.add(validationButtonsPanel, 1);
-		
+
 		errorTolerancePanel.add(new JPanel(), 2);
 		errorTolerancePanel.add(errorPreviewButtonsPanel, 3);
 		editor.setBorder(ButtonDialog.createTitledBorder("Data Preview"));
@@ -231,8 +240,7 @@ public abstract class MetaDataDeclerationWirzardStep extends WizardStep {
 		panel.add(editor, BorderLayout.CENTER);
 		return panel;
 	}
-	
-	
+
 	@Override
 	protected boolean performEnteringAction() {
 		// dummy list
@@ -242,7 +250,10 @@ public abstract class MetaDataDeclerationWirzardStep extends WizardStep {
 			public void run() {
 				final List<Object[]> previewAsList;
 				try {
-					previewAsList = reader.getPreviewAsList(getProgressListener(), false);
+					reader.stopReading();
+					synchronized (reader) {
+						previewAsList = reader.getPreviewAsList(getProgressListener(), true);
+					}
 				} catch (OperatorException e1) {
 					// TODO fix this
 					SwingTools.showVerySimpleErrorMessage(e1.getMessage(), e1);
@@ -258,11 +269,11 @@ public abstract class MetaDataDeclerationWirzardStep extends WizardStep {
 		}.start();
 		return true;
 	}
-	
-	protected void doAfterEnteringAction(){
-		//do nothing
+
+	protected void doAfterEnteringAction() {
+		// do nothing
 	}
-	
+
 	@Override
 	protected boolean canGoBack() {
 		return true;
@@ -272,5 +283,5 @@ public abstract class MetaDataDeclerationWirzardStep extends WizardStep {
 	protected boolean canProceed() {
 		return true;
 	}
-	
+
 }

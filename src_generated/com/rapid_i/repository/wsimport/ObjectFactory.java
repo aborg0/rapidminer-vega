@@ -47,67 +47,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link ProcessStackTrace }
+     * Create an instance of {@link CancelTrigger }
      * 
      */
-    public ProcessStackTrace createProcessStackTrace() {
-        return new ProcessStackTrace();
-    }
-
-    /**
-     * Create an instance of {@link ExecuteProcessCron }
-     * 
-     */
-    public ExecuteProcessCron createExecuteProcessCron() {
-        return new ExecuteProcessCron();
-    }
-
-    /**
-     * Create an instance of {@link StopProcess }
-     * 
-     */
-    public StopProcess createStopProcess() {
-        return new StopProcess();
-    }
-
-    /**
-     * Create an instance of {@link ProcessStackTraceElement }
-     * 
-     */
-    public ProcessStackTraceElement createProcessStackTraceElement() {
-        return new ProcessStackTraceElement();
-    }
-
-    /**
-     * Create an instance of {@link GetProcessIdsForJobId }
-     * 
-     */
-    public GetProcessIdsForJobId createGetProcessIdsForJobId() {
-        return new GetProcessIdsForJobId();
-    }
-
-    /**
-     * Create an instance of {@link GetRunningProcessesResponse }
-     * 
-     */
-    public GetRunningProcessesResponse createGetRunningProcessesResponse() {
-        return new GetRunningProcessesResponse();
-    }
-
-    /**
-     * Create an instance of {@link GetRunningProcesses }
-     * 
-     */
-    public GetRunningProcesses createGetRunningProcesses() {
-        return new GetRunningProcesses();
-    }
-
-    /**
-     * Create an instance of {@link GetProcessIdsForJobIdResponse }
-     * 
-     */
-    public GetProcessIdsForJobIdResponse createGetProcessIdsForJobIdResponse() {
-        return new GetProcessIdsForJobIdResponse();
+    public CancelTrigger createCancelTrigger() {
+        return new CancelTrigger();
     }
 
     /**
@@ -119,51 +63,19 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link CancelTrigger }
+     * Create an instance of {@link ProcessStackTrace }
      * 
      */
-    public CancelTrigger createCancelTrigger() {
-        return new CancelTrigger();
+    public ProcessStackTrace createProcessStackTrace() {
+        return new ProcessStackTrace();
     }
 
     /**
-     * Create an instance of {@link GetRunningProcessesInfoResponse }
+     * Create an instance of {@link MacroDefinition }
      * 
      */
-    public GetRunningProcessesInfoResponse createGetRunningProcessesInfoResponse() {
-        return new GetRunningProcessesInfoResponse();
-    }
-
-    /**
-     * Create an instance of {@link ProcessResponse }
-     * 
-     */
-    public ProcessResponse createProcessResponse() {
-        return new ProcessResponse();
-    }
-
-    /**
-     * Create an instance of {@link ExecuteProcessCronResponse }
-     * 
-     */
-    public ExecuteProcessCronResponse createExecuteProcessCronResponse() {
-        return new ExecuteProcessCronResponse();
-    }
-
-    /**
-     * Create an instance of {@link GetRunningProcessesInfo }
-     * 
-     */
-    public GetRunningProcessesInfo createGetRunningProcessesInfo() {
-        return new GetRunningProcessesInfo();
-    }
-
-    /**
-     * Create an instance of {@link ExecutionResponse }
-     * 
-     */
-    public ExecutionResponse createExecutionResponse() {
-        return new ExecutionResponse();
+    public MacroDefinition createMacroDefinition() {
+        return new MacroDefinition();
     }
 
     /**
@@ -175,11 +87,115 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link GetProcessIdsForJobIdResponse }
+     * 
+     */
+    public GetProcessIdsForJobIdResponse createGetProcessIdsForJobIdResponse() {
+        return new GetProcessIdsForJobIdResponse();
+    }
+
+    /**
+     * Create an instance of {@link StopProcess }
+     * 
+     */
+    public StopProcess createStopProcess() {
+        return new StopProcess();
+    }
+
+    /**
+     * Create an instance of {@link ProcessResponse }
+     * 
+     */
+    public ProcessResponse createProcessResponse() {
+        return new ProcessResponse();
+    }
+
+    /**
+     * Create an instance of {@link GetRunningProcessesResponse }
+     * 
+     */
+    public GetRunningProcessesResponse createGetRunningProcessesResponse() {
+        return new GetRunningProcessesResponse();
+    }
+
+    /**
+     * Create an instance of {@link ExecuteProcessCronResponse }
+     * 
+     */
+    public ExecuteProcessCronResponse createExecuteProcessCronResponse() {
+        return new ExecuteProcessCronResponse();
+    }
+
+    /**
      * Create an instance of {@link ExecuteProcessSimple }
      * 
      */
     public ExecuteProcessSimple createExecuteProcessSimple() {
         return new ExecuteProcessSimple();
+    }
+
+    /**
+     * Create an instance of {@link ExecuteProcessCron }
+     * 
+     */
+    public ExecuteProcessCron createExecuteProcessCron() {
+        return new ExecuteProcessCron();
+    }
+
+    /**
+     * Create an instance of {@link ProcessStackTraceElement }
+     * 
+     */
+    public ProcessStackTraceElement createProcessStackTraceElement() {
+        return new ProcessStackTraceElement();
+    }
+
+    /**
+     * Create an instance of {@link GetRunningProcessesInfo }
+     * 
+     */
+    public GetRunningProcessesInfo createGetRunningProcessesInfo() {
+        return new GetRunningProcessesInfo();
+    }
+
+    /**
+     * Create an instance of {@link GetRunningProcesses }
+     * 
+     */
+    public GetRunningProcesses createGetRunningProcesses() {
+        return new GetRunningProcesses();
+    }
+
+    /**
+     * Create an instance of {@link ProcessContextWrapper }
+     * 
+     */
+    public ProcessContextWrapper createProcessContextWrapper() {
+        return new ProcessContextWrapper();
+    }
+
+    /**
+     * Create an instance of {@link GetRunningProcessesInfoResponse }
+     * 
+     */
+    public GetRunningProcessesInfoResponse createGetRunningProcessesInfoResponse() {
+        return new GetRunningProcessesInfoResponse();
+    }
+
+    /**
+     * Create an instance of {@link CancelTriggerResponse }
+     * 
+     */
+    public CancelTriggerResponse createCancelTriggerResponse() {
+        return new CancelTriggerResponse();
+    }
+
+    /**
+     * Create an instance of {@link GetProcessIdsForJobId }
+     * 
+     */
+    public GetProcessIdsForJobId createGetProcessIdsForJobId() {
+        return new GetProcessIdsForJobId();
     }
 
     /**
@@ -191,11 +207,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link CancelTriggerResponse }
+     * Create an instance of {@link ExecutionResponse }
      * 
      */
-    public CancelTriggerResponse createCancelTriggerResponse() {
-        return new CancelTriggerResponse();
+    public ExecutionResponse createExecutionResponse() {
+        return new ExecutionResponse();
     }
 
     /**

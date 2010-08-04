@@ -28,7 +28,7 @@ public abstract class ExampleSetResourceConsumptionEstimator implements Resource
 	public abstract long estimateRuntime(ExampleSetMetaData exampleSet);	
 
 	@Override
-	public long estimateMemory() {
+	public long estimateMemoryConsumption() {
 		final ExampleSetMetaData exampleSet = getExampleSet();
 		if (exampleSet == null) {
 			return -1;

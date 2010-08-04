@@ -110,7 +110,7 @@ public class RapidAnalyticsCLTool {
 				"Temp", user, password.toCharArray(), true);
 		RepositoryManager.getInstance(null).addRepository(repository);
 
-		delay = getArgumentInt("deleay", 1000);
+		delay = getArgumentInt("delay", 1000);
 		if ("true".equals(getArgument("watch", "false"))) {
 			watch = true;
 			dumpStatus = true;
@@ -120,7 +120,7 @@ public class RapidAnalyticsCLTool {
 		String executeProcess = getArgument("execute-process", null);
 		if (executeProcess != null) {
 			System.err.println("Scheduling process execution for process "+executeProcess);
-			ExecutionResponse result = repository.getProcessService().executeProcessSimple(executeProcess, null);
+			ExecutionResponse result = repository.getProcessService().executeProcessSimple(executeProcess, null, null);
 			if (result.getStatus() != 0) {
 				System.err.println("ERROR. Server responded with code "+result.getStatus()+": "+result.getErrorMessage());
 				System.exit(result.getStatus());

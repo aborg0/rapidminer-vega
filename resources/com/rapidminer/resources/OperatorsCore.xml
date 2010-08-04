@@ -501,6 +501,10 @@
                <class>com.rapidminer.operator.visualization.ProcessLog2ExampleSet</class>
                <replaces>ProcessLog2ExampleSet</replaces>
             </operator>
+            <operator>
+                <key>print_to_console</key>
+                <class>com.rapidminer.operator.tools.ConsolePrintOperator</class>
+            </operator>
          </group>
          <group key="execution">
             <icon>console.png</icon>
@@ -523,10 +527,6 @@
                <key>execute_program</key>
                <class>com.rapidminer.operator.CommandLineOperator</class>
                <replaces>CommandLineOperator</replaces>
-            </operator>
-            <operator>
-                <key>print_to_console</key>
-                <class>com.rapidminer.operator.tools.ConsolePrintOperator</class>
             </operator>
          </group>
          <group key="files">
@@ -607,6 +607,11 @@
          </group>
          <group key="misc">
             <icon>wrench.png</icon>
+            <operator>
+            	<key>delay</key>
+            	<class>com.rapidminer.operator.tools.DelayOperator</class>
+            	<icon>hourglass.png</icon>
+            </operator>
             <operator>
                <key>obfuscate</key>
                <class>com.rapidminer.operator.preprocessing.Obfuscator</class>

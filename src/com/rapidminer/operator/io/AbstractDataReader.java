@@ -273,9 +273,7 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 	 */
 	public List<AttributeColumn> getAllAttributeColumns() {
 		List<AttributeColumn> list = new LinkedList<AttributeColumn>();
-		for (AttributeColumn column : attributeColumns) {
-			list.add(column);
-		}
+		list.addAll(attributeColumns);
 		return list;
 	}
 

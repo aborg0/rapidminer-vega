@@ -10,6 +10,6 @@ import com.rapidminer.operator.Operator;
  */
 public interface ResourceConsumer {
 
-	public ResourceConsumptionEstimator getResourceConsumptionDescriptor();
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator();
 	
 }

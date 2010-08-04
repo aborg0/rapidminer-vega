@@ -36,14 +36,12 @@ import com.rapidminer.gui.tools.dialogs.wizards.dataimport.csv.CSVImportWizard.C
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
-import com.rapidminer.operator.io.AbstractDataReader.CacheResetParameterObserver;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeChar;
 import com.rapidminer.parameter.ParameterTypeConfiguration;
 import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypeString;
-import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.tools.DateParser;
 import com.rapidminer.tools.LineParser;

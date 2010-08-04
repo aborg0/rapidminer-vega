@@ -333,10 +333,21 @@ public class ExpressionParser {
 					throw new GenerationException("No such attribute: '" + variable.getName()+"'");
 				} else {
 					name2attributes.put(variable.getName(), attribute);
-					if (attribute.isNominal()) {
-						parser.addVariable(attribute.getName(), "");
+					// retrieve test example with real values (needed to compliance checking!)
+					if (exampleSet.size() > 0) {
+						Example example = exampleSet.iterator().next();
+						if (attribute.isNominal()) {
+							parser.addVariable(attribute.getName(), example.getValueAsString(attribute));
+						} else {
+							parser.addVariable(attribute.getName(), example.getValue(attribute));
+						}
 					} else {
-						parser.addVariable(attribute.getName(), Double.NaN);
+						// nothing will be done later: no compliance to data must be met
+						if (attribute.isNominal()) {
+							parser.addVariable(attribute.getName(), "");
+						} else {
+							parser.addVariable(attribute.getName(), Double.NaN);
+						}
 					}
 				}
 			}

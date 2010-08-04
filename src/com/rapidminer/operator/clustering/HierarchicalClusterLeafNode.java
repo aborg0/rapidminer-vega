@@ -32,7 +32,8 @@ import java.util.LinkedList;
  * @author Sebastian Land
  */
 public class HierarchicalClusterLeafNode extends HierarchicalClusterNode {
-	
+	private static final long serialVersionUID = -8181571984420396236L;
+
 	private Collection<Object> exampleIds;
 	
 	public HierarchicalClusterLeafNode(String clusterId) {

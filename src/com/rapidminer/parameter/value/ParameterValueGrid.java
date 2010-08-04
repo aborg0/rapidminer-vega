@@ -39,8 +39,10 @@ public class ParameterValueGrid extends ParameterValues {
 	public static final int SCALE_QUADRATIC = 1;
 	
 	public static final int SCALE_LOGARITHMIC = 2;
+
+	public static final int SCALE_LOGARITHMIC_LEGACY = 3;
 	
-	public static final String[] SCALES = { "linear", "quadratic", "logarithmic" };
+	public static final String[] SCALES = { "linear", "quadratic", "logarithmic", "logarithmic (legacy)" };
 	
 	public static final int DEFAULT_STEPS = 10;
 	
@@ -149,16 +151,19 @@ public class ParameterValueGrid extends ParameterValues {
 		}
 		switch (scale) {
         case SCALE_LINEAR:
-        	values = scalePolinomial(Integer.parseInt(steps), 1);
+        	values = scalePolynomial(Integer.parseInt(steps), 1);
         	break;
         case SCALE_QUADRATIC:
-        	values = scalePolinomial(Integer.parseInt(steps), 2);
+        	values = scalePolynomial(Integer.parseInt(steps), 2);
         	break;
         case SCALE_LOGARITHMIC:
         	values = scaleLogarithmic(Integer.parseInt(steps));
         	break;
+        case SCALE_LOGARITHMIC_LEGACY:
+        	values = scaleLogarithmicLegacy(Integer.parseInt(steps));
+        	break;
         default:
-        	values = scalePolinomial(Integer.parseInt(steps), 1);
+        	values = scalePolynomial(Integer.parseInt(steps), 1);
         }
 		if (type instanceof ParameterTypeInt) {
 			if (values.length > 0) {
@@ -188,7 +193,7 @@ public class ParameterValueGrid extends ParameterValues {
 		return values;
 	}
 
-	private double[] scalePolinomial(int steps, double power) {
+	private double[] scalePolynomial(int steps, double power) {
 		double[] values = new double[steps + 1];
 		double minValue = Double.parseDouble(min);
 		double maxValue = Double.parseDouble(max);
@@ -208,6 +213,17 @@ public class ParameterValueGrid extends ParameterValues {
 		return values;
 	}
 
+	private double[] scaleLogarithmicLegacy(int steps) {
+		double minValue = Double.parseDouble(min);
+		double maxValue = Double.parseDouble(max);
+		double[] values = new double[steps + 1];
+		double offset = 1 - minValue;
+		for (int i = 0; i < steps + 1; i++) {
+			values[i] = Math.pow(maxValue + offset, (double) i / (double) steps) - offset;
+		}
+		return values;
+	}
+	
 	@Override
 	public int getNumberOfValues() {
 		return Integer.parseInt(steps) + 1;

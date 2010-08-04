@@ -22,6 +22,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *         &lt;element name="cronExpression" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="start" type="{http://www.w3.org/2001/XMLSchema}dateTime" minOccurs="0"/>
  *         &lt;element name="end" type="{http://www.w3.org/2001/XMLSchema}dateTime" minOccurs="0"/>
+ *         &lt;element name="processContext" type="{http://service.web.rapidrepository.com/}processContextWrapper" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -35,7 +36,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
     "processLocation",
     "cronExpression",
     "start",
-    "end"
+    "end",
+    "processContext"
 })
 public class ExecuteProcessCron {
 
@@ -45,6 +47,7 @@ public class ExecuteProcessCron {
     protected XMLGregorianCalendar start;
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar end;
+    protected ProcessContextWrapper processContext;
 
     /**
      * Gets the value of the processLocation property.
@@ -140,6 +143,30 @@ public class ExecuteProcessCron {
      */
     public void setEnd(XMLGregorianCalendar value) {
         this.end = value;
+    }
+
+    /**
+     * Gets the value of the processContext property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link ProcessContextWrapper }
+     *     
+     */
+    public ProcessContextWrapper getProcessContext() {
+        return processContext;
+    }
+
+    /**
+     * Sets the value of the processContext property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link ProcessContextWrapper }
+     *     
+     */
+    public void setProcessContext(ProcessContextWrapper value) {
+        this.processContext = value;
     }
 
 }

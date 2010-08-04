@@ -18,6 +18,6 @@ public interface ResourceConsumptionEstimator {
 	
 	/** Returns the estimated number of bytes required when executing this operator.
 	*  If, for any reason, computation is impossible, -1 should be returned. */
-	public long estimateMemory();
+	public long estimateMemoryConsumption();
 	
 }

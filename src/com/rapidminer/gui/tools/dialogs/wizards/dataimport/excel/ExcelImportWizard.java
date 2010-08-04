@@ -38,7 +38,7 @@ import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DataImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.FileSelectionWizardStep;
-import com.rapidminer.gui.tools.dialogs.wizards.dataimport.MetaDataDeclerationWirzardStep;
+import com.rapidminer.gui.tools.dialogs.wizards.dataimport.MetaDataDeclerationWizardStep;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.RepositoryLocationSelectionWizardStep;
 import com.rapidminer.gui.wizards.AbstractConfigurationWizardCreator;
 import com.rapidminer.gui.wizards.ConfigurationListener;
@@ -61,7 +61,7 @@ public class ExcelImportWizard extends DataImportWizard {
 
 	// the operator which is setup during the wizard
 	private ExcelExampleSource reader = null;
-	
+
 	private Parameters parametersBackup;
 
 	private final WizardStep STEP_FILE_SELECTION = new FileSelectionWizardStep(this, new SimpleFileFilter("Excel File (.xls)", ".xls")) {
@@ -121,12 +121,11 @@ public class ExcelImportWizard extends DataImportWizard {
 			reader.stopReading();
 			reader.setParameter(ExcelExampleSource.PARAMETER_FIRST_ROW_AS_NAMES, Boolean.FALSE.toString());
 			reader.skipNameAnnotationRow(false);
-			boolean flag =reader.attributeNamesDefinedByUser();
+			boolean flag = reader.attributeNamesDefinedByUser();
 			workbookSelectionPanel.loadWorkbook();
 			// write flag back because laodWorkbook invokes a reader.clearReaderSetting()
 			reader.setAttributeNamesDefinedByUser(flag);
-			
-			
+
 			return true;
 		}
 
@@ -136,20 +135,19 @@ public class ExcelImportWizard extends DataImportWizard {
 				reader.loadMetaDataFromParameters();
 			}
 			reader.stopReading();
-			reader.setParameter(ExcelExampleSource.PARAMETER_SHEET_NUMBER, Integer
-					.toString(workbookSelectionPanel.getSelection().getSheetIndex() + 1));
+			reader.setParameter(ExcelExampleSource.PARAMETER_SHEET_NUMBER, Integer.toString(workbookSelectionPanel.getSelection().getSheetIndex() + 1));
 			List<String[]> annotationParameter = new LinkedList<String[]>();
-			
+
 			boolean nameAnnotationFound = false;
 			for (Map.Entry<Integer, String> entry : workbookSelectionPanel.getSelection().getAnnotationMap().entrySet()) {
 				annotationParameter.add(new String[] { entry.getKey().toString(), entry.getValue() });
-				if (entry.getValue().equals(ExcelExampleSource.ANNOTATION_NAME)){
+				if (entry.getValue().equals(ExcelExampleSource.ANNOTATION_NAME)) {
 					nameAnnotationFound = true;
 				}
 			}
 			reader.setParameter(ExcelExampleSource.PARAMETER_ANNOTATIONS, ParameterTypeList.transformList2String(annotationParameter));
 
-			if (nameAnnotationFound){
+			if (nameAnnotationFound) {
 				reader.setAttributeNamesDefinedByUser(false);
 				reader.skipNameAnnotationRow(false); // should be already false
 			} else {
@@ -170,7 +168,7 @@ public class ExcelImportWizard extends DataImportWizard {
 
 	@Override
 	public void cancel() {
-		reader.getParameters().setAll(parametersBackup);	
+		reader.getParameters().setAll(parametersBackup);
 		reader.stopReading();
 		(reader).resetWorkbook();
 		super.cancel();
@@ -182,10 +180,7 @@ public class ExcelImportWizard extends DataImportWizard {
 		super.finish();
 	}
 
-
-
-	public ExcelImportWizard(String i18nKey, ConfigurationListener listener, File preselectedFile, final boolean showStoreInRepositoryStep,
-			RepositoryLocation preselectedLocation, Object... i18nArgs) {
+	public ExcelImportWizard(String i18nKey, ConfigurationListener listener, File preselectedFile, final boolean showStoreInRepositoryStep, RepositoryLocation preselectedLocation, Object... i18nArgs) {
 		super(i18nKey, i18nArgs);
 		file = preselectedFile;
 		if (listener != null) {
@@ -197,16 +192,16 @@ public class ExcelImportWizard extends DataImportWizard {
 				throw new RuntimeException("Failed to create excel reader: " + e, e);
 			}
 		}
-		
-		parametersBackup = (Parameters) reader.getParameters().clone();	
-		
+
+		parametersBackup = (Parameters) reader.getParameters().clone();
+
 		addStep(STEP_FILE_SELECTION);
 
 		reader.keepWorkbookOpen();
-		
+
 		addStep(new ExcelWorkSheetSelection(reader));
 
-		addStep(new MetaDataDeclerationWirzardStep("select_attributes", reader) {
+		addStep(new MetaDataDeclerationWizardStep("select_attributes", reader) {
 
 			@Override
 			protected JComponent getComponent() {
@@ -218,8 +213,8 @@ public class ExcelImportWizard extends DataImportWizard {
 				Component[] superComponents = super.getComponent().getComponents();
 
 				JPanel upperPanel = new JPanel(new BorderLayout());// new
-																	// JPanel(ButtonDialog.createGridLayout(2,
-																	// 1));
+				// JPanel(ButtonDialog.createGridLayout(2,
+				// 1));
 				upperPanel.add(typeDetection, BorderLayout.NORTH);
 				upperPanel.add(superComponents[0], BorderLayout.CENTER);
 
@@ -229,13 +224,13 @@ public class ExcelImportWizard extends DataImportWizard {
 
 				return panel;
 			}
-			
+
 			@Override
-			protected void doAfterEnteringAction(){
-					reader.setAttributeNamesDefinedByUser(true);
-					((ExcelExampleSource)reader).skipNameAnnotationRow(true);
+			protected void doAfterEnteringAction() {
+				reader.setAttributeNamesDefinedByUser(true);
+				((ExcelExampleSource) reader).skipNameAnnotationRow(true);
 			}
-			
+
 			@Override
 			protected boolean performLeavingAction() {
 				reader.stopReading();
@@ -249,20 +244,21 @@ public class ExcelImportWizard extends DataImportWizard {
 		});
 
 		if (showStoreInRepositoryStep) {
-			addStep(new RepositoryLocationSelectionWizardStep("select_repository_location", this, null,
-					preselectedLocation != null ? preselectedLocation.getAbsoluteLocation() : null) {
+			addStep(new RepositoryLocationSelectionWizardStep("select_repository_location", this, null, preselectedLocation != null ? preselectedLocation.getAbsoluteLocation() : null) {
 				@Override
 				protected boolean performLeavingAction() {
-					boolean flag = transferData(reader, getRepositoryLocation());
-					(reader).resetWorkbook();
-					return flag;
+					synchronized (reader) {
+						boolean flag = transferData(reader, getRepositoryLocation());
+						(reader).resetWorkbook();
+						return flag;
+					}
 				}
 			});
 		}
 
 		layoutDefault(HUGE);
 	}
-	
+
 	public ExcelImportWizard(String i18nKey, Object... i18nArgs) {
 		this(i18nKey, (ConfigurationListener) null, (File) null, true, (RepositoryLocation) null, i18nArgs);
 	}
@@ -321,8 +317,7 @@ public class ExcelImportWizard extends DataImportWizard {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see
-		 * com.rapidminer.gui.wizards.ConfigurationWizardCreator#getI18NKey()
+		 * @see com.rapidminer.gui.wizards.ConfigurationWizardCreator#getI18NKey()
 		 */
 		@Override
 		public String getI18NKey() {

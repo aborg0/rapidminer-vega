@@ -61,6 +61,8 @@ public class TextPropertyDialog extends PropertyDialog {
         textArea.setText(this.text);
         textArea.setBorder(createBorder());
         layoutDefault(textArea, NORMAL, makeOkButton(), makeCancelButton());
+        
+        textArea.requestFocusInWindow();
     }
 
     @Override

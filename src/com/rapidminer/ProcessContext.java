@@ -168,16 +168,25 @@ public class ProcessContext extends AbstractObservable<ProcessContext> implement
 		
 		for (int i = 0; i < other.inputRepositoryLocations.size(); i++) {
 			String loc = other.inputRepositoryLocations.get(i);
-			if (loc != null) {
+			if ((loc != null) && !loc.isEmpty()) {
 				this.setInputRepositoryLocation(i, loc);
 			}
 		}
 		
 		for (int i = 0; i < other.outputRepositoryLocations.size(); i++) {
 			String loc = other.outputRepositoryLocations.get(i);
-			if (loc != null) {
+			if ((loc != null) && !loc.isEmpty()) {
 				this.setOutputRepositoryLocation(i, loc);
 			}
 		}
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder b = new StringBuilder();
+		b.append("Macros: ").append(getMacros());
+		b.append("; Input: ").append(getInputRepositoryLocations());
+		b.append("; Output: ").append(getOutputRepositoryLocations());
+		return b.toString();
 	}
 }

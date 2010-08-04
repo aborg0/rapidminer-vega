@@ -180,8 +180,7 @@ public class ExcelWorkbookPane extends JPanel {
 			int rowIndexEnd = rowIndexStart + tables[0].getSelectedRowCount() - 1 + selectedView.getRowIndexStart();
 			if (columnIndexStart == -1) {
 				// then use complete selected table
-				return new ExcelWorkbookSelection(sheetIndex, selectedView.getColumnIndexStart(), selectedView.getRowIndexStart(), selectedView
-						.getColumnIndexEnd(), selectedView.getRowIndexEnd());
+				return new ExcelWorkbookSelection(sheetIndex, selectedView.getColumnIndexStart(), selectedView.getRowIndexStart(), selectedView.getColumnIndexEnd(), selectedView.getRowIndexEnd());
 			} else {
 				return new ExcelWorkbookSelection(sheetIndex, columnIndexStart, rowIndexStart, columnIndexEnd, rowIndexEnd);
 			}
@@ -251,91 +250,93 @@ public class ExcelWorkbookPane extends JPanel {
 			return;
 		}
 		sheetsPane.removeAll();
-		// add dummy 
+		// add dummy
 		JPanel dummy = new JPanel();
 		dummy.add(new JLabel("Loading Excel Sheets"));
 		sheetsPane.addTab("  ", dummy);
 		tables = new ExtendedJTable[excelWorkbook.getNumberOfSheets()];
-	
+
 		new ProgressThread("load_workbook") {
 			@Override
-			public void run() {		
+			public void run() {
 				String[] sheetNames = excelWorkbook.getSheetNames();
 				for (int sheetIndex = 0; sheetIndex < excelWorkbook.getNumberOfSheets(); sheetIndex++) {
 					// set up the reader to read the right sheet.
-					reader.setParameter(ExcelExampleSource.PARAMETER_SHEET_NUMBER, Integer.toString(sheetIndex+1));
-					reader.clearReaderSettings();
-					List<Object[]> data = null;
-					try {
-						data = reader.getShortPreviewAsList(getProgressListener(), true);
-					} catch (OperatorException e1) {
-						// if the loaded sheet is empty an exception is thrown here.
-						// create a empty data object
-						data = new LinkedList<Object[]>();
-						data.add(new Object[] { });
-					}
-					ExcelSheetModel sheetModel = new ExcelSheetModel(data);
-
-//					 Sheet sheet = excelWorkbook.getSheet(sheetIndex);
-//					 TableModel sheetModel = new ExcelTableModel(sheet); // OLD
-
-					sheetModel.addTableModelListener(new TableModelListener() {
-						@Override
-						public void tableChanged(TableModelEvent e) {
-							if (wizardStep != null) {
-								wizardStep.fireStateChanged();
-							}
+					synchronized (reader) {
+						reader.setParameter(ExcelExampleSource.PARAMETER_SHEET_NUMBER, Integer.toString(sheetIndex + 1));
+						reader.clearReaderSettings();
+						List<Object[]> data = null;
+						try {
+							data = reader.getShortPreviewAsList(getProgressListener(), true);
+						} catch (OperatorException e1) {
+							// if the loaded sheet is empty an exception is thrown here.
+							// create a empty data object
+							data = new LinkedList<Object[]>();
+							data.add(new Object[] {});
 						}
-					});
-					tables[sheetIndex] = new ExtendedJTable(sheetModel, false, false);
-					tables[sheetIndex].setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-					tables[sheetIndex].setBorder(null);
+						ExcelSheetModel sheetModel = new ExcelSheetModel(data);
 
-					tables[sheetIndex].getColumnModel().getColumn(0).setCellEditor(new AnnotationCellEditor());
+						// Sheet sheet = excelWorkbook.getSheet(sheetIndex);
+						// TableModel sheetModel = new ExcelTableModel(sheet); // OLD
 
-					// momentary disable selection in tables
-					tables[sheetIndex].setRowSelectionAllowed(false);
-					tables[sheetIndex].setColumnSelectionAllowed(false);
-					tables[sheetIndex].setCellSelectionEnabled(false);
+						sheetModel.addTableModelListener(new TableModelListener() {
+							@Override
+							public void tableChanged(TableModelEvent e) {
+								if (wizardStep != null) {
+									wizardStep.fireStateChanged();
+								}
+							}
+						});
+						tables[sheetIndex] = new ExtendedJTable(sheetModel, false, false);
+						tables[sheetIndex].setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+						tables[sheetIndex].setBorder(null);
 
-					// tables[sheetIndex].pack();
-					ExtendedJScrollPane pane = new ExtendedJScrollPane(tables[sheetIndex]);
-					pane.setBorder(null);
-					if (sheetIndex == 0){
-						sheetsPane.removeAll();
+						tables[sheetIndex].getColumnModel().getColumn(0).setCellEditor(new AnnotationCellEditor());
+
+						// momentary disable selection in tables
+						tables[sheetIndex].setRowSelectionAllowed(false);
+						tables[sheetIndex].setColumnSelectionAllowed(false);
+						tables[sheetIndex].setCellSelectionEnabled(false);
+
+						// tables[sheetIndex].pack();
+						ExtendedJScrollPane pane = new ExtendedJScrollPane(tables[sheetIndex]);
+						pane.setBorder(null);
+						if (sheetIndex == 0) {
+							sheetsPane.removeAll();
+						}
+						sheetsPane.addTab(sheetNames[sheetIndex], pane);
 					}
-					sheetsPane.addTab(sheetNames[sheetIndex], pane);
 				}
-				
+
 			}
 		}.start();
-		
-	
+
 	}
 
 	public String getColumnName(int sheet, int index) {
 		return tables[sheet].getColumnName(index);
 	}
 
-//	public boolean displayErrorStatus(JLabel label) {
-//		if (tables == null) {
-//			return true;
-//		}
-//		Set<String> usedAnnotations = new HashSet<String>();
-//		for (String an : ((ExcelSheetModel) tables[getSelection().getSheetIndex()].getModel()).getAnnotationMap().values()) {
-//			if (AnnotationCellEditor.NONE.equals(an)) {
-//				continue;
-//			}
-//			if (usedAnnotations.contains(an)) {
-//				label.setText("Duplicate annotation: " + an);
-//				return false;
-//			} else {
-//				usedAnnotations.add(an);
-//			}
-//		}
-//		label.setText("");
-//		return true;
-//	}
+	// public boolean displayErrorStatus(JLabel label) {
+	// if (tables == null) {
+	// return true;
+	// }
+	// Set<String> usedAnnotations = new HashSet<String>();
+	// for (String an : ((ExcelSheetModel)
+	// tables[getSelection().getSheetIndex()].getModel()).getAnnotationMap().values()) {
+	// if (AnnotationCellEditor.NONE.equals(an)) {
+	// continue;
+	// }
+	// if (usedAnnotations.contains(an)) {
+	// label.setText("Duplicate annotation: " + an);
+	// return false;
+	// } else {
+	// usedAnnotations.add(an);
+	// }
+	// }
+	// label.setText("");
+	// return true;
+	// }
 
 	private class ExcelSheetModel extends AbstractTableModel {
 		private static final long serialVersionUID = 1L;
@@ -346,7 +347,7 @@ public class ExcelWorkbookPane extends JPanel {
 
 		private ArrayList<Object[]> data = null;
 
-		public ExcelSheetModel(List<Object[]> data){
+		public ExcelSheetModel(List<Object[]> data) {
 			// read former annotations if exists
 			try {
 				for (String[] pair : reader.getParameterList(ExcelExampleSource.PARAMETER_ANNOTATIONS)) {
@@ -364,14 +365,14 @@ public class ExcelWorkbookPane extends JPanel {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
-			
-			this.data =  new ArrayList<Object[]>(data);;
+
+			this.data = new ArrayList<Object[]>(data);
+			;
 		}
-		
-//		private void setData(List<Object[]> data) {
-//			this.data = new ArrayList<Object[]>(data);
-//		}
+
+		// private void setData(List<Object[]> data) {
+		// this.data = new ArrayList<Object[]>(data);
+		// }
 
 		@Override
 		public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
@@ -427,7 +428,7 @@ public class ExcelWorkbookPane extends JPanel {
 			if (data.isEmpty()) {
 				return 1;
 			}
-			return data.get(0).length+1;
+			return data.get(0).length + 1;
 		}
 
 		@Override

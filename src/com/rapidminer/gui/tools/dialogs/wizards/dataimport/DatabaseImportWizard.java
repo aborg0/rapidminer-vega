@@ -31,9 +31,7 @@ import com.rapidminer.gui.tools.dialogs.DatabaseConnectionDialog;
 import com.rapidminer.gui.tools.dialogs.SQLQueryBuilder;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.operator.OperatorCreationException;
-import com.rapidminer.operator.io.AbstractDataReader;
 import com.rapidminer.operator.io.DatabaseDataReader;
-import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
 import com.rapidminer.tools.jdbc.connection.DatabaseConnectionService;
@@ -52,8 +50,6 @@ public class DatabaseImportWizard extends DataImportWizard {
 	
 	private FieldConnectionEntry connectionEntry = null;
 	
-	private ExampleSetMetaData metaData = null;
-
 	public DatabaseImportWizard(String i18nKey, Object ... i18nArgs) throws SQLException {
 		super(i18nKey, i18nArgs);
 		try {
@@ -141,7 +137,7 @@ public class DatabaseImportWizard extends DataImportWizard {
 			protected boolean performLeavingAction() {
 				reader.setParameter(DatabaseHandler.PARAMETER_DEFINE_QUERY, DatabaseHandler.QUERY_MODES[DatabaseHandler.QUERY_QUERY]);
 				reader.setParameter(DatabaseHandler.PARAMETER_QUERY, sqlQueryBuilder.getQuery());
-				metaData = (ExampleSetMetaData) reader.getGeneratedMetaData();
+				reader.getGeneratedMetaData();
 				return true;
 			}
 		});

@@ -32,7 +32,9 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.ValueDouble;
 import com.rapidminer.operator.performance.MeasuredPerformance;
+import com.rapidminer.operator.performance.PerformanceCriterion;
 import com.rapidminer.operator.performance.PerformanceVector;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
@@ -60,6 +62,8 @@ public class RankingEvaluator extends Operator {
 
 	private OutputPort exampleSetOutput = getOutputPorts().createPort("example set");
 	private OutputPort performanceOutput = getOutputPorts().createPort("performance");
+	
+	private PerformanceVector performance = null;
 
 	public RankingEvaluator(OperatorDescription description) {
 		super(description);
@@ -67,6 +71,21 @@ public class RankingEvaluator extends Operator {
 		exampleSetInput.addPrecondition(new ExampleSetPrecondition(exampleSetInput, Ontology.ATTRIBUTE_VALUE, Attributes.LABEL_NAME));
 		getTransformer().addGenerationRule(performanceOutput, PerformanceVector.class);
 		getTransformer().addPassThroughRule(exampleSetInput, exampleSetOutput);
+		
+		addValue(new ValueDouble("ranking_cost", "blubb") {
+			@Override
+			public double getDoubleValue() {
+				if (performance == null)
+					return Double.NaN;
+				PerformanceCriterion c = performance.getCriterion("RankingCosts");
+
+				if (c != null) {
+					return c.getAverage();
+				} else {
+					return Double.NaN;
+				}
+			}
+		});
 	}	
 
 	@Override
@@ -87,7 +106,7 @@ public class RankingEvaluator extends Operator {
 				}
 				
 				MeasuredPerformance criterion = new RankingCriterion(indices, costs, exampleSet);
-				PerformanceVector performance = new PerformanceVector();
+				performance = new PerformanceVector();
 				performance.addCriterion(criterion);
 				// now measuring costs
 				criterion.startCounting(exampleSet, false);

@@ -146,6 +146,7 @@ public class KMedoids extends RMAbstractClusterer implements CapabilityProvider 
 			int[] centroidAssignments = new int[exampleSet.size()];
 			boolean stable = false;
 			for (int step = 0; (step < maxOptimizationSteps) && !stable; step++) {
+				checkForStop();
 				// assign examples to new centroids
 				i = 0;
 				for (Example example : exampleSet) {

@@ -60,6 +60,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 import com.rapidminer.RapidMiner;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.RapidMinerGUI;
@@ -742,15 +744,15 @@ public class Tools {
 	public static String escapeXML(String string) {
 		if (string == null)
 			return "null";
-		string = string.replaceAll("&", "&amp;");
-		string = string.replaceAll("\"", "&quot;");
-		string = string.replaceAll("'", "&#39;");
-		string = string.replaceAll("<", "&lt;");
-		string = string.replaceAll(">", "&gt;");
-		string = transformAllLineSeparators(string);
-		string = string.replaceAll("\n", "&#10;");
-		string = string.replaceAll("\t", "&#09;");
-		return string;
+		return StringEscapeUtils.escapeXml(string);
+	}
+	
+	/**
+	 * This method will encode the given string by replacing
+	 * all forbidden characters by the appropriate HTML entity.
+	 */
+	public static String escapeHTML(String string) {
+		return StringEscapeUtils.escapeHtml(string);
 	}
 
 	public static void findImplementationsInJar(JarFile jar, Class superClass, List<String> implementations) {

@@ -43,13 +43,11 @@ import jxl.Sheet;
 import jxl.Workbook;
 import jxl.read.biff.BiffException;
 
-import com.rapidminer.example.ExampleSet;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.excel.ExcelImportWizard;
 import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
-import com.rapidminer.operator.io.AbstractDataReader.CacheResetParameterObserver;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
@@ -390,8 +388,8 @@ public class ExcelExampleSource extends AbstractDataReader {
 			}
 
 			// set attribute names
-			String[] attributeNames = new String[numberOfColumns - columnOffset - emptyColumns.size()];
 			if (nameRowF != -1) {
+				String[] attributeNames = new String[numberOfColumns - columnOffset - emptyColumns.size()];
 				int columnCounter = 0;
 				for (int c = columnOffset; c < numberOfColumns; c++) {
 					// skip empty columns
@@ -407,6 +405,7 @@ public class ExcelExampleSource extends AbstractDataReader {
 			// Annotations
 			int columnCounter = 0;
 			Annotations[] annotations = new Annotations[numberOfColumns - columnOffset - emptyColumns.size()];
+			boolean foundAnnotations = false;
 			for (int c = columnOffset; c < numberOfColumns; c++) {
 				// skip empty columns
 				if (emptyColumns.contains(c))
@@ -419,12 +418,13 @@ public class ExcelExampleSource extends AbstractDataReader {
 					} else {
 						Cell cell = sheet.getCell(c, rowOffset + entry.getKey());
 						annotations[columnCounter].put(entry.getValue(), cell.getContents());
+						foundAnnotations = true;
 					}
 				}
 				columnCounter++;
 			}
-
-			setAnnotations(annotations);
+			if (foundAnnotations)
+				setAnnotations(annotations);
 		}
 
 		@Override
@@ -464,19 +464,6 @@ public class ExcelExampleSource extends AbstractDataReader {
 
 		@Override
 		public String getString(int columnIndex) {
-			// workaround to prevent cells[columnIndex].getContents() to cut
-			// off numbers after the first decimal place:
-			try {
-				if (cells[columnIndex].getType().equals(CellType.NUMBER)) {
-					Double d = Double.valueOf(((NumberCell) cells[columnIndex]).getValue());
-					return d.toString();
-				}
-				if (cells[columnIndex].getType().equals(CellType.DATE)) {
-					Date date = ((DateCell) cells[columnIndex]).getDate();
-					return date.toString();
-				}
-			} catch (ClassCastException e) {
-			}
 			return cells[columnIndex].getContents();
 		}
 

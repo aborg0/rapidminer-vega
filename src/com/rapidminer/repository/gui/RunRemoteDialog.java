@@ -36,7 +36,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -47,6 +46,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.michaelbaranov.microba.calendar.DatePicker;
 import com.rapid_i.repository.wsimport.ExecutionResponse;
+import com.rapid_i.repository.wsimport.MacroDefinition;
+import com.rapid_i.repository.wsimport.ProcessContextWrapper;
 import com.rapidminer.Process;
 import com.rapidminer.ProcessContext;
 import com.rapidminer.ProcessLocation;
@@ -66,6 +67,7 @@ import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.tools.Observable;
 import com.rapidminer.tools.Observer;
+import com.rapidminer.tools.container.Pair;
 
 /**
  * A dialog that lets the user run a process on a remote server, either now, at
@@ -114,6 +116,8 @@ public class RunRemoteDialog extends ButtonDialog {
 	private JRadioButton cronButton;;
 
 	private final ResourceTabbedPane tabs = new ResourceTabbedPane("runremotedialog");
+
+	private ProcessContext context = new ProcessContext();
 	
 	public RunRemoteDialog(Process process) {
 		super("runremotedialog", true);
@@ -164,7 +168,7 @@ public class RunRemoteDialog extends ButtonDialog {
 		}, true);
 		
 		JPanel schedulePanel = makeSchedulePanel();
-		JComponent contextPanel = new ProcessContextEditor(process, new ProcessContext());
+		ProcessContextEditor contextPanel = new ProcessContextEditor(process, context);
 		tabs.addTabI18N("schedule", schedulePanel);
 		tabs.addTabI18N("context", contextPanel);
 		
@@ -358,10 +362,24 @@ public class RunRemoteDialog extends ButtonDialog {
 		RemoteRepository repos = (RemoteRepository) repositoryBox.getSelectedItem();
 		if (repos != null) {
 			String location = processField.getText();
+			ProcessContextWrapper pcWrapper = new ProcessContextWrapper();
+			for (String loc : context.getInputRepositoryLocations()) {
+				pcWrapper.getInputRepositoryLocations().add(loc);	
+			}			
+			for (String loc : context.getOutputRepositoryLocations()) {
+				pcWrapper.getOutputRepositoryLocations().add(loc);	
+			}
+			for (Pair<String, String> macro : context.getMacros()) {
+				final MacroDefinition macroDef = new MacroDefinition();
+				macroDef.setKey(macro.getFirst());
+				macroDef.setKey(macro.getSecond());
+				pcWrapper.getMacros().add(macroDef);	
+			}
+			
 			ExecutionResponse response;
 			if (nowButton.isSelected()) {
 				try {
-					response = repos.getProcessService().executeProcessSimple(location, null);
+					response = repos.getProcessService().executeProcessSimple(location, null, pcWrapper);
 				} catch (RepositoryException e) {
 					SwingTools.showSimpleErrorMessage("error_connecting_to_server", e);
 					return;
@@ -369,7 +387,7 @@ public class RunRemoteDialog extends ButtonDialog {
 			} else if (onceButton.isSelected()) {
 				try {
 					Date date = dateField.getDate();
-					response = repos.getProcessService().executeProcessSimple(location, XMLTools.getXMLGregorianCalendar(date));
+					response = repos.getProcessService().executeProcessSimple(location, XMLTools.getXMLGregorianCalendar(date), pcWrapper);
 				} catch (DatatypeConfigurationException e) {
 					SwingTools.showSimpleErrorMessage("cannot_parse_date", e);
 					return;
@@ -381,7 +399,7 @@ public class RunRemoteDialog extends ButtonDialog {
 				try {
 					XMLGregorianCalendar start = startBox.isSelected() ? XMLTools.getXMLGregorianCalendar(startField.getDate()) : null;
 					XMLGregorianCalendar end = endBox.isSelected() ? XMLTools.getXMLGregorianCalendar(endField.getDate()) : null;
-					response = repos.getProcessService().executeProcessCron(location, cronField.getText(), start, end);				
+					response = repos.getProcessService().executeProcessCron(location, cronField.getText(), start, end, pcWrapper);				
 				} catch (DatatypeConfigurationException e) {
 					SwingTools.showSimpleErrorMessage("cannot_parse_date", e);
 					return;

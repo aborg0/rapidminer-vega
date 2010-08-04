@@ -43,6 +43,7 @@ public interface ProcessService {
      * 
      * @param processLocation
      * @param start
+     * @param processContext
      * @param cronExpression
      * @param end
      * @return
@@ -60,12 +61,15 @@ public interface ProcessService {
         @WebParam(name = "start", targetNamespace = "")
         XMLGregorianCalendar start,
         @WebParam(name = "end", targetNamespace = "")
-        XMLGregorianCalendar end);
+        XMLGregorianCalendar end,
+        @WebParam(name = "processContext", targetNamespace = "")
+        ProcessContextWrapper processContext);
 
     /**
      * 
      * @param processLocation
      * @param executionTime
+     * @param processContext
      * @return
      *     returns com.rapid_i.repository.wsimport.ExecutionResponse
      */
@@ -77,7 +81,9 @@ public interface ProcessService {
         @WebParam(name = "processLocation", targetNamespace = "")
         String processLocation,
         @WebParam(name = "executionTime", targetNamespace = "")
-        XMLGregorianCalendar executionTime);
+        XMLGregorianCalendar executionTime,
+        @WebParam(name = "processContext", targetNamespace = "")
+        ProcessContextWrapper processContext);
 
     /**
      * 

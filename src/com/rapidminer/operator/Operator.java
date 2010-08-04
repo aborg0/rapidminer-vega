@@ -57,6 +57,7 @@ import com.rapidminer.io.process.XMLExporter;
 import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.ProcessSetupError.Severity;
+import com.rapidminer.operator.annotation.ResourceConsumer;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.InputPorts;
@@ -143,7 +144,7 @@ import com.rapidminer.tools.math.StringToMatrixConverter;
  * 
  * @author Ralf Klinkenberg, Ingo Mierswa, Simon Fischer
  */
-public abstract class Operator extends AbstractObservable<Operator> implements ConfigurationListener, PreviewListener, LoggingHandler, ParameterHandler {
+public abstract class Operator extends AbstractObservable<Operator> implements ConfigurationListener, PreviewListener, LoggingHandler, ParameterHandler, ResourceConsumer {
 	
 	private static final OperatorVersion[] EMPTY_OPERATOR_VERSIONS_ARRAY = new OperatorVersion[0];
 
@@ -2174,6 +2175,7 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 	
 	/** Subclasses can override this method if they are able to estimate the consumed resources
 	 *  (CPU time and memory), based on their input. The default implementation returns null. */
+	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return null;
 	}	

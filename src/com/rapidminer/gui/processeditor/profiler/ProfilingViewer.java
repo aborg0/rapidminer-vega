@@ -134,6 +134,22 @@ public class ProfilingViewer extends JPanel implements Dockable, Observer {
 			@Override
     		public void actionPerformed(ActionEvent e) {
     			ProfilingViewer.this.listener.toggleAutoMerge();
+    			if (ProfilerDataManager.getInstance().getMergeLocation() == null && ProfilingViewer.this.listener.isAutoMergeEnabled()) {
+					String loc = RepositoryLocationChooser.selectLocation(null, RapidMinerGUI.getMainFrame());
+					if (loc != null) {
+						RepositoryLocation location;
+						try {
+							location = new RepositoryLocation(loc);
+							ProfilerDataManager.getInstance().setMergeLocation(location);
+						} catch (Exception ex) {
+							SwingTools.showSimpleErrorMessage("malformed_rep_location", ex, loc);
+						}
+					} else {
+						// location choosing cancelled
+						ProfilingViewer.this.listener.toggleAutoMerge();
+						((JToggleButton)e.getSource()).setSelected(false);
+					}
+				}
     		}	
     	});
         toggleMerge.setText(null);
@@ -336,20 +352,7 @@ public class ProfilingViewer extends JPanel implements Dockable, Observer {
 		if (Boolean.parseBoolean(String.valueOf(arg))) {
 			// if auto merge is enabled
 			if (ProfilingViewer.this.listener.isAutoMergeEnabled()) {
-				// if no location for the process has been specified, ask for one
-				if (ProfilerDataManager.getInstance().getMergeLocation(ProfilingViewer.this.listener.getCurrentProcess()) == null) {
-					String loc = RepositoryLocationChooser.selectLocation(null, RapidMinerGUI.getMainFrame());
-					if (loc != null) {
-						RepositoryLocation location;
-						try {
-							location = new RepositoryLocation(loc);
-							ProfilerDataManager.getInstance().setMergeLocation(ProfilingViewer.this.listener.getCurrentProcess(), location);
-						} catch (Exception ex) {
-							SwingTools.showSimpleErrorMessage("malformed_rep_location", ex, loc);
-						}
-					}
-				}
-				mergeAutomaticallyData(ProfilerDataManager.getInstance().getMergeLocation(ProfilingViewer.this.listener.getCurrentProcess()));
+				mergeAutomaticallyData(ProfilerDataManager.getInstance().getMergeLocation());
 				resetCurrent();
 			}
 		}

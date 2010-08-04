@@ -268,31 +268,15 @@ public class ExtendedErrorDialog extends ButtonDialog {
 			
 			StringBuilder infoText = new StringBuilder();
 			infoText.append("<p>");
-			infoText.append(super.getInfoText());
+			
+			infoText.append(Tools.escapeHTML(super.getInfoText()));
 			infoText.append("</p>");
 
-//			infoText.append("<p>");
-//			infoText.append("<b>Exception: </b>");
-//			infoText.append(error.getClass().getSimpleName());
-//			infoText.append("</p>");
-			
-
-			String message = error.getMessage();
+			String message = Tools.escapeHTML(error.getMessage());
 			if (message == null) {
 				message = error.toString();
 			}
-			// Find deepest non-null message
-			//			Throwable e = error;
-//			while (e != null) {
-//				if (e.getMessage() != null) {
-//					message = e.getLocalizedMessage();
-//				}
-//				e = e.getCause();
-//			}
-//			if (message == null) {
-//				message = error.toString();
-//			}			
-			
+
 			if (!"null".equals(message)) {				
 				infoText.append("<p><strong>Reason: </strong>");
 				infoText.append(message);

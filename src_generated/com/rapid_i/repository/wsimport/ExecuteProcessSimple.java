@@ -20,6 +20,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *       &lt;sequence>
  *         &lt;element name="processLocation" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="executionTime" type="{http://www.w3.org/2001/XMLSchema}dateTime" minOccurs="0"/>
+ *         &lt;element name="processContext" type="{http://service.web.rapidrepository.com/}processContextWrapper" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -31,13 +32,15 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "executeProcessSimple", propOrder = {
     "processLocation",
-    "executionTime"
+    "executionTime",
+    "processContext"
 })
 public class ExecuteProcessSimple {
 
     protected String processLocation;
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar executionTime;
+    protected ProcessContextWrapper processContext;
 
     /**
      * Gets the value of the processLocation property.
@@ -85,6 +88,30 @@ public class ExecuteProcessSimple {
      */
     public void setExecutionTime(XMLGregorianCalendar value) {
         this.executionTime = value;
+    }
+
+    /**
+     * Gets the value of the processContext property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link ProcessContextWrapper }
+     *     
+     */
+    public ProcessContextWrapper getProcessContext() {
+        return processContext;
+    }
+
+    /**
+     * Sets the value of the processContext property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link ProcessContextWrapper }
+     *     
+     */
+    public void setProcessContext(ProcessContextWrapper value) {
+        this.processContext = value;
     }
 
 }

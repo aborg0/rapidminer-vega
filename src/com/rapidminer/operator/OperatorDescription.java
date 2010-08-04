@@ -387,4 +387,8 @@ public class OperatorDescription implements Comparable<OperatorDescription> {
 	public Plugin getProvider() {
 		return provider;
 	}
+	
+	public GroupTree getGroupTree() {
+		return groupTree;
+	}
 }

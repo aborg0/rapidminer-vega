@@ -36,7 +36,7 @@ import javax.swing.JTextField;
 
 import com.rapidminer.gui.tools.CharTextField;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
-import com.rapidminer.gui.tools.dialogs.wizards.dataimport.MetaDataDeclerationWirzardStep;
+import com.rapidminer.gui.tools.dialogs.wizards.dataimport.MetaDataDeclerationWizardStep;
 import com.rapidminer.operator.io.AbstractDataReader;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.DateParser;
@@ -48,7 +48,7 @@ import com.rapidminer.tools.StrictDecimalFormat;
  * @author Tobias Malbrecht, Sebastian Loh
  */
 
-public abstract class ParseValueTypesWizardStep extends MetaDataDeclerationWirzardStep {
+public abstract class ParseValueTypesWizardStep extends MetaDataDeclerationWizardStep {
 	private final KeyAdapter textFieldKeyListener = new KeyAdapter() {
 		@Override
 		public void keyReleased(KeyEvent e) {

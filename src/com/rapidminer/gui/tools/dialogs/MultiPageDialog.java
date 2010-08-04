@@ -67,19 +67,19 @@ public abstract class MultiPageDialog extends ButtonDialog implements ChangeList
 		}
 	});
 	public MultiPageDialog(Dialog owner, String key, boolean modal, Object... arguments) {
-		super(owner, key, modal, arguments);
+		super(key, modal, arguments);
 	}
 
 	public MultiPageDialog(Dialog owner, String key, Object... arguments) {
-		super(owner, key, arguments);
+		super(key, arguments);
 	}
 
 	public MultiPageDialog(Frame owner, String key, boolean modal, Object... arguments) {
-		super(owner, key, modal, arguments);
+		super(key, modal, arguments);
 	}
 
 	public MultiPageDialog(Frame owner, String key, Object... arguments) {
-		super(owner, key, arguments);
+		super(key, arguments);
 	}
 
 	protected abstract boolean isComplete();

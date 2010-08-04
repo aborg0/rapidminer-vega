@@ -288,12 +288,12 @@ public class RapidMiner {
 		registerRapidMinerProperty(new ParameterTypeBoolean("https.proxySet", "Determines whether a proxy is used for HTTPS connections.", true));
 		registerRapidMinerProperty(new ParameterTypeString("https.proxyHost", "The proxy host to use for HTTPS.", true));
 		registerRapidMinerProperty(new ParameterTypeInt("https.proxyPort", "The proxy port to use for HTTPS.", 0, 65535, true));
-		registerRapidMinerProperty(new ParameterTypeString("http.nonProxyHosts", "List of regular expressions determining hosts not to be connected directly.", true));
+		registerRapidMinerProperty(new ParameterTypeString("http.nonProxyHosts", "List of regular expressions separated by '|' determining hosts to be connected directly bypassing the proxy.", true));
 		
 		registerRapidMinerProperty(new ParameterTypeBoolean("ftp.proxySet", "Determines whether a proxy is used for FTPconnections.", false));
 		registerRapidMinerProperty(new ParameterTypeString("ftp.proxyHost", "The proxy host to use for FTP.", true));
 		registerRapidMinerProperty(new ParameterTypeInt("ftp.proxyPort", "The proxy port to use for FTP.", 0, 65535, true));
-		registerRapidMinerProperty(new ParameterTypeString("ftp.nonProxyHosts", "List of regular expressions determining hosts not to be connected directly.", true));
+		registerRapidMinerProperty(new ParameterTypeString("ftp.nonProxyHosts", "List of regular expressions separated by '|' determining hosts to be connected directly bypassing the proxy.", true));
 		
 		registerRapidMinerProperty(new ParameterTypeString("socksProxyHost", "The proxy host to use for SOCKS.", true));
 		registerRapidMinerProperty(new ParameterTypeInt("socksProxyPort", "The proxy port to use for SOCKS.", 0, 65535, true));

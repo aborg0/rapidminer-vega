@@ -51,8 +51,8 @@ public class ProfilerDataManager {
 	/** the map holding all data maps for all processes during runtime */
 	private Map<ProcessLocation, Map<String, ProfilerData>> processMap;
 	
-	/** the map holding all RepositoryLocations (if specified) for all processes during runtime */
-	private Map<ProcessLocation, RepositoryLocation> processMergeLocationMap;
+	/** the RepositoryLocation (if specified) for all processes during runtime to merge */
+	private RepositoryLocation processMergeLocation;
 	
 	/** the instance of the class */
 	private static ProfilerDataManager pdm;
@@ -66,7 +66,6 @@ public class ProfilerDataManager {
 	private ProfilerDataManager() {
 		processMap = new HashMap<ProcessLocation, Map<String, ProfilerData>>();
 		dataMap = new HashMap<String, ProfilerData>();
-		processMergeLocationMap = new HashMap<ProcessLocation, RepositoryLocation>();
 	}
 	
 	/**
@@ -138,26 +137,21 @@ public class ProfilerDataManager {
 	
 	/**
 	 * Sets the RepositoryLocation into which to merge (if auto merge has been toggled).
-	 * @param process the process
 	 * @param location the RepositoryLocation for the process
 	 */
-	public void setMergeLocation(Process process, RepositoryLocation location) {
-		if (process == null) {
-			throw new IllegalArgumentException("process must not be null!");
-		}
+	public void setMergeLocation(RepositoryLocation location) {
 		if (location == null) {
 			throw new IllegalArgumentException("location must not be null!");
 		}
-		processMergeLocationMap.put(process.getProcessLocation(), location);
+		processMergeLocation = location;
 	}
 	
 	/**
 	 * Gets the RepositoryLocation into which to merge (if auto merge has been toggled).
-	 * @param process the process of which the RepositoryLocation should be returned
-	 * @return the RepositoryLocation into which to merge for the given process
+	 * @return the RepositoryLocation into which to merge
 	 */
-	public RepositoryLocation getMergeLocation(Process process) {
-		return processMergeLocationMap.get(process.getProcessLocation());
+	public RepositoryLocation getMergeLocation() {
+		return processMergeLocation;
 	}
 	
 	/**

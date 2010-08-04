@@ -98,10 +98,12 @@ public class ProcessBranch extends OperatorChain {
 		"min_performance_value",
 		"max_performance_value",
 		"file_exists",
-		"input_exists",
+		"input_exists",   // <== THIS NEEDS TO BE THE 11'th ENTRY IN THE LIST!!!
 		"macro_defined",
 		"expression"
 	};
+	// ONLY TRUE IF INPUT EXISTS IS 11'th ENTRY ABOVE
+	public static final String CONDITION_INPUT_EXISTS = CONDITION_NAMES[11];
 
 	public static final Class[]  CONDITION_CLASSES = {
 		DataValueCondition.class,
@@ -120,8 +122,7 @@ public class ProcessBranch extends OperatorChain {
 		ExpressionCondition.class
 	};
 
-	// ONLY TRUE IF INPUT EXISTS IS SECOND LAST ENTRY ABOVE
-	public static final String CONDITION_INPUT_EXISTS = CONDITION_NAMES[CONDITION_NAMES.length - 2];
+	
 
 
 	private String[] objectArray = null;

@@ -307,9 +307,17 @@
     <operator>
         <name>Print to Console</name>
         <key>print_to_console</key>
-        <synopsis>This operator simply prints the given parameter value to the console.</synopsis>
-        <help>Parameter values can be enriched using macros like the apply count using the %{a} default macro. This is usually used for
-        execute processes in the background without gui in order to protocol progress.</help>
+        <synopsis>Prints the given parameter value to the console.</synopsis>
+        <help>This operator prints the given parameter value to the consoles. The parameter value
+        may contain macros. E.g. you may print the operator apply count using the %{a} macro.
+        This operator is escpecially helpful when processes are executed in the background (i.e.
+        without a graphical user interface) or as services in order to protocol the process progress.</help>
+    </operator>
+    <operator>
+        <name>Delay</name>
+        <key>delay</key>
+        <synopsis>Delays process execution.</synopsis>
+        <help>This operator delays the process execution by a fixed or random amount of time.</help>
     </operator>
     <operator>
         <name>Batch-X-Validation</name>

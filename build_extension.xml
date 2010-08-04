@@ -296,6 +296,7 @@ Name "${extension.name.long}"
 		<echo message="cd &quot;/home/frs/project/y/ya/yale/2. Extensions/${extension.name}/${extension.shortversion}&quot;${line.separator}" file="${release.targetDir}/scp/commands.script" append="true"/>
 		<echo message="ls${line.separator}" file="${release.targetDir}/scp/commands.script" append="true"/>
 
+    	<!--
 		<for param="file">
 			<fileset dir="${release.targetDir}/scp" includes="**/*.*" />
 			<sequential>
@@ -308,6 +309,7 @@ Name "${extension.name.long}"
 	    <echo message="shutdown${line.separator}" file="${release.targetDir}/scp/commands.script" append="true"/>
 		<sshexec commandResource ="${release.targetDir}/scp/commands.script" host="shell.sourceforge.net" username="${server.sf.user},${server.sf.project}" password="${server.sf.password}" failonerror="false"/>
 		<delete file="${release.targetDir}/scp/commands.script"/>
+		-->
 		
         <!-- move back and delete dir -->
         <move todir="${release.targetDir}">
@@ -473,7 +475,7 @@ Name "${extension.name.long}"
 
     <target name="javaDoc.generate" depends="init, build" description="Generate the java class documentation">
         <echo message="Generating java doc..." />
-        <javadoc sourcepathref="build.sources.path" packagenames="com.*" destdir="${javadoc.targetDir}" maxmemory="900m" author="true" version="true" windowtitle="RapidMiner Class Documentation" use="true">
+        <javadoc sourcepathref="build.sources.path" packagenames="com.*" destdir="${javadoc.targetDir}" maxmemory="900m" author="true" version="true" windowtitle="RapidMiner Class Documentation" use="true" encoding="${build.encoding}">
             <!-- breakiterator="true" -->
             <classpath refid="javadoc.classpath" />
             <doctitle>

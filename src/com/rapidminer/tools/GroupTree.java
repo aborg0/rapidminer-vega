@@ -143,7 +143,7 @@ public class GroupTree implements Comparable<GroupTree> {
 	}
 
 	/** Returns the parent of this group. Returns null if no parent does exist. */
-	private GroupTree getParent() {
+	public GroupTree getParent() {
 		return parent;
 	}
 

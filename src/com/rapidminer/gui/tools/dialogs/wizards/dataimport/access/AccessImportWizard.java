@@ -30,16 +30,11 @@ import javax.swing.JComponent;
 import com.rapidminer.gui.tools.SimpleFileFilter;
 import com.rapidminer.gui.tools.dialogs.SQLQueryBuilder;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
-import com.rapidminer.gui.tools.dialogs.wizards.dataimport.AttributeSelectionWizardStep;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DataImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.FileSelectionWizardStep;
-import com.rapidminer.gui.tools.dialogs.wizards.dataimport.MetaDataDeclarationEditor;
-import com.rapidminer.gui.tools.dialogs.wizards.dataimport.MetaDataDeclerationWirzardStep;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.RepositoryLocationSelectionWizardStep;
 import com.rapidminer.operator.OperatorCreationException;
-import com.rapidminer.operator.io.AbstractDataReader;
 import com.rapidminer.operator.io.DatabaseDataReader;
-import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
@@ -58,8 +53,6 @@ public class AccessImportWizard extends DataImportWizard {
 	private final AccessConnectionEntry connectionEntry = new AccessConnectionEntry();
 	
 	private DatabaseDataReader reader = null;
-	
-	private ExampleSetMetaData metaData = null;
 	
 	public AccessImportWizard(String i18nKey, Object ... i18nArgs) throws SQLException {
 		this(i18nKey, null, null, i18nArgs);
@@ -118,7 +111,7 @@ public class AccessImportWizard extends DataImportWizard {
 				reader.setParameter(DatabaseHandler.PARAMETER_PASSWORD, new String(connectionEntry.getPassword()));
 				reader.setParameter(DatabaseHandler.PARAMETER_DEFINE_QUERY, DatabaseHandler.QUERY_MODES[DatabaseHandler.QUERY_QUERY]);
 				reader.setParameter(DatabaseHandler.PARAMETER_QUERY, dialog.getQuery());
-				metaData = (ExampleSetMetaData) reader.getGeneratedMetaData();
+				reader.getGeneratedMetaData();
 				return true;
 			}
 		});
