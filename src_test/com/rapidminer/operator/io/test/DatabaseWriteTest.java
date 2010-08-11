@@ -1,5 +1,6 @@
 package com.rapidminer.operator.io.test;
 
+import static junit.framework.Assert.*;
 import java.sql.SQLException;
 
 import org.junit.Before;
@@ -10,6 +11,7 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.io.DatabaseDataReader;
+import com.rapidminer.operator.io.DatabaseExampleSetWriter;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.RepositoryLocation;
@@ -87,6 +89,34 @@ public class DatabaseWriteTest {
 	@Test
 	public void testCreateTableIngres() throws SQLException, OperatorException, ClassNotFoundException, OperatorCreationException {
 		testCreateTable(DB_INGRES);
+	}
+	
+	@Test
+	public void testWriteOperator() throws OperatorCreationException, OperatorException {
+		DatabaseExampleSetWriter writer = OperatorService.createOperator(DatabaseExampleSetWriter.class);
+		writer.setParameter(DatabaseHandler.PARAMETER_DATABASE_SYSTEM, "MySQL");
+		writer.setParameter(DatabaseHandler.PARAMETER_DEFINE_CONNECTION, DatabaseHandler.CONNECTION_MODES[DatabaseHandler.CONNECTION_MODE_URL]);
+		writer.setParameter(DatabaseHandler.PARAMETER_DATABASE_URL, DB_MY_SQL.getUrl());
+		writer.setParameter(DatabaseHandler.PARAMETER_USERNAME, DB_MY_SQL.getUser());
+		writer.setParameter(DatabaseHandler.PARAMETER_PASSWORD, DB_MY_SQL.getPassword());
+		writer.setParameter(DatabaseHandler.PARAMETER_TABLE_NAME, "LaborNegotiationOp");
+		writer.setParameter(DatabaseExampleSetWriter.PARAMETER_OVERWRITE_MODE, DatabaseHandler.OVERWRITE_MODES[DatabaseHandler.OVERWRITE_MODE_OVERWRITE]);
+		writer.write(exampleSet);
+	}
+
+	@Test
+	public void testReadOperator() throws OperatorCreationException, OperatorException {
+		DatabaseDataReader reader = OperatorService.createOperator(DatabaseDataReader.class);		
+		reader.setParameter(DatabaseHandler.PARAMETER_DATABASE_SYSTEM, "MySQL");
+		reader.setParameter(DatabaseHandler.PARAMETER_DEFINE_CONNECTION, DatabaseHandler.CONNECTION_MODES[DatabaseHandler.CONNECTION_MODE_URL]);
+		reader.setParameter(DatabaseHandler.PARAMETER_DATABASE_URL, DB_MY_SQL.getUrl());
+		reader.setParameter(DatabaseHandler.PARAMETER_USERNAME, DB_MY_SQL.getUser());
+		reader.setParameter(DatabaseHandler.PARAMETER_PASSWORD, DB_MY_SQL.getPassword());
+		reader.setParameter(DatabaseHandler.PARAMETER_TABLE_NAME, "LaborNegotiationOp");
+		reader.setParameter(DatabaseHandler.PARAMETER_DEFINE_QUERY, DatabaseHandler.QUERY_MODES[DatabaseHandler.QUERY_TABLE]);
+		ExampleSet exampleSet = reader.read();
+		assertEquals(40, exampleSet.size());
+		assertEquals(17, exampleSet.getAttributes().size());		
 	}
 
 	private void testCreateTable(DatabaseRef connection) throws SQLException, OperatorException, ClassNotFoundException, OperatorCreationException {

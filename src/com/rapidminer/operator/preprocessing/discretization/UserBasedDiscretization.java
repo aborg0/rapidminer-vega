@@ -34,6 +34,9 @@ import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.annotation.PolynomialExampleSetResourceConsumptionEstimator;
+import com.rapidminer.operator.annotation.PolynomialFunction;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.SetRelation;
@@ -45,6 +48,7 @@ import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.container.Tupel;
 
 /**
@@ -142,5 +146,21 @@ public class UserBasedDiscretization extends AbstractDiscretizationOperator {
 		types.add(type);
 
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		String[] timeConsumption = OperatorResourceConsumptionHandler.getTimeConsumption(UserBasedDiscretization.class);
+		String[] memoryConsumption = OperatorResourceConsumptionHandler.getMemoryConsumption(UserBasedDiscretization.class);
+		if (timeConsumption == null || memoryConsumption == null) {
+			return null;
+		}
+		
+		PolynomialFunction timeFunction = new PolynomialFunction(Double.parseDouble(timeConsumption[0]),
+				Double.parseDouble(timeConsumption[1]), Double.parseDouble(timeConsumption[2]));
+		PolynomialFunction memoryFunction = new PolynomialFunction(Double.parseDouble(memoryConsumption[0]),
+				Double.parseDouble(memoryConsumption[1]), Double.parseDouble(memoryConsumption[2]));
+		
+		return new PolynomialExampleSetResourceConsumptionEstimator(getExampleSetInputPort(), attributeSelector, timeFunction, memoryFunction);
 	}
 }

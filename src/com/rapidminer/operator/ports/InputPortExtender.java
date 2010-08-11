@@ -71,7 +71,7 @@ public class InputPortExtender extends SinglePortExtender<InputPort> {
 	@Override
 	protected InputPort createPort() {
 		InputPort port = super.createPort();
-		Precondition precondition = makePrecondition(port);
+		Precondition precondition = makePrecondition(port, getManagedPorts().size());
 		if (precondition != null) {			
 			port.addPrecondition(new CollectionPrecondition(precondition));
 		}
@@ -124,6 +124,15 @@ public class InputPortExtender extends SinglePortExtender<InputPort> {
 		return results;
 	}
 
+	
+	/**
+	 * Subclasses might override this method in order to specify preconditions dependent
+	 * on the number of port. For example when a parameter lists the input types, etc...
+	 */
+	protected Precondition makePrecondition(final InputPort port, int portIndex) {
+		return makePrecondition(port);
+	}
+	
 	protected Precondition makePrecondition(final InputPort port) {
 		if (desiredMetaData != null) {
 			return new Precondition() {

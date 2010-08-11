@@ -37,12 +37,18 @@ import com.rapidminer.gui.processeditor.profiler.data.ProfilerData;
 import com.rapidminer.gui.processeditor.profiler.data.ProfilerDataManager;
 import com.rapidminer.operator.Operator;
 
+
+/**
+ * Listener which is registered as a Process Editor in the MainFrame.
+ * 
+ * @author Marco Boeck
+ */
 public class ProfilingListener extends Observable implements ProcessListener, ProcessEditor {
 	
 	/** map storing the time in ms it took an operator to finish execution (System.currentTimeMillis()) */
 	private Map<String, Long> operatorExecSystemTimeMap;
 	
-	/** map storing the time in ms it took an operator to finish execution (getThreadCpuTime()) */
+	/** map storing the time in ns it took an operator to finish execution (getThreadCpuTime()) */
 	private Map<String, Long> operatorExecCPUTimeMap;
 	
 	/** the currently active process */
@@ -99,7 +105,6 @@ public class ProfilingListener extends Observable implements ProcessListener, Pr
 		}
 		long execTimeReal = Math.abs(operatorExecSystemTimeMap.get(op.getName()) - System.currentTimeMillis());
 		long execTimeCPU = Math.abs(operatorExecCPUTimeMap.get(op.getName()) - ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId()));
-		execTimeCPU /= 1000;
 		ProfilerData data;
 		if (!ProfilerDataManager.getInstance().isOperatorDataAvailable(op.getName())) {
 			data = ProfilerDataManager.getInstance().addOperatorData(

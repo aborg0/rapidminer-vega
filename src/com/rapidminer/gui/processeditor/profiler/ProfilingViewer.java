@@ -71,7 +71,6 @@ import com.vlsolutions.swing.docking.Dockable;
  * Profiler view, which shows statistics about the currently selected operator(s).
  * 
  * @author Marco Boeck
- *
  */
 public class ProfilingViewer extends JPanel implements Dockable, Observer {
 

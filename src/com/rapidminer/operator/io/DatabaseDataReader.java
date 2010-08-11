@@ -353,7 +353,9 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 	@Override
 	protected void addAnnotations(ExampleSet result) {
 		try {
-			result.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, getQuery(databaseHandler.getStatementCreator()));
+			if (databaseHandler != null) {
+				result.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, getQuery(databaseHandler.getStatementCreator()));
+			}
 		} catch (OperatorException e) {
 		}
 	}

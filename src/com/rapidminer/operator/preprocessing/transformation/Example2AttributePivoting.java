@@ -76,6 +76,8 @@ public class Example2AttributePivoting extends ExampleSetTransformationOperator 
 
 	public static final String PARAMETER_WEIGHT_AGGREGATION = "weight_aggregation";
 
+	public static final String PARAMETER_SKIP_CONSTANT_ATTRIBUTES = "skip_constant_attributes";
+
 	public Example2AttributePivoting(OperatorDescription description) {
 		super(description);
 
@@ -152,7 +154,8 @@ public class Example2AttributePivoting extends ExampleSetTransformationOperator 
 	}
 
 	@Override
-	public ExampleSet apply(ExampleSet sourceExampleSet) throws OperatorException {		
+	public ExampleSet apply(ExampleSet sourceExampleSet) throws OperatorException {
+		boolean skipConstantAttributes = getParameterAsBoolean(PARAMETER_SKIP_CONSTANT_ATTRIBUTES);
 		String groupAttributeName = getParameterAsString(PARAMETER_GROUP_ATTRIBUTE);
 		String indexAttributeName = getParameterAsString(PARAMETER_INDEX_ATTRIBUTE);
 		boolean considerWeights = getParameterAsBoolean(PARAMETER_CONSIDER_WEIGHTS);
@@ -214,7 +217,7 @@ public class Example2AttributePivoting extends ExampleSetTransformationOperator 
 		for (int i = 0; i < attributes.length; i++) {
 			Attribute attribute = attributes[i];
 			if (!attribute.equals(indexAttribute)) { 
-				if (constantAttributeValues[i]) {
+				if ((skipConstantAttributes && constantAttributeValues[i]) || attribute.equals(groupAttribute)) {
 					newAttributes.add(AttributeFactory.createAttribute(attribute.getName(), attribute.getValueType()));
 					attributeNames.add(attribute.getName());
 				} else {
@@ -266,7 +269,7 @@ public class Example2AttributePivoting extends ExampleSetTransformationOperator 
 			for (int i = 0; i < attributes.length; i++) {
 				Attribute attribute = attributes[i];
 				int newIndex = -1;
-				if (constantAttributeValues[i]) {
+				if ((skipConstantAttributes && constantAttributeValues[i]) || (attribute.equals(groupAttribute))) {
 					newIndex = attributeNames.indexOf(attribute.getName());
 				} else {
 					String newAttributeName = attribute.getName() + "_" + example.getValueAsString(indexAttribute);
@@ -308,6 +311,10 @@ public class Example2AttributePivoting extends ExampleSetTransformationOperator 
 		ParameterType type = new ParameterTypeCategory(PARAMETER_WEIGHT_AGGREGATION, "Specifies how example weights are aggregated in the groups.", AbstractAggregationFunction.KNOWN_AGGREGATION_FUNCTION_NAMES, AbstractAggregationFunction.SUM, false);
 		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_CONSIDER_WEIGHTS, true, true));
 		types.add(type);
+
+		types
+				.add(new ParameterTypeBoolean(PARAMETER_SKIP_CONSTANT_ATTRIBUTES, "Skips attributes if their value never changes within a group.",
+						true));
 		return types;
 	}
 }

@@ -30,8 +30,6 @@ import com.rapidminer.operator.Model;
  * This interface provides methods for accessing the different models encapsulated in this model
  * for graphical representation. Models implementing this interface might be rendered using the
  * the MetaModelRenderer.
- */
-/**
  * 
  * @author Sebastian Land
  */

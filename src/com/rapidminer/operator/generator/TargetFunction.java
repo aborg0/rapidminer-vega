@@ -36,7 +36,7 @@ import com.rapidminer.tools.RandomGenerator;
 public interface TargetFunction {
 
 	/**
-	 * Will be thrown if an error occurrs during the calculation of the target
+	 * Will be thrown if an error occurs during the calculation of the target
 	 * function.
 	 */
 	public static class FunctionException extends Exception {

@@ -22,7 +22,6 @@
  */
 package com.rapidminer.operator.learner.meta;
 
-import java.util.Iterator;
 import java.util.List;
 
 import com.rapidminer.example.Attributes;
@@ -62,15 +61,11 @@ public class Stacking extends AbstractStacking {
 		super(description, "Base Learner", "Stacking Model Learner");		
 		getTransformer().addRule(new MDTransformationRule() {
 			public void transformMD() {
-				MetaData unmodifiedMetaData = exampleSetInput.getMetaData();
+				MetaData unmodifiedMetaData = exampleSetInput.getMetaData().clone();
 				if (unmodifiedMetaData instanceof ExampleSetMetaData) {
 					ExampleSetMetaData emd = (ExampleSetMetaData) unmodifiedMetaData;
 					if (!keepOldAttributes()) {
-						Iterator<AttributeMetaData> iterator = emd.getAllAttributes().iterator();
-						while(iterator.hasNext()) {
-							if (!iterator.next().isSpecial())
-								iterator.remove();
-						}
+						emd.clearRegular();
 					}
 					// constructing new meta attributes
 					List<MetaData> metaDatas = baseModelExtender.getMetaData(true);

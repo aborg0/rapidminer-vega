@@ -64,8 +64,7 @@ import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.Tools;
 
 /**
- * An editor to declare meta data information (attributes, value types, roles,
- * ...) in a importing wizard
+ * An editor to declare meta data information (attributes, value types, roles, ...) in a importing wizard
  * 
  * @author Tobias Malbrecht
  * @author Sebastian Loh (22.04.2010)
@@ -74,11 +73,8 @@ public class MetaDataDeclarationEditor extends JPanel {
 
 	private static final long serialVersionUID = -520323914589387512L;
 
-	
-
 	/**
-	 * upper table, actually a simulation of an multi-row header for the
-	 * previewTable
+	 * upper table, actually a simulation of an multi-row header for the previewTable
 	 */
 	private MetaDataTable metadataTable;
 
@@ -86,9 +82,8 @@ public class MetaDataDeclarationEditor extends JPanel {
 	private PreviewTable previewTable;
 
 	/**
-	 * Listener to recognize if a column margin of the
-	 * {@link MetaDataDeclarationEditor#metadataTable} changed. Not very nice to
-	 * declare it globally but doesn't work otherwise.
+	 * Listener to recognize if a column margin of the {@link MetaDataDeclarationEditor#metadataTable} changed. Not very
+	 * nice to declare it globally but doesn't work otherwise.
 	 */
 	TableColumnModelListener metadataColumnListener;
 
@@ -99,11 +94,11 @@ public class MetaDataDeclarationEditor extends JPanel {
 	/**
 	 * The font color of an error cell.
 	 */
-	private static final Color BLUE = new Color(52, 86, 164); //new Color(217, 69, 69);
+	private static final Color BLUE = new Color(52, 86, 164); // new Color(217, 69, 69);
 
 	/** the background color of error cells */
-	private static final Color YELLOW = new Color(245, 223, 171); //new Color(255, 234, 128);
-	
+	private static final Color YELLOW = new Color(245, 223, 171); // new Color(255, 234, 128);
+
 	private final Color backGroundGray;
 
 	/** the row number of the role selection */
@@ -117,9 +112,8 @@ public class MetaDataDeclarationEditor extends JPanel {
 
 	private static final int ATTRIBUTE_NAME_ROW = 0;
 
-	
-//	private boolean lock = false;
-	
+	// private boolean lock = false;
+
 	/**
 	 * 
 	 */
@@ -127,7 +121,7 @@ public class MetaDataDeclarationEditor extends JPanel {
 		super(new BorderLayout());
 
 		backGroundGray = this.getBackground();
-		
+
 		this.reader = reader;
 
 		metadataTable = new MetaDataTable();
@@ -167,7 +161,7 @@ public class MetaDataDeclarationEditor extends JPanel {
 				for (int i = 0; i < previewTable.getColumnCount(); i++) {
 					int columnwidth = metadataTable.getColumnModel().getColumn(i).getWidth();
 					int oldwidth = previewTable.getColumnModel().getColumn(i).getPreferredWidth();
-					if (oldwidth == columnwidth){
+					if (oldwidth == columnwidth) {
 						continue;
 					}
 					previewTable.getColumnModel().getColumn(i).setPreferredWidth(columnwidth);
@@ -180,8 +174,6 @@ public class MetaDataDeclarationEditor extends JPanel {
 			public void columnAdded(TableColumnModelEvent e) {
 			}
 		};
-		
-		
 
 		if (showMetaDataEditor) {
 
@@ -195,7 +187,7 @@ public class MetaDataDeclarationEditor extends JPanel {
 
 				@Override
 				public void paint(Graphics g) {
-//					Color c = getParent().getBackground();
+					// Color c = getParent().getBackground();
 					g.setColor(backGroundGray);
 					g.fillRect(0, 0, this.getSize().width, this.getSize().height);
 				}
@@ -218,7 +210,7 @@ public class MetaDataDeclarationEditor extends JPanel {
 
 			// propagate metadataTable margin changes to previewTable:
 			metadataTable.getColumnModel().addColumnModelListener(metadataColumnListener);
-			
+
 			metadataPane.setPreferredSize(new Dimension(400, 103)); // ugly
 			this.add(metadataPane, BorderLayout.NORTH);
 		}
@@ -252,17 +244,27 @@ public class MetaDataDeclarationEditor extends JPanel {
 
 		private final MetaDataModel fixedHeaderModel = new MetaDataModel();
 
-		private ValueTypeCellEditor[] valueTypeCellEditors = null;
-		
+		private ValueTypeCellEditor valueTypeCellEditor = null;
+		private ValueTypeCellEditor valueTypeCellRenderer = null;
+
+		private ColumnSelectionCellEditor checkBoxCellEditor = null;
+		private ColumnSelectionCellEditor checkBoxCellRenderer = null;
+
+		private RoleSelectionCellEditor roleCellEditor = null;
+		private RoleSelectionCellEditor roleCellRenderer = null;
+
 		// is used to select or deselect all columns
 		private ColumnSelectionCellEditor globalCheckBoxCellEditor = new ColumnSelectionCellEditor();
 
-		private ColumnSelectionCellEditor[] checkBoxCellEditors = null;
-
-		private RoleSelectionCellEditor[] roleCellEditors = null;
-
 		private MetaDataTable() {
 			super(null, false, false, false, false, false);
+
+			valueTypeCellEditor = new ValueTypeCellEditor();
+			valueTypeCellRenderer = new ValueTypeCellEditor();
+			checkBoxCellEditor = new ColumnSelectionCellEditor();
+			checkBoxCellRenderer = new ColumnSelectionCellEditor();
+			roleCellEditor = new RoleSelectionCellEditor();
+			roleCellRenderer = new RoleSelectionCellEditor();
 
 			setModel(fixedHeaderModel);
 
@@ -270,58 +272,43 @@ public class MetaDataDeclarationEditor extends JPanel {
 				private static final long serialVersionUID = 1L;
 
 				@Override
-				public Component getTableCellRendererComponent(JTable table,  Object value,  boolean isSelected,  boolean hasFocus,  int row,  int column) {
+				public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 					Component comp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-					if (column == 0){ // RowNo.
-//						comp = table.getTableHeader().getDefaultRenderer().getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-						if (row == IS_SELECTED_ROW){
+					// RowNo. column
+					if (column == 0) {
+						// comp = table.getTableHeader().getDefaultRenderer().getTableCellRendererComponent(table,
+						// value, isSelected, hasFocus, row, column);
+						if (row == IS_SELECTED_ROW) {
 							return globalCheckBoxCellEditor.getTableCellEditorComponent(table, value, isSelected, row, column);
 						}
-						comp.setBackground(backGroundGray); 
+						comp.setBackground(backGroundGray);
 						return comp;
-					}
-					column--;
-					if (row == ATTRIBUTE_NAME_ROW) {
-						comp.setForeground(Color.BLACK);
-						if (!reader.hasParseErrorInColumn(column)){
-							comp.setBackground(Color.WHITE);
-						} else {
-							comp.setBackground(YELLOW);
+					} else {
+						column--;  // decrease to not count static row column when accessing data reader
+						if (row == ATTRIBUTE_NAME_ROW) {
+							comp.setForeground(Color.BLACK);
+							if (!reader.hasParseErrorInColumn(column)) {
+								comp.setBackground(Color.WHITE);
+							} else {
+								comp.setBackground(YELLOW);
+							}
+
+							if (!reader.getAttributeColumn(column).isActivated()) {
+								comp.setForeground(Color.LIGHT_GRAY);
+							}
+							return comp;
 						}
-						
-						if (!reader.getAttributeColumn(column).isActivated()){
-							comp.setForeground(Color.LIGHT_GRAY);
+						if (row == VALUE_TYPE_ROW) {
+							return valueTypeCellRenderer.getTableCellEditorComponent(table, value, isSelected, row, column + 1);
 						}
-						return comp;
-//						DefaultTableCellRenderer cellR = new DefaultTableCellRenderer(){
-//							private static final long serialVersionUID = 1L;
-//							{
-//								Component comp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-//								comp.setForeground(Color.BLACK);
-//								if (!reader.getAttributeColumn(column).isActivated()){
-//									comp.setForeground(Color.LIGHT_GRAY);
-//								}
-//							}
-//							@Override
-//							public Dimension getPreferredSize() {
-//								int height =  getPreferredSize().height;
-//								Rectangle2D rect =  this.getFontMetrics(getFont()).getStringBounds(getModel().getValueAt(row, column).toString(), this.getGraphics());
-//								return new Dimension((int)rect.getWidth(), height);
-//							};
-//							
-//						};
-//						return cellR.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+						if (row == IS_SELECTED_ROW) {
+							return checkBoxCellRenderer.getTableCellEditorComponent(table, value, isSelected, row, column + 1);
+						}
+						if (row == ROLE_ROW) {
+							return roleCellRenderer.getTableCellEditorComponent(table, value, isSelected, row, column + 1);
+						}
+						return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column + 1);
 					}
-					if (row == VALUE_TYPE_ROW) {
-						return valueTypeCellEditors[column].getTableCellEditorComponent(table, value, isSelected, row, column+1);
-					}
-					if (row == IS_SELECTED_ROW) {
-						return checkBoxCellEditors[column].getTableCellEditorComponent(table, value, isSelected, row, column+1);
-					}
-					if (row == ROLE_ROW) {
-						return roleCellEditors[column].getTableCellEditorComponent(table, value, isSelected, row, column+1);
-					}
-					return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column+1);
 				}
 			});
 
@@ -337,23 +324,11 @@ public class MetaDataDeclarationEditor extends JPanel {
 			return fixedHeaderModel;
 		}
 
-		
 		public void updateTableStructure() {
-			valueTypeCellEditors = new ValueTypeCellEditor[reader.getColumnCount()];
-			checkBoxCellEditors = new ColumnSelectionCellEditor[reader.getColumnCount()];
-			roleCellEditors = new RoleSelectionCellEditor[reader.getColumnCount()];
-
-			int i = 0;
-			for (AttributeColumn column : reader.getAllAttributeColumns()) {
-				valueTypeCellEditors[i] = new ValueTypeCellEditor(column.getValueType());
-				checkBoxCellEditors[i] = new ColumnSelectionCellEditor();
-				roleCellEditors[i] = new RoleSelectionCellEditor();
-				i++;
-			}
 			this.getModel().fireTableStructureChanged();
 
 			this.packColumn();
-//			this.pack();
+			// this.pack();
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
@@ -364,41 +339,41 @@ public class MetaDataDeclarationEditor extends JPanel {
 				}
 			});
 		}
-		
+
 		@Override
 		public JPopupMenu createPopupMenu() {
-			JPopupMenu popUp  = super.createPopupMenu();
-//			JMenuItem deselect = new JMenuItem(new ResourceAction("wizard.deselect_all") {
-//				
-//				@Override
-//				public void actionPerformed(ActionEvent e) {
-//					// TODO Auto-generated method stub
-//					
-//				}
-//			});
-			
+			JPopupMenu popUp = super.createPopupMenu();
+			// JMenuItem deselect = new JMenuItem(new ResourceAction("wizard.deselect_all") {
+			//				
+			// @Override
+			// public void actionPerformed(ActionEvent e) {
+			// // TODO Auto-generated method stub
+			//					
+			// }
+			// });
+
 			// TODO implement selectAll and deselectALL Columns MenuItems here
-//			popUp.add(deselect);
+			// popUp.add(deselect);
 			return popUp;
 		}
 
 		@Override
 		public TableCellEditor getCellEditor(int row, int column) {
-			if (column == 0){ // RowNo.
-				if (row == IS_SELECTED_ROW){
+			if (column == 0) { // RowNo.
+				if (row == IS_SELECTED_ROW) {
 					return globalCheckBoxCellEditor;
 				}
 				return super.getCellEditor();
 			}
 			column--;
 			if (row == VALUE_TYPE_ROW) {
-				return valueTypeCellEditors[column];
+				return valueTypeCellEditor;
 			}
 			if (row == IS_SELECTED_ROW) {
-				return checkBoxCellEditors[column];
+				return checkBoxCellEditor;
 			}
 			if (row == ROLE_ROW) {
-				return roleCellEditors[column];
+				return roleCellEditor;
 			}
 			// ATTRIBUTE_NAME_ROW
 			return super.getCellEditor(row, column);
@@ -406,8 +381,8 @@ public class MetaDataDeclarationEditor extends JPanel {
 
 		@Override
 		public boolean isCellEditable(int row, int column) {
-			if (column == 0){ // RowNo.
-				if (row == IS_SELECTED_ROW){
+			if (column == 0) { // RowNo.
+				if (row == IS_SELECTED_ROW) {
 					return true;
 				}
 				return false;
@@ -423,8 +398,8 @@ public class MetaDataDeclarationEditor extends JPanel {
 	/**
 	 * @author Sebastian Loh (23.04.2010)
 	 * 
-	 *         The table model for the fixed table that contains only the table
-	 *         header (attribute names) and the attributes value type.
+	 *         The table model for the fixed table that contains only the table header (attribute names) and the
+	 *         attributes value type.
 	 * 
 	 */
 	private class MetaDataModel extends AbstractTableModel {
@@ -433,7 +408,8 @@ public class MetaDataDeclarationEditor extends JPanel {
 
 		@Override
 		public int getColumnCount() {
-			return reader.getColumnCount()+1;
+//			return previewTable.getColumnCount();
+			return reader.getColumnCount() + 1;
 		}
 
 		@Override
@@ -443,11 +419,11 @@ public class MetaDataDeclarationEditor extends JPanel {
 
 		@Override
 		public Object getValueAt(int rowIndex, int columnIndex) {
-			if (columnIndex == 0){ // RowNo.
-				if (rowIndex == IS_SELECTED_ROW){
+			if (columnIndex == 0) { // RowNo.
+				if (rowIndex == IS_SELECTED_ROW) {
 					// return true for global column selection editor if at least one column is selected.
-					for (AttributeColumn col : reader.getAllAttributeColumns()){
-						if (col.isActivated()){
+					for (AttributeColumn col : reader.getAllAttributeColumns()) {
+						if (col.isActivated()) {
 							return true;
 						}
 					}
@@ -457,7 +433,7 @@ public class MetaDataDeclarationEditor extends JPanel {
 			}
 			columnIndex--;
 			if (rowIndex == ATTRIBUTE_NAME_ROW) {
-//				System.out.println(reader.getColumnCount());
+				// System.out.println(reader.getColumnCount());
 				return reader.getAttributeColumn(columnIndex).getName();
 			}
 			if (rowIndex == VALUE_TYPE_ROW) {
@@ -474,7 +450,7 @@ public class MetaDataDeclarationEditor extends JPanel {
 
 		@Override
 		public String getColumnName(int columnIndex) {
-			if (columnIndex == 0){ // RowNo.
+			if (columnIndex == 0) { // RowNo.
 				return "Row No.";
 			}
 			columnIndex--;
@@ -490,9 +466,9 @@ public class MetaDataDeclarationEditor extends JPanel {
 
 		@Override
 		public void setValueAt(Object value, int row, int column) {
-			if (column == 0){ // RowNo.
-				if (row == IS_SELECTED_ROW){
-					for (AttributeColumn col : reader.getAllAttributeColumns()){
+			if (column == 0) { // RowNo.
+				if (row == IS_SELECTED_ROW) {
+					for (AttributeColumn col : reader.getAllAttributeColumns()) {
 						col.activateColumn((Boolean) value);
 					}
 					repaint();
@@ -530,33 +506,33 @@ public class MetaDataDeclarationEditor extends JPanel {
 			repaint();
 		}
 
-//		private void updatePreview() {
-//			updateQueue.execute(new Runnable() {
-//				@Override
-//				public void run() {
-//					// long running task
-//
-//					SwingUtilities.invokeLater(new Runnable() {
-//						@Override
-//						public void run() {
-//							List<Object[]> result;
-//							try {
-//								result = reader.getPreviewAsList();
-//
-//								MetaDataDeclarationEditor.this.previewTable.setData(result);
-//								// fire the column margin changed event to sync
-//								// the column margins
-//								metadataColumnListener.columnMarginChanged(null);
-//								metadataTable.repaint();
-//							} catch (OperatorException e) {
-//								// TODO Auto-generated catch block
-//								e.printStackTrace();
-//							}
-//						}
-//					});
-//				}
-//			});
-//		}
+		// private void updatePreview() {
+		// updateQueue.execute(new Runnable() {
+		// @Override
+		// public void run() {
+		// // long running task
+		//
+		// SwingUtilities.invokeLater(new Runnable() {
+		// @Override
+		// public void run() {
+		// List<Object[]> result;
+		// try {
+		// result = reader.getPreviewAsList();
+		//
+		// MetaDataDeclarationEditor.this.previewTable.setData(result);
+		// // fire the column margin changed event to sync
+		// // the column margins
+		// metadataColumnListener.columnMarginChanged(null);
+		// metadataTable.repaint();
+		// } catch (OperatorException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
+		// }
+		// });
+		// }
+		// });
+		// }
 	}
 
 	private class ValueTypeCellEditor extends DefaultCellEditor {
@@ -564,7 +540,7 @@ public class MetaDataDeclarationEditor extends JPanel {
 		private static final long serialVersionUID = 7954919612214223430L;
 
 		// DropDown menus in the second row to select the value type
-		public ValueTypeCellEditor(final int valueType) {
+		public ValueTypeCellEditor() {
 			super(new JComboBox());
 			ComboBoxModel model = new DefaultComboBoxModel() {
 				private static final long serialVersionUID = 914764579359633239L;
@@ -596,9 +572,9 @@ public class MetaDataDeclarationEditor extends JPanel {
 		@Override
 		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
 			Component comp = super.getTableCellEditorComponent(table, value, isSelected, row, column);
-			if (!reader.getAttributeColumn(column-1).isActivated()) {
+			if (!reader.getAttributeColumn(column - 1).isActivated()) {
 				comp.setForeground(Color.LIGHT_GRAY);
-			} else if (reader.hasParseErrorInColumn(column-1)) {
+			} else if (reader.hasParseErrorInColumn(column - 1)) {
 				comp.setForeground(BLUE);
 			} else {
 				comp.setForeground(Color.BLACK);
@@ -617,7 +593,7 @@ public class MetaDataDeclarationEditor extends JPanel {
 
 		@Override
 		public Component getTableCellEditorComponent(JTable arg0, Object arg1, boolean arg2, int row, int column) {
-			((JCheckBox) (this.getComponent())).setSelected((Boolean)metadataTable.getValueAt(row, column));
+			((JCheckBox) (this.getComponent())).setSelected((Boolean) metadataTable.getValueAt(row, column));
 			return ((this.getComponent()));
 		}
 
@@ -637,7 +613,7 @@ public class MetaDataDeclarationEditor extends JPanel {
 		@Override
 		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
 			Component comp = super.getTableCellEditorComponent(table, value, isSelected, row, column);
-			if (!reader.getAttributeColumn(column-1).isActivated()) {
+			if (!reader.getAttributeColumn(column - 1).isActivated()) {
 				comp.setForeground(Color.LIGHT_GRAY);
 			} else {
 				comp.setForeground(Color.BLACK);
@@ -666,11 +642,11 @@ public class MetaDataDeclarationEditor extends JPanel {
 				@Override
 				public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
 					Component comp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
-					if (col == 0){
-						if (reader.hasParseErrorInRow(Integer.parseInt((String)dataModel.getValueAt(row, 0))-1)) {
+					if (col == 0) {
+						if (reader.hasParseErrorInRow(Integer.parseInt((String) dataModel.getValueAt(row, 0)) - 1)) {
 							comp.setForeground(BLUE);
 							comp.setBackground(YELLOW);
-						} else{
+						} else {
 							comp.setForeground(Color.BLACK);
 							comp.setBackground(backGroundGray);
 						}
@@ -678,7 +654,7 @@ public class MetaDataDeclarationEditor extends JPanel {
 					}
 					col--;
 					if (reader.getAttributeColumn(col).isActivated()) {
-						if (reader.hasParseError(col, Integer.parseInt((String)dataModel.getValueAt(row, 0))-1)) {
+						if (reader.hasParseError(col, Integer.parseInt((String) dataModel.getValueAt(row, 0)) - 1)) {
 							// if (reader.isErrorTolerant()) {
 							// comp.setForeground(Color.BLUE);
 							// comp.setBackground(SwingTools.LIGHT_YELLOW);
@@ -725,13 +701,13 @@ public class MetaDataDeclarationEditor extends JPanel {
 			dataModel.setData(data);
 		}
 
-//		@Override
-//		public TableCellRenderer getCellRenderer(int row, int column){
-//			TableCellRenderer cellRenderer = super.getCellRenderer(row, col);
-//			cellRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
-//			return ;
-//		}
-		
+		// @Override
+		// public TableCellRenderer getCellRenderer(int row, int column){
+		// TableCellRenderer cellRenderer = super.getCellRenderer(row, col);
+		// cellRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
+		// return ;
+		// }
+
 		@Override
 		public TableCellEditor getCellEditor(int row, int column) {
 			TableCellEditor cellEditor = super.getCellEditor(row, column);
@@ -744,31 +720,31 @@ public class MetaDataDeclarationEditor extends JPanel {
 		}
 
 		@Override
-		public void pack(){
+		public void pack() {
 			super.pack();
-//			
-//			lock = true;
-//			assert previewTable.getColumnCount() == metadataTable.getColumnCount();
-//			for (int i = 0; i < metadataTable.getColumnCount(); i++) {
-//				int columnwidth = this.getColumnModel().getColumn(i).getWidth();
-//				System.out.println(columnwidth);
-//				int oldwidth = metadataTable.getColumnModel().getColumn(i).getPreferredWidth();
-//				if (oldwidth == columnwidth){
-//					continue;
-//				}
-//				metadataTable.getColumnModel().getColumn(i).setPreferredWidth(columnwidth);
-//			}
-//			metadataTable.doLayout();
-//			metadataTable.repaint();
-//			
-//			lock = false;
+			//			
+			// lock = true;
+			// assert previewTable.getColumnCount() == metadataTable.getColumnCount();
+			// for (int i = 0; i < metadataTable.getColumnCount(); i++) {
+			// int columnwidth = this.getColumnModel().getColumn(i).getWidth();
+			// System.out.println(columnwidth);
+			// int oldwidth = metadataTable.getColumnModel().getColumn(i).getPreferredWidth();
+			// if (oldwidth == columnwidth){
+			// continue;
+			// }
+			// metadataTable.getColumnModel().getColumn(i).setPreferredWidth(columnwidth);
+			// }
+			// metadataTable.doLayout();
+			// metadataTable.repaint();
+			//			
+			// lock = false;
 		}
-		
+
 		// fit to column margin and other actions does not work due the
 		// synchronization of the two tables
 		@Override
 		public JPopupMenu createPopupMenu() {
-//			return super.createPopupMenu();
+			// return super.createPopupMenu();
 			return new JPopupMenu();
 
 		}
@@ -787,15 +763,15 @@ public class MetaDataDeclarationEditor extends JPanel {
 
 		@Override
 		public int getColumnCount() {
-			return reader.getColumnCount()+1;
+			return reader.getColumnCount() + 1;
 		}
 
 		@Override
 		public String getColumnName(int columnIndex) {
-			if( columnIndex == 0){
+			if (columnIndex == 0) {
 				return "Row No.";
 			}
-			return reader.getAttributeColumn(columnIndex-1).getName();
+			return reader.getAttributeColumn(columnIndex - 1).getName();
 		}
 
 		@Override
@@ -811,19 +787,17 @@ public class MetaDataDeclarationEditor extends JPanel {
 		@Override
 		public Object getValueAt(int row, int column) {
 			Object[] values = data.get(row);
-			
-			if (column == 0){
+
+			if (column == 0) {
 				return values[column].toString();
 			}
 
 			if (column >= values.length) {
 				return "";
 			}
-			int attributeType = reader.getAttributeColumn(column-1).getValueType();
-			
-			if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributeType, Ontology.DATE_TIME)
-					|| Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributeType, Ontology.DATE_TIME)
-					|| Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributeType, Ontology.TIME)) {
+			int attributeType = reader.getAttributeColumn(column - 1).getValueType();
+
+			if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributeType, Ontology.DATE_TIME) || Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributeType, Ontology.DATE_TIME) || Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributeType, Ontology.TIME)) {
 				try {
 					return Tools.formatDateTime((Date) values[column]);
 				} catch (ClassCastException e) {
@@ -834,7 +808,7 @@ public class MetaDataDeclarationEditor extends JPanel {
 			return values[column].toString();
 		}
 	}
-
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -845,5 +819,4 @@ public class MetaDataDeclarationEditor extends JPanel {
 		updateQueue.shutdown();
 		super.finalize();
 	}
-
 }

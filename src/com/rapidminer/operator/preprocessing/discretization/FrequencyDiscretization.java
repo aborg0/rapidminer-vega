@@ -37,6 +37,9 @@ import com.rapidminer.example.set.SortedExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.PolynomialExampleSetResourceConsumptionEstimator;
+import com.rapidminer.operator.annotation.PolynomialFunction;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.SetRelation;
@@ -49,6 +52,7 @@ import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * This operator discretizes all numeric attributes in the dataset into nominal attributes. This discretization is performed by equal frequency binning, i.e. the thresholds of all bins is selected in a way that all bins contain the same number of
@@ -186,5 +190,21 @@ public class FrequencyDiscretization extends AbstractDiscretizationOperator {
 		types.add(type);
 
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		String[] timeConsumption = OperatorResourceConsumptionHandler.getTimeConsumption(FrequencyDiscretization.class);
+		String[] memoryConsumption = OperatorResourceConsumptionHandler.getMemoryConsumption(FrequencyDiscretization.class);
+		if (timeConsumption == null || memoryConsumption == null) {
+			return null;
+		}
+		
+		PolynomialFunction timeFunction = new PolynomialFunction(Double.parseDouble(timeConsumption[0]),
+				Double.parseDouble(timeConsumption[1]), Double.parseDouble(timeConsumption[2]));
+		PolynomialFunction memoryFunction = new PolynomialFunction(Double.parseDouble(memoryConsumption[0]),
+				Double.parseDouble(memoryConsumption[1]), Double.parseDouble(memoryConsumption[2]));
+		
+		return new PolynomialExampleSetResourceConsumptionEstimator(getExampleSetInputPort(), attributeSelector, timeFunction, memoryFunction);
 	}
 }

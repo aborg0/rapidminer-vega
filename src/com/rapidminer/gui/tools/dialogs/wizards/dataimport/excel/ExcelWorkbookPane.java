@@ -23,6 +23,8 @@
 package com.rapidminer.gui.tools.dialogs.wizards.dataimport.excel;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,6 +40,8 @@ import javax.swing.JTable;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
 
 import jxl.Workbook;
 import jxl.read.biff.BiffException;
@@ -235,9 +239,7 @@ public class ExcelWorkbookPane extends JPanel {
 		try {
 			file = reader.getParameterAsFile(ExcelExampleSource.PARAMETER_EXCEL_FILE);
 		} catch (UndefinedParameterError e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-			return;
+			throw new RuntimeException("Error during loading workbook: ", e1);
 		}
 
 		try {
@@ -287,11 +289,32 @@ public class ExcelWorkbookPane extends JPanel {
 								}
 							}
 						});
-						tables[sheetIndex] = new ExtendedJTable(sheetModel, false, false);
+						tables[sheetIndex] = new ExtendedJTable(sheetModel, false, false) {
+							private static final long serialVersionUID = 1L;
+
+							@Override
+							public TableCellRenderer getCellRenderer(int row, int col) {
+								if (col > 0) {
+									return super.getCellRenderer(row, col);
+								} else {
+									return new DefaultTableCellRenderer() {
+										private static final long serialVersionUID = 2791054497317720420L;
+
+										@Override
+										public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+											Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+											component.setBackground(ExcelWorkbookPane.this.getBackground());
+											component.setForeground(Color.BLACK);
+											return component;
+										};
+									};
+								}
+							};
+						};
 						tables[sheetIndex].setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 						tables[sheetIndex].setBorder(null);
 
-						tables[sheetIndex].getColumnModel().getColumn(0).setCellEditor(new AnnotationCellEditor());
+						tables[sheetIndex].getColumnModel().getColumn(0).setCellEditor(new AnnotationCellEditor(ExcelWorkbookPane.this.getBackground()));
 
 						// momentary disable selection in tables
 						tables[sheetIndex].setRowSelectionAllowed(false);

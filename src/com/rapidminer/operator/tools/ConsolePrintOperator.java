@@ -59,6 +59,7 @@ public class ConsolePrintOperator extends Operator {
 	public void doWork() throws OperatorException {
 		String value = getParameterAsString(PARAMETER_LOG_VALUE);
 		this.getLogger().info(value);
+		dummyPorts.passDataThrough();
 	}
 	
 	@Override

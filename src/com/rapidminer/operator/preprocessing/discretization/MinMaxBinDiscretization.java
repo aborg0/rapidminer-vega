@@ -30,6 +30,9 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.PolynomialExampleSetResourceConsumptionEstimator;
+import com.rapidminer.operator.annotation.PolynomialFunction;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.preprocessing.PreprocessingModel;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
@@ -38,6 +41,7 @@ import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * This operator discretizes all numeric attributes in the dataset into nominal attributes. 
@@ -138,5 +142,21 @@ public class MinMaxBinDiscretization extends AbstractDiscretizationOperator {
 		types.add(type);
 
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		String[] timeConsumption = OperatorResourceConsumptionHandler.getTimeConsumption(MinMaxBinDiscretization.class);
+		String[] memoryConsumption = OperatorResourceConsumptionHandler.getMemoryConsumption(MinMaxBinDiscretization.class);
+		if (timeConsumption == null || memoryConsumption == null) {
+			return null;
+		}
+		
+		PolynomialFunction timeFunction = new PolynomialFunction(Double.parseDouble(timeConsumption[0]),
+				Double.parseDouble(timeConsumption[1]), Double.parseDouble(timeConsumption[2]));
+		PolynomialFunction memoryFunction = new PolynomialFunction(Double.parseDouble(memoryConsumption[0]),
+				Double.parseDouble(memoryConsumption[1]), Double.parseDouble(memoryConsumption[2]));
+		
+		return new PolynomialExampleSetResourceConsumptionEstimator(getExampleSetInputPort(), attributeSelector, timeFunction, memoryFunction);
 	}
 }

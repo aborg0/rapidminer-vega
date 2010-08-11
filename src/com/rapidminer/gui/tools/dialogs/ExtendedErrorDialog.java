@@ -126,7 +126,7 @@ public class ExtendedErrorDialog extends ButtonDialog {
 			}), BorderLayout.NORTH);
 		}
 
-		layoutDefault(mainComponent, SIZE, getButtons(hasError, isBugReportException(error), detailedPane, error));
+		layoutDefault(mainComponent, SIZE, getButtons(hasError && displayExceptionMessage, isBugReportException(error), detailedPane, error));
 	}
 	
 	/**
@@ -269,7 +269,7 @@ public class ExtendedErrorDialog extends ButtonDialog {
 			StringBuilder infoText = new StringBuilder();
 			infoText.append("<p>");
 			
-			infoText.append(Tools.escapeHTML(super.getInfoText()));
+			infoText.append(super.getInfoText());
 			infoText.append("</p>");
 
 			String message = Tools.escapeHTML(error.getMessage());

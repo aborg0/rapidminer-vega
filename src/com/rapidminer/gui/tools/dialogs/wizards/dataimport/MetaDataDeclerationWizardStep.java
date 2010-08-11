@@ -187,7 +187,7 @@ public abstract class MetaDataDeclerationWizardStep extends WizardStep {
 						reader.stopReading();
 						synchronized (reader) {
 							reader.guessValueTypes(getProgressListener());
-							previewAsList = reader.getPreviewAsList(getProgressListener(), false);
+							previewAsList = reader.getPreviewAsList(getProgressListener(), true, false, AbstractDataReader.PREVIEW_LINES);
 						}
 					} catch (OperatorException e1) {
 						// TODO fix this
@@ -245,28 +245,33 @@ public abstract class MetaDataDeclerationWizardStep extends WizardStep {
 	protected boolean performEnteringAction() {
 		// dummy list
 		setData(new LinkedList<Object[]>());
-		new ProgressThread("guessing_value_types") {
-			@Override
+		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				final List<Object[]> previewAsList;
-				try {
-					reader.stopReading();
-					synchronized (reader) {
-						previewAsList = reader.getPreviewAsList(getProgressListener(), true);
-					}
-				} catch (OperatorException e1) {
-					// TODO fix this
-					SwingTools.showVerySimpleErrorMessage(e1.getMessage(), e1);
-					return;
-				}
-				SwingUtilities.invokeLater(new Runnable() {
+				new ProgressThread("guessing_value_types") {
+					@Override
 					public void run() {
-						setData(previewAsList);
-						doAfterEnteringAction();
-					};
-				});
+						final List<Object[]> previewAsList;
+						try {
+							reader.stopReading();
+							synchronized (reader) {
+								previewAsList = reader.getPreviewAsList(getProgressListener(), true);
+							}
+							SwingUtilities.invokeLater(new Runnable() {
+								public void run() {
+									setData(previewAsList);
+									doAfterEnteringAction();
+								};
+							});
+						} catch (OperatorException e1) {
+							// TODO fix this
+							SwingTools.showVerySimpleErrorMessage(e1.getMessage(), e1);
+							return;
+						}
+					}
+				}.start();
 			}
-		}.start();
+		});
+
 		return true;
 	}
 

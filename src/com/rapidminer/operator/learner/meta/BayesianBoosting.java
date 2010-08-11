@@ -194,8 +194,8 @@ public class BayesianBoosting extends AbstractMetaLearner {
 	@Override
 	public boolean supportsCapability(OperatorCapability lc) {
 		switch (lc) {
-		case NUMERICAL_LABEL:
-		case POLYNOMINAL_LABEL:
+		//case NUMERICAL_LABEL:
+		//case POLYNOMINAL_LABEL:
 		case NO_LABEL:
 		case UPDATABLE:
 		case FORMULA_PROVIDER:

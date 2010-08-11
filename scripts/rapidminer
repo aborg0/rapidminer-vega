@@ -70,7 +70,7 @@ CLASSPATH=${RAPIDMINER_CLASSPATH}:${CLASSPATH}
 update_dir=${RAPIDMINER_HOME}/RUinstall
     if [ -d "${update_dir}" ]; then
       echo "Performing update..."
-      cp -Rf "${update_dir}" "${RAPIDMINER_HOME}"
+	  cp -af "${update_dir}"/* "${RAPIDMINER_HOME}"
       rm -rf "${update_dir}"
     fi
 unset update_dir

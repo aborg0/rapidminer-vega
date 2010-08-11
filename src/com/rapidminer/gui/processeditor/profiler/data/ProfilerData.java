@@ -26,7 +26,6 @@ package com.rapidminer.gui.processeditor.profiler.data;
  * Stores the profiler data for an individual operator.
  * 
  * @author Marco Boeck
- *
  */
 public class ProfilerData {
 	

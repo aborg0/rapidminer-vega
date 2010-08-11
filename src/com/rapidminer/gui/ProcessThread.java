@@ -31,25 +31,22 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ProcessStoppedException;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.usagestats.OperatorStatisticsValue;
 import com.rapidminer.tools.usagestats.UsageStatistics;
 
-
 /**
- * A Thread for running an process in the RapidMinerGUI. This thread is necessary in order to
- * keep the GUI running (and working). Please note that this class can only be 
- * used from a running RapidMiner GUI since several dependencies to the class 
- * {@link RapidMinerGUI} and {@link MainFrame} exist. If you want to perform an
- * process in its own thread from your own program simply use a Java Thread
- * peforming the method process.run() in its run()-method.
+ * A Thread for running an process in the RapidMinerGUI. This thread is necessary in order to keep the GUI running (and
+ * working). Please note that this class can only be used from a running RapidMiner GUI since several dependencies to
+ * the class {@link RapidMinerGUI} and {@link MainFrame} exist. If you want to perform an process in its own thread from
+ * your own program simply use a Java Thread peforming the method process.run() in its run()-method.
  * 
- * @author Ingo Mierswa, Simon Fischer
- *          Exp $
+ * @author Ingo Mierswa, Simon Fischer Exp $
  */
-public class ProcessThread extends Thread {//implements ProcessListener {
+public class ProcessThread extends Thread {// implements ProcessListener {
 
 	private Process process;
 
@@ -59,28 +56,28 @@ public class ProcessThread extends Thread {//implements ProcessListener {
 	}
 
 	@Override
-	public void run() {		
-		//this.process.getRootOperator().addProcessListener(this);
+	public void run() {
+		// this.process.getRootOperator().addProcessListener(this);
 		try {
-            IOContainer results = process.run();
+			IOContainer results = process.run();
 			beep("success");
 			process.getRootOperator().sendEmail(results, null);
-            RapidMinerGUI.getMainFrame().processEnded(process, results);			
+			RapidMinerGUI.getMainFrame().processEnded(process, results);
 		} catch (ProcessStoppedException ex) {
-			//beep("error");
-            process.getLogger().info(ex.getMessage());
-            // here the process ended method is not called ! let the thread finish the
-            // current operator and send no events to the main frame...
-            // also no beep...
+			// beep("error");
+			process.getLogger().info(ex.getMessage());
+			// here the process ended method is not called ! let the thread finish the
+			// current operator and send no events to the main frame...
+			// also no beep...
 		} catch (Throwable e) {
-		// TODO: We shouldn't catch JVM crashes we can't fix anyway...
-		//} catch (Exception e) {
+			// TODO: We shouldn't catch JVM crashes we can't fix anyway...
+			// } catch (Exception e) {
 
 			if (!(e instanceof OperatorException)) { // otherwise it was already counted
 				UsageStatistics.getInstance().count(process.getCurrentOperator(), OperatorStatisticsValue.FAILURE);
 				UsageStatistics.getInstance().count(process.getCurrentOperator(), OperatorStatisticsValue.RUNTIME_EXCEPTION);
 			}
-			
+
 			beep("error");
 			String debugProperty = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_DEBUGMODE);
 			boolean debugMode = Tools.booleanValue(debugProperty, false);
@@ -94,29 +91,30 @@ public class ProcessThread extends Thread {//implements ProcessListener {
 				}
 			}
 			process.getLogger().log(Level.SEVERE, "Process failed: " + message, e);
-            process.getLogger().log(Level.SEVERE, "Here: "+process.getRootOperator().createMarkedProcessTree(10, "==>", process.getCurrentOperator()));
+			process.getLogger().log(Level.SEVERE, "Here: " + process.getRootOperator().createMarkedProcessTree(10, "==>", process.getCurrentOperator()));
 
 			try {
 				process.getRootOperator().sendEmail(null, e);
 			} catch (UndefinedParameterError ex) {
-                // cannot happen
+				// cannot happen
 				process.getLogger().log(Level.WARNING, "Problems during sending result mail: " + ex.getMessage(), ex);
 			}
-			
+
 			if (e instanceof OutOfMemoryError) { // out of memory --> give memory hint
 				SwingTools.showVerySimpleErrorMessage("proc_failed_out_of_mem");
 			} else if (e instanceof NoBugError) { // no bug? Show nice error screen (user error infos)...
-				SwingTools.showFinalErrorMessage("process_failed_simple", e, true);
+				if (e instanceof UserError) {
+					UserError userError = (UserError) e;
+					SwingTools.showFinalErrorMessage("process_failed_user_error", e, debugMode, userError.getMessage(), userError.getDetails());
+				} else {
+					SwingTools.showFinalErrorMessage("process_failed_simple", e, debugMode);
+				}
 			} else {
 				if (debugMode) {
 					SwingTools.showFinalErrorMessage("process_failed_simple", e, true);
 				} else {
 					// perform process check. No bug report if errors...
-					// TODO : prevent logging
-						// ugly runtime exceptions (NPE, ArrayIndexOutOfBound...) should
-						// not be shown...
-					if ((e instanceof NullPointerException) || 
-							(e instanceof ArrayIndexOutOfBoundsException)) {
+					if ((e instanceof NullPointerException) || (e instanceof ArrayIndexOutOfBoundsException)) {
 						LogService.getRoot().log(Level.SEVERE, e.toString(), e);
 						SwingTools.showVerySimpleErrorMessage("proc_failed_without_obv_reason");
 					} else {
@@ -126,12 +124,12 @@ public class ProcessThread extends Thread {//implements ProcessListener {
 			}
 			RapidMinerGUI.getMainFrame().processEnded(this.process, null);
 		} finally {
-			//this.process.getRootOperator().removeProcessListener(this);
+			// this.process.getRootOperator().removeProcessListener(this);
 			if (process.getProcessState() != Process.PROCESS_STATE_STOPPED) {
 				process.stop();
 			}
 			this.process = null;
-		}		
+		}
 	}
 
 	public static void beep(String reason) {
@@ -151,6 +149,7 @@ public class ProcessThread extends Thread {//implements ProcessListener {
 			this.process.pause();
 		}
 	}
+
 	@Override
 	public String toString() {
 		return "ProcessThread (" + process.getProcessLocation() + ")";

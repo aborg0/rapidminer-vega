@@ -800,6 +800,17 @@
     <key>split_data</key>
   </operator>
     <operator>
+        <name>Unset Macro</name>
+        <synopsis>This operator can be used to remove one or more previously defined macros from
+        the process context.</synopsis>
+        <help>&lt;p&gt;This operator offers two parameters for entering one or a number of macro names that
+        might have been defined. If they have been defined during exection of the process or in the 
+        process context, they will be removed and are not accessible after this. Any reference to these macros
+        will only return their name. If they haven't, nothing will happen.&lt;/p&gt;
+        &lt;p&gt;This might be especially useful in scenarios, where one wants to branch by testing on existence of a macro.&lt;/p&gt;</help>
+        <key>unset_macro</key>
+    </operator>
+    <operator>
         <name>Set Macros</name>
         <synopsis>This operator can be used to define arbitrary macros which
             can be used by %{my_macro} in parameter values.</synopsis>

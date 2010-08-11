@@ -76,6 +76,7 @@
 		<delete>
 			<fileset dir="./" defaultexcludes="no" includes="**/*~" />
 			<fileset dir="${lib}/" includes="rapidminer.jar" />
+			<fileset dir="${lib}/" includes="launcher.jar" />
 		</delete>
 
 		<property name="lock.isCleaned" value="true" />

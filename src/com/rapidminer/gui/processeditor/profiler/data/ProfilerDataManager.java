@@ -41,7 +41,6 @@ import com.rapidminer.repository.RepositoryLocation;
  * Handles the data of the profiler during runtime.
  * 
  * @author Marco Boeck
- *
  */
 public class ProfilerDataManager {
 	

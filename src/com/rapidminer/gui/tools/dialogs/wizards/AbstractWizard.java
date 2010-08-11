@@ -46,11 +46,19 @@ public class AbstractWizard extends MultiPageDialog {
 	private boolean showStepInfo = true;
 	
 	public AbstractWizard(Dialog owner, String key, Object ... arguments) {
-		super(owner, key, true, arguments);
+		super(owner, key, false, arguments);
 	}
 	
 	public AbstractWizard(Frame owner, String key, Object ... arguments) {
-		super(owner, key, true, arguments);
+		super(owner, key, false, arguments);
+	}
+
+	public AbstractWizard(Dialog owner, String key, boolean modal, Object ... arguments) {
+		super(owner, key, modal, arguments);
+	}
+	
+	public AbstractWizard(Frame owner, String key, boolean modal, Object ... arguments) {
+		super(owner, key, modal, arguments);
 	}
 	
 	protected void layoutDefault(int size) {

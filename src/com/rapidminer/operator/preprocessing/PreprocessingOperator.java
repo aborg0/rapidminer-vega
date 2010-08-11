@@ -54,7 +54,7 @@ public abstract class PreprocessingOperator extends AbstractDataProcessing {
 
 	private final OutputPort modelOutput = getOutputPorts().createPort("preprocessing model");
 
-	private final AttributeSubsetSelector attributeSelector = new AttributeSubsetSelector(this, getExampleSetInputPort(), getFilterValueTypes());
+	protected final AttributeSubsetSelector attributeSelector = new AttributeSubsetSelector(this, getExampleSetInputPort(), getFilterValueTypes());
 
 	/** The parameter name for &quot;Indicates if the preprocessing model should also be returned&quot; */
 	public static final String PARAMETER_RETURN_PREPROCESSING_MODEL = "return_preprocessing_model";

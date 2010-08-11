@@ -76,6 +76,10 @@ public class ExcelImportWizard extends DataImportWizard {
 
 		@Override
 		protected boolean performLeavingAction() {
+			// deleting annotations if a second step has been performed earlier
+			ExcelImportWizard.this.reader.setParameter(ExcelExampleSource.PARAMETER_ANNOTATIONS, null);
+			
+			// setting parameter
 			file = getSelectedFile();
 			File oldFile = null;
 			try {

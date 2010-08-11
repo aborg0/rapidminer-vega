@@ -314,15 +314,16 @@ public class ExcelExampleSource extends AbstractDataReader {
 		private int columnOffset = 0;
 		private int numberOfRows = 0;
 		private int numberOfColumns = 0;
-		private int currentRow = rowOffset;
+		private int currentRow;
 
 		public ExcelDataSet() throws OperatorException {
 
 			rowOffset = getParameterAsInt(PARAMETER_ROW_OFFSET);
 			columnOffset = getParameterAsInt(PARAMETER_COLUMN_OFFSET);
-
+			currentRow = rowOffset;
+			
 			// load the excelWorkbook if it is not set
-			if (workbook == null || false) {
+			if (workbook == null || true) {
 				try {
 					workbook = Workbook.getWorkbook(getParameterAsInputStream(PARAMETER_EXCEL_FILE));
 				} catch (IOException e) {
@@ -442,9 +443,12 @@ public class ExcelExampleSource extends AbstractDataReader {
 		@Override
 		public Number getNumber(int columnIndex) {
 			try {
-				return Double.valueOf(((NumberCell) cells[columnIndex]).getValue());
+				if (cells[columnIndex].getType() == CellType.NUMBER)
+					return Double.valueOf(((NumberCell) cells[columnIndex]).getValue());
+				else
+					return Double.valueOf(cells[columnIndex].getContents());
 			} catch (ClassCastException e) {
-			}
+			} catch (NumberFormatException e) {}
 			return null;
 		}
 

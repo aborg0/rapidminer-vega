@@ -23,10 +23,9 @@
 
 package com.rapidminer.operator.io.test;
 
-import static com.rapidminer.test.TestUtils.*;
+import static com.rapidminer.test.TestUtils.executeProcessFromTestRepository;
 import static junit.framework.Assert.assertEquals;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.junit.Before;

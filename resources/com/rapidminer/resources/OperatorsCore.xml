@@ -468,6 +468,10 @@
                <class>com.rapidminer.operator.DataMacroDefinitionOperator</class>
                <replaces>DataMacroDefinition</replaces>
             </operator>
+            <operator>
+               <key>unset_macro</key>
+               <class>com.rapidminer.operator.macros.UnsetMacroOperator</class>
+            </operator>
          </group>
          <group key="logging">
             <icon>data_scroll.png</icon>
@@ -1762,7 +1766,7 @@
                </operator>
                <operator>
                   <key>hierarchical_classification</key>
-                  <class>com.rapidminer.operator.learner.meta.HierarchicalLearner</class>
+                  <class>com.rapidminer.operator.learner.meta.HierarchicalLearner2</class>
                </operator>
                <operator>
                   <key>classification_by_regression</key>

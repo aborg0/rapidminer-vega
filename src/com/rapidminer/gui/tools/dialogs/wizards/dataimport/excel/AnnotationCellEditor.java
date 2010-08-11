@@ -22,17 +22,22 @@
  */
 package com.rapidminer.gui.tools.dialogs.wizards.dataimport.excel;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.util.Vector;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
+import javax.swing.JTable;
 
 import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.io.ExcelExampleSource;
 
 /**
+ * This is the cell editor for annotation cells. They are by default colored in light gray
+ * to separate them from the actual value column.
  * 
- * @author Simon Fischer
+ * @author Simon Fischer, Sebastian Land
  *
  */
 public class AnnotationCellEditor extends DefaultCellEditor {
@@ -41,7 +46,8 @@ public class AnnotationCellEditor extends DefaultCellEditor {
 	public static final String NAME = ExcelExampleSource.ANNOTATION_NAME;
 	
 	private static final long serialVersionUID = 1L;
-
+	private Color background;
+	
 	private static JComboBox makeComboBox() {
 		Vector<String> values = new Vector<String>();
 		values.add(NONE);
@@ -54,6 +60,19 @@ public class AnnotationCellEditor extends DefaultCellEditor {
 
 	public AnnotationCellEditor() {
 		super(makeComboBox());
+	}
+
+	public AnnotationCellEditor(Color background) {
+		this();
+		this.background = background;
+	}
+	
+	@Override
+	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+		Component tableCellEditorComponent = super.getTableCellEditorComponent(table, value, isSelected, row, column);
+		if (background != null)
+			tableCellEditorComponent.setBackground(background);
+		return tableCellEditorComponent;
 	}
 
 

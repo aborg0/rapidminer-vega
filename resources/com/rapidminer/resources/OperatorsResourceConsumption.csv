@@ -1,0 +1,13 @@
+# Rows starting with '#' are considered comments
+# use the following format:
+# class package.classname; cpu time coefficient; cpu degree examples; cpu degree attributes; memory coefficient; memory degree examples; memory degree attributes
+
+class com.rapidminer.operator.learner.bayes.NaiveBayes;1;1;1;1;0;1
+
+class com.rapidminer.operator.preprocessing.discretization.AbsoluteDiscretization;1;1;1;1;0;1
+class com.rapidminer.operator.preprocessing.discretization.BinDiscretization;1;0;1;1;0;1
+class com.rapidminer.operator.preprocessing.discretization.FrequencyDiscretization;1;1;0;1;1;0
+class com.rapidminer.operator.preprocessing.discretization.MinMaxBinDiscretization;1;0;1;1;0;1
+class com.rapidminer.operator.preprocessing.discretization.UserBasedDiscretization;1;0;1;1;0;1
+
+class com.rapidminer.operator.preprocessing.normalization.Normalization;1;0;1;1;0;1

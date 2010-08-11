@@ -202,6 +202,9 @@ public class StatementCreator {
  //		if (isLegalIdentifier(identifier)) {
 //			return identifier;
 //		}
+		if (identifier == null) {
+			throw new NullPointerException("Identifier must not be null");
+		}
 		// for performance reasons, don't use regexp when identifier has length 1
 		if (identifierQuote != null) {
 			switch (identifierQuote.length()) {

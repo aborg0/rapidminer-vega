@@ -151,6 +151,7 @@ public class CSVImportWizard extends DataImportWizard {
 				return true;
 			}
 
+			@Override
 			protected void settingsChanged() {
 				reader.clearAllReaderSettings();
 				reader.setParameter(Encoding.PARAMETER_ENCODING, getEncoding().displayName());
@@ -210,8 +211,7 @@ public class CSVImportWizard extends DataImportWizard {
 
 			@Override
 			protected boolean performEnteringAction() {
-				if (
-				reader.attributeNamesDefinedByUser()) {
+				if (reader.attributeNamesDefinedByUser()) {
 					reader.loadMetaDataFromParameters();
 				}
 				super.performEnteringAction();
