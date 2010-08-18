@@ -55,6 +55,10 @@ public class SettingsTabs extends ExtendedJTabbedPane {
 	private final List<SettingsPropertyPanel> tables = new LinkedList<SettingsPropertyPanel>();
 
 	public SettingsTabs() {
+		this(null);
+	}
+	
+	public SettingsTabs(String initialSelectedTab) {
 		Set<ParameterType> allProperties = RapidMiner.getRapidMinerProperties();
 		SortedMap<String, List<ParameterType>> groups = new TreeMap<String, List<ParameterType>>();
 		Iterator<ParameterType> i = allProperties.iterator();
@@ -81,6 +85,9 @@ public class SettingsTabs extends ExtendedJTabbedPane {
 		while (it.hasNext()) {
 			Map.Entry<String,List<ParameterType>> e = it.next();
 			String group = e.getKey();
+			if ((initialSelectedTab != null) && !initialSelectedTab.equals(group)) {
+				continue;
+			}
 			List<ParameterType> groupList = e.getValue();
 			SettingsPropertyPanel table = new SettingsPropertyPanel(groupList);
 			tables.add(table);

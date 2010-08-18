@@ -29,8 +29,6 @@ import com.rapidminer.operator.Model;
 import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
-import com.rapidminer.operator.annotation.PolynomialExampleSetResourceConsumptionEstimator;
-import com.rapidminer.operator.annotation.PolynomialFunction;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.learner.AbstractLearner;
 import com.rapidminer.operator.learner.PredictionModel;
@@ -88,17 +86,6 @@ public class NaiveBayes extends AbstractLearner {
 	
 	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
-		String[] timeConsumption = OperatorResourceConsumptionHandler.getTimeConsumption(NaiveBayes.class);
-		String[] memoryConsumption = OperatorResourceConsumptionHandler.getMemoryConsumption(NaiveBayes.class);
-		if (timeConsumption == null || memoryConsumption == null) {
-			return null;
-		}
-		
-		PolynomialFunction timeFunction = new PolynomialFunction(Double.parseDouble(timeConsumption[0]),
-				Double.parseDouble(timeConsumption[1]), Double.parseDouble(timeConsumption[2]));
-		PolynomialFunction memoryFunction = new PolynomialFunction(Double.parseDouble(memoryConsumption[0]),
-				Double.parseDouble(memoryConsumption[1]), Double.parseDouble(memoryConsumption[2]));
-		
-		return new PolynomialExampleSetResourceConsumptionEstimator(getExampleSetInputPort(), null, timeFunction, memoryFunction);
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getExampleSetInputPort(), NaiveBayes.class, null);
 	}
 }

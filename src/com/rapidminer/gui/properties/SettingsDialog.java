@@ -51,12 +51,17 @@ public class SettingsDialog extends ButtonDialog {
 
 	private static final long serialVersionUID = 6665295638614289994L;
 
-	private final SettingsTabs tabs = new SettingsTabs();
+	private final SettingsTabs tabs;
 
     private final List<SettingsChangeListener> listeners = new LinkedList<SettingsChangeListener>();
 
 	public SettingsDialog() {
+		this(null);
+	}
+		
+	public SettingsDialog(String initialSelectedTab) {
 		super("settings", true);
+		tabs = new SettingsTabs(initialSelectedTab);
 		
 		// create buttons
     	Collection<AbstractButton> buttons = new LinkedList<AbstractButton>();
@@ -65,6 +70,7 @@ public class SettingsDialog extends ButtonDialog {
 			public void actionPerformed(ActionEvent e) {
 				tabs.applyProperties();
                 fireSettingsChanged();
+                setConfirmed(true);
 				dispose();
 			}
 		}));
@@ -72,8 +78,9 @@ public class SettingsDialog extends ButtonDialog {
 			private static final long serialVersionUID = 1L;
 			public void actionPerformed(ActionEvent e) {
 				try {
-					tabs.save();
+					tabs.save();					
                     fireSettingsChanged();
+                    setConfirmed(true);
 					dispose();
 				} catch (IOException ioe) {
 					SwingTools.showSimpleErrorMessage("cannot_save_properties", ioe);
@@ -83,7 +90,7 @@ public class SettingsDialog extends ButtonDialog {
 		buttons.add(makeCancelButton());
 		layoutDefault(tabs, NORMAL, buttons);
 	}
-	
+
 	@Override
 	public String getInfoText() {
 		return I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.settings.message",

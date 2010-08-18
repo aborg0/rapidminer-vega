@@ -34,8 +34,6 @@ import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
-import com.rapidminer.operator.annotation.PolynomialExampleSetResourceConsumptionEstimator;
-import com.rapidminer.operator.annotation.PolynomialFunction;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
@@ -150,17 +148,6 @@ public class UserBasedDiscretization extends AbstractDiscretizationOperator {
 	
 	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
-		String[] timeConsumption = OperatorResourceConsumptionHandler.getTimeConsumption(UserBasedDiscretization.class);
-		String[] memoryConsumption = OperatorResourceConsumptionHandler.getMemoryConsumption(UserBasedDiscretization.class);
-		if (timeConsumption == null || memoryConsumption == null) {
-			return null;
-		}
-		
-		PolynomialFunction timeFunction = new PolynomialFunction(Double.parseDouble(timeConsumption[0]),
-				Double.parseDouble(timeConsumption[1]), Double.parseDouble(timeConsumption[2]));
-		PolynomialFunction memoryFunction = new PolynomialFunction(Double.parseDouble(memoryConsumption[0]),
-				Double.parseDouble(memoryConsumption[1]), Double.parseDouble(memoryConsumption[2]));
-		
-		return new PolynomialExampleSetResourceConsumptionEstimator(getExampleSetInputPort(), attributeSelector, timeFunction, memoryFunction);
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), UserBasedDiscretization.class, attributeSelector);
 	}
 }

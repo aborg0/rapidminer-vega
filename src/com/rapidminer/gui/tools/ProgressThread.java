@@ -162,7 +162,9 @@ public abstract class ProgressThread implements Runnable {
 							};
 						});					
 					}
-					ProgressThread.this.run();										
+					ProgressThread.this.run();		
+				} catch (Exception e) {
+					SwingTools.showSimpleErrorMessage("error_executing_background_job", e, name, e.getMessage());
 				} finally {
 					ProgressThread.this.getProgressListener().complete();
 					QUEUE_MODEL.remove(ProgressThread.this);

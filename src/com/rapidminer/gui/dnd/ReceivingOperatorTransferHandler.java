@@ -201,7 +201,7 @@ public abstract class ReceivingOperatorTransferHandler extends OperatorTransferH
 					}					
 				}
 			} else {
-				LogService.getRoot().warning("Expected Stirng for data flavor "+acceptedFlavor);
+				LogService.getRoot().warning("Expected String for data flavor "+acceptedFlavor);
 				dropEnds();
 				return false;
 			}

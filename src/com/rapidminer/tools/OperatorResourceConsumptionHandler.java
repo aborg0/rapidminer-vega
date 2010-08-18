@@ -31,6 +31,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import com.rapidminer.operator.annotation.PolynomialExampleSetResourceConsumptionEstimator;
+import com.rapidminer.operator.annotation.PolynomialFunction;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
+import com.rapidminer.operator.ports.InputPort;
+import com.rapidminer.operator.tools.AttributeSubsetSelector;
+
 
 /**
  * This class handles all existing ResourceConsumptionEstimator values, which are stored in the 
@@ -130,4 +136,26 @@ public class OperatorResourceConsumptionHandler {
 		return new String[] {savedString[4], savedString[5], savedString[6]};
 	}
 
+	/**
+	 * Gets the ResourceConsumptionEstimator for a given class.
+	 * 
+	 * @param inputPort the input port
+	 * @param clazz the class for which the ResourceConsumptionEstimator should be created
+	 * @param attributeSelector the attributeSelector (if existing)
+	 * @return the ResourceConsumptionEstimator for the given class
+	 */
+	public static ResourceConsumptionEstimator getResourceConsumptionEstimator(InputPort inputPort, Class clazz, AttributeSubsetSelector attributeSelector) {
+		String[] timeConsumption = getTimeConsumption(clazz);
+		String[] memoryConsumption = getMemoryConsumption(clazz);
+		if (timeConsumption == null || memoryConsumption == null) {
+			return null;
+		}
+		
+		PolynomialFunction timeFunction = new PolynomialFunction(Double.parseDouble(timeConsumption[0]),
+				Double.parseDouble(timeConsumption[1]), Double.parseDouble(timeConsumption[2]));
+		PolynomialFunction memoryFunction = new PolynomialFunction(Double.parseDouble(memoryConsumption[0]),
+				Double.parseDouble(memoryConsumption[1]), Double.parseDouble(memoryConsumption[2]));
+		
+		return new PolynomialExampleSetResourceConsumptionEstimator(inputPort, attributeSelector, timeFunction, memoryFunction);
+	}
 }

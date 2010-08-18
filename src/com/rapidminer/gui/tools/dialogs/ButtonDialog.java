@@ -419,6 +419,10 @@ public class ButtonDialog extends JDialog {
 	public boolean wasConfirmed() {
 		return wasConfirmed;
 	}
+	
+	protected void setConfirmed(boolean b) {
+		this.wasConfirmed = b;
+	}
 
 	public static TitledBorder createTitledBorder(String title) {
 		TitledBorder border = new TitledBorder(createBorder(), title) {

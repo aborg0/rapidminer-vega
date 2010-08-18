@@ -34,6 +34,9 @@ import com.rapidminer.example.table.NominalMapping;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.PolynomialExampleSetResourceConsumptionEstimator;
+import com.rapidminer.operator.annotation.PolynomialFunction;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.AttributeSetPrecondition;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
@@ -45,6 +48,7 @@ import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 
 /**
@@ -122,5 +126,30 @@ public class AddNominalValue extends AbstractDataProcessing {
 		types.add(new ParameterTypeAttribute(PARAMETER_ATTRIBUTE_NAME, "The name of the nominal attribute to which values should be added.", getExampleSetInputPort(), false, Ontology.NOMINAL));
 		types.add(new ParameterTypeString(PARAMETER_NEW_VALUE, "The value which should be added.", false));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		boolean isBinominal = true;
+		try {
+			isBinominal = getRequiredMetaData().getAttributeByName(getParameterAsString(PARAMETER_ATTRIBUTE_NAME)).isBinominal();
+		} catch (UndefinedParameterError e) {
+			return null;
+		}
+		if (isBinominal) {
+			return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), AddNominalValue.class, null);
+		} else {
+			// constant value
+			String[] timeConsumption = OperatorResourceConsumptionHandler.getTimeConsumption(AddNominalValue.class);
+			String[] memoryConsumption = OperatorResourceConsumptionHandler.getMemoryConsumption(AddNominalValue.class);
+			if (timeConsumption == null || memoryConsumption == null) {
+				return null;
+			}
+			
+			PolynomialFunction timeFunction = new PolynomialFunction(Double.parseDouble(timeConsumption[0]), 0, 0);
+			PolynomialFunction memoryFunction = new PolynomialFunction(Double.parseDouble(memoryConsumption[0]), 0, 0);
+			
+			return new PolynomialExampleSetResourceConsumptionEstimator(getInputPort(), null, timeFunction, memoryFunction);
+		}
 	}
 }

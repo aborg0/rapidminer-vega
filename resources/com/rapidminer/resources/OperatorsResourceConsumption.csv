@@ -1,13 +1,21 @@
 # Rows starting with '#' are considered comments
 # use the following format:
-# class package.classname; cpu time coefficient; cpu degree examples; cpu degree attributes; memory coefficient; memory degree examples; memory degree attributes
+# class package.classname; cpu time coefficient (for ns); cpu degree examples; cpu degree attributes; memory coefficient; memory degree examples; memory degree attributes
 
 class com.rapidminer.operator.learner.bayes.NaiveBayes;1;1;1;1;0;1
 
 class com.rapidminer.operator.preprocessing.discretization.AbsoluteDiscretization;1;1;1;1;0;1
-class com.rapidminer.operator.preprocessing.discretization.BinDiscretization;1;0;1;1;0;1
-class com.rapidminer.operator.preprocessing.discretization.FrequencyDiscretization;1;1;0;1;1;0
+class com.rapidminer.operator.preprocessing.discretization.BinDiscretization;3006;1;1;1;0;1
+class com.rapidminer.operator.preprocessing.discretization.FrequencyDiscretization;1;1;1;1;1;0
 class com.rapidminer.operator.preprocessing.discretization.MinMaxBinDiscretization;1;0;1;1;0;1
 class com.rapidminer.operator.preprocessing.discretization.UserBasedDiscretization;1;0;1;1;0;1
 
-class com.rapidminer.operator.preprocessing.normalization.Normalization;1;0;1;1;0;1
+class com.rapidminer.operator.preprocessing.filter.attributes.AttributeFilter;1;0;1;1;0;1
+
+# Only linear in case of binominal attribute, otherwise constant
+class com.rapidminer.operator.preprocessing.filter.AddNominalValue;1;1;0;1;1;0
+class com.rapidminer.operator.preprocessing.filter.AttributeAdd;1;1;0;1;0;0
+class com.rapidminer.operator.preprocessing.filter.AttributeCopy;1;1;0;1;0;0
+class com.rapidminer.operator.preprocessing.filter.AttributeMerge;1;1;0;1;0;0
+
+class com.rapidminer.operator.preprocessing.normalization.Normalization;921;1;1;1;1;1

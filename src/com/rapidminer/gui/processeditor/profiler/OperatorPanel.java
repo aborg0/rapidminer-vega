@@ -110,12 +110,12 @@ public class OperatorPanel extends JPanel {
 		String lastTimeRunningValue;
 		if (data.hasRun()) {
 			if (data.getLastRunTimeReal() < 1000) {
-				lastTimeRunningValue = data.getLastRunTimeReal() == 0 ? "<1ms" : String.valueOf(data.getLastRunTimeReal() + "ms");
+				lastTimeRunningValue = data.getLastRunTimeReal() == 0 ? "<1ms" : String.valueOf(formatter.format(data.getLastRunTimeReal()) + "ms");
 			} else
 			if (data.getLastRunTimeReal() < 60000) {
 				lastTimeRunningValue = String.valueOf(formatter.format(data.getLastRunTimeReal()/1000) + "s");
 			} else {
-				lastTimeRunningValue = String.valueOf(formatter.format(data.getLastRunTimeReal()/60000) + "m");
+				lastTimeRunningValue = String.valueOf(formatter.format(data.getLastRunTimeReal()/60000) + "min");
 			}
 		} else {
 			lastTimeRunningValue = "-";
@@ -126,12 +126,12 @@ public class OperatorPanel extends JPanel {
 		String averageTimeRunningValue;
 		if (data.hasRun()) {
 			if (data.getAverageRunTimeReal() < 1000) {
-				averageTimeRunningValue = data.getAverageRunTimeReal() == 0 ? "<1ms" : String.valueOf(data.getAverageRunTimeReal() + "ms");
+				averageTimeRunningValue = data.getAverageRunTimeReal() == 0 ? "<1ms" : String.valueOf(formatter.format(data.getAverageRunTimeReal()) + "ms");
 			} else
 			if (data.getAverageRunTimeReal() < 60000) {
 				averageTimeRunningValue = String.valueOf(formatter.format(data.getAverageRunTimeReal()/1000) + "s");
 			} else {
-				averageTimeRunningValue = String.valueOf(formatter.format(data.getAverageRunTimeReal()/60000) + "m");
+				averageTimeRunningValue = String.valueOf(formatter.format(data.getAverageRunTimeReal()/60000) + "min");
 			}
 		} else {
 			averageTimeRunningValue = "-";
@@ -143,7 +143,7 @@ public class OperatorPanel extends JPanel {
 		String lastCpuTimeRunningValue;
 		if (data.hasRun()) {
 			if (data.getLastRunTimeCpu() < 1000) {
-				lastCpuTimeRunningValue = data.getLastRunTimeCpu() == 0 ? "<1ns" : String.valueOf(data.getLastRunTimeCpu() + "ns");
+				lastCpuTimeRunningValue = data.getLastRunTimeCpu() == 0 ? "<1ns" : String.valueOf(formatter.format(data.getLastRunTimeCpu()) + "ns");
 			} else
 			if (data.getLastRunTimeCpu() < 1000000) {
 				lastCpuTimeRunningValue = String.valueOf(formatter.format(data.getLastRunTimeCpu()/1000) + "µs");
@@ -154,7 +154,7 @@ public class OperatorPanel extends JPanel {
 			if (data.getLastRunTimeCpu() < Long.parseLong("60000000000")) {
 				lastCpuTimeRunningValue = String.valueOf(formatter.format(data.getLastRunTimeCpu()/1000000000) + "s");
 			} else {
-				lastCpuTimeRunningValue = String.valueOf(formatter.format(data.getLastRunTimeCpu()/Double.parseDouble("60000000000")) + "m");
+				lastCpuTimeRunningValue = String.valueOf(formatter.format(data.getLastRunTimeCpu()/Double.parseDouble("60000000000")) + "min");
 			}
 		} else {
 			lastCpuTimeRunningValue = "-";
@@ -165,7 +165,7 @@ public class OperatorPanel extends JPanel {
 		String averageCpuTimeRunningValue;
 		if (data.hasRun()) {
 			if (data.getAverageRunTimeCpu() < 1000) {
-				averageCpuTimeRunningValue = data.getAverageRunTimeCpu() == 0 ? "<1ns" : String.valueOf(data.getAverageRunTimeCpu() + "ns");
+				averageCpuTimeRunningValue = data.getAverageRunTimeCpu() == 0 ? "<1ns" : String.valueOf(formatter.format(data.getAverageRunTimeCpu()) + "ns");
 			} else
 			if (data.getAverageRunTimeCpu() < 1000000) {
 				averageCpuTimeRunningValue = String.valueOf(formatter.format(data.getAverageRunTimeCpu()/1000) + "µs");
@@ -176,7 +176,7 @@ public class OperatorPanel extends JPanel {
 			if (data.getAverageRunTimeCpu() < Double.parseDouble("60000000000")) {
 				averageCpuTimeRunningValue = String.valueOf(formatter.format(data.getAverageRunTimeCpu()/1000000000) + "s");
 			} else {
-				averageCpuTimeRunningValue = String.valueOf(formatter.format(data.getAverageRunTimeCpu()/Double.parseDouble("60000000000")) + "m");
+				averageCpuTimeRunningValue = String.valueOf(formatter.format(data.getAverageRunTimeCpu()/Double.parseDouble("60000000000")) + "min");
 			}
 		} else {
 			averageCpuTimeRunningValue = "-";

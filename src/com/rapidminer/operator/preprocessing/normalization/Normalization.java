@@ -36,8 +36,6 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ProcessSetupError.Severity;
-import com.rapidminer.operator.annotation.PolynomialExampleSetResourceConsumptionEstimator;
-import com.rapidminer.operator.annotation.PolynomialFunction;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
@@ -219,17 +217,6 @@ public class Normalization extends PreprocessingOperator {
 	
 	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
-		String[] timeConsumption = OperatorResourceConsumptionHandler.getTimeConsumption(Normalization.class);
-		String[] memoryConsumption = OperatorResourceConsumptionHandler.getMemoryConsumption(Normalization.class);
-		if (timeConsumption == null || memoryConsumption == null) {
-			return null;
-		}
-		
-		PolynomialFunction timeFunction = new PolynomialFunction(Double.parseDouble(timeConsumption[0]),
-				Double.parseDouble(timeConsumption[1]), Double.parseDouble(timeConsumption[2]));
-		PolynomialFunction memoryFunction = new PolynomialFunction(Double.parseDouble(memoryConsumption[0]),
-				Double.parseDouble(memoryConsumption[1]), Double.parseDouble(memoryConsumption[2]));
-		
-		return new PolynomialExampleSetResourceConsumptionEstimator(getExampleSetInputPort(), attributeSelector, timeFunction, memoryFunction);
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), Normalization.class, attributeSelector);
 	}
 }

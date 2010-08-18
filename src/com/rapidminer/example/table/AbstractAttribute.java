@@ -72,7 +72,7 @@ public abstract class AbstractAttribute implements Attribute {
 	 * this attribute has no function arguments. Only the last transformation
 	 * is cloned, the other transformations are cloned by reference.
 	 */
-	/* pp */ AbstractAttribute(AbstractAttribute attribute) {
+	protected AbstractAttribute(AbstractAttribute attribute) {
 		this.attributeDescription = attribute.attributeDescription;
 		
 		// copy statistics
@@ -105,7 +105,7 @@ public abstract class AbstractAttribute implements Attribute {
 	 * attributes which were not generated with help of a generator, i.e.
 	 * this attribute has no function arguments.
 	 */
-	/* pp */ AbstractAttribute(String name, int valueType) {
+	protected AbstractAttribute(String name, int valueType) {
 		this.attributeDescription = new AttributeDescription(this, name, valueType, Ontology.SINGLE_VALUE, 0.0d, UNDEFINED_ATTRIBUTE_INDEX);
 		this.constructionDescription = name;
 	}

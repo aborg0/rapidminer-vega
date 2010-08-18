@@ -30,6 +30,7 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
@@ -39,6 +40,7 @@ import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * This operator creates a new attribute for the data set. The new
@@ -88,5 +90,10 @@ public class AttributeAdd extends AbstractDataProcessing {
 		types.add(new ParameterTypeString(PARAMETER_NAME, "The name of the new attribute.", false));
 		types.add(new ParameterTypeCategory(PARAMETER_VALUE_TYPE, "The value type of the new attribute.", Ontology.VALUE_TYPE_NAMES, Ontology.REAL));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), AttributeAdd.class, null);
 	}
 }

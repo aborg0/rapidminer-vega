@@ -31,6 +31,7 @@ import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.AttributeSetPrecondition;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
@@ -40,6 +41,7 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 
 /**
@@ -110,5 +112,10 @@ public class AttributeCopy extends AbstractDataProcessing {
 		types.add(new ParameterTypeAttribute(PARAMETER_ATTRIBUTE_NAME, "The name of the nominal attribute to which values should be added.", getExampleSetInputPort(), false)); 
 		types.add(new ParameterTypeString(PARAMETER_NEW_NAME, "The name of the new (copied) attribute. If this parameter is missing, simply the same name with an appended number is used.", true, false));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), AttributeCopy.class, null);
 	}
 }

@@ -22,6 +22,10 @@ public class PolynomialExampleSetResourceConsumptionEstimator extends ExampleSet
 		this.memoryFunction = memoryFunction;
 	}
 
+	protected int getNumberOfRelevantAttributes(ExampleSetMetaData emd) {
+		return emd.getNumberOfRegularAttributes();	
+	}
+	
 	@Override
 	public long estimateMemory(ExampleSetMetaData exampleSet) {
 		final MDInteger numEx = exampleSet.getNumberOfExamples();
@@ -30,7 +34,7 @@ public class PolynomialExampleSetResourceConsumptionEstimator extends ExampleSet
 		} else if (numEx.getNumber() == 0) {
 			return -1;
 		}
-		final int numAtt = exampleSet.getNumberOfRegularAttributes();
+		final int numAtt = getNumberOfRelevantAttributes(exampleSet);
 		return cpuFunction.evaluate(numEx.getNumber(), numAtt);
 	}
 

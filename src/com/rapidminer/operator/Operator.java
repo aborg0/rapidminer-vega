@@ -27,6 +27,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
+import java.lang.management.ManagementFactory;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -174,6 +175,15 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 
 	/** System time when execution started. */
 	private long startTime;
+	
+	/** Cpu time when execution started. */
+	private long startCpuTime;
+	
+	/** System time when execution finished. */
+	private long endTime;
+	
+	/** Cpu time when execution finished. */
+	private long endCpuTime;
 
 	/** System time when the current loop of execution started. */
 	private long loopStartTime;
@@ -248,6 +258,24 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 			@Override
 			public double getDoubleValue() {
 				return System.currentTimeMillis() - startTime;
+			}
+		});
+		addValue(new ValueDouble("cpu-time", "The cpu time elapsed since this operator started.", false) {
+			@Override
+			public double getDoubleValue() {
+				return ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId()) - startCpuTime;
+			}
+		});
+		addValue(new ValueDouble("execution-time", "The execution time of this operator.", false) {
+			@Override
+			public double getDoubleValue() {
+				return endTime - startTime;
+			}
+		});
+		addValue(new ValueDouble("cpu-execution-time", "The cpu execution time of this operator.", false) {
+			@Override
+			public double getDoubleValue() {
+				return endCpuTime - startCpuTime;
 			}
 		});
 		addValue(new ValueDouble("looptime", "The time elapsed since the current loop started.", false) {
@@ -526,6 +554,9 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 			clone.applyCount = new AtomicInteger();
 		}
 		clone.startTime = startTime;
+		clone.startCpuTime = startCpuTime;
+		clone.endTime = endTime;
+		clone.endCpuTime = endCpuTime;
 		clone.loopStartTime = loopStartTime;
 		clone.getParameters().copyFrom(this.getParameters());
 //		if (parameters != null)	//might not have been created yet
@@ -735,7 +766,8 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 			checkForStop(process);
 
 			applyCountAtLastExecution = applyCount.incrementAndGet();
-			startTime = loopStartTime = System.currentTimeMillis();			
+			startTime = loopStartTime = System.currentTimeMillis();		
+			startCpuTime = ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId());
 			if (process != null) {
 				process.setCurrentOperator(this);
 				process.getRootOperator().processStartedOperator(this);
@@ -779,6 +811,8 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 				throw e;
 			} finally {
 				isRunning  = false;
+				endTime = System.currentTimeMillis();
+				endCpuTime = ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId());
 				// set source to the output
 				for (OutputPort outputPort : getOutputPorts().getAllPorts()) {
 					IOObject ioObject = outputPort.getDataOrNull();

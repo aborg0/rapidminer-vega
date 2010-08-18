@@ -33,6 +33,7 @@ import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.AttributeSetPrecondition;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
@@ -45,6 +46,7 @@ import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * This operator merges two attributes by simply concatenating the values and store
@@ -156,5 +158,10 @@ public class AttributeMerge extends AbstractDataProcessing {
 		types.add(new ParameterTypeString(PARAMETER_SEPARATOR, "Indicated a string which is used as separation of both values.", "_"));
 		types.add(new ParameterTypeBoolean(PARAMETER_TRIM_VALUES, "Indicates if the two values should be trimmed, i.e. leading and trailing whitespaces should be removed, before the merge is performed.", false));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), AttributeMerge.class, null);
 	}
 }

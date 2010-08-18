@@ -31,12 +31,14 @@ import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.features.selection.AbstractFeatureSelection;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.tools.AttributeSubsetSelector;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 
 /**
@@ -97,5 +99,10 @@ public class AttributeFilter extends AbstractFeatureSelection {
 		List<ParameterType> types = super.getParameterTypes();		
 		types.addAll(attributeSelector.getParameterTypes());
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), AttributeFilter.class, attributeSelector);
 	}
 }
