@@ -624,40 +624,14 @@ public class Plugin {
 	
 	/** Returns a class loader which is able to load all classes (core _and_ all plugins). */
 	public static ClassLoader getMajorClassLoader() {
-		return MAJOR_CLASS_LOADER;
-		// PluginClassLoader majorPluginClassLoader = null;
-		// Iterator<Plugin> i = allPlugins.iterator();
-		// while (i.hasNext()) {
-		// Plugin plugin = i.next();
-		// if (majorPluginClassLoader == null) {
-		// majorPluginClassLoader = plugin.classLoader;
-		// } else {
-		// mergeClassLoaders(plugin.classLoader, majorPluginClassLoader);
-		// }
-		// }
-		// if (majorPluginClassLoader == null) {
-		// return ClassLoader.getSystemClassLoader();
-		// } else {
-		// return majorPluginClassLoader;
-		// }
+		return MAJOR_CLASS_LOADER;		
 	}
 
 	/** Returns the collection of all plugins. */
 	public static List<Plugin> getAllPlugins() {
 		return allPlugins;
 	}
-	/*
-	/** Returns the desired plugin. 
-	private static Plugin getPlugin(String name) {
-		Iterator<Plugin> i = allPlugins.iterator();
-		while (i.hasNext()) {
-			Plugin plugin = i.next();
-			if (plugin.getName().equals(name))
-				return plugin;
-		}
-		return null;
-	}
-	*/
+
 	/** Returns the plugin with the given extension id. */
 	public static Plugin getPluginByExtensionId(String name) {
 		Iterator<Plugin> i = allPlugins.iterator();

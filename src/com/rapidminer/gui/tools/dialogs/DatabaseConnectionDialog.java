@@ -489,11 +489,11 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 			return null;
 		}
 		String port = portTextField.getText();
-		if (host == null || "".equals(port)) {
-			SwingTools.showVerySimpleErrorMessage("manage_db_connections.missing", I18N.getMessage(I18N.getGUIBundle(), "gui.label.manage_db_connections.port.label"));
-			portTextField.requestFocusInWindow();
-			return null;
-		}
+//		if (port == null || "".equals(port)) {
+//			SwingTools.showVerySimpleErrorMessage("manage_db_connections.missing", I18N.getMessage(I18N.getGUIBundle(), "gui.label.manage_db_connections.port.label"));
+//			portTextField.requestFocusInWindow();
+//			return null;
+//		}
 		String database = databaseTextField.getText();
 		if (database == null) {
 			database = "";
@@ -518,8 +518,8 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 			return null;
 		}
 		String port = portTextField.getText();
-		if (host == null || "".equals(port)) {
-			return null;
+		if (host == null) { // || "".equals(port)) {
+			port = "";
 		}
 		String database = databaseTextField.getText();
 		if (database == null) {

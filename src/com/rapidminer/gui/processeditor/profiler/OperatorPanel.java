@@ -57,8 +57,8 @@ public class OperatorPanel extends JPanel {
 	private JLabel label_operatorLastTimeRunningValue;
 	private JLabel label_operatorAverageCpuTimeRunningValue;
 	private JLabel label_operatorLastCpuTimeRunningValue;
-	private JLabel label_operatorResourceConsumptionEstimationDescription;
-	private JLabel label_operatorResourceConsumptionEstimationValue;
+//	private JLabel label_operatorResourceConsumptionEstimationDescription;
+//	private JLabel label_operatorResourceConsumptionEstimationValue;
 	
 	private static final long serialVersionUID = 8830933821400357100L;
 	
@@ -83,8 +83,8 @@ public class OperatorPanel extends JPanel {
 		this.label_operatorAverageTimeRunningValue = new JLabel();
 		this.label_operatorAverageCpuTimeRunningValue = new JLabel();
 		this.label_operatorLastCpuTimeRunningValue = new JLabel();
-		this.label_operatorResourceConsumptionEstimationDescription = new JLabel();
-		this.label_operatorResourceConsumptionEstimationValue = new JLabel();
+//		this.label_operatorResourceConsumptionEstimationDescription = new JLabel();
+//		this.label_operatorResourceConsumptionEstimationValue = new JLabel();
 		
 		this.setLayout(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -148,13 +148,13 @@ public class OperatorPanel extends JPanel {
 			if (data.getLastRunTimeCpu() < 1000000) {
 				lastCpuTimeRunningValue = String.valueOf(formatter.format(data.getLastRunTimeCpu()/1000) + "µs");
 			} else
-			if (data.getLastRunTimeCpu() < 100000000) {
+			if (data.getLastRunTimeCpu() < 1000000000) {
 				lastCpuTimeRunningValue = String.valueOf(formatter.format(data.getLastRunTimeCpu()/1000000) + "ms");
 			} else
-			if (data.getLastRunTimeCpu() < Long.parseLong("60000000000")) {
+			if (data.getLastRunTimeCpu() < Long.parseLong("600000000000")) {
 				lastCpuTimeRunningValue = String.valueOf(formatter.format(data.getLastRunTimeCpu()/1000000000) + "s");
 			} else {
-				lastCpuTimeRunningValue = String.valueOf(formatter.format(data.getLastRunTimeCpu()/Double.parseDouble("60000000000")) + "min");
+				lastCpuTimeRunningValue = String.valueOf(formatter.format(data.getLastRunTimeCpu()/Double.parseDouble("600000000000")) + "min");
 			}
 		} else {
 			lastCpuTimeRunningValue = "-";
@@ -170,27 +170,28 @@ public class OperatorPanel extends JPanel {
 			if (data.getAverageRunTimeCpu() < 1000000) {
 				averageCpuTimeRunningValue = String.valueOf(formatter.format(data.getAverageRunTimeCpu()/1000) + "µs");
 			} else
-			if (data.getAverageRunTimeCpu() < 100000000) {
+			if (data.getAverageRunTimeCpu() < 1000000000) {
 				averageCpuTimeRunningValue = String.valueOf(formatter.format(data.getAverageRunTimeCpu()/1000000) + "ms");
 			} else
-			if (data.getAverageRunTimeCpu() < Double.parseDouble("60000000000")) {
+			if (data.getAverageRunTimeCpu() < Double.parseDouble("600000000000")) {
 				averageCpuTimeRunningValue = String.valueOf(formatter.format(data.getAverageRunTimeCpu()/1000000000) + "s");
 			} else {
-				averageCpuTimeRunningValue = String.valueOf(formatter.format(data.getAverageRunTimeCpu()/Double.parseDouble("60000000000")) + "min");
+				averageCpuTimeRunningValue = String.valueOf(formatter.format(data.getAverageRunTimeCpu()/Double.parseDouble("600000000000")) + "min");
 			}
 		} else {
 			averageCpuTimeRunningValue = "-";
 		}
 		this.label_operatorAverageCpuTimeRunningValue.setText(averageCpuTimeRunningValue);
 		
-		this.label_operatorResourceConsumptionEstimationDescription.setText(
-				I18N.getMessage(I18N.getGUIBundle(), "gui.label.profiler_operator_panel.resource_consumption.text"));
-		if (operator.getResourceConsumptionEstimator() == null) {
-			this.label_operatorResourceConsumptionEstimationValue.setText(
-					I18N.getMessage(I18N.getGUIBundle(), "gui.label.profiler_operator_panel.resource_consumption.text_null"));
-		} else {
-			this.label_operatorResourceConsumptionEstimationValue.setText("" + operator.getResourceConsumptionEstimator());
-		}
+		//TODO: Implement
+//		this.label_operatorResourceConsumptionEstimationDescription.setText(
+//				I18N.getMessage(I18N.getGUIBundle(), "gui.label.profiler_operator_panel.resource_consumption.text"));
+//		if (operator.getResourceConsumptionEstimator() == null) {
+//			this.label_operatorResourceConsumptionEstimationValue.setText(
+//					I18N.getMessage(I18N.getGUIBundle(), "gui.label.profiler_operator_panel.resource_consumption.text_null"));
+//		} else {
+//			this.label_operatorResourceConsumptionEstimationValue.setText("" + operator.getResourceConsumptionEstimator());
+//		}
 		
 		
 		// format GridBagLayout
