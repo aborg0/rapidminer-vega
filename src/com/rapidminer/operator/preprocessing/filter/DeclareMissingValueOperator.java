@@ -32,6 +32,7 @@ import com.rapidminer.operator.AbstractExampleSetProcessing;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ProcessSetupError.Severity;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MDInteger;
@@ -45,9 +46,10 @@ import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
- * <p>Allows the declaration of a missing value (nominal or numeric) on a selected subset. The given value 
+ * Allows the declaration of a missing value (nominal or numeric) on a selected subset. The given value 
  * will be converted to Double.NaN, so subsequent operators will treat is as a missing value.
  * 
  * @author Marco Boeck
@@ -182,5 +184,9 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 		
 		return parameters;
 	}
-
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), DeclareMissingValueOperator.class, null);
+	}
 }

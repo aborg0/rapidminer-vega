@@ -29,6 +29,7 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.AttributeSetPrecondition;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
@@ -37,6 +38,7 @@ import com.rapidminer.operator.preprocessing.AbstractDataProcessing;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * This operator changes the attribute roles of two input attributes. This could for 
@@ -106,5 +108,10 @@ public class ExchangeAttributeRoles extends AbstractDataProcessing {
 		types.add(new ParameterTypeAttribute(PARAMETER_FIRST_ATTRIBUTE, "The name of the first attribute for the attribute role exchange.", getExampleSetInputPort(), false));
 		types.add(new ParameterTypeAttribute(PARAMETER_SECOND_ATTRIBUTE, "The name of the first attribute for the attribute role exchange.", getExampleSetInputPort(), false));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), ExchangeAttributeRoles.class, null);
 	}
 }

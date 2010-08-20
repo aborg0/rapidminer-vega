@@ -33,6 +33,7 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.SimpleProcessSetupError;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ProcessSetupError.Severity;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
@@ -42,6 +43,7 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeRegexp;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * <p>
@@ -114,5 +116,10 @@ public class ChangeAttributeNamesReplace extends AbstractDataProcessing {
 
 		types.add(new ParameterTypeString(PARAMETER_REPLACE_BY, "This string is used as replacement for all parts of the matching attributes where the parameter '" + PARAMETER_REPLACE_WHAT + "' matches.", true, false));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), ChangeAttributeNamesReplace.class, attributeSelector);
 	}
 }

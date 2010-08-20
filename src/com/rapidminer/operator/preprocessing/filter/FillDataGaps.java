@@ -41,6 +41,7 @@ import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetPrecondition;
@@ -51,6 +52,7 @@ import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.math.MathFunctions;
 
@@ -271,5 +273,10 @@ public class FillDataGaps extends AbstractExampleSetProcessing {
 		types.add(new ParameterTypeInt(PARAMETER_START, "If this parameter is defined gaps at the beginning (if they occur) before the first data point will also be filled.", 1, Integer.MAX_VALUE, true));
 		types.add(new ParameterTypeInt(PARAMETER_END, "If this parameter is defined gaps at the end (if they occur) after the last data point will also be filled.", 1, Integer.MAX_VALUE, true));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), FillDataGaps.class, null);
 	}
 }

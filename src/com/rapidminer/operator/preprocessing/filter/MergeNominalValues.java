@@ -34,6 +34,7 @@ import com.rapidminer.example.table.NominalMapping;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.AttributeSetPrecondition;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
@@ -43,6 +44,7 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * Merges two nominal values of a given regular attribute. To process special attributes like labels, wrap this operator
@@ -142,5 +144,10 @@ public class MergeNominalValues extends AbstractDataProcessing {
 		types.add(new ParameterTypeString(PARAMETER_FIRST_VALUE, "The first value which should be merged.", false));
 		types.add(new ParameterTypeString(PARAMETER_SECOND_VALUE, "The second value which should be merged.", false));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), MergeNominalValues.class, null);
 	}
 }

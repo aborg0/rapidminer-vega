@@ -112,7 +112,7 @@ public class OperatorPanel extends JPanel {
 			if (data.getLastRunTimeReal() < 1000) {
 				lastTimeRunningValue = data.getLastRunTimeReal() == 0 ? "<1ms" : String.valueOf(formatter.format(data.getLastRunTimeReal()) + "ms");
 			} else
-			if (data.getLastRunTimeReal() < 60000) {
+			if (data.getLastRunTimeReal() < 600000) {
 				lastTimeRunningValue = String.valueOf(formatter.format(data.getLastRunTimeReal()/1000) + "s");
 			} else {
 				lastTimeRunningValue = String.valueOf(formatter.format(data.getLastRunTimeReal()/60000) + "min");
@@ -128,7 +128,7 @@ public class OperatorPanel extends JPanel {
 			if (data.getAverageRunTimeReal() < 1000) {
 				averageTimeRunningValue = data.getAverageRunTimeReal() == 0 ? "<1ms" : String.valueOf(formatter.format(data.getAverageRunTimeReal()) + "ms");
 			} else
-			if (data.getAverageRunTimeReal() < 60000) {
+			if (data.getAverageRunTimeReal() < 600000) {
 				averageTimeRunningValue = String.valueOf(formatter.format(data.getAverageRunTimeReal()/1000) + "s");
 			} else {
 				averageTimeRunningValue = String.valueOf(formatter.format(data.getAverageRunTimeReal()/60000) + "min");
@@ -154,7 +154,7 @@ public class OperatorPanel extends JPanel {
 			if (data.getLastRunTimeCpu() < Long.parseLong("600000000000")) {
 				lastCpuTimeRunningValue = String.valueOf(formatter.format(data.getLastRunTimeCpu()/1000000000) + "s");
 			} else {
-				lastCpuTimeRunningValue = String.valueOf(formatter.format(data.getLastRunTimeCpu()/Double.parseDouble("600000000000")) + "min");
+				lastCpuTimeRunningValue = String.valueOf(formatter.format(data.getLastRunTimeCpu()/Double.parseDouble("60000000000")) + "min");
 			}
 		} else {
 			lastCpuTimeRunningValue = "-";
@@ -176,7 +176,7 @@ public class OperatorPanel extends JPanel {
 			if (data.getAverageRunTimeCpu() < Double.parseDouble("600000000000")) {
 				averageCpuTimeRunningValue = String.valueOf(formatter.format(data.getAverageRunTimeCpu()/1000000000) + "s");
 			} else {
-				averageCpuTimeRunningValue = String.valueOf(formatter.format(data.getAverageRunTimeCpu()/Double.parseDouble("600000000000")) + "min");
+				averageCpuTimeRunningValue = String.valueOf(formatter.format(data.getAverageRunTimeCpu()/Double.parseDouble("60000000000")) + "min");
 			}
 		} else {
 			averageCpuTimeRunningValue = "-";

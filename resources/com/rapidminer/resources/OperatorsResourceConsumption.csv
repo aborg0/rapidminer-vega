@@ -2,20 +2,64 @@
 # use the following format:
 # class package.classname; cpu time coefficient (for ns); cpu degree examples; cpu degree attributes; memory coefficient; memory degree examples; memory degree attributes
 
+# how to test?
 class com.rapidminer.operator.learner.bayes.NaiveBayes;1;1;1;1;0;1
 
+# operator exists?
 class com.rapidminer.operator.preprocessing.discretization.AbsoluteDiscretization;1;1;1;1;0;1
 class com.rapidminer.operator.preprocessing.discretization.BinDiscretization;3006;1;1;1;0;1
+# Function: n*m?
 class com.rapidminer.operator.preprocessing.discretization.FrequencyDiscretization;1;1;1;1;1;0
+# operator exists?
 class com.rapidminer.operator.preprocessing.discretization.MinMaxBinDiscretization;1;0;1;1;0;1
-class com.rapidminer.operator.preprocessing.discretization.UserBasedDiscretization;1;0;1;1;0;1
+class com.rapidminer.operator.preprocessing.discretization.UserBasedDiscretization;2080;1;1;1;0;1
 
+# Function: m?
 class com.rapidminer.operator.preprocessing.filter.attributes.AttributeFilter;1;0;1;1;0;1
 
 # Only linear in case of binominal attribute, otherwise constant
+# Function: n?
 class com.rapidminer.operator.preprocessing.filter.AddNominalValue;1;1;0;1;1;0
+# Function: n?
 class com.rapidminer.operator.preprocessing.filter.AttributeAdd;1;1;0;1;0;0
+# Function: n?
 class com.rapidminer.operator.preprocessing.filter.AttributeCopy;1;1;0;1;0;0
+# Function: n?
 class com.rapidminer.operator.preprocessing.filter.AttributeMerge;1;1;0;1;0;0
+class com.rapidminer.operator.preprocessing.filter.AttributeValueMapper;1988;1;1;1;0;0
+class com.rapidminer.operator.preprocessing.filter.AttributeValueReplace;2886;1;1;1;0;0
+class com.rapidminer.operator.preprocessing.filter.AttributeValueSplit;1341;1;1;1;0;0
+class com.rapidminer.operator.preprocessing.filter.AttributeValueSubstring;2278;1;1;1;0;0
+class com.rapidminer.operator.preprocessing.filter.AttributeValueTrim;2214;1;1;1;0;0
+class com.rapidminer.operator.preprocessing.filter.ChangeAttributeName;0;0;0;0;0;0
+# Function: m?
+class com.rapidminer.operator.preprocessing.filter.ChangeAttributeNames2Generic;0;0;1;1;0;0
+# Function: m?
+class com.rapidminer.operator.preprocessing.filter.ChangeAttributeNamesReplace;0;0;1;1;0;0
+class com.rapidminer.operator.preprocessing.filter.ChangeAttributeRole;0;0;0;0;0;0
+class com.rapidminer.operator.preprocessing.filter.ChangeAttributeType;0;0;0;0;0;0
+# Function: m?
+class com.rapidminer.operator.preprocessing.filter.Construction2Names;1;0;1;0;0;0
+# how to test?
+class com.rapidminer.operator.preprocessing.filter.Date2Nominal;1;1;0;0;0;0
+# how to test?
+class com.rapidminer.operator.preprocessing.filter.Date2Numerical;1;1;0;0;0;0
+# how to test?
+class com.rapidminer.operator.preprocessing.filter.DateAdjust;1;1;0;0;0;0
+class com.rapidminer.operator.preprocessing.filter.DeclareMissingValueOperator;1266;1;1;0;0;0
+# Function: n?
+class com.rapidminer.operator.preprocessing.filter.ExampleFilter;1;1;0;0;0;0
+# Function: n?
+class com.rapidminer.operator.preprocessing.filter.ExampleRangeFilter;1;1;0;0;0;0
+# Function: n?
+class com.rapidminer.operator.preprocessing.filter.ExampleSetToDictionary;1;1;0;0;0;0
+class com.rapidminer.operator.preprocessing.filter.ExchangeAttributeRoles;0;0;0;0;0;0
+# Function: m?
+class com.rapidminer.operator.preprocessing.filter.FeatureRangeRemoval;1;0;1;0;0;0
+# how to test?
+class com.rapidminer.operator.preprocessing.filter.FillDataGaps;1;0;1;0;0;0
+class com.rapidminer.operator.preprocessing.filter.InfiniteValueReplenishment;1153;1;1;0;0;0
+class com.rapidminer.operator.preprocessing.filter.InternalBinominalRemapping;1;1;1;0;0;0
+class com.rapidminer.operator.preprocessing.filter.MergeNominalValues;1;1;0;0;0;0
 
 class com.rapidminer.operator.preprocessing.normalization.Normalization;921;1;1;1;1;1

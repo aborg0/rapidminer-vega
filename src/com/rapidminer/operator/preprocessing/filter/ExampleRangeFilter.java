@@ -30,6 +30,7 @@ import com.rapidminer.example.set.SplittedExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetSizePrecondition;
 import com.rapidminer.operator.ports.metadata.MetaData;
@@ -38,6 +39,7 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * This operator keeps only the examples of a given range (including the borders). The other examples will be removed
@@ -105,5 +107,10 @@ public class ExampleRangeFilter extends AbstractDataProcessing {
 		parameterTypes.add(new ParameterTypeInt(PARAMETER_LAST_EXAMPLE, "The last example of the resulting example set.", 1, Integer.MAX_VALUE, false));
 		parameterTypes.add(new ParameterTypeBoolean(PARAMETER_INVERT_FILTER, "Indicates if the filter should be inverted.", false));
 		return parameterTypes;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), ExampleRangeFilter.class, null);
 	}
 }
