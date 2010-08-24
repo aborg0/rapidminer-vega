@@ -364,25 +364,18 @@
 
 	<target name="release" description="This will increase the version counter and generate all files with the new version, including update files and javadoc.">
 		<!-- testing if release should be built at all -->
-		<input message="Do you really want to create a new Release? This will increase the revision version counter, generate all platform install files, javadoc, update files and upload them either to sourceforge or the update server." validargs="yes,no,republish" defaultvalue="no" addproperty="release.input">
+		<input message="Do you really want to create the new release ${rapidminer.longversion}? This will generate all platform install files, javadoc, update files and upload them as well on sourceforge as on the update server." validargs="yes,no" defaultvalue="no" addproperty="release.input">
 		</input>
 		<condition property="release.accepted">
-			<or>
-				<equals arg1="${release.input}" arg2="republish" />
-				<istrue value="${release.input}" />
-			</or>
+			<istrue value="${release.input}" />
 		</condition>
 		<fail unless="release.accepted" />
 		<echo message="Releasing started..." />
 
-		<!-- testing if republishing has been chosen -->
-		<condition property="version.surpressIncrease">
-			<equals arg1="${release.input}" arg2="republish" />
-		</condition>
-
-		<antcall target="version.increaseRevision" />
+		<antcall target="version.updateFiles" />
 		<antcall target="javaDoc.makeZip" />
 		<antcall target="release.publish" />
+		<antcall target="update.makeAll" />
 		<antcall target="update.publish" />
 	</target>
 
@@ -481,7 +474,7 @@
 
 	<!-- Uploading updates -->
 
-	<target name="update.publish" depends="init" description="This will generate a new update and upload files for all platforms. The update number will ne increased automatically.">
+	<target name="update.publish" depends="init" description="This will generate a new update and upload files for all platforms.">
 		<echo message="Publishing update ${rapidminer.longversion} using ${server.update.user}..." />
 		<echo message="...Platform Independent" />
 		<put targetUrl="${server.update.url}/rapidminer/${rapidminer.longversion}/ANY?force=true" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}.zip" username="${server.update.user}" password="${server.update.password}" />
@@ -492,20 +485,14 @@
 	</target>
 
 	<target name="update" description="This target will perform a full update including file generation and uploading them to the update server.">
-		<input message="Do you really want to create a new Update? This will increase the update version counter, generate all update files and upload to the server." validargs="yes,no,republish" addproperty="update.input">
+		<input message="Do you really want to create the update to ${rapidminer.longversion}? This will generate all update files and upload to the server." validargs="yes,no" addproperty="update.input">
 		</input>
 		<condition property="update.accepted">
-			<or>
-				<equals arg1="${update.input}" arg2="republish" />
-				<istrue value="${update.input}" />
-			</or>
+			<istrue value="${update.input}" />
 		</condition>
 		<fail unless="update.accepted" />
 		<echo message="Updating started..." />
-		<condition property="update.republish">
-			<equals arg1="${update.input}" arg2="republish" />
-		</condition>
-		<antcall target="version.increaseUpdate" />
+		<antcall target="version.updateFiles" />
 		<antcall target="update.makeAll" />
 		<antcall target="update.publish" />
 	</target>
@@ -521,8 +508,8 @@
 		<antcall target="version.updateFiles" />
 	</target>
 
-	<target name="version.increaseUpdate" unless="update.republish">
-		<echo message="Increasing Update..." />
+	<target name="version.increaseUpdate" description="This might be called seperately to increase the update number of the version.">
+		<echo message="Increasing Update Number..." />
 
 		<propertyfile file="build.properties">
 			<entry type="int" key="rapidminer.update" operation="+" value="1" pattern="000" />
@@ -534,7 +521,7 @@
 		<antcall target="version.updateFiles" />
 	</target>
 
-	<target name="version.increaseRevision" unless="version.surpressIncrease">
+	<target name="version.increaseRevision" description="This might be called seperately to increase the revision number of the version.">
 		<echo message="Increasing Revision..." />
 		<propertyfile file="build.properties">
 			<entry type="int" key="rapidminer.revision" operation="+" value="1" pattern="0" />
