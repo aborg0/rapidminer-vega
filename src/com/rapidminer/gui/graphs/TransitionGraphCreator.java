@@ -158,13 +158,16 @@ public class TransitionGraphCreator extends GraphCreatorAdaptor {
 		this.nodeDescription = transitionGraph.getNodeDescription();
 		
 		SortedSet<SourceId> sourceNames = new TreeSet<SourceId>();
+		Attribute idAttribute = exampleSet.getAttributes().getId();
 		for (Example example : exampleSet) {
-			String id = example.getValueAsString(sourceAttribute);
+			Object id = example.getValue(idAttribute);
+			if (idAttribute.isNominal())
+				id = example.getValueAsString(idAttribute);
 			String description = getNodeDescription(id);
 			if (description == null) {
-				sourceNames.add(new SourceId(id, id));
+				sourceNames.add(new SourceId(id.toString(), id.toString()));
 			} else {
-				sourceNames.add(new SourceId(id, description));
+				sourceNames.add(new SourceId(id.toString(), description));
 			}
 			
 		}
@@ -404,12 +407,12 @@ public class TransitionGraphCreator extends GraphCreatorAdaptor {
         }
     }
 
-    private String getNodeDescription(String vertex) {
+    private String getNodeDescription(Object vertexId) {
 		if (nodeDescription != null) {
 			ObjectVisualizer visualizer = ObjectVisualizerService.getVisualizerForObject(exampleSet);
 			
 			if (visualizer != null) {
-				if (visualizer.isCapableToVisualize(vertex)) {
+				if (visualizer.isCapableToVisualize(vertexId)) {
 					StringBuffer resultString = new StringBuffer();
 					int currentIndex = 0;
 					int startIndex = nodeDescription.indexOf("%{", currentIndex);
@@ -417,7 +420,7 @@ public class TransitionGraphCreator extends GraphCreatorAdaptor {
 						int endIndex = nodeDescription.indexOf("}", startIndex);
 						if (endIndex >= startIndex) {
 							String fieldName = nodeDescription.substring(startIndex + 2, endIndex);
-							String fieldValue = visualizer.getDetailData(vertex, fieldName);
+							String fieldValue = visualizer.getDetailData(vertexId, fieldName);
 							resultString.append(nodeDescription.substring(currentIndex, startIndex));
 							if (fieldValue != null)
 								resultString.append(fieldValue);

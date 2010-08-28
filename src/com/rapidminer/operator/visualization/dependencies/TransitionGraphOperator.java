@@ -24,7 +24,9 @@ package com.rapidminer.operator.visualization.dependencies;
 
 import java.util.List;
 
+import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
+import com.rapidminer.example.Tools;
 import com.rapidminer.gui.ExampleVisualizer;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
@@ -33,12 +35,14 @@ import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.metadata.AttributeSetPrecondition;
+import com.rapidminer.operator.ports.metadata.ExampleSetPrecondition;
 import com.rapidminer.operator.ports.metadata.GenerateNewMDRule;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.ObjectVisualizerService;
+import com.rapidminer.tools.Ontology;
 
 /**
  * <p>This operator creates a transition graph from the given example set.
@@ -76,6 +80,7 @@ public class TransitionGraphOperator extends Operator {
 		super(description);
 
 		exampleSetInput.addPrecondition(new AttributeSetPrecondition(exampleSetInput, AttributeSetPrecondition.getAttributesByParameter(this, PARAMETER_SOURCE_ATTRIBUTE, PARAMETER_STRENGTH_ATTRIBUTE, PARAMETER_TARGET_ATTRIBUTE, PARAMETER_TYPE_ATTRIBUTE)));
+		exampleSetInput.addPrecondition(new ExampleSetPrecondition(exampleSetInput, Attributes.ID_NAME, Ontology.ATTRIBUTE_VALUE));
 
 		getTransformer().addPassThroughRule(exampleSetInput, exampleSetOutput);
 		getTransformer().addRule(new GenerateNewMDRule(graphOutput, TransitionGraph.class));
@@ -94,6 +99,8 @@ public class TransitionGraphOperator extends Operator {
 	}
 
 	public TransitionGraph createTransitionGraph(ExampleSet exampleSet) throws UndefinedParameterError, UserError {
+		Tools.checkIds(exampleSet);
+		
 		String sourceAttribute = getParameterAsString(PARAMETER_SOURCE_ATTRIBUTE);
 		if (exampleSet.getAttributes().get(sourceAttribute) == null) {
 			throw new UserError(this, 111, sourceAttribute);
@@ -119,7 +126,7 @@ public class TransitionGraphOperator extends Operator {
 		String typeAttribute = null;
 		if (isParameterSet(PARAMETER_TYPE_ATTRIBUTE))
 			typeAttribute = getParameterAsString(PARAMETER_TYPE_ATTRIBUTE);
-		if (typeAttribute != null && strengthAttribute.length() > 0) {
+		if (typeAttribute != null && typeAttribute.length() > 0) {
 			if (exampleSet.getAttributes().get(typeAttribute) == null) {
 				throw new UserError(this, 111, typeAttribute);
 			}

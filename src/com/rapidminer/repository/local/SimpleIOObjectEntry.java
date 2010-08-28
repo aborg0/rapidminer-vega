@@ -39,6 +39,7 @@ import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.tools.ExampleSetToStream;
 import com.rapidminer.operator.tools.IOObjectSerializer;
+import com.rapidminer.operator.tools.RMObjectInputStream;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.RepositoryException;
@@ -91,7 +92,7 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 			if (metaDataFile.exists()) {
 				ObjectInputStream objectIn = null;
 				try {
-					objectIn = new ObjectInputStream(new FileInputStream(metaDataFile));
+					objectIn = new RMObjectInputStream(new FileInputStream(metaDataFile));
 					this.metaData = (MetaData)objectIn.readObject();
 					if (this.metaData instanceof ExampleSetMetaData) {
 						for (AttributeMetaData amd : ((ExampleSetMetaData) metaData).getAllAttributes()) {

@@ -26,13 +26,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.ObjectStreamClass;
 import java.io.OutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import com.rapidminer.tools.XMLSerialization;
-import com.rapidminer.tools.plugin.Plugin;
 
 /**
  * 
@@ -40,16 +38,10 @@ import com.rapidminer.tools.plugin.Plugin;
  *
  */
 class JavaBinaryBodySerializer implements BodySerializer {
+
 	@Override
 	public Object deserialize(InputStream in) throws IOException {
-		ObjectInputStream oin = new ObjectInputStream(in) {
-			private ClassLoader classLoader = Plugin.getMajorClassLoader();
-			@Override
-			protected Class<?> resolveClass(ObjectStreamClass desc)
-					throws IOException, ClassNotFoundException {
-				return Class.forName(desc.getName(), true, classLoader);
-			}
-		};
+		ObjectInputStream oin = new RMObjectInputStream(in);
 		try {
 			return oin.readObject();
 		} catch (ClassNotFoundException e) {

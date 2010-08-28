@@ -410,11 +410,18 @@ public class Tools {
 				IdTagging idTagging = OperatorService.createOperator(IdTagging.class);
 				idTagging.apply(es);
 			} catch (OperatorCreationException e) {
-				throw new UserError(null, 113, "id");	
+				throw new UserError(null, 129);	
 			}
 		}
 	}
 
+	public static void checkIds(ExampleSet exampleSet) throws UserError {
+		if (exampleSet.getAttributes().getId() == null) {
+			throw new UserError(null, 129);
+		}
+	}
+
+	
 	/**
 	 * The example set has to have nominal labels.
 	 * 
