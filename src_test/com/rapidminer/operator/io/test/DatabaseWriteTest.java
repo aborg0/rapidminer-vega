@@ -1,12 +1,16 @@
 package com.rapidminer.operator.io.test;
 
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
+
 import java.sql.SQLException;
+import java.util.Iterator;
 
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.rapidminer.example.Attribute;
+import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorException;
@@ -14,6 +18,7 @@ import com.rapidminer.operator.io.DatabaseDataReader;
 import com.rapidminer.operator.io.DatabaseExampleSetWriter;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.IOObjectEntry;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.test.TestUtils;
 import com.rapidminer.tools.OperatorService;
@@ -28,6 +33,9 @@ public class DatabaseWriteTest {
 
 	private static final String TABLE_NAME = "unit_test_table";
 	private static final String TEST_DATA_LOCATION = "//Samples/data/Labor-Negotiations";
+	private static final String TEST_REPOS_DATE_LOCATION = "//Samples/data/";
+	
+	
 	private ExampleSet exampleSet;
 
 	private static class DatabaseRef {
@@ -102,6 +110,69 @@ public class DatabaseWriteTest {
 		writer.setParameter(DatabaseHandler.PARAMETER_TABLE_NAME, "LaborNegotiationOp");
 		writer.setParameter(DatabaseExampleSetWriter.PARAMETER_OVERWRITE_MODE, DatabaseHandler.OVERWRITE_MODES[DatabaseHandler.OVERWRITE_MODE_OVERWRITE]);
 		writer.write(exampleSet);
+	}
+	
+	@Test
+	public void testWriteOperatorGetGeneratedKeys() throws OperatorCreationException, OperatorException {
+		String testTableName = "test_get_gen_keys_back";
+		// Delete exiosting entries
+		DatabaseHandler handler;
+		try {
+			handler = DatabaseHandler.getConnectedDatabaseHandler(DB_MY_SQL.getUrl(), DB_MY_SQL.getUser(), DB_MY_SQL.getPassword());
+			handler.emptyTable(testTableName);
+		} catch (SQLException e1) {
+			throw new OperatorException("can not delete table", e1);
+		}
+		// Use Iris with out the id attribute
+		Entry entry =null;
+		ExampleSet eSet =null;
+		try {
+			entry = new RepositoryLocation(TEST_REPOS_DATE_LOCATION+"Iris").locateEntry();
+			 eSet = (ExampleSet) ((IOObjectEntry)entry).retrieveData(null);
+		} catch (RepositoryException e) {
+			throw new OperatorException("can not access repository", e);
+		}
+		Attribute idAttribute = eSet.getAttributes().get("id");
+		// remove id attribute
+		eSet.getAttributes().remove(idAttribute);
+		
+		DatabaseExampleSetWriter writer = OperatorService.createOperator(DatabaseExampleSetWriter.class);
+		writer.setParameter(DatabaseHandler.PARAMETER_DATABASE_SYSTEM, "MySQL");
+		writer.setParameter(DatabaseHandler.PARAMETER_DEFINE_CONNECTION, DatabaseHandler.CONNECTION_MODES[DatabaseHandler.CONNECTION_MODE_URL]);
+		writer.setParameter(DatabaseHandler.PARAMETER_DATABASE_URL, DB_MY_SQL.getUrl());
+		writer.setParameter(DatabaseHandler.PARAMETER_USERNAME, DB_MY_SQL.getUser());
+		writer.setParameter(DatabaseHandler.PARAMETER_PASSWORD, DB_MY_SQL.getPassword());
+		writer.setParameter(DatabaseHandler.PARAMETER_TABLE_NAME, testTableName);
+		writer.setParameter(DatabaseExampleSetWriter.PARAMETER_OVERWRITE_MODE, DatabaseHandler.OVERWRITE_MODES[DatabaseHandler.OVERWRITE_MODE_APPEND]);
+		writer.setParameter(DatabaseExampleSetWriter.PARAMETER_GET_GENERATED_PRIMARY_KEYS, Boolean.TRUE.toString());
+		writer.setParameter(DatabaseExampleSetWriter.PARAMETER_GENERATED_KEYS_ATTRIBUTE_NAME, "id");
+		ExampleSet result = writer.write(eSet);
+		
+
+		DatabaseDataReader reader = OperatorService.createOperator(DatabaseDataReader.class);		
+		reader.setParameter(DatabaseHandler.PARAMETER_DATABASE_SYSTEM, "MySQL");
+		reader.setParameter(DatabaseHandler.PARAMETER_DEFINE_CONNECTION, DatabaseHandler.CONNECTION_MODES[DatabaseHandler.CONNECTION_MODE_URL]);
+		reader.setParameter(DatabaseHandler.PARAMETER_DATABASE_URL, DB_MY_SQL.getUrl());
+		reader.setParameter(DatabaseHandler.PARAMETER_USERNAME, DB_MY_SQL.getUser());
+		reader.setParameter(DatabaseHandler.PARAMETER_PASSWORD, DB_MY_SQL.getPassword());
+		reader.setParameter(DatabaseHandler.PARAMETER_TABLE_NAME, testTableName);
+		reader.setParameter(DatabaseHandler.PARAMETER_DEFINE_QUERY, DatabaseHandler.QUERY_MODES[DatabaseHandler.QUERY_TABLE]);
+		ExampleSet dbSet = reader.read();
+		
+		
+		assertEquals(result.size(), dbSet.size());
+		
+		Attribute resultAtt = result.getAttributes().get("id");
+		Attribute dbAtt = dbSet.getAttributes().get("id");
+		
+		// compare results
+		Iterator<Example> resultIt = result.iterator();
+		Iterator<Example> dbSetIt = dbSet.iterator();
+		while (resultIt.hasNext()){
+			Example resultEx = resultIt.next();
+			Example dbEx = dbSetIt.next();
+			assertEquals(resultEx.getValue(resultAtt), dbEx.getValue(dbAtt));
+		}
 	}
 
 	@Test

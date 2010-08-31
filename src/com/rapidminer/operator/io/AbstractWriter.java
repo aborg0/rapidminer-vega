@@ -64,7 +64,7 @@ public abstract class AbstractWriter<T extends IOObject> extends Operator {
 	@Override
 	public final void doWork() throws OperatorException {
 		T ioobject = inputPort.<T>getData();
-		write(ioobject);
+		ioobject = write(ioobject);
 		outputPort.deliver(ioobject);		
 	}	
 

@@ -323,8 +323,24 @@ public class StatementCreator {
 		return makeIdentifier(attribute.getName());
 	}
 
+	
+	/**
+	 * DROP TABLE ...
+	 * 
+	 * @param tableName
+	 * @return
+	 */
 	public String makeDropStatement(String tableName) {
 		return "DROP TABLE " + makeIdentifier(tableName);
+	}
+	
+	/**
+	 * DELETE FROM ...
+	 * @param tableName
+	 * @return
+	 */
+	public String makeDeleteStatement(String tableName) {
+		return "DELETE FROM "+makeIdentifier(tableName);
 	}
 	
 	/** SELECT * */

@@ -68,4 +68,6 @@ public interface RepositoryConstants {
 
 	public static final int NO_SUCH_PROCESS = -18;
 
+	public static final int MISSING_PARAMETER = -19;
+
 }
