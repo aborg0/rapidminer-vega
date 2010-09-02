@@ -3307,6 +3307,11 @@
     <key>performance_support_vector_count</key>
     <shortName>Performance</shortName>
   </operator>
+  <operator>
+ 		 <name>Numerical to Date</name>
+         <key>numerical_to_date</key>
+  </operator>
+  
     <operator>
         <name>Select Subprocess</name>
         <synopsis>This operator can be used to select a single inner operator

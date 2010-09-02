@@ -32,12 +32,14 @@ import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetUnionRule;
 import com.rapidminer.operator.ports.metadata.SetRelation;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * This operator gets two example sets and adds new features to each of both example sets
@@ -125,5 +127,10 @@ public class ExampleSetSuperset extends Operator {
 		superset(exampleSet1, exampleSet2);
 		supersetOutput1.deliver(exampleSet1);
 		supersetOutput2.deliver(exampleSet2);
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPorts().getPortByIndex(0), ExampleSetSuperset.class, null);
 	}
 }

@@ -30,11 +30,13 @@ import com.rapidminer.example.set.SortedExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeSetPrecondition;
 import com.rapidminer.operator.preprocessing.AbstractDataProcessing;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeCategory;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * <p>
@@ -79,5 +81,10 @@ public class Sorting extends AbstractDataProcessing {
 		types.add(new ParameterTypeAttribute(PARAMETER_ATTRIBUTE_NAME, "Indicates the attribute which should be used for determining the sorting.", getExampleSetInputPort(), false));
 		types.add(new ParameterTypeCategory(PARAMETER_SORTING_DIRECTION, "Indicates the direction of the sorting.", SortedExampleSet.SORTING_DIRECTIONS, SortedExampleSet.INCREASING, false));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), Sorting.class, null);
 	}
 }

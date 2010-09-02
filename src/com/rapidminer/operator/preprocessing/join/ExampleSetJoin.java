@@ -33,8 +33,10 @@ import com.rapidminer.example.table.DoubleArrayDataRow;
 import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeCategory;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 
 /**
@@ -272,5 +274,10 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 		List<ParameterType> types = super.getParameterTypes();
 		types.add(new ParameterTypeCategory(PARAMETER_JOIN_TYPE, "Specifies which join should be executed.", JOIN_TYPES, JOIN_TYPE_INNER, false));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPorts().getPortByIndex(0), ExampleSetJoin.class, null);
 	}
 }

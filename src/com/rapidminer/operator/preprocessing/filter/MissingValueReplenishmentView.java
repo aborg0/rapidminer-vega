@@ -26,11 +26,13 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.set.ReplaceMissingExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MDInteger;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.preprocessing.AbstractDataProcessing;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * This operator simply creates a new view on the input data without
@@ -60,5 +62,10 @@ public class MissingValueReplenishmentView extends AbstractDataProcessing {
 	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {		 
 		ExampleSet result = new ReplaceMissingExampleSet(exampleSet);
 		return result;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), MissingValueReplenishmentView.class, null);
 	}
 }

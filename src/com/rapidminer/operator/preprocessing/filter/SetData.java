@@ -30,6 +30,7 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.AttributeSetPrecondition;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
@@ -41,6 +42,7 @@ import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * This operator simply sets the value for the specified example and
@@ -130,5 +132,10 @@ public class SetData extends AbstractDataProcessing {
 		types.add(new ParameterTypeBoolean(PARAMETER_COUNT_BACKWARDS, "If checked, the last counting order is inverted and hence the last example is addressed by index 1, the before last by index 2 and so on.", false, true));
 		types.add(new ParameterTypeString(PARAMETER_VALUE, "The value which should be set.", false, false));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), SetData.class, null);
 	}
 }

@@ -36,6 +36,7 @@ import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.SetRelation;
@@ -43,6 +44,7 @@ import com.rapidminer.operator.preprocessing.GuessValueTypes;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.StrictDecimalFormat;
 import com.rapidminer.tools.math.container.Range;
 
@@ -189,6 +191,11 @@ public class NominalNumbers2Numerical extends AbstractFilteredDataProcessing {
 //		types.add(new ParameterTypeChar(PARAMETER_DECIMAL_POINT_CHARACTER, "Character that is used as decimal point.", '.', false));
 //		types.add(new ParameterTypeChar(PARAMETER_GROUP_SEPARATOR, "Character that is used to separate groups (e.g. in 1.000.000 or 1,000,000).", false));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), NominalNumbers2Numerical.class, null);
 	}
 
 }

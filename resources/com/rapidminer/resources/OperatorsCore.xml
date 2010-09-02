@@ -957,6 +957,10 @@
                <replaces>Numerical2Real</replaces>
             </operator>
             <operator>
+               <key>numerical_to_date</key>
+               <class>com.rapidminer.operator.preprocessing.filter.Numerical2Date</class>
+            </operator>
+            <operator>
                <key>real_to_integer</key>
                <class>com.rapidminer.operator.preprocessing.filter.Real2Integer</class>
                <replaces>Real2Integer</replaces>
@@ -1766,7 +1770,7 @@
                </operator>
                <operator>
                   <key>hierarchical_classification</key>
-                  <class>com.rapidminer.operator.learner.meta.HierarchicalLearner2</class>
+                  <class>com.rapidminer.operator.learner.meta.HierarchicalLearner</class>
                </operator>
                <operator>
                   <key>classification_by_regression</key>

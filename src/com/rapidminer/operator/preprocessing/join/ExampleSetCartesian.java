@@ -32,6 +32,8 @@ import com.rapidminer.example.table.DoubleArrayDataRow;
 import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 
 /** <p>Build the cartesian product of two example sets. In contrast to the {@link ExampleSetJoin}
@@ -96,4 +98,9 @@ public class ExampleSetCartesian extends AbstractExampleSetJoin {
 	protected boolean isIdNeeded() {
         return false;
     }
+    
+    @Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPorts().getPortByIndex(0), ExampleSetCartesian.class, null);
+	}
 }

@@ -40,6 +40,7 @@ import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.features.weighting.InfoGainWeighting;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
@@ -53,6 +54,7 @@ import com.rapidminer.operator.tools.AttributeSubsetSelector;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.RandomGenerator;
 
@@ -351,5 +353,10 @@ public class MissingValueImputation extends OperatorChain {
 		types.add(new ParameterTypeCategory(PARAMETER_SORT, "Sort direction which is used in order strategy.", sortStrategies, ASCENDING));
 		types.addAll(RandomGenerator.getRandomGeneratorParameters(this));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPorts().getPortByIndex(0), MissingValueImputation.class, attributeSelector);
 	}
 }

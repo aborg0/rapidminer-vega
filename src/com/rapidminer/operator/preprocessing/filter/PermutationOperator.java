@@ -33,8 +33,10 @@ import com.rapidminer.example.table.ExampleTable;
 import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.preprocessing.AbstractDataProcessing;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.RandomGenerator;
 
 
@@ -92,5 +94,10 @@ public class PermutationOperator extends AbstractDataProcessing {
 		types.addAll(RandomGenerator.getRandomGeneratorParameters(this));
 
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), PermutationOperator.class, null);
 	}
 }

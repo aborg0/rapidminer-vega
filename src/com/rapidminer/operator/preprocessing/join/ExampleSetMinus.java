@@ -33,6 +33,7 @@ import com.rapidminer.example.set.MappedExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetPrecondition;
@@ -40,6 +41,7 @@ import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.preprocessing.AbstractDataProcessing;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 
 /**
@@ -116,6 +118,11 @@ public class ExampleSetMinus extends AbstractDataProcessing {
 
 		ExampleSet minusSet = new MappedExampleSet(minuendSet, indexArray);
 		return minusSet;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), ExampleSetMinus.class, null);
 	}
 
 }

@@ -43,6 +43,7 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.SimpleProcessSetupError;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ProcessSetupError.Severity;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.InputPortExtender;
 import com.rapidminer.operator.ports.OutputPort;
@@ -56,6 +57,7 @@ import com.rapidminer.operator.ports.metadata.Precondition;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * <p>
@@ -250,5 +252,10 @@ public class ExampleSetMerge extends Operator {
 		type.setDeprecated();
 		types.add(type);
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPorts().getPortByIndex(0), ExampleSetMerge.class, null);
 	}
 }

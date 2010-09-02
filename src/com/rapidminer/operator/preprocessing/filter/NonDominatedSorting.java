@@ -34,9 +34,11 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.set.SortedExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.preprocessing.AbstractDataProcessing;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttributes;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * This operator sorts a given example set according to a subset of attributes
@@ -176,5 +178,10 @@ public class NonDominatedSorting extends AbstractDataProcessing{
 		type.setExpert(false);
 		types.add(type);
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), NonDominatedSorting.class, null);
 	}
 }

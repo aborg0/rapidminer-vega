@@ -33,12 +33,14 @@ import com.rapidminer.example.set.SplittedExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.preprocessing.AbstractDataProcessing;
 import com.rapidminer.operator.tools.AttributeSubsetSelector;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * This operator removed duplicate examples from an example set by comparing all examples
@@ -111,5 +113,10 @@ public class RemoveDuplicates extends AbstractDataProcessing {
 		types.addAll(subsetSelector.getParameterTypes());
 
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), RemoveDuplicates.class, null);
 	}
 }

@@ -25,7 +25,9 @@ package com.rapidminer.operator.preprocessing.filter;
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.operator.OperatorDescription;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.Tools;
 
 
@@ -53,8 +55,13 @@ public class NumericToPolynominal extends NumericToNominal {
 		}        
 	}
 	
-	 @Override
+	@Override
 	protected int getGeneratedAttributevalueType() {
 		return Ontology.NOMINAL;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), NumericToPolynominal.class, null);
 	}
 }
