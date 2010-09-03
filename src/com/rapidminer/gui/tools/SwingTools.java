@@ -336,7 +336,7 @@ public class SwingTools {
 	 *  and additional line breaks are added after ca. lineLength characters. 
 	 *  TODO: Use <div style="width:XXXpx"> */
 	public static String transformToolTipText(String description, boolean addHTMLTags, int lineLength) {
-		String completeText = description.trim();
+		String completeText = Tools.escapeHTML(description.trim());
 		StringBuffer result = new StringBuffer();
 		if (addHTMLTags)
 			result.append("<html>");

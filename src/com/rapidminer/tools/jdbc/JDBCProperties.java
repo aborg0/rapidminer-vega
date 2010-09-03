@@ -329,7 +329,7 @@ public class JDBCProperties {
         			String[] jarNames = getDriverJarFile().split(",");
         			URL urls[] = new URL[jarNames.length];
         			for (int i = 0; i < jarNames.length; i++) {
-        				File jarFile = new File(getDriverJarFile());
+        				File jarFile = new File(jarNames[i]);
         				if (!jarFile.exists()) {
         					LogService.getRoot().warning("Driver jar file '"+jarFile.getAbsolutePath()+"' referenced for JDBC driver "+getName()+" does not exist.");
         				}

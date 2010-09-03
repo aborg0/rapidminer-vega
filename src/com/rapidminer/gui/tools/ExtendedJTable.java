@@ -23,11 +23,13 @@
 package com.rapidminer.gui.tools;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.Arrays;
 import java.util.Date;
 
 import javax.swing.Action;
@@ -38,6 +40,8 @@ import javax.swing.JViewport;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -55,8 +59,11 @@ import com.rapidminer.gui.tools.actions.SelectColumnAction;
 import com.rapidminer.gui.tools.actions.SelectRowAction;
 import com.rapidminer.gui.tools.actions.SortByColumnAction;
 import com.rapidminer.gui.tools.actions.SortColumnsAccordingToNameAction;
+import com.rapidminer.gui.tools.components.ToolTipWindow;
+import com.rapidminer.gui.tools.components.ToolTipWindow.TipProvider;
 import com.rapidminer.report.Tableable;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.container.Pair;
 
 /**
  * <p>This class extends a JTable in a way that editing is handled like it is expected, i.e. 
@@ -71,7 +78,7 @@ import com.rapidminer.tools.Tools;
  *   
  * @author Ingo Mierswa
  */
-public class ExtendedJTable extends JTable implements Tableable, MouseListener {
+public class ExtendedJTable extends JTable implements Tableable, MouseListener, TipProvider {
 
     private static final long serialVersionUID = 4840252601155251257L;
 
@@ -117,6 +124,10 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
     private String[] originalOrder = null;
     
     private boolean showPopopUpMenu = true;
+
+	private boolean[] cutOnLineBreaks;
+
+	private int[] maximalTextLengths;
     
     
     public ExtendedJTable() {
@@ -172,6 +183,10 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
         getTableHeader().addMouseListener(new ExtendedJTableColumnFitMouseListener()); 
         
         addMouseListener(this);
+        
+        // adding a new extended tool tip window
+        new ToolTipWindow(this, this);
+        setToolTipText(null);
     }
     
     protected Object readResolve() {
@@ -222,8 +237,25 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
     	this.fixFirstColumn = fixFirstColumn;
     }
     
+    public void setMaximalTextLength(int maximalTextLength) {
+    	Arrays.fill(maximalTextLengths, maximalTextLength);
+    }
+    
+    public void setMaximalTextLength(int maximalTextLength, int column) {
+    	maximalTextLengths[column] = maximalTextLength;
+    }
+    
+
+    public void setCutOnLineBreak(boolean enable) {
+    	Arrays.fill(cutOnLineBreaks, enable);
+    }
+
+    public void setCutOnLineBreak(boolean enable, int column) {
+    	cutOnLineBreaks[column] = enable;
+    }
+    
     @Override
-	public void setModel(TableModel model) {
+	public void setModel(final TableModel model) {
     	boolean shouldSort = this.sortable && checkIfSortable(model);
     	
         if (shouldSort) {
@@ -239,6 +271,27 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
         for (int c = 0; c < model.getColumnCount(); c++) {
         	originalOrder[c] = model.getColumnName(c);
         }
+
+        
+		// initializing arrays for cell renderer settings
+        cutOnLineBreaks = new boolean[model.getColumnCount()];
+		maximalTextLengths = new int[model.getColumnCount()];
+        Arrays.fill(maximalTextLengths, Integer.MAX_VALUE);
+
+        model.addTableModelListener(new TableModelListener() {
+			@Override
+			public void tableChanged(TableModelEvent e) {
+				int oldLength = cutOnLineBreaks.length;
+				if (oldLength != model.getColumnCount()) {
+					cutOnLineBreaks = Arrays.copyOf(cutOnLineBreaks, model.getColumnCount());
+					maximalTextLengths = Arrays.copyOf(maximalTextLengths, model.getColumnCount());
+					if (oldLength < cutOnLineBreaks.length) {
+						Arrays.fill(cutOnLineBreaks, oldLength, cutOnLineBreaks.length, false);
+						Arrays.fill(maximalTextLengths, oldLength, cutOnLineBreaks.length, Integer.MAX_VALUE);
+					}
+				}
+			}
+		});
     }
     
     public void setSortingStatus(int status, boolean cancelSorting) {
@@ -366,6 +419,7 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
     	}
     }
     
+
     @Override
 	public Dimension getIntercellSpacing() {
     	Dimension dimension = super.getIntercellSpacing();
@@ -426,6 +480,9 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
     			renderer.setColor(color);
     		
     		renderer.setDateFormat(getDateFormat(row, col));
+    		
+    		renderer.setMaximalTextLength(maximalTextLengths[col]);
+    		renderer.setCutOnFirstLineBreak(cutOnLineBreaks[col]);
     		return renderer;
     	} else {
     		return super.getCellRenderer(row, col);
@@ -437,9 +494,13 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
 	public String getToolTipText(MouseEvent e) {
         Point p = e.getPoint();
         int colIndex = columnAtPoint(p);
-        int realColumnIndex = convertColumnIndexToModel(colIndex);
         int rowIndex = rowAtPoint(p);
-        
+       
+        return getToolTipText(colIndex, rowIndex);
+    }
+
+	private String getToolTipText(int colIndex, int rowIndex) {
+		int realColumnIndex = convertColumnIndexToModel(colIndex);
 		String text = null;
 		if (rowIndex >= 0 && rowIndex < getRowCount() && realColumnIndex >= 0 && realColumnIndex < getModel().getColumnCount()) {
 	        Object value = getModel().getValueAt(rowIndex, realColumnIndex);
@@ -469,7 +530,7 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
             return SwingTools.transformToolTipText(text);
         else
             return super.getToolTipText();
-    }
+	}
 
 	public String getCell(int row, int column) {
 		String text = null;
@@ -604,5 +665,25 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
 			subMenu.add(new MoveColumnAction(this, IconSize.SMALL, i));
 		}
 		return subMenu;
+	}
+
+	/* Methods for Extended Tool Tip */
+	
+	@Override
+	public Component getCustomComponent(Object id) {
+		return null;
+	}
+
+	@Override
+	public Object getIdUnder(Point point) {
+		Pair<Integer, Integer> cellId = new Pair<Integer, Integer>(columnAtPoint(point), rowAtPoint(point));
+		return cellId;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public String getTip(Object id) {
+		Pair<Integer, Integer> cellId = (Pair<Integer, Integer>) id;
+		return getToolTipText(cellId.getFirst(), cellId.getSecond());
 	}
 }

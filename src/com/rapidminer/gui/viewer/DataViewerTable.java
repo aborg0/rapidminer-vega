@@ -44,6 +44,8 @@ import com.rapidminer.tools.Ontology;
  */
 public class DataViewerTable extends ExtendedJTable {
     
+	private static final int MAXIMAL_CONTENT_LENGTH = 200;
+	
     private static final long serialVersionUID = 5535239693801265693L;
     
     private int numberOfSpecialAttributes = 0;
@@ -111,6 +113,9 @@ public class DataViewerTable extends ExtendedJTable {
                 }
             }
         });
+        
+    	setCutOnLineBreak(true);
+    	setMaximalTextLength(MAXIMAL_CONTENT_LENGTH);
     }
     
     /** This method ensures that the correct tool tip for the current column is delivered. */

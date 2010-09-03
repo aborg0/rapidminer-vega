@@ -75,7 +75,7 @@ import com.rapidminer.tools.RMUrlHandler;
 /** This class manages dynamic largish tool tips for JComponents.
  *  In order to use this class, implement a {@link TipProvider} that generates
  *  tool tip texts depending on the a mouse position relative to a component and
- *  pass this component and the top provider to the constructor of this class. 
+ *  pass this component and the tip provider to the constructor of this class. 
  *  
  *  This class will listen to mouse events of the specified component and will
  *  display an undecorated scrollable dialog whenever the mouse does not move for a certain time. 

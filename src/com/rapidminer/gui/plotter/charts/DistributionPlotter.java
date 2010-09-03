@@ -27,6 +27,7 @@ import java.awt.Color;
 import java.awt.Stroke;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.TreeMap;
 
 import javax.swing.JComponent;
@@ -91,6 +92,7 @@ public class DistributionPlotter extends RangeablePlotterAdapter {
 	private int groupColumn = -1;
 
 	private transient DistributionModel model;
+	private transient HashMap<String, Integer> dataTableModelColumnMap = new HashMap<String, Integer>();
 
 	private transient DataTable dataTable;
 
@@ -143,6 +145,15 @@ public class DistributionPlotter extends RangeablePlotterAdapter {
 					try {
 						NaiveBayes modelLearner = OperatorService.createOperator(NaiveBayes.class);
 						this.model = (DistributionModel) modelLearner.doWork(wrappedExampleSet);
+						
+						// updating column map 
+						dataTableModelColumnMap.clear();
+						int modelColumn = 0;
+						for (Attribute attribute: wrappedExampleSet.getAttributes()) {
+							dataTableModelColumnMap.put(attribute.getName(), modelColumn);
+							modelColumn++;
+						}
+						
 					} catch (OperatorCreationException e) {
 						LogService.getGlobal().logWarning("Cannot create distribution model generator. Skip plot...");
 					} catch (MissingIOObjectException e) {
@@ -153,6 +164,16 @@ public class DistributionPlotter extends RangeablePlotterAdapter {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * This method translates the plotColumn selected from the original data table
+	 * to an attribute index of the model.
+	 * They might differ, because during model construction the label is shifted from
+	 * it's original position to the end, causing a shift of all subsequent attributes to left.
+	 */
+	private int translateToModelColumn(int plotColumn) {
+		return dataTableModelColumnMap.get(dataTable.getColumnName(plotColumn));
 	}
 	
 	@Override
@@ -172,7 +193,7 @@ public class DistributionPlotter extends RangeablePlotterAdapter {
 					);
 		} else {
 			try {
-				if (model.isDiscrete(plotColumn)) {
+				if (model.isDiscrete(translateToModelColumn(plotColumn))) {
 					chart = createNominalChart();
 				} else {
 					chart = createNumericalChart();
@@ -266,12 +287,13 @@ public class DistributionPlotter extends RangeablePlotterAdapter {
 
 	private XYDataset createNumericalDataSet() {
 		XYSeriesCollection dataSet = new XYSeriesCollection();
-		double start = model.getLowerBound(plotColumn);
-		double end = model.getUpperBound(plotColumn);
+		int translatedPlotColumn = translateToModelColumn(plotColumn);
+		double start = model.getLowerBound(translatedPlotColumn);
+		double end = model.getUpperBound(translatedPlotColumn);
 		double stepSize = (end - start) / (NUMBER_OF_STEPS - 1);
 		for (int classIndex : model.getClassIndices()) {
 			XYSeries series = new XYSeries(model.getClassName(classIndex));
-			ContinuousDistribution distribution = (ContinuousDistribution) model.getDistribution(classIndex, plotColumn);
+			ContinuousDistribution distribution = (ContinuousDistribution) model.getDistribution(classIndex, translatedPlotColumn);
 			for (double currentValue = start; currentValue < end; currentValue += stepSize) {
 				double probability = distribution.getProbability(currentValue);
 				if (!Double.isNaN(probability)) {
@@ -370,7 +392,7 @@ public class DistributionPlotter extends RangeablePlotterAdapter {
 	private CategoryDataset createNominalDataSet() {
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 		for (Integer classIndex : model.getClassIndices()) {
-			DiscreteDistribution distribution = (DiscreteDistribution) model.getDistribution(classIndex, plotColumn);
+			DiscreteDistribution distribution = (DiscreteDistribution) model.getDistribution(classIndex, translateToModelColumn(plotColumn));
 			String labelName = model.getClassName(classIndex);
 
 			// sort values by name

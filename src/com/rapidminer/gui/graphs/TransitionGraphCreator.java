@@ -171,7 +171,7 @@ public class TransitionGraphCreator extends GraphCreatorAdaptor {
 			}
 			
 		}
-		
+
 		sourceFilter = new ExtendedJComboBox(200);
 		sourceFilter.addItem(new SourceId("None", "None"));
 		for (SourceId sourceId : sourceNames) {

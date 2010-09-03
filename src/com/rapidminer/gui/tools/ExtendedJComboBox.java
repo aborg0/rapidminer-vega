@@ -144,6 +144,10 @@ public class ExtendedJComboBox extends JComboBox {
 		setRenderer(new ExtendedComboBoxRenderer());
 	}
 
+	public void setPreferredWidth(int preferredWidth) {
+		this.preferredWidth = preferredWidth;
+	}
+	
 	@Override
 	public void setModel(ComboBoxModel aModel) {
 		super.setModel(aModel);

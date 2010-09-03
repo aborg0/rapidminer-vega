@@ -38,6 +38,8 @@ import com.rapidminer.tools.Tools;
 /**
  * The default table cell renderer for all viewer tables. Provides the correct border and colors.
  * Numbers will be formatted with the generic number of fraction digits.
+ * It is possible to restrict the maximum length of strings shown. This might speed up rendering
+ * for very large strings, which of course can't be shown completely anyway.
  * 
  * @author Ingo Mierswa
  */
@@ -48,6 +50,9 @@ public class ColoredTableCellRenderer implements TableCellRenderer {
 	private static final Color TEXT_SELECTED_COLOR = UIManager.getColor("Tree.selectionForeground");
 
 	private static final Color TEXT_NON_SELECTED_COLOR = UIManager.getColor("Table.textForeground");
+
+	private int maximalTextLength = Integer.MAX_VALUE;
+	private boolean cutOnFirstLineBreak = false;
 	
 	private JTextField renderer = new JTextField();
 
@@ -63,6 +68,21 @@ public class ColoredTableCellRenderer implements TableCellRenderer {
 
 	public void setDateFormat(int dateFormat) {
 		this.dateFormat = dateFormat;
+	}
+	
+	/**
+	 * Use this method to set the maximal text length. Enter Integer.MAX_VALUE to disable text cutting (default)
+	 */
+	public void setMaximalTextLength(int maxLength) {
+		this.maximalTextLength = maxLength;
+	}
+	
+	/**
+	 * This enables or disables the cutting on the first linebreak of a string. Normally only one line
+	 * is shown, so this might be useful to speed up text rendering.
+	 */
+	public void setCutOnFirstLineBreak(boolean enable) {
+		this.cutOnFirstLineBreak = enable;
 	}
 	
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
@@ -82,6 +102,18 @@ public class ColoredTableCellRenderer implements TableCellRenderer {
 					}
 				} else {
 					text = value.toString();
+					// cutting on line
+					if (cutOnFirstLineBreak) {
+						int indexOfLineBreak = text.indexOf("\n");
+						if (indexOfLineBreak > 0) {
+							text = text.substring(0, indexOfLineBreak - 1);
+						}
+					}
+					// cutting on maximal length
+					if (text.length() > maximalTextLength) {
+						text = text.substring(0, maximalTextLength);
+					}
+
 				}
 			} else {
 				text = "?";

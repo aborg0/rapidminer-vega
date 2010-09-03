@@ -24,7 +24,7 @@ package com.rapidminer.operator.ports.metadata;
 
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -72,14 +72,16 @@ public class MetaData implements Serializable {
 	/** Restores an empty history. 
 	 * @throws ClassNotFoundException 
 	 * @throws IOException */
-	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-		in.defaultReadObject();	
+	//private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+	private Object readResolve() throws ObjectStreamException {
+		//in.defaultReadObject();	
 		if (generationHistory == null) {
 			generationHistory = new LinkedList<OutputPort>();
 		}
 		if (annotations == null) {
 			annotations = new Annotations();
 		}
+		return this;
 	}
 
 	public MetaData(Class<? extends IOObject> dataClass) {
@@ -143,7 +145,10 @@ public class MetaData implements Serializable {
 		} catch (IllegalAccessException e) {
 			throw new RuntimeException("Cannot clone " + this, e);			
 		}
-		clone.generationHistory = new LinkedList<OutputPort>(this.generationHistory);
+		if (generationHistory == null)
+			clone.generationHistory = new LinkedList<OutputPort>();
+		else
+			clone.generationHistory = new LinkedList<OutputPort>(this.generationHistory);
 		clone.dataClass = this.getObjectClass();
 		clone.keyValueMap.putAll(this.keyValueMap);
 		return clone;

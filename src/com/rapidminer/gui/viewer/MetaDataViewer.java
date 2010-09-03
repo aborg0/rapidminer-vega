@@ -130,8 +130,7 @@ public class MetaDataViewer extends JPanel implements Tableable {
         	};
         	toolBar.add(calculateStatisticsAction, ViewToolBar.RIGHT);
         }
-        
-//        add(infoPanel, BorderLayout.NORTH);
+
         add(toolBar, BorderLayout.NORTH);
              
         JScrollPane tableScrollPane = new ExtendedJScrollPane(metaDataTable);
@@ -161,6 +160,8 @@ public class MetaDataViewer extends JPanel implements Tableable {
     	}
     }
 
+    /* Reporting methods */
+    
 	public void prepareReporting() {
 		metaDataTable.prepareReporting();
 	}

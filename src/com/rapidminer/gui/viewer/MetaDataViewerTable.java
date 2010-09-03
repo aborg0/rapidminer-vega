@@ -41,6 +41,8 @@ import com.rapidminer.gui.tools.SwingTools;
  */
 public class MetaDataViewerTable extends ExtendedJTable {
     
+	private static final int MAXIMAL_CONTENT_LENGTH = 200;
+	
     private static final long serialVersionUID = -4879028136543294746L;
 
     private int numberOfSpecialAttributeRows = 0;
@@ -63,6 +65,9 @@ public class MetaDataViewerTable extends ExtendedJTable {
     	        }
     	    }
     	});
+    	
+    	setCutOnLineBreak(false);
+    	setMaximalTextLength(MAXIMAL_CONTENT_LENGTH);
     }
     
     public MetaDataViewerTable(ExampleSet exampleSet) {
