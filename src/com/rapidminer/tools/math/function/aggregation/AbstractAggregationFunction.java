@@ -44,7 +44,8 @@ public abstract class AbstractAggregationFunction implements AggregationFunction
 		MaxFunction.class,
 		SumFunction.class,
 		ModeFunction.class,
-		MedianFunction.class
+		MedianFunction.class,
+		ProductFunction.class
 	};
 
 	public static final String[] KNOWN_AGGREGATION_FUNCTION_NAMES = {
@@ -56,7 +57,8 @@ public abstract class AbstractAggregationFunction implements AggregationFunction
 		"maximum",
 		"sum",
 		"mode",
-		"median"
+		"median",
+		"product"
 	};
 
 	public static final int AVERAGE = 0;
@@ -76,6 +78,8 @@ public abstract class AbstractAggregationFunction implements AggregationFunction
 	public static final int MODE = 7;
 
 	public static final int MEDIAN = 8;
+
+	public static final int PRODUCT = 9;
 
 	public static final boolean DEFAULT_IGNORE_MISSINGS = true;
 
