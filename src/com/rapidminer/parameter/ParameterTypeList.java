@@ -54,7 +54,7 @@ public class ParameterTypeList extends CombinedParameterType {
 
 	@Deprecated
 	/**
-	 * This constructor is deprecated, because it does not provide enough informations for user guidance
+	 * This constructor is deprecated, because it does not provide enough information for user guidance
 	 */
 	public ParameterTypeList(String key, String description, ParameterType valueType) {
 		this(key, description, valueType, new LinkedList<String[]>());
@@ -62,7 +62,7 @@ public class ParameterTypeList extends CombinedParameterType {
 
 	@Deprecated
 	/**
-	 * This constructor is deprecated, because it does not provide enough informations for user guidance
+	 * This constructor is deprecated, because it does not provide enough information for user guidance
 	 */
 	public ParameterTypeList(String key, String description, ParameterType valueType, List<String[]> defaultList) {
 		super(key, description);

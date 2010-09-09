@@ -53,7 +53,7 @@ import com.rapidminer.tools.Tools;
  * the current implementation supports arbitrary strings as identifiers.
  * Writers of Extensions are encouraged to use Strings for separating their 
  * self defined errors from the errors defined in the core. 
- * You should prepend a insert the namespace of the extension like:
+ * You should prepend the namespace of the extension like this:
  * error.<extensions namespace>.error_id.short = ...
  * 
  * @author Simon Fischer, Ingo Mierswa, Sebastian Land

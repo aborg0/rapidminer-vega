@@ -229,7 +229,8 @@ public class XMLTools {
 		}
 	}
 
-	/** As {@link #getTagContents(Element, String, boolean)}, but never throws an exception. */
+	/** As {@link #getTagContents(Element, String, boolean)}, but never throws an exception. Returns null
+	 * if can't retrieve string. */
 	public static String getTagContents(Element element, String tag) {
 		try {
 			return getTagContents(element, tag, false);

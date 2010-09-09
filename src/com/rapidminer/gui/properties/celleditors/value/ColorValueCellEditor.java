@@ -24,17 +24,16 @@ package com.rapidminer.gui.properties.celleditors.value;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.AbstractCellEditor;
-import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JTable;
 
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.tools.components.ColorIcon;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterTypeColor;
 
@@ -49,34 +48,6 @@ public class ColorValueCellEditor extends AbstractCellEditor implements Property
 
 	private static final long serialVersionUID = -7069543356398085334L;
 
-	private static class ColorIcon implements Icon {
-
-		private Color color;
-		
-		private ColorIcon(Color color) {
-			this.color = color;
-		}
-
-		public Color getColor() {
-			return this.color;
-		}
-		
-		public int getIconWidth() {
-			return 20;
-		}
-
-		public int getIconHeight() {
-			return 8;
-		}
-
-		public void paintIcon(Component c, Graphics g, int x, int y) {
-			g.setColor(color);
-			g.fillRoundRect(x, y, getIconWidth(), getIconHeight(), 2, 2);
-			g.setColor(Color.black);
-			g.drawRoundRect(x, y, getIconWidth(), getIconHeight(), 2, 2);
-		}
-	}
-	
 	private transient ParameterTypeColor type;
     
 	private JButton button;
