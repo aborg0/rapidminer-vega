@@ -369,7 +369,9 @@ public class Example implements Serializable, Map<String, Object> {
 		if (attribute == null) {
 			return null;
 		} else if (attribute.isNominal()) {
-			return getValueAsString(attribute);	
+			return getValueAsString(attribute);
+		} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
+			return new Date((long)getValue(attribute));
 		} else {
 			return getValue(attribute);
 		}

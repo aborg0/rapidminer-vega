@@ -22,8 +22,10 @@
  */
 package com.rapidminer.operator.learner.subgroups.hypothesis;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+
 import com.rapidminer.example.Example;
 import com.rapidminer.operator.learner.subgroups.utility.UtilityFunction;
 import com.rapidminer.tools.Tools;
@@ -33,8 +35,10 @@ import com.rapidminer.tools.Tools;
  * 
  * @author Tobias Malbrecht
  */
-public class Rule {
+public class Rule implements Serializable {
 	
+	private static final long serialVersionUID = 1L;
+
 	Hypothesis hypothesis;
 	
 	Literal prediction;

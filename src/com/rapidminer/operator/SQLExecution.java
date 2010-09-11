@@ -25,7 +25,6 @@ package com.rapidminer.operator;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.List;
 
 import com.rapidminer.operator.io.CachedDatabaseExampleSource;
@@ -59,7 +58,7 @@ public class SQLExecution extends Operator {
 
 	/** The parameter name for &quot;File containing the query. Only evaluated if 'query' is not set.&quot; */
 	public static final String PARAMETER_QUERY_FILE = "query_file";
-
+	
 	private PortPairExtender dummyPorts = new DummyPortPairExtender("through", getInputPorts(), getOutputPorts());
 
 	public SQLExecution(OperatorDescription description) {
@@ -75,12 +74,24 @@ public class SQLExecution extends Operator {
 		try {
 			DatabaseHandler databaseHandler = DatabaseHandler.getConnectedDatabaseHandler(this);
 			String query = getQuery();
-			log("Executing query: '" + query + "'");
-			Statement statement = databaseHandler.createStatement(false);
-			statement.execute(query);
-			log("Query executed.");
-
-			statement.close();			
+			databaseHandler.executeStatement(query, false, this, getLogger());
+//			Statement statement;
+//			if (getParameterAsBoolean(DatabaseHandler.PARAMETER_PREPARE_STATEMENT)) {
+//				PreparedStatement prepared = databaseHandler.getConnection().prepareStatement(query);
+//				String[] parameters = ParameterTypeEnumeration.transformString2Enumeration(getParameter(DatabaseHandler.PARAMETER_PARAMETERS));
+//				for (int i = 0; i < parameters.length; i++) {
+//					prepared.setString(i+1, parameters[i]);
+//				}
+//				prepared.execute();
+//				statement = prepared;
+//			} else {
+//				getLogger().info("Executing query: '" + query + "'");
+//				statement = databaseHandler.createStatement(false);
+//				statement.execute(query);
+//			}
+//			
+//			getLogger().info("Query executed.");			
+//			statement.close();			
 			databaseHandler.disconnect();
 		} catch (SQLException sqle) {
 			throw new UserError(this, sqle, 304, sqle.getMessage());
@@ -148,7 +159,7 @@ public class SQLExecution extends Operator {
 		types.add(type);
 
 		types.add(new ParameterTypeFile(PARAMETER_QUERY_FILE, "File containing the query. Only evaluated if 'query' is not set.", null, true));
-
+		
 		return types;
-	}
+	}	
 }

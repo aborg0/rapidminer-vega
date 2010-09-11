@@ -172,6 +172,9 @@ public class MemoryExampleTable extends AbstractExampleTable {
 	public void addDataRow(DataRow dataRow) {
 		dataRow.trim();
 		dataList.add(dataRow);
+		
+		// this has to be called in order to make sure, the row matches the current column count.
+		dataRow.ensureNumberOfColumns(columns);
 	}
 
 	/** Convenience method for removing data rows. */

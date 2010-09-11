@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -58,14 +59,17 @@ import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.io.DatabaseExampleSetWriter;
 import com.rapidminer.parameter.ParameterHandler;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeDatabaseConnection;
 import com.rapidminer.parameter.ParameterTypeDatabaseTable;
+import com.rapidminer.parameter.ParameterTypeEnumeration;
 import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypePassword;
 import com.rapidminer.parameter.ParameterTypeSQLQuery;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.LoggingHandler;
@@ -163,6 +167,10 @@ public class DatabaseHandler {
 	 *  a database. Will be null before the connection is established and will also be null
 	 *  after {@link #disconnect()} was invoked. */
 	private Connection connection;
+
+	public static final String PARAMETER_PARAMETERS        = "parameters";
+
+	public static final String PARAMETER_PREPARE_STATEMENT = "prepare_statement";
     
 //	private static class DHIdentifier {
 //		private String url;
@@ -1003,4 +1011,57 @@ public class DatabaseHandler {
 		types.add(type);
     	return types;
     }
+    
+    public static List<ParameterType> getStatementPreparationParamterTypes(ParameterHandler handler) {
+    	List<ParameterType> types = new LinkedList<ParameterType>();
+		ParameterTypeBoolean prepareParam = new ParameterTypeBoolean(DatabaseHandler.PARAMETER_PREPARE_STATEMENT, "If checked, the statement is prepared, and '?'-parameters can be filled in using the parameter 'parameters'.", false);
+		types.add(prepareParam);
+		ParameterTypeEnumeration paramsParam = new ParameterTypeEnumeration(DatabaseHandler.PARAMETER_PARAMETERS, "Parameters to insert into '?' placefholders if statement is prepared.", new ParameterTypeString("parameter", "Parameter"));
+		paramsParam.registerDependencyCondition(new BooleanParameterCondition(handler, DatabaseHandler.PARAMETER_PREPARE_STATEMENT, false, true));
+		types.add(paramsParam);
+		return types;
+    }
+    
+
+    /** Executes a statement. Parameter must have parameters of {@link #getStatementPreparationParamterTypes(ParameterHandler)}
+     *  added.
+     *  If prepared statement was selected in parameter handler, a PreparedStatement is executed, 
+     *  and parameters specified in parameter handler will be filled in.
+     *  Statement is closed unless isQuery.
+     *  
+     * @param sql The sql statement
+     * @param isQuery If true, a ResultSet is returned
+     * @return ResultSet if isQuery is true, null otherwise
+     */
+	public ResultSet executeStatement(String sql, boolean isQuery, ParameterHandler parameterHandler, Logger logger) throws SQLException, UndefinedParameterError {
+		ResultSet resultSet = null;
+		Statement statement;
+		if (parameterHandler.getParameterAsBoolean(DatabaseHandler.PARAMETER_PREPARE_STATEMENT)) {
+			PreparedStatement prepared = getConnection().prepareStatement(sql);
+			String[] parameters = ParameterTypeEnumeration.transformString2Enumeration(parameterHandler.getParameterAsString(DatabaseHandler.PARAMETER_PARAMETERS));
+			for (int i = 0; i < parameters.length; i++) {
+				prepared.setString(i+1, parameters[i]);
+			}
+			if (isQuery) {
+				resultSet = prepared.executeQuery();
+			} else {
+				prepared.execute();
+			}
+			statement = prepared;
+		} else {
+			logger.info("Executing query: '" + sql + "'");
+			statement = createStatement(false);
+			if (isQuery) {
+				resultSet = statement.executeQuery(sql);
+			} else {
+				statement.execute(sql);
+			}
+		}		
+		logger.info("Query executed.");			
+		if (!isQuery) {
+			statement.close();
+		}
+		return resultSet;
+	}
+
 }

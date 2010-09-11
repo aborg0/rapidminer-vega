@@ -22,6 +22,8 @@
  */
 package com.rapidminer.operator.learner.subgroups.utility;
 
+import java.io.Serializable;
+
 import com.rapidminer.operator.learner.subgroups.hypothesis.Hypothesis;
 import com.rapidminer.operator.learner.subgroups.hypothesis.Rule;
 
@@ -31,7 +33,9 @@ import com.rapidminer.operator.learner.subgroups.hypothesis.Rule;
  * 
  * @author Tobias Malbrecht
  */
-public abstract class UtilityFunction {
+public abstract class UtilityFunction implements Serializable {
+
+private static final long serialVersionUID = 1L;
 
 public static final int COVERAGE = 0;
 	

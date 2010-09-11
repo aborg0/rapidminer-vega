@@ -166,10 +166,11 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 			if (query == null) {
 				throw new UserError(this, 202, new Object[] { "query", "query_file", "table_name" });
 			}
-			getLogger().info("Executing query: '" + query + "'");
-			this.statement = databaseHandler.createStatement(false);
-			rs = this.statement.executeQuery(query);
-			log("Query executed.");
+//			getLogger().info("Executing query: '" + query + "'");
+//			this.statement = databaseHandler.createStatement(false);
+//			rs = this.statement.executeQuery(query);
+//			log("Query executed.");
+			rs = databaseHandler.executeStatement(query, true, this, getLogger());
 		} catch (SQLException sqle) {
 			throw new UserError(this, sqle, 304, sqle.getMessage());
 		}
@@ -196,14 +197,6 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
         }        
     }
     
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		List<ParameterType> list = super.getParameterTypes();
-		list.addAll(DatabaseHandler.getConnectionParameterTypes(this));
-		list.addAll(DatabaseHandler.getQueryParameterTypes(this, false));
-		return list;
-	}
-	
 	@Override
 	protected DataSet getDataSet() throws OperatorException {
 		return new DataSet() {
@@ -359,5 +352,15 @@ public class DatabaseDataReader extends AbstractDataReader implements Connection
 		} catch (OperatorException e) {
 		}
 	}
+
 	
+	@Override
+	public List<ParameterType> getParameterTypes() {
+		List<ParameterType> list = super.getParameterTypes();
+		list.addAll(DatabaseHandler.getConnectionParameterTypes(this));
+		list.addAll(DatabaseHandler.getQueryParameterTypes(this, false));
+		list.addAll(DatabaseHandler.getStatementPreparationParamterTypes(this));
+		return list;
+	}
+
 }

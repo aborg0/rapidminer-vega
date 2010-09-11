@@ -65,6 +65,8 @@ import com.rapidminer.tools.math.function.expressions.Maximum;
 import com.rapidminer.tools.math.function.expressions.Minimum;
 import com.rapidminer.tools.math.function.expressions.ParameterValue;
 import com.rapidminer.tools.math.function.expressions.ParseNumber;
+import com.rapidminer.tools.math.function.expressions.Replace;
+import com.rapidminer.tools.math.function.expressions.ReplaceRegex;
 import com.rapidminer.tools.math.function.expressions.Signum;
 import com.rapidminer.tools.math.function.expressions.Substring;
 
@@ -215,6 +217,8 @@ public class ExpressionParser {
 		parser.addFunction("cut", new Substring());
 		parser.addFunction("const", new Constant());
 		parser.addFunction("concat", new Concat());
+		parser.addFunction("replace", new Replace());
+		parser.addFunction("replaceAll", new ReplaceRegex());
 	}
 
 	public void addMacro(MacroHandler macroHandler, String name, String function) throws GenerationException {
