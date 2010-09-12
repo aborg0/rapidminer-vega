@@ -99,6 +99,7 @@ import com.rapidminer.tools.WrapperLoggingHandler;
 import com.rapidminer.tools.XMLException;
 import com.rapidminer.tools.io.Encoding;
 import com.rapidminer.tools.math.StringToMatrixConverter;
+import com.rapidminer.tools.patterns.Visitor;
 
 
 /**
@@ -2212,5 +2213,10 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return null;
-	}	
+	}
+
+	/** Visitor pattern visiting all operators in subprocesses and the operator itself. */
+	public void walk(Visitor<Operator> visitor) {
+		visitor.visit(this);
+	}
 }

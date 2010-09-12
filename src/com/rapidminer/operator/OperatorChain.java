@@ -35,6 +35,7 @@ import com.rapidminer.operator.ports.metadata.Precondition;
 import com.rapidminer.tools.DelegatingObserver;
 import com.rapidminer.tools.Observer;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.patterns.Visitor;
 
 
 /** An OperatorChain is an Operator that contains children which are again
@@ -542,4 +543,14 @@ public abstract class OperatorChain extends Operator {
 			return null;
 		}
 	}
+	
+	public void walk(Visitor<Operator> visitor) {
+		super.walk(visitor);
+		for (ExecutionUnit unit : subprocesses) {
+			for (Operator op: unit.getOperators()) {
+				op.walk(visitor);
+			}
+		}
+	}
+
 }

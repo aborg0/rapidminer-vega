@@ -412,4 +412,25 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 	public Repository getSampleRepository() {	
 		return sampleRepository;
 	}
+	
+	/** Visitor pattern for repositories. Callbacks to the visitor will be made
+	 *  only for matching types. (Recursion happens also if the type is not
+	 *  a Folder. The type can be null.
+	 * @throws RepositoryException 
+	 * */
+	public <T extends Entry>void walk(Entry start, RepositoryVisitor<T> visitor, Class<T> visitedType) throws RepositoryException {
+		boolean continueChildren = true;
+		if ((visitedType == null) || visitedType.isInstance(start)) {
+			continueChildren &= visitor.visit(visitedType.cast(start));
+		}
+		if (continueChildren && (start instanceof Folder)) {
+			Folder folder = (Folder)start;
+			for (Entry child : folder.getDataEntries()) {
+				walk(child, visitor, visitedType);
+			}
+			for (Folder childFolder : folder.getSubfolders()) {
+				walk(childFolder, visitor, visitedType);
+			}
+		}
+	}
 }
