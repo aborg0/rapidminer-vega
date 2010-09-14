@@ -169,7 +169,7 @@ public class MetaData implements Serializable {
 			desc.append("; ");
 			desc.append(keyValueMap);
 		}
-		if (!annotations.isEmpty()) {
+		if ((annotations != null) && !annotations.isEmpty()) {
 			desc.append("<ul>");
 			for (String key: annotations.getKeys()) {
 				desc.append("<li><em>").append(key).append(":</em> ").append(annotations.get(key));

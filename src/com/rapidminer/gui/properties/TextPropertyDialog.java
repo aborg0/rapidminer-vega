@@ -22,16 +22,14 @@
  */
 package com.rapidminer.gui.properties;
 
+import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rtextarea.RTextScrollPane;
+
 import com.rapidminer.gui.properties.celleditors.value.TextValueCellEditor;
-import com.rapidminer.gui.tools.HTMLEditor;
-import com.rapidminer.gui.tools.JavaEditor;
-import com.rapidminer.gui.tools.PlainTextEditor;
-import com.rapidminer.gui.tools.SQLEditor;
-import com.rapidminer.gui.tools.XMLEditor;
 import com.rapidminer.gui.tools.syntax.JEditTextArea;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterTypeText;
-import com.rapidminer.parameter.TextType;
 
 
 /**
@@ -39,7 +37,7 @@ import com.rapidminer.parameter.TextType;
  * text instead of the short text fields usually used for ParameterTypeStrings. This
  * dialog is used by the {@link TextValueCellEditor}.
  * 
- * @author Ingo Mierswa, Tobias Malbrecht
+ * @author Ingo Mierswa, Tobias Malbrecht, Sebastian Land
  */
 public class TextPropertyDialog extends PropertyDialog {
 
@@ -49,18 +47,18 @@ public class TextPropertyDialog extends PropertyDialog {
     
     private boolean ok = false;
 
-    private JEditTextArea textArea = null;
-    
+    private RSyntaxTextArea textArea = new RSyntaxTextArea();
     
     public TextPropertyDialog(final ParameterTypeText type, String text, Operator operator) {
         super(type, "text");
         this.text = text;
 
-        // text area
-        textArea = createTextArea(type.getTextType());
-        textArea.setText(this.text);
-        textArea.setBorder(createBorder());
-        layoutDefault(textArea, NORMAL, makeOkButton(), makeCancelButton());
+        textArea.setDocument(new RSyntaxDocument(type.getTextType().getSyntaxIdentifier()));
+        textArea.setText(text);
+        textArea.setAnimateBracketMatching(type.getTextType().isBracketMatching());
+        textArea.setAutoIndentEnabled(type.getTextType().isAutoIntending());
+        textArea.setAutoscrolls(true);
+        layoutDefault(new RTextScrollPane(textArea), NORMAL, makeOkButton(), makeCancelButton());
         
         textArea.requestFocusInWindow();
     }
@@ -85,16 +83,5 @@ public class TextPropertyDialog extends PropertyDialog {
     
     public String getText() {
         return this.text;
-    }
-    
-    private  JEditTextArea createTextArea(TextType type) {
-        switch (type) {
-        	case PLAIN: return new PlainTextEditor();
-            case XML: return new XMLEditor();
-            case HTML: return new HTMLEditor();
-            case SQL: return new SQLEditor();
-            case JAVA: return new JavaEditor();
-        }
-        return new PlainTextEditor();
     }
 }

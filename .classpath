@@ -57,6 +57,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/freehep/freehep-swing.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/freehep/freehep-util.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/freehep/freehep-xml.jar"/>
+	<classpathentry kind="lib" path="lib/rsyntaxtextarea.jar" sourcepath="/RSyntaxTextArea"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-lang-2.4.jar"/>
 	<classpathentry kind="output" path="build"/>

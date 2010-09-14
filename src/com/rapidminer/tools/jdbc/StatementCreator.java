@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.AttributeRole;
@@ -140,7 +141,7 @@ public class StatementCreator {
 				return;
 			}
 		}
-		throw new SQLException("No SQL value type found for "+Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(attributeType));
+		LogService.getRoot().warning("No SQL value type found for "+Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(attributeType));
 	}	
 	
 	// mapping types
@@ -162,7 +163,7 @@ public class StatementCreator {
 				parent = Ontology.ATTRIBUTE_VALUE_TYPE.getParent(parent);
 			}
 		}
-		throw new RuntimeException("No SQL type mapped to attribute type "+Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(type));
+		throw new NoSuchElementException("No SQL type mapped to attribute type "+Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(type));
 	}
 
 	// statement creation

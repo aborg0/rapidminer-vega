@@ -68,6 +68,7 @@ import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypePassword;
 import com.rapidminer.parameter.ParameterTypeSQLQuery;
 import com.rapidminer.parameter.ParameterTypeString;
+import com.rapidminer.parameter.ParameterTypeTupel;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
@@ -171,6 +172,8 @@ public class DatabaseHandler {
 	public static final String PARAMETER_PARAMETERS        = "parameters";
 
 	public static final String PARAMETER_PREPARE_STATEMENT = "prepare_statement";
+
+	private static final String[] SQL_TYPES = { "VARCHAR", "INTEGER", "REAL" };
     
 //	private static class DHIdentifier {
 //		private String url;
@@ -1016,7 +1019,11 @@ public class DatabaseHandler {
     	List<ParameterType> types = new LinkedList<ParameterType>();
 		ParameterTypeBoolean prepareParam = new ParameterTypeBoolean(DatabaseHandler.PARAMETER_PREPARE_STATEMENT, "If checked, the statement is prepared, and '?'-parameters can be filled in using the parameter 'parameters'.", false);
 		types.add(prepareParam);
-		ParameterTypeEnumeration paramsParam = new ParameterTypeEnumeration(DatabaseHandler.PARAMETER_PARAMETERS, "Parameters to insert into '?' placefholders if statement is prepared.", new ParameterTypeString("parameter", "Parameter"));
+		ParameterType argumentType = new ParameterTypeTupel("parameter", "Parameter to insert when statement is prepared",
+				new ParameterTypeCategory("type", "SQL type to use for insertion.", SQL_TYPES, 0),
+				new ParameterTypeString("parameter", "Parameter"));
+		ParameterTypeEnumeration paramsParam = new ParameterTypeEnumeration(DatabaseHandler.PARAMETER_PARAMETERS, "Parameters to insert into '?' placefholders when statement is prepared.", 
+				argumentType);
 		paramsParam.registerDependencyCondition(new BooleanParameterCondition(handler, DatabaseHandler.PARAMETER_PREPARE_STATEMENT, false, true));
 		types.add(paramsParam);
 		return types;
@@ -1032,15 +1039,33 @@ public class DatabaseHandler {
      * @param sql The sql statement
      * @param isQuery If true, a ResultSet is returned
      * @return ResultSet if isQuery is true, null otherwise
+     * @throws OperatorException 
      */
-	public ResultSet executeStatement(String sql, boolean isQuery, ParameterHandler parameterHandler, Logger logger) throws SQLException, UndefinedParameterError {
+	public ResultSet executeStatement(String sql, boolean isQuery, Operator parameterHandler, Logger logger) throws SQLException, OperatorException {
 		ResultSet resultSet = null;
 		Statement statement;
 		if (parameterHandler.getParameterAsBoolean(DatabaseHandler.PARAMETER_PREPARE_STATEMENT)) {
 			PreparedStatement prepared = getConnection().prepareStatement(sql);
 			String[] parameters = ParameterTypeEnumeration.transformString2Enumeration(parameterHandler.getParameterAsString(DatabaseHandler.PARAMETER_PARAMETERS));
 			for (int i = 0; i < parameters.length; i++) {
-				prepared.setString(i+1, parameters[i]);
+				String[] argDescription = ParameterTypeTupel.transformString2Tupel(parameters[i]);
+				if ("VARCHAR".equals(argDescription[0])) {
+					prepared.setString(i+1, argDescription[1]);
+				} else if ("REAL".equals(argDescription[0])) {
+					try {
+						prepared.setDouble(i+1, Double.parseDouble(argDescription[1]));
+					} catch (NumberFormatException e) {
+						throw new UserError(parameterHandler, 158, argDescription[1], argDescription[0]);
+					}
+				} else if ("INTEGER".equals(argDescription[0])) {
+					try {
+						prepared.setInt(i+1, Integer.parseInt(argDescription[1]));
+					} catch (NumberFormatException e) {
+						throw new UserError(parameterHandler, 158, argDescription[1], argDescription[0]);
+					}
+				} else {
+					throw new OperatorException("Illegal data type: "+argDescription[0]);
+				}
 			}
 			if (isQuery) {
 				resultSet = prepared.executeQuery();

@@ -33,13 +33,19 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 
+import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rtextarea.RTextAreaEditorKit;
+import org.fife.ui.rtextarea.RTextScrollPane;
+
 import com.rapidminer.Process;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ExtendedJToolBar;
 import com.rapidminer.gui.tools.ResourceAction;
+import com.rapidminer.gui.tools.ResourceActionTransmitter;
 import com.rapidminer.gui.tools.ResourceDockKey;
-import com.rapidminer.gui.tools.syntax.JEditTextArea;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.XMLException;
 import com.vlsolutions.swing.docking.DockKey;
@@ -61,7 +67,7 @@ public class XMLEditor extends JPanel implements ProcessEditor, Dockable {
 
 	private static final long serialVersionUID = 4172143138689034659L;
 		
-	private final JEditTextArea editor;
+	private final RSyntaxTextArea editor;
 	
 	private final MainFrame mainFrame;
 	
@@ -70,7 +76,9 @@ public class XMLEditor extends JPanel implements ProcessEditor, Dockable {
 		this.mainFrame = mainFrame;
 		
 		// create text area
-		this.editor = new com.rapidminer.gui.tools.XMLEditor();
+		this.editor = new RSyntaxTextArea(new RSyntaxDocument(SyntaxConstants.SYNTAX_STYLE_XML));
+		this.editor.setAnimateBracketMatching(true);
+		this.editor.setAutoIndentEnabled(true);
 		this.editor.setBorder(null);
 		//this.editor.addFocusListener(this);
 		
@@ -90,14 +98,16 @@ public class XMLEditor extends JPanel implements ProcessEditor, Dockable {
 			}			
 		});
 		toolBar.addSeparator();
-		toolBar.add(editor.COPY_ACTION);
-		toolBar.add(editor.CUT_ACTION);
-		toolBar.add(editor.PASTE_ACTION);
-		toolBar.add(editor.DELETE_ACTION);
+		toolBar.add(new ResourceActionTransmitter(true, "editor.copy", new RTextAreaEditorKit.CopyAction(), this));
+		toolBar.add(new ResourceActionTransmitter(true, "editor.cut", new RTextAreaEditorKit.CutAction(), this));
+		toolBar.add(new ResourceActionTransmitter(true, "editor.paste", new RTextAreaEditorKit.PasteAction(), this));
+
 		toolBar.addSeparator();
-		toolBar.add(editor.SEARCH_AND_REPLACE_ACTION);
+		//TODO Readd 
+		//toolBar.add(new RTextAreaEditorKit.editor.SEARCH_AND_REPLACE_ACTION);
+		
 		add(toolBar, BorderLayout.NORTH);
-		add(editor, BorderLayout.CENTER);
+		add(new RTextScrollPane(editor), BorderLayout.CENTER);
 	}
 	
 	public void setText(String text) {

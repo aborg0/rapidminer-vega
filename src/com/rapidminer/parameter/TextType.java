@@ -24,6 +24,8 @@ package com.rapidminer.parameter;
 
 import java.io.Serializable;
 
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+
 /**
  * The possible text types for the {@link ParameterTypeText} type.
  *  
@@ -31,10 +33,33 @@ import java.io.Serializable;
  */
 public enum TextType implements Serializable {
 
-    PLAIN,
-    XML,
-    HTML,
-    SQL,
-    JAVA
+    PLAIN(SyntaxConstants.SYNTAX_STYLE_NONE, false, false),
+    XML(SyntaxConstants.SYNTAX_STYLE_XML, true, false),
+    HTML(SyntaxConstants.SYNTAX_STYLE_HTML, true, false),
+    SQL(SyntaxConstants.SYNTAX_STYLE_SQL, false, true),
+    JAVA(SyntaxConstants.SYNTAX_STYLE_JAVA, true, true),
+    GROOVY(SyntaxConstants.SYNTAX_STYLE_GROOVY, true, true),
+    R("text/r", true, true);
+
+    private String syntaxIdentifier;
+    private boolean isAutoIntending;
+    private boolean isBracketMatching;
     
+    TextType(String syntaxIdentifier, boolean isAutoIntending, boolean isBracketMatching) {
+    	this.syntaxIdentifier = syntaxIdentifier;
+    	this.isAutoIntending = isAutoIntending;
+    	this.isBracketMatching = isBracketMatching;
+    }
+    
+	public String getSyntaxIdentifier() {
+		return syntaxIdentifier;
+	}
+
+	public boolean isAutoIntending() {
+		return isAutoIntending;
+	}
+
+	public boolean isBracketMatching() {
+		return isBracketMatching;
+	}
 }
