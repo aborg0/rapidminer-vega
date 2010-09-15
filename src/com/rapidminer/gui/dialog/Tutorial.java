@@ -190,7 +190,6 @@ public class Tutorial extends ButtonDialog implements WindowListener {
 
 	@Override
 	protected void close() {
-		mainFrame.setProcess(new Process(), true);
 		mainFrame.setTutorialMode(false);
 		dispose();
 	}

@@ -451,6 +451,8 @@ public class SwingTools {
 	/**
 	 * The key will be used for the properties gui.dialog.-key-.title and
 	 * gui.dialog.confirm.-key-.icon
+	 * 
+	 * See {@link ConfirmDialog} for details on the mode options.
 	 */
 	public static int showConfirmDialog(final String key, int mode, Object...keyArguments) {
 		ConfirmDialog dialog = new ConfirmDialog(key, mode, false, keyArguments);
