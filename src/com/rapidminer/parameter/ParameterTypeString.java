@@ -64,11 +64,15 @@ public class ParameterTypeString extends ParameterTypeSingle {
 
 	public void setOptional(boolean optional) {
 		this.optional = optional;
+		if (!optional)
+			setExpert(false);
 	}
 
 	@Override
 	public boolean isOptional() {
-		return super.isOptional() && optional;
+		if (super.isOptional())
+			return optional;
+		return false;
 	}
 
 	@Override

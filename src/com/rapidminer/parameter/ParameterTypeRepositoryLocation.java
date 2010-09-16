@@ -22,7 +22,9 @@
  */
 package com.rapidminer.parameter;
 /**
- * @author Simon Fischer
+ * A parameter type for specifying a repository location.
+ * 
+ * @author Simon Fischer, Sebastian Land
  */
 public class ParameterTypeRepositoryLocation extends ParameterTypeString {
 

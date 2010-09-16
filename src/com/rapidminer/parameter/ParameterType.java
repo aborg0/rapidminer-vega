@@ -198,8 +198,7 @@ public abstract class ParameterType implements Comparable, Serializable {
 			if (condition.dependencyMet()) {
 				becomeMandatory |= condition.becomeMandatory();
 			} else {
-				becomeMandatory = false;
-				break;
+				return true;
 			}
 		}
 		return !becomeMandatory;

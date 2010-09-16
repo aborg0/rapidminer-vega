@@ -27,7 +27,6 @@ package com.rapidminer.parameter;
  * with {@link com.rapidminer.operator.Operator#getParameterAsFile(String)}.
  * 
  * @author Ingo Mierswa
- *          ingomierswa Exp $
  */
 public class ParameterTypeDirectory extends ParameterTypeFile {
 
@@ -36,8 +35,6 @@ public class ParameterTypeDirectory extends ParameterTypeFile {
 	public ParameterTypeDirectory(String key, String description, boolean optional) {
 		super(key, description, null, null);
 		setOptional(optional);
-		if (!optional)
-			setExpert(false);
 	}
 
 	public ParameterTypeDirectory(String key, String description, String defaultFileName) {
