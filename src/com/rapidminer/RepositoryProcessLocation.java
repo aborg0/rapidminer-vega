@@ -97,7 +97,7 @@ public class RepositoryProcessLocation implements ProcessLocation {
 			}
 			LogService.getRoot().info("Saved process definition at '" + repositoryLocation + "'.");
 		} catch (RepositoryException e) {
-			throw new IOException("Cannot store process at "+repositoryLocation+": "+e, e);
+			throw new IOException("Cannot store process at "+repositoryLocation+": "+e.getMessage(), e);
 		}
 	}
 

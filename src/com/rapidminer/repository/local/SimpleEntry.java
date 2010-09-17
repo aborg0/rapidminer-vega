@@ -87,6 +87,7 @@ public abstract class SimpleEntry implements Entry {
 	
 	@Override
 	public boolean rename(String newName) {
+		renameFile(getPropertiesFile(), newName);
 		this.name = newName;
 		getRepository().fireEntryRenamed(this);
 		return true;

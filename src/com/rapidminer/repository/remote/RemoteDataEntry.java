@@ -32,7 +32,7 @@ public abstract class RemoteDataEntry extends RemoteEntry implements DataEntry {
 	private final int revision;
 	private final String type;
 	private final long size;
-	private final long date;
+	private long date;
 	
 	RemoteDataEntry(EntryResponse response, RemoteFolder container, RemoteRepository repository) {
 		super(response, container, repository);
@@ -59,5 +59,9 @@ public abstract class RemoteDataEntry extends RemoteEntry implements DataEntry {
 
 	public long getDate() {
 		return date;
+	}
+	
+	public void setDate(long date) {
+		this.date = date;
 	}
 }

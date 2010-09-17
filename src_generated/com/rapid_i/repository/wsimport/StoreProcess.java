@@ -3,7 +3,9 @@ package com.rapid_i.repository.wsimport;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 
 /**
@@ -18,6 +20,7 @@ import javax.xml.bind.annotation.XmlType;
  *       &lt;sequence>
  *         &lt;element name="entryLocation" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="processXML" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="lastTimestamp" type="{http://www.w3.org/2001/XMLSchema}dateTime" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -29,12 +32,15 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "storeProcess", propOrder = {
     "entryLocation",
-    "processXML"
+    "processXML",
+    "lastTimestamp"
 })
 public class StoreProcess {
 
     protected String entryLocation;
     protected String processXML;
+    @XmlSchemaType(name = "dateTime")
+    protected XMLGregorianCalendar lastTimestamp;
 
     /**
      * Gets the value of the entryLocation property.
@@ -82,6 +88,30 @@ public class StoreProcess {
      */
     public void setProcessXML(String value) {
         this.processXML = value;
+    }
+
+    /**
+     * Gets the value of the lastTimestamp property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link XMLGregorianCalendar }
+     *     
+     */
+    public XMLGregorianCalendar getLastTimestamp() {
+        return lastTimestamp;
+    }
+
+    /**
+     * Sets the value of the lastTimestamp property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link XMLGregorianCalendar }
+     *     
+     */
+    public void setLastTimestamp(XMLGregorianCalendar value) {
+        this.lastTimestamp = value;
     }
 
 }

@@ -108,16 +108,18 @@ public class MetaData implements Serializable {
 	public String getGenerationHistoryAsHTML() {
 		boolean first = true;
 		StringBuilder b = new StringBuilder();
-		for (OutputPort port : generationHistory) {
-			if (!first) {
-				b.append(" &#8592; ");
+		if (generationHistory != null) {
+			for (OutputPort port : generationHistory) {
+				if (!first) {
+					b.append(" &#8592; ");
+				}
+				b.append("<a href=\""+RMUrlHandler.URL_PREFIX+"operator/");
+				b.append(port.getPorts().getOwner().getOperator().getName());
+				b.append("\">");
+				b.append(port.getSpec());
+				b.append("</a>");
+				first = false;
 			}
-			b.append("<a href=\""+RMUrlHandler.URL_PREFIX+"operator/");
-			b.append(port.getPorts().getOwner().getOperator().getName());
-			b.append("\">");
-			b.append(port.getSpec());
-			b.append("</a>");
-			first = false;
 		}
 		return b.toString();
 	}

@@ -42,7 +42,6 @@ import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
-import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.rapid_i.repository.wsimport.ProcessResponse;
@@ -366,12 +365,7 @@ public class RemoteProcessesTreeModel implements TreeModel {
 		if (since == null) {
 			this.since = null;
 		} else {
-			try {
-				this.since = XMLTools.getXMLGregorianCalendar(since);
-			} catch (DatatypeConfigurationException e) {
-				// cannot happen
-				throw new RuntimeException(e);	
-			}
+			this.since = XMLTools.getXMLGregorianCalendar(since);
 		}
 	}
 

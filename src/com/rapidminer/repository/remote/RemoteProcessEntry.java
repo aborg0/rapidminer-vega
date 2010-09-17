@@ -23,12 +23,14 @@
 package com.rapidminer.repository.remote;
 
 import java.util.Collection;
+import java.util.Date;
 
 import javax.swing.Action;
 
 import com.rapid_i.repository.wsimport.EntryResponse;
 import com.rapid_i.repository.wsimport.ProcessContentsResponse;
 import com.rapid_i.repository.wsimport.Response;
+import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.RepositoryConstants;
 import com.rapidminer.repository.RepositoryException;
@@ -67,11 +69,12 @@ public class RemoteProcessEntry extends RemoteDataEntry implements ProcessEntry 
 
 	@Override
 	public void storeXML(String xml) throws RepositoryException {		
-		Response response = getRepository().getRepositoryService().storeProcess(getPath(), xml);
-		this.xml = null;
+		Response response = getRepository().getRepositoryService().storeProcess(getPath(), xml, XMLTools.getXMLGregorianCalendar(new Date(getDate())));
 		if (response.getStatus() != RepositoryConstants.OK) {
 			throw new RepositoryException(response.getErrorMessage());
 		}
+		setDate(getRepository().getRepositoryService().getEntry(getPath()).getDate());
+		this.xml = null;
 	}
 
 	@Override

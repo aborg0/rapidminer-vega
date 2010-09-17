@@ -362,7 +362,7 @@ public class Example implements Serializable, Map<String, Object> {
 	
 	
 	public Object get(Object key) {
-		Attribute attribute = null;
+		Attribute attribute = null;		
 		if (key instanceof String) {
 			attribute = parentExampleSet.getAttributes().get((String)key);
 		}
@@ -370,6 +370,8 @@ public class Example implements Serializable, Map<String, Object> {
 			return null;
 		} else if (attribute.isNominal()) {
 			return getValueAsString(attribute);
+		} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.INTEGER)) {
+			return (int)getValue(attribute);
 		} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
 			return new Date((long)getValue(attribute));
 		} else {

@@ -7,6 +7,7 @@ import javax.jws.WebParam;
 import javax.jws.WebResult;
 import javax.jws.WebService;
 import javax.xml.bind.annotation.XmlSeeAlso;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.ws.RequestWrapper;
 import javax.xml.ws.ResponseWrapper;
 
@@ -193,6 +194,7 @@ public interface RepositoryService {
     /**
      * 
      * @param processXML
+     * @param lastTimestamp
      * @param entryLocation
      * @return
      *     returns com.rapid_i.repository.wsimport.Response
@@ -205,6 +207,8 @@ public interface RepositoryService {
         @WebParam(name = "entryLocation", targetNamespace = "")
         String entryLocation,
         @WebParam(name = "processXML", targetNamespace = "")
-        String processXML);
+        String processXML,
+        @WebParam(name = "lastTimestamp", targetNamespace = "")
+        XMLGregorianCalendar lastTimestamp);
 
 }

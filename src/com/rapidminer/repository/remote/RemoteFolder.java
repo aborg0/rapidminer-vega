@@ -212,7 +212,7 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 		} catch (MalformedRepositoryLocationException e) {
 			throw new RepositoryException(e);
 		}
-		Response response = getRepository().getRepositoryService().storeProcess(loc.getPath(), processXML);
+		Response response = getRepository().getRepositoryService().storeProcess(loc.getPath(), processXML, null);
 		if (response.getStatus() != 0) {
 			throw new RepositoryException(response.getErrorMessage());
 		}

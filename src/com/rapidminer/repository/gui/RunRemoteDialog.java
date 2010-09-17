@@ -41,7 +41,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.michaelbaranov.microba.calendar.DatePicker;
@@ -388,9 +387,6 @@ public class RunRemoteDialog extends ButtonDialog {
 				try {
 					Date date = dateField.getDate();
 					response = repos.getProcessService().executeProcessSimple(location, XMLTools.getXMLGregorianCalendar(date), pcWrapper);
-				} catch (DatatypeConfigurationException e) {
-					SwingTools.showSimpleErrorMessage("cannot_parse_date", e);
-					return;
 				} catch (RepositoryException e) {
 					SwingTools.showSimpleErrorMessage("error_connecting_to_server", e);
 					return;
@@ -400,9 +396,6 @@ public class RunRemoteDialog extends ButtonDialog {
 					XMLGregorianCalendar start = startBox.isSelected() ? XMLTools.getXMLGregorianCalendar(startField.getDate()) : null;
 					XMLGregorianCalendar end = endBox.isSelected() ? XMLTools.getXMLGregorianCalendar(endField.getDate()) : null;
 					response = repos.getProcessService().executeProcessCron(location, cronField.getText(), start, end, pcWrapper);				
-				} catch (DatatypeConfigurationException e) {
-					SwingTools.showSimpleErrorMessage("cannot_parse_date", e);
-					return;
 				} catch (RepositoryException e) {
 					SwingTools.showSimpleErrorMessage("error_connecting_to_server ", e);
 					return;

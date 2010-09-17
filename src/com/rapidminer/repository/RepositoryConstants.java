@@ -70,4 +70,6 @@ public interface RepositoryConstants {
 
 	public static final int MISSING_PARAMETER = -19;
 
+	public static final int VERSION_OUT_OF_DATE = -19;
+
 }

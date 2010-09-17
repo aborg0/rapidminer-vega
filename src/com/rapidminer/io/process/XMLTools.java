@@ -295,10 +295,18 @@ public class XMLTools {
 		}
 	}
 
-	public static XMLGregorianCalendar getXMLGregorianCalendar(Date date) throws DatatypeConfigurationException {
+	public static XMLGregorianCalendar getXMLGregorianCalendar(Date date) {
+		if (date == null) {
+			return null;
+		}
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(date.getTime());
-		DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
+		DatatypeFactory datatypeFactory;
+		try {
+			datatypeFactory = DatatypeFactory.newInstance();
+		} catch (DatatypeConfigurationException e) {
+			throw new RuntimeException("Failed to create XMLGregorianCalendar: "+e, e);
+		}
 		XMLGregorianCalendar xmlGregorianCalendar = datatypeFactory.newXMLGregorianCalendar();
 		xmlGregorianCalendar.setYear(calendar.get(Calendar.YEAR));
 		xmlGregorianCalendar.setMonth(calendar.get(Calendar.MONTH) + 1);
