@@ -39,8 +39,7 @@ public class ParameterTypeEnumeration extends CombinedParameterType {
 	private static final String ESCAPE_CHAR = "\\";
 	private static final String ESCAPE_CHAR_REGEX = "\\\\";
 	// only one character allowed, that additionally has no special meaning during regular expressions
-	private static final String SEPERATOR_CHAR = ",";
-
+	private static final String SEPERATOR_CHAR = "\u241E"; //",";
 
 	private Object defaultValue;
 

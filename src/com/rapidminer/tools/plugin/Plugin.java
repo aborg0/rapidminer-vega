@@ -164,10 +164,20 @@ public class Plugin {
 	public Plugin(File file) throws IOException {
 		this.file = file;
 		this.archive = new JarFile(this.file);
-		URL url = new URL("file", null, this.file.getAbsolutePath());
-		this.classLoader = new PluginClassLoader(new URL[] { url });
+		this.classLoader = makeNonDelegatingClassloader();
 		Tools.addResourceSource(new ResourceSource(this.classLoader));
 		fetchMetaData();
+	}
+
+	private PluginClassLoader makeNonDelegatingClassloader() {
+		URL url;
+		try {
+			url = this.file.toURI().toURL();
+		} catch (MalformedURLException e) {
+			throw new RuntimeException("Cannot make classloader for plugin: "+e, e);
+		}
+		final PluginClassLoader cl = new PluginClassLoader(new URL[] { url });
+		return cl;
 	}
 
 	/** Returns the name of the plugin. */
@@ -515,9 +525,10 @@ public class Plugin {
 
 	/** Creates the about box for this plugin. */
 	public AboutBox createAboutBox(Frame owner) {
+		ClassLoader simpleClassLoader = makeNonDelegatingClassloader();
 		String about = "";
 		try {
-			URL url = this.classLoader.getResource("META-INF/ABOUT.NFO");
+			URL url = simpleClassLoader.getResource("META-INF/ABOUT.NFO");
 			if (url != null)
 				about = Tools.readTextFile(new InputStreamReader(url.openStream()));
 		} catch (Exception e) {	
@@ -525,7 +536,7 @@ public class Plugin {
 		}
 		Image productLogo = null;
 		try {
-			InputStream imageIn = this.classLoader.getResourceAsStream("META-INF/icon.png");
+			InputStream imageIn = simpleClassLoader.getResourceAsStream("META-INF/icon.png");
 			productLogo = ImageIO.read(imageIn);
 		} catch (Exception e) {
 			LogService.getRoot().log(Level.WARNING, "Error reading icon.png for plugin "+getName(), e);	

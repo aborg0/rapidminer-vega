@@ -159,6 +159,7 @@ public class SQLExecution extends Operator {
 		types.add(type);
 
 		types.add(new ParameterTypeFile(PARAMETER_QUERY_FILE, "File containing the query. Only evaluated if 'query' is not set.", null, true));
+		types.addAll(DatabaseHandler.getStatementPreparationParamterTypes(this));
 		
 		return types;
 	}	
