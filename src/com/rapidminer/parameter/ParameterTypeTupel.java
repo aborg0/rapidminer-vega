@@ -22,6 +22,8 @@
  */
 package com.rapidminer.parameter;
 
+import java.util.List;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -32,12 +34,14 @@ import com.rapidminer.tools.container.Pair;
  */
 public class ParameterTypeTupel extends CombinedParameterType {
 
-	// only one character allowed
-	private static final String ESCAPE_CHAR = "\\";
-	private static final String ESCAPE_CHAR_REGEX = "\\\\";
-	// only one character allowed
-	private static final String SEPERATOR_CHAR_REGEX = "\\.";
-	private static final String SEPERATOR_CHAR = ".";
+//	// only one character allowed
+//	private static final String ESCAPE_CHAR = "\\";
+//	private static final String ESCAPE_CHAR_REGEX = "\\\\";
+//	// only one character allowed
+//	private static final String SEPERATOR_CHAR_REGEX = "\\.";
+	private static final char ESCAPE_CHAR = '\\';
+	private static final char SEPERATOR_CHAR = '.';
+	private static final char[] SPECIAL_CHARACTERS = new char[] { SEPERATOR_CHAR };
 
 
 	private Object[] defaultValues = null;
@@ -134,40 +138,47 @@ public class ParameterTypeTupel extends CombinedParameterType {
 	}
 
 	public static String[] transformString2Tupel(String parameterValue) {
-		if (parameterValue.equals(SEPERATOR_CHAR)) {
-			return new String[] {"", ""};
+		if (parameterValue == null) {
+			return null;
 		}
-		String[] unescaped = parameterValue.split("(?<=[^"+ ESCAPE_CHAR_REGEX + "])" + SEPERATOR_CHAR_REGEX, -1);
-		for (int i = 0; i < unescaped.length; i++) {
-			unescaped[i] = unescape(unescaped[i]);
-		}
-		return unescaped;
+		List<String> split = Tools.unescape(parameterValue, ESCAPE_CHAR, SPECIAL_CHARACTERS, SEPERATOR_CHAR);
+		return split.toArray(new String[split.size()]);
+//		String[] unescaped = parameterValue.split("(?<=[^"+ ESCAPE_CHAR_REGEX + "])" + SEPERATOR_CHAR_REGEX, -1);
+//		for (int i = 0; i < unescaped.length; i++) {
+//			unescaped[i] = unescape(unescaped[i]);
+//		}
+//		return unescaped;
 	}
 
-	private static String unescape(String escapedString) {
-		escapedString = escapedString.replace(ESCAPE_CHAR + SEPERATOR_CHAR, SEPERATOR_CHAR);
-		escapedString = escapedString.replace(ESCAPE_CHAR + ESCAPE_CHAR, ESCAPE_CHAR);
-		return escapedString; 
-	}
+//	private static String unescape(String escapedString) {
+//		escapedString = escapedString.replace(ESCAPE_CHAR + SEPERATOR_CHAR, SEPERATOR_CHAR);
+//		escapedString = escapedString.replace(ESCAPE_CHAR + ESCAPE_CHAR, ESCAPE_CHAR);
+//		return escapedString; 
+//	}
 
 	public static String transformTupel2String(String firstValue, String secondValue) {
-		firstValue = firstValue.replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR);
-		firstValue = firstValue.replace(SEPERATOR_CHAR, ESCAPE_CHAR + SEPERATOR_CHAR);
-		secondValue = secondValue.replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR);
-		secondValue = secondValue.replace(SEPERATOR_CHAR, ESCAPE_CHAR + SEPERATOR_CHAR);
-		return firstValue + SEPERATOR_CHAR + secondValue;
+//		firstValue = firstValue.replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR);
+//		firstValue = firstValue.replace(SEPERATOR_CHAR, ESCAPE_CHAR + SEPERATOR_CHAR);
+//		secondValue = secondValue.replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR);
+//		secondValue = secondValue.replace(SEPERATOR_CHAR, ESCAPE_CHAR + SEPERATOR_CHAR);
+		return 
+			Tools.escape(firstValue, ESCAPE_CHAR, SPECIAL_CHARACTERS) + 
+			SEPERATOR_CHAR + 
+			Tools.escape(secondValue, ESCAPE_CHAR, SPECIAL_CHARACTERS);
 	}
+	
 	public static String transformTupel2String(Pair<String, String> pair) {
 		return transformTupel2String(pair.getFirst(), pair.getSecond());
 	}
+	
 	public static String transformTupel2String(String[] tupel) {
 		StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < tupel.length; i++) {
-			String value = tupel[i].replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR);
-			value = value.replace(SEPERATOR_CHAR, ESCAPE_CHAR + SEPERATOR_CHAR);
+//			String value = Tools.esacpe(tupel[i].replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR);
+//			value = value.replace(SEPERATOR_CHAR, ESCAPE_CHAR + SEPERATOR_CHAR);
 			if (i > 0)
 				builder.append(SEPERATOR_CHAR);
-			builder.append(value);
+			builder.append(Tools.escape(tupel[i], ESCAPE_CHAR, SPECIAL_CHARACTERS));
 		}
 		return builder.toString();
 	}

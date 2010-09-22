@@ -134,7 +134,7 @@ public class ProfilingViewer extends JPanel implements Dockable, Observer {
     		public void actionPerformed(ActionEvent e) {
     			ProfilingViewer.this.listener.toggleAutoMerge();
     			if (ProfilerDataManager.getInstance().getMergeLocation() == null && ProfilingViewer.this.listener.isAutoMergeEnabled()) {
-					String loc = RepositoryLocationChooser.selectLocation(null, RapidMinerGUI.getMainFrame());
+					String loc = RepositoryLocationChooser.selectLocation(null, null, RapidMinerGUI.getMainFrame(), true, false);
 					if (loc != null) {
 						RepositoryLocation location;
 						try {
@@ -281,7 +281,7 @@ public class ProfilingViewer extends JPanel implements Dockable, Observer {
 			@Override
 			public void run() {
 				ExampleSet existingExample;
-				String loc = RepositoryLocationChooser.selectLocation(null, RapidMinerGUI.getMainFrame());
+				String loc = RepositoryLocationChooser.selectLocation(null, null, RapidMinerGUI.getMainFrame(), true, false);
 				if (loc != null) {
 					RepositoryLocation location;
 					try {

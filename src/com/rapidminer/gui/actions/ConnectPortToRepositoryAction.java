@@ -56,7 +56,7 @@ public class ConnectPortToRepositoryAction extends ResourceAction {
 		if (processLoc != null) {
 			processLoc = processLoc.parent();
 		}
-		String location = RepositoryLocationChooser.selectLocation(processLoc, RapidMinerGUI.getMainFrame());
+		String location = RepositoryLocationChooser.selectLocation(processLoc, null, RapidMinerGUI.getMainFrame(), true, false);
 		if (location != null) {
 			if (port instanceof OutputPort) {
 				int index = process.getRootOperator().getSubprocess(0).getInnerSources().getAllPorts().indexOf(port);

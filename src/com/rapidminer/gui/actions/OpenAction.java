@@ -64,7 +64,7 @@ public class OpenAction extends ResourceAction {
 		
 	public static void open() {
 		if (RapidMinerGUI.getMainFrame().close()) {
-			String location = RepositoryLocationChooser.selectLocation(null, RapidMinerGUI.getMainFrame());
+			String location = RepositoryLocationChooser.selectLocation(null, null, RapidMinerGUI.getMainFrame(), true, false);
 			if (location != null) {
 				try {
 					open(new RepositoryProcessLocation(new RepositoryLocation(location)), true);

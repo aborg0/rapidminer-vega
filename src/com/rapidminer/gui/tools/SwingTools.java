@@ -314,13 +314,15 @@ public class SwingTools {
 			String key = e.nextElement();
 			if (key.endsWith(".icon")) {
 				String resource = guiBundle.getString(key);
-				if (Character.isDigit(resource.charAt(0))) {
-					// We start with a number, size explicitly stated, so load directly
-					createIcon(resource);
-				} else {
-					// Otherwise prepend sizes
-					createIcon("16/"+resource);
-					createIcon("24/"+resource);
+				if (!resource.isEmpty()) {
+					if (Character.isDigit(resource.charAt(0))) {
+						// We start with a number, size explicitly stated, so load directly
+						createIcon(resource);
+					} else {
+						// Otherwise prepend sizes
+						createIcon("16/"+resource);
+						createIcon("24/"+resource);
+					}
 				}
 			}
 		}

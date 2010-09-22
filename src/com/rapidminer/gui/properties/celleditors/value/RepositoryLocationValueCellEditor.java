@@ -98,7 +98,7 @@ public class RepositoryLocationValueCellEditor extends AbstractCellEditor implem
 			    		processLocation = processLocation.parent();
 			    	}
 			    }
-				String locationName = RepositoryLocationChooser.selectLocation(processLocation, textField.getText(), panel);
+				String locationName = RepositoryLocationChooser.selectLocation(processLocation, textField.getText(), panel, true, false);
 //				if (locationName != null) {
 //					if ((operator != null) && (operator.getProcess() != null)) {
 //						try {

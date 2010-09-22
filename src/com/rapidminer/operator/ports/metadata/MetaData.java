@@ -109,17 +109,17 @@ public class MetaData implements Serializable {
 		boolean first = true;
 		StringBuilder b = new StringBuilder();
 		if (generationHistory != null) {
-			for (OutputPort port : generationHistory) {
-				if (!first) {
-					b.append(" &#8592; ");
-				}
-				b.append("<a href=\""+RMUrlHandler.URL_PREFIX+"operator/");
-				b.append(port.getPorts().getOwner().getOperator().getName());
-				b.append("\">");
-				b.append(port.getSpec());
-				b.append("</a>");
-				first = false;
+		for (OutputPort port : generationHistory) {
+			if (!first) {
+				b.append(" &#8592; ");
 			}
+			b.append("<a href=\""+RMUrlHandler.URL_PREFIX+"operator/");
+			b.append(port.getPorts().getOwner().getOperator().getName());
+			b.append("\">");
+			b.append(port.getSpec());
+			b.append("</a>");
+			first = false;
+		}
 		}
 		return b.toString();
 	}
@@ -153,6 +153,7 @@ public class MetaData implements Serializable {
 			clone.generationHistory = new LinkedList<OutputPort>(this.generationHistory);
 		clone.dataClass = this.getObjectClass();
 		clone.keyValueMap.putAll(this.keyValueMap);
+		clone.annotations.putAll(this.annotations);
 		return clone;
 	}
 

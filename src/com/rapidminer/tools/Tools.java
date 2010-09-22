@@ -1441,4 +1441,70 @@ public class Tools {
 			}
 		}
 	}
+	
+	/** Prefixes every occurrence*/
+	public static String escape(String source, char escapeChar, char[] specialCharacters) {
+		StringBuilder b = new StringBuilder();
+		for (char c : source.toCharArray()) {
+			if (c == escapeChar) {
+				b.append(escapeChar); // escape escape character
+			} else {
+				for (char s : specialCharacters) {
+					if (c == s) {
+						// escape escape specials
+						b.append(escapeChar);
+						break;
+					}
+				}
+			}
+			b.append(c);
+		}
+		return b.toString();
+	}
+	
+	/** Splits the string at every split character unless escaped. */
+	public static List<String> unescape(String source, char escapeChar, char[] specialCharacters,
+			char splitCharacter) {
+		List<String> result = new LinkedList<String>();
+		StringBuilder b = new StringBuilder();
+		// was the last character read an escape character?
+		boolean readEscape = false;
+		for (char c : source.toCharArray()) {
+			// in escape mode -> just write special character, throw exception if not special?
+			if (readEscape) {
+				boolean found = false;
+				if (c == splitCharacter) {
+					found = true;
+					b.append(c);					
+				} else {
+					for (char s : specialCharacters) {
+						if (s==c) {
+							found = true;
+							b.append(c);
+							break;
+						}
+					}
+				}
+				if (!found) {
+					throw new IllegalArgumentException("String '"+source+"' contains illegal escaped character '"+c+"'.");
+				}
+				// reset to regular mode
+				readEscape = false;
+			} else if (c == escapeChar) {
+				// not in escape mode and read escape character -> go to escape mode
+				readEscape = true;
+			} else if (c == splitCharacter) {
+				// not in escape mode and read split character -> split
+				readEscape = false;
+				result.add(b.toString());
+				b = new StringBuilder();
+			} else {
+				// not in escape mode and read other character -> just write it
+				readEscape = false;
+				b.append(c);
+			}
+		}
+		result.add(b.toString());
+		return result;
+	}
 }

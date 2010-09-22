@@ -4823,7 +4823,7 @@
     <key>polynomial_by_binomial_classification</key>
   </operator>
   <operator>
-        <name>Hierarchical Classification</name>
+        <name>Hierarchical Classification (Deprecated)</name>
         <synopsis>Builds a hierarchical classification model due to the specified class taxonomy.</synopsis>
         <help>This meta learner builds a hierarchical classification model due to a
         	  class taxonomy. This class taxonomy has to be specified within the
@@ -4831,6 +4831,17 @@
         	  class hierarchy which in fact represents a parent-child class relationship.</help>
         <key>hierarchical_classification</key>
   </operator>
+  <operator>
+        <name>Hierarchical Classification</name>
+        <synopsis>Builds a hierarchical classification model due to the specified class taxonomy.</synopsis>
+        <help>This meta learner builds a hierarchical classification model due to a
+              class taxonomy. This class taxonomy has to be specified within the
+              hierarchy parameter list. Each list entry represents an edge in the
+              class hierarchy which in fact represents a parent-child class relationship. You need to specify
+              one root node and assign each other node to one father.</help>
+        <key>hierarchical_multi_class_classification</key>
+  </operator>
+
         <operator>
         <name>Loop Until</name>
         <synopsis>Performs its inner operators until some condition is met.

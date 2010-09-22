@@ -30,7 +30,7 @@ import com.rapidminer.example.ExampleSet;
  * part of the mapping. This implementation is quite inefficient on databases and other
  * non-memory example tables and should therefore only be used for small data sets.
  * 
- * @author Ingo Mierswa
+ * @author Ingo Mierswa, Sebastian Land
  */
 public class SortedExampleReader extends AbstractExampleReader {
 
@@ -49,20 +49,21 @@ public class SortedExampleReader extends AbstractExampleReader {
     /** Constructs a new mapped example reader. */
     public SortedExampleReader(ExampleSet parent) {
         this.parent = parent;
-        this.currentIndex = 0;
+        this.currentIndex = -1;
     }
 
     public boolean hasNext() {
         if (this.nextInvoked) {
             this.nextInvoked = false;
-        	if (this.currentIndex < parent.size()) {
-            	this.currentExample = this.parent.getExample(this.currentIndex);
-            	this.currentIndex++;
+    		this.currentIndex++;
+            if (this.currentIndex < parent.size()) {
+        		this.currentExample = this.parent.getExample(this.currentIndex);
+            	return true;
         	} else {
         		return false;
         	}
         }
-        return true;
+        return (this.currentIndex < parent.size());
     }
 
     public Example next() {

@@ -51,6 +51,7 @@ import com.rapidminer.gui.tools.ResourceActionAdapter;
 import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
+import com.rapidminer.repository.DataEntry;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.MalformedRepositoryLocationException;
@@ -58,12 +59,12 @@ import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 
-/** A dialog that shows the repository tree. The static method
- *  {@link #selectLocation()} shows a dialog and returns the location
- *  selected by the user.
- *  
- *  @author Simon Fischer, Tobias Malbrecht
- *
+/**
+ * A dialog that shows the repository tree. The static method {@link #selectLocation()} shows a dialog and returns the
+ * location selected by the user.
+ * 
+ * @author Simon Fischer, Tobias Malbrecht
+ * 
  */
 public class RepositoryLocationChooser extends JPanel {
 
@@ -86,7 +87,7 @@ public class RepositoryLocationChooser extends JPanel {
 	}
 
 	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue) {
-		if (initialValue != null) {			
+		if (initialValue != null) {
 			try {
 				RepositoryLocation repositoryLocation = new RepositoryLocation(resolveRelativeTo, initialValue);
 				locationField.setText(repositoryLocation.getName());
@@ -96,7 +97,7 @@ public class RepositoryLocationChooser extends JPanel {
 		}
 		this.resolveRelativeTo = resolveRelativeTo;
 		tree = new RepositoryTree(owner);
-		
+
 		if (initialValue != null) {
 			if (tree.expandIfExists(resolveRelativeTo, initialValue)) {
 				locationField.setText("");
@@ -107,7 +108,7 @@ public class RepositoryLocationChooser extends JPanel {
 			public void valueChanged(TreeSelectionEvent e) {
 				if (e.getPath() != null) {
 					Entry entry = (Entry) e.getPath().getLastPathComponent();
-					if (!(entry instanceof Folder)) {												
+					if (!(entry instanceof Folder)) {
 						locationField.setText(entry.getLocation().getName());
 					}
 					updateResult();
@@ -115,11 +116,12 @@ public class RepositoryLocationChooser extends JPanel {
 				for (ChangeListener l : listeners) {
 					l.stateChanged(new ChangeEvent(this));
 				}
-			}			
+			}
 		});
 		locationField.addKeyListener(new KeyListener() {
 			@Override
-			public void keyPressed(KeyEvent e) {}
+			public void keyPressed(KeyEvent e) {
+			}
 
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -128,21 +130,22 @@ public class RepositoryLocationChooser extends JPanel {
 				}
 				updateResult();
 			}
+
 			@Override
 			public void keyTyped(KeyEvent e) {
 				TreePath selectionPath = tree.getSelectionPath();
 				if (selectionPath != null) {
 					Entry selectedEntry = (Entry) selectionPath.getLastPathComponent();
 					if (!(selectedEntry instanceof Folder)) {
-						tree.setSelectionPath(selectionPath.getParentPath());	
-					}					
+						tree.setSelectionPath(selectionPath.getParentPath());
+					}
 				}
-			}			
+			}
 		});
 
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
-		c.insets = new Insets(0, 0, 0, 0);		
+		c.insets = new Insets(0, 0, 0, 0);
 		c.fill = GridBagConstraints.BOTH;
 		c.weightx = 1;
 		c.weighty = 1;
@@ -161,7 +164,7 @@ public class RepositoryLocationChooser extends JPanel {
 		c.weightx = 0;
 		JLabel label = new ResourceLabel("repository_chooser.entry_name");
 		label.setLabelFor(locationField);
-		add(label, c);		
+		add(label, c);
 
 		c.weightx = 1;
 		c.insets = new Insets(ButtonDialog.GAP, 0, 0, 0);
@@ -172,7 +175,7 @@ public class RepositoryLocationChooser extends JPanel {
 		c.gridwidth = GridBagConstraints.RELATIVE;
 		c.weightx = 0;
 		c.insets = new Insets(ButtonDialog.GAP, 0, 0, ButtonDialog.GAP);
-		add(new ResourceLabel("repository_chooser.location"), c);		
+		add(new ResourceLabel("repository_chooser.location"), c);
 		c.weightx = 1;
 		c.insets = new Insets(ButtonDialog.GAP, 0, 0, 0);
 		c.gridwidth = GridBagConstraints.REMAINDER;
@@ -199,7 +202,7 @@ public class RepositoryLocationChooser extends JPanel {
 				selectedLocation = new RepositoryLocation(selectedLocation, locationField.getText());
 			}
 			if ((RepositoryLocationChooser.this.resolveRelativeTo != null) && resolveBox.isSelected()) {
-				return selectedLocation.makeRelative(RepositoryLocationChooser.this.resolveRelativeTo);						  
+				return selectedLocation.makeRelative(RepositoryLocationChooser.this.resolveRelativeTo);
 			} else {
 				return selectedLocation.getAbsoluteLocation();
 			}
@@ -207,19 +210,19 @@ public class RepositoryLocationChooser extends JPanel {
 			return locationField.getText();
 		}
 	}
-	
+
 	/** Returns true iff the user entered a valid, non-empty repository location. */
 	public boolean hasSelection() {
 		if (locationField.getText().isEmpty()) {
 			return false;
-		} else {			
+		} else {
 			try {
 				getRepositoryLocation();
 				return true;
 			} catch (MalformedRepositoryLocationException e) {
-				LogService.getRoot().warning("Malformed repository location: "+e);
+				LogService.getRoot().warning("Malformed repository location: " + e);
 				return false;
-			}			
+			}
 		}
 	}
 
@@ -235,12 +238,26 @@ public class RepositoryLocationChooser extends JPanel {
 		listeners.remove(l);
 	}
 
+	/**
+	 * This will open a window to select a repository entry that is an entry 
+	 */
+	public static String selectEntry(RepositoryLocation resolveRelativeTo, Component c) {
+		return selectLocation(resolveRelativeTo, null, c, true, false);
+	}
+	
+	/**
+	 * This will open a window to select a repository entry that is a folder
+	 */
+	public static String selectFolder(RepositoryLocation resolveRelativeTo, Component c) {
+		return selectLocation(resolveRelativeTo, null, c, false, true);
+	}
+	
 	public static String selectLocation(RepositoryLocation resolveRelativeTo, Component c) {
-		return selectLocation(resolveRelativeTo, null, c);
+		return selectLocation(resolveRelativeTo, null, c, true, true);
 	}
 
-	public static String selectLocation(RepositoryLocation resolveRelativeTo, String initialValue, Component c) {
-		final String result[] = new String[1];		
+	public static String selectLocation(RepositoryLocation resolveRelativeTo, String initialValue, Component c, final boolean selectEntries, final boolean selectFolder) {
+		final String result[] = new String[1];
 		class RepositoryLocationChooserDialog extends ButtonDialog {
 			private static final long serialVersionUID = -726540444296013310L;
 
@@ -249,16 +266,19 @@ public class RepositoryLocationChooser extends JPanel {
 			public RepositoryLocationChooserDialog(RepositoryLocation resolveRelativeTo, String initialValue) {
 				super("repository_chooser", true);
 				chooser = new RepositoryLocationChooser(this, resolveRelativeTo, initialValue);
-				chooser.tree.addRepositorySelectionListener(new RepositorySelectionListener() {			
+				chooser.tree.addRepositorySelectionListener(new RepositorySelectionListener() {
 					@Override
 					public void repositoryLocationSelected(RepositorySelectionEvent e) {
 						Entry entry = e.getEntry();
-						result[0] = entry.getLocation().toString();
-						dispose();
+						if ((selectFolder && entry instanceof Folder) || (selectEntries && entry instanceof DataEntry)) {
+							result[0] = entry.getLocation().toString();
+							dispose();
+						}
 					}
 				});
 				layoutDefault(chooser, NORMAL, makeOkButton(), makeCancelButton());
 			}
+
 			@Override
 			protected void ok() {
 				try {
@@ -271,7 +291,7 @@ public class RepositoryLocationChooser extends JPanel {
 		}
 		final RepositoryLocationChooserDialog dialog = new RepositoryLocationChooserDialog(resolveRelativeTo, initialValue);
 		dialog.setVisible(true);
-		
+
 		if (result[0] != null) {
 			return result[0];
 		}
@@ -291,7 +311,7 @@ public class RepositoryLocationChooser extends JPanel {
 				return text;
 			} else {
 				return null;
-			}			
+			}
 		} else {
 			return null;
 		}
@@ -302,7 +322,7 @@ public class RepositoryLocationChooser extends JPanel {
 			String repositoryLocation = getRepositoryLocation();
 			resultLabel.setText(repositoryLocation);
 		} catch (MalformedRepositoryLocationException e) {
-			LogService.getRoot().log(Level.WARNING, "Malformed location: "+ e, e);
-		}		
+			LogService.getRoot().log(Level.WARNING, "Malformed location: " + e, e);
+		}
 	}
 }

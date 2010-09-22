@@ -13,8 +13,8 @@ import junit.framework.AssertionFailedError;
 import com.rapidminer.Process;
 import com.rapidminer.ProcessLocation;
 import com.rapidminer.RapidMiner;
-import com.rapidminer.RepositoryProcessLocation;
 import com.rapidminer.RapidMiner.ExecutionMode;
+import com.rapidminer.RepositoryProcessLocation;
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.Attributes;
@@ -182,5 +182,19 @@ public class TestUtils {
 				RepositoryLocation.REPOSITORY_PREFIX+TEST_REPOSITORY_NAME+
 				relativeObjectLocation);
 		return ((IOObjectEntry)loc.locateEntry()).retrieveData(null);
+	}
+	
+	public static void assertArrayEquals(Object[] expected, Object[] actual) {
+		if (expected == null) {
+			junit.framework.Assert.assertEquals((Object)null, (Object)actual);
+			return;
+		}
+		if (actual == null) {
+			throw new AssertionFailedError("Expected "+expected+" , but is null.");
+		}		
+		junit.framework.Assert.assertEquals("Array length", expected.length, actual.length);
+		for (int i = 0; i < expected.length; i++) {
+			junit.framework.Assert.assertEquals(expected[i], actual[i]);
+		}
 	}
 }

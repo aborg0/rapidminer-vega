@@ -51,4 +51,9 @@ public class IOMultiplier extends Operator {
 			}
 		}
 	}
+
+	/** The port whose IOObject is copied. */
+	public InputPort getInputPort() {		
+		return inputPort;
+	}
 }

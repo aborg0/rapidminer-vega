@@ -51,11 +51,10 @@ import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeString;
 
 /**
- * Applies a fast margin learner based on the linear support vector learning scheme
- * proposed by R.-E. Fan, K.-W. Chang, C.-J. Hsieh, X.-R. Wang, and C.-J. Lin. 
- * Although the result is similar to those delivered by classical SVM or logistic
- * regression implementations, this linear classifier is able to work on data set with 
- * millions of examples and attributes.
+ * Applies a fast margin learner based on the linear support vector learning scheme proposed by R.-E. Fan, K.-W. Chang,
+ * C.-J. Hsieh, X.-R. Wang, and C.-J. Lin. Although the result is similar to those delivered by classical SVM or
+ * logistic regression implementations, this linear classifier is able to work on data set with millions of examples and
+ * attributes.
  * 
  * @rapidminer.index SVM
  * @author Ingo Mierswa
@@ -70,44 +69,46 @@ public class FastLargeMargin extends AbstractLearner {
 	/** The parameter name for &quot;Tolerance of termination criterion.&quot; */
 	public static final String PARAMETER_EPSILON = "epsilon";
 
-	/** The parameter name for &quot;The weights w for all classes (first column: class name, second column: weight), i.e. set the parameters C of each class w * C (empty: using 1 for all classes where the weight was not defined).&quot; */
+	/**
+	 * The parameter name for &quot;The weights w for all classes (first column: class name, second column: weight),
+	 * i.e. set the parameters C of each class w * C (empty: using 1 for all classes where the weight was not
+	 * defined).&quot;
+	 */
 	public static final String PARAMETER_CLASS_WEIGHTS = "class_weights";
 
 	public static final String PARAMETER_USE_BIAS = "use_bias";
 
-
 	/*
 	 * What to do for a new LibLinear version (current version 1.33):
-	 * --------------------------------------------------------------
-	 *  - set field DEBUG_OUTPUT in class Linear to false
-	 *  - remove some additional system.out statements  
-	 *  - make some fields public of Model (nr_class, l, nSV, label etc.) 
+	 * -------------------------------------------------------------- - set field DEBUG_OUTPUT in class Linear to false
+	 * - remove some additional system.out statements - make some fields public of Model (nr_class, l, nSV, label etc.)
 	 */
 
 	/** The different SVM types implemented by the LibSVM package. */
 	public static final String[] SOLVER = { "L2 SVM Dual", "L2 SVM Primal", "L2 Logistic Regression", "L1 SVM Dual" };
 
-	public static final int SOLVER_L2_SVM_DUAL   = 0;
+	public static final int SOLVER_L2_SVM_DUAL = 0;
 	public static final int SOLVER_L2_SVM_PRIMAL = 1;
-	public static final int SOLVER_L2_LR         = 2;
-	public static final int SOLVER_L1_SVM_DUAL   = 3;
-
+	public static final int SOLVER_L2_LR = 2;
+	public static final int SOLVER_L1_SVM_DUAL = 3;
 
 	public FastLargeMargin(OperatorDescription description) {
 		super(description);
 	}
 
 	public boolean supportsCapability(OperatorCapability lc) {
-		if (lc == com.rapidminer.operator.OperatorCapability.NUMERICAL_ATTRIBUTES)
+		switch (lc) {
+		case NUMERICAL_ATTRIBUTES:
+		case BINOMINAL_LABEL:
 			return true;
-		if (lc == com.rapidminer.operator.OperatorCapability.BINOMINAL_LABEL)
-			return true;
-		return false;
+		default:
+			return false;
+		}
 	}
 
 	/**
-	 * Creates a data node row for the LibSVM (sparse format, i.e. each node
-	 * keeps the index and the value if not default).
+	 * Creates a data node row for the LibSVM (sparse format, i.e. each node keeps the index and the value if not
+	 * default).
 	 */
 	public static FeatureNode[] makeNodes(Example e, FastExample2SparseTransform ripper, boolean useBias) {
 		int[] nonDefaultIndices = ripper.getNonDefaultAttributeIndices(e);
@@ -126,8 +127,11 @@ public class FastLargeMargin extends AbstractLearner {
 		return nodeArray;
 	}
 
-	/** Creates a support vector problem for the LibSVM. 
-	 * @throws UserError */
+	/**
+	 * Creates a support vector problem for the LibSVM.
+	 * 
+	 * @throws UserError
+	 */
 	private Problem getProblem(ExampleSet exampleSet) throws UserError {
 		log("Creating LibLinear problem.");
 		FastExample2SparseTransform ripper = new FastExample2SparseTransform(exampleSet);
@@ -153,7 +157,7 @@ public class FastLargeMargin extends AbstractLearner {
 		while (i.hasNext()) {
 			Example e = i.next();
 			problem.x[j] = makeNodes(e, ripper, useBias);
-			problem.y[j] = (int)e.getValue(label) == firstIndex ? 0 : 1;
+			problem.y[j] = (int) e.getValue(label) == firstIndex ? 0 : 1;
 			nodeCount += problem.x[j].length;
 			j++;
 		}
@@ -162,9 +166,8 @@ public class FastLargeMargin extends AbstractLearner {
 	}
 
 	/**
-	 * Creates a LibSVM parameter object based on the user defined parameters.
-	 * If gamma is set to zero, it will be overwritten by 1 divided by the
-	 * number of attributes.
+	 * Creates a LibSVM parameter object based on the user defined parameters. If gamma is set to zero, it will be
+	 * overwritten by 1 divided by the number of attributes.
 	 */
 	private Parameter getParameters(ExampleSet exampleSet) throws OperatorException {
 		SolverType solverType = null;
@@ -234,7 +237,7 @@ public class FastLargeMargin extends AbstractLearner {
 		Linear.resetRandom();
 		Linear.disableDebugOutput();
 		Problem problem = getProblem(exampleSet);
-		liblinear.Model model = Linear.train(problem, params); 
+		liblinear.Model model = Linear.train(problem, params);
 
 		return new FastMarginModel(exampleSet, model, getParameterAsBoolean(PARAMETER_USE_BIAS));
 	}
@@ -243,7 +246,7 @@ public class FastLargeMargin extends AbstractLearner {
 	public Class<? extends PredictionModel> getModelClass() {
 		return FastMarginModel.class;
 	}
-	
+
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
@@ -257,9 +260,8 @@ public class FastLargeMargin extends AbstractLearner {
 
 		types.add(new ParameterTypeDouble(PARAMETER_EPSILON, "Tolerance of termination criterion.", Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 0.01));
 
-		types.add(new ParameterTypeList(PARAMETER_CLASS_WEIGHTS, "The weights w for all classes, i.e. set the parameters C of each class w * C (empty: using 1 for all classes where the weight was not defined).", 
-				new ParameterTypeString("class_name", "The class name (possible value of your label attribute)."),
-				new ParameterTypeDouble("weight", "The weight for this class.", 0.0d, Double.POSITIVE_INFINITY, 1.0d)));
+		types.add(new ParameterTypeList(PARAMETER_CLASS_WEIGHTS, "The weights w for all classes, i.e. set the parameters C of each class w * C (empty: using 1 for all classes where the weight was not defined).", new ParameterTypeString("class_name", "The class name (possible value of your label attribute)."), new ParameterTypeDouble("weight",
+				"The weight for this class.", 0.0d, Double.POSITIVE_INFINITY, 1.0d)));
 
 		types.add(new ParameterTypeBoolean(PARAMETER_USE_BIAS, "Indicates if an intercept value should be calculated.", true));
 

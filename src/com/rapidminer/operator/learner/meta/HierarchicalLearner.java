@@ -46,6 +46,7 @@ import com.rapidminer.tools.RandomGenerator;
 
 /**
  */
+@Deprecated
 public class HierarchicalLearner extends AbstractMetaLearner {
 
 	public static final String PARAMETER_HIERARCHY = "hierarchy";

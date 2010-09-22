@@ -76,7 +76,7 @@ public class FrequencyCalculator {
     		int labelIndex = (int)example.getValue(label);
     		double value = example.getValue(attribute);
     		if (!Double.isNaN(value)) {
-	    		int valueIndex = (int)example.getValue(attribute);
+	    		int valueIndex = (int)value;
 	    		double weight = 1.0d;
 	    		if (weightAttribute != null)
 	    			weight = example.getValue(weightAttribute);

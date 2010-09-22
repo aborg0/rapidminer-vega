@@ -22,6 +22,8 @@
  */
 package com.rapidminer.operator.learner.tree;
 
+import java.util.Iterator;
+
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
@@ -58,7 +60,10 @@ public class NumericalSplitter {
         	this.criterion.startIncrementalCalculation(exampleSet);
         }
         
-        for (Example e : exampleSet) {
+        Iterator<Example> exampleIterator = exampleSet.iterator();
+        while(exampleIterator.hasNext()) {
+        	Example e = exampleIterator.next();
+        	boolean isLast = !(exampleIterator.hasNext());
         	double currentValue = e.getValue(attribute);
         	
         	double label = e.getValue(labelAttribute);   
@@ -66,8 +71,8 @@ public class NumericalSplitter {
     			if (lastExample != null) 
     				this.criterion.swapExample(lastExample);
     			lastExample = e;
-    			if ((Double.isNaN(oldLabel)) || (oldLabel != label)) {
-    				if (!Tools.isEqual(currentValue, lastValue)) {
+    			if ((Double.isNaN(oldLabel)) || (oldLabel != label) || isLast) {
+    				if (!Tools.isEqual(currentValue, lastValue) || isLast) {
     					double benefit = this.criterion.getIncrementalBenefit();
 
     					if (benefit > bestSplitBenefit) {

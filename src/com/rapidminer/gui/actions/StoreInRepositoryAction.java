@@ -52,7 +52,7 @@ public class StoreInRepositoryAction extends ResourceAction {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		String loc = RepositoryLocationChooser.selectLocation(null, RapidMinerGUI.getMainFrame());
+		String loc = RepositoryLocationChooser.selectLocation(null, null, RapidMinerGUI.getMainFrame(), true, false);
 		if (loc != null) {
 			RepositoryLocation location;
 			try {

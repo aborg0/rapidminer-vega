@@ -41,7 +41,7 @@ import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
-import com.rapidminer.operator.learner.meta.HierarchicalModel2.Node;
+import com.rapidminer.operator.learner.meta.HierarchicalMultiClassModel.Node;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeString;
@@ -55,7 +55,7 @@ import com.rapidminer.tools.RandomGenerator;
  * 
  * @author Tobias Malbrecht, Sebastian Land
  */
-public class HierarchicalLearner2 extends AbstractMetaLearner {
+public class HierarchicalMultiClassLearner extends AbstractMetaLearner {
 
 	public static final String PARAMETER_HIERARCHY = "hierarchy";
 
@@ -63,7 +63,7 @@ public class HierarchicalLearner2 extends AbstractMetaLearner {
 
 	public static final String PARAMETER_CHILD_CLASS = "child_class";
 
-	public HierarchicalLearner2(OperatorDescription description) {
+	public HierarchicalMultiClassLearner(OperatorDescription description) {
 		super(description);
 	}
 
@@ -116,7 +116,7 @@ public class HierarchicalLearner2 extends AbstractMetaLearner {
 		
 		computeModel(root, inputSet, labelAttribute);
 		
-		return new HierarchicalModel2(inputSet, root);
+		return new HierarchicalMultiClassModel(inputSet, root);
 	}
 
 	private void checkCompatibility(Attribute labelAttribute) throws UserError {
@@ -146,7 +146,7 @@ public class HierarchicalLearner2 extends AbstractMetaLearner {
 	/**
 	 * This method will first create a working label column and after this run through the tree recursivly.
 	 */
-	private void computeModel(HierarchicalModel2.Node rootNode, ExampleSet exampleSet, Attribute originalLabel) throws OperatorException {
+	private void computeModel(HierarchicalMultiClassModel.Node rootNode, ExampleSet exampleSet, Attribute originalLabel) throws OperatorException {
 		// create working label with copy of original label values
 		exampleSet.getAttributes().setSpecialAttribute(originalLabel, "label_original");
 		Attribute workingLabel = AttributeFactory.createAttribute(originalLabel.getName() + "_working", originalLabel.getValueType());

@@ -20,6 +20,7 @@ import com.rapidminer.operator.performance.test.PerformanceTestSuite;
 	PerformanceTestSuite.class,
 	DatabaseWriteTest.class,
 	CSVReaderTest.class,
+	EscapeTest.class,
 	OperatorVersionTest.class,
 	
 	IterationArrayListTest.class,

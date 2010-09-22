@@ -46,9 +46,12 @@ import com.rapidminer.parameter.ParameterTypeInt;
 /**
  * This operator realizes a simple forward selection.
  * 
+ * This class has been replaced by the {@link ForwardAttributeSelectionOperator} class which offers
+ * many additional functionalities.
  * @author Sebastian Land
  *
  */
+@Deprecated
 public class ForwardSelectionOperator extends OperatorChain {
 
 	public static final String PARAMETER_NUMBER_OF_STEPS = "number_of_steps";

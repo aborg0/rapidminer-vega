@@ -28,6 +28,8 @@ import java.util.List;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.rapidminer.tools.Tools;
+
 /**
  * @author Sebastian Land
  *
@@ -35,12 +37,10 @@ import org.w3c.dom.Element;
 public class ParameterTypeEnumeration extends CombinedParameterType {
 
 	private static final long serialVersionUID = -3677952200700007724L;
-	// only one character allowed
-	private static final String ESCAPE_CHAR = "\\";
-	private static final String ESCAPE_CHAR_REGEX = "\\\\";
-	// only one character allowed, that additionally has no special meaning during regular expressions
-	private static final String SEPERATOR_CHAR = "\u241E"; //",";
-
+	private static final char ESCAPE_CHAR = '\\';
+	private static final char SEPERATOR_CHAR = ',';
+	private static final char[] SPECIAL_CHARACTERS = new char[] { SEPERATOR_CHAR };
+	
 	private Object defaultValue;
 
 	private ParameterType type;
@@ -127,7 +127,7 @@ public class ParameterTypeEnumeration extends CombinedParameterType {
 		for (String string: list) {
 			if (!isFirst)
 				builder.append(SEPERATOR_CHAR);
-			builder.append(escape(string));
+			builder.append(Tools.escape(string, ESCAPE_CHAR, SPECIAL_CHARACTERS));
 			isFirst = false;
 		}
 		return builder.toString();
@@ -135,25 +135,31 @@ public class ParameterTypeEnumeration extends CombinedParameterType {
 
 
 	public static String[] transformString2Enumeration(String parameterValue) {
-		if (parameterValue != null && !parameterValue.equals("")) {
-			String[] unescaped = parameterValue.split("(?<=[^"+ ESCAPE_CHAR_REGEX + "])" + SEPERATOR_CHAR, -1);
-			for (int i = 0; i < unescaped.length; i++) {
-				unescaped[i] = unescape(unescaped[i]);
-			}
-			return unescaped;
+		if (parameterValue == null) {
+			return null;
 		}
-		return new String[0];
+		List<String> split = Tools.unescape(parameterValue, ESCAPE_CHAR, SPECIAL_CHARACTERS, SEPERATOR_CHAR);
+		return split.toArray(new String[split.size()]);
+//
+//		if (parameterValue != null && !parameterValue.equals("")) {
+//			String[] unescaped = parameterValue.split("(?<=[^"+ ESCAPE_CHAR_REGEX + "])" + SEPERATOR_CHAR, -1);
+//			for (int i = 0; i < unescaped.length; i++) {
+//				unescaped[i] = unescape(unescaped[i]);
+//			}
+//			return unescaped;
+//		}
+//		return new String[0];
 	}
 
-	private static String unescape(String escapedString) {
-		escapedString = escapedString.replace(ESCAPE_CHAR + SEPERATOR_CHAR, SEPERATOR_CHAR);
-		escapedString = escapedString.replace(ESCAPE_CHAR + ESCAPE_CHAR, ESCAPE_CHAR);
-		return escapedString; 
-	}
+//	private static String unescape(String escapedString) {
+//		escapedString = escapedString.replace(ESCAPE_CHAR + SEPERATOR_CHAR, SEPERATOR_CHAR);
+//		escapedString = escapedString.replace(ESCAPE_CHAR + ESCAPE_CHAR, ESCAPE_CHAR);
+//		return escapedString; 
+//	}
 
-	private static String escape(String unescapedString) {
-		unescapedString = unescapedString.replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR);
-		return unescapedString.replace(SEPERATOR_CHAR, ESCAPE_CHAR + SEPERATOR_CHAR);
-
-	}
+//	private static String escape(String unescapedString) {
+//		unescapedString = unescapedString.replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR);
+//		return unescapedString.replace(SEPERATOR_CHAR, ESCAPE_CHAR + SEPERATOR_CHAR);
+//
+//	}
 }

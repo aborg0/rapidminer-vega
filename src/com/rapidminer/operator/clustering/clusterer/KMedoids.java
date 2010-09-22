@@ -136,7 +136,7 @@ public class KMedoids extends RMAbstractClusterer implements CapabilityProvider 
 			CentroidClusterModel model = new CentroidClusterModel(exampleSet, k, attributeNames, measure, getParameterAsBoolean(RMAbstractClusterer.PARAMETER_ADD_AS_LABEL), getParameterAsBoolean(RMAbstractClusterer.PARAMETER_REMOVE_UNLABELED));
 			// init centroids
 			int i = 0;
-			for (Integer index : generator.nextIntSetWithRange(0, exampleSet.size() - 1, k)) {
+			for (Integer index : generator.nextIntSetWithRange(0, exampleSet.size(), k)) {
 				model.assignExample(i, getAsDoubleArray(exampleSet.getExample(index), attributes));
 				i++;
 			}

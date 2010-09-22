@@ -44,7 +44,7 @@ import com.rapidminer.operator.learner.PredictionModel;
  * 
  * @author Tobias Malbrecht, Sebastian Land
  */
-public class HierarchicalModel2 extends PredictionModel implements MetaModel {
+public class HierarchicalMultiClassModel extends PredictionModel implements MetaModel {
 
 	public static class Node implements Serializable {
 
@@ -129,7 +129,7 @@ public class HierarchicalModel2 extends PredictionModel implements MetaModel {
 
 	private final Node root;
 
-	public HierarchicalModel2(ExampleSet exampleSet, Node root) {
+	public HierarchicalMultiClassModel(ExampleSet exampleSet, Node root) {
 		super(exampleSet);
 		this.root = root;
 	}

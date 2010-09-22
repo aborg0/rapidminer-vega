@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <operators name="core" version="5.0" docbundle="com/rapidminer/resources/i18n/OperatorsCoreDocumentation">
    <!--
-      <group key="IO"> <group key="Text"> <operator> <key>SingleTextInput</key>
-      <class>com.rapidminer.operator.text.io.SingleTextInputOperator</class> </operator> </group>
-      </group> <group key="Preprocessing"> <group key="Attributes"> <group key="Selection">
-      <operator> <key>ForwardSelection</key>
-      <class>com.rapidminer.operator.features.selection.ForwardSelectionOperator</class> </operator>
-      </group> </group> </group
+      <group key="IO"> <group key="Text"> <operator> <key>SingleTextInput</key> <class>com.rapidminer.operator.text.io.SingleTextInputOperator</class> </operator> </group> </group>
+      <group key="Preprocessing"> <group key="Attributes"> <group key="Selection"> <operator> <key>ForwardSelection</key>
+      <class>com.rapidminer.operator.features.selection.ForwardSelectionOperator</class> </operator> </group> </group> </group
    -->
    <group key="">
       <operator>
@@ -19,6 +16,11 @@
          <operator>
             <key>dummy</key>
             <class>com.rapidminer.operator.DummyOperator</class>
+         </operator>
+         <operator>
+            <deprecatedSince>5.0</deprecatedSince>
+            <key>hierarchical_classification</key>
+            <class>com.rapidminer.operator.learner.meta.HierarchicalLearner</class>
          </operator>
          <group key="todo">
             <operator>
@@ -506,8 +508,8 @@
                <replaces>ProcessLog2ExampleSet</replaces>
             </operator>
             <operator>
-                <key>print_to_console</key>
-                <class>com.rapidminer.operator.tools.ConsolePrintOperator</class>
+               <key>print_to_console</key>
+               <class>com.rapidminer.operator.tools.ConsolePrintOperator</class>
             </operator>
          </group>
          <group key="execution">
@@ -612,9 +614,9 @@
          <group key="misc">
             <icon>wrench.png</icon>
             <operator>
-            	<key>delay</key>
-            	<class>com.rapidminer.operator.tools.DelayOperator</class>
-            	<icon>hourglass.png</icon>
+               <key>delay</key>
+               <class>com.rapidminer.operator.tools.DelayOperator</class>
+               <icon>hourglass.png</icon>
             </operator>
             <operator>
                <key>obfuscate</key>
@@ -676,13 +678,11 @@
                <key>read_excel</key>
                <class>com.rapidminer.operator.io.ExcelExampleSource</class>
                <replaces>ExcelExampleSource</replaces>
-            </operator><!--
-            <operator>
-               <key>read_excel_new</key>
-               <class>com.rapidminer.operator.io.ExcelDataReader</class>
-               <replaces>ExcelExampleSource</replaces>
             </operator>
-            --><operator>
+            <!--
+               <operator> <key>read_excel_new</key> <class>com.rapidminer.operator.io.ExcelDataReader</class> <replaces>ExcelExampleSource</replaces> </operator>
+            -->
+            <operator>
                <key>read_access</key>
                <class>com.rapidminer.operator.io.AccessDataReader</class>
                <replaces>AccessExampleSource</replaces>
@@ -1769,8 +1769,8 @@
                   <replaces>Binary2MultiClassLearner</replaces>
                </operator>
                <operator>
-                  <key>hierarchical_classification</key>
-                  <class>com.rapidminer.operator.learner.meta.HierarchicalLearner</class>
+                  <key>hierarchical_multi_class_classification</key>
+                  <class>com.rapidminer.operator.learner.meta.HierarchicalMultiClassLearner</class>
                </operator>
                <operator>
                   <key>classification_by_regression</key>
@@ -2157,14 +2157,14 @@
                   <replaces>UncertainPredictionsTransformation</replaces>
                </operator>
                <operator>
-                 <key>generate_prediction</key>
-                 <class>com.rapidminer.operator.postprocessing.GeneratePredictionOperator</class>
-	           </operator>
+                  <key>generate_prediction</key>
+                  <class>com.rapidminer.operator.postprocessing.GeneratePredictionOperator</class>
+               </operator>
                <operator>
-                 <key>generate_prediction_ranking</key>
-                 <class>com.rapidminer.operator.postprocessing.GeneratePredictionRankingOperator</class>
-	           </operator>
-               </group>
+                  <key>generate_prediction_ranking</key>
+                  <class>com.rapidminer.operator.postprocessing.GeneratePredictionRankingOperator</class>
+               </operator>
+            </group>
          </group>
       </group>
       <group key="evaluation">

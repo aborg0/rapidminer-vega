@@ -40,6 +40,7 @@ import com.rapidminer.operator.learner.PredictionModel;
 
 /**
  */
+@Deprecated
 public class HierarchicalModel extends PredictionModel implements MetaModel {
 
 	public static class Node implements Serializable {
