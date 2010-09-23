@@ -72,6 +72,7 @@ import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.OutputPorts;
 import com.rapidminer.operator.ports.PortException;
 import com.rapidminer.operator.ports.metadata.CompatibilityLevel;
+import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeEnumeration;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.tools.LogService;
@@ -557,17 +558,30 @@ public class XMLImporter {
 						unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), parameter[0], parameter[1]));
 					}
 				} else if (inner.getTagName().toLowerCase().equals("list")) {
-					ListDescription listDescription = parseParameterList(inner);
+					final String key = inner.getAttribute("key");
+					ParameterType type = operator.getParameters().getParameterType(key);
+					if (!(type instanceof ParameterTypeList)) {
+						addMessage("The parameter '"+type.getKey()+"' is a "+type.getClass().getSimpleName()+", but an list was found.");
+						type = null;
+					}
+					ListDescription listDescription = parseParameterList(inner, (ParameterTypeList)type);
 					boolean knownType = operator.getParameters().setParameter(listDescription.getKey(), ParameterTypeList.transformList2String(listDescription.getList()));
 					if (!knownType) {
 						addMessage("The parameter '"+listDescription.getKey()+"' is unknown for operator '"+operator.getName() + "' ("+operator.getOperatorDescription().getName()+").");
 						unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), listDescription.getKey(), listDescription.getList().toString()));
 					}
 				} else if (inner.getTagName().toLowerCase().equals("enumeration")) {
-					boolean knownType = operator.getParameters().setParameter(inner.getAttribute("key"), ParameterTypeEnumeration.transformEnumeration2String(parseParameterEnumeration(inner)));
+					final String key = inner.getAttribute("key");
+					ParameterType type = operator.getParameters().getParameterType(key);
+					if (!(type instanceof ParameterTypeEnumeration)) {
+						addMessage("The parameter '"+type.getKey()+"' is a "+type.getClass().getSimpleName()+", but an enumeration was found.");
+						type = null;
+					}
+					final List<String> parsed = parseParameterEnumeration(inner, (ParameterTypeEnumeration)type);
+					boolean knownType = operator.getParameters().setParameter(key, ParameterTypeEnumeration.transformEnumeration2String(parsed));
 					if (!knownType) {
-						addMessage("The parameter '"+inner.getAttribute("key")+"' is unknown for operator '"+operator.getName() + "' ("+operator.getOperatorDescription().getName()+").");
-						unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), inner.getAttribute("key"), parseParameterEnumeration(inner).toString()));
+						addMessage("The parameter '"+key+"' is unknown for operator '"+operator.getName() + "' ("+operator.getOperatorDescription().getName()+").");
+						unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), key, parsed.toString()));
 					}					
 				} else if (inner.getTagName().toLowerCase().equals("description")) {					
 					operator.setUserDescription(inner.getAttribute("text"));
@@ -680,7 +694,8 @@ public class XMLImporter {
 		}
 	}
 
-	private ListDescription parseParameterList(Element list) throws XMLException {
+	private ListDescription parseParameterList(Element list, ParameterTypeList type) throws XMLException {
+		// TODO: type is unused here. Do we have to use type.transformNewValue for children?
 		List<String[]> values = new LinkedList<String[]>();
 		NodeList children = list.getChildNodes();
 		for (int i = 0; i < children.getLength(); i++) {
@@ -698,7 +713,7 @@ public class XMLImporter {
 		return new ListDescription(list.getAttribute("key"), values);
 	}
 
-	private List<String> parseParameterEnumeration(Element list) throws XMLException {
+	private List<String> parseParameterEnumeration(Element list, ParameterTypeEnumeration type) throws XMLException {
 		List<String> values = new LinkedList<String>();
 		NodeList children = list.getChildNodes();
 		for (int i = 0; i < children.getLength(); i++) {
@@ -706,7 +721,7 @@ public class XMLImporter {
 			if (node instanceof Element) {
 				Element inner = (Element) node;
 				if (inner.getTagName().toLowerCase().equals("parameter")) {
-					values.add(inner.getAttribute("value"));
+					values.add(type.getValueType().transformNewValue(inner.getAttribute("value")));
 				} else {
 					addMessage("<em class=\"error\">Ilegal inner tag for <code>&lt;enumeration&gt;</code>: <code>&lt;" + inner.getTagName()+"&gt;</code>.</em>");
 					return new LinkedList<String>();

@@ -35,6 +35,7 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.metadata.AttributeSetPrecondition;
@@ -45,6 +46,7 @@ import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.math.AnovaCalculator;
 import com.rapidminer.tools.math.SignificanceCalculationException;
 import com.rapidminer.tools.math.SignificanceTestResult;
@@ -172,5 +174,10 @@ public class GroupedANOVAOperator extends Operator {
 		types.add(new ParameterTypeDouble(PARAMETER_SIGNIFICANCE_LEVEL, "The significance level for the ANOVA calculation.", 0.0d, 1.0d, 0.05d, false));
 		types.add(new ParameterTypeBoolean(PARAMETER_ONLY_DISTINCT, "Indicates if only rows with distinct values for the aggregation attribute should be used for the calculation of the aggregation function.", false));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPorts().getPortByIndex(0), GroupedANOVAOperator.class, null);
 	}
 }

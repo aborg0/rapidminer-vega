@@ -39,9 +39,11 @@ import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.MemoryCleanUp;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.io.ExampleSource;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeCategory;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * Creates a fresh and clean copy of the data in memory. 
@@ -112,5 +114,10 @@ public class MaterializeDataInMemory extends AbstractDataProcessing {
 		List<ParameterType> types = super.getParameterTypes();
 		types.add(new ParameterTypeCategory(ExampleSource.PARAMETER_DATAMANAGEMENT, "Determines, how the data is represented internally.", DataRowFactory.TYPE_NAMES, DataRowFactory.TYPE_DOUBLE_ARRAY, false));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), MaterializeDataInMemory.class, null);
 	}
 }

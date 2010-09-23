@@ -8136,11 +8136,6 @@
     <key>pmml</key>
     <name>Pmml</name>
   </group>
-  <operator>
-    <key>export_pmml</key>
-    <name>export_pmml</name>
-    <help>Operator's description is missing in referenced OperatorDoc.</help>
-  </operator>
      <operator>
       <key>apply_association_rules</key>
       <name>Apply Association Rules</name>
@@ -8185,5 +8180,12 @@
   pattern are to widely separated in time. The min_gap parameter does the same if they are to near.&lt;/p&gt;
       </help>
    </operator>
+
+  <operator>
+    <key>send_mail</key>
+    <name>Send Mail</name>
+	<synopsis>This operator sends a mail.</synopsis>    
+    <help>This operator sends a mail with a given subject and body to a receiver.</help>
+  </operator>
   
 </operatorHelp>

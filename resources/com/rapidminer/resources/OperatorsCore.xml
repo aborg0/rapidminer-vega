@@ -613,6 +613,11 @@
          </group>
          <group key="misc">
             <icon>wrench.png</icon>
+         	<operator>
+               <key>send_mail</key>
+               <class>com.rapidminer.operator.tools.SendMailOperator</class>
+    	       <icon>mail.png</icon>         
+	        </operator>
             <operator>
                <key>delay</key>
                <class>com.rapidminer.operator.tools.DelayOperator</class>

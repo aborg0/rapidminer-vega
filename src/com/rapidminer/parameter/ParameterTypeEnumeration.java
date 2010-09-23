@@ -38,7 +38,7 @@ public class ParameterTypeEnumeration extends CombinedParameterType {
 
 	private static final long serialVersionUID = -3677952200700007724L;
 	private static final char ESCAPE_CHAR = '\\';
-	private static final char SEPERATOR_CHAR = ',';
+	private static final char SEPERATOR_CHAR = Parameters.RECORD_SEPARATOR; //',';
 	private static final char[] SPECIAL_CHARACTERS = new char[] { SEPERATOR_CHAR };
 	
 	private Object defaultValue;
@@ -136,7 +136,7 @@ public class ParameterTypeEnumeration extends CombinedParameterType {
 
 	public static String[] transformString2Enumeration(String parameterValue) {
 		if (parameterValue == null) {
-			return null;
+			return new String[0];
 		}
 		List<String> split = Tools.unescape(parameterValue, ESCAPE_CHAR, SPECIAL_CHARACTERS, SEPERATOR_CHAR);
 		return split.toArray(new String[split.size()]);

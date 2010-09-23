@@ -37,10 +37,12 @@ import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.AbstractExampleSetProcessing;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.preprocessing.filter.ChangeAttributeType;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * <p>This operator transposes an example set, i.e. the columns with become the
@@ -144,5 +146,10 @@ public class ExampleSetTranspose extends AbstractExampleSetProcessing {
 		// create and deliver example set
 		ExampleSet result = table.createExampleSet(null, null, newIdAttribute);
 		return result;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), ExampleSetTranspose.class, null);
 	}
 }

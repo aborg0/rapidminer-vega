@@ -28,6 +28,7 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.set.MappedExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MDInteger;
 import com.rapidminer.operator.validation.IteratingPerformanceAverage;
@@ -38,6 +39,7 @@ import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.RandomGenerator;
 
 
@@ -128,5 +130,10 @@ public class BootstrappingOperator extends AbstractSamplingOperator {
 		types.add(type);
 		types.addAll(RandomGenerator.getRandomGeneratorParameters(this));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), BootstrappingOperator.class, null);
 	}
 }

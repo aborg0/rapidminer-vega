@@ -22,6 +22,7 @@
  */
 package com.rapidminer.tools;
 
+
 /** Interface for time consuming tasks.
  * 
  *  @author Simon Fischer

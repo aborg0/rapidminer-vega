@@ -40,8 +40,10 @@ public class ParameterTypeTupel extends CombinedParameterType {
 //	// only one character allowed
 //	private static final String SEPERATOR_CHAR_REGEX = "\\.";
 	private static final char ESCAPE_CHAR = '\\';
-	private static final char SEPERATOR_CHAR = '.';
-	private static final char[] SPECIAL_CHARACTERS = new char[] { SEPERATOR_CHAR };
+	private static final char XML_SEPERATOR_CHAR = '.';
+	private static final char[] XML_SPECIAL_CHARACTERS = new char[] { XML_SEPERATOR_CHAR };
+	private static final char INTERNAL_SEPERATOR_CHAR = Parameters.PAIR_SEPARATOR; //'.';
+	private static final char[] INTERNAL_SPECIAL_CHARACTERS = new char[] { INTERNAL_SEPERATOR_CHAR };
 
 
 	private Object[] defaultValues = null;
@@ -94,11 +96,31 @@ public class ParameterTypeTupel extends CombinedParameterType {
 	public Element getXML(String key, String value, boolean hideDefault, Document doc) {
 		Element element = doc.createElement("parameter");
 		element.setAttribute("key", key);
-		String valueString = value;
+		String[] tupel;
 		if (value == null) {
-			valueString = transformTupel2String((Pair<String, String>)getDefaultValue());
+			Pair<String, String> defltValue = (Pair<String, String>)getDefaultValue();
+			tupel = new String[] { defltValue.getFirst(), defltValue.getSecond() };			
+		} else { 
+			tupel = transformString2Tupel(value);
 		}
-		element.setAttribute("value", valueString);
+		StringBuilder valueString = new StringBuilder();
+		boolean first = true;
+		for (String part : tupel) {
+			if (!first) {
+				valueString.append(XML_SEPERATOR_CHAR);
+			} else {
+				first = false;
+			}
+			if (part == null) {
+				part = "";
+			}
+			valueString.append(Tools.escape(part, ESCAPE_CHAR, XML_SPECIAL_CHARACTERS));
+		}
+//		String valueString = value;
+//		if (value == null) {
+//			valueString = transformTupel2String((Pair<String, String>)getDefaultValue());
+//		}		
+		element.setAttribute("value", valueString.toString());
 		return element;
 	}
 
@@ -138,33 +160,18 @@ public class ParameterTypeTupel extends CombinedParameterType {
 	}
 
 	public static String[] transformString2Tupel(String parameterValue) {
-		if (parameterValue == null) {
-			return null;
+		if ((parameterValue == null) || parameterValue.isEmpty()){
+			return new String[2];
 		}
-		List<String> split = Tools.unescape(parameterValue, ESCAPE_CHAR, SPECIAL_CHARACTERS, SEPERATOR_CHAR);
+		List<String> split = Tools.unescape(parameterValue, ESCAPE_CHAR, INTERNAL_SPECIAL_CHARACTERS, INTERNAL_SEPERATOR_CHAR);
 		return split.toArray(new String[split.size()]);
-//		String[] unescaped = parameterValue.split("(?<=[^"+ ESCAPE_CHAR_REGEX + "])" + SEPERATOR_CHAR_REGEX, -1);
-//		for (int i = 0; i < unescaped.length; i++) {
-//			unescaped[i] = unescape(unescaped[i]);
-//		}
-//		return unescaped;
 	}
 
-//	private static String unescape(String escapedString) {
-//		escapedString = escapedString.replace(ESCAPE_CHAR + SEPERATOR_CHAR, SEPERATOR_CHAR);
-//		escapedString = escapedString.replace(ESCAPE_CHAR + ESCAPE_CHAR, ESCAPE_CHAR);
-//		return escapedString; 
-//	}
-
 	public static String transformTupel2String(String firstValue, String secondValue) {
-//		firstValue = firstValue.replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR);
-//		firstValue = firstValue.replace(SEPERATOR_CHAR, ESCAPE_CHAR + SEPERATOR_CHAR);
-//		secondValue = secondValue.replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR);
-//		secondValue = secondValue.replace(SEPERATOR_CHAR, ESCAPE_CHAR + SEPERATOR_CHAR);
 		return 
-			Tools.escape(firstValue, ESCAPE_CHAR, SPECIAL_CHARACTERS) + 
-			SEPERATOR_CHAR + 
-			Tools.escape(secondValue, ESCAPE_CHAR, SPECIAL_CHARACTERS);
+			Tools.escape(firstValue, ESCAPE_CHAR, INTERNAL_SPECIAL_CHARACTERS) + 
+			INTERNAL_SEPERATOR_CHAR + 
+			Tools.escape(secondValue, ESCAPE_CHAR, INTERNAL_SPECIAL_CHARACTERS);
 	}
 	
 	public static String transformTupel2String(Pair<String, String> pair) {
@@ -174,11 +181,10 @@ public class ParameterTypeTupel extends CombinedParameterType {
 	public static String transformTupel2String(String[] tupel) {
 		StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < tupel.length; i++) {
-//			String value = Tools.esacpe(tupel[i].replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR);
-//			value = value.replace(SEPERATOR_CHAR, ESCAPE_CHAR + SEPERATOR_CHAR);
-			if (i > 0)
-				builder.append(SEPERATOR_CHAR);
-			builder.append(Tools.escape(tupel[i], ESCAPE_CHAR, SPECIAL_CHARACTERS));
+			if (i > 0) {
+				builder.append(INTERNAL_SEPERATOR_CHAR);
+			}
+			builder.append(Tools.escape(tupel[i], ESCAPE_CHAR, INTERNAL_SPECIAL_CHARACTERS));
 		}
 		return builder.toString();
 	}
@@ -190,5 +196,21 @@ public class ParameterTypeTupel extends CombinedParameterType {
 			tupel[i] = types[i].notifyOperatorRenaming(oldOperatorName, newOperatorName, tupel[i]);
 		}
 		return transformTupel2String(tupel);
+	}
+	
+	@Override
+	public String transformNewValue(String value) {
+		List<String> split = Tools.unescape(value, ESCAPE_CHAR, XML_SPECIAL_CHARACTERS, XML_SEPERATOR_CHAR);
+		StringBuilder internalEncoded = new StringBuilder();
+		boolean first = true;
+		for (String part : split) {
+			if (!first) {
+				internalEncoded.append(INTERNAL_SEPERATOR_CHAR);
+			} else {
+				first = false;
+			}
+			internalEncoded.append(Tools.escape(part, ESCAPE_CHAR, INTERNAL_SPECIAL_CHARACTERS));
+		}
+		return internalEncoded.toString();
 	}
 }

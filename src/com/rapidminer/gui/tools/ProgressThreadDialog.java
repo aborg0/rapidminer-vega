@@ -25,7 +25,9 @@ package com.rapidminer.gui.tools;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
 
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -34,6 +36,8 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 
@@ -95,7 +99,24 @@ class ProgressThreadDialog extends ButtonDialog {
 		c.weighty = 1;
 		main.add(new JScrollPane(taskList), c);
 
-		layoutDefault(main, makeCloseButton());
+		final JButton stopButton = new JButton(new ResourceAction("stop") {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				((ProgressThread)taskList.getSelectedValue()).cancel();
+			}			
+		});
+		
+		
+		taskList.addListSelectionListener(new ListSelectionListener() {
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				stopButton.setEnabled(!taskList.isSelectionEmpty());		
+			}
+		});
+		stopButton.setEnabled(!taskList.isSelectionEmpty());
+		
+		layoutDefault(main, stopButton, makeCloseButton());
 	}
 
 	public void refreshDialog() {

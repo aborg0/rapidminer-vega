@@ -32,12 +32,15 @@ import com.rapidminer.operator.Model;
 import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.learner.AbstractLearner;
 import com.rapidminer.operator.learner.PredictionModel;
+import com.rapidminer.operator.learner.bayes.NaiveBayes;
 import com.rapidminer.operator.ports.metadata.DistanceMeasurePrecondition;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeInt;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.math.container.GeometricDataCollection;
 import com.rapidminer.tools.math.container.LinearList;
 import com.rapidminer.tools.math.similarity.DistanceMeasure;
@@ -156,5 +159,10 @@ public class KNNLearner extends AbstractLearner {
 
 		types.addAll(DistanceMeasures.getParameterTypes(this));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getExampleSetInputPort(), KNNLearner.class, null);
 	}
 }

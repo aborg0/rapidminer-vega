@@ -41,6 +41,7 @@ import com.rapidminer.example.table.ListDataRowReader;
 import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.learner.PredictionModel;
 import com.rapidminer.operator.learner.meta.WeightedPerformanceMeasures;
 import com.rapidminer.operator.ports.InputPort;
@@ -50,6 +51,7 @@ import com.rapidminer.operator.ports.metadata.MDInteger;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.PredictionModelMetaData;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.RandomGenerator;
 
 // TODO Verify results, add capability to specify sample size, move sample size parameters to superclass
@@ -160,5 +162,10 @@ public class ModelBasedSampling extends AbstractSamplingOperator {
 		types.addAll(RandomGenerator.getRandomGeneratorParameters(this));
 
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), ModelBasedSampling.class, null);
 	}
 }

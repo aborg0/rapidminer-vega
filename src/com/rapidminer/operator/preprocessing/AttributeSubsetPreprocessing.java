@@ -36,6 +36,7 @@ import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.PortPairExtender;
@@ -50,6 +51,7 @@ import com.rapidminer.operator.ports.metadata.SubprocessTransformRule;
 import com.rapidminer.operator.tools.AttributeSubsetSelector;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * <p>This operator can be used to select one attribute (or a subset) by defining a 
@@ -239,5 +241,10 @@ public class AttributeSubsetPreprocessing extends OperatorChain {
 		types.add(new ParameterTypeBoolean(PARAMETER_DELIVER_INNER_RESULTS, "Indicates if the additional results (other than example set) of the inner operator should also be returned.", false));
 
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPorts().getPortByIndex(0), AttributeSubsetPreprocessing.class, attributeSelector);
 	}
 }

@@ -35,6 +35,7 @@ import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.learner.local.LocalPolynomialRegressionOperator;
 import com.rapidminer.operator.learner.local.Neighborhood;
 import com.rapidminer.operator.learner.local.Neighborhoods;
@@ -52,6 +53,7 @@ import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.container.Tupel;
 import com.rapidminer.tools.math.LinearRegression;
 import com.rapidminer.tools.math.VectorMath;
@@ -255,5 +257,10 @@ public class LocalPolynomialExampleWeightingOperator extends Operator {
 		types.addAll(SmoothingKernels.getParameterTypes(this));
 
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPorts().getPortByIndex(0), LocalPolynomialExampleWeightingOperator.class, null);
 	}
 }

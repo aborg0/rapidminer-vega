@@ -79,6 +79,10 @@ public abstract class ProgressThread implements Runnable {
 				}
 			});
 		}
+		private void jobCancelled(ProgressThread pt) {
+			int index = queue.indexOf(pt);
+			fireContentsChanged(this, index, index);			
+		}
 	}
 
 	private static ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(new ThreadFactory() {
@@ -112,7 +116,7 @@ public abstract class ProgressThread implements Runnable {
 	}
 
 	public String toString() {
-		return name;
+		return name + (cancelled ? " (cancelled)" : "");
 	}
 
 	public ProgressListener getProgressListener() {
@@ -150,7 +154,14 @@ public abstract class ProgressThread implements Runnable {
 		QUEUE_MODEL.add(this);
 		return new Runnable() {
 			@Override
-			public void run() {
+			public void run() {		
+				synchronized (LOCK) {
+					if (cancelled) {
+						LogService.getRoot().info("Task "+getName()+" was cancelled.");
+						return;
+					}
+					started = true;
+				}
 				try {
 					current = ProgressThread.this;
 					if (runInForeground) {					
@@ -162,7 +173,9 @@ public abstract class ProgressThread implements Runnable {
 							};
 						});					
 					}
-					ProgressThread.this.run();		
+					ProgressThread.this.run();
+				} catch (ProgressThreadStoppedException e) {
+					LogService.getRoot().fine("Progress thread "+getName()+" aborted (cancelled).");
 				} catch (Exception e) {
 					SwingTools.showSimpleErrorMessage("error_executing_background_job", e, name, e.getMessage());
 				} finally {
@@ -176,5 +189,43 @@ public abstract class ProgressThread implements Runnable {
 
 	public static ProgressThread getCurrent() {
 		return current;
-	}	
+	}
+
+	private static final Object LOCK = new Object();
+
+	private boolean cancelled = false;
+	/** True if the thread is started. (Remains true after cancelling.) */
+	private boolean started = false;
+
+	/** Returns true if the thread was cancelled. */
+	public final boolean isCancelled() {
+		return cancelled;
+	}
+
+	/** If the thread is currently active, calls {@link #executionCancelled()} to notify children.
+	 *  If not active, removes the thread from the queue so it won't become active. */
+	public final void cancel() {
+		synchronized (LOCK) {
+			cancelled = true;
+			if (started) {
+				executionCancelled();
+				QUEUE_MODEL.jobCancelled(this);
+			} else {
+				QUEUE_MODEL.remove(this);				
+			}
+		}
+	}
+
+	/** Subclasses can implemented this method if they want to be notified about cancellation of this thread.
+	 *  In most cases, this is not necessary. Subclasses can ask {@link #isCancelled()} whenever cancelling
+	 *  is possible, or, even easier, directly call {@link #checkCancelled()}. */
+	protected void executionCancelled() {		
+	}
+
+	/** If cancelled, throws a RuntimeException to stop the thread. */
+	protected void checkCancelled() throws ProgressThreadStoppedException {
+		if (cancelled) {
+			throw new ProgressThreadStoppedException();
+		}
+	}
 }
