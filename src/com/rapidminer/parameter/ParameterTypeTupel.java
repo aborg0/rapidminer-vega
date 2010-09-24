@@ -27,6 +27,7 @@ import java.util.List;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.rapidminer.MacroHandler;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.container.Pair;
 /**
@@ -42,7 +43,7 @@ public class ParameterTypeTupel extends CombinedParameterType {
 	private static final char ESCAPE_CHAR = '\\';
 	private static final char XML_SEPERATOR_CHAR = '.';
 	private static final char[] XML_SPECIAL_CHARACTERS = new char[] { XML_SEPERATOR_CHAR };
-	private static final char INTERNAL_SEPERATOR_CHAR = Parameters.PAIR_SEPARATOR; //'.';
+	private static final char INTERNAL_SEPERATOR_CHAR = '.'; //Parameters.PAIR_SEPARATOR; //'.';
 	private static final char[] INTERNAL_SPECIAL_CHARACTERS = new char[] { INTERNAL_SEPERATOR_CHAR };
 
 
@@ -213,4 +214,20 @@ public class ParameterTypeTupel extends CombinedParameterType {
 		}
 		return internalEncoded.toString();
 	}
+	
+	public static String escapeForInternalRepresentation(String string) {
+		return Tools.escape(string, ESCAPE_CHAR, INTERNAL_SPECIAL_CHARACTERS);
+	}
+	
+	public String substituteMacros(String parameterValue, MacroHandler mh) {
+		if (parameterValue.indexOf("%{") == -1) {
+			return parameterValue;
+		}
+		String[] tupel = transformString2Tupel(parameterValue);
+		String[] result = new String[tupel.length];
+		for (int i = 0; i < tupel.length; i++) {
+			result[i] = types[i].substituteMacros(tupel[i], mh);
+		}
+		return transformTupel2String(result);	
+	}		
 }

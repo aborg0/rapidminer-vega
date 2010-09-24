@@ -223,8 +223,8 @@
     </ioobject> 
 
     <ioobject
-        name="Hierarchical Classification Model"
-        class="com.rapidminer.operator.learner.meta.HierarchicalModel2"
+        name="Hierarchical Multi Class Classification Model"
+        class="com.rapidminer.operator.learner.meta.HierarchicalMultiClassModel"
         reportable="true">
         <renderer>com.rapidminer.gui.renderer.models.MetaModelRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>       

@@ -71,6 +71,7 @@ import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeNumber;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.ParameterTypeStringCategory;
+import com.rapidminer.parameter.ParameterTypeTupel;
 import com.rapidminer.parameter.ParameterTypeValue;
 import com.rapidminer.parameter.Parameters;
 import com.rapidminer.parameter.value.ParameterValueGrid;
@@ -874,7 +875,9 @@ public class ConfigureParameterOptimizationDialog extends PropertyDialog {
 	private void removeSelectedParameters() {
 		Object[] selectedParameters = selectedParametersList.getSelectedValues();
 		for (int i = 0; i < selectedParameters.length; i++) {
-			String operatorName = ((String)selectedParameters[i]).substring(0, ((String)selectedParameters[i]).indexOf("."));
+			String selected = (String)selectedParameters[i];
+			String operatorName = ParameterTypeTupel.transformString2Tupel(selected)[0];
+			//String operatorName = ((String)selectedParameters[i]).substring(0, ((String)selectedParameters[i]).indexOf("."));
 			selectedParametersListModel.removeElement(selectedParameters[i]);
 			parameterValuesMap.remove(selectedParameters[i]);
 			int index = operatorList.getSelectedIndex();

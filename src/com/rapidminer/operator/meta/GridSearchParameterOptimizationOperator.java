@@ -104,7 +104,7 @@ public class GridSearchParameterOptimizationOperator extends ParameterOptimizati
 	
 	protected void getParametersToOptimize() throws OperatorException {
 		// check parameter values
-		List<ParameterValues> parameterValuesList = parseParameterValues(getParameterList("parameters"));
+		List<ParameterValues> parameterValuesList = parseParameterValues(getParameterList(PARAMETER_PARAMETERS));
 		numberOfCombinations = 1;
 		numberOfParameters = parameterValuesList.size();
 		for (Iterator<ParameterValues> iterator = parameterValuesList.iterator(); iterator.hasNext(); ) {

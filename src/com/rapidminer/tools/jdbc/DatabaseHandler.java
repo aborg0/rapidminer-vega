@@ -1049,22 +1049,24 @@ public class DatabaseHandler {
 			String[] parameters = ParameterTypeEnumeration.transformString2Enumeration(parameterHandler.getParameterAsString(DatabaseHandler.PARAMETER_PARAMETERS));
 			for (int i = 0; i < parameters.length; i++) {
 				String[] argDescription = ParameterTypeTupel.transformString2Tupel(parameters[i]);
-				if ("VARCHAR".equals(argDescription[0])) {
-					prepared.setString(i+1, argDescription[1]);
-				} else if ("REAL".equals(argDescription[0])) {
+				final String sqlType = argDescription[0];
+				final String replacementValue = argDescription[1];				
+				if ("VARCHAR".equals(sqlType)) {
+					prepared.setString(i+1, replacementValue);
+				} else if ("REAL".equals(sqlType)) {
 					try {
-						prepared.setDouble(i+1, Double.parseDouble(argDescription[1]));
+						prepared.setDouble(i+1, Double.parseDouble(replacementValue));
 					} catch (NumberFormatException e) {
-						throw new UserError(parameterHandler, 158, argDescription[1], argDescription[0]);
+						throw new UserError(parameterHandler, 158, replacementValue, sqlType);
 					}
-				} else if ("INTEGER".equals(argDescription[0])) {
+				} else if ("INTEGER".equals(sqlType)) {
 					try {
-						prepared.setInt(i+1, Integer.parseInt(argDescription[1]));
+						prepared.setInt(i+1, Integer.parseInt(replacementValue));
 					} catch (NumberFormatException e) {
-						throw new UserError(parameterHandler, 158, argDescription[1], argDescription[0]);
+						throw new UserError(parameterHandler, 158, replacementValue, sqlType);
 					}
 				} else {
-					throw new OperatorException("Illegal data type: "+argDescription[0]);
+					throw new OperatorException("Illegal data type: "+sqlType);
 				}
 			}
 			if (isQuery) {

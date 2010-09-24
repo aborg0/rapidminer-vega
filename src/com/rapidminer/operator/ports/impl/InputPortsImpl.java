@@ -22,9 +22,13 @@
  */
 package com.rapidminer.operator.ports.impl;
 
+import java.util.List;
+
 import com.rapidminer.operator.IOObject;
+import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.InputPorts;
+import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.PortOwner;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.SimplePrecondition;
@@ -78,15 +82,30 @@ public class InputPortsImpl extends AbstractPorts<InputPort> implements InputPor
 
 	@Override
 	public void disconnectAll() {
+		disconnectAllBut(null);
+	}
+	
+	@Override
+	public void disconnectAllBut(List<Operator> exceptions) {
 		boolean success;
 		disconnect:
 		do {			
 			success = false;		
 			for (InputPort port : getAllPorts()) {
 				if (port.isConnected()) {
-					port.getSource().disconnect();
-					success = true;
-					continue disconnect;
+					OutputPort source = port.getSource();
+					boolean isException = false;
+					if (exceptions != null) {
+						Operator sourceOp = source.getPorts().getOwner().getOperator();
+						if (exceptions.contains(sourceOp)) {
+							isException = true;
+						}
+					}					
+					if (!isException) {
+						source.disconnect();					
+						success = true;
+						continue disconnect;
+					}
 				}
 			}
 		} while (success);		

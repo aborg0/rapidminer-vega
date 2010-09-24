@@ -153,7 +153,9 @@ public class MetaData implements Serializable {
 			clone.generationHistory = new LinkedList<OutputPort>(this.generationHistory);
 		clone.dataClass = this.getObjectClass();
 		clone.keyValueMap.putAll(this.keyValueMap);
-		clone.annotations.putAll(this.annotations);
+		if (this.annotations != null) {
+			clone.annotations.putAll(this.annotations);
+		}
 		return clone;
 	}
 

@@ -180,7 +180,7 @@ public class DataMacroDefinitionOperator extends Operator {
 			}
 
 			if (exampleIndex >= exampleSet.size()) {
-				throw new UserError(this, 110, exampleIndex);
+				throw new UserError(this, 110, exampleIndex+1);
 			}
 
 			Attribute attribute = exampleSet.getAttributes().get(getParameter(PARAMETER_ATTRIBUTE_NAME));

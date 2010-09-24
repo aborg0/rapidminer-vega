@@ -40,11 +40,7 @@ import com.rapidminer.repository.RepositoryLocation;
  */
 public class TransferableOperator implements Transferable {
 
-	//public static final DataFlavor TRANSFERRED_OPERATOR_FLAVOR = new DataFlavor(Operator[].class, "transferedOperator");
-
-	//public static final DataFlavor LOCAL_TRANSFERRED_OPERATORS_FLAVOR = new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType, "transferedOperatorArray");
 	public static final DataFlavor LOCAL_TRANSFERRED_OPERATORS_FLAVOR = new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType+";class="+Operator.class.getName(), "transferedOperatorArray");
-	//public static final DataFlavor XML_SERIALIZED_TRANSFERRED_OPERATORS_FLAVOR = new DataFlavor("application/xml", "RapidMiner Operator as XML"); 
 	public static final DataFlavor LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR = new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType+";class="+RepositoryLocation.class.getName(), "transferedOperatorArray");
 	
 	private static final DataFlavor[] DATA_FLAVORS = {
@@ -52,8 +48,6 @@ public class TransferableOperator implements Transferable {
 		DataFlavor.stringFlavor
         //TransferableOperator.TRANSFERRED_OPERATOR_FLAVOR         
 	};
-
-	//private final List flavors = Arrays.asList(DATA_FLAVORS);
 
 	private final Operator[] transferedOperators;
 

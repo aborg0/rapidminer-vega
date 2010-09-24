@@ -200,7 +200,7 @@ public class ExecutionUnit extends AbstractObservable<ExecutionUnit> {
 		int oldIndexAmongEnabled = getEnabledOperators().indexOf(operator);
 		operators.remove(operator);
 		unregister(operator);
-		operator.disconnectPorts();
+		//operator.disconnectPorts();
 		//transformMDNeighbourhood();
 		Process process = getEnclosingOperator().getProcess();
 		if (process != null) {
@@ -626,7 +626,7 @@ public class ExecutionUnit extends AbstractObservable<ExecutionUnit> {
 				OutputPort mySource;
 				if (originalPorts.getOwner().getOperator() == originalExecutionUnit.getEnclosingOperator()) {
 					// this is an inner source
-					mySource = this.getInnerSources().getPortByName(originalSource.getName());
+					mySource = getInnerSources().getPortByName(originalSource.getName());
 					if (mySource== null) {
 						throw new RuntimeException("Error during clone: Corresponding source for "+originalSource+" not found (no such inner source).");
 					}

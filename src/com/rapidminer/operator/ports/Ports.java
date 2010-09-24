@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Observer;
 
 import com.rapidminer.operator.IOContainer;
+import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.Observable;
 
 
@@ -112,6 +113,10 @@ public interface Ports<T extends Port> extends Observable<Port> {
 
 	/** Disconnects all ports. */
 	public void disconnectAll();
+	
+	/** Disconnects all ports with exception to those connections to operators
+	 *  in the given list. */
+	public void disconnectAllBut(List<Operator> exception);
 	
 	/** Registers a port extender with this ports. */
 	public void registerPortExtender(PortExtender extender);

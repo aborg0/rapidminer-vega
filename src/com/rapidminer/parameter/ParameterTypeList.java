@@ -29,6 +29,7 @@ import java.util.List;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.rapidminer.MacroHandler;
 import com.rapidminer.tools.Tools;
 
 /**
@@ -222,4 +223,20 @@ public class ParameterTypeList extends CombinedParameterType {
 		}
 		return transformList2String(list);
 	}
+	
+	public String substituteMacros(String parameterValue, MacroHandler mh) {
+		if (parameterValue.indexOf("%{") == -1) {
+			return parameterValue;
+		}
+		List<String[]> list = transformString2List(parameterValue);
+		List<String[]> result = new LinkedList<String[]>();
+		for (String[] entry : list) {
+			result.add(new String[] {
+					getKeyType().substituteMacros(entry[0], mh),
+					getValueType().substituteMacros(entry[1], mh)
+			});
+		}
+		return transformList2String(result);	
+	}		
+
 }

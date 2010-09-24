@@ -65,9 +65,9 @@ public abstract class OperatorMenu extends ResourceMenu {
 	}
 
 	public void addMenu(GroupTree group, JMenu menu, boolean onlyChains) {
-		Iterator i = group.getSubGroups().iterator();
-		while (i.hasNext()) {
-			GroupTree subGroup = (GroupTree) i.next();
+		Iterator<GroupTree> gi = group.getSubGroups().iterator();
+		while (gi.hasNext()) {
+			GroupTree subGroup = gi.next();
 			OperatorGroupMenu subMenu = new OperatorGroupMenu(subGroup.getName());
 			addMenu(subGroup, subMenu, onlyChains);
 			// do not add group named deprecated to menu
@@ -75,7 +75,7 @@ public abstract class OperatorMenu extends ResourceMenu {
 				menu.add(subMenu);
 			}
 		}
-		i = group.getOperatorDescriptions().iterator();
+		Iterator<OperatorDescription> i = group.getOperatorDescriptions().iterator();
 		while (i.hasNext()) {
 			final OperatorDescription description = (OperatorDescription) i.next();
 			if ((!onlyChains) || OperatorChain.class.isAssignableFrom(description.getOperatorClass())) {

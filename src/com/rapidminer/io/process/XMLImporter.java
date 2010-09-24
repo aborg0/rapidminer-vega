@@ -401,7 +401,8 @@ public class XMLImporter {
 		try {
 			out.connectTo(in);
 		} catch (PortException e) {
-			throw new XMLException(e.getMessage(), e);
+			addMessage("<em class=\"error\">Faild to connect ports: "+e.getMessage()+"</var>.</em>");
+			//throw new XMLException(e.getMessage(), e);
 		}
 	}
 
@@ -565,7 +566,8 @@ public class XMLImporter {
 						type = null;
 					}
 					ListDescription listDescription = parseParameterList(inner, (ParameterTypeList)type);
-					boolean knownType = operator.getParameters().setParameter(listDescription.getKey(), ParameterTypeList.transformList2String(listDescription.getList()));
+					final String listString = ParameterTypeList.transformList2String(listDescription.getList());
+					boolean knownType = operator.getParameters().setParameter(listDescription.getKey(), listString);
 					if (!knownType) {
 						addMessage("The parameter '"+listDescription.getKey()+"' is unknown for operator '"+operator.getName() + "' ("+operator.getOperatorDescription().getName()+").");
 						unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), listDescription.getKey(), listDescription.getList().toString()));
@@ -696,6 +698,9 @@ public class XMLImporter {
 
 	private ListDescription parseParameterList(Element list, ParameterTypeList type) throws XMLException {
 		// TODO: type is unused here. Do we have to use type.transformNewValue for children?
+		ParameterType keyType = type.getKeyType();
+		ParameterType valueType = type.getValueType();
+		
 		List<String[]> values = new LinkedList<String[]>();
 		NodeList children = list.getChildNodes();
 		for (int i = 0; i < children.getLength(); i++) {
@@ -703,7 +708,12 @@ public class XMLImporter {
 			if (node instanceof Element) {
 				Element inner = (Element) node;
 				if (inner.getTagName().toLowerCase().equals("parameter")) {
-					values.add(parseParameter(inner));
+					String key   = inner.getAttribute("key");
+					String value = inner.getAttribute("value");
+					final String transformedKey = keyType.transformNewValue(key);
+					final String transformedValue = valueType.transformNewValue(value);
+					values.add(new String[] {transformedKey, transformedValue});
+					//values.add(parseParameter(inner));
 				} else {
 					addMessage("<em class=\"error\">Ilegal inner tag for <code>&lt;list&gt;</code>: <code>&lt;" + inner.getTagName()+"&gt;</code>.</em>");
 					return new ListDescription(list.getAttribute("key"), Collections.<String[]>emptyList());

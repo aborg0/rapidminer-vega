@@ -25,6 +25,7 @@ package com.rapidminer.parameter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.rapidminer.MacroHandler;
 import com.rapidminer.gui.wizards.PreviewCreator;
 import com.rapidminer.gui.wizards.PreviewListener;
 import com.rapidminer.tools.LogService;
@@ -103,5 +104,10 @@ public class ParameterTypePreview extends ParameterType {
 	@Override
 	public Element getXML(String key, String value, boolean hideDefault, Document doc) {
 		return null;
+	}
+
+	@Override
+	public String substituteMacros(String parameterValue, MacroHandler mh) {
+		return parameterValue;
 	}
 }

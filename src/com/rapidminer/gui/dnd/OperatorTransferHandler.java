@@ -23,6 +23,7 @@
 package com.rapidminer.gui.dnd;
 
 import java.awt.datatransfer.Transferable;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -107,7 +108,7 @@ public abstract class OperatorTransferHandler extends TransferHandler {
 			switch (action) {
 			case MOVE:
 				for (Operator operator : top.getOperators()) {
-					operator.remove();
+					operator.removeAndKeepConnections(Arrays.asList(top.getOperators()));
 				}
 				break;
 			default:

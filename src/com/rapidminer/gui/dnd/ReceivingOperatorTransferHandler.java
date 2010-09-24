@@ -29,8 +29,10 @@ import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 import javax.swing.JOptionPane;
@@ -53,6 +55,9 @@ import com.rapidminer.operator.UnknownParameterInformation;
 import com.rapidminer.operator.io.AbstractReader;
 import com.rapidminer.operator.io.RepositorySource;
 import com.rapidminer.operator.meta.ProcessEmbeddingOperator;
+import com.rapidminer.operator.ports.InputPort;
+import com.rapidminer.operator.ports.OutputPort;
+import com.rapidminer.operator.ports.OutputPorts;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.RepositoryLocation;
@@ -266,7 +271,7 @@ public abstract class ReceivingOperatorTransferHandler extends OperatorTransferH
 			} else {
 				if (ts.getDropAction() == MOVE) {
 					for (Operator operator : newOperators) {
-						operator.remove();
+						operator.removeAndKeepConnections(newOperators);
 					}					
 				}
 				newOperators = cloneAll(newOperators);
@@ -315,10 +320,64 @@ public abstract class ReceivingOperatorTransferHandler extends OperatorTransferH
 	}
 	
 	private List<Operator> cloneAll(List<Operator> operators) {
+		
 		List<Operator> result = new LinkedList<Operator>();
 		for (Operator op : operators) {
 			result.add(op.cloneOperator(op.getName(), false));
 		}
+		
+		if (operators.size() > 1) {
+			// restore connections
+			Map<String,Operator> originalOps = new HashMap<String, Operator>();
+			for (Operator op : operators) {
+				originalOps.put(op.getName(), op);
+			}
+			Map<String,Operator> clonedOps = new HashMap<String, Operator>();
+			for (Operator op : result) {
+				clonedOps.put(op.getName(), op);
+			}
+
+			for (Operator op : operators) {
+				cloneConnections(op.getOutputPorts(), originalOps, clonedOps);
+			}
+
+			// Unlock
+			for (Operator op : operators) {
+				op.getInputPorts().unlockPortExtenders();
+				op.getOutputPorts().unlockPortExtenders();
+			}		
+		}
 		return result;
+	}
+	
+	private void cloneConnections(OutputPorts originalPorts, 
+			Map<String,Operator> originalOperatorsByName, 
+			Map<String,Operator> clonedOperatorsByName) {
+		for (OutputPort originalSource : originalPorts.getAllPorts()) {
+			if (originalSource.isConnected()) {
+				OutputPort mySource;
+				Operator mySourceOperator = clonedOperatorsByName.get(originalSource.getPorts().getOwner().getOperator().getName());
+				if (mySourceOperator == null) {
+					continue;
+				}
+				mySource = mySourceOperator.getOutputPorts().getPortByName(originalSource.getName());
+				if (mySource == null) {
+					throw new RuntimeException("Error during clone: Corresponding source for "+originalSource+" not found (no such output port).");
+				}
+				
+
+				InputPort originalDestination = originalSource.getDestination();
+				InputPort myDestination;
+				Operator myDestOperator = clonedOperatorsByName.get(originalDestination.getPorts().getOwner().getOperator().getName());
+				if (myDestOperator == null) {
+					continue;
+				}
+				myDestination = myDestOperator.getInputPorts().getPortByName(originalDestination.getName());
+				if (myDestination == null) {
+					throw new RuntimeException("Error during clone: Corresponding destination for "+originalDestination+" not found (no such input port).");
+				}
+				mySource.connectTo(myDestination);
+			}
+		}
 	}
 }

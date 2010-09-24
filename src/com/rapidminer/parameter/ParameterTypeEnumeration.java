@@ -28,6 +28,7 @@ import java.util.List;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.rapidminer.MacroHandler;
 import com.rapidminer.tools.Tools;
 
 /**
@@ -38,7 +39,7 @@ public class ParameterTypeEnumeration extends CombinedParameterType {
 
 	private static final long serialVersionUID = -3677952200700007724L;
 	private static final char ESCAPE_CHAR = '\\';
-	private static final char SEPERATOR_CHAR = Parameters.RECORD_SEPARATOR; //',';
+	private static final char SEPERATOR_CHAR = ','; // Parameters.RECORD_SEPARATOR; //
 	private static final char[] SPECIAL_CHARACTERS = new char[] { SEPERATOR_CHAR };
 	
 	private Object defaultValue;
@@ -162,4 +163,16 @@ public class ParameterTypeEnumeration extends CombinedParameterType {
 //		return unescapedString.replace(SEPERATOR_CHAR, ESCAPE_CHAR + SEPERATOR_CHAR);
 //
 //	}
+	
+	public String substituteMacros(String parameterValue, MacroHandler mh) {
+		if (parameterValue.indexOf("%{") == -1) {
+			return parameterValue;
+		}
+		String[] list = transformString2Enumeration(parameterValue);
+		String[] result = new String[list.length];
+		for (int i = 0; i < list.length; i++) {
+			result[i] = getValueType().substituteMacros(list[i], mh);
+		}
+		return transformEnumeration2String(Arrays.asList(result));	
+	}	
 }

@@ -29,6 +29,7 @@ import java.util.Map;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.rapidminer.MacroHandler;
 import com.rapidminer.gui.wizards.ConfigurationListener;
 import com.rapidminer.gui.wizards.ConfigurationWizardCreator;
 import com.rapidminer.tools.LogService;
@@ -149,5 +150,10 @@ public class ParameterTypeConfiguration extends ParameterType {
 	@Override
 	public Element getXML(String key, String value, boolean hideDefault, Document doc) {
 		return null;
+	}
+
+	@Override
+	public String substituteMacros(String parameterValue, MacroHandler mh) {
+		return parameterValue;
 	}
 }

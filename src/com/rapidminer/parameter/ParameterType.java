@@ -29,6 +29,7 @@ import java.util.LinkedList;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.rapidminer.MacroHandler;
 import com.rapidminer.parameter.conditions.ParameterCondition;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
@@ -263,4 +264,14 @@ public abstract class ParameterType implements Comparable, Serializable {
 		else
 			return this.key.compareTo(((ParameterType) o).key);
 	}
+	
+	/**
+	 *  This method operates on the internal string representation of parameter values
+	 *  and replaces macro expressions of the form %{macroName}.
+	 *  
+	 *  NOTE: This method will soon be removed or changed again since the internal representation
+	 *  of parameter values will no longer be strings. Then, this method will accept an Object,
+	 *  (possibly using generics) as input.
+	 */
+	public abstract String substituteMacros(String parameterValue, MacroHandler mh);
 }

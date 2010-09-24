@@ -1475,7 +1475,10 @@ public class Tools {
 				boolean found = false;
 				if (c == splitCharacter) {
 					found = true;
-					b.append(c);					
+					b.append(c);
+				} else if (c == escapeChar) {
+					found = true;
+					b.append(c);
 				} else {
 					for (char s : specialCharacters) {
 						if (s==c) {

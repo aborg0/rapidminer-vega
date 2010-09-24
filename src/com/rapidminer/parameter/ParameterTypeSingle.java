@@ -25,6 +25,7 @@ package com.rapidminer.parameter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.rapidminer.MacroHandler;
 import com.rapidminer.tools.Tools;
 
 /**
@@ -91,4 +92,32 @@ public abstract class ParameterTypeSingle extends ParameterType {
 		return value;
 	}
 
+
+	@Override
+	public String substituteMacros(String parameterValue, MacroHandler mh) {
+		int startIndex = parameterValue.indexOf("%{");
+		if (startIndex == -1) {
+			return parameterValue;
+		}
+		try {		
+			StringBuffer result = new StringBuffer();
+			while (startIndex >= 0) {
+				result.append(parameterValue.substring(0, startIndex));
+				int endIndex = parameterValue.indexOf("}", startIndex + 2);
+				String macroString = parameterValue.substring(startIndex + 2, endIndex);
+				String macroValue = mh.getMacro(macroString);
+				if (macroValue != null) {
+					result.append(macroValue);
+				} else {
+					result.append("%{" + macroString + "}");
+				}
+				parameterValue = parameterValue.substring(endIndex + 1);
+				startIndex = parameterValue.indexOf("%{");
+			}
+			result.append(parameterValue);
+			return result.toString();
+		} catch (Exception e) {
+			return parameterValue;
+		}
+	}
 }

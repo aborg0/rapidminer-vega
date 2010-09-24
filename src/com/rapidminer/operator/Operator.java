@@ -439,10 +439,10 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		return parent;
 	}*/
 
-	/** Removes this operator from its parent. */
-	public void remove() {		
-		getInputPorts().disconnectAll();
-		getOutputPorts().disconnectAll();
+	public void removeAndKeepConnections(List<Operator> keepConnectionsTo) {
+		
+		getInputPorts().disconnectAllBut(keepConnectionsTo);
+		getOutputPorts().disconnectAllBut(keepConnectionsTo);
 
 		Process process = getProcess();
 		if (enclosingExecutionUnit != null) {
@@ -451,6 +451,11 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		if (process != null) {
 			unregisterOperator(process);
 		}
+	}
+	
+	/** Removes this operator from its parent. */
+	public void remove() {		
+		removeAndKeepConnections(null);
 	}
 
 	/** This methods was used in older RapidMiner version for registering the operator in
@@ -1139,7 +1144,7 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 	 */
 	public String getParameter(String key) throws UndefinedParameterError {
 		try {
-			return expandString(replaceMacros(getParameters().getParameter(key)));
+			return expandString(replaceMacros(getParameters().getParameter(key), getParameters().getParameterType(key)));
 		} catch (UndefinedParameterError e) {
 			e.setOperator(this);
 			throw e;
@@ -1504,31 +1509,36 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 	 *  These macros might have been defined with help of a {@link MacroDefinitionOperator}.
 	 *   
 	 *  If any exception would be thrown it is catched and just the input string is returned.
+	 * @param parameterType 
 	 */
-	private String replaceMacros(String value) {
+	private String replaceMacros(String value, ParameterType parameterType) {
 		if (value == null)
 			return null;
-		try {
-			String line = value;
-			int startIndex = line.indexOf("%{");
-			StringBuffer result = new StringBuffer();
-			while (startIndex >= 0) {
-				result.append(line.substring(0, startIndex));
-				int endIndex = line.indexOf("}", startIndex + 2);
-				String macroString = line.substring(startIndex + 2, endIndex);
-				String macroValue = getProcess().getMacroHandler().getMacro(macroString);
-				if (macroValue != null) {
-					result.append(macroValue);
-				} else {
-					result.append("%{" + macroString + "}");
+		if ((parameterType == null) || (getProcess() == null)) {
+			try {
+				String line = value;
+				int startIndex = line.indexOf("%{");
+				StringBuffer result = new StringBuffer();
+				while (startIndex >= 0) {
+					result.append(line.substring(0, startIndex));
+					int endIndex = line.indexOf("}", startIndex + 2);
+					String macroString = line.substring(startIndex + 2, endIndex);
+					String macroValue = getProcess().getMacroHandler().getMacro(macroString);
+					if (macroValue != null) {
+						result.append(macroValue);
+					} else {
+						result.append("%{" + macroString + "}");
+					}
+					line = line.substring(endIndex + 1);
+					startIndex = line.indexOf("%{");
 				}
-				line = line.substring(endIndex + 1);
-				startIndex = line.indexOf("%{");
+				result.append(line);
+				return result.toString();
+			} catch (Exception e) {
+				return value;
 			}
-			result.append(line);
-			return result.toString();
-		} catch (Exception e) {
-			return value;
+		} else {
+			return parameterType.substituteMacros(value, getProcess().getMacroHandler());
 		}
 	}
 
