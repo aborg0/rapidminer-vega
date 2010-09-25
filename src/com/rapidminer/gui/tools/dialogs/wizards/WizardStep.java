@@ -31,6 +31,7 @@ import javax.swing.JComponent;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.tools.I18N;
 
 /**
@@ -96,10 +97,38 @@ public abstract class WizardStep {
 	 */
 	protected abstract boolean canGoBack();
 	
+
+	/**
+	 * This method is called when the step is entered.
+	 */
+	protected boolean performEnteringAction(WizardStepDirection direction) {
+		return performEnteringAction();
+	}
+	
+	/**
+	 * This method is called when the step is left.
+	 */
+	protected boolean performLeavingAction(WizardStepDirection direction) {
+		return performLeavingAction();
+	}
+	/**
+	 * This method is called when the step is entered. This method is
+	 * deprecated since it does not give information about the direction
+	 * from where the step came.
+	 * @param direction TODO
+	 */
+	@Deprecated
 	protected boolean performEnteringAction() {
 		return true;
 	}
 	
+	/**
+	 * This method is called when the step is left. This method is
+	 * deprecated since it does not give information about the direction
+	 * in which the step goes.
+	 * @param direction TODO
+	 */
+	@Deprecated
 	protected boolean performLeavingAction() {
 		return true;
 	}

@@ -65,14 +65,14 @@ public class BlobImportWizard extends AbstractWizard {
 		
 		addStep(new FileSelectionWizardStep(this) {
 			@Override
-			protected boolean performLeavingAction() {
+			protected boolean performLeavingAction(WizardStepDirection direction) {
 				file = getSelectedFile();
 				return true;
 			}
 		});
 		addStep(new RepositoryLocationSelectionWizardStep("select_repository_location", this, null, null) {
 			@Override
-			protected boolean performLeavingAction() {
+			protected boolean performLeavingAction(WizardStepDirection direction) {
 				try {
 					RepositoryLocation repositoryLocation = new RepositoryLocation(getRepositoryLocation());
 					RepositoryLocation folderLocation = repositoryLocation.parent();

@@ -44,12 +44,12 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
+import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeDateFormat;
 
 /**
- * Value cell editor for date formats. The user can select among a predefined
- * set of values and copy nominal values retrieved from an example set at an
- * input port to the combo box as an editing help.
+ * Value cell editor for date formats. The user can select among a predefined set of values and copy nominal values
+ * retrieved from an example set at an input port to the combo box as an editing help.
  * 
  * @author Simon Fischer
  */
@@ -59,7 +59,7 @@ public class DateFormatValueCellEditor extends AbstractCellEditor implements Pro
 	private JPanel panel;
 	private FilterableJComboBox formatCombo;
 	private AbstractButton selectButton;
-	
+
 	public DateFormatValueCellEditor(final ParameterTypeDateFormat type) {
 		panel = new JPanel(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -69,45 +69,54 @@ public class DateFormatValueCellEditor extends AbstractCellEditor implements Pro
 		c.gridwidth = GridBagConstraints.RELATIVE;
 		formatCombo = new FilterableJComboBox(type.getValues());
 		panel.add(formatCombo, c);
-		selectButton = new JButton(new ResourceAction(true, "dateformat.select_sample") {			
+		selectButton = new JButton(new ResourceAction(true, "dateformat.select_sample") {
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JPopupMenu menu = new JPopupMenu();
-				MetaData md = type.getInputPort().getMetaData();
-				if (md instanceof ExampleSetMetaData) {
-					ExampleSetMetaData emd = (ExampleSetMetaData) md;
-					String selectedAttributeName = type.getInputPort().getPorts().getOwner().getOperator().getParameters().getParameterOrNull(type.getAttributeParameterType().getKey());
-					AttributeMetaData selectedAttribute = emd.getAttributeByName(selectedAttributeName);
-					if (selectedAttribute != null && (selectedAttribute.isNominal()) && (selectedAttribute.getValueSet() != null)) {
-						for (final String value : selectedAttribute.getValueSet()) {
-							menu.add(new JMenuItem(new AbstractAction(value) {
-								private static final long serialVersionUID = 1L;
-								@Override
-								public void actionPerformed(ActionEvent e) {
-									formatCombo.setSelectedItem(value);
-								}									
-							}));
-						}
-						menu.show(selectButton, 0, selectButton.getHeight());
-					} else if (emd.getAllAttributes() != null) {						
-						for (final AttributeMetaData amd : emd.getAllAttributes()) {						
-							if (amd.isNominal() && (amd.getValueSet() != null)) {
-								JMenu subMenu = new JMenu(amd.getName());							
-								menu.add(subMenu);
-								for (final String value : amd.getValueSet()) {
-									subMenu.add(new JMenuItem(new AbstractAction(value) {
+				if (type.getInputPort() != null) {
+					MetaData md = type.getInputPort().getMetaData();
+					if (md instanceof ExampleSetMetaData) {
+						ExampleSetMetaData emd = (ExampleSetMetaData) md;
+						final ParameterTypeAttribute attributeParameterType = type.getAttributeParameterType();
+						if (attributeParameterType != null) {
+							String selectedAttributeName = type.getInputPort().getPorts().getOwner().getOperator().getParameters().getParameterOrNull(attributeParameterType.getKey());
+							AttributeMetaData selectedAttribute = emd.getAttributeByName(selectedAttributeName);
+							if (selectedAttribute != null && (selectedAttribute.isNominal()) && (selectedAttribute.getValueSet() != null)) {
+								for (final String value : selectedAttribute.getValueSet()) {
+									menu.add(new JMenuItem(new AbstractAction(value) {
 										private static final long serialVersionUID = 1L;
+
 										@Override
 										public void actionPerformed(ActionEvent e) {
 											formatCombo.setSelectedItem(value);
-											type.getInputPort().getPorts().getOwner().getOperator().getParameters().setParameter(type.getAttributeParameterType().getKey(), amd.getName());											
-										}									
+										}
 									}));
 								}
-							}						
+								menu.show(selectButton, 0, selectButton.getHeight());
+							} else if (emd.getAllAttributes() != null) {
+								for (final AttributeMetaData amd : emd.getAllAttributes()) {
+									if (amd.isNominal() && (amd.getValueSet() != null)) {
+										JMenu subMenu = new JMenu(amd.getName());
+										menu.add(subMenu);
+										for (final String value : amd.getValueSet()) {
+											subMenu.add(new JMenuItem(new AbstractAction(value) {
+												private static final long serialVersionUID = 1L;
+
+												@Override
+												public void actionPerformed(ActionEvent e) {
+													formatCombo.setSelectedItem(value);
+													if (attributeParameterType != null)
+														type.getInputPort().getPorts().getOwner().getOperator().getParameters().setParameter(attributeParameterType.getKey(), amd.getName());
+												}
+											}));
+										}
+									}
+								}
+								menu.show(selectButton, 0, selectButton.getHeight());
+							}
 						}
-						menu.show(selectButton, 0, selectButton.getHeight());
 					}
 				}
 			}
@@ -116,12 +125,12 @@ public class DateFormatValueCellEditor extends AbstractCellEditor implements Pro
 		c.weightx = 0;
 		selectButton.setText(null);
 		panel.add(selectButton, c);
-		
+
 		formatCombo.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				fireEditingStopped();
-			}			
+			}
 		});
 	}
 
@@ -146,10 +155,9 @@ public class DateFormatValueCellEditor extends AbstractCellEditor implements Pro
 	}
 
 	@Override
-	public Component getTableCellEditorComponent(JTable table, Object value,
-			boolean isSelected, int row, int column) {
+	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
 		formatCombo.setSelectedItem(value);
-		return panel;		
+		return panel;
 	}
 
 	@Override

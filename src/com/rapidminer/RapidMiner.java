@@ -194,6 +194,9 @@ public class RapidMiner {
 	/** The name of the property indicating the maximum number of nominal values to store for meta data transformation. */
 	public static final String PROPERTY_RAPIDMINER_GENERAL_MAX_NOMINAL_VALUES = "rapidminer.general.md_nominal_values_limit";
 	
+	/** The name of the property defining how many lines are read for guessing values types for input operations without defined value type. */
+	public static final String PROPERTY_RAPIDMINER_GENERAL_MAX_TEST_ROWS = "rapidminer.general.max_rows_used_for_guessing";
+		
 	/** The property name for &quot;Path to external Java editor. %f is replaced by filename and %l by the linenumber.&quot; */
 	public static final String PROPERTY_RAPIDMINER_TOOLS_EDITOR = "rapidminer.tools.editor";
 
@@ -255,6 +258,7 @@ public class RapidMiner {
 		registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_NUMBERS, "The number of fraction digits of formatted numbers.", 0, Integer.MAX_VALUE, 3));
 		registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_PERCENT, "The number of fraction digits of formatted percent values.", 0, Integer.MAX_VALUE, 2));
 		registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GENERAL_MAX_NOMINAL_VALUES, "The number of nominal values to use for meta data transformation, 0 for unlimited. (Changing this value requires a cache refresh of the meta data for the current process, e.g. by changing the 'location' parameter of a 'Retrieve' operator.)", 0, Integer.MAX_VALUE, 100));
+		registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GENERAL_MAX_TEST_ROWS, "The number of lines read during input operations to guess the value type of certain columns if not specified. If set to 0, all rows will be used", 0, Integer.MAX_VALUE, 100));
 		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_TOOLS_EDITOR, "Path to external Java editor. %f is replaced by filename and %l by the linenumber.", true));
 		registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_RAPIDMINER_TOOLS_MAIL_METHOD, "Method to send outgoing mails. Either SMTP or sendmail.", PROPERTY_RAPIDMINER_TOOLS_MAIL_METHOD_VALUES, 0));
 		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_TOOLS_MAIL_DEFAULT_RECIPIENT, "Default recipient for outgoing mails.", true));

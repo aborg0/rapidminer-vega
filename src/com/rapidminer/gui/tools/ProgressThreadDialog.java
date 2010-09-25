@@ -51,9 +51,9 @@ class ProgressThreadDialog extends ButtonDialog {
 	private JLabel mainLabel = new JLabel("-");
 	private JProgressBar mainProgressBar = new JProgressBar();
 	private JList taskList = new JList(ProgressThread.QUEUE_MODEL);
-
+	private JButton stopButton;
+	
 	private static ProgressThreadDialog INSTANCE = new ProgressThreadDialog();
-
 
 	public static ProgressThreadDialog getInstance() {
 		return INSTANCE;
@@ -99,11 +99,12 @@ class ProgressThreadDialog extends ButtonDialog {
 		c.weighty = 1;
 		main.add(new JScrollPane(taskList), c);
 
-		final JButton stopButton = new JButton(new ResourceAction("stop") {
+		stopButton = new JButton(new ResourceAction("stop") {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				((ProgressThread)taskList.getSelectedValue()).cancel();
+				enableStopButton();
 			}			
 		});
 		
@@ -111,12 +112,17 @@ class ProgressThreadDialog extends ButtonDialog {
 		taskList.addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
-				stopButton.setEnabled(!taskList.isSelectionEmpty());		
+				enableStopButton();		
 			}
 		});
-		stopButton.setEnabled(!taskList.isSelectionEmpty());
+		enableStopButton();
 		
 		layoutDefault(main, stopButton, makeCloseButton());
+	}
+
+	private void enableStopButton() {
+		stopButton.setEnabled(!taskList.isSelectionEmpty() &&
+				!((ProgressThread)taskList.getSelectedValue()).isCancelled());
 	}
 
 	public void refreshDialog() {

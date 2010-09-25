@@ -30,6 +30,7 @@ import javax.swing.JComponent;
 import com.rapidminer.gui.tools.SimpleFileFilter;
 import com.rapidminer.gui.tools.dialogs.SQLQueryBuilder;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
+import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DataImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.FileSelectionWizardStep;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.RepositoryLocationSelectionWizardStep;
@@ -69,7 +70,7 @@ public class AccessImportWizard extends DataImportWizard {
 		if (preselectedFile == null) {
 			addStep(new FileSelectionWizardStep(this, new SimpleFileFilter("Access File (.mdb)", ".mdb")) {
 				@Override
-				protected boolean performLeavingAction() {
+				protected boolean performLeavingAction(WizardStepDirection direction) {
 					connectionEntry.setFile(getSelectedFile());
 					return true;
 				}
@@ -97,13 +98,13 @@ public class AccessImportWizard extends DataImportWizard {
 			}
 			
 			@Override
-			protected boolean performEnteringAction() {
+			protected boolean performEnteringAction(WizardStepDirection direction) {
 				dialog.setConnectionEntry(connectionEntry);
 				return true;
 			}
 			
 			@Override
-			protected boolean performLeavingAction() {
+			protected boolean performLeavingAction(WizardStepDirection direction) {
 				reader.setParameter(DatabaseHandler.PARAMETER_DEFINE_CONNECTION, DatabaseHandler.CONNECTION_MODES[DatabaseHandler.CONNECTION_MODE_URL]);
 				reader.setParameter(DatabaseHandler.PARAMETER_DATABASE_SYSTEM, connectionEntry.getProperties().getName());
 				reader.setParameter(DatabaseHandler.PARAMETER_DATABASE_URL, connectionEntry.getURL());
@@ -130,7 +131,7 @@ public class AccessImportWizard extends DataImportWizard {
 //		});
 		addStep(new RepositoryLocationSelectionWizardStep("select_repository_location", this, null, preselectedLocation != null ? preselectedLocation.getAbsoluteLocation() : null) {
 			@Override
-			protected boolean performLeavingAction() {
+			protected boolean performLeavingAction(WizardStepDirection direction) {
 				return transferData(reader, getRepositoryLocation());
 			}
 		});

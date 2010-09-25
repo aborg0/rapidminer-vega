@@ -32,11 +32,27 @@ import java.util.Map;
 import com.rapidminer.gui.tools.dialogs.MultiPageDialog;
 
 /**
+ * An abstract class for creating wizards. This is a Dialog presenting
+ * multiple pages each one denoting a step in the wizard. The
+ * {@link WizardStep} objects are informed about leaving or entering actions,
+ * as well as asked for allowance to proceed.
  * 
- * @author Tobias Malbrecht
+ * @author Tobias Malbrecht, Sebastian Land
  */
 public class AbstractWizard extends MultiPageDialog {
 
+	/**
+	 * This enumeration is used to indicated the single steps
+	 * in or from which direction the are left or entered.
+	 * This is useful for cleaning up resources blocked by these steps as files.
+	 */
+	public static enum WizardStepDirection {
+		BEGINNING,
+		FORWARD,
+		BACKWARD,
+		FINISH
+	}
+	
 	private static final long serialVersionUID = 7091671433172940496L;
 	
 	private ArrayList<WizardStep> wizardSteps = new ArrayList<WizardStep>();
@@ -107,25 +123,30 @@ public class AbstractWizard extends MultiPageDialog {
 	
 	@Override
 	protected void previous() {
+		if (!getCurrentWizardStep().performLeavingAction(WizardStepDirection.BACKWARD)) {
+			return;
+		}
+		
 		super.previous();
 		updateTitle();
 		updateInfoHeader();
+		getCurrentWizardStep().performEnteringAction(WizardStepDirection.BACKWARD);
 	}
 	
 	@Override
 	protected void next() {
-		if (!getCurrentWizardStep().performLeavingAction()) {
+		if (!getCurrentWizardStep().performLeavingAction(WizardStepDirection.FORWARD)) {
 			return;
 		}
 		super.next();
 		updateTitle();
 		updateInfoHeader();
-		getCurrentWizardStep().performEnteringAction();
+		getCurrentWizardStep().performEnteringAction(WizardStepDirection.FORWARD);
 	}
 	
 	@Override
 	protected void finish() {
-		if (!getCurrentWizardStep().performLeavingAction()) {
+		if (!getCurrentWizardStep().performLeavingAction(WizardStepDirection.FINISH)) {
 			return;
 		}
 		super.finish();
@@ -149,7 +170,7 @@ public class AbstractWizard extends MultiPageDialog {
 	
 	@Override
 	public void setVisible(boolean visible) {
-		getCurrentWizardStep().performEnteringAction();
+		getCurrentWizardStep().performEnteringAction(WizardStepDirection.BEGINNING);
 		super.setVisible(visible);
 	}
 }

@@ -31,6 +31,7 @@ import javax.swing.SwingUtilities;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.SimpleFileFilter;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DataImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.FileSelectionWizardStep;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.RepositoryLocationSelectionWizardStep;
@@ -86,7 +87,7 @@ public class CSVImportWizard extends DataImportWizard {
 		addStep(new FileSelectionWizardStep(this, new SimpleFileFilter("CSV File (.csv)", ".csv")) {
 
 			@Override
-			protected boolean performEnteringAction() {
+			protected boolean performEnteringAction(WizardStepDirection direction) {
 				if (file != null && file.exists()) {
 					this.fileChooser.setSelectedFile(file);
 				}
@@ -94,7 +95,7 @@ public class CSVImportWizard extends DataImportWizard {
 			}
 
 			@Override
-			protected boolean performLeavingAction() {
+			protected boolean performLeavingAction(WizardStepDirection direction) {
 				file = getSelectedFile();
 				File oldFile = null;
 				try {
@@ -111,7 +112,7 @@ public class CSVImportWizard extends DataImportWizard {
 		});
 		addStep(new ParseFileWizardStep("specify_csv_parsing_options", reader) {
 			@Override
-			protected boolean performEnteringAction() {
+			protected boolean performEnteringAction(WizardStepDirection direction) {
 				reader.stopReading();
 				if (reader.attributeNamesDefinedByUser()) {
 					reader.loadMetaDataFromParameters();
@@ -146,7 +147,7 @@ public class CSVImportWizard extends DataImportWizard {
 			}
 
 			@Override
-			protected boolean performLeavingAction() {
+			protected boolean performLeavingAction(WizardStepDirection direction) {
 				reader.stopReading();
 				return true;
 			}
@@ -210,16 +211,16 @@ public class CSVImportWizard extends DataImportWizard {
 			}
 
 			@Override
-			protected boolean performEnteringAction() {
+			protected boolean performEnteringAction(WizardStepDirection direction) {
 				if (reader.attributeNamesDefinedByUser()) {
 					reader.loadMetaDataFromParameters();
 				}
-				super.performEnteringAction();
+				super.performEnteringAction(direction);
 				return true;
 			}
 
 			@Override
-			protected boolean performLeavingAction() {
+			protected boolean performLeavingAction(WizardStepDirection direction) {
 				// MetaData is saved to the ParameterType
 				reader.stopReading();
 				reader.writeMetaDataInParameter();
@@ -231,7 +232,7 @@ public class CSVImportWizard extends DataImportWizard {
 			addStep(new RepositoryLocationSelectionWizardStep("select_repository_location", this, null,
 					preselectedLocation != null ? preselectedLocation.getAbsoluteLocation() : null) {
 				@Override
-				protected boolean performLeavingAction() {
+				protected boolean performLeavingAction(WizardStepDirection direction) {
 					return transferData(reader, getRepositoryLocation());
 				}
 			});

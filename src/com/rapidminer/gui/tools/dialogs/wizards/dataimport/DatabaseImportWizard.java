@@ -84,7 +84,7 @@ public class DatabaseImportWizard extends DataImportWizard {
 			}
 			
 			@Override
-			protected boolean performLeavingAction() {
+			protected boolean performLeavingAction(WizardStepDirection direction) {
 				FieldConnectionEntry entry = dialog.getConnectionEntry(false);
 				if (entry == null) {
 					return false;
@@ -128,13 +128,13 @@ public class DatabaseImportWizard extends DataImportWizard {
 			}
 			
 			@Override
-			protected boolean performEnteringAction() {
+			protected boolean performEnteringAction(WizardStepDirection direction) {
 				sqlQueryBuilder.setConnectionEntry(connectionEntry);
 				return true;
 			}
 			
 			@Override
-			protected boolean performLeavingAction() {
+			protected boolean performLeavingAction(WizardStepDirection direction) {
 				reader.setParameter(DatabaseHandler.PARAMETER_DEFINE_QUERY, DatabaseHandler.QUERY_MODES[DatabaseHandler.QUERY_QUERY]);
 				reader.setParameter(DatabaseHandler.PARAMETER_QUERY, sqlQueryBuilder.getQuery());
 				reader.getGeneratedMetaData();
@@ -155,7 +155,7 @@ public class DatabaseImportWizard extends DataImportWizard {
 //		});
 		addStep(new RepositoryLocationSelectionWizardStep("select_repository_location", this, null, null) {
 			@Override
-			protected boolean performLeavingAction() {
+			protected boolean performLeavingAction(WizardStepDirection direction) {
 				return transferData(reader, getRepositoryLocation());
 			}
 		});

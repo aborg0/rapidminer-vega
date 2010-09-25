@@ -27,6 +27,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -141,7 +142,7 @@ public class AssociationRuleFilter extends JPanel {
 			}
 		});
 
-		JLabel label = new JLabel("Conjunction Type:");
+		JLabel label = new JLabel("Show rules matching");
 		layout.setConstraints(label, c);
 		add(label);
 		
@@ -163,9 +164,9 @@ public class AssociationRuleFilter extends JPanel {
 			}	
 		});
 
-		label = new JLabel("Conclusions:");
-		layout.setConstraints(label, c);
-		add(label);
+//		label = new JLabel("Conclusions:");
+//		layout.setConstraints(label, c);
+//		add(label);
 		
 		ExtendedJScrollPane listPane = new ExtendedJScrollPane(conclusionList);
 		listPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -280,36 +281,31 @@ public class AssociationRuleFilter extends JPanel {
 	private boolean checkForItem(Item[] filter, AssociationRule rule, int conjunctionMode) {
 		if (filter == null)
 			return true;
-		if (conjunctionMode == AssociationRuleFilterListener.CONJUNCTION_OR) {
-			boolean found = false;
-			for (Item filterItem : filter) {
-				Iterator<Item> c = rule.getConclusionItems();
+		switch (conjunctionMode) {
+		case AssociationRuleFilterListener.CONJUNCTION_ANY:
+			List<Item> filterList = Arrays.asList(filter);
+			Iterator<Item> c = rule.getConclusionItems();
+			while (c.hasNext()) {
+				if (filterList.contains(c.next())) {
+					return true;
+				}	
+			}
+			return false;
+		case AssociationRuleFilterListener.CONJUNCTION_ALL:
+			for (Item item : filter) {
+				c = rule.getConclusionItems();
+				boolean found = false;
 				while (c.hasNext()) {
-					Item conclusionItem = c.next();
-					if (filterItem.equals(conclusionItem)) {
+					if (c.next().equals(item)) {
 						found = true;
 						break;
 					}
-				}	
-				if (found)
-					break;
+				}
+				if (!found) return false;
 			}
-			return found;
-		} else {
-			boolean found = true;
-			for (Item filterItem : filter) {
-				Iterator<Item> c = rule.getConclusionItems();
-				while (c.hasNext()) {
-					Item conclusionItem = c.next();
-					if (!filterItem.equals(conclusionItem)) {
-						found = false;
-						break;
-					}
-				}	
-				if (!found)
-					break;
-			}
-			return found;
+			return true;
+		default:
+			throw new RuntimeException("Illegal filter type index: "+conjunctionMode);
 		}
 	}
 }

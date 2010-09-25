@@ -30,13 +30,13 @@ package com.rapidminer.gui.viewer;
 public interface AssociationRuleFilterListener {
 
 	public static final String[] CONJUNCTION_NAMES = new String[] {
-		"And", 
-		"Or"
+		"all of these conclusions:", 
+		"any of these conclusions:"
 	};
 	
-	public static final int CONJUNCTION_AND = 0;
+	public static final int CONJUNCTION_ALL = 0;
 	
-	public static final int CONJUNCTION_OR  = 1;
+	public static final int CONJUNCTION_ANY  = 1;
 	
 	public void setFilter(boolean[] filter);
 	

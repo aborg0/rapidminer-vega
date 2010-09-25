@@ -532,6 +532,9 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener, 
             return super.getToolTipText();
 	}
 
+	/**
+	 * {@link Tableable} Method
+	 */
 	public String getCell(int row, int column) {
 		String text = null;
 		if (getTableHeader() != null) {
@@ -557,10 +560,16 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener, 
 		return text;
 	}
 
+	/**
+	 * {@link Tableable} Method
+	 */
 	public int getColumnNumber() {
 		return getColumnCount();
 	}
 
+	/**
+	 * {@link Tableable} Method
+	 */
 	public int getRowNumber() {
 		if (getTableHeader() != null) {
 			return getRowCount() + 1;
@@ -569,11 +578,24 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener, 
 		}
 	}
 	
+	/**
+	 * {@link Tableable} Method
+	 */
 	public void prepareReporting() {}
+
+	/**
+	 * {@link Tableable} Method
+	 */
 	public void finishReporting() {}
 	
+	/**
+	 * {@link Tableable} Method
+	 */
 	public boolean isFirstLineHeader() { return false; }
-	
+
+	/**
+	 * {@link Tableable} Method
+	 */
 	public boolean isFirstColumnHeader() { return false; }
 	
 	public int getModelIndex(int rowIndex) {
@@ -667,8 +689,8 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener, 
 		return subMenu;
 	}
 
+
 	/* Methods for Extended Tool Tip */
-	
 	@Override
 	public Component getCustomComponent(Object id) {
 		return null;

@@ -36,6 +36,7 @@ import javax.swing.JPanel;
 import com.rapidminer.gui.tools.SimpleFileFilter;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
+import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DataImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.FileSelectionWizardStep;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.MetaDataDeclerationWizardStep;
@@ -67,7 +68,7 @@ public class ExcelImportWizard extends DataImportWizard {
 	private final WizardStep STEP_FILE_SELECTION = new FileSelectionWizardStep(this, new SimpleFileFilter("Excel File (.xls)", ".xls")) {
 
 		@Override
-		protected boolean performEnteringAction() {
+		protected boolean performEnteringAction(WizardStepDirection direction) {
 			if (file != null && file.exists()) {
 				this.fileChooser.setSelectedFile(file);
 			}
@@ -75,7 +76,7 @@ public class ExcelImportWizard extends DataImportWizard {
 		}
 
 		@Override
-		protected boolean performLeavingAction() {
+		protected boolean performLeavingAction(WizardStepDirection direction) {
 			// deleting annotations if a second step has been performed earlier
 			ExcelImportWizard.this.reader.setParameter(ExcelExampleSource.PARAMETER_ANNOTATIONS, null);
 			
@@ -91,7 +92,7 @@ public class ExcelImportWizard extends DataImportWizard {
 				reader.clearAllReaderSettings();
 			}
 			reader.setParameter(ExcelExampleSource.PARAMETER_EXCEL_FILE, file.getAbsolutePath());
-			reader.resetWorkbook();
+//			reader.resetWorkbook();
 			return true;
 		}
 	};
@@ -121,7 +122,7 @@ public class ExcelImportWizard extends DataImportWizard {
 		}
 
 		@Override
-		protected boolean performEnteringAction() {
+		protected boolean performEnteringAction(WizardStepDirection direction) {
 			reader.stopReading();
 			reader.setParameter(ExcelExampleSource.PARAMETER_FIRST_ROW_AS_NAMES, Boolean.FALSE.toString());
 			reader.skipNameAnnotationRow(false);
@@ -134,7 +135,7 @@ public class ExcelImportWizard extends DataImportWizard {
 		}
 
 		@Override
-		protected boolean performLeavingAction() {
+		protected boolean performLeavingAction(WizardStepDirection direction) {
 			if (reader.attributeNamesDefinedByUser()) {
 				reader.loadMetaDataFromParameters();
 			}
@@ -174,7 +175,7 @@ public class ExcelImportWizard extends DataImportWizard {
 	public void cancel() {
 		reader.getParameters().setAll(parametersBackup);
 		reader.stopReading();
-		(reader).resetWorkbook();
+		//TODO reader.resetWorkbook();
 		super.cancel();
 	}
 
@@ -201,7 +202,7 @@ public class ExcelImportWizard extends DataImportWizard {
 
 		addStep(STEP_FILE_SELECTION);
 
-		reader.keepWorkbookOpen();
+//		reader.keepWorkbookOpen();
 
 		addStep(new ExcelWorkSheetSelection(reader));
 
@@ -236,12 +237,12 @@ public class ExcelImportWizard extends DataImportWizard {
 			}
 
 			@Override
-			protected boolean performLeavingAction() {
+			protected boolean performLeavingAction(WizardStepDirection direction) {
 				reader.stopReading();
 				reader.writeMetaDataInParameter();
-				if (ExcelImportWizard.this.isComplete()) {
-					((ExcelExampleSource) reader).resetWorkbook();
-				}
+//TODO				if (ExcelImportWizard.this.isComplete()) {
+//					((ExcelExampleSource) reader).resetWorkbook();
+//				}
 				return true;
 			}
 
@@ -250,10 +251,10 @@ public class ExcelImportWizard extends DataImportWizard {
 		if (showStoreInRepositoryStep) {
 			addStep(new RepositoryLocationSelectionWizardStep("select_repository_location", this, null, preselectedLocation != null ? preselectedLocation.getAbsoluteLocation() : null) {
 				@Override
-				protected boolean performLeavingAction() {
+				protected boolean performLeavingAction(WizardStepDirection direction) {
 					synchronized (reader) {
 						boolean flag = transferData(reader, getRepositoryLocation());
-						(reader).resetWorkbook();
+						//TODO (reader).resetWorkbook();
 						return flag;
 					}
 				}

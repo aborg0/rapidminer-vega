@@ -39,49 +39,50 @@ import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.Tools;
+
 /**
  * @author Simon Fischer
  */
 public class SimpleFolder extends SimpleEntry implements Folder {
-	
+
 	private static final Comparator<Entry> NAME_COMPARATOR = new Comparator<Entry>() {
 		@Override
 		public int compare(Entry o1, Entry o2) {
 			return o1.getName().compareTo(o2.getName());
 		}
-		
+
 	};
-	
+
 	private List<DataEntry> data;
 	private List<Folder> folders;
-	
+
 	SimpleFolder(String name, SimpleFolder parent, LocalRepository repository) throws RepositoryException {
 		super(name, parent, repository);
 	}
-	
+
 	protected void mkdir() throws RepositoryException {
 		File file = getFile();
 		if (!file.exists()) {
 			if (!file.mkdir()) {
-				throw new RepositoryException("Cannot create repository folder at '"+file+"'.");
+				throw new RepositoryException("Cannot create repository folder at '" + file + "'.");
 			}
 		}
 	}
-	
+
 	@Override
 	public boolean rename(String newName) {
-		renameFile(getFile(), newName);		
+		renameFile(getFile(), newName);
 		return super.rename(newName);
 	}
-	
+
 	@Override
-	public boolean move(Folder newParent) {		
-		moveFile(getFile(), ((SimpleFolder)newParent).getFile());
+	public boolean move(Folder newParent) {
+		moveFile(getFile(), ((SimpleFolder) newParent).getFile());
 		return super.move(newParent);
 	}
-		
+
 	protected File getFile() {
-		return new File(((SimpleFolder)getContainingFolder()).getFile(), getName());
+		return new File(((SimpleFolder) getContainingFolder()).getFile(), getName());
 	}
 
 	@Override
@@ -103,29 +104,31 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 		data = new ArrayList<DataEntry>();
 		folders = new ArrayList<Folder>();
 		File fileFolder = getFile();
-		File[] listFiles = fileFolder.listFiles();
-		for (File file : listFiles) {
-			if (file.isHidden()) {
-				continue;
+		if (fileFolder != null && fileFolder.exists()) {
+			File[] listFiles = fileFolder.listFiles();
+			for (File file : listFiles) {
+				if (file.isHidden()) {
+					continue;
+				}
+				if (file.isDirectory()) {
+					folders.add(new SimpleFolder(file.getName(), this, getRepository()));
+				} else if (file.getName().endsWith(".ioo")) {
+					data.add(new SimpleIOObjectEntry(file.getName().substring(0, file.getName().length() - 4), this, getRepository()));
+				} else if (file.getName().endsWith(".rmp")) {
+					data.add(new SimpleProcessEntry(file.getName().substring(0, file.getName().length() - 4), this, getRepository()));
+				} else if (file.getName().endsWith(".blob")) {
+					data.add(new SimpleBlobEntry(file.getName().substring(0, file.getName().length() - 5), this, getRepository()));
+				}
 			}
-			if (file.isDirectory()) {
-				folders.add(new SimpleFolder(file.getName(), this, getRepository()));
-			} else if (file.getName().endsWith(".ioo")) {
-				data.add(new SimpleIOObjectEntry(file.getName().substring(0, file.getName().length()-4), this, getRepository()));
-			} else if (file.getName().endsWith(".rmp")) {
-				data.add(new SimpleProcessEntry(file.getName().substring(0, file.getName().length()-4), this, getRepository()));
-			} else if (file.getName().endsWith(".blob")) {
-				data.add(new SimpleBlobEntry(file.getName().substring(0, file.getName().length()-5), this, getRepository()));
-			}
+			Collections.sort(data, NAME_COMPARATOR);
+			Collections.sort(folders, NAME_COMPARATOR);
 		}
-		Collections.sort(data, NAME_COMPARATOR);
-		Collections.sort(folders, NAME_COMPARATOR);
 	}
 
 	@Override
 	public IOObjectEntry createIOObjectEntry(String name, IOObject ioobject, Operator callingOperator, ProgressListener l) throws RepositoryException {
 		ensureLoaded();
-		IOObjectEntry entry = new SimpleIOObjectEntry(name, this, getRepository());		
+		IOObjectEntry entry = new SimpleIOObjectEntry(name, this, getRepository());
 		data.add(entry);
 		if (ioobject != null) {
 			entry.storeData(ioobject, null, l);
@@ -137,7 +140,7 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 	@Override
 	public Folder createFolder(String name) throws RepositoryException {
 		ensureLoaded();
-		
+
 		for (Folder folder : folders) {
 			if (folder.getName().equals(name)) {
 				return folder;
@@ -145,11 +148,11 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 		}
 		for (DataEntry entry : data) {
 			if (entry.getName().equals(name)) {
-				throw new RepositoryException("Entry '"+name+"' exists but is not a folder.");
+				throw new RepositoryException("Entry '" + name + "' exists but is not a folder.");
 			}
 		}
 
-		SimpleFolder folder = new SimpleFolder(name, this, getRepository());		
+		SimpleFolder folder = new SimpleFolder(name, this, getRepository());
 		folders.add(folder);
 		folder.mkdir();
 		getRepository().fireEntryAdded(folder, this);
@@ -172,12 +175,12 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 	}
 
 	@Override
-	public void refresh() {		
+	public void refresh() {
 		data = null;
 		folders = null;
 		getRepository().fireRefreshed(this);
 	}
-	
+
 	@Override
 	public boolean containsEntry(String name) throws RepositoryException {
 		ensureLoaded();
@@ -193,7 +196,7 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 		}
 		return false;
 	}
-	
+
 	@Override
 	public void delete() throws RepositoryException {
 		if (!Tools.delete(getFile())) {
@@ -202,7 +205,7 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 			super.delete();
 		}
 	}
-	
+
 	void removeChild(SimpleEntry child) {
 		int index;
 		if (child instanceof SimpleFolder) {
@@ -214,21 +217,21 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 		}
 		getRepository().fireEntryRemoved(child, this, index);
 	}
-	
+
 	void addChild(SimpleEntry child) {
 		if (child instanceof SimpleFolder) {
 			folders.add((Folder) child);
 		} else {
-			data.add((DataEntry) child);			
-		}		
+			data.add((DataEntry) child);
+		}
 		getRepository().fireEntryAdded(child, this);
-	}	
+	}
 
 	@Override
 	public ProcessEntry createProcessEntry(String name, String processXML) throws RepositoryException {
 		SimpleProcessEntry entry = new SimpleProcessEntry(name, this, getRepository());
 		if (data != null) {
-			data.add(entry);		
+			data.add(entry);
 		}
 		getRepository().fireEntryAdded(entry, this);
 		entry.storeXML(processXML);
@@ -239,7 +242,7 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 	public BlobEntry createBlobEntry(String name) throws RepositoryException {
 		BlobEntry entry = new SimpleBlobEntry(name, this, getRepository());
 		if (data != null) {
-			data.add(entry);		
+			data.add(entry);
 		}
 		getRepository().fireEntryAdded(entry, this);
 		return entry;

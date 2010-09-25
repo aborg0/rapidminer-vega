@@ -82,7 +82,7 @@ public class TemplateWizardDialog extends AbstractWizard {
 				return false;
 			}
 			
-			protected boolean performLeavingAction() {
+			protected boolean performLeavingAction(WizardStepDirection direction) {
 				try {
 					template = dialog.getSelectedTemplate();
 					process = template.getProcess();
@@ -113,7 +113,7 @@ public class TemplateWizardDialog extends AbstractWizard {
 				return true;
 			}
 			
-			protected boolean performEnteringAction() {
+			protected boolean performEnteringAction(WizardStepDirection direction) {
 				if (process == null || parameters == null) {
 					return false;
 				}
@@ -122,7 +122,7 @@ public class TemplateWizardDialog extends AbstractWizard {
 				return true;
 			}
 			
-			protected boolean performLeavingAction() {
+			protected boolean performLeavingAction(WizardStepDirection direction) {
 				RapidMinerGUI.getMainFrame().setProcess(process, true);
 				return true;
 			}

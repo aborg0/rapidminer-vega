@@ -40,6 +40,7 @@ import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
+import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.io.AbstractDataReader;
 
@@ -242,7 +243,7 @@ public abstract class MetaDataDeclerationWizardStep extends WizardStep {
 	}
 
 	@Override
-	protected boolean performEnteringAction() {
+	protected boolean performEnteringAction(WizardStepDirection direction) {
 		// dummy list
 		setData(new LinkedList<Object[]>());
 		SwingUtilities.invokeLater(new Runnable() {

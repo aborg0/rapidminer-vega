@@ -129,9 +129,7 @@ public class FastICA extends Operator {
 						Severity sev = Severity.ERROR;
 						if (emd.getAttributeSetRelation() == SetRelation.SUPERSET)
 							sev = Severity.WARNING;
-						exampleSetInput.addError(new SimpleMetaDataError(sev, exampleSetInput, 
-								Collections.singletonList(new ParameterSettingQuickFix(FastICA.this, PARAMETER_NUMBER_OF_COMPONENTS, emd.getNumberOfRegularAttributes() + "")), 
-								"exampleset.parameters.need_more_attributes", desiredComponents, PARAMETER_NUMBER_OF_COMPONENTS, desiredComponents));
+						exampleSetInput.addError(new SimpleMetaDataError(sev, exampleSetInput, Collections.singletonList(new ParameterSettingQuickFix(FastICA.this, PARAMETER_NUMBER_OF_COMPONENTS, emd.getNumberOfRegularAttributes() + "")), "exampleset.parameters.need_more_attributes", desiredComponents, PARAMETER_NUMBER_OF_COMPONENTS, desiredComponents));
 					}
 				}
 				super.makeAdditionalChecks(emd);
@@ -271,50 +269,43 @@ public class FastICA extends Operator {
 			}
 		}
 
-		Matrix X = new Matrix(data);
-		X = X.transpose();
+		Matrix xMatrix = new Matrix(data).transpose();
 
 		// Whitening
-		Matrix V = X.times(X.transpose().timesEquals(1.0d / numberOfSamples));
+		Matrix kMatrix;
+		{
+			SingularValueDecomposition svd = xMatrix.times(xMatrix.transpose().timesEquals(1.0d / numberOfSamples)).svd();
 
-		SingularValueDecomposition svd = V.svd();
+			Matrix dMatrix = svd.getS();
+			double[][] singularvalue = dMatrix.getArray();
 
-		Matrix D = svd.getS();
-		double[][] singularvalue = D.getArray();
+			for (i = 0; i < singularvalue.length; i++) {
+				singularvalue[i][i] = 1.0d / Math.sqrt(singularvalue[i][i]);
+			}
+			dMatrix = new Matrix(singularvalue);
 
-		for (i = 0; i < singularvalue.length; i++) {
-			singularvalue[i][i] = 1.0d / Math.sqrt(singularvalue[i][i]);
+			kMatrix = dMatrix.times(svd.getU().transpose());
+			kMatrix = new Matrix(kMatrix.getArray(), numberOfComponents, numberOfAttributes);
 		}
-		D = new Matrix(singularvalue);
-
-
-		Matrix K = D.times(svd.getU().transpose());
-		K = new Matrix(K.getArray(), numberOfComponents, numberOfAttributes);
-		Matrix X1 = K.times(X);
 		// end Whitening
 
 		Matrix a;
 		if (algorithmType == 0) {
-			a = deflation(X1, wInit, tolerance, alpha, numberOfSamples, numberOfComponents, function, maxIteration);
+			a = deflation(kMatrix.times(xMatrix), wInit, tolerance, alpha, numberOfSamples, numberOfComponents, function, maxIteration);
 		} else {
-			a = parallel(X1, wInit, tolerance, alpha, numberOfSamples, numberOfComponents, function, maxIteration);
+			a = parallel(kMatrix.times(xMatrix), wInit, tolerance, alpha, numberOfSamples, numberOfComponents, function, maxIteration);
 		}
 
-		Matrix w = a.times(K);
+		Matrix w = a.times(kMatrix);
 
-		Matrix W2 = w.times(w.transpose());
-		Matrix A = w.transpose().times(W2.inverse());
+		kMatrix = kMatrix.transpose();
+		Matrix wMatrix = a.transpose();
+		Matrix aMatrix = w.transpose().times(w.times(w.transpose()).inverse()).transpose();
 
-		Matrix W;
-		X = X.transpose();
-		K = K.transpose();
-		W = a.transpose();
-		A = A.transpose();
-
-		FastICAModel model = new FastICAModel(set, numberOfComponents, means, rowNorm, K, W, A);
+		FastICAModel model = new FastICAModel(set, numberOfComponents, means, rowNorm, kMatrix, wMatrix, aMatrix);
 
 		if (exampleSetOutput.isConnected())
-			exampleSetOutput.deliver(model.apply((ExampleSet)set.clone()));
+			exampleSetOutput.deliver(model.apply((ExampleSet) set.clone()));
 		originalOutput.deliver(set);
 		modelOutput.deliver(model);
 	}
@@ -515,7 +506,6 @@ public class FastICA extends Operator {
 					diagmean.set(row, row, mean);
 				}
 			}
-
 
 			v2 = diagmean.times(W);
 			W1 = v1.minus(v2);

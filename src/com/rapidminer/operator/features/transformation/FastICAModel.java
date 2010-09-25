@@ -59,7 +59,9 @@ public class FastICAModel extends AbstractModel implements ComponentWeightsCreat
 
 	private int numberOfComponents;
 
-	private Matrix K, W, A;
+	private Matrix kMatrix;
+	private Matrix wMatrix;
+	private Matrix aMatrix;
 
 	private String[] attributeNames;
 
@@ -69,15 +71,15 @@ public class FastICAModel extends AbstractModel implements ComponentWeightsCreat
 
 	private boolean keepAttributes = false;
 
-	public FastICAModel(ExampleSet exampleSet, int numberOfComponents, double[] means, boolean rowNorm, Matrix K, Matrix W, Matrix A) {
+	public FastICAModel(ExampleSet exampleSet, int numberOfComponents, double[] means, boolean rowNorm, Matrix kMatrix, Matrix wMatrix, Matrix aMatrix) {
 		super(exampleSet);
 		this.attributeNames = com.rapidminer.example.Tools.getRegularAttributeNames(exampleSet);
 		this.numberOfComponents = numberOfComponents;
 		this.means = means;
 		this.rowNorm = rowNorm;
-		this.K = K;
-		this.W = W;
-		this.A = A;
+		this.kMatrix = kMatrix;
+		this.wMatrix = wMatrix;
+		this.aMatrix = aMatrix;
 	}
 
 	public ExampleSet apply(ExampleSet testSet) throws OperatorException {
@@ -134,7 +136,7 @@ public class FastICAModel extends AbstractModel implements ComponentWeightsCreat
 
 		Matrix X = new Matrix(data);
 
-		Matrix S = X.times(K).times(W);
+		Matrix S = X.times(kMatrix).times(wMatrix);
 
 		if (!keepAttributes) {
 			testSet.getAttributes().clearRegular();
@@ -194,7 +196,7 @@ public class FastICAModel extends AbstractModel implements ComponentWeightsCreat
 		}
 		AttributeWeights attweights = new AttributeWeights();
 		for (int i = 0; i < attributeNames.length; i++) {
-			attweights.setWeight(attributeNames[i], A.get(component - 1, i));
+			attweights.setWeight(attributeNames[i], aMatrix.get(component - 1, i));
 		}
 
 		return attweights;
@@ -204,10 +206,10 @@ public class FastICAModel extends AbstractModel implements ComponentWeightsCreat
 	public String toResultString() {
 		StringBuffer result = new StringBuffer();
 		result.append("Number of Components: " + numberOfComponents + Tools.getLineSeparator());
-		if (A != null) {
+		if (aMatrix != null) {
 			result.append("Resulting attribute weights (from first component):" + Tools.getLineSeparator());
 			for (int i = 0; i < attributeNames.length; i++) {
-				result.append(attributeNames[i] + ": " + Tools.formatNumber(A.get(1, i)) + Tools.getLineSeparator());
+				result.append(attributeNames[i] + ": " + Tools.formatNumber(aMatrix.get(0, i)) + Tools.getLineSeparator());
 			}
 		}
 		return result.toString();
