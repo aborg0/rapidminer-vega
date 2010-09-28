@@ -75,6 +75,7 @@ import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.ProcessEntry;
+import com.rapidminer.repository.Repository;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
@@ -101,8 +102,6 @@ public class RepositoryTree extends JTree {
 		private final Class<T> requiredSelectionType;
 		private final boolean needsWriteAccess;
 		
-		
-		
 		private AbstractRepositoryAction(Class<T> requiredSelectionType, boolean needsWriteAccess, String i18nKey) {
 			super(true, i18nKey);			
 			this.requiredSelectionType = requiredSelectionType;
@@ -127,7 +126,15 @@ public class RepositoryTree extends JTree {
 		
 		public abstract void actionPerformed(T cast);
 	}
-	
+
+	public final AbstractRepositoryAction<Repository> CONFIGURE_ACTION = new AbstractRepositoryAction<Repository>(Repository.class, false, "configure_repository") {			
+		private static final long serialVersionUID = 1L;		
+		@Override
+		public void actionPerformed(Repository repository) {
+			new RepositoryConfigurationDialog(repository).setVisible(true);
+		}
+	};
+
 	public final AbstractRepositoryAction<Entry> COPY_LOCATION_ACTION = new AbstractRepositoryAction<Entry>(Entry.class, false, "repository_copy_location") {
 		private static final long serialVersionUID = 1L;
 		@Override
@@ -321,6 +328,7 @@ public class RepositoryTree extends JTree {
 		allActions.add(CREATE_FOLDER_ACTION);
 		allActions.add(REFRESH_ACTION);
 		allActions.add(COPY_LOCATION_ACTION);
+		allActions.add(CONFIGURE_ACTION);
 		RENAME_ACTION.addToActionMap(this, WHEN_FOCUSED);
 		DELETE_ACTION.addToActionMap(this, WHEN_FOCUSED);
 		REFRESH_ACTION.addToActionMap(this, WHEN_FOCUSED);
@@ -637,6 +645,11 @@ public class RepositoryTree extends JTree {
 		}
 		Object selected = path.getLastPathComponent();
 		JPopupMenu menu = new JPopupMenu();
+		if (selected instanceof Repository) {
+			if (((Repository) selected).isConfigurable()) {
+				menu.add(CONFIGURE_ACTION);
+			}
+		}
 		if (selected instanceof DataEntry) {
 			menu.add(OPEN_ACTION);
 		}

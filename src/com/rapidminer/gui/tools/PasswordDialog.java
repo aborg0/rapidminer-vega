@@ -113,8 +113,18 @@ public class PasswordDialog extends ButtonDialog {
 		return new PasswordAuthentication(usernameField.getText(), passwordField.getPassword());
 	}
 	
-	public static PasswordAuthentication getPasswordAuthentication(String forUrl, boolean forceRefresh) {		
+	public static PasswordAuthentication getPasswordAuthentication(String forUrl, boolean forceRefresh) {
+		return getPasswordAuthentication(forUrl, forceRefresh, false);
+	}
+
+	public static PasswordAuthentication getPasswordAuthentication(String forUrl, boolean forceRefresh, boolean hideDialogIfPasswordKnown) {		
 		PasswordAuthentication authentication = CACHE.get(forUrl);
+		// return immediately if known and desired
+		if (hideDialogIfPasswordKnown && !forceRefresh && (authentication != null) && (authentication.getPassword() != null)) {
+			LogService.getRoot().config("Reusing cached password for "+forUrl+".");
+			return authentication;
+		}
+
 		// clear cache if refresh forced
 		if (forceRefresh && authentication != null) {
 			authentication = new PasswordAuthentication(authentication.getUserName(), null);

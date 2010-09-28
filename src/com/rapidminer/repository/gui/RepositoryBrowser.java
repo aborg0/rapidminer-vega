@@ -110,7 +110,7 @@ public class RepositoryBrowser extends JPanel implements Dockable {
 	}
 
 	private static void addRepository() {
-		RepositoryDialog.createNew();						
+		NewRepositoryDialog.createNew();						
 	}
 
 	public static final String REPOSITORY_BROWSER_DOCK_KEY = "repository_browser";

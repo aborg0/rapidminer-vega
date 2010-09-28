@@ -28,9 +28,8 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
-import com.rapidminer.operator.OperatorException;
+import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.operator.nio.ExcelWorkbookPane.ExcelWorkbookSelection;
 
 /**
@@ -41,17 +40,14 @@ import com.rapidminer.operator.nio.ExcelWorkbookPane.ExcelWorkbookSelection;
  * @author Sebastian Land
  */
 class ExcelSheetSelectionWizardStep extends WizardStep {
-
-	private AnnotationDeclarationWizardStep followingStep;
 	
 	private ExcelResultSetConfiguration configuration;
 	private final ExcelWorkbookPane workbookSelectionPanel;
 	
 	private final JLabel errorLabel = new JLabel("");
 
-	public ExcelSheetSelectionWizardStep(ExcelResultSetConfiguration configuration, AnnotationDeclarationWizardStep followingStep) {
-		super("excel_data_selection");
-		this.followingStep = followingStep;
+	public ExcelSheetSelectionWizardStep(ExcelResultSetConfiguration configuration) {
+		super("importwizard.excel_data_selection");
 		
 		this.configuration = configuration;
 		this.workbookSelectionPanel = new ExcelWorkbookPane(this, configuration);
@@ -87,12 +83,14 @@ class ExcelSheetSelectionWizardStep extends WizardStep {
 			configuration.setRowLast(selection.getRowIndexEnd());
 			
 			// now create result set to make handshake between steps
-			try {
-				followingStep.setDataResultSet(new ExcelResultSet(null, configuration));
-			} catch (OperatorException e) {
-				// TODO: Make error message, abort
-				e.printStackTrace();
-			}
+//			try {
+//				System.out.println("Making result set");
+//				followingStep.setDataResultSet(new ExcelResultSet(null, configuration));
+//				System.out.println("Made result set");
+//			} catch (OperatorException e) {
+//				// TODO: Make error message, abort
+//				e.printStackTrace();
+//			}
 		} else {
 			if (configuration.hasWorkbook())
 				configuration.getWorkbook().close();

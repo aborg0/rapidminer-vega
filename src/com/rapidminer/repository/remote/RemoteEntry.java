@@ -33,6 +33,7 @@ import com.rapid_i.repository.wsimport.AccessRights;
 import com.rapid_i.repository.wsimport.EntryResponse;
 import com.rapid_i.repository.wsimport.Response;
 import com.rapidminer.gui.actions.BrowseAction;
+import com.rapidminer.repository.DataEntry;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.MalformedRepositoryLocationException;
@@ -52,6 +53,9 @@ public abstract class RemoteEntry implements Entry {
 	private String name;
 	
 	RemoteEntry(String location) {
+		if (location == null) {
+			throw new NullPointerException("Location cannot be null");
+		}
 		this.location = location;
 		int lastSlash = location.lastIndexOf('/');
 		if (lastSlash == -1) {
@@ -60,9 +64,6 @@ public abstract class RemoteEntry implements Entry {
 			name = location.substring(lastSlash+1);
 		}
 		this.owner ="none";
-		if (location == null) {
-			throw new NullPointerException("Location cannot be null");
-		}
 	}
 	
 	RemoteEntry(EntryResponse response, RemoteFolder container, RemoteRepository repository) {
@@ -163,8 +164,20 @@ public abstract class RemoteEntry implements Entry {
 	}
 	
 	@Override
-	public boolean move(Folder newParent) {
-		throw new UnsupportedOperationException("Move not implemented.");
+	public boolean move(Folder newParent) throws RepositoryException {
+		Response response = getRepository().getRepositoryService().move(getPath(), ((RemoteFolder) newParent).getPath());
+		if (response.getStatus() != 0) {
+			throw new RepositoryException(response.getErrorMessage());
+		}
+		containingFolder.removeChild(this);
+		if (this instanceof Folder) {
+			((RemoteFolder)newParent).getSubfolders().add((Folder) this);
+		} else {
+			((RemoteFolder)newParent).getDataEntries().add((DataEntry) this);
+		}		
+		this.containingFolder = (RemoteFolder) newParent;
+		getRepository().fireEntryAdded(this, newParent);
+		return true;
 	}
 	
 	@Override

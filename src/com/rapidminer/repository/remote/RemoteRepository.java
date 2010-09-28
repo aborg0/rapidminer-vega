@@ -67,6 +67,8 @@ import com.rapidminer.repository.RepositoryConstants;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryListener;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.repository.gui.RemoteRepositoryPanel;
+import com.rapidminer.repository.gui.RepositoryConfigurationPanel;
 import com.rapidminer.tools.GlobalAuthenticator;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
@@ -85,7 +87,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		METADATA, IOOBJECT, PROCESS, BLOB
 	}
 
-	private final URL baseUrl;
+	private URL baseUrl;
 	private String alias;
 	private String username;
 	private char[] password;
@@ -132,27 +134,27 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	public RemoteRepository(URL baseUrl, String alias, String username, char[] password, boolean isHome) {
 		super("/");
 		setRepository(this);
-		this.alias = alias;
+		this.setAlias(alias);
 		this.baseUrl = baseUrl;
-		this.username = username;
+		this.setUsername(username);
 		this.isHome = isHome;
 		if ((password != null) && (password.length > 0)) {
-			this.password = password;
+			this.setPassword(password);
 		} else {
-			this.password = null;
+			this.setPassword(null);
 		}
 		register(this);
 	}
 
 	private static void register(RemoteRepository remoteRepository) {
 		synchronized (MAP_LOCK) {
-			ALL_REPOSITORIES.put(remoteRepository.baseUrl, new WeakReference<RemoteRepository>(remoteRepository));
+			ALL_REPOSITORIES.put(remoteRepository.getBaseUrl(), new WeakReference<RemoteRepository>(remoteRepository));
 		}
 	}
 
 	private URL getRepositoryServiceWSDLUrl() {
 		try {
-			return new URL(baseUrl, "RAWS/RepositoryService?wsdl");
+			return new URL(getBaseUrl(), "RAWS/RepositoryService?wsdl");
 		} catch (MalformedURLException e) {
 			// cannot happen
 			LogService.getRoot().log(Level.WARNING, "Cannot create Web service url: " + e, e);
@@ -162,7 +164,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	private URL getProcessServiceWSDLUrl() {
 		try {
-			return new URL(baseUrl, "RAWS/ProcessService?wsdl");
+			return new URL(getBaseUrl(), "RAWS/ProcessService?wsdl");
 		} catch (MalformedURLException e) {
 			// cannot happen
 			LogService.getRoot().log(Level.WARNING, "Cannot create Web service url: " + e, e);
@@ -182,7 +184,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	@Override
 	public boolean rename(String newName) {
-		this.alias = newName;
+		this.setAlias(newName);
 		fireEntryRenamed(this);
 		return true;
 	}
@@ -215,6 +217,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	/** Connection entries fetched from server. */
 	private Collection<FieldConnectionEntry> connectionEntries;
+	private boolean cachedPasswordUsed = false;
 
 	protected void register(RemoteEntry entry) {
 		cachedEntries.put(entry.getPath(), entry);
@@ -257,7 +260,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	@Override
 	public String getName() {
-		return alias;
+		return getAlias();
 	}
 
 	@Override
@@ -267,21 +270,31 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	@Override
 	public String toString() {
-		return "<html>" + alias + "<br/><small style=\"color:gray\">(" + baseUrl + ")</small></html>";
+		return "<html>" + getAlias() + "<br/><small style=\"color:gray\">(" + getBaseUrl() + ")</small></html>";
 	}
 
-	private PasswordAuthentication getAuthentiaction() {
-		if (this.password == null) {
-			LogService.getRoot().info("Authentication requested for URL: " + baseUrl);
-			PasswordAuthentication passwordAuthentication = PasswordDialog.getPasswordAuthentication(baseUrl.toString(), false);
+	private PasswordAuthentication getAuthentiaction() {		
+		if (password == null) {
+			LogService.getRoot().info("Authentication requested for URL: " + getBaseUrl());
+			PasswordAuthentication passwordAuthentication;
+			if (cachedPasswordUsed) {
+				// if we have used a cached password last time, and we enter this method again,
+				// this is probably because the password was wrong, so rather force dialog than
+				// using cache again.
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(), false, false);
+				this.cachedPasswordUsed = false;
+			} else {
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(), false, true);
+				this.cachedPasswordUsed = true;
+			}			
 			if (passwordAuthentication != null) {
-				this.password = passwordAuthentication.getPassword();
-				this.username = passwordAuthentication.getUserName();
+				this.setPassword(passwordAuthentication.getPassword());
+				this.setUsername(passwordAuthentication.getUserName());
 				RepositoryManager.getInstance(null).save();
 			}
 			return passwordAuthentication;
 		} else {
-			return new PasswordAuthentication(username, this.password);
+			return new PasswordAuthentication(getUsername(), password);
 		}
 	}
 
@@ -297,9 +310,9 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 				offline = false;
 			} catch (Exception e) {
 				offline = true;
-				password = null;
+				setPassword(null);
 				repositoryService = null;
-				throw new RepositoryException("Cannot connect to " + baseUrl + ": " + e, e);
+				throw new RepositoryException("Cannot connect to " + getBaseUrl() + ": " + e, e);
 			}
 		}
 		return repositoryService;
@@ -316,9 +329,9 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 				offline = false;
 			} catch (Exception e) {
 				offline = true;
-				password = null;
+				setPassword(null);
 				processService = null;
-				throw new RepositoryException("Cannot connect to " + baseUrl + ": " + e, e);
+				throw new RepositoryException("Cannot connect to " + getBaseUrl() + ": " + e, e);
 			}
 		}
 		return processService;
@@ -326,7 +339,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	@Override
 	public String getDescription() {
-		return "Remote repository at " + baseUrl;
+		return "Remote repository at " + getBaseUrl();
 	}
 
 	@Override
@@ -351,7 +364,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		if (type == EntryStreamType.METADATA) {
 			encoded.append("?format=binmeta");
 		}
-		final HttpURLConnection conn = (HttpURLConnection) new URL(baseUrl, encoded.toString()).openConnection();
+		final HttpURLConnection conn = (HttpURLConnection) new URL(getBaseUrl(), encoded.toString()).openConnection();
 		// final String userColonPass = username+":"+new String(password);
 		// //final String base64 = Base64.encodeBytes(userColonPass.getBytes());
 		// String base64 = new sun.misc.BASE64Encoder().encode(userColonPass.getBytes());
@@ -365,15 +378,15 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		Element repositoryElement = doc.createElement("remoteRepository");
 
 		Element url = doc.createElement("url");
-		url.appendChild(doc.createTextNode(this.baseUrl.toString()));
+		url.appendChild(doc.createTextNode(this.getBaseUrl().toString()));
 		repositoryElement.appendChild(url);
 
 		Element alias = doc.createElement("alias");
-		alias.appendChild(doc.createTextNode(this.alias));
+		alias.appendChild(doc.createTextNode(this.getAlias()));
 		repositoryElement.appendChild(alias);
 
 		Element user = doc.createElement("user");
-		user.appendChild(doc.createTextNode(this.username));
+		user.appendChild(doc.createTextNode(this.getUsername()));
 		repositoryElement.appendChild(user);
 
 		return repositoryElement;
@@ -412,9 +425,9 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((alias == null) ? 0 : alias.hashCode());
-		result = prime * result + ((baseUrl == null) ? 0 : baseUrl.hashCode());
-		result = prime * result + ((username == null) ? 0 : username.hashCode());
+		result = prime * result + ((getAlias() == null) ? 0 : getAlias().hashCode());
+		result = prime * result + ((getBaseUrl() == null) ? 0 : getBaseUrl().hashCode());
+		result = prime * result + ((getUsername() == null) ? 0 : getUsername().hashCode());
 		return result;
 	}
 
@@ -427,27 +440,27 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		if (getClass() != obj.getClass())
 			return false;
 		RemoteRepository other = (RemoteRepository) obj;
-		if (alias == null) {
-			if (other.alias != null)
+		if (getAlias() == null) {
+			if (other.getAlias() != null)
 				return false;
-		} else if (!alias.equals(other.alias))
+		} else if (!getAlias().equals(other.getAlias()))
 			return false;
-		if (baseUrl == null) {
-			if (other.baseUrl != null)
+		if (getBaseUrl() == null) {
+			if (other.getBaseUrl() != null)
 				return false;
-		} else if (!baseUrl.equals(other.baseUrl))
+		} else if (!getBaseUrl().equals(other.getBaseUrl()))
 			return false;
-		if (username == null) {
-			if (other.username != null)
+		if (getUsername() == null) {
+			if (other.getUsername() != null)
 				return false;
-		} else if (!username.equals(other.username))
+		} else if (!getUsername().equals(other.getUsername()))
 			return false;
 		return true;
 	}
 
 	public URI getURIForResource(String path) {
 		try {
-			return baseUrl.toURI().resolve("RA/faces/restricted/browse.xhtml?location=" + URLEncoder.encode(path, "UTF-8"));
+			return getBaseUrl().toURI().resolve("RA/faces/restricted/browse.xhtml?location=" + URLEncoder.encode(path, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);
 		} catch (URISyntaxException e) {
@@ -457,7 +470,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	private URI getURIWebInterfaceURI() {
 		try {
-			return baseUrl.toURI().resolve("RA/faces/restricted/index.xhtml");
+			return getBaseUrl().toURI().resolve("RA/faces/restricted/index.xhtml");
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
@@ -481,7 +494,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	public URI getProcessLogURI(int id) {
 		try {
-			return baseUrl.toURI().resolve("/RA/processlog?id=" + id);
+			return getBaseUrl().toURI().resolve("/RA/processlog?id=" + id);
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
@@ -502,7 +515,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	// JDBC entries provided by server
 
 	private Collection<FieldConnectionEntry> fetchJDBCEntries() throws XMLException, CipherException, SAXException, IOException {
-		URL xmlURL = new URL(baseUrl, "RAWS/jdbc_connections.xml");
+		URL xmlURL = new URL(getBaseUrl(), "RAWS/jdbc_connections.xml");
 		Document doc = XMLTools.parse(xmlURL.openStream());
 		final Collection<FieldConnectionEntry> result = DatabaseConnectionService.parseEntries(doc.getDocumentElement());
 		for (FieldConnectionEntry entry : result) {
@@ -542,4 +555,44 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	@Override
 	public void preRemove() {
 	}
+
+	public URL getBaseUrl() {
+		return baseUrl;
+	}
+
+	public void setBaseUrl(URL url) {
+		baseUrl = url;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setPassword(char[] password) {
+		this.password = password;
+	}
+	
+	
+	@Override
+	public boolean isConfigurable() {
+		return true;
+	}
+
+	@Override
+	public RepositoryConfigurationPanel makeConfigurationPanel() {
+		return new RemoteRepositoryPanel();
+	}
+
+	public void setAlias(String alias) {
+		this.alias = alias;
+	}
+
+	public String getAlias() {
+		return alias;
+	}
+
 }

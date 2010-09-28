@@ -22,6 +22,7 @@
  */
 package com.rapidminer.repository.resource;
 
+import javax.help.UnsupportedOperationException;
 import javax.swing.event.EventListenerList;
 
 import org.w3c.dom.Document;
@@ -35,6 +36,7 @@ import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryListener;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.repository.gui.RepositoryConfigurationPanel;
 
 /** Repository backed by Java resources. Folders must contain a "CONTENTS" file, otherwise
  *  the contents cannot be scanned.
@@ -109,5 +111,15 @@ public class ResourceRepository extends ResourceFolder implements Repository {
 
 	@Override
 	public void preRemove() {
+	}
+	
+	@Override
+	public boolean isConfigurable() {
+		return false;
+	}
+
+	@Override
+	public RepositoryConfigurationPanel makeConfigurationPanel() {
+		throw new UnsupportedOperationException("Resource repository cannot be configured.");
 	}
 }

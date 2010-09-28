@@ -80,7 +80,7 @@ import com.rapidminer.parameter.UndefinedParameterError;
 public class ExcelExampleSource extends AbstractDataReader {
 
 	/** Pseudo-annotation to be used for attribute names. */
-	public static final String ANNOTATION_NAME = "Name";
+	public static final String ANNOTATION_NAME = Annotations.ANNOTATION_NAME;
 
 	/**
 	 * Pseudo-annotation to be used for original attribute names which are read
@@ -177,7 +177,7 @@ public class ExcelExampleSource extends AbstractDataReader {
 			// not overwrite the user defined attribute name by names which
 			// might occur in the name row.
 			for (String[] pair : annotations) {
-				if (!pair[1].equals(ExcelExampleSource.ANNOTATION_NAME)) {
+				if (!pair[1].equals(Annotations.ANNOTATION_NAME)) {
 					cleanedAnnotations.add(pair);
 				} else {
 					pair[1] = ExcelExampleSource.ANNOTATION_NAMES_FROM_DOCUMENT;
@@ -243,7 +243,7 @@ public class ExcelExampleSource extends AbstractDataReader {
 					lastAnnotatedRow = row;
 				}
 				annotationsMap.put(row, pair[1]);
-				if (ANNOTATION_NAME.equals(pair[1])) {
+				if (Annotations.ANNOTATION_NAME.equals(pair[1])) {
 					nameFound = true;
 					nameRow = row;
 				}
@@ -253,11 +253,11 @@ public class ExcelExampleSource extends AbstractDataReader {
 			}
 		}
 		if (nameFound && getParameterAsBoolean(PARAMETER_FIRST_ROW_AS_NAMES)) {
-			throw new OperatorException("If " + PARAMETER_FIRST_ROW_AS_NAMES + " is set to true, you cannot use " + ANNOTATION_NAME
+			throw new OperatorException("If " + PARAMETER_FIRST_ROW_AS_NAMES + " is set to true, you cannot use " + Annotations.ANNOTATION_NAME
 					+ " entries in parameter list " + PARAMETER_ANNOTATIONS + ".");
 		}
 		if (getParameterAsBoolean(PARAMETER_FIRST_ROW_AS_NAMES)) {
-			annotationsMap.put(0, ANNOTATION_NAME);
+			annotationsMap.put(0, Annotations.ANNOTATION_NAME);
 			annotationRows.add(0);
 			nameRow = 0;
 		}
@@ -283,7 +283,7 @@ public class ExcelExampleSource extends AbstractDataReader {
 		types.add(new ParameterTypeBoolean(PARAMETER_FIRST_ROW_AS_NAMES, "Indicates if the first row should be used for the attribute names.", true,
 				true));
 		List<String> annotations = new LinkedList<String>();
-		annotations.add(ANNOTATION_NAME);
+		annotations.add(Annotations.ANNOTATION_NAME);
 		annotations.addAll(Arrays.asList(Annotations.ALL_KEYS_ATTRIBUTE));
 		types.add(new ParameterTypeList(PARAMETER_ANNOTATIONS, "Maps row numbers to annotation names.", new ParameterTypeInt("row_number",
 				"Row number which contains an annotation", 0, Integer.MAX_VALUE), new ParameterTypeCategory("annotation",
@@ -414,7 +414,7 @@ public class ExcelExampleSource extends AbstractDataReader {
 
 				annotations[columnCounter] = new Annotations();
 				for (Map.Entry<Integer, String> entry : annotationsMap.entrySet()) {
-					if (ANNOTATION_NAME.equals(entry.getValue())) {
+					if (Annotations.ANNOTATION_NAME.equals(entry.getValue())) {
 						continue;
 					} else {
 						Cell cell = sheet.getCell(c, rowOffset + entry.getKey());

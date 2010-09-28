@@ -46,7 +46,7 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Operator;
-import com.rapidminer.repository.gui.RepositoryDialog;
+import com.rapidminer.repository.gui.NewRepositoryDialog;
 import com.rapidminer.repository.local.LocalRepository;
 import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.repository.resource.ResourceRepository;
@@ -228,7 +228,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 		}
 		if (empty) {
 			SwingTools.showMessageDialog("please_create_repository");
-			RepositoryDialog.createNew();
+			NewRepositoryDialog.createNew();
 		}
 	}
 

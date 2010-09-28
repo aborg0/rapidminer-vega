@@ -139,6 +139,9 @@ public class Annotations implements Serializable, Map<String,String> {
 	};
 	
 	private LinkedHashMap<String,String> keyValueMap = new LinkedHashMap<String,String>();
+
+	/** Pseudo-annotation to be used for attribute names. */
+	public static final String ANNOTATION_NAME = "Name";
 	
 	public Annotations() {		
 	}

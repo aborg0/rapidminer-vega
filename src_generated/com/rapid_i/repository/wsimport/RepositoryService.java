@@ -145,6 +145,23 @@ public interface RepositoryService {
 
     /**
      * 
+     * @param newParentFolder
+     * @param location
+     * @return
+     *     returns com.rapid_i.repository.wsimport.EntryResponse
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "move", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.Move")
+    @ResponseWrapper(localName = "moveResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.MoveResponse")
+    public EntryResponse move(
+        @WebParam(name = "location", targetNamespace = "")
+        String location,
+        @WebParam(name = "newParentFolder", targetNamespace = "")
+        String newParentFolder);
+
+    /**
+     * 
      * @param location
      * @param newName
      * @return

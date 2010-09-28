@@ -79,7 +79,7 @@ public class UpdateDialog extends ButtonDialog {
 			public PasswordAuthentication getAuthentication(URL url) {
 				try {
 					if (url.toString().startsWith(UpdateManager.getUpdateServerURL("").toString())) {	
-						return PasswordDialog.getPasswordAuthentication(url.toString(), false);
+						return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
 					} else {
 						return null;
 					}

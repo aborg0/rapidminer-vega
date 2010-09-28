@@ -29,13 +29,14 @@ import static com.rapidminer.operator.nio.AbstractDataResultSetReader.PARAMETER_
 import static com.rapidminer.operator.nio.AbstractDataResultSetReader.PARAMETER_FIRST_ROW_AS_NAMES;
 import static com.rapidminer.operator.nio.AbstractDataResultSetReader.PARAMETER_LOCALE;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import com.rapidminer.example.Attributes;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.preprocessing.filter.AbstractDateDataProcessing;
 import com.rapidminer.parameter.ParameterTypeTupel;
@@ -48,32 +49,12 @@ import com.rapidminer.parameter.ParameterTypeTupel;
  */
 public class DataResultSetTranslationConfiguration {
 
-	private String[] attributeNames;
-	private String[] userDefinedAttributeNames;
-	private int[] attributeValueTypes;
-	private String[] roleIds;
-	private boolean[] areSelected;
+	private ColumnMetaData[] columnMetaData;
 
 	private Locale locale = Locale.US;
 	private String datePattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
 	private TreeMap<Integer, String> annotationsMap = new TreeMap<Integer, String>();
-
-	/**
-	 * Constructor for filling the complete data structure at once.
-	 * 
-	 * @param attributeNames
-	 * @param attributeValueTypes
-	 * @param roleIds
-	 * @param areSelected
-	 */
-	public DataResultSetTranslationConfiguration(String[] attributeNames, int[] attributeValueTypes, String[] roleIds, boolean[] areSelected) {
-		super();
-		this.attributeNames = attributeNames;
-		this.attributeValueTypes = attributeValueTypes;
-		this.roleIds = roleIds;
-		this.areSelected = areSelected;
-	}
 
 	/**
 	 * Creates the configuration based on the parameter values stored in the given reader. If these parameters aren't
@@ -110,26 +91,28 @@ public class DataResultSetTranslationConfiguration {
 		}
 		
 		int numberOfColumns = dataResultSet.getNumberOfColumns();
-		attributeNames = dataResultSet.getColumnNames();
-		roleIds = new String[numberOfColumns];
-		areSelected = new boolean[numberOfColumns];
-		userDefinedAttributeNames = new String[numberOfColumns];
-
-		Arrays.fill(areSelected, true);
-		Arrays.fill(roleIds, Attributes.ATTRIBUTE_NAME);
-		attributeValueTypes = dataResultSet.getValueTypes();
+		columnMetaData = new ColumnMetaData[numberOfColumns];
+		final String[] originalColumnNames = dataResultSet.getColumnNames();
+		int[] attributeValueTypes = dataResultSet.getValueTypes();
+		for (int i = 0; i < numberOfColumns; i++) {
+			columnMetaData[i] = new ColumnMetaData(originalColumnNames[i],
+					originalColumnNames[i],					 
+					attributeValueTypes[i],
+					Attributes.ATTRIBUTE_NAME,
+					true);			
+		}
 
 		for (String[] metaDataDefinition : metaDataSettings) {
 			int currentColumn = Integer.parseInt(metaDataDefinition[0]);
 			String[] metaDataDefintionValues = ParameterTypeTupel.transformString2Tupel(metaDataDefinition[1]);
-			areSelected[currentColumn] = Boolean.parseBoolean(metaDataDefintionValues[1]);
-			if (areSelected[currentColumn]) {
+			final ColumnMetaData cmd = columnMetaData[currentColumn];
+			cmd.setSelected(Boolean.parseBoolean(metaDataDefintionValues[1]));
+			if (cmd.isSelected()) {
 				// otherwise everything else doesn't matter at all
-				roleIds[currentColumn] = metaDataDefintionValues[3].trim();
-				userDefinedAttributeNames[currentColumn] = metaDataDefintionValues[0].trim();
-
-				// TODO: Might introduce checking if value type matches guessed type
-				attributeValueTypes[currentColumn] = Integer.parseInt(metaDataDefintionValues[2]);
+				cmd.setRole(metaDataDefintionValues[3].trim());
+				cmd.setUserDefinedAttributeName(metaDataDefintionValues[0].trim());
+				// TODO: introduce checking if value type matches guessed type
+				cmd.setAttributeValueType(Integer.parseInt(metaDataDefintionValues[2]));
 			}
 		}
 	}
@@ -144,55 +127,8 @@ public class DataResultSetTranslationConfiguration {
 		this(null, resultSet);
 	}
 
-	/**
-	 * This returns the user defined name or null if no such name exists.
-	 */
-	public String getUserDefinedName(int i) {
-		return userDefinedAttributeNames[i];
-	}
-
-	public String getAttributeName(int i) {
-		return attributeNames[i];
-	}
-
-	public void setAttributeName(int columnIndex, String attributeName) {
-		this.attributeNames[columnIndex] = attributeName;
-	}
-
-	public int getAttributeValueType(int i) {
-		return attributeValueTypes[i];
-	}
-
-	public int[] getAttributeValueTypes() {
-		return attributeValueTypes;
-	}
-
-	public void setAttributeValueTypes(int[] attributeValueType) {
-		this.attributeValueTypes = attributeValueType;
-	}
-
-	public String getRoleId(int i) {
-		return roleIds[i];
-	}
-
-	public void setRoleId(String[] roleId) {
-		this.roleIds = roleId;
-	}
-
-	public boolean[] getSelected() {
-		return areSelected;
-	}
-
-	public void setSelected(boolean[] selected) {
-		this.areSelected = selected;
-	}
-
-	public String[] getAttributeNames() {
-		return attributeNames;
-	}
-
-	public boolean isSelected(int i) {
-		return areSelected[i];
+	public ColumnMetaData getColumnMetaData(int col) {
+		return columnMetaData[col];
 	}
 
 	/**
@@ -200,9 +136,9 @@ public class DataResultSetTranslationConfiguration {
 	 */
 	public int[] getSelectedIndices() {
 		int numberOfSelected = 0;
-		int[] selectedIndices = new int[areSelected.length];
-		for (int i = 0; i < areSelected.length; i++) {
-			if (areSelected[i]) {
+		int[] selectedIndices = new int[columnMetaData.length];
+		for (int i = 0; i < selectedIndices.length; i++) {
+			if (columnMetaData[i].isSelected()) {
 				selectedIndices[numberOfSelected] = i;
 				numberOfSelected++;
 			}
@@ -227,6 +163,21 @@ public class DataResultSetTranslationConfiguration {
 	public void setAnnotationsMap(TreeMap<Integer, String> annotationsMap) {
 		this.annotationsMap = annotationsMap;
 	}
+	
+	/** Returns the row annotated to be used as the name of the attribute or -1
+	 *  if no such row was selected. */
+	public int getNameRow() {
+		if (annotationsMap == null) {
+			return -1;
+		} else {
+			for (Entry<Integer, String> entry : annotationsMap.entrySet()) {
+				if (Annotations.ANNOTATION_NAME.equals(entry.getValue())) {
+					return entry.getKey();
+				}
+			}
+			return -1;
+		}
+	}
 
 	public String getDatePattern() {
 		return datePattern;
@@ -239,6 +190,14 @@ public class DataResultSetTranslationConfiguration {
 	// selectedLocale = availableLocales.get(getParameterAsInt(PARAMETER_LOCALE));
 	public Locale getLocale() {
 		return locale;
+	}
+
+	public int getNumerOfColumns() {
+		return columnMetaData.length;
+	}
+
+	public ColumnMetaData[] getColumnMetaData() {
+		return columnMetaData;
 	}
 
 }

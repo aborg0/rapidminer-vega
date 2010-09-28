@@ -43,6 +43,7 @@ import com.rapidminer.gui.tools.dialogs.wizards.dataimport.MetaDataDeclerationWi
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.RepositoryLocationSelectionWizardStep;
 import com.rapidminer.gui.wizards.AbstractConfigurationWizardCreator;
 import com.rapidminer.gui.wizards.ConfigurationListener;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.io.ExcelExampleSource;
 import com.rapidminer.parameter.ParameterType;
@@ -146,7 +147,7 @@ public class ExcelImportWizard extends DataImportWizard {
 			boolean nameAnnotationFound = false;
 			for (Map.Entry<Integer, String> entry : workbookSelectionPanel.getSelection().getAnnotationMap().entrySet()) {
 				annotationParameter.add(new String[] { entry.getKey().toString(), entry.getValue() });
-				if (entry.getValue().equals(ExcelExampleSource.ANNOTATION_NAME)) {
+				if (entry.getValue().equals(Annotations.ANNOTATION_NAME)) {
 					nameAnnotationFound = true;
 				}
 			}

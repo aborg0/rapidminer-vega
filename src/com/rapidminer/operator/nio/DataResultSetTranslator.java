@@ -69,10 +69,10 @@ public class DataResultSetTranslator {
 
 			Attribute[] attributes = new Attribute[numberOfAttributes];
 			for (int i = 0; i < attributes.length; i++) {
-				int attributeValueType = configuration.getAttributeValueType(attributeColumns[i]);
+				int attributeValueType = configuration.getColumnMetaData(attributeColumns[i]).getAttributeValueType();
 				if (attributeValueType == Ontology.ATTRIBUTE_VALUE)  //fallback for uninitialized reading.
 					attributeValueType = Ontology.POLYNOMINAL;
-				attributes[i] = AttributeFactory.createAttribute(configuration.getAttributeName(attributeColumns[i]), attributeValueType);
+				attributes[i] = AttributeFactory.createAttribute(configuration.getColumnMetaData(attributeColumns[i]).getOriginalAttributeName(), attributeValueType);
 			}
 
 			// building example table
@@ -145,10 +145,11 @@ public class DataResultSetTranslator {
 			int attributeIndex = 0;
 			for (Attribute attribute : attributes) {
 				// if user defined names have been found, rename accordingly
-				String userDefinedName = configuration.getUserDefinedName(attributeColumns[attributeIndex]);
+				final ColumnMetaData cmd = configuration.getColumnMetaData(attributeColumns[attributeIndex]);
+				String userDefinedName = cmd.getUserDefinedAttributeName();
 				if (userDefinedName != null)
 					attribute.setName(userDefinedName);
-				String roleId = configuration.getRoleId(attributeColumns[attributeIndex]);
+				String roleId = cmd.getRole();
 				if (!Attributes.ATTRIBUTE_NAME.equals(roleId))
 					exampleSetAttributes.setSpecialAttribute(attribute, roleId);
 				attributeIndex++;
@@ -193,7 +194,14 @@ public class DataResultSetTranslator {
 	}
 
 	public DataResultSetTranslationConfiguration guessValueTypes(DataResultSetTranslationConfiguration configuration, DataResultSet dataResultSet, int maxNumberOfRows, ProgressListener listener) throws OperatorException {
-		configuration.setAttributeValueTypes(guessValueTypes(configuration.getAttributeValueTypes(), configuration, dataResultSet, maxNumberOfRows, listener));
+		int[] originalValueTypes = new int[configuration.getNumerOfColumns()];
+		for (int i = 0; i < originalValueTypes.length; i++) {
+			originalValueTypes[i] = configuration.getColumnMetaData(i).getAttributeValueType();
+		}
+		final int[] guessedTypes = guessValueTypes(originalValueTypes, configuration, dataResultSet, maxNumberOfRows, listener);
+		for (int i = 0; i < guessedTypes.length; i++) {
+			configuration.getColumnMetaData(i).setAttributeValueType(guessedTypes[i]);
+		}
 		return configuration;
 	}
 

@@ -22,6 +22,7 @@
  */
 package com.rapidminer.repository.gui;
 
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -45,7 +46,7 @@ import com.rapidminer.repository.remote.RemoteRepository;
  * @author Simon Fischer
  *
  */
-public class RemoteRepositoryPanel extends JPanel {
+public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigurationPanel {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -114,6 +115,7 @@ public class RemoteRepositoryPanel extends JPanel {
 		userField.selectAll();
 	}
 	
+	@Override
 	public void makeRepository() {
 		final URL url;
 		try {
@@ -143,5 +145,36 @@ public class RemoteRepositoryPanel extends JPanel {
 			}
 		};
 		pt.start();
+	}
+
+	@Override
+	public void configureUIElementsFrom(Repository remote) {
+		aliasField.setText(((RemoteRepository) remote).getAlias());
+		urlField.setText(((RemoteRepository) remote).getBaseUrl().toString());
+		userField.setText(((RemoteRepository) remote).getUsername());
+	}
+
+	@Override
+	public boolean configure(Repository repository) {
+		URL url;
+		try {
+			url = new URL(urlField.getText());
+		} catch (MalformedURLException e) {
+			SwingTools.showSimpleErrorMessage("illegal_url",e);
+			return false;
+		}
+		((RemoteRepository) repository).setBaseUrl(url);
+		if ((passwordField.getPassword() != null) && (passwordField.getPassword().length > 0)) {
+			((RemoteRepository) repository).setPassword(passwordField.getPassword());
+		}
+		((RemoteRepository) repository).setUsername(userField.getText());
+		((RemoteRepository) repository).rename(aliasField.getText());
+		return true;
+	}
+	
+
+	@Override
+	public Component getComponent() {
+		return this;
 	}
 }

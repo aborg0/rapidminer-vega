@@ -35,12 +35,12 @@ import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ResourceActionAdapter;
 import com.rapidminer.gui.tools.dialogs.MultiPageDialog;
 
-/** A dialog to create new remote repositories.
+/** A dialog to create new remote or local repositories.
  * 
  * @author Simon Fischer
  *
  */
-public class RepositoryDialog extends MultiPageDialog {
+public class NewRepositoryDialog extends MultiPageDialog {
 
 	private static final long serialVersionUID = 1L;
 
@@ -51,7 +51,7 @@ public class RepositoryDialog extends MultiPageDialog {
 
 	private final JRadioButton remoteButton;
 	
-	private RepositoryDialog() {
+	private NewRepositoryDialog() {
 		super(RapidMinerGUI.getMainFrame(), "repositorydialog", true);
 
 		Box firstPage = new Box(BoxLayout.Y_AXIS);
@@ -73,7 +73,7 @@ public class RepositoryDialog extends MultiPageDialog {
 	}
 	
 	public static void createNew() {
-		RepositoryDialog d = new RepositoryDialog();
+		NewRepositoryDialog d = new NewRepositoryDialog();
 		d.setVisible(true);
 	}
 	

@@ -39,6 +39,8 @@ import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryListener;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.repository.gui.LocalRepositoryPanel;
+import com.rapidminer.repository.gui.RepositoryConfigurationPanel;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
 
@@ -51,7 +53,7 @@ public class LocalRepository extends SimpleFolder implements Repository {
 
 	private final EventListenerList listeners = new EventListenerList();
 
-	private final File root;
+	private File root;
 
 	public LocalRepository(String name, File root) throws RepositoryException {
 		super(name, null, null);		
@@ -64,7 +66,7 @@ public class LocalRepository extends SimpleFolder implements Repository {
 		}
 	}
 
-	protected File getRoot() {
+	public File getRoot() {
 		return this.root;
 	}	
 
@@ -78,6 +80,10 @@ public class LocalRepository extends SimpleFolder implements Repository {
 	@Override
 	public File getFile() {
 		return getRoot();
+	}
+	
+	public void setRoot(File root) {
+		this.root = root;
 	}
 
 	@Override
@@ -176,6 +182,16 @@ public class LocalRepository extends SimpleFolder implements Repository {
 
 	@Override
 	public void preRemove() {
+	}
+
+	@Override
+	public boolean isConfigurable() {
+		return true;
+	}
+
+	@Override
+	public RepositoryConfigurationPanel makeConfigurationPanel() {
+		return new LocalRepositoryPanel();
 	}
 
 }

@@ -67,7 +67,7 @@ public class GlobalAuthenticator extends Authenticator {
 			}
 		}
 		LogService.getRoot().info("Authentication requested for unknown URL: "+url);
-		return PasswordDialog.getPasswordAuthentication(url.toString(), false);
+		return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
 	}
 
 	public static void init() {

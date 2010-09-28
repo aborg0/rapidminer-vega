@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
@@ -41,6 +40,7 @@ import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ExtendedJTabbedPane;
 import com.rapidminer.gui.tools.ExtendedJTable;
 import com.rapidminer.gui.tools.ProgressThread;
+import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
@@ -160,13 +160,19 @@ public class ExcelWorkbookPane extends JPanel {
 		this.add(sheetsPane);
 	}
 
-	public void loadWorkbook() {
+	public void loadWorkbook() { 
+		// add dummy
 		sheetsPane.removeAll();
-		new ProgressThread("load_workbook") {
+		JPanel dummy = new JPanel();
+		dummy.add(new ResourceLabel("loading_excel_sheets"));
+		sheetsPane.addTab("Pending...", dummy);
+
+		new ProgressThread("load_workbook", false) {
 			@Override
 			public void run() {
 				// initializing progress
-				getProgressListener().setTotal(1);
+				getProgressListener().setTotal(100);
+				getProgressListener().setCompleted(10);
 
 				// loading workbook if necessary
 				try {
@@ -193,10 +199,6 @@ public class ExcelWorkbookPane extends JPanel {
 
 						@Override
 						public void run() {
-							// add dummy
-							JPanel dummy = new JPanel();
-							dummy.add(new JLabel("Loading Excel Sheets"));
-							sheetsPane.addTab("  ", dummy);
 							tables = new ExtendedJTable[finalWorkbook.getNumberOfSheets()];
 
 							String[] sheetNames = finalWorkbook.getSheetNames();

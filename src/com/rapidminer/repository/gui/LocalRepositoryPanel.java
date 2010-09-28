@@ -22,6 +22,7 @@
  */
 package com.rapidminer.repository.gui;
 
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -36,13 +37,14 @@ import javax.swing.JTextField;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.repository.Repository;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.repository.local.LocalRepository;
 /**
  * @author Simon Fischer
  */
-public class LocalRepositoryPanel extends JPanel {
+public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurationPanel {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -103,7 +105,8 @@ public class LocalRepositoryPanel extends JPanel {
 		aliasField.selectAll();
 		fileField.selectAll();
 	}
-	
+
+	@Override
 	public void makeRepository() {
 		File file = new File(fileField.getText());
 		file.mkdir();
@@ -116,5 +119,23 @@ public class LocalRepositoryPanel extends JPanel {
 		} catch (RepositoryException e) {
 			SwingTools.showSimpleErrorMessage("cannot_create_repository", e);
 		}
+	}
+
+	@Override
+	public void configureUIElementsFrom(Repository repository) {
+		aliasField.setText(((LocalRepository) repository).getName());
+		fileField.setText(((LocalRepository) repository).getRoot().getAbsolutePath());
+	}
+
+	@Override
+	public boolean configure(Repository repository) {
+		((LocalRepository) repository).setRoot(new File(fileField.getText()));
+		((LocalRepository) repository).rename(aliasField.getText());
+		return true;
+	}
+
+	@Override
+	public Component getComponent() {
+		return this;
 	}
 }

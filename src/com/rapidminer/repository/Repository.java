@@ -24,6 +24,8 @@ package com.rapidminer.repository;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import com.rapidminer.repository.gui.RepositoryConfigurationPanel;
 /**
  * @author Simon Fischer
  */
@@ -49,4 +51,8 @@ public interface Repository extends Folder {
 	
 	public void preRemove();
 
+	/** Returns true if the repository is configurable. In that case,*/
+	public boolean isConfigurable();
+	
+	public RepositoryConfigurationPanel makeConfigurationPanel(); 
 }

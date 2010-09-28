@@ -37,8 +37,8 @@ import com.rapidminer.repository.RepositoryLocation;
  * @author Tobias Malbrecht, Sebastian Loh, Sebastian Land
  */
 public class ExcelImportWizard extends DataImportWizard {
-	private static final long serialVersionUID = -4308448171060612833L;
 
+	private static final long serialVersionUID = -4308448171060612833L;
 	
 	public ExcelImportWizard(ExcelExampleSource source, ConfigurationListener listener, final boolean showStoreInRepositoryStep, RepositoryLocation preselectedLocation,String i18nKey, Object... i18nArgs) throws UndefinedParameterError {
 		super(i18nKey, i18nArgs);
@@ -51,10 +51,10 @@ public class ExcelImportWizard extends DataImportWizard {
 		}
 		
 		// adding steps
-		AnnotationDeclarationWizardStep annotationStep = new AnnotationDeclarationWizardStep();
+		AnnotationDeclarationWizardStep annotationStep = new AnnotationDeclarationWizardStep(configuration);
 		
 		addStep(new ExcelFileSelectionWizardStep(this, configuration));
-		addStep(new ExcelSheetSelectionWizardStep(configuration, annotationStep));
+		addStep(new ExcelSheetSelectionWizardStep(configuration));
 		addStep(annotationStep);
 		addStep(new MetaDataDeclarationWizardStep(annotationStep));
 //

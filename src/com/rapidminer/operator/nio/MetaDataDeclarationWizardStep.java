@@ -23,22 +23,19 @@
 package com.rapidminer.operator.nio;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
-import java.util.EventObject;
+import java.util.Iterator;
 
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTable;
-import javax.swing.event.CellEditorListener;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
 
 import com.rapidminer.datatable.DataTableExampleSetAdapter;
+import com.rapidminer.example.AttributeRole;
+import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
-import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
+import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.gui.tools.table.EditableHeaderJTable;
 import com.rapidminer.gui.viewer.DataTableViewerTable;
 import com.rapidminer.operator.OperatorException;
@@ -47,7 +44,7 @@ import com.rapidminer.operator.OperatorException;
  * This Wizard Step might be used to defined
  * the meta data of each attribute.
  * 
- * @author Sebastian Land
+ * @author Sebastian Land, Simon Fischer
  */
 public class MetaDataDeclarationWizardStep extends WizardStep {
 
@@ -57,31 +54,13 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	
 	private DataResultSetTranslator translator = null;
 	private DataResultSetTranslationConfiguration config;
-	private DataResultSet resultSet;
+	//private DataResultSet resultSet;
 
 	private ExampleSet exampleSet;
 	
-	
 	public MetaDataDeclarationWizardStep(AnnotationDeclarationWizardStep previousStep) {
-		super("key"); // TODO
-		
+		super("importwizard.metadata");		
 		this.previousStep = previousStep;
-	}
-
-	/**
-	 * This method is the main passing point from system depended wizard steps to the general meta data definition
-	 * steps. Here the resultSet can be set. If
-	 */
-	public void setDataResultSet(DataResultSet resultSet) {
-		if (translator != null) {
-			try {
-				translator.close();
-			} catch (OperatorException e) {
-				// TODO: show error dialog
-			}
-		}
-		this.resultSet = resultSet;
-		translator = new DataResultSetTranslator(resultSet);
 	}
 
 	@Override
@@ -90,54 +69,22 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		this.config = previousStep.getConfiguration();
 		this.exampleSet = previousStep.getParsedExampleSet();
 		
+		// Copy name annotations to name
+		int nameIndex = config.getNameRow();
+		if (nameIndex != -1) {
+			Example nameRow = exampleSet.getExample(nameIndex);
+			int i = 0;
+			Iterator<AttributeRole> r = exampleSet.getAttributes().allAttributeRoles();
+			while (r.hasNext()) {
+				config.getColumnMetaData(i).setUserDefinedAttributeName(nameRow.getValueAsString(r.next().getAttribute()));
+				i++;
+			}
+		}
+		
 		JTable table = new DataTableViewerTable(new DataTableExampleSetAdapter(exampleSet, null), false, false, false);
-
-		TableCellRenderer headerRenderer = new TableCellRenderer() {
-			
-			@Override
-			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-				return new JComboBox(new String[] {"Hurz", "Hurz"});
-			}
-		};
-		TableCellEditor headerEditor = new TableCellEditor() {
-			@Override
-			public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-				return new JComboBox(new String[] {"Hurz", "Hurz"});
-			}
-
-			@Override
-			public void addCellEditorListener(CellEditorListener l) {
-			}
-
-			@Override
-			public void cancelCellEditing() {
-			}
-
-			@Override
-			public Object getCellEditorValue() {
-				return "Hurz2";
-			}
-
-			@Override
-			public boolean isCellEditable(EventObject anEvent) {
-				return true;
-			}
-
-			@Override
-			public void removeCellEditorListener(CellEditorListener l) {
-			}
-
-			@Override
-			public boolean shouldSelectCell(EventObject anEvent) {
-				return false;
-			}
-
-			@Override
-			public boolean stopCellEditing() {
-				return true;
-			}
-		};
-		EditableHeaderJTable.installEditableHeader(table, headerRenderer, headerEditor, new String[table.getColumnCount()]);
+		MetaDataTableHeaderCellEditor headerEditor = new MetaDataTableHeaderCellEditor();
+		MetaDataTableHeaderCellEditor headerRenderer = new MetaDataTableHeaderCellEditor();
+		EditableHeaderJTable.installEditableHeader(table, headerRenderer, headerEditor, config.getColumnMetaData());
 		panel.add(new ExtendedJScrollPane(table), BorderLayout.CENTER);
 		return true;
 	}
@@ -146,9 +93,12 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	protected boolean performLeavingAction(WizardStepDirection direction) {
 		if (direction == WizardStepDirection.FINISH) {
 			try {
-				translator.close();
+				if (translator != null) {
+					translator.close();
+				}
 			} catch (OperatorException e) {
 				// TODO: Show error dialog
+				e.printStackTrace();
 			}
 		} 
 		return true;
@@ -168,5 +118,4 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	protected JComponent getComponent() {
 		return panel;
 	}
-
 }

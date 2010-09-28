@@ -23,6 +23,7 @@
 package com.rapidminer.operator.nio;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.util.Collections;
 import java.util.TreeMap;
 
@@ -38,8 +39,8 @@ import com.rapidminer.datatable.DataTableExampleSetAdapter;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ProgressThread;
-import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
+import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.gui.viewer.DataTableColumnEditTable;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.tools.container.Pair;
@@ -57,97 +58,97 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 	private ExampleSet exampleSet;
 	private DataResultSet resultSet;
 	private DataTableColumnEditTable table;
-	
-	public AnnotationDeclarationWizardStep() {
-		super("key"); // TODO
-	}
+	private int maxRows;
+	private DataResultSetFactory dataResultSetFactory;
 
-	/**
-	 * This method is the main passing point from system depended wizard steps to the general meta data definition
-	 * steps. Here the resultSet can be set. If
-	 */
-	public void setDataResultSet(DataResultSet resultSet) {
-		if (translator != null) {
-			try {
-				translator.close();
-			} catch (OperatorException e) {
-				// TODO: show error dialog
-			}
+	public AnnotationDeclarationWizardStep(DataResultSetFactory dataResultSetFactory ) {
+		super("importwizard.annotations");
+		this.dataResultSetFactory = dataResultSetFactory;
+
+		try {
+			maxRows = Integer.parseInt(RapidMiner.getRapidMinerPropertyValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_MAX_TEST_ROWS));
+		} catch (NumberFormatException e) {
+			maxRows = 100;
 		}
-		this.resultSet = resultSet;
-		translator = new DataResultSetTranslator(resultSet);
+		TableCellRenderer renderer = new DefaultTableCellRenderer() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public Component getTableCellRendererComponent(javax.swing.JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+				if (value == null) {
+					value = "";
+				}
+				return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, maxRows, column);
+			};
+		};
+		Pair<TableCellRenderer, TableCellEditor> pair = new Pair<TableCellRenderer, TableCellEditor>(renderer, new AnnotationCellEditor());
+		table = new DataTableColumnEditTable(null, 
+				Collections.singletonList("Annotations"), 
+				Collections.singletonList(pair), true, false, false);
+
+		panel.add(new ExtendedJScrollPane(table), BorderLayout.CENTER);
 	}
 
 	@Override
 	protected boolean performEnteringAction(WizardStepDirection direction) {
-		panel.removeAll();
-		try {
-			this.config = new DataResultSetTranslationConfiguration(resultSet);
-		} catch (OperatorException e1) {
-			// TODO: Show error, abort
-			e1.printStackTrace();
-		}
+		if (direction == WizardStepDirection.FORWARD) {
+			new ProgressThread("guessing_value_types") {
+				@Override
+				public void run() {
+					getProgressListener().setTotal(100);
+					getProgressListener().setCompleted(10);
 
-		int maxRows = 100;
-		try {
-			maxRows = Integer.parseInt(RapidMiner.getRapidMinerPropertyValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_MAX_TEST_ROWS));
-		} catch (NumberFormatException e) {
-		}
-		final int finalMaxRows = maxRows;
-		new ProgressThread("") {
-
-			@Override
-			public void run() {
-				try {
-					config = translator.guessValueTypes(config, resultSet, finalMaxRows, getProgressListener());
-					exampleSet = translator.read(config, true, finalMaxRows, getProgressListener());
-
-					// visualize exampleSet
-					TableCellRenderer renderer = new DefaultTableCellRenderer() {
-						private static final long serialVersionUID = 1L;
-						@Override
-						public java.awt.Component getTableCellRendererComponent(javax.swing.JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-							if (value == null)
-								value = "";
-							return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, finalMaxRows, column);
-						};
-					};
-					Pair<TableCellRenderer, TableCellEditor> pair = new Pair<TableCellRenderer, TableCellEditor>(renderer, new AnnotationCellEditor());
-
-					table = new DataTableColumnEditTable(new DataTableExampleSetAdapter(exampleSet, null), Collections.singletonList("Annotations"), Collections.singletonList(pair), true, false, false);
-					SwingUtilities.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							panel.add(new ExtendedJScrollPane(table), BorderLayout.CENTER);
-
-							table.pack();
-							panel.revalidate();
+					try {
+						if (translator != null) {
+							translator.close();
 						}
-					});
-				} catch (OperatorException e) {
-					// TODO: Show error dialog
-				}
-			}
-		}.start();
+						resultSet = dataResultSetFactory.makeDataResultSet(null);
+						translator = new DataResultSetTranslator(resultSet);
+						getProgressListener().setCompleted(30);
+						
+						config = new DataResultSetTranslationConfiguration(resultSet);
+						getProgressListener().setCompleted(40);					
+						config = translator.guessValueTypes(config, resultSet, maxRows, getProgressListener());
+						getProgressListener().setCompleted(60);
+						exampleSet = translator.read(config, true, maxRows, getProgressListener());
+						getProgressListener().setCompleted(80);
 
+						SwingUtilities.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								table.setDataTable(new DataTableExampleSetAdapter(exampleSet, null));
+							}
+						});
+					} catch (OperatorException e) {					
+						// TODO: Show error dialog
+						e.printStackTrace();
+					} finally {
+						getProgressListener().complete();
+					}
+				}
+			}.start();
+		}
 		return true;
 	}
 
 	@Override
 	protected boolean performLeavingAction(WizardStepDirection direction) {
 		if (direction == WizardStepDirection.BACKWARD || direction == WizardStepDirection.FINISH) {
-			try {
-				translator.close();
-			} catch (OperatorException e) {
-				// TODO: Show error dialog
+			if (translator != null) {
+				try {
+
+					translator.close();
+				} catch (OperatorException e) {
+					// TODO: Show error dialog
+					e.printStackTrace();
+				}
 			}
 		} else if (direction == WizardStepDirection.FORWARD) {
 			if (exampleSet == null || table == null)
 				return false;
-			
+
 			// modify configuration according to done annotations
 			TreeMap<Integer, String> annotationsMap = new TreeMap<Integer, String>();
-			
+
 			Object[] annotations = table.getEnteredValues(0);
 			for (int i = 0; i < annotations.length; i++) {
 				if (annotations[i] != null) {
@@ -158,7 +159,7 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 		}
 		return true;
 	}
-	
+
 	@Override
 	protected boolean canGoBack() {
 		return true;
@@ -177,7 +178,7 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 	public DataResultSetTranslationConfiguration getConfiguration() {
 		return config;
 	}
-	
+
 	public ExampleSet getParsedExampleSet() {
 		return exampleSet;
 	}

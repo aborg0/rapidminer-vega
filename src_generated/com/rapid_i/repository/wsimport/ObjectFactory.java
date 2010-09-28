@@ -79,11 +79,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link ExecutionResponse }
+     * Create an instance of {@link Response }
      * 
      */
-    public ExecutionResponse createExecutionResponse() {
-        return new ExecutionResponse();
+    public Response createResponse() {
+        return new Response();
     }
 
     /**
@@ -207,11 +207,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link Response }
+     * Create an instance of {@link ExecutionResponse }
      * 
      */
-    public Response createResponse() {
-        return new Response();
+    public ExecutionResponse createExecutionResponse() {
+        return new ExecutionResponse();
     }
 
     /**

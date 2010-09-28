@@ -56,7 +56,9 @@ public interface Entry {
 	public boolean rename(String newName) throws RepositoryException;
 	
 	/** Needs to be implemented only for folders in the same repository. 
-	 *  Moving between different repositories is copy + delete.
+	 *  Moving between different repositories is implemented by 
+	 *  {@link RepositoryManager#move(RepositoryLocation, Folder, com.rapidminer.tools.ProgressListener)}
+	 *  using a sequence of copy and delete.
 	 * @throws RepositoryException */
 	public boolean move(Folder newParent) throws RepositoryException;
 	

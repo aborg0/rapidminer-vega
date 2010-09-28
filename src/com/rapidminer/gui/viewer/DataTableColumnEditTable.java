@@ -54,14 +54,25 @@ public class DataTableColumnEditTable extends ExtendedJTable implements DataTabl
 
 	private DataTableColumnEditTableModel model;
 
-	public DataTableColumnEditTable(DataTable dataTable, List<String> editableColumnNames, List<Pair<TableCellRenderer, TableCellEditor>> cellComponents, boolean sortable, boolean columnMovable, boolean autoResize) {
-		super(sortable, columnMovable, autoResize);
+	private List<String> editableColumnNames;
+	private List<Pair<TableCellRenderer, TableCellEditor>> cellComponents;
 
+	public DataTableColumnEditTable(DataTable dataTable, List<String> editableColumnNames, List<Pair<TableCellRenderer, TableCellEditor>> cellComponents, boolean sortable, boolean columnMovable, boolean autoResize) {
+		super(sortable, columnMovable, autoResize);		
+		this.editableColumnNames = editableColumnNames;
+		this.cellComponents = cellComponents;
+		
+		if (model != null) {
+			setDataTable(dataTable);
+		}
+	}
+	
+	public void setDataTable(DataTable dataTable) {
 		// constructing model
 		model = new DataTableColumnEditTableModel(dataTable, editableColumnNames);
 		setModel(model);
 		int i = 0;
-		for (Pair<TableCellRenderer, TableCellEditor> cellComponent: cellComponents) {
+		for (Pair<TableCellRenderer, TableCellEditor> cellComponent : cellComponents) {
 			TableColumn column = getColumnModel().getColumn(i);	
 			column.setCellEditor(cellComponent.getSecond());
 			column.setCellRenderer(cellComponent.getFirst());

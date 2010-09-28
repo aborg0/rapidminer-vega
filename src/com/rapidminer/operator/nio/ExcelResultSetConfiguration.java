@@ -31,6 +31,8 @@ import java.io.File;
 
 import jxl.Workbook;
 
+import com.rapidminer.operator.Operator;
+import com.rapidminer.operator.OperatorException;
 import com.rapidminer.parameter.UndefinedParameterError;
 
 /**
@@ -38,7 +40,7 @@ import com.rapidminer.parameter.UndefinedParameterError;
  * 
  * @author Sebastian Land
  */
-public class ExcelResultSetConfiguration {
+public class ExcelResultSetConfiguration implements DataResultSetFactory {
 
 	private int rowOffset = 0;
 	private int columnOffset = 0;
@@ -109,7 +111,8 @@ public class ExcelResultSetConfiguration {
 	}
 
 	/**
-	 * This will return a workbook if already delivered with the configuration. This mustn't be closed!
+	 * This will return a workbook if already delivered with the configuration. This 
+	 * workbook must not be closed!
 	 */
 	public Workbook getWorkbook() {
 		return preOpenedWorkbook;
@@ -122,11 +125,9 @@ public class ExcelResultSetConfiguration {
 		return workbookFile;
 	}
 
-	
-
-	public void setPreOpenedWorkbook(Workbook preOpenedWorkbook) {
-		this.preOpenedWorkbook = preOpenedWorkbook;
-	}
+//	public void setPreOpenedWorkbook(Workbook preOpenedWorkbook) {
+//		this.preOpenedWorkbook = preOpenedWorkbook;
+//	}
 
 	/**
 	 * This will set the workbook file. It will assure that an existing preopened workbook will be closed if files
@@ -169,5 +170,10 @@ public class ExcelResultSetConfiguration {
 
 	public void setColumnOffset(int columnOffset) {
 		this.columnOffset = columnOffset;
+	}
+
+	@Override
+	public DataResultSet makeDataResultSet(Operator operator) throws OperatorException {
+		return new ExcelResultSet(operator, this);
 	}
 }

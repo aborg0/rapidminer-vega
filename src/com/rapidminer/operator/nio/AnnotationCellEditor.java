@@ -31,7 +31,6 @@ import javax.swing.JComboBox;
 import javax.swing.JTable;
 
 import com.rapidminer.operator.Annotations;
-import com.rapidminer.operator.io.ExcelExampleSource;
 
 /**
  * This is the cell editor for annotation cells. They are by default colored in light gray
@@ -43,7 +42,7 @@ import com.rapidminer.operator.io.ExcelExampleSource;
 public class AnnotationCellEditor extends DefaultCellEditor {
 
 	public static final String NONE = "-";
-	public static final String NAME = ExcelExampleSource.ANNOTATION_NAME;
+	public static final String NAME = Annotations.ANNOTATION_NAME;
 	
 	private static final long serialVersionUID = 1L;
 	private Color background;
