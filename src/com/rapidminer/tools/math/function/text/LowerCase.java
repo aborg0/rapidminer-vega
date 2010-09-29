@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.tools.math.function.expressions;
+package com.rapidminer.tools.math.function.text;
 
 import java.util.Stack;
 
@@ -28,22 +28,30 @@ import org.nfunk.jep.ParseException;
 import org.nfunk.jep.function.PostfixMathCommand;
 
 /**
- * Calculates a constant.
+ * Transforms the given string to lower case characters.
  * 
  * @author Ingo Mierswa
  */
-public class Constant extends PostfixMathCommand {
+public class LowerCase extends PostfixMathCommand {
 
-	public Constant() {
+	public LowerCase() {
 		numberOfParameters = 1;
 	}
-
-	@Override
+	
 	@SuppressWarnings("unchecked")
-	public void run(Stack inStack) throws ParseException {
-		checkStack(inStack);// check the stack
-		Object param = inStack.pop();
-		inStack.push(param);//push the result on the inStack
-		return;
+	@Override
+	public void run(Stack stack) throws ParseException {
+		if (stack.size() != 1)
+			throw new ParseException("Needs one argument: The text which should be transformed to lower case.");
+
+		// initialize the result to the first argument
+		Object textObject = stack.pop();
+		if (!(textObject instanceof String)) {
+			throw new ParseException("Invalid argument type, must be (string)");
+		}
+		
+		String text = (String) textObject;
+		
+		stack.push(text.toLowerCase());
 	}
 }

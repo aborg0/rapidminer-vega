@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.tools.math.function.expressions;
+package com.rapidminer.tools.math.function.text;
 
 import java.util.Stack;
 
@@ -28,22 +28,31 @@ import org.nfunk.jep.ParseException;
 import org.nfunk.jep.function.PostfixMathCommand;
 
 /**
- * Calculates a constant.
+ * Parses the given string and puts the number on the result stack.
  * 
- * @author Ingo Mierswa
+ * @author Sebastian Land
  */
-public class Constant extends PostfixMathCommand {
+public class ParseNumber extends PostfixMathCommand {
 
-	public Constant() {
+	public ParseNumber() {
 		numberOfParameters = 1;
 	}
 
-	@Override
 	@SuppressWarnings("unchecked")
-	public void run(Stack inStack) throws ParseException {
-		checkStack(inStack);// check the stack
-		Object param = inStack.pop();
-		inStack.push(param);//push the result on the inStack
-		return;
+	public void run(Stack stack) throws ParseException {
+		if (stack.size() < 1)
+			throw new ParseException("Needs one argument: The string to be converted into a number");
+
+		// initialize the result to the first argument
+		Object value = stack.pop();
+		if (!(value instanceof String)) {
+			throw new ParseException(
+					"Invalid argument type, only strings are supported.");
+		}
+		try {
+			stack.push(Double.parseDouble((String) value));
+		} catch (NumberFormatException e) {
+			throw new ParseException("String '" + value + "' is not a number." );
+		}
 	}
 }

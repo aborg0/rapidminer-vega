@@ -23,8 +23,13 @@
 package com.rapidminer.operator.nio;
 
 import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
 import java.util.Iterator;
 
+import javax.swing.Action;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTable;
@@ -34,6 +39,8 @@ import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
+import com.rapidminer.gui.tools.ResourceAction;
+import com.rapidminer.gui.tools.ResourceActionAdapter;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.gui.tools.table.EditableHeaderJTable;
@@ -57,15 +64,60 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	//private DataResultSet resultSet;
 
 	private ExampleSet exampleSet;
-	
+
+	private JComponent tableComponent;
+
+	/** Publicly exposes the method {@link #configurePropertiesFromAction(Action)} public. */
+	private class ReconfigurableButton extends JButton {
+		private static final long serialVersionUID = 1L;
+		private ReconfigurableButton(Action action) {
+			super(action);
+		}
+		@Override
+		public void configurePropertiesFromAction(Action a) {
+			super.configurePropertiesFromAction(a);
+		}
+	}
+	private Action reloadAction = new ResourceAction("wizard.validate_value_types") {
+		private static final long serialVersionUID = 1L;
+		@Override public void actionPerformed(ActionEvent e) { toggleReload(); }		
+	};
+	private Action cancelReloadAction = new ResourceAction("wizard.abort_validate_value_types") {
+		private static final long serialVersionUID = 1L;
+		@Override public void actionPerformed(ActionEvent e) { toggleReload(); }		
+	};
+	private ReconfigurableButton reloadButton = new ReconfigurableButton(reloadAction);
+
+	private Action guessValueTypes = new ResourceAction("wizard.guess_value_types") {
+		private static final long serialVersionUID = 1L;
+		@Override public void actionPerformed(ActionEvent e) { toggleGuessValueTypes(); }		
+	};
+	private Action cancelGuessValueTypes = new ResourceAction("wizard.abort_guess_value_types") {
+		private static final long serialVersionUID = 1L;
+		@Override public void actionPerformed(ActionEvent e) { toggleGuessValueTypes(); }		
+	};
+	private ReconfigurableButton guessButton = new ReconfigurableButton(guessValueTypes);
+
+	private JCheckBox errorsAsMissingBox = new JCheckBox(new ResourceActionAdapter("wizard.error_tolerant"));
+	private JCheckBox filterErrorsBox = new JCheckBox(new ResourceActionAdapter("wizard.show_error_rows"));
+		
 	public MetaDataDeclarationWizardStep(AnnotationDeclarationWizardStep previousStep) {
 		super("importwizard.metadata");		
 		this.previousStep = previousStep;
+		
+		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		buttonPanel.add(reloadButton);
+		buttonPanel.add(guessButton);
+		buttonPanel.add(errorsAsMissingBox);
+		buttonPanel.add(filterErrorsBox);
+		panel.add(buttonPanel, BorderLayout.NORTH);
 	}
 
 	@Override
 	protected boolean performEnteringAction(WizardStepDirection direction) {
-		panel.removeAll();
+		if (tableComponent != null) {
+			panel.remove(tableComponent);
+		}
 		this.config = previousStep.getConfiguration();
 		this.exampleSet = previousStep.getParsedExampleSet();
 		
@@ -85,7 +137,8 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		MetaDataTableHeaderCellEditor headerEditor = new MetaDataTableHeaderCellEditor();
 		MetaDataTableHeaderCellEditor headerRenderer = new MetaDataTableHeaderCellEditor();
 		EditableHeaderJTable.installEditableHeader(table, headerRenderer, headerEditor, config.getColumnMetaData());
-		panel.add(new ExtendedJScrollPane(table), BorderLayout.CENTER);
+		tableComponent = new ExtendedJScrollPane(table);
+		panel.add(tableComponent, BorderLayout.CENTER);
 		return true;
 	}
 
@@ -118,4 +171,48 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	protected JComponent getComponent() {
 		return panel;
 	}
+	
+	private void reload() {
+		reloadButton.configurePropertiesFromAction(cancelReloadAction);
+	}
+	
+	private void cancelReload() {
+		reloadButton.configurePropertiesFromAction(reloadAction);
+	}
+	
+	private void guessValueTypes() {
+		guessButton.configurePropertiesFromAction(cancelGuessValueTypes);
+	}
+	
+	private void cancelGuessing() {
+		guessButton.configurePropertiesFromAction(guessValueTypes);		
+	}
+	
+	private Object GUESS_LOCK = new Object();
+	private Object RELOAD_LOCK = new Object();
+	private boolean isGuessing = false;
+	private boolean isReloading = false;
+	
+	private void toggleGuessValueTypes() {
+		synchronized (GUESS_LOCK) {
+			isGuessing = !isGuessing;
+			if (isGuessing) {
+				guessValueTypes();
+			} else {
+				cancelGuessing();				
+			}
+		}
+	}
+
+	private void toggleReload() {
+		synchronized (RELOAD_LOCK) {
+			isReloading = !isReloading;
+			if (isReloading) {
+				reload();
+			} else {
+				cancelReload();				
+			}
+		}
+	}
+
 }

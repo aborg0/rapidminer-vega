@@ -56,6 +56,7 @@ public class RemoteProcessEntry extends RemoteDataEntry implements ProcessEntry 
 					throw new RepositoryException("Cannot fetch process: "+response.getErrorMessage());
 				} else {
 					xml = response.getContents();
+					//setDate(getRepository().getRepositoryService().getEntry(getPath()).getDate());
 				}
 			}
 		}

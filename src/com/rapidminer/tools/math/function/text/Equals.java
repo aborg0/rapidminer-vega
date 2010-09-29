@@ -20,44 +20,41 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.tools.math.function.expressions;
+package com.rapidminer.tools.math.function.text;
 
-import java.util.ArrayList;
 import java.util.Stack;
 
 import org.nfunk.jep.ParseException;
 import org.nfunk.jep.function.PostfixMathCommand;
 
 /**
- * This command realizes String concatenation.
+ * Compares the two given texts. The result is true if and only if the first argument represents 
+ * the same sequence of characters as the second argument.
  * 
- * @author Sebastian Land
+ * @author Ingo Mierswa
  */
-public class Concat extends PostfixMathCommand{
-	public Concat() {
-		numberOfParameters = -1;
+public class Equals extends PostfixMathCommand {
+
+	public Equals() {
+		numberOfParameters = 2;
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		if (stack.size() < 2 || curNumberOfParameters < 2)
-			throw new ParseException("Needs at least two string arguments.");
+		if (stack.size() != 2)
+			throw new ParseException("Needs two arguments: The two texts which should be compared.");
 
 		// initialize the result to the first argument
-		ArrayList<String> strings = new ArrayList<String>();
-		for (int i = 0; i < curNumberOfParameters; i++) {
-			Object string = stack.pop();
-			if (!(string instanceof String)) {
-				throw new ParseException("Invalid argument type, only strings are allowed for 'concat'.");
-			}
-			strings.add((String) string);
+		Object secondTextObject = stack.pop();
+		Object firstTextObject = stack.pop();
+		if (!(firstTextObject instanceof String) || !(secondTextObject instanceof String)) {
+			throw new ParseException("Invalid argument types, must be (string, string)");
 		}
-
-		StringBuilder builder = new StringBuilder();
-		for (int i = curNumberOfParameters - 1; i>= 0; i--) {
-			builder.append(strings.get(i));
-		}
-		stack.push(builder.toString());
+		
+		String firstText  = (String) firstTextObject;
+		String secondText = (String) secondTextObject;
+		
+		stack.push(firstText.equals(secondText));
 	}
 }

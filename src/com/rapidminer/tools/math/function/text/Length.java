@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.tools.math.function.expressions;
+package com.rapidminer.tools.math.function.text;
 
 import java.util.Stack;
 
@@ -28,37 +28,30 @@ import org.nfunk.jep.ParseException;
 import org.nfunk.jep.function.PostfixMathCommand;
 
 /**
- * Replaces substrings by matching targetSequence to given string.
- * @author Sebastian Land
+ * Returns the length of the given string.
+ * 
+ * @author Ingo Mierswa
  */
-public class Replace extends PostfixMathCommand {
+public class Length extends PostfixMathCommand {
 
-	public Replace() {
-		numberOfParameters = 3;
+	public Length() {
+		numberOfParameters = 1;
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		if (stack.size() < 3)
-			throw new ParseException("Needs three arguments: The string, the target and the replacement string.");
+		if (stack.size() != 1)
+			throw new ParseException("Needs one argument: The text for which the length should be calculated.");
 
 		// initialize the result to the first argument
-		Object byObject = stack.pop();
-		Object whatObject = stack.pop();
 		Object textObject = stack.pop();
-		if (!(textObject instanceof String) || !(byObject instanceof String) || !(whatObject instanceof String)) {
-			throw new ParseException(
-					"Invalid argument type, must be (string, string, string)");
+		if (!(textObject instanceof String)) {
+			throw new ParseException("Invalid argument type, must be (string)");
 		}
-
-		String by = (String) byObject;
-		String what = (String) whatObject;
-		String text = (String) textObject;
-
-		if (what.length() == 0)
-			throw new ParseException("The target String must contain text");
 		
-		stack.push(text.replace(what, by));
+		String text = (String) textObject;
+		
+		stack.push(text.length());
 	}
 }

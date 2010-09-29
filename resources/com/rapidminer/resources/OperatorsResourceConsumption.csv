@@ -13,7 +13,10 @@ class com.rapidminer.operator.learner.bayes.NaiveBayes;318;1;1;0;0;0
 class com.rapidminer.operator.learner.lazy.KNNLearner;215;1;1;0;0;0
 
 
-com.rapidminer.operator.learner.functions.LinearRegression;1;1;1;0;0;0
+class com.rapidminer.operator.learner.functions.LinearRegression;13;2.65;1;0;0;0
+
+
+class com.rapidminer.operator.learner.functions.kernel.JMySVMLearner;25;2;1;0;0;0
 
 
 class com.rapidminer.operator.preprocessing.discretization.AbsoluteDiscretization;4944;1;1;0;0;0

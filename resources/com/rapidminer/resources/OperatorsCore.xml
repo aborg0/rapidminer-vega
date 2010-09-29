@@ -684,12 +684,12 @@
                <class>com.rapidminer.operator.io.ExcelExampleSource</class>
                <replaces>ExcelExampleSource</replaces>
             </operator>
-
+<!-- 
             <operator>
             	 <key>read_excel_new</key>
             	 <class>com.rapidminer.operator.nio.ExcelExampleSource</class>
 			</operator>
-
+ -->
             <operator>
                <key>read_access</key>
                <class>com.rapidminer.operator.io.AccessDataReader</class>

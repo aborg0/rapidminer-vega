@@ -314,6 +314,8 @@ public class XMLTools {
 		xmlGregorianCalendar.setHour(calendar.get(Calendar.HOUR_OF_DAY));
 		xmlGregorianCalendar.setMinute(calendar.get(Calendar.MINUTE));
 		xmlGregorianCalendar.setSecond(calendar.get(Calendar.SECOND));
+		xmlGregorianCalendar.setMillisecond(calendar.get(Calendar.MILLISECOND));
+		//xmlGregorianCalendar.setTimezone(calendar.get(((Calendar.DST_OFFSET)+calendar.get(Calendar.ZONE_OFFSET))/(60*1000)));
 		return xmlGregorianCalendar;
 	}
 

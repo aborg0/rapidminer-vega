@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.tools.math.function.expressions;
+package com.rapidminer.tools.math.function.text;
 
 import java.util.Stack;
 
@@ -28,36 +28,32 @@ import org.nfunk.jep.ParseException;
 import org.nfunk.jep.function.PostfixMathCommand;
 
 /**
- * Calculates the substring of the given string and pushed it on the result stack.
- * @author Sebastian Land
+ * Returns the index of the search string within a given text.
+ * 
+ * @author Ingo Mierswa
  */
-public class Substring extends PostfixMathCommand {
+public class IndexOf extends PostfixMathCommand {
 
-	public Substring() {
-		numberOfParameters = 3;
+	public IndexOf() {
+		numberOfParameters = 2;
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		if (stack.size() < 3)
-			throw new ParseException("Needs three arguments: The string, the start index and the length");
+		if (stack.size() != 2)
+			throw new ParseException("Needs two arguments: The text in which should be searched and the search string.");
 
 		// initialize the result to the first argument
-		Object length = stack.pop();		
-		Object start = stack.pop();
-		Object stringObject = stack.pop();
-		if (!(stringObject instanceof String) || !(start instanceof Double) || !(length instanceof Double)) {
-			throw new ParseException(
-					"Invalid argument type, must be (string, number, number)");
+		Object indexObject = stack.pop();
+		Object textObject = stack.pop();
+		if (!(textObject instanceof String) || !(indexObject instanceof String)) {
+			throw new ParseException("Invalid argument types, must be (string, string)");
 		}
-		int startI = ((Double) start).intValue();
-		int lenI = ((Double) length).intValue();
-		String string = (String) stringObject;
-		try {
-			stack.push(string.substring(startI, startI + lenI));
-		} catch (IndexOutOfBoundsException e) {
-			throw new ParseException("Invalid argument value: Start and length exceed given string: " + string);
-		}
+		
+		String index = (String) indexObject;
+		String text = (String) textObject;
+		
+		stack.push(text.indexOf(index));
 	}
 }

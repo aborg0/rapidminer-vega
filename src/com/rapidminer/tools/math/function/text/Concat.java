@@ -20,50 +20,44 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.tools.math.function.expressions;
+package com.rapidminer.tools.math.function.text;
 
+import java.util.ArrayList;
 import java.util.Stack;
-import java.util.regex.PatternSyntaxException;
 
 import org.nfunk.jep.ParseException;
 import org.nfunk.jep.function.PostfixMathCommand;
 
 /**
- * Replaces substrings by matching targetRegularExpression to given string and replacing matches
- * by replacement.
+ * This command realizes String concatenation.
+ * 
  * @author Sebastian Land
  */
-public class ReplaceRegex extends PostfixMathCommand {
-
-	public ReplaceRegex() {
-		numberOfParameters = 3;
+public class Concat extends PostfixMathCommand{
+	public Concat() {
+		numberOfParameters = -1;
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		if (stack.size() < 3)
-			throw new ParseException("Needs three arguments: The string, the target and the replacement string.");
+		if (stack.size() < 2 || curNumberOfParameters < 2)
+			throw new ParseException("Needs at least two string arguments.");
 
 		// initialize the result to the first argument
-		Object byObject = stack.pop();
-		Object whatObject = stack.pop();
-		Object textObject = stack.pop();
-		if (!(textObject instanceof String) || !(byObject instanceof String) || !(whatObject instanceof String)) {
-			throw new ParseException(
-					"Invalid argument type, must be (string, string, string)");
+		ArrayList<String> strings = new ArrayList<String>();
+		for (int i = 0; i < curNumberOfParameters; i++) {
+			Object string = stack.pop();
+			if (!(string instanceof String)) {
+				throw new ParseException("Invalid argument type, only strings are allowed for 'concat'.");
+			}
+			strings.add((String) string);
 		}
 
-		String by = (String) byObject;
-		String what = (String) whatObject;
-		String text = (String) textObject;
-
-		if (what.length() == 0)
-			throw new ParseException("The target String must contain text");
-		try {
-		stack.push(text.replaceAll(what, by));
-		} catch (PatternSyntaxException e) {
-			throw new ParseException("Second argument must be regular expression." + e.getMessage());
-		} 
+		StringBuilder builder = new StringBuilder();
+		for (int i = curNumberOfParameters - 1; i>= 0; i--) {
+			builder.append(strings.get(i));
+		}
+		stack.push(builder.toString());
 	}
 }

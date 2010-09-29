@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.tools.math.function.expressions;
+package com.rapidminer.tools.math.function.text;
 
 import java.util.Stack;
 
@@ -28,22 +28,36 @@ import org.nfunk.jep.ParseException;
 import org.nfunk.jep.function.PostfixMathCommand;
 
 /**
- * Calculates a constant.
+ * Calculates the prefix of the given string and pushes it on the result stack. If the 
+ * given string is too short, the complete string will be returned.
  * 
  * @author Ingo Mierswa
  */
-public class Constant extends PostfixMathCommand {
+public class Prefix extends PostfixMathCommand {
 
-	public Constant() {
-		numberOfParameters = 1;
+	public Prefix() {
+		numberOfParameters = 2;
 	}
-
-	@Override
+	
 	@SuppressWarnings("unchecked")
-	public void run(Stack inStack) throws ParseException {
-		checkStack(inStack);// check the stack
-		Object param = inStack.pop();
-		inStack.push(param);//push the result on the inStack
-		return;
+	@Override
+	public void run(Stack stack) throws ParseException {
+		if (stack.size() != 2)
+			throw new ParseException("Needs three arguments: The string and the length");
+
+		// initialize the result to the first argument
+		Object lengthObject = stack.pop();
+		Object textObject = stack.pop();
+		if (!(textObject instanceof String) || !(lengthObject instanceof Number)) {
+			throw new ParseException("Invalid argument type, must be (string, number)");
+		}
+		
+		String text = (String) textObject;
+		int length = Math.min(text.length(), ((Number) lengthObject).intValue());
+		try {
+			stack.push(text.substring(0, length));
+		} catch (IndexOutOfBoundsException e) {
+			stack.push(text);
+		}
 	}
 }

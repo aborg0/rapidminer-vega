@@ -29,6 +29,7 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.learner.functions.kernel.jmysvm.examples.SVMExamples;
 import com.rapidminer.operator.learner.functions.kernel.jmysvm.kernel.Kernel;
 import com.rapidminer.operator.learner.functions.kernel.jmysvm.svm.SVMInterface;
@@ -39,6 +40,7 @@ import com.rapidminer.operator.performance.PerformanceVector;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeDouble;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.RandomGenerator;
 
 
@@ -154,5 +156,10 @@ public class JMySVMLearner extends AbstractMySVMLearner {
 		type.setDeprecated();
 		types.add(type);
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getExampleSetInputPort(), JMySVMLearner.class, null);
 	}
 }

@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.tools.math.function.expressions;
+package com.rapidminer.tools.math.function.text;
 
 import java.util.Stack;
 
@@ -28,22 +28,33 @@ import org.nfunk.jep.ParseException;
 import org.nfunk.jep.function.PostfixMathCommand;
 
 /**
- * Calculates a constant.
+ * Compares the two given texts lexicographically and returns a number smaller than 0 if the first text is smaller, 
+ * a number larger than 0 if the first text is larger, or 0 otherwise.
  * 
  * @author Ingo Mierswa
  */
-public class Constant extends PostfixMathCommand {
+public class Compare extends PostfixMathCommand {
 
-	public Constant() {
-		numberOfParameters = 1;
+	public Compare() {
+		numberOfParameters = 2;
 	}
-
-	@Override
+	
 	@SuppressWarnings("unchecked")
-	public void run(Stack inStack) throws ParseException {
-		checkStack(inStack);// check the stack
-		Object param = inStack.pop();
-		inStack.push(param);//push the result on the inStack
-		return;
+	@Override
+	public void run(Stack stack) throws ParseException {
+		if (stack.size() != 2)
+			throw new ParseException("Needs two arguments: The two texts which should be compared.");
+
+		// initialize the result to the first argument
+		Object secondTextObject = stack.pop();
+		Object firstTextObject = stack.pop();
+		if (!(firstTextObject instanceof String) || !(secondTextObject instanceof String)) {
+			throw new ParseException("Invalid argument types, must be (string, string)");
+		}
+		
+		String firstText  = (String) firstTextObject;
+		String secondText = (String) secondTextObject;
+		
+		stack.push(firstText.compareTo(secondText));
 	}
 }

@@ -58,17 +58,30 @@ import com.rapidminer.tools.LoggingHandler;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.math.function.expressions.Average;
-import com.rapidminer.tools.math.function.expressions.Concat;
 import com.rapidminer.tools.math.function.expressions.Constant;
 import com.rapidminer.tools.math.function.expressions.LogarithmDualis;
 import com.rapidminer.tools.math.function.expressions.Maximum;
 import com.rapidminer.tools.math.function.expressions.Minimum;
 import com.rapidminer.tools.math.function.expressions.ParameterValue;
-import com.rapidminer.tools.math.function.expressions.ParseNumber;
-import com.rapidminer.tools.math.function.expressions.Replace;
-import com.rapidminer.tools.math.function.expressions.ReplaceRegex;
 import com.rapidminer.tools.math.function.expressions.Signum;
-import com.rapidminer.tools.math.function.expressions.Substring;
+import com.rapidminer.tools.math.function.text.CharAt;
+import com.rapidminer.tools.math.function.text.Compare;
+import com.rapidminer.tools.math.function.text.Concat;
+import com.rapidminer.tools.math.function.text.Contains;
+import com.rapidminer.tools.math.function.text.EndsWith;
+import com.rapidminer.tools.math.function.text.Equals;
+import com.rapidminer.tools.math.function.text.IndexOf;
+import com.rapidminer.tools.math.function.text.Length;
+import com.rapidminer.tools.math.function.text.LowerCase;
+import com.rapidminer.tools.math.function.text.ParseNumber;
+import com.rapidminer.tools.math.function.text.Prefix;
+import com.rapidminer.tools.math.function.text.Replace;
+import com.rapidminer.tools.math.function.text.ReplaceRegex;
+import com.rapidminer.tools.math.function.text.StartsWith;
+import com.rapidminer.tools.math.function.text.Substring;
+import com.rapidminer.tools.math.function.text.Suffix;
+import com.rapidminer.tools.math.function.text.Trim;
+import com.rapidminer.tools.math.function.text.UpperCase;
 
 /**
  * <p>This class can be used as expression parser in order to generate new attributes.
@@ -140,19 +153,42 @@ import com.rapidminer.tools.math.function.expressions.Substring;
  * </ul>
  * </p>
  * 
+ * <p>The following <em>text functions</em> are supported:
+ * <ul>
+ * <li>Number to String: str(x)</li>
+ * <li>String to Number: parse(text)</li>
+ * <li>Substring: cut(text, start, length)</li>
+ * <li>Concatenation (also possible by &quot+&quot;): concat(text1, text2, text3...)</li>
+ * <li>Replace: replace(text, what, by)</li>
+ * <li>Replace All: replaceAll(text, what, by)</li> 
+ * <li>To lower case: lower(text)</li>
+ * <li>To upper case: upper(text)</li>
+ * <li>First position of string in text: index(text, string)</li>
+ * <li>Length: length(text)</li>
+ * <li>Character at position pos in text: char(text, pos)</li>
+ * <li>Compare: compare(text1, text2)</li>
+ * <li>Contains string in text: contains(text, string)</li>
+ * <li>Equals: equals(text1, text2)</li>
+ * <li>Starts with string: starts(text, string)</li>
+ * <li>Ends with string: ends(text, string)</li>
+ * <li>Matches with regular expression exp: matches(text, exp)</li>
+ * <li>Suffix of length: suffix(text, length)</li>
+ * <li>Prefix of length: prefix(text, length)</li>
+ * <li>Trim (remove leading and trailing whitespace): trim(text)</li>
+ * </ul>
+ * </p> 
+ * 
  * <p>The following <em>miscellaneous functions</em> are supported:
  * <ul>
  * <li>If-Then-Else: if(cond,true-evaluation, false-evaluation)</li>
  * <li>Absolute: abs(x)</li>
+ * <li>Constant: const(x)</li>
  * <li>Square Root: sqrt(x)</li>
  * <li>Signum (delivers the sign of a number): sgn(x)</li>
  * <li>Random Number (between 0 and 1): rand()</li>
  * <li>Modulus (x % y): mod(x,y)</li>
  * <li>Sum of k Numbers: sum(x,y,z...)</li>
  * <li>Binomial Coefficients: binom(n, i)</li>
- * <li>Number to String: str(x)</li>
- * <li>String to Number: parse(x)</li>
- * <li>Substring: cut(x, start, len)</li>
  * <li>Retrieving parameter value: param(operator name, parameter name)</li>
  * </ul>
  * </p> 
@@ -208,17 +244,33 @@ public class ExpressionParser {
 	}
 
 	private void addCustomFunctions(JEP parser) {
+		parser.addFunction("const", new Constant());
+		
 		parser.addFunction("avg", new Average());
 		parser.addFunction("min", new Minimum());
 		parser.addFunction("max", new Maximum());
 		parser.addFunction("ld", new LogarithmDualis());
 		parser.addFunction("sgn", new Signum());
+		
+		// text functions
 		parser.addFunction("parse", new ParseNumber());
 		parser.addFunction("cut", new Substring());
-		parser.addFunction("const", new Constant());
 		parser.addFunction("concat", new Concat());
 		parser.addFunction("replace", new Replace());
 		parser.addFunction("replaceAll", new ReplaceRegex());
+		parser.addFunction("lower", new LowerCase());
+		parser.addFunction("upper", new UpperCase());
+		parser.addFunction("index", new IndexOf());
+		parser.addFunction("length", new Length());
+		parser.addFunction("char", new CharAt());
+		parser.addFunction("compare", new Compare());
+		parser.addFunction("equals", new Equals());
+		parser.addFunction("contains", new Contains());
+		parser.addFunction("starts", new StartsWith());
+		parser.addFunction("ends", new EndsWith());
+		parser.addFunction("prefix", new Prefix());
+		parser.addFunction("suffix", new Suffix());
+		parser.addFunction("trim", new Trim());
 	}
 
 	public void addMacro(MacroHandler macroHandler, String name, String function) throws GenerationException {
@@ -413,9 +465,9 @@ public class ExpressionParser {
 			// store result
 			if (result instanceof Boolean) {
 				if ((Boolean)result) {
-					example.setValue(newAttribute, 0);
+					example.setValue(newAttribute, newAttribute.getMapping().mapString("true"));
 				} else {
-					example.setValue(newAttribute, 1);
+					example.setValue(newAttribute, newAttribute.getMapping().mapString("false"));
 				}				
 			} else if (result instanceof Number) {
 				example.setValue(newAttribute, ((Number)result).doubleValue());

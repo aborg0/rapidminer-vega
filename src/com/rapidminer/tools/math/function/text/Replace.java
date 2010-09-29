@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.tools.math.function.expressions;
+package com.rapidminer.tools.math.function.text;
 
 import java.util.Stack;
 
@@ -28,31 +28,38 @@ import org.nfunk.jep.ParseException;
 import org.nfunk.jep.function.PostfixMathCommand;
 
 /**
- * Parses the given string and puts the number on the result stack.
+ * Replaces substrings by matching targetSequence to given string.
  * 
  * @author Sebastian Land
  */
-public class ParseNumber extends PostfixMathCommand {
+public class Replace extends PostfixMathCommand {
 
-	public ParseNumber() {
-		numberOfParameters = 1;
+	public Replace() {
+		numberOfParameters = 3;
 	}
-
+	
 	@SuppressWarnings("unchecked")
+	@Override
 	public void run(Stack stack) throws ParseException {
-		if (stack.size() < 1)
-			throw new ParseException("Needs one argument: The string to be converted into a number");
+		if (stack.size() < 3)
+			throw new ParseException("Needs three arguments: The string, the target and the replacement string.");
 
 		// initialize the result to the first argument
-		Object value = stack.pop();
-		if (!(value instanceof String)) {
+		Object byObject = stack.pop();
+		Object whatObject = stack.pop();
+		Object textObject = stack.pop();
+		if (!(textObject instanceof String) || !(byObject instanceof String) || !(whatObject instanceof String)) {
 			throw new ParseException(
-					"Invalid argument type, only strings are supported.");
+					"Invalid argument type, must be (string, string, string)");
 		}
-		try {
-			stack.push(Double.parseDouble((String) value));
-		} catch (NumberFormatException e) {
-			throw new ParseException("String '" + value + "' is not a number." );
-		}
+
+		String by = (String) byObject;
+		String what = (String) whatObject;
+		String text = (String) textObject;
+
+		if (what.length() == 0)
+			throw new ParseException("The target String must contain text");
+		
+		stack.push(text.replace(what, by));
 	}
 }

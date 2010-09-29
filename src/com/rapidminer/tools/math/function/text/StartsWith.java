@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.tools.math.function.expressions;
+package com.rapidminer.tools.math.function.text;
 
 import java.util.Stack;
 
@@ -28,22 +28,32 @@ import org.nfunk.jep.ParseException;
 import org.nfunk.jep.function.PostfixMathCommand;
 
 /**
- * Calculates a constant.
+ * Returns true if and only if the given text starts with the specified search string.
  * 
  * @author Ingo Mierswa
  */
-public class Constant extends PostfixMathCommand {
+public class StartsWith extends PostfixMathCommand {
 
-	public Constant() {
-		numberOfParameters = 1;
+	public StartsWith() {
+		numberOfParameters = 2;
 	}
-
-	@Override
+	
 	@SuppressWarnings("unchecked")
-	public void run(Stack inStack) throws ParseException {
-		checkStack(inStack);// check the stack
-		Object param = inStack.pop();
-		inStack.push(param);//push the result on the inStack
-		return;
+	@Override
+	public void run(Stack stack) throws ParseException {
+		if (stack.size() != 2)
+			throw new ParseException("Needs two arguments: The text and the search string for which the text should be checked.");
+
+		// initialize the result to the first argument
+		Object searchStringObject = stack.pop();
+		Object textObject = stack.pop();
+		if (!(textObject instanceof String) || !(searchStringObject instanceof String)) {
+			throw new ParseException("Invalid argument types, must be (string, string)");
+		}
+		
+		String text = (String) textObject;
+		String searchString = (String) searchStringObject;
+		
+		stack.push(text.startsWith(searchString));
 	}
 }
