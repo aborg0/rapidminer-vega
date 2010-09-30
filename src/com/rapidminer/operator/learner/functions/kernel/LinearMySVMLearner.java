@@ -31,6 +31,7 @@ import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.learner.functions.kernel.jmysvm.examples.SVMExamples;
 import com.rapidminer.operator.learner.functions.kernel.jmysvm.kernel.Kernel;
 import com.rapidminer.operator.learner.functions.kernel.jmysvm.kernel.KernelDot;
@@ -41,6 +42,7 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.ParameterTypeInt;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.RandomGenerator;
 
 
@@ -164,5 +166,10 @@ public class LinearMySVMLearner extends AbstractKernelBasedLearner {
 		types.add(new ParameterTypeBoolean(JMySVMLearner.PARAMETER_QUADRATIC_LOSS_NEG, "Use quadratic loss for negative deviation", false));
 
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getExampleSetInputPort(), LinearMySVMLearner.class, null);
 	}
 }

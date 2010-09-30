@@ -31,11 +31,13 @@ import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.learner.functions.kernel.AbstractKernelBasedLearner;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.ParameterTypeInt;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.RandomGenerator;
 import com.rapidminer.tools.math.kernels.Kernel;
 
@@ -144,5 +146,10 @@ public class PSOSVM extends AbstractKernelBasedLearner {
 		types.add(new ParameterTypeBoolean(PARAMETER_DYNAMIC_INERTIA_WEIGHT, "If set to true the inertia weight is improved during run.", true));
 		types.addAll(RandomGenerator.getRandomGeneratorParameters(this));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getExampleSetInputPort(), PSOSVM.class, null);
 	}
 }

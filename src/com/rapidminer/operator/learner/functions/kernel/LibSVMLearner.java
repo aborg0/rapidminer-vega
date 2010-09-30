@@ -44,6 +44,7 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ProcessSetupError.Severity;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
@@ -59,6 +60,7 @@ import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * Applies the <a href="http://www.csie.ntu.edu.tw/~cjlin/libsvm">libsvm</a> learner by Chih-Chung Chang and Chih-Jen
@@ -394,5 +396,10 @@ public class LibSVMLearner extends AbstractKernelBasedLearner {
 		types.add(new ParameterTypeBoolean(PARAMETER_CONFIDENCE_FOR_MULTICLASS, "Indicates if the class with the highest confidence should be selected in the multiclass setting. Uses binary majority vote over all 1-vs-1 classifiers otherwise (selected class must not be the one with highest confidence in that case).", true));
 
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getExampleSetInputPort(), LibSVMLearner.class, null);
 	}
 }

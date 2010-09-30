@@ -47,14 +47,14 @@ import com.rapidminer.operator.tools.AttributeSubsetSelector;
  */
 public class OperatorResourceConsumptionHandler {
 	
-	/** map holding the class name and ResourceConsumptionValues */
-	private static Map<String, String[]> resourceMap;
-	
 	/** name of the csv resource consumption file */
 	private static final String OPERATORS_RESOURCE_CONSUMPTION = "OperatorsResourceConsumption.csv";
 	
 	/** number of values the csv file contains per row */
-	private static final int RESOURCE_CONSUMPTION_CSV_SPLITPARTS = 7;
+	private static final int RESOURCE_CONSUMPTION_CSV_SPLITPARTS = 11;
+	
+	/** map holding the class name and ResourceConsumptionValues */
+	private static Map<String, String[]> resourceMap;
 	
 	private static final Logger LOGGER = Logger.getLogger(OperatorResourceConsumptionHandler.class.getName());
 	
@@ -76,13 +76,13 @@ public class OperatorResourceConsumptionHandler {
 					continue;
 				}
 				// skip comments
-				if (row.charAt(0) == '#') {
+				if (row.trim().charAt(0) == '#') {
 					continue;
 				}
-				splitString = row.split(";");
+				splitString = row.trim().split(";");
 				// malformed csv file
 				if (splitString.length != RESOURCE_CONSUMPTION_CSV_SPLITPARTS) {
-					LOGGER.warning("Malformed Resource Consumption CSV file (" + OPERATORS_RESOURCE_CONSUMPTION + ") in line " + i + "!");
+					LOGGER.warning(I18N.getMessage(I18N.getErrorBundle(), "profiler.error.malformed_csv_file", OPERATORS_RESOURCE_CONSUMPTION, i));
 				}
 				resourceMap.put(splitString[0], splitString);
 			}
@@ -97,12 +97,14 @@ public class OperatorResourceConsumptionHandler {
 	/**
 	 * Gets an array with the cpu time consumption values.
 	 * <br>
-	 * [0] is coefficient, [1] is degreeExamples, [2] is degreeAttributes.
+	 * [0] is coefficient, [1] is degreeExamples, [2] is degreeAttributes,
+	 * [3] is degreeLogarithmusExamples, [4] is degreeLogarithmusAttributes
 	 * <br>
 	 * Returns <code>null</code> if no values are found in the CSV file.
 	 * 
 	 * @param className use XYZ.class where XYZ is the operator class
-	 * @return an array containg cpu time consumption values. [0] is coefficient, [1] is degreeExamples, [2] is degreeAttributes.
+	 * @return an array containg cpu time consumption values. [0] is coefficient, [1] is degreeExamples, [2] is degreeAttributes,
+	 * [3] is degreeLogarithmusExamples, [4] is degreeLogarithmusAttributes
 	 */
 	public static String[] getTimeConsumption(Class<?> clazz) {
 		if (clazz == null) {
@@ -112,18 +114,24 @@ public class OperatorResourceConsumptionHandler {
 			return null;
 		}
 		String [] savedString = resourceMap.get(clazz.toString());
-		return new String[] {savedString[1], savedString[2], savedString[3]};
+		try {
+			return new String[] {savedString[1], savedString[2], savedString[3], savedString[4], savedString[5]};
+		} catch (ArrayIndexOutOfBoundsException e) {
+			return null;
+		}
 	}
 	
 	/**
 	 * Gets an array with the memory consumption values.
 	 * <br>
-	 * [0] is coefficient, [1] is degreeExamples, [2] is degreeAttributes.
+	 * [0] is coefficient, [1] is degreeExamples, [2] is degreeAttributes,
+	 * [3] is degreeLogarithmusExamples, [4] is degreeLogarithmusAttributes
 	 * <br>
 	 * Returns <code>null</code> if no values are found in the CSV file.
 	 * 
 	 * @param className use XYZ.class where XYZ is the operator class
-	 * @return an array containg memory consumption values. [0] is coefficient, [1] is degreeExamples, [2] is degreeAttributes.
+	 * @return an array containg memory consumption values. [0] is coefficient, [1] is degreeExamples, [2] is degreeAttributes,
+	 * [3] is degreeLogarithmusExamples, [4] is degreeLogarithmusAttributes
 	 */
 	public static String[] getMemoryConsumption(Class<?> clazz) {
 		if (clazz == null) {
@@ -133,7 +141,11 @@ public class OperatorResourceConsumptionHandler {
 			return null;
 		}
 		String [] savedString = resourceMap.get(clazz.toString());
-		return new String[] {savedString[4], savedString[5], savedString[6]};
+		try {
+			return new String[] {savedString[6], savedString[7], savedString[8], savedString[9], savedString[10]};
+		} catch (ArrayIndexOutOfBoundsException e) {
+			return null;
+		}
 	}
 
 	/**
@@ -152,9 +164,11 @@ public class OperatorResourceConsumptionHandler {
 		}
 		
 		PolynomialFunction timeFunction = new PolynomialFunction(Double.parseDouble(timeConsumption[0]),
-				Double.parseDouble(timeConsumption[1]), Double.parseDouble(timeConsumption[2]));
+				Double.parseDouble(timeConsumption[1]), Double.parseDouble(timeConsumption[3]),
+				Double.parseDouble(timeConsumption[2]), Double.parseDouble(timeConsumption[4]));
 		PolynomialFunction memoryFunction = new PolynomialFunction(Double.parseDouble(memoryConsumption[0]),
-				Double.parseDouble(memoryConsumption[1]), Double.parseDouble(memoryConsumption[2]));
+				Double.parseDouble(memoryConsumption[1]), Double.parseDouble(memoryConsumption[3]),
+				Double.parseDouble(memoryConsumption[2]), Double.parseDouble(memoryConsumption[4]));
 		
 		return new PolynomialExampleSetResourceConsumptionEstimator(inputPort, attributeSelector, timeFunction, memoryFunction);
 	}

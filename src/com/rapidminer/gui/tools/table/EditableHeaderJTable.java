@@ -26,7 +26,6 @@ import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
-import javax.swing.table.TableModel;
 
 import com.rapidminer.gui.tools.ExtendedJTable;
 
@@ -37,31 +36,33 @@ import com.rapidminer.gui.tools.ExtendedJTable;
  * any previously created JTable.
  * 
  * @author Sebastian Land
+ * @deprecated This class was never used anywhere
  */
+@Deprecated
 public class EditableHeaderJTable extends ExtendedJTable {
 
 	private static final long serialVersionUID = 5755728775020479775L;
+//
+//	/**
+//	 * This constructor will build a standard {@link ExtendedJTable} with the specified renderer and editors for the
+//	 * header of all columns.
+//	 */
+//	public EditableHeaderJTable(TableModel model, TableCellRenderer headerRenderer, TableCellEditor headerEditor, boolean sortable, boolean moveable, boolean autoresizing) {
+//		super(model, sortable, moveable, autoresizing);
+//
+//		TableColumnModel columnModel = getColumnModel();
+//		setTableHeader(new EditableTableHeader(columnModel));
+//
+//		for (int i = 0; i < getColumnCount(); i++) {
+//			EditableTableHeaderColumn col = (EditableTableHeaderColumn) this.getColumnModel().getColumn(i);
+//			col.setHeaderRenderer(headerRenderer);
+//			col.setHeaderEditor(headerEditor);
+//		}
+//	}
 
-	/**
-	 * This constructor will build a standard {@link ExtendedJTable} with the specified renderer and editors for the
-	 * header of all columns.
-	 */
-	public EditableHeaderJTable(TableModel model, TableCellRenderer headerRenderer, TableCellEditor headerEditor, boolean sortable, boolean moveable, boolean autoresizing) {
-		super(model, sortable, moveable, autoresizing);
-
-		TableColumnModel columnModel = getColumnModel();
-		setTableHeader(new EditableTableHeader(columnModel));
-
-		for (int i = 0; i < getColumnCount(); i++) {
-			EditableTableHeaderColumn col = (EditableTableHeaderColumn) this.getColumnModel().getColumn(i);
-			col.setHeaderRenderer(headerRenderer);
-			col.setHeaderEditor(headerEditor);
-		}
-	}
-
-	public Object getHeaderValue(int column) {
-		return this.getColumnModel().getColumn(column).getHeaderValue();
-	}
+//	public Object getHeaderValue(int column) {
+//		return this.getColumnModel().getColumn(column).getHeaderValue();
+//	}
 
 	/**
 	 * This method installs the given renderer and editors to the header of the given table.
@@ -80,7 +81,7 @@ public class EditableHeaderJTable extends ExtendedJTable {
 		}
 	}
 	
-	public static Object getHeaderValue(JTable table, int columnIndex) {
-		return table.getColumnModel().getColumn(columnIndex).getHeaderValue();
-	}
+//	public static Object getHeaderValue(JTable table, int columnIndex) {
+//		return table.getColumnModel().getColumn(columnIndex).getHeaderValue();
+//	}
 }

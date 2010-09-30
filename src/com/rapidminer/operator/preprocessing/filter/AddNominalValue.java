@@ -34,8 +34,6 @@ import com.rapidminer.example.table.NominalMapping;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
-import com.rapidminer.operator.annotation.PolynomialExampleSetResourceConsumptionEstimator;
-import com.rapidminer.operator.annotation.PolynomialFunction;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.AttributeSetPrecondition;
@@ -130,26 +128,6 @@ public class AddNominalValue extends AbstractDataProcessing {
 	
 	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
-		boolean isBinominal = true;
-		try {
-			isBinominal = getRequiredMetaData().getAttributeByName(getParameterAsString(PARAMETER_ATTRIBUTE_NAME)).isBinominal();
-		} catch (UndefinedParameterError e) {
-			return null;
-		}
-		if (isBinominal) {
-			return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), AddNominalValue.class, null);
-		} else {
-			// constant value
-			String[] timeConsumption = OperatorResourceConsumptionHandler.getTimeConsumption(AddNominalValue.class);
-			String[] memoryConsumption = OperatorResourceConsumptionHandler.getMemoryConsumption(AddNominalValue.class);
-			if (timeConsumption == null || memoryConsumption == null) {
-				return null;
-			}
-			
-			PolynomialFunction timeFunction = new PolynomialFunction(Double.parseDouble(timeConsumption[0]), 0, 0);
-			PolynomialFunction memoryFunction = new PolynomialFunction(Double.parseDouble(memoryConsumption[0]), 0, 0);
-			
-			return new PolynomialExampleSetResourceConsumptionEstimator(getInputPort(), null, timeFunction, memoryFunction);
-		}
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), AddNominalValue.class, null);
 	}
 }

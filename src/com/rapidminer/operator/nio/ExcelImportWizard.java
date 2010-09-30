@@ -24,6 +24,8 @@ package com.rapidminer.operator.nio;
 
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DataImportWizard;
 import com.rapidminer.gui.wizards.ConfigurationListener;
+import com.rapidminer.operator.nio.model.ExcelResultSetConfiguration;
+import com.rapidminer.operator.nio.model.WizardState;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.repository.RepositoryLocation;
 
@@ -50,13 +52,13 @@ public class ExcelImportWizard extends DataImportWizard {
 			configuration = new ExcelResultSetConfiguration();
 		}
 		
-		// adding steps
-		AnnotationDeclarationWizardStep annotationStep = new AnnotationDeclarationWizardStep(configuration);
+		WizardState state = new WizardState(configuration);
 		
+		// adding steps		
 		addStep(new ExcelFileSelectionWizardStep(this, configuration));
 		addStep(new ExcelSheetSelectionWizardStep(configuration));
-		addStep(annotationStep);
-		addStep(new MetaDataDeclarationWizardStep(annotationStep));
+		addStep(new AnnotationDeclarationWizardStep(state));
+		addStep(new MetaDataDeclarationWizardStep(state));
 //
 //		addStep(new MetaDataDeclerationWizardStep("select_attributes", null) {
 //

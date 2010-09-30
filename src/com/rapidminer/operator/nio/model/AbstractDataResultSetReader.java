@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.operator.nio;
+package com.rapidminer.operator.nio.model;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -92,9 +92,6 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 
 	@Override
 	public ExampleSet createExampleSet() throws OperatorException {
-		// reading parameters
-		boolean isFaultTolerant = false;
-
 		// loading data result set
 		DataResultSet dataResultSet = getDataResultSet();
 
@@ -103,8 +100,8 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 
 		// now use translator to read, translate and return example set
 		DataResultSetTranslator translator = new DataResultSetTranslator(dataResultSet);
-		configuration = translator.guessValueTypes(configuration, dataResultSet, null);
-		return translator.read(configuration, isFaultTolerant, 0, null);
+		translator.guessValueTypes(configuration, dataResultSet, null);
+		return translator.read(configuration, 0, null);
 	}
 
 

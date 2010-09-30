@@ -42,6 +42,7 @@ import com.rapidminer.gui.tools.ExtendedJTable;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
+import com.rapidminer.operator.nio.model.ExcelResultSetConfiguration;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 

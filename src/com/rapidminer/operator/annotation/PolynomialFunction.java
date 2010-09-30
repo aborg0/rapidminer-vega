@@ -1,5 +1,8 @@
 package com.rapidminer.operator.annotation;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+
 /** Only highest order terms taken into account. Functions can be of the form
  * 
  *    c * log(n)^d1 * n^d2 * log(m)^*d3 * m^d4 
@@ -37,5 +40,66 @@ public class PolynomialFunction {
 				Math.pow(Math.log(numExamples), logDegreeExamples) *
 				Math.pow(numAttributes, degreeAttributes) *
 				Math.pow(Math.log(numAttributes), logDegreeAttributes));
+	}
+	
+	@Override
+	public String toString() {
+		if (coefficient == 0.0f || coefficient == -0.0f) {
+			return "n/a";
+		}
+		NumberFormat formatter = new DecimalFormat("#.##"); 
+		StringBuffer resourceString = new StringBuffer();
+		resourceString.append("f() = ");
+		resourceString.append(formatter.format(coefficient));
+		if (degreeExamples > 0 || degreeAttributes > 0) {
+			resourceString.append(" * (");
+		}
+		if (degreeExamples > 0) {
+			if (logDegreeExamples>0) {
+				resourceString.append("log");
+				resourceString.append(formatter.format(logDegreeExamples));
+				if (degreeExamples > 1) {
+					resourceString.append("(examples^");
+					resourceString.append(formatter.format(degreeExamples));
+				} else {
+					resourceString.append("(examples");
+				}
+				resourceString.append(')');
+			} else {
+				if (degreeExamples > 1) {
+					resourceString.append("examples^");
+					resourceString.append(formatter.format(degreeExamples));
+				} else {
+					resourceString.append("examples");
+				}
+			}
+			if (degreeAttributes > 0) {
+				resourceString.append(" * ");
+			}
+		}
+		if (degreeAttributes > 0) {
+			if (logDegreeAttributes>0) {
+				resourceString.append("log");
+				resourceString.append(formatter.format(logDegreeAttributes));
+				if (degreeAttributes > 1) {
+					resourceString.append("(attributes^");
+					resourceString.append(formatter.format(degreeAttributes));
+				} else {
+					resourceString.append("(attributes");
+				}
+				resourceString.append(')');
+			} else {
+				if (degreeAttributes > 1) {
+					resourceString.append("attributes^");
+					resourceString.append(formatter.format(degreeAttributes));
+				} else {
+					resourceString.append("attributes");
+				}
+			}
+		}
+		if (degreeExamples > 0 || degreeAttributes > 0) {
+			resourceString.append(')');
+		}
+		return resourceString.toString();
 	}
 }

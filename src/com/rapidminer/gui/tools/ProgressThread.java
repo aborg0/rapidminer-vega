@@ -177,7 +177,8 @@ public abstract class ProgressThread implements Runnable {
 				} catch (ProgressThreadStoppedException e) {
 					LogService.getRoot().fine("Progress thread "+getName()+" aborted (cancelled).");
 				} catch (Exception e) {
-					SwingTools.showSimpleErrorMessage("error_executing_background_job", e, name, e.getMessage());
+					LogService.getRoot().log(Level.WARNING, "Error executing background job '"+name+"': "+e, e);
+					SwingTools.showSimpleErrorMessage("error_executing_background_job", e, name, e);
 				} finally {
 					ProgressThread.this.getProgressListener().complete();
 					QUEUE_MODEL.remove(ProgressThread.this);

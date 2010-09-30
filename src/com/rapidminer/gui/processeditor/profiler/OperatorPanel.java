@@ -57,8 +57,10 @@ public class OperatorPanel extends JPanel {
 	private JLabel label_operatorLastTimeRunningValue;
 	private JLabel label_operatorAverageCpuTimeRunningValue;
 	private JLabel label_operatorLastCpuTimeRunningValue;
-//	private JLabel label_operatorResourceConsumptionEstimationDescription;
-//	private JLabel label_operatorResourceConsumptionEstimationValue;
+	private JLabel label_operatorCpuResourceConsumptionEstimationDescription;
+	private JLabel label_operatorCpuResourceConsumptionEstimationValue;
+	private JLabel label_operatorMemoryResourceConsumptionEstimationDescription;
+	private JLabel label_operatorMemoryResourceConsumptionEstimationValue;
 	
 	private static final long serialVersionUID = 8830933821400357100L;
 	
@@ -83,8 +85,10 @@ public class OperatorPanel extends JPanel {
 		this.label_operatorAverageTimeRunningValue = new JLabel();
 		this.label_operatorAverageCpuTimeRunningValue = new JLabel();
 		this.label_operatorLastCpuTimeRunningValue = new JLabel();
-//		this.label_operatorResourceConsumptionEstimationDescription = new JLabel();
-//		this.label_operatorResourceConsumptionEstimationValue = new JLabel();
+		this.label_operatorCpuResourceConsumptionEstimationDescription = new JLabel();
+		this.label_operatorCpuResourceConsumptionEstimationValue = new JLabel();
+		this.label_operatorMemoryResourceConsumptionEstimationDescription = new JLabel();
+		this.label_operatorMemoryResourceConsumptionEstimationValue = new JLabel();
 		
 		this.setLayout(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -184,15 +188,24 @@ public class OperatorPanel extends JPanel {
 		this.label_operatorAverageCpuTimeRunningValue.setText(averageCpuTimeRunningValue);
 		
 		//TODO: Implement
-//		this.label_operatorResourceConsumptionEstimationDescription.setText(
-//				I18N.getMessage(I18N.getGUIBundle(), "gui.label.profiler_operator_panel.resource_consumption.text"));
-//		if (operator.getResourceConsumptionEstimator() == null) {
-//			this.label_operatorResourceConsumptionEstimationValue.setText(
-//					I18N.getMessage(I18N.getGUIBundle(), "gui.label.profiler_operator_panel.resource_consumption.text_null"));
-//		} else {
-//			this.label_operatorResourceConsumptionEstimationValue.setText("" + operator.getResourceConsumptionEstimator());
-//		}
-		
+		// CPU
+		this.label_operatorCpuResourceConsumptionEstimationDescription.setText(
+				I18N.getMessage(I18N.getGUIBundle(), "gui.label.profiler_operator_panel.resource_consumption_cpu.text"));
+		if (operator.getResourceConsumptionEstimator() == null) {
+			this.label_operatorCpuResourceConsumptionEstimationValue.setText(
+					I18N.getMessage(I18N.getGUIBundle(), "gui.label.profiler_operator_panel.resource_consumption.text_null"));
+		} else {
+			this.label_operatorCpuResourceConsumptionEstimationValue.setText("" + operator.getResourceConsumptionEstimator().getCpuFunction());
+		}
+		// Memory
+		this.label_operatorMemoryResourceConsumptionEstimationDescription.setText(
+				I18N.getMessage(I18N.getGUIBundle(), "gui.label.profiler_operator_panel.resource_consumption_memory.text"));
+		if (operator.getResourceConsumptionEstimator() == null) {
+			this.label_operatorMemoryResourceConsumptionEstimationValue.setText(
+					I18N.getMessage(I18N.getGUIBundle(), "gui.label.profiler_operator_panel.resource_consumption.text_null"));
+		} else {
+			this.label_operatorMemoryResourceConsumptionEstimationValue.setText("" + operator.getResourceConsumptionEstimator().getMemoryFunction());
+		}
 		
 		// format GridBagLayout
 		gbc.gridx = 1;
@@ -221,52 +234,60 @@ public class OperatorPanel extends JPanel {
 		gbc.weightx = 0.0f;
 		gbc.anchor = GridBagConstraints.NORTHWEST;
 		gbc.insets = new Insets(0, 5, 0, 5);
-		add(label_operatorRunCountDescription, gbc);
+		add(label_operatorCpuResourceConsumptionEstimationDescription, gbc);
 		
-//		gbc.gridx = 0;
-//		gbc.gridy = 2;
-//		add(label_operatorResourceConsumptionEstimationDescription, gbc);
+		gbc.gridx = 0;
+		gbc.gridy = 2;
+		add(label_operatorMemoryResourceConsumptionEstimationDescription, gbc);
 		
 		gbc.gridx = 0;
 		gbc.gridy = 3;
-		add(label_operatorLastTimeRunningDescription, gbc);
+		add(label_operatorRunCountDescription, gbc);
 		
 		gbc.gridx = 0;
 		gbc.gridy = 4;
-		add(label_operatorLastCpuTimeRunningDescription, gbc);
+		add(label_operatorLastTimeRunningDescription, gbc);
 		
 		gbc.gridx = 0;
 		gbc.gridy = 5;
-		add(label_operatorAverageTimeRunningDescription, gbc);
+		add(label_operatorLastCpuTimeRunningDescription, gbc);
 		
 		gbc.gridx = 0;
 		gbc.gridy = 6;
+		add(label_operatorAverageTimeRunningDescription, gbc);
+		
+		gbc.gridx = 0;
+		gbc.gridy = 7;
 		add(label_operatorAverageCpuTimeRunningDescription, gbc);
 		
 		gbc.gridx = 2;
 		gbc.gridy = 1;
 		gbc.weightx = 1.0f;
 		gbc.gridwidth = 2;
-		add(label_operatorRunCountValue, gbc);
+		add(label_operatorCpuResourceConsumptionEstimationValue, gbc);
 		
-//		gbc.gridx = 2;
-//		gbc.gridy = 2;
-//		add(label_operatorResourceConsumptionEstimationValue, gbc);
+		gbc.gridx = 2;
+		gbc.gridy = 2;
+		add(label_operatorMemoryResourceConsumptionEstimationValue, gbc);
 		
 		gbc.gridx = 2;
 		gbc.gridy = 3;
-		add(label_operatorLastTimeRunningValue, gbc);
+		add(label_operatorRunCountValue, gbc);
 		
 		gbc.gridx = 2;
 		gbc.gridy = 4;
-		add(label_operatorLastCpuTimeRunningValue, gbc);
+		add(label_operatorLastTimeRunningValue, gbc);
 		
 		gbc.gridx = 2;
 		gbc.gridy = 5;
-		add(label_operatorAverageTimeRunningValue, gbc);
+		add(label_operatorLastCpuTimeRunningValue, gbc);
 		
 		gbc.gridx = 2;
 		gbc.gridy = 6;
+		add(label_operatorAverageTimeRunningValue, gbc);
+		
+		gbc.gridx = 2;
+		gbc.gridy = 7;
 		add(label_operatorAverageCpuTimeRunningValue, gbc);
 		
 		setBorder(BorderFactory.createLoweredBevelBorder());

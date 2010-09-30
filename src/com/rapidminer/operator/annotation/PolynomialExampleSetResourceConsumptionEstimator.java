@@ -48,5 +48,15 @@ public class PolynomialExampleSetResourceConsumptionEstimator extends ExampleSet
 		}
 		final int numAtt = exampleSet.getNumberOfRegularAttributes();
 		return memoryFunction.evaluate(numEx.getNumber(), numAtt);
-	}		
+	}
+	
+	@Override
+	public PolynomialFunction getCpuFunction() {
+		return cpuFunction;
+	}
+	
+	@Override
+	public PolynomialFunction getMemoryFunction() {
+		return memoryFunction;
+	}
 }

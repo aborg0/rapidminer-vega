@@ -73,6 +73,7 @@ import com.rapidminer.tools.math.function.text.Equals;
 import com.rapidminer.tools.math.function.text.IndexOf;
 import com.rapidminer.tools.math.function.text.Length;
 import com.rapidminer.tools.math.function.text.LowerCase;
+import com.rapidminer.tools.math.function.text.Matches;
 import com.rapidminer.tools.math.function.text.ParseNumber;
 import com.rapidminer.tools.math.function.text.Prefix;
 import com.rapidminer.tools.math.function.text.Replace;
@@ -268,6 +269,7 @@ public class ExpressionParser {
 		parser.addFunction("contains", new Contains());
 		parser.addFunction("starts", new StartsWith());
 		parser.addFunction("ends", new EndsWith());
+		parser.addFunction("matches", new Matches());
 		parser.addFunction("prefix", new Prefix());
 		parser.addFunction("suffix", new Suffix());
 		parser.addFunction("trim", new Trim());

@@ -33,6 +33,7 @@ import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.learner.functions.kernel.AbstractKernelBasedLearner;
 import com.rapidminer.operator.performance.PerformanceVector;
 import com.rapidminer.parameter.ParameterType;
@@ -40,6 +41,7 @@ import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.ParameterTypeInt;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.RandomGenerator;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.math.kernels.Kernel;
@@ -284,5 +286,10 @@ public class EvoSVM extends AbstractKernelBasedLearner {
 		types.add(new ParameterTypeBoolean(PARAMETER_SHOW_POPULATION_PLOT, "Indicates if the population plot in case of the non-dominated sorting should be shown.", false));
 		types.add(new ParameterTypeBoolean(PARAMETER_RETURN_OPTIMIZATION_PERFORMANCE, "Indicates if final optimization fitness should be returned as performance.", false));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getExampleSetInputPort(), EvoSVM.class, null);
 	}
 }

@@ -36,11 +36,13 @@ import com.rapidminer.operator.Model;
 import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.learner.AbstractLearner;
 import com.rapidminer.operator.learner.PredictionModel;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeDouble;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 
 /**
@@ -147,5 +149,10 @@ public class VectorLinearRegression extends AbstractLearner {
 		types.add(new ParameterTypeBoolean(PARAMETER_USE_BIAS, "Indicates if an intercept value should be calculated.", true));
 		types.add(new ParameterTypeDouble(PARAMETER_RIDGE, "The ridge parameter.", 0, Double.POSITIVE_INFINITY, 1.0E-8));
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getExampleSetInputPort(), VectorLinearRegression.class, null);
 	}
 }

@@ -20,4 +20,11 @@ public interface ResourceConsumptionEstimator {
 	*  If, for any reason, computation is impossible, -1 should be returned. */
 	public long estimateMemoryConsumption();
 	
+	
+	/** Returns the cpu function. */
+	public PolynomialFunction getCpuFunction();
+	
+	/** Returns the memory function. */
+	public PolynomialFunction getMemoryFunction();
+	
 }

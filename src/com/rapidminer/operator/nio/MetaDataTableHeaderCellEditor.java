@@ -18,6 +18,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
 import com.rapidminer.example.Attributes;
+import com.rapidminer.operator.nio.model.ColumnMetaData;
 import com.rapidminer.tools.Ontology;
 
 /**

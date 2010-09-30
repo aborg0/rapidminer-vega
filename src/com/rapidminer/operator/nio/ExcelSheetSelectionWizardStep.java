@@ -31,6 +31,7 @@ import javax.swing.JPanel;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.operator.nio.ExcelWorkbookPane.ExcelWorkbookSelection;
+import com.rapidminer.operator.nio.model.ExcelResultSetConfiguration;
 
 /**
  * This step allows to select a sheet of an excel workbook to import it.

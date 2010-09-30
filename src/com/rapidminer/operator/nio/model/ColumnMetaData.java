@@ -1,4 +1,4 @@
-package com.rapidminer.operator.nio;
+package com.rapidminer.operator.nio.model;
 
 /** The meta data either guessed by RapidMiner or specified by the user for a
  *  column of an excel file, csv file, etc.

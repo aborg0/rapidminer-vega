@@ -32,9 +32,11 @@ import com.rapidminer.operator.Model;
 import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.learner.AbstractLearner;
 import com.rapidminer.operator.learner.PredictionModel;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.RandomGenerator;
 
 /**
@@ -162,5 +164,10 @@ public class HyperHyper extends AbstractLearner {
 		types.addAll(RandomGenerator.getRandomGeneratorParameters(this));
 
 		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getExampleSetInputPort(), HyperHyper.class, null);
 	}
 }

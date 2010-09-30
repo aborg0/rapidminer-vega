@@ -7,6 +7,7 @@ import javax.swing.filechooser.FileFilter;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.FileSelectionWizardStep;
+import com.rapidminer.operator.nio.model.ExcelResultSetConfiguration;
 
 /**
  * This step allows to select an file. With this file the {@link ExcelResultSetConfiguration} will be created.

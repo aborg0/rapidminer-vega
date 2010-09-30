@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.operator.nio;
+package com.rapidminer.operator.nio.model;
 
 import static com.rapidminer.operator.nio.ExcelExampleSource.PARAMETER_COLUMN_OFFSET;
 import static com.rapidminer.operator.nio.ExcelExampleSource.PARAMETER_EXCEL_FILE;
@@ -33,6 +33,7 @@ import jxl.Workbook;
 
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.nio.ExcelExampleSource;
 import com.rapidminer.parameter.UndefinedParameterError;
 
 /**

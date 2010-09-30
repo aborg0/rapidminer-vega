@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.operator.nio;
+package com.rapidminer.operator.nio.model;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -61,7 +61,9 @@ public class DataResultSetTranslator {
 	 * This method will start the translation of the actual ResultDataSet to an ExampleSet. 
 	 * 
 	 */
-	public ExampleSet read(DataResultSetTranslationConfiguration configuration, boolean isFaultTolerant, int maxRows, ProgressListener listener) throws OperatorException {
+	public ExampleSet read(DataResultSetTranslationConfiguration configuration, int maxRows, ProgressListener listener) throws OperatorException {
+		boolean isFaultTolerant = configuration.isFaultTolerant();
+		
 		synchronized (isReadingMutex) {
 			isReading = true;
 			int[] attributeColumns = configuration.getSelectedIndices();
@@ -82,11 +84,18 @@ public class DataResultSetTranslator {
 			// TODO: Insert DataRowFactory
 			int currentRow = 0;
 			dataResultSet.reset(listener);
+			int maxAnnotatedRow = configuration.getLastAnnotatedRowIndex();
 			while (dataResultSet.hasNext() && !shouldStop && (currentRow < maxRows || maxRows <= 0)) {
+				System.out.println("RReading row "+currentRow);
 				dataResultSet.next(listener);
 
 				// checking for annotation
-				String currentAnnotation = configuration.getAnnotation(currentRow);
+				String currentAnnotation;
+				if (currentRow <= maxAnnotatedRow) {
+					currentAnnotation = configuration.getAnnotation(currentRow);
+				} else {
+					currentAnnotation = null;
+				}
 				if (currentAnnotation != null) {
 					// registering annotation on all attributes
 					int attributeIndex = 0;
@@ -184,16 +193,17 @@ public class DataResultSetTranslator {
 		return result;
 	}
 
-	public DataResultSetTranslationConfiguration guessValueTypes(DataResultSetTranslationConfiguration configuration, DataResultSet dataResultSet, ProgressListener listener) throws OperatorException {
-		int maxProbeRows = 100;
+	public void guessValueTypes(DataResultSetTranslationConfiguration configuration, DataResultSet dataResultSet, ProgressListener listener) throws OperatorException {
+		int maxProbeRows;
 		try {
 			maxProbeRows = Integer.parseInt(RapidMiner.getRapidMinerPropertyValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_MAX_TEST_ROWS));
 		} catch (NumberFormatException e) {
+			maxProbeRows = 100;
 		}
-		return guessValueTypes(configuration, dataResultSet, maxProbeRows, listener);
+		guessValueTypes(configuration, dataResultSet, maxProbeRows, listener);
 	}
 
-	public DataResultSetTranslationConfiguration guessValueTypes(DataResultSetTranslationConfiguration configuration, DataResultSet dataResultSet, int maxNumberOfRows, ProgressListener listener) throws OperatorException {
+	public void guessValueTypes(DataResultSetTranslationConfiguration configuration, DataResultSet dataResultSet, int maxNumberOfRows, ProgressListener listener) throws OperatorException {
 		int[] originalValueTypes = new int[configuration.getNumerOfColumns()];
 		for (int i = 0; i < originalValueTypes.length; i++) {
 			originalValueTypes[i] = configuration.getColumnMetaData(i).getAttributeValueType();
@@ -202,7 +212,7 @@ public class DataResultSetTranslator {
 		for (int i = 0; i < guessedTypes.length; i++) {
 			configuration.getColumnMetaData(i).setAttributeValueType(guessedTypes[i]);
 		}
-		return configuration;
+		//return configuration;
 	}
 
 	/**
@@ -214,36 +224,40 @@ public class DataResultSetTranslator {
 		if (listener != null)
 			listener.setTotal(1 + maxProbeRows);
 		DateFormat dateFormat = new SimpleDateFormat(configuration.getDatePattern(), configuration.getLocale());
-		boolean[] needsGuessing = new boolean[definedTypes.length];
-		boolean needsGuessingAtAll = false;
+		//boolean[] needsGuessing = new boolean[definedTypes.length];
+		//boolean needsGuessingAtAll = false;
 
 		for (int i = 0; i < definedTypes.length; i++) {
 			if (definedTypes[i] == Ontology.ATTRIBUTE_VALUE) {
-				needsGuessingAtAll = true;
-				needsGuessing[i] = true;
+				//needsGuessingAtAll = true;
+				//needsGuessing[i] = true;
 			}
 		}
 		if (listener != null)
 			listener.setCompleted(1);
-		if (needsGuessingAtAll) {
+		//if (needsGuessingAtAll) {
 			int[] columnValueTypes = new int[dataResultSet.getNumberOfColumns()];
 			Arrays.fill(columnValueTypes, Ontology.INTEGER);
 
 			// TODO: The following could be made more efficient using an indirect indexing to access the columns: would
 			// save array over all
-			dataResultSet.reset(null);
+			dataResultSet.reset(listener);
 			int currentRow = 0;
 			String[][] valueBuffer = new String[dataResultSet.getNumberOfColumns()][2];
+			int maxAnnotatedRow = configuration.getLastAnnotatedRowIndex();
 			while (dataResultSet.hasNext() && (currentRow < maxProbeRows || maxProbeRows <= 0)) {
-				dataResultSet.next(null);
+				dataResultSet.next(listener);
 				if (listener != null)
 					listener.setCompleted(1 + currentRow);
 
 				// skip rows with annotations
-				if (configuration.getAnnotation(currentRow) == null) {
+				if ((currentRow > maxAnnotatedRow) || (configuration.getAnnotation(currentRow) == null)) {
+					System.out.println("Considering non-annotated row "+currentRow);
+
 					for (int column = 0; column < dataResultSet.getNumberOfColumns(); column++) {
 						// don't guess for already defined or polynomial types
-						if (needsGuessing[column] && definedTypes[column] != Ontology.POLYNOMINAL && !dataResultSet.isMissing(column)) {
+						if (//needsGuessing[column] && 
+								definedTypes[column] != Ontology.POLYNOMINAL && !dataResultSet.isMissing(column)) {
 							String value = dataResultSet.getString(column);
 
 							// fill value buffer for binominal assessment
@@ -261,10 +275,12 @@ public class DataResultSetTranslator {
 							definedTypes[column] = guessValueType(definedTypes[column], value, valueBuffer[column] != null, dateFormat);
 						}
 					}
+				} else {
+					System.out.println("Skipping annotated row "+currentRow);
 				}
 				currentRow++;
 			}
-		}
+		//}
 		if (listener != null)
 			listener.complete();
 		return definedTypes;

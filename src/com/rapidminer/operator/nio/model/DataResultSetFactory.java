@@ -1,4 +1,4 @@
-package com.rapidminer.operator.nio;
+package com.rapidminer.operator.nio.model;
 
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;

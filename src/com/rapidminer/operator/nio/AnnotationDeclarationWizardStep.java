@@ -34,7 +34,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
-import com.rapidminer.RapidMiner;
 import com.rapidminer.datatable.DataTableExampleSetAdapter;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
@@ -43,6 +42,10 @@ import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirecti
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.gui.viewer.DataTableColumnEditTable;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.nio.model.DataResultSet;
+import com.rapidminer.operator.nio.model.DataResultSetTranslationConfiguration;
+import com.rapidminer.operator.nio.model.DataResultSetTranslator;
+import com.rapidminer.operator.nio.model.WizardState;
 import com.rapidminer.tools.container.Pair;
 
 /**
@@ -53,23 +56,15 @@ import com.rapidminer.tools.container.Pair;
 public class AnnotationDeclarationWizardStep extends WizardStep {
 
 	private JPanel panel = new JPanel(new BorderLayout());
-	private DataResultSetTranslator translator = null;
-	private DataResultSetTranslationConfiguration config;
-	private ExampleSet exampleSet;
-	private DataResultSet resultSet;
+	
+	private final WizardState state;
+	
 	private DataTableColumnEditTable table;
-	private int maxRows;
-	private DataResultSetFactory dataResultSetFactory;
 
-	public AnnotationDeclarationWizardStep(DataResultSetFactory dataResultSetFactory ) {
+	public AnnotationDeclarationWizardStep(WizardState state) {
 		super("importwizard.annotations");
-		this.dataResultSetFactory = dataResultSetFactory;
+		this.state = state;
 
-		try {
-			maxRows = Integer.parseInt(RapidMiner.getRapidMinerPropertyValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_MAX_TEST_ROWS));
-		} catch (NumberFormatException e) {
-			maxRows = 100;
-		}
 		TableCellRenderer renderer = new DefaultTableCellRenderer() {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -77,7 +72,7 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 				if (value == null) {
 					value = "";
 				}
-				return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, maxRows, column);
+				return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 			};
 		};
 		Pair<TableCellRenderer, TableCellEditor> pair = new Pair<TableCellRenderer, TableCellEditor>(renderer, new AnnotationCellEditor());
@@ -94,22 +89,25 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 			new ProgressThread("guessing_value_types") {
 				@Override
 				public void run() {
+					// TODO: We don't want an example set here. No example set needed for annotations
+					//       We already have a tabnle model: The ExcelTableModel which can be used here.
+					// TODO: This code is duplicated in MetaDataDeclarationWizardStep where it belongs
 					getProgressListener().setTotal(100);
 					getProgressListener().setCompleted(10);
 
 					try {
-						if (translator != null) {
-							translator.close();
+						if (state.getTranslator() != null) {
+							state.getTranslator().close();
 						}
-						resultSet = dataResultSetFactory.makeDataResultSet(null);
-						translator = new DataResultSetTranslator(resultSet);
+						DataResultSet resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
+						state.setTranslator(new DataResultSetTranslator(resultSet));
 						getProgressListener().setCompleted(30);
 						
-						config = new DataResultSetTranslationConfiguration(resultSet);
+						state.setTranslationConfiguration(new DataResultSetTranslationConfiguration(resultSet));
 						getProgressListener().setCompleted(40);					
-						config = translator.guessValueTypes(config, resultSet, maxRows, getProgressListener());
+						state.getTranslator().guessValueTypes(state.getTranslationConfiguration(), resultSet, state.getNumberOfPreviewRows(), getProgressListener());
 						getProgressListener().setCompleted(60);
-						exampleSet = translator.read(config, true, maxRows, getProgressListener());
+						final ExampleSet exampleSet = state.readNow(true, getProgressListener());
 						getProgressListener().setCompleted(80);
 
 						SwingUtilities.invokeLater(new Runnable() {
@@ -133,18 +131,17 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 	@Override
 	protected boolean performLeavingAction(WizardStepDirection direction) {
 		if (direction == WizardStepDirection.BACKWARD || direction == WizardStepDirection.FINISH) {
-			if (translator != null) {
+			if (state.getTranslator() != null) {
 				try {
-
-					translator.close();
+					state.getTranslator().close();
 				} catch (OperatorException e) {
 					// TODO: Show error dialog
 					e.printStackTrace();
 				}
 			}
 		} else if (direction == WizardStepDirection.FORWARD) {
-			if (exampleSet == null || table == null)
-				return false;
+//			if (exampleSet == null || table == null)
+//				return false;
 
 			// modify configuration according to done annotations
 			TreeMap<Integer, String> annotationsMap = new TreeMap<Integer, String>();
@@ -155,7 +152,7 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 					annotationsMap.put(i, annotations[i].toString());
 				}
 			}
-			config.setAnnotationsMap(annotationsMap);
+			state.getTranslationConfiguration().setAnnotationsMap(annotationsMap);
 		}
 		return true;
 	}
@@ -174,13 +171,4 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 	protected JComponent getComponent() {
 		return panel;
 	}
-
-	public DataResultSetTranslationConfiguration getConfiguration() {
-		return config;
-	}
-
-	public ExampleSet getParsedExampleSet() {
-		return exampleSet;
-	}
-
 }

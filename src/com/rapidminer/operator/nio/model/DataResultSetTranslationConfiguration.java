@@ -20,24 +20,28 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.operator.nio;
+package com.rapidminer.operator.nio.model;
 
-import static com.rapidminer.operator.nio.AbstractDataResultSetReader.ANNOTATION_NAME;
-import static com.rapidminer.operator.nio.AbstractDataResultSetReader.PARAMETER_ANNOTATIONS;
-import static com.rapidminer.operator.nio.AbstractDataResultSetReader.PARAMETER_COLUMN_META_DATA;
-import static com.rapidminer.operator.nio.AbstractDataResultSetReader.PARAMETER_DATE_FORMAT;
-import static com.rapidminer.operator.nio.AbstractDataResultSetReader.PARAMETER_FIRST_ROW_AS_NAMES;
-import static com.rapidminer.operator.nio.AbstractDataResultSetReader.PARAMETER_LOCALE;
+import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.ANNOTATION_NAME;
+import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_ANNOTATIONS;
+import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_COLUMN_META_DATA;
+import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_DATE_FORMAT;
+import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_FIRST_ROW_AS_NAMES;
+import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_LOCALE;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
+import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import com.rapidminer.example.Attributes;
 import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.nio.ExcelExampleSource;
 import com.rapidminer.operator.preprocessing.filter.AbstractDateDataProcessing;
 import com.rapidminer.parameter.ParameterTypeTupel;
 
@@ -45,7 +49,7 @@ import com.rapidminer.parameter.ParameterTypeTupel;
  * This class holds information how a DataResultSet is translated into an ExampleSet. Therefore it holds information
  * about the final name, the value type, role and if the column is selected at all.
  * 
- * @author Sebastian Land
+ * @author Sebastian Land, Simon Fischer
  */
 public class DataResultSetTranslationConfiguration {
 
@@ -54,8 +58,9 @@ public class DataResultSetTranslationConfiguration {
 	private Locale locale = Locale.US;
 	private String datePattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
-	private TreeMap<Integer, String> annotationsMap = new TreeMap<Integer, String>();
-
+	private SortedMap<Integer, String> annotationsMap = new TreeMap<Integer, String>();
+	private boolean faultTolerant = true;
+	
 	/**
 	 * Creates the configuration based on the parameter values stored in the given reader. If these parameters aren't
 	 * present they are derived from the data result set delivered and everything will just be passed. This means, names
@@ -159,6 +164,12 @@ public class DataResultSetTranslationConfiguration {
 	public String getAnnotation(int line) {
 		return annotationsMap.get(line);
 	}
+	
+	public SortedSet<Integer> getAnnotatedRowIndices() {
+		SortedSet<Integer> result = new TreeSet<Integer>();
+		result.addAll(annotationsMap.keySet());
+		return result;
+	}
 
 	public void setAnnotationsMap(TreeMap<Integer, String> annotationsMap) {
 		this.annotationsMap = annotationsMap;
@@ -198,6 +209,22 @@ public class DataResultSetTranslationConfiguration {
 
 	public ColumnMetaData[] getColumnMetaData() {
 		return columnMetaData;
+	}
+
+	public void setFaultTolerant(boolean faultTolerant) {
+		this.faultTolerant = faultTolerant;
+	}
+
+	public boolean isFaultTolerant() {
+		return faultTolerant;
+	}
+
+	public int getLastAnnotatedRowIndex() {
+		if ((annotationsMap == null) || annotationsMap.isEmpty()) {
+			return -1;
+		}
+		SortedSet<Integer> annotatedRows = getAnnotatedRowIndices();
+		return annotatedRows.last();
 	}
 
 }

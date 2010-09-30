@@ -31,21 +31,32 @@ import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
+import javax.swing.table.TableColumnModel;
 
 import com.rapidminer.datatable.DataTableExampleSetAdapter;
 import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
-import com.rapidminer.gui.tools.ExtendedJScrollPane;
+import com.rapidminer.gui.tools.ExtendedJTable;
+import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceActionAdapter;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
-import com.rapidminer.gui.tools.table.EditableHeaderJTable;
-import com.rapidminer.gui.viewer.DataTableViewerTable;
+import com.rapidminer.gui.tools.table.EditableTableHeader;
+import com.rapidminer.gui.tools.table.EditableTableHeaderColumn;
+import com.rapidminer.gui.viewer.DataTableViewerTableModel;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.nio.model.ColumnMetaData;
+import com.rapidminer.operator.nio.model.DataResultSet;
+import com.rapidminer.operator.nio.model.DataResultSetTranslationConfiguration;
+import com.rapidminer.operator.nio.model.DataResultSetTranslator;
+import com.rapidminer.operator.nio.model.WizardState;
 
 /**
  * This Wizard Step might be used to defined
@@ -54,18 +65,6 @@ import com.rapidminer.operator.OperatorException;
  * @author Sebastian Land, Simon Fischer
  */
 public class MetaDataDeclarationWizardStep extends WizardStep {
-
-	private JPanel panel = new JPanel(new BorderLayout());
-	
-	private AnnotationDeclarationWizardStep previousStep;
-	
-	private DataResultSetTranslator translator = null;
-	private DataResultSetTranslationConfiguration config;
-	//private DataResultSet resultSet;
-
-	private ExampleSet exampleSet;
-
-	private JComponent tableComponent;
 
 	/** Publicly exposes the method {@link #configurePropertiesFromAction(Action)} public. */
 	private class ReconfigurableButton extends JButton {
@@ -100,10 +99,15 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 
 	private JCheckBox errorsAsMissingBox = new JCheckBox(new ResourceActionAdapter("wizard.error_tolerant"));
 	private JCheckBox filterErrorsBox = new JCheckBox(new ResourceActionAdapter("wizard.show_error_rows"));
-		
-	public MetaDataDeclarationWizardStep(AnnotationDeclarationWizardStep previousStep) {
+
+	private WizardState state;
+
+	private JPanel panel = new JPanel(new BorderLayout());
+	private JScrollPane tableScrollPane;
+
+	public MetaDataDeclarationWizardStep(WizardState state) {
 		super("importwizard.metadata");		
-		this.previousStep = previousStep;
+		this.state = state;
 		
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		buttonPanel.add(reloadButton);
@@ -111,43 +115,103 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		buttonPanel.add(errorsAsMissingBox);
 		buttonPanel.add(filterErrorsBox);
 		panel.add(buttonPanel, BorderLayout.NORTH);
+		
+		tableScrollPane = new JScrollPane(new JLabel("-"));
+		//table = new JTable(); //false, false, false);
+//		table.setCellColorProvider(new CellColorProvider() {
+//            public Color getCellColor(int row, int col) {
+//            	if (row % 2 == 0) {
+//            		return Color.WHITE;
+//            	} else {
+//            		return SwingTools.LIGHTEST_BLUE;
+//            	}
+//            }
+//		});		
+		//panel.add(new ExtendedJScrollPane(table), BorderLayout.CENTER);
+		//panel.add(new JScrollPane(table), BorderLayout.CENTER);
 	}
 
 	@Override
 	protected boolean performEnteringAction(WizardStepDirection direction) {
-		if (tableComponent != null) {
-			panel.remove(tableComponent);
-		}
-		this.config = previousStep.getConfiguration();
-		this.exampleSet = previousStep.getParsedExampleSet();
+//		if (tableComponent != null) {
+//			panel.remove(tableComponent);
+//		}
 		
-		// Copy name annotations to name
-		int nameIndex = config.getNameRow();
+		ExampleSet exampleSet = state.getCachedExampleSet();
+		// Copy name annotations to name		
+		int nameIndex = state.getTranslationConfiguration().getNameRow();		
 		if (nameIndex != -1) {
 			Example nameRow = exampleSet.getExample(nameIndex);
 			int i = 0;
 			Iterator<AttributeRole> r = exampleSet.getAttributes().allAttributeRoles();
 			while (r.hasNext()) {
-				config.getColumnMetaData(i).setUserDefinedAttributeName(nameRow.getValueAsString(r.next().getAttribute()));
+				state.getTranslationConfiguration().getColumnMetaData(i).setUserDefinedAttributeName(nameRow.getValueAsString(r.next().getAttribute()));
 				i++;
 			}
 		}
 		
-		JTable table = new DataTableViewerTable(new DataTableExampleSetAdapter(exampleSet, null), false, false, false);
+		//table = new DataTableViewerTable(new DataTableExampleSetAdapter(exampleSet, null), false, false, false);		
+				
+		updateTableModel(exampleSet);
+		panel.add(tableScrollPane, BorderLayout.CENTER);
+		
+//		table.setModel(new DataTableViewerTableModel(new DataTableExampleSetAdapter(exampleSet, null)));
+//
+//		MetaDataTableHeaderCellEditor headerEditor = new MetaDataTableHeaderCellEditor();
+//		MetaDataTableHeaderCellEditor headerRenderer = new MetaDataTableHeaderCellEditor();
+//		
+//		TableColumnModel columnModel = table.getColumnModel();
+//		table.setTableHeader(new EditableTableHeader(columnModel));
+//
+//		for (int i = 0; i < table.getColumnCount(); i++) {
+//			EditableTableHeaderColumn col = (EditableTableHeaderColumn) table.getColumnModel().getColumn(i);
+//			col.setHeaderValue(state.getTranslationConfiguration().getColumnMetaData()[i]);
+//			col.setHeaderRenderer(headerRenderer);
+//			col.setHeaderEditor(headerEditor);
+//		}
+
+		
+		//updateTableModel(exampleSet);
+
+		return true;
+	}
+	
+	private void updateTableModel(ExampleSet exampleSet) {
+		JTable table = new ExtendedJTable(false, false, false);
+		
+		// data model
+		DataTableViewerTableModel model = new DataTableViewerTableModel(new DataTableExampleSetAdapter(exampleSet, null));
+		table.setModel(model);
+		
+		// Header model
+		
+		TableColumnModel columnModel = table.getColumnModel();
+		table.setTableHeader(new EditableTableHeader(columnModel));
+		
+		// header editors and renderers and values
 		MetaDataTableHeaderCellEditor headerEditor = new MetaDataTableHeaderCellEditor();
 		MetaDataTableHeaderCellEditor headerRenderer = new MetaDataTableHeaderCellEditor();
-		EditableHeaderJTable.installEditableHeader(table, headerRenderer, headerEditor, config.getColumnMetaData());
-		tableComponent = new ExtendedJScrollPane(table);
-		panel.add(tableComponent, BorderLayout.CENTER);
-		return true;
+		for (int i = 0; i < table.getColumnCount(); i++) {
+			EditableTableHeaderColumn col = (EditableTableHeaderColumn) table.getColumnModel().getColumn(i);
+			col.setHeaderValue(state.getTranslationConfiguration().getColumnMetaData()[i]);
+			col.setHeaderRenderer(headerRenderer);
+			col.setHeaderEditor(headerEditor);
+		}
+		table.getTableHeader().setReorderingAllowed(false);
+		
+		tableScrollPane.setViewportView(table);
+	}
+	
+	private void updateTableHeader(ColumnMetaData[] cmd) {
+		
 	}
 
 	@Override
 	protected boolean performLeavingAction(WizardStepDirection direction) {
 		if (direction == WizardStepDirection.FINISH) {
 			try {
-				if (translator != null) {
-					translator.close();
+				if (state.getTranslator() != null) {
+					state.getTranslator().close();
 				}
 			} catch (OperatorException e) {
 				// TODO: Show error dialog
@@ -182,10 +246,52 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	
 	private void guessValueTypes() {
 		guessButton.configurePropertiesFromAction(cancelGuessValueTypes);
+		new ProgressThread("guessing_value_types") {
+			@Override
+			public void run() {
+				getProgressListener().setTotal(100);
+				getProgressListener().setCompleted(10);
+
+				try {
+					if (state.getTranslator() != null) {
+						state.getTranslator().close();
+					}
+					DataResultSet resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
+					state.setTranslator(new DataResultSetTranslator(resultSet));
+					getProgressListener().setCompleted(30);
+					
+//					state.setTranslationConfiguration(new DataResultSetTranslationConfiguration(resultSet));
+//					getProgressListener().setCompleted(40);					
+					state.getTranslator().guessValueTypes(state.getTranslationConfiguration(), resultSet, state.getNumberOfPreviewRows(), getProgressListener());
+					getProgressListener().setCompleted(60);
+					final ExampleSet exampleSet = state.readNow(true, getProgressListener());
+					getProgressListener().setCompleted(80);
+
+					SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							updateTableModel(exampleSet);							
+						}
+					});
+				} catch (OperatorException e) {					
+					// TODO: Show error dialog
+					e.printStackTrace();
+				} finally {
+					getProgressListener().complete();
+					SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							cancelGuessing();							
+						}						
+					});
+				}
+			}			
+		}.start();
 	}
 	
 	private void cancelGuessing() {
-		guessButton.configurePropertiesFromAction(guessValueTypes);		
+		guessButton.configurePropertiesFromAction(guessValueTypes);
+		isGuessing = false;
 	}
 	
 	private Object GUESS_LOCK = new Object();

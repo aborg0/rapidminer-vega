@@ -85,6 +85,7 @@ public class EditableTableHeader extends JTableHeader implements CellEditorListe
 	}
 
 	public boolean editCellAt(int index) {
+		// TODO: This recursion looks evil
 		return editCellAt(index);
 	}
 
@@ -208,9 +209,9 @@ public class EditableTableHeader extends JTableHeader implements CellEditorListe
 		removeEditor();
 	}
 
-	//
-	// public void setReorderingAllowed(boolean b) {
-	// reorderingAllowed = false;
-	// }
-
+//	@Override
+//	public void setReorderingAllowed(boolean b) {
+//		super.setReorderingAllowed(b);
+//		reorderingAllowed = b;
+//	}
 }
