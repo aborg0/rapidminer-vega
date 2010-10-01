@@ -23,6 +23,8 @@
 package com.rapidminer.tools;
 
 import java.util.Date;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.mail.Message;
 import javax.mail.Session;
@@ -36,7 +38,7 @@ import javax.mail.internet.MimeMessage;
  */
 public class MailSenderSMTP implements MailSender {
 
-	public void sendEmail(String address, String subject, String content) throws Exception {
+	public void sendEmail(String address, String subject, String content, Map<String,String> headers) throws Exception {
 		Session session = MailUtilities.makeSession();
 		if (session == null) {
 			LogService.getRoot().warning("Unable to create mail session. Not sending mail to "+address+".");
@@ -46,7 +48,13 @@ public class MailSenderSMTP implements MailSender {
 		msg.setFrom();
 		msg.setSubject(subject);
 		msg.setSentDate(new Date());
-		msg.setText(content);					
+		msg.setText(content);
+
+		if (headers != null) {
+			for (Entry<String, String> header : headers.entrySet()) {
+				msg.setHeader(header.getKey(), header.getValue());
+			}
+		}
 		Transport.send(msg);
 	}
 }

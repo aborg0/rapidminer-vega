@@ -100,7 +100,7 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 							state.getTranslator().close();
 						}
 						DataResultSet resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
-						state.setTranslator(new DataResultSetTranslator(resultSet));
+						state.setTranslator(new DataResultSetTranslator(state.getOperator(), resultSet));
 						getProgressListener().setCompleted(30);
 						
 						state.setTranslationConfiguration(new DataResultSetTranslationConfiguration(resultSet));

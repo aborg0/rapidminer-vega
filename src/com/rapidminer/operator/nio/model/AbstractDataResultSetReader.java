@@ -99,7 +99,7 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 		DataResultSetTranslationConfiguration configuration = new DataResultSetTranslationConfiguration(this, dataResultSet);
 
 		// now use translator to read, translate and return example set
-		DataResultSetTranslator translator = new DataResultSetTranslator(dataResultSet);
+		DataResultSetTranslator translator = new DataResultSetTranslator(this, dataResultSet);
 		translator.guessValueTypes(configuration, dataResultSet, null);
 		return translator.read(configuration, 0, null);
 	}

@@ -2,6 +2,8 @@
 
 package com.rapidminer.tools;
 
+import java.util.Map;
+
 import javax.mail.Session;
 
 import com.rapidminer.RapidMiner;
@@ -19,10 +21,15 @@ public class MailUtilities {
 		MailUtilities.mailFactory = mailFactory;
 	}
 	
+	public static void sendEmail(String address, String subject, String content) {
+		sendEmail(address, subject, content, null);
+	}
+	
 	/**
 	 * Sends a mail to the given address, using the specified subject and contents. Subject must contain no whitespace!
+	 * @param headers 
 	 */
-	public static void sendEmail(String address, String subject, String content) {
+	public static void sendEmail(String address, String subject, String content, Map<String, String> headers) {
 		try {
 			String method = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_MAIL_METHOD);
 			int methodIndex = -1;
@@ -56,7 +63,7 @@ public class MailUtilities {
 			}
 	
 			if (mailSender != null) {
-				mailSender.sendEmail(address, subject, content);
+				mailSender.sendEmail(address, subject, content, headers);
 			}
 		} catch (Exception e) {
 			LogService.getGlobal().log("Cannot send mail to " + address + ": " + e, LogService.ERROR);

@@ -26,7 +26,8 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.rapidminer.RapidMiner;
 import com.rapidminer.example.Attribute;
@@ -35,7 +36,10 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.example.table.DoubleArrayDataRow;
 import com.rapidminer.example.table.MemoryExampleTable;
+import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.nio.model.DataResultSet.ValueType;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.ProgressListener;
 
@@ -53,18 +57,24 @@ public class DataResultSetTranslator {
 
 	private DataResultSet dataResultSet;
 
-	public DataResultSetTranslator(DataResultSet resultSet) {
+	private final List<ParsingError> errors = new LinkedList<ParsingError>();
+
+	private Operator operator;
+	
+	public DataResultSetTranslator(Operator operator, DataResultSet resultSet) {
 		this.dataResultSet = resultSet;
+		this.operator = operator;
 	}
 
 	/**
 	 * This method will start the translation of the actual ResultDataSet to an ExampleSet. 
 	 * 
 	 */
-	public ExampleSet read(DataResultSetTranslationConfiguration configuration, int maxRows, ProgressListener listener) throws OperatorException {
-		boolean isFaultTolerant = configuration.isFaultTolerant();
-		
+	public ExampleSet read(DataResultSetTranslationConfiguration configuration, int maxRows, ProgressListener listener) throws OperatorException {		
 		synchronized (isReadingMutex) {
+			getErrors().clear();
+			boolean isFaultTolerant = configuration.isFaultTolerant();
+
 			isReading = true;
 			int[] attributeColumns = configuration.getSelectedIndices();
 			int numberOfAttributes = attributeColumns.length;
@@ -102,13 +112,13 @@ public class DataResultSetTranslator {
 					for (Attribute attribute : attributes) {
 						if (AbstractDataResultSetReader.ANNOTATION_NAME.equals(currentAnnotation)) {
 							// resetting name
-							String newAttributeName = dataResultSet.getString(attributeColumns[attributeIndex]);
+							String newAttributeName = getString(dataResultSet, attributeColumns[attributeIndex], isFaultTolerant);
 							if (newAttributeName != null && !newAttributeName.isEmpty()) {
 								attribute.setName(newAttributeName);
 							}
 						} else {
 							// setting annotation
-							String annotationValue = dataResultSet.getString(attributeColumns[attributeIndex]);
+							String annotationValue = getString(dataResultSet, attributeColumns[attributeIndex], isFaultTolerant);
 							if (annotationValue != null && !annotationValue.isEmpty())
 								attribute.getAnnotations().put(currentAnnotation, annotationValue);
 						}
@@ -137,9 +147,7 @@ public class DataResultSetTranslator {
 								row.set(attribute, getDate(dataResultSet, attributeColumns[attributeIndex], isFaultTolerant));
 								break;
 							default:
-								String value = dataResultSet.getString(attributeColumns[attributeIndex]);
-								int mapIndex = attribute.getMapping().mapString(value);
-								row.set(attribute, mapIndex);
+								row.set(attribute, getStringIndex(attribute, dataResultSet, attributeColumns[attributeIndex], isFaultTolerant));
 							}
 						}
 						attributeIndex++;
@@ -172,25 +180,57 @@ public class DataResultSetTranslator {
 	}
 
 	private double getDate(DataResultSet dataResultSet, int column, boolean isFaultTolerant) throws OperatorException {
-		Date result = dataResultSet.getDate(column);
-		if (result == null) {
-			if (isFaultTolerant)
+		try {
+			return dataResultSet.getDate(column).getTime();
+		} catch (com.rapidminer.operator.nio.model.ParseException e) {
+			if (isFaultTolerant) {
+				getErrors().add(e.getError());			
 				return Double.NaN;
-			else
-				throw new OperatorException("Can't parse");
+			} else {
+				throw new UserError(operator, "data_parsing_error", e.toString());
+			}
 		}
-		return result.getTime();
+	}
+
+	private double getStringIndex(Attribute attribute, DataResultSet dataResultSet, int column, boolean isFaultTolerant) throws UserError {
+		try {
+			String value = dataResultSet.getString(column);
+			int mapIndex = attribute.getMapping().mapString(value);
+			return mapIndex;	
+		} catch (com.rapidminer.operator.nio.model.ParseException e) {
+			if (isFaultTolerant) {
+				getErrors().add(e.getError());
+				return Double.NaN;
+			} else {
+				throw new UserError(operator, "data_parsing_error", e.toString());
+			}
+		}
+	}
+
+	private String getString(DataResultSet dataResultSet, int column, boolean isFaultTolerant) throws UserError {
+		try {
+			return dataResultSet.getString(column);
+		} catch (com.rapidminer.operator.nio.model.ParseException e) {
+			if (isFaultTolerant) {
+				getErrors().add(e.getError());
+				return null;
+			} else {
+				throw new UserError(operator, "data_parsing_error", e.toString());
+			}
+		}
 	}
 
 	private Number getNumber(DataResultSet dataResultSet, int column, boolean isFaultTolerant) throws OperatorException {
-		Number result = dataResultSet.getNumber(column);
-		if (result == null) {
-			if (isFaultTolerant)
+		try {
+			return dataResultSet.getNumber(column);
+		} catch (com.rapidminer.operator.nio.model.ParseException e) {
+			if (isFaultTolerant) {
+				getErrors().add(e.getError());
 				return Double.NaN;
-			else
-				throw new OperatorException("Can't parse");
+			} else {
+				throw new UserError(operator, "data_parsing_error", e.toString());
+			}
 		}
-		return result;
 	}
 
 	public void guessValueTypes(DataResultSetTranslationConfiguration configuration, DataResultSet dataResultSet, ProgressListener listener) throws OperatorException {
@@ -255,24 +295,53 @@ public class DataResultSetTranslator {
 					System.out.println("Considering non-annotated row "+currentRow);
 
 					for (int column = 0; column < dataResultSet.getNumberOfColumns(); column++) {
-						// don't guess for already defined or polynomial types
-						if (//needsGuessing[column] && 
-								definedTypes[column] != Ontology.POLYNOMINAL && !dataResultSet.isMissing(column)) {
-							String value = dataResultSet.getString(column);
-
-							// fill value buffer for binominal assessment
-							if (valueBuffer[column] != null) {
-								// first check if already more than two values: Encoded by null inner array
-								if (!value.equals(valueBuffer[column][0]) && !value.equals(valueBuffer[column][1])) {
-									if (valueBuffer[column][0] == null)
-										valueBuffer[column][0] = value;
-									else if (valueBuffer[column][1] == null)
-										valueBuffer[column][1] = value;
-									else
-										valueBuffer[column] = null;
-								}
+						// No more guessing necessary if guessed type is polynomial (this is the most general case)
+						if (definedTypes[column] != Ontology.POLYNOMINAL && 
+								!dataResultSet.isMissing(column)) {
+							
+							ValueType nativeType;
+							try {
+								nativeType = dataResultSet.getNativeValueType(column);
+							} catch (com.rapidminer.operator.nio.model.ParseException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+								continue;
 							}
-							definedTypes[column] = guessValueType(definedTypes[column], value, valueBuffer[column] != null, dateFormat);
+							if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(nativeType.getRapidMinerAttributeType(), definedTypes[column])) {
+								// We're good, nothing to do
+								if (definedTypes[column] == Ontology.ATTRIBUTE_VALUE) {
+									// First row, just use the one delivered
+									definedTypes[column] = nativeType.getRapidMinerAttributeType();
+								}
+								continue;
+							}
+							if (nativeType != ValueType.STRING) {
+								// so far, we don't match. Only way out: 
+							} else {
+								// for strings, we try parsing ourselves guessing
+								String value;
+								try {
+									value = dataResultSet.getString(column);
+								} catch (com.rapidminer.operator.nio.model.ParseException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+									continue;
+								}
+								// fill value buffer for binominal assessment
+								if (valueBuffer[column] != null) {
+									// first check if already more than two values: Encoded by null inner array
+									if (!value.equals(valueBuffer[column][0]) && !value.equals(valueBuffer[column][1])) {
+										if (valueBuffer[column][0] == null) {
+											valueBuffer[column][0] = value;
+										} else if (valueBuffer[column][1] == null) {
+											valueBuffer[column][1] = value;
+										} else {
+											valueBuffer[column] = null;
+										}
+									}
+								}
+								definedTypes[column] = guessValueType(definedTypes[column], value, valueBuffer[column] != null, dateFormat);
+							}
 						}
 					}
 				} else {
@@ -294,10 +363,11 @@ public class DataResultSetTranslator {
 		if (currentValueType == Ontology.POLYNOMINAL)
 			return currentValueType;
 		if (currentValueType == Ontology.BINOMINAL) {
-			if (onlyTwoValues)
+			if (onlyTwoValues) {
 				return Ontology.BINOMINAL;
-			else
+			} else {
 				return Ontology.POLYNOMINAL;
+			}
 		}
 		if (currentValueType == Ontology.DATE) {
 			try {
@@ -337,6 +407,10 @@ public class DataResultSetTranslator {
 			}
 		}
 		dataResultSet.close();
+	}
+
+	public List<ParsingError> getErrors() {
+		return errors;
 	}
 
 }

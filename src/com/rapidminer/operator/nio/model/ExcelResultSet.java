@@ -231,30 +231,29 @@ public class ExcelResultSet implements DataResultSet {
 	}
 
 	@Override
-	public Number getNumber(int columnIndex) {
-		try {
-			if (currentRowCells[columnIndex].getType() == CellType.NUMBER)
-				return Double.valueOf(((NumberCell) currentRowCells[columnIndex]).getValue());
-			else
-				return Double.valueOf(currentRowCells[columnIndex].getContents());
-		} catch (ClassCastException e) {
-		} catch (NumberFormatException e) {
+	public Number getNumber(int columnIndex) throws ParseException {
+		if (currentRowCells[columnIndex].getType() == CellType.NUMBER) {
+			final double value = ((NumberCell) currentRowCells[columnIndex]).getValue();
+			return Double.valueOf(value);
+		} else {
+			final String valueString = currentRowCells[columnIndex].getContents();
+			try {				
+				return Double.valueOf(valueString);
+			} catch (NumberFormatException e) {
+				throw new ParseException(new ParsingError(currentRow, columnIndex, ParsingError.ErrorCode.UNPARSEABLE_REAL, valueString));
+			}
 		}
-		return null;
 	}
 
 	@Override
-	public Date getDate(int columnIndex) {
-		try {
-			Date date = ((DateCell) currentRowCells[columnIndex]).getDate();
-			if (date == null) {
-				return null;
-			}
-			int offset = TimeZone.getDefault().getOffset(date.getTime());
-			return new Date(date.getTime() - offset);
-		} catch (ClassCastException e) {
+	public Date getDate(int columnIndex) throws ParseException {
+		Date date = ((DateCell) currentRowCells[columnIndex]).getDate();
+		if (date == null) {
+			return null;
 		}
-		return null;
+		// TODO: Why is that???
+		int offset = TimeZone.getDefault().getOffset(date.getTime());
+		return new Date(date.getTime() - offset);
 	}
 
 	@Override
@@ -265,6 +264,19 @@ public class ExcelResultSet implements DataResultSet {
 	@Override
 	public int[] getValueTypes() {
 		return new int[this.attributeNames.length];
+	}
+
+	@Override
+	public ValueType getNativeValueType(int columnIndex) throws ParseException {
+		if (currentRowCells[columnIndex].getType() == CellType.EMPTY) {
+			 return ValueType.EMPTY;
+		} else if (currentRowCells[columnIndex] instanceof NumberCell) {
+			return ValueType.DOUBLE;
+		} else if (currentRowCells[columnIndex] instanceof DateCell) {
+			return ValueType.DATE;
+		} else {
+			return ValueType.STRING;
+		}
 	}
 
 }

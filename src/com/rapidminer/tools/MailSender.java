@@ -22,6 +22,8 @@
  */
 package com.rapidminer.tools;
 
+import java.util.Map;
+
 /**
  * This is the interface for all mail sending techniques.
  * 
@@ -29,6 +31,6 @@ package com.rapidminer.tools;
  */
 public interface MailSender {
 
-	public void sendEmail(String address, String subject, String content) throws Exception;
+	public void sendEmail(String address, String subject, String content, Map<String,String> headers) throws Exception;
 	
 }

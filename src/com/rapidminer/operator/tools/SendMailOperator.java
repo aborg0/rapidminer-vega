@@ -1,15 +1,20 @@
 package com.rapidminer.operator.tools;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ports.DummyPortPairExtender;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeBoolean;
+import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.ParameterTypeText;
 import com.rapidminer.parameter.TextType;
+import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.tools.MailUtilities;
 
 /**
@@ -23,7 +28,12 @@ public class SendMailOperator extends Operator {
 	
 	public static final String PARAMETER_TO = "to";
 	public static final String PARAMETER_SUBJECT = "subject";
-	public static final String PARAMETER_BODY = "body";
+	public static final String PARAMETER_BODY_PLAIN = "body_plain";
+	public static final String PARAMETER_BODY_HTML = "body_html";
+	public static final String PARAMETER_USE_HTML = "use_html";
+	
+	public static final String PARAMETER_HEADERS = "headers";
+	
 	
 	
 	public SendMailOperator(OperatorDescription description) {
@@ -36,8 +46,19 @@ public class SendMailOperator extends Operator {
 	public void doWork() throws OperatorException {
 		String to = getParameterAsString(PARAMETER_TO);
 		String subject = getParameterAsString(PARAMETER_SUBJECT);
-		String body = getParameterAsString(PARAMETER_BODY);		
-		MailUtilities.sendEmail(to, subject, body);
+		
+		Map<String,String> headers = new HashMap<String,String>();
+		for (String[] entry : getParameterList(PARAMETER_HEADERS)) {
+			headers.put(entry[0], entry[1]);
+		}		 
+		String body;
+		if (getParameterAsBoolean(PARAMETER_USE_HTML)) {
+			body = getParameterAsString(PARAMETER_BODY_HTML);
+			headers.put("Content-Type", "text/html");
+		} else {
+			body = getParameterAsString(PARAMETER_BODY_PLAIN);			
+		}				
+		MailUtilities.sendEmail(to, subject, body, headers);
 		through.passDataThrough();
 	}
 	
@@ -46,8 +67,32 @@ public class SendMailOperator extends Operator {
 		final List<ParameterType> types = super.getParameterTypes();
 		types.add(new ParameterTypeString(PARAMETER_TO, "Receiver of the email.", false, false));
 		types.add(new ParameterTypeString(PARAMETER_SUBJECT, "Subject the email.", false, false));
-		final ParameterTypeText type = new ParameterTypeText(PARAMETER_BODY, "Body of the email.", TextType.PLAIN, false);
+		
+		types.add(new ParameterTypeBoolean(PARAMETER_USE_HTML, "Format text as HTML?.", false, false));
+
+		ParameterType type = new ParameterTypeText(PARAMETER_BODY_PLAIN, "Body of the email.", TextType.PLAIN, false);
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_HTML, false, false));			
 		type.setExpert(false);
+		types.add(type);
+		
+		type = new ParameterTypeText(PARAMETER_BODY_HTML, "Body of the email in HTML format.", TextType.HTML, 
+				"<html>\n" +
+				"	<head>\n" +
+				"		<title>RapidMiner Mail Message</title>\n" +
+				"	</head>\n" +
+				"	<body>\n" +
+				"		<p>\n" +
+				"		</p>\n" +
+				"	</body>\n" +
+				"</html>\n");
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_HTML, false, true));
+		type.setExpert(false);
+		types.add(type);
+		
+		type = new ParameterTypeList(PARAMETER_HEADERS, "Additional mail headers", 
+				new ParameterTypeString("header", "Name of the header"), 
+				new ParameterTypeString("value", "value of the header"));
+		type.setExpert(true);
 		types.add(type);
 		return types;
 	}

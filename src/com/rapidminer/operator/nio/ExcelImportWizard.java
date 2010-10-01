@@ -52,7 +52,7 @@ public class ExcelImportWizard extends DataImportWizard {
 			configuration = new ExcelResultSetConfiguration();
 		}
 		
-		WizardState state = new WizardState(configuration);
+		WizardState state = new WizardState(source, configuration);
 		
 		// adding steps		
 		addStep(new ExcelFileSelectionWizardStep(this, configuration));

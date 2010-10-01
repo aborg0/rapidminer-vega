@@ -25,6 +25,7 @@ package com.rapidminer.operator.nio.model;
 import java.util.Date;
 
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.ProgressListener;
 /**
  * This interface represents a ResultSet like view on a data source.
@@ -33,6 +34,23 @@ import com.rapidminer.tools.ProgressListener;
  * @author Tobias Malbrecht, Sebastian Loh, Sebastian Land
  */
 public interface DataResultSet {
+
+	public enum ValueType {
+		STRING(Ontology.POLYNOMINAL),
+		DATE(Ontology.DATE_TIME),
+		INTEGER(Ontology.INTEGER),
+		DOUBLE(Ontology.REAL),
+		EMPTY(Ontology.ATTRIBUTE_VALUE);
+		
+		private final int rapidMinerAttributeType;
+		private ValueType(int rapidMinerAttributeType) {
+			this.rapidMinerAttributeType = rapidMinerAttributeType;
+		}
+		public int getRapidMinerAttributeType() {
+			return rapidMinerAttributeType;
+		}
+	}
+	
 	/**
 	 * This returns if another row exists.
 	 */
@@ -76,8 +94,9 @@ public interface DataResultSet {
 	 * 
 	 * @param columnIndex
 	 * @return
+	 * @throws ParseException 
 	 */
-	public abstract Number getNumber(int columnIndex);
+	public abstract Number getNumber(int columnIndex) throws ParseException;
 
 	/**
 	 * Returns a nominal value contained in the specified column in the current row. Should return null if the value
@@ -86,7 +105,7 @@ public interface DataResultSet {
 	 * @param columnIndex
 	 * @return
 	 */
-	public abstract String getString(int columnIndex);
+	public abstract String getString(int columnIndex) throws ParseException;
 
 	/**
 	 * Returns a date, time or date_time value contained in the specified column in the current row. Should return
@@ -95,8 +114,16 @@ public interface DataResultSet {
 	 * @param columnIndex
 	 * @return
 	 */
-	public abstract Date getDate(int columnIndex);
+	public abstract Date getDate(int columnIndex) throws ParseException;
 
+	/**
+	 * 
+	 * @return The type which most closely matches the value type of the underlying data source.
+	 *   The corresponding getter method for this type must not throw an RuntimeException when
+	 *   invoked for this column. 
+	 */
+	public ValueType getNativeValueType(int columnIndex) throws ParseException;
+	
 	/**
 	 * Closes the data source. May tear down a database connection or close a file which is re` from.
 	 * 

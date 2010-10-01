@@ -23,6 +23,7 @@
 package com.rapidminer.tools;
 
 import java.io.PrintStream;
+import java.util.Map;
 
 import com.rapidminer.RapidMiner;
 
@@ -33,12 +34,15 @@ import com.rapidminer.RapidMiner;
  */
 public class MailSenderSendmail implements MailSender {
 
-	public void sendEmail(String address, String subject, String content) throws Exception {
+	public void sendEmail(String address, String subject, String content, Map<String,String> headers) throws Exception {
 		String command = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SENDMAIL_COMMAND);
 		if ((command == null) || command.isEmpty()) {
-			LogService.getGlobal().log("Must specify sendmail command to use sendmail.", LogService.ERROR);
+			LogService.getRoot().warning("Must specify sendmail command to use sendmail.");
 		} else {					
-			LogService.getGlobal().log("Executing '" + command + "'", LogService.MINIMUM);
+			LogService.getRoot().fine("Executing '" + command + "'.");
+			if ((headers != null) && (!headers.isEmpty())) {
+				LogService.getRoot().warning("Mail headers ignored for sendmail. Please use SMTP.");
+			}
 			Process sendmail = Runtime.getRuntime().exec(new String[] { command, address });
 			PrintStream out = null;
 			try {
