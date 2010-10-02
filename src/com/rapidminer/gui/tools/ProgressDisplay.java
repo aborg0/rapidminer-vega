@@ -35,10 +35,10 @@ class ProgressDisplay {
 	private int completed = 0;
 	private String label;
 	private String message;
-	
+
 	private ProgressListener progressListener = new ProgressListener() {
 		@Override
-		public void setCompleted(int completed) {
+		public void setCompleted(int completed) {			
 			ProgressDisplay.this.completed = completed;
 			ApplicationFrame.getApplicationFrame().getStatusBar().setProgress(label, ProgressDisplay.this.completed, total);
 			ProgressThreadDialog.getInstance().refreshDialog();

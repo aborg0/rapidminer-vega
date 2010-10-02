@@ -41,10 +41,13 @@ import com.rapidminer.repository.RepositoryLocation;
 public class ExcelImportWizard extends DataImportWizard {
 
 	private static final long serialVersionUID = -4308448171060612833L;
+	private WizardState state;
+	private ExcelExampleSource source;
 	
 	public ExcelImportWizard(ExcelExampleSource source, ConfigurationListener listener, final boolean showStoreInRepositoryStep, RepositoryLocation preselectedLocation,String i18nKey, Object... i18nArgs) throws UndefinedParameterError {
 		super(i18nKey, i18nArgs);
-
+		this.source = source;
+		
 		ExcelResultSetConfiguration configuration;
 		if (source != null) {
 			configuration = new ExcelResultSetConfiguration(source);
@@ -52,69 +55,13 @@ public class ExcelImportWizard extends DataImportWizard {
 			configuration = new ExcelResultSetConfiguration();
 		}
 		
-		WizardState state = new WizardState(source, configuration);
+		state = new WizardState(source, configuration);
 		
 		// adding steps		
 		addStep(new ExcelFileSelectionWizardStep(this, configuration));
 		addStep(new ExcelSheetSelectionWizardStep(configuration));
 		addStep(new AnnotationDeclarationWizardStep(state));
 		addStep(new MetaDataDeclarationWizardStep(state));
-//
-//		addStep(new MetaDataDeclerationWizardStep("select_attributes", null) {
-//
-//			@Override
-//			protected JComponent getComponent() {
-//				JPanel typeDetection = new JPanel(ButtonDialog.createGridLayout(1, 2));
-//				typeDetection.setBorder(ButtonDialog.createTitledBorder("Value Type Detection"));
-//				typeDetection.add(new JLabel("Guess the value types of all attributes"));
-//				typeDetection.add(guessingButtonsPanel);
-//
-//				Component[] superComponents = super.getComponent().getComponents();
-//
-//				JPanel upperPanel = new JPanel(new BorderLayout());// new
-//				// JPanel(ButtonDialog.createGridLayout(2,
-//				// 1));
-//				upperPanel.add(typeDetection, BorderLayout.NORTH);
-//				upperPanel.add(superComponents[0], BorderLayout.CENTER);
-//
-//				JPanel panel = new JPanel(new BorderLayout(0, ButtonDialog.GAP));
-//				panel.add(upperPanel, BorderLayout.NORTH);
-//				panel.add(superComponents[1], BorderLayout.CENTER);
-//
-//				return panel;
-//			}
-//
-//			@Override
-//			protected void doAfterEnteringAction() {
-//				reader.setAttributeNamesDefinedByUser(true);
-//				((ExcelExampleSource) reader).skipNameAnnotationRow(true);
-//			}
-//
-//			@Override
-//			protected boolean performLeavingAction() {
-//				reader.stopReading();
-//				reader.writeMetaDataInParameter();
-////TODO				if (ExcelImportWizard.this.isComplete()) {
-////					((ExcelExampleSource) reader).resetWorkbook();
-////				}
-//				return true;
-//			}
-//
-//		});
-
-//		if (showStoreInRepositoryStep) {
-//			addStep(new RepositoryLocationSelectionWizardStep("select_repository_location", this, null, preselectedLocation != null ? preselectedLocation.getAbsoluteLocation() : null) {
-//				@Override
-//				protected boolean performLeavingAction() {
-////					synchronized (reader) {
-////						boolean flag = transferData(reader, getRepositoryLocation());
-////						//TODO (reader).resetWorkbook();
-////						return flag;
-////					}
-//				}
-//			});
-//		}
-
 		layoutDefault(HUGE);
 	}
 	
@@ -126,5 +73,8 @@ public class ExcelImportWizard extends DataImportWizard {
 	@Override
 	public void finish() {
 		super.finish();
+		if (source != null) {
+			state.getTranslationConfiguration().setParameters(source);
+		}
 	}
 }

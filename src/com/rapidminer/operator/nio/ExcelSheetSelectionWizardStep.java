@@ -66,9 +66,9 @@ class ExcelSheetSelectionWizardStep extends WizardStep {
 
 	@Override
 	protected boolean performEnteringAction(WizardStepDirection direction) {
-		if (direction == WizardStepDirection.FORWARD)
+		if (direction == WizardStepDirection.FORWARD) {
 			workbookSelectionPanel.loadWorkbook();
-
+		}
 		return true;
 	}
 
@@ -83,15 +83,6 @@ class ExcelSheetSelectionWizardStep extends WizardStep {
 			configuration.setRowOffset(selection.getRowIndexStart());
 			configuration.setRowLast(selection.getRowIndexEnd());
 			
-			// now create result set to make handshake between steps
-//			try {
-//				System.out.println("Making result set");
-//				followingStep.setDataResultSet(new ExcelResultSet(null, configuration));
-//				System.out.println("Made result set");
-//			} catch (OperatorException e) {
-//				// TODO: Make error message, abort
-//				e.printStackTrace();
-//			}
 		} else {
 			if (configuration.hasWorkbook())
 				configuration.getWorkbook().close();

@@ -1658,6 +1658,11 @@
                   <class>com.rapidminer.operator.learner.functions.neuralnet.ImprovedNeuralNetLearner
                   </class>
                   <replaces>NeuralNetImproved</replaces>
+               </operator>               
+			   <operator>
+                  <key>auto_mlp</key>
+                  <class>de.dfki.madm.paren.operator.learner.functions.neuralnet.AutoMLPImprovedNeuralNetLearner</class>
+                  <replaces>AutoMLP</replaces>
                </operator>
             </group>
             <group key="function_fitting">
@@ -1958,6 +1963,10 @@
                <key>k_means_kernel</key>
                <class>com.rapidminer.operator.clustering.clusterer.KernelKMeans</class>
                <replaces>KernelKMeans</replaces>
+            </operator>
+            <operator>
+               <key>fast_k_means</key>
+               <class>com.rapidminer.operator.clustering.clusterer.FastKMeans</class>
             </operator>
             <operator>
                <key>k_medoids</key>

@@ -38,8 +38,8 @@ public interface DataResultSet {
 	public enum ValueType {
 		STRING(Ontology.POLYNOMINAL),
 		DATE(Ontology.DATE_TIME),
-		INTEGER(Ontology.INTEGER),
-		DOUBLE(Ontology.REAL),
+		//INTEGER(Ontology.INTEGER),
+		NUMBER(Ontology.NUMERICAL),
 		EMPTY(Ontology.ATTRIBUTE_VALUE);
 		
 		private final int rapidMinerAttributeType;
@@ -142,4 +142,6 @@ public interface DataResultSet {
 	 * the underlying technical system like data bases. If not, just an Array Containing 0 might be returned.
 	 */
 	public int[] getValueTypes();
+
+	public int getCurrentRow();
 }

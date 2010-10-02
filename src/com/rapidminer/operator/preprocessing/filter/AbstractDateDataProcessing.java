@@ -113,9 +113,6 @@ public abstract class AbstractDateDataProcessing extends AbstractDataProcessing 
 		QUARTER_RELATIVE_TO_YEAR , HALF_YEAR_RELATIVE_TO_YEAR , YEAR_RELATIVE_TO_ERA
 	};
 
-
-
-
 	public static List<Locale> availableLocales = new ArrayList<Locale>();
 
 	public static String[] availableLocaleNames;

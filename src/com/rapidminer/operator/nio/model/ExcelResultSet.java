@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.NoSuchElementException;
-import java.util.TimeZone;
 
 import jxl.Cell;
 import jxl.CellType;
@@ -95,13 +94,14 @@ public class ExcelResultSet implements DataResultSet {
 			}
 		}
 		try {
-			sheet = workbook.getSheet(configuration.getSheetNumber() - 1);
+			sheet = workbook.getSheet(configuration.getSheet() - 1);
 		} catch (IndexOutOfBoundsException e) {
-			throw new UserError(callingOperator, 953, configuration.getSheetNumber());
+			throw new UserError(callingOperator, 953, configuration.getSheet());
 		}
 
-		totalNumberOfColumns = sheet.getColumns();
-		totalNumberOfRows = sheet.getRows();
+		totalNumberOfColumns = configuration.getColumnLast() - columnOffset + 1;
+		totalNumberOfRows = configuration.getRowLast() - rowOffset + 1;
+		
 		emptyColumns = new boolean[totalNumberOfColumns];
 		emptyRows = new boolean[totalNumberOfRows];
 
@@ -111,10 +111,11 @@ public class ExcelResultSet implements DataResultSet {
 
 		// determine offsets and emptiness
 		boolean foundAny = false;
-		for (int r = rowOffset; r < totalNumberOfRows; r++) {
-			for (int c = columnOffset; c < totalNumberOfColumns; c++) {
+		for (int r = 0; r < totalNumberOfRows; r++) {
+			for (int c = 0; c < totalNumberOfColumns; c++) {
 				if (emptyRows[r] || emptyColumns[c]) {
-					if (sheet.getCell(c, r).getType() != CellType.EMPTY && !"".equals(sheet.getCell(c, r).getContents().trim())) {
+					final Cell cell = sheet.getCell(c+columnOffset, r+rowOffset);
+					if (cell.getType() != CellType.EMPTY && !"".equals(cell.getContents().trim())) {
 						foundAny = true;
 						emptyRows[r] = false;
 						emptyColumns[c] = false;
@@ -169,7 +170,7 @@ public class ExcelResultSet implements DataResultSet {
 	public void reset(ProgressListener listener) {
 		currentRow = rowOffset - 1;
 		if (listener != null) {
-			listener.setTotal(totalNumberOfRows - rowOffset);
+			listener.setTotal(totalNumberOfRows);
 			listener.setCompleted(0);
 		}
 	}
@@ -177,31 +178,31 @@ public class ExcelResultSet implements DataResultSet {
 	@Override
 	public boolean hasNext() {
 		int nextRow = currentRow + 1;
-		while (nextRow < totalNumberOfRows && emptyRows[nextRow])
+		while (nextRow < totalNumberOfRows + rowOffset && emptyRows[nextRow - rowOffset])
 			nextRow++;
-		return nextRow < totalNumberOfRows;
+		return nextRow < totalNumberOfRows + rowOffset;
 	}
 
 	@Override
 	public void next(ProgressListener listener) {
 		currentRow++;
-		while (currentRow < totalNumberOfRows && emptyRows[currentRow]) {
+		while (currentRow < totalNumberOfRows  + rowOffset && emptyRows[currentRow - rowOffset]) {
 			currentRow++;
 		}
 
-		if (currentRow >= totalNumberOfRows) {
+		if (currentRow >= totalNumberOfRows + rowOffset) {
 			throw new NoSuchElementException("No further row in excel sheet.");
 		}
 
 		currentRowCells = new Cell[attributeNames.length];
 		int columnCounter = 0;
-		for (int c = columnOffset; c < totalNumberOfColumns; c++) {
+		for (int c = 0; c < totalNumberOfColumns; c++) {
 			if (!emptyColumns[c]) {
-				currentRowCells[columnCounter] = sheet.getCell(c, currentRow);
+				currentRowCells[columnCounter] = sheet.getCell(c+columnOffset, currentRow);
 				columnCounter++;
 			}
 		}
-		
+
 		// notifying progress listener
 		if (listener != null) {
 			listener.setCompleted(currentRow);
@@ -227,16 +228,28 @@ public class ExcelResultSet implements DataResultSet {
 
 	@Override
 	public boolean isMissing(int columnIndex) {
-		return currentRowCells[columnIndex].getType() == CellType.EMPTY || currentRowCells[columnIndex].getType() == CellType.ERROR || currentRowCells[columnIndex].getType() == CellType.FORMULA_ERROR || currentRowCells[columnIndex].getContents() == null || "".equals(currentRowCells[columnIndex].getContents().trim());
+		Cell cell = getCurrentCell(columnIndex);
+		return cell.getType() == CellType.EMPTY || 
+			cell.getType() == CellType.ERROR || 
+			cell.getType() == CellType.FORMULA_ERROR || 
+			cell.getContents() == null ||
+			"".equals(cell.getContents().trim());
+	}
+	
+	private Cell getCurrentCell(int index) {
+		//return currentRowCells[index + columnOffset];
+		return currentRowCells[index];
 	}
 
 	@Override
 	public Number getNumber(int columnIndex) throws ParseException {
-		if (currentRowCells[columnIndex].getType() == CellType.NUMBER) {
-			final double value = ((NumberCell) currentRowCells[columnIndex]).getValue();
+		final Cell cell = getCurrentCell(columnIndex);
+		if ((cell.getType() == CellType.NUMBER) ||
+				(cell.getType() == CellType.NUMBER_FORMULA)) {
+			final double value = ((NumberCell) cell).getValue();
 			return Double.valueOf(value);
 		} else {
-			final String valueString = currentRowCells[columnIndex].getContents();
+			String valueString = cell.getContents();
 			try {				
 				return Double.valueOf(valueString);
 			} catch (NumberFormatException e) {
@@ -247,18 +260,22 @@ public class ExcelResultSet implements DataResultSet {
 
 	@Override
 	public Date getDate(int columnIndex) throws ParseException {
-		Date date = ((DateCell) currentRowCells[columnIndex]).getDate();
-		if (date == null) {
-			return null;
+		final Cell cell = getCurrentCell(columnIndex);
+		if ((cell.getType() == CellType.DATE) ||
+				(cell.getType() == CellType.DATE_FORMULA)) {
+			return ((DateCell) cell).getDate();
+		} else {
+			String valueString = cell.getContents();
+			throw new ParseException(new ParsingError(currentRow, columnIndex, ParsingError.ErrorCode.UNPARSEABLE_DATE, valueString));
 		}
-		// TODO: Why is that???
-		int offset = TimeZone.getDefault().getOffset(date.getTime());
-		return new Date(date.getTime() - offset);
+//		// TODO: Why is that???
+//		int offset = TimeZone.getDefault().getOffset(date.getTime());
+//		return new Date(date.getTime() - offset);
 	}
 
 	@Override
 	public String getString(int columnIndex) {
-		return currentRowCells[columnIndex].getContents();
+		return getCurrentCell(columnIndex).getContents();
 	}
 
 	@Override
@@ -268,15 +285,21 @@ public class ExcelResultSet implements DataResultSet {
 
 	@Override
 	public ValueType getNativeValueType(int columnIndex) throws ParseException {
-		if (currentRowCells[columnIndex].getType() == CellType.EMPTY) {
-			 return ValueType.EMPTY;
-		} else if (currentRowCells[columnIndex] instanceof NumberCell) {
-			return ValueType.DOUBLE;
-		} else if (currentRowCells[columnIndex] instanceof DateCell) {
+		final CellType type = getCurrentCell(columnIndex).getType();
+		if (type == CellType.EMPTY) {
+			return ValueType.EMPTY;
+		} else if  ((type == CellType.NUMBER) || (type == CellType.NUMBER_FORMULA)) {
+			return ValueType.NUMBER;
+		} else if ((type == CellType.DATE) || (type == CellType.DATE_FORMULA)) {
 			return ValueType.DATE;
 		} else {
 			return ValueType.STRING;
 		}
+	}
+
+	@Override
+	public int getCurrentRow() {
+		return currentRow;
 	}
 
 }

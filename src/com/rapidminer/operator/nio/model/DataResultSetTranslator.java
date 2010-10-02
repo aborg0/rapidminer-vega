@@ -24,13 +24,14 @@ package com.rapidminer.operator.nio.model;
 
 import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.rapidminer.RapidMiner;
 import com.rapidminer.example.Attribute;
+import com.rapidminer.example.AttributeTypeException;
 import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
@@ -40,8 +41,10 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.nio.model.DataResultSet.ValueType;
+import com.rapidminer.operator.nio.model.ParsingError.ErrorCode;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.ProgressListener;
+import com.rapidminer.tools.container.Pair;
 
 /**
  * This class encapsulates the translation step from a DataResultSet to an ExampleSet which is controlled by the
@@ -51,18 +54,42 @@ import com.rapidminer.tools.ProgressListener;
  */
 public class DataResultSetTranslator {
 
+	private class NominalValueSet {
+		private String first = null;
+		private String second = null;
+		private boolean moreThanTwo = false;
+
+		private boolean register(String value) {
+			if (moreThanTwo) {
+				return true;
+			} else if (value == null) {
+				return false;
+			} else if (first == null) {
+				first = value;
+				return false;
+			} else if (first.equals(value)) {
+				return false;				
+			} else if (second == null) {
+				second = value;
+				return false;
+			} else if (second.equals(value)) {
+				return false;
+			} else {
+				moreThanTwo = true;
+				return true;
+			}
+		}
+	}
+
 	private boolean shouldStop = false;
 	private boolean isReading = false;
-	private Object isReadingMutex = new Object();
+	//private Object isReadingMutex = new Object();
 
-	private DataResultSet dataResultSet;
-
-	private final List<ParsingError> errors = new LinkedList<ParsingError>();
+	private final Map<Pair<Integer,Integer>,ParsingError> errors = new HashMap<Pair<Integer,Integer>, ParsingError>();
 
 	private Operator operator;
-	
-	public DataResultSetTranslator(Operator operator, DataResultSet resultSet) {
-		this.dataResultSet = resultSet;
+
+	public DataResultSetTranslator(Operator operator) {
 		this.operator = operator;
 	}
 
@@ -70,9 +97,8 @@ public class DataResultSetTranslator {
 	 * This method will start the translation of the actual ResultDataSet to an ExampleSet. 
 	 * 
 	 */
-	public ExampleSet read(DataResultSetTranslationConfiguration configuration, int maxRows, ProgressListener listener) throws OperatorException {		
-		synchronized (isReadingMutex) {
-			getErrors().clear();
+	public ExampleSet read(DataResultSet dataResultSet, DataResultSetTranslationConfiguration configuration, int maxRows, ProgressListener listener) throws OperatorException {		
+		//synchronized (isReadingMutex) {
 			boolean isFaultTolerant = configuration.isFaultTolerant();
 
 			isReading = true;
@@ -92,11 +118,13 @@ public class DataResultSetTranslator {
 
 			// now iterate over complete dataResultSet and copy data
 			// TODO: Insert DataRowFactory
+			// The row in the underlying DataResultSet
 			int currentRow = 0;
+			// The row in the example set
+			int exampleIndex = 0;
 			dataResultSet.reset(listener);
 			int maxAnnotatedRow = configuration.getLastAnnotatedRowIndex();
 			while (dataResultSet.hasNext() && !shouldStop && (currentRow < maxRows || maxRows <= 0)) {
-				System.out.println("RReading row "+currentRow);
 				dataResultSet.next(listener);
 
 				// checking for annotation
@@ -112,13 +140,13 @@ public class DataResultSetTranslator {
 					for (Attribute attribute : attributes) {
 						if (AbstractDataResultSetReader.ANNOTATION_NAME.equals(currentAnnotation)) {
 							// resetting name
-							String newAttributeName = getString(dataResultSet, attributeColumns[attributeIndex], isFaultTolerant);
+							String newAttributeName = getString(dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant);
 							if (newAttributeName != null && !newAttributeName.isEmpty()) {
 								attribute.setName(newAttributeName);
 							}
 						} else {
 							// setting annotation
-							String annotationValue = getString(dataResultSet, attributeColumns[attributeIndex], isFaultTolerant);
+							String annotationValue = getString(dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant);
 							if (annotationValue != null && !annotationValue.isEmpty())
 								attribute.getAnnotations().put(currentAnnotation, annotationValue);
 						}
@@ -136,22 +164,24 @@ public class DataResultSetTranslator {
 						} else {
 							switch (attribute.getValueType()) {
 							case Ontology.INTEGER:
-								row.set(attribute, getNumber(dataResultSet, attributeColumns[attributeIndex], isFaultTolerant).intValue());
+								row.set(attribute, getNumber(dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant).intValue());
 								break;
+							case Ontology.NUMERICAL:
 							case Ontology.REAL:
-								row.set(attribute, getNumber(dataResultSet, attributeColumns[attributeIndex], isFaultTolerant).doubleValue());
+								row.set(attribute, getOrParseNumber(configuration, dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant));
 								break;
 							case Ontology.DATE_TIME:
 							case Ontology.TIME:
 							case Ontology.DATE:
-								row.set(attribute, getDate(dataResultSet, attributeColumns[attributeIndex], isFaultTolerant));
+								row.set(attribute, getOrParseDate(configuration, dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant));
 								break;
 							default:
-								row.set(attribute, getStringIndex(attribute, dataResultSet, attributeColumns[attributeIndex], isFaultTolerant));
+								row.set(attribute, getStringIndex(attribute, dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant));
 							}
 						}
 						attributeIndex++;
 					}
+					exampleIndex++;
 				}
 				currentRow++;
 			}
@@ -176,56 +206,97 @@ public class DataResultSetTranslator {
 			if (listener != null)
 				listener.complete();
 			return exampleSet;
+		//}
+	}
+
+	/** If native type is date, returns the date. Otherwise, uses string and parses.
+	 */
+	private double getOrParseDate(DataResultSetTranslationConfiguration config, DataResultSet dataResultSet, int row, int column, boolean isFaultTolerant) throws OperatorException {
+		ValueType nativeValueType;
+		try {
+			nativeValueType = dataResultSet.getNativeValueType(column);
+		} catch (com.rapidminer.operator.nio.model.ParseException e1) {
+			addOrThrow(isFaultTolerant, e1.getError(), row);
+			return Double.NaN;
+		}
+		if (nativeValueType == ValueType.DATE) {
+			return getDate(dataResultSet, row, column, isFaultTolerant);
+		} else {
+			String value = getString(dataResultSet, row, column, isFaultTolerant);
+			try {
+				return config.getDateFormat().parse(value).getTime();
+			} catch (ParseException e) {
+				ParsingError error = new ParsingError(dataResultSet.getCurrentRow(), column, ErrorCode.UNPARSEABLE_DATE, value, e);
+				addOrThrow(isFaultTolerant, error, row);
+				return Double.NaN;
+			}
 		}
 	}
 
-	private double getDate(DataResultSet dataResultSet, int column, boolean isFaultTolerant) throws OperatorException {
+	private double getDate(DataResultSet dataResultSet, int row, int column, boolean isFaultTolerant) throws OperatorException {
 		try {
 			return dataResultSet.getDate(column).getTime();
 		} catch (com.rapidminer.operator.nio.model.ParseException e) {
-			if (isFaultTolerant) {
-				getErrors().add(e.getError());			
-				return Double.NaN;
-			} else {
-				throw new UserError(operator, "data_parsing_error", e.toString());
-			}
+			addOrThrow(isFaultTolerant, e.getError(), row);
+			return Double.NaN;
 		}
 	}
 
-	private double getStringIndex(Attribute attribute, DataResultSet dataResultSet, int column, boolean isFaultTolerant) throws UserError {
-		try {
-			String value = dataResultSet.getString(column);
+	private double getStringIndex(Attribute attribute, DataResultSet dataResultSet, int row, int column, boolean isFaultTolerant) throws UserError {
+		String value = null;
+		try {			
+			value = dataResultSet.getString(column);
 			int mapIndex = attribute.getMapping().mapString(value);
 			return mapIndex;	
 		} catch (com.rapidminer.operator.nio.model.ParseException e) {
-			if (isFaultTolerant) {
-				getErrors().add(e.getError());
-				return Double.NaN;
-			} else {
-				throw new UserError(operator, "data_parsing_error", e.toString());
-			}
+			addOrThrow(isFaultTolerant, e.getError(), row);
+			return Double.NaN;
+		} catch (AttributeTypeException e) {
+			ParsingError error = new ParsingError(dataResultSet.getCurrentRow(), column, ErrorCode.MORE_THAN_TWO_VALUES, value, e);
+			addOrThrow(isFaultTolerant, error, row);
+			return Double.NaN;
 		}
 	}
 
-	private String getString(DataResultSet dataResultSet, int column, boolean isFaultTolerant) throws UserError {
+	private String getString(DataResultSet dataResultSet, int row, int column, boolean isFaultTolerant) throws UserError {
 		try {
 			return dataResultSet.getString(column);
 		} catch (com.rapidminer.operator.nio.model.ParseException e) {
-			if (isFaultTolerant) {
-				getErrors().add(e.getError());
-				return null;
-			} else {
-				throw new UserError(operator, "data_parsing_error", e.toString());
+			addOrThrow(isFaultTolerant, e.getError(), row);
+			return null;
+		}
+	}
+
+	/** If native type is date, returns the date. Otherwise, uses string and parses.
+	 */
+	private double getOrParseNumber(DataResultSetTranslationConfiguration config, DataResultSet dataResultSet, int row, int column, boolean isFaultTolerant) throws OperatorException {
+		ValueType nativeValueType;
+		try {
+			nativeValueType = dataResultSet.getNativeValueType(column);
+		} catch (com.rapidminer.operator.nio.model.ParseException e1) {
+			addOrThrow(isFaultTolerant, e1.getError(), row);
+			return Double.NaN;
+		}
+		if (nativeValueType == ValueType.NUMBER) {
+			return getNumber(dataResultSet, row, column, isFaultTolerant).doubleValue();
+		} else {
+			String value = getString(dataResultSet, row, column, isFaultTolerant);
+			try {
+				return Double.parseDouble(value);
+			} catch (NumberFormatException e) {
+				ParsingError error = new ParsingError(dataResultSet.getCurrentRow(), column, ErrorCode.UNPARSEABLE_REAL, value, e);
+				addOrThrow(isFaultTolerant, error, row);
+				return Double.NaN;
 			}
 		}
 	}
 
-	private Number getNumber(DataResultSet dataResultSet, int column, boolean isFaultTolerant) throws OperatorException {
+	private Number getNumber(DataResultSet dataResultSet, int row, int column, boolean isFaultTolerant) throws OperatorException {
 		try {
 			return dataResultSet.getNumber(column);
 		} catch (com.rapidminer.operator.nio.model.ParseException e) {
 			if (isFaultTolerant) {
-				getErrors().add(e.getError());
+				addError(e.getError(), row);
 				return Double.NaN;
 			} else {
 				throw new UserError(operator, "data_parsing_error", e.toString());
@@ -252,7 +323,6 @@ public class DataResultSetTranslator {
 		for (int i = 0; i < guessedTypes.length; i++) {
 			configuration.getColumnMetaData(i).setAttributeValueType(guessedTypes[i]);
 		}
-		//return configuration;
 	}
 
 	/**
@@ -263,93 +333,91 @@ public class DataResultSetTranslator {
 	private int[] guessValueTypes(int[] definedTypes, DataResultSetTranslationConfiguration configuration, DataResultSet dataResultSet, int maxProbeRows, ProgressListener listener) throws OperatorException {
 		if (listener != null)
 			listener.setTotal(1 + maxProbeRows);
-		DateFormat dateFormat = new SimpleDateFormat(configuration.getDatePattern(), configuration.getLocale());
-		//boolean[] needsGuessing = new boolean[definedTypes.length];
-		//boolean needsGuessingAtAll = false;
+		DateFormat dateFormat = configuration.getDateFormat();
 
-		for (int i = 0; i < definedTypes.length; i++) {
-			if (definedTypes[i] == Ontology.ATTRIBUTE_VALUE) {
-				//needsGuessingAtAll = true;
-				//needsGuessing[i] = true;
-			}
-		}
 		if (listener != null)
 			listener.setCompleted(1);
-		//if (needsGuessingAtAll) {
-			int[] columnValueTypes = new int[dataResultSet.getNumberOfColumns()];
-			Arrays.fill(columnValueTypes, Ontology.INTEGER);
+		int[] columnValueTypes = new int[dataResultSet.getNumberOfColumns()];
+		Arrays.fill(columnValueTypes, Ontology.INTEGER);
 
-			// TODO: The following could be made more efficient using an indirect indexing to access the columns: would
-			// save array over all
-			dataResultSet.reset(listener);
-			int currentRow = 0;
-			String[][] valueBuffer = new String[dataResultSet.getNumberOfColumns()][2];
-			int maxAnnotatedRow = configuration.getLastAnnotatedRowIndex();
-			while (dataResultSet.hasNext() && (currentRow < maxProbeRows || maxProbeRows <= 0)) {
-				dataResultSet.next(listener);
-				if (listener != null)
-					listener.setCompleted(1 + currentRow);
+		// TODO: The following could be made more efficient using an indirect indexing to access the columns: would
+		dataResultSet.reset(listener);
+		// the row in the underlying DataResultSet
+		int currentRow = 0;
+		// the example row in the ExampleTable
+		int exampleIndex = 0;
+		NominalValueSet nominalValues[] = new NominalValueSet[dataResultSet.getNumberOfColumns()];
+		for (int i = 0; i < nominalValues.length; i++) {
+			nominalValues[i] = new NominalValueSet();
+		}
+		int maxAnnotatedRow = configuration.getLastAnnotatedRowIndex();		
+		while (dataResultSet.hasNext() && (currentRow < maxProbeRows || maxProbeRows <= 0)) {
+			dataResultSet.next(listener);
+			if (listener != null)
+				listener.setCompleted(1 + currentRow);
 
-				// skip rows with annotations
-				if ((currentRow > maxAnnotatedRow) || (configuration.getAnnotation(currentRow) == null)) {
-					System.out.println("Considering non-annotated row "+currentRow);
+			// skip rows with annotations
+			if ((currentRow > maxAnnotatedRow) || (configuration.getAnnotation(currentRow) == null)) {
+				for (int column = 0; column < dataResultSet.getNumberOfColumns(); column++) {
+					// No more guessing necessary if guessed type is polynomial (this is the most general case)
+					if ((definedTypes[column] == Ontology.POLYNOMINAL) || dataResultSet.isMissing(column)) {
+						continue;
+					}
 
-					for (int column = 0; column < dataResultSet.getNumberOfColumns(); column++) {
-						// No more guessing necessary if guessed type is polynomial (this is the most general case)
-						if (definedTypes[column] != Ontology.POLYNOMINAL && 
-								!dataResultSet.isMissing(column)) {
-							
-							ValueType nativeType;
-							try {
-								nativeType = dataResultSet.getNativeValueType(column);
-							} catch (com.rapidminer.operator.nio.model.ParseException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-								continue;
-							}
-							if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(nativeType.getRapidMinerAttributeType(), definedTypes[column])) {
-								// We're good, nothing to do
-								if (definedTypes[column] == Ontology.ATTRIBUTE_VALUE) {
-									// First row, just use the one delivered
-									definedTypes[column] = nativeType.getRapidMinerAttributeType();
+					ValueType nativeType;
+					String stringRepresentation;
+					try {
+						nativeType = dataResultSet.getNativeValueType(column);
+						stringRepresentation = dataResultSet.getString(column);
+					} catch (com.rapidminer.operator.nio.model.ParseException e) {
+						final ParsingError error = e.getError();
+						addError(error, exampleIndex);
+						continue;
+					}							
+					nominalValues[column].register(stringRepresentation);
+
+					if (nativeType != ValueType.STRING) {
+						// Native representation is not a string, so we trust the data source
+						// and adapt the type accordingly.
+						int isType = nativeType.getRapidMinerAttributeType();
+						if (nativeType == ValueType.NUMBER) {
+							Number value = getNumber(dataResultSet, exampleIndex, column, true);
+							if (!Double.isNaN(value.doubleValue())) {
+								if (value.intValue() == value.doubleValue()) {
+									isType = Ontology.INTEGER;
+								} else {
+									isType = Ontology.REAL;
 								}
-								continue;
-							}
-							if (nativeType != ValueType.STRING) {
-								// so far, we don't match. Only way out: 
-							} else {
-								// for strings, we try parsing ourselves guessing
-								String value;
-								try {
-									value = dataResultSet.getString(column);
-								} catch (com.rapidminer.operator.nio.model.ParseException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-									continue;
-								}
-								// fill value buffer for binominal assessment
-								if (valueBuffer[column] != null) {
-									// first check if already more than two values: Encoded by null inner array
-									if (!value.equals(valueBuffer[column][0]) && !value.equals(valueBuffer[column][1])) {
-										if (valueBuffer[column][0] == null) {
-											valueBuffer[column][0] = value;
-										} else if (valueBuffer[column][1] == null) {
-											valueBuffer[column][1] = value;
-										} else {
-											valueBuffer[column] = null;
-										}
-									}
-								}
-								definedTypes[column] = guessValueType(definedTypes[column], value, valueBuffer[column] != null, dateFormat);
 							}
 						}
-					}
-				} else {
-					System.out.println("Skipping annotated row "+currentRow);
+						if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(isType, definedTypes[column])) {
+							// We're good, nothing to do
+							if (definedTypes[column] == Ontology.ATTRIBUTE_VALUE) {
+								// First row, just use the one delivered
+								definedTypes[column] = isType;
+							}								
+							continue;
+						} else {
+							// otherwise, generalize until we are good
+							while (!Ontology.ATTRIBUTE_VALUE_TYPE.isA(isType, definedTypes[column])) {
+								definedTypes[column] = Ontology.ATTRIBUTE_VALUE_TYPE.getParent(definedTypes[column]);
+							}
+							// in the most general case, we switch to polynomial
+							if (definedTypes[column] == Ontology.ATTRIBUTE_VALUE) {
+								definedTypes[column] =
+									nominalValues[column].moreThanTwo ? Ontology.POLYNOMINAL : Ontology.BINOMINAL;
+							}
+						}
+					} else {
+						// for strings, we try parsing ourselves
+						// fill value buffer for binominal assessment
+						definedTypes[column] = guessValueType(definedTypes[column], stringRepresentation, !nominalValues[column].moreThanTwo, dateFormat);
+					}					
 				}
-				currentRow++;
+				exampleIndex++;
 			}
-		//}
+			currentRow++;
+		}
 		if (listener != null)
 			listener.complete();
 		return definedTypes;
@@ -402,15 +470,40 @@ public class DataResultSetTranslator {
 	public void close() throws OperatorException {
 		if (isReading) {
 			shouldStop = true;
-			synchronized (isReadingMutex) {
+			//synchronized (isReadingMutex) {
 				shouldStop = false;
-			}
+			//}
 		}
-		dataResultSet.close();
+		// TODO: Check: Where do we close now?
+		//dataResultSet.close();
 	}
 
-	public List<ParsingError> getErrors() {
-		return errors;
+	public void clearErrors() {
+		errors.clear();
+	}
+
+	private void addOrThrow(boolean isFaultTolerant, ParsingError error, int row) throws UserError {
+		if (isFaultTolerant) {
+			addError(error, row);			
+		} else {
+			throw new UserError(operator, "data_parsing_error", error.toString());
+		}
+	}
+
+	private void addError(final ParsingError error, int exampleIndex) {
+		error.setExampleIndex(exampleIndex);
+		errors.put(new Pair<Integer,Integer>(error.getExampleIndex(), error.getColumn()), error);
+	}
+
+	public Collection<ParsingError> getErrors() {
+		return errors.values();
+	}
+
+	public ParsingError getErrorByExampleIndexAndColumn(int row, int column) {
+		if (errors == null) {
+			return null;
+		}
+		return errors.get(new Pair<Integer,Integer>(row, column));
 	}
 
 }

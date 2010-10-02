@@ -8187,5 +8187,41 @@
 	<synopsis>This operator sends a mail.</synopsis>    
     <help>This operator sends a mail with a given subject and body to a receiver.</help>
   </operator>
-  
+
+
+	<operator>
+      <name>k-Means (fast)</name>
+      <synopsis>This operator represents an implementation of k-Means according to C. Elkan.
+      This operator will create a cluster attribute if not present yet. 
+	</synopsis>
+      <key>fast_k_means</key>
+      <help>In contrast to the standard
+      implementation of k-means, this implementation is much faster in many cases, especially for data sets with
+      many attributes and a high k value, but it also needs more additional memory. For more information, please see paper:
+     - Using the Triangle Inequality to Accelerate k-Means -
+      Proceedings of the Twentieth International Conference on Machine Learning (ICML-2003), Washington DC, 2003</help>
+      <shortName>Clustering</shortName>
+   </operator>
+   
+     
+        <operator>
+      <name>AutoMLP</name>
+      <synopsis>AutoMLP learner.</synopsis>
+      <help> 
+      AutoMLP is a simple algorithm for both learning rate
+and size adjustment of neural networks during training. The algorithm combines ideas from
+genetic algorithms and stochastic optimization. It maintains a small ensemble of networks
+that are trained in parallel with different rates and different numbers of hidden units. After
+a small, fixed number of epochs, the error rate is determined on a validation set and the
+worst performers are replaced with copies of the best networks, modified to have different
+numbers of hidden units and learning rates. Hidden unit numbers and learning rates are
+drawn according to probability distributions derived from successful rates and sizes.
+
+For more information please be kindly referred to the following paper: AutoMLP: Simple, Effective, Fully Automated Learning Rate and Size Adjustment by 
+Thomas Breuel, Faisal Shafait. The Learning Workshop, Cliff Lodge, Snowbird, Utah, United States, Online, 4/2010.
+
+      </help>
+      <key>auto_mlp</key>
+   </operator>
+     
 </operatorHelp>

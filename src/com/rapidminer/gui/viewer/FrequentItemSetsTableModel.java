@@ -98,7 +98,11 @@ public class FrequentItemSetsTableModel extends AbstractTableModel {
         String[] itemNames = null;
         if (itemName != null) {
             itemNames = itemName.split(",");
+            for (int i = 0; i < itemNames.length; i++)
+            	itemNames[i] = itemNames[i].trim();
         }
+
+        
         for (FrequentItemSet itemSet : frequentSets) {
             if (acceptItemSet(itemSet, min, max, itemNames)) {
                 indices.add(index);
@@ -127,7 +131,7 @@ public class FrequentItemSetsTableModel extends AbstractTableModel {
         
         for (Item item : itemSet.getItems()) {
             for (String itemName : itemNames)
-                if (item.toString().indexOf(itemName.trim()) >= 0)
+                if (item.toString().contains(itemName))
                     return true;
         }
         return false;

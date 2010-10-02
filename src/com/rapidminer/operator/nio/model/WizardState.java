@@ -2,7 +2,6 @@ package com.rapidminer.operator.nio.model;
 
 import com.rapidminer.RapidMiner;
 import com.rapidminer.example.ExampleSet;
-import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ProgressListener;
@@ -14,18 +13,19 @@ import com.rapidminer.tools.ProgressListener;
  */
 public class WizardState {
 	
-	private DataResultSetTranslator translator = null;
+	private final DataResultSetTranslator translator;
 	private DataResultSetTranslationConfiguration config;
 	
 	private final DataResultSetFactory dataResultSetFactory;
 
-	private final Operator operator;
+	private final AbstractDataResultSetReader operator;
 	
 	private int maxRows = 100;
 	private ExampleSet cachedExampleSet;
 	
-	public WizardState(Operator operator, DataResultSetFactory dataResultSetFactory) {
+	public WizardState(AbstractDataResultSetReader operator, DataResultSetFactory dataResultSetFactory) {
 		super();
+		this.translator = new DataResultSetTranslator(operator);
 		this.operator = operator;
 		this.dataResultSetFactory = dataResultSetFactory;
 		try {
@@ -33,15 +33,11 @@ public class WizardState {
 		} catch (NumberFormatException e) {
 			maxRows = 100;
 		}
-
 	}
 	
 	public DataResultSetTranslator getTranslator() {
 		return translator;
-	}
-	public void setTranslator(DataResultSetTranslator translator) {
-		this.translator = translator;
-	}
+	}	
 	
 	public DataResultSetTranslationConfiguration getTranslationConfiguration() {
 		return config;
@@ -52,11 +48,10 @@ public class WizardState {
 	
 	public DataResultSetFactory getDataResultSetFactory() {
 		return dataResultSetFactory;
-	}
-	
+	}	
 
-	public ExampleSet readNow(boolean previewOnly, ProgressListener progressListener) throws OperatorException {
-		cachedExampleSet = getTranslator().read(getTranslationConfiguration(), 
+	public ExampleSet readNow(DataResultSet dataResultSet, boolean previewOnly, ProgressListener progressListener) throws OperatorException {
+		cachedExampleSet = getTranslator().read(dataResultSet, getTranslationConfiguration(), 
 				previewOnly ? maxRows : 0,
 				progressListener);
 		LogService.getRoot().info("Reading example set...");
@@ -71,7 +66,7 @@ public class WizardState {
 		return cachedExampleSet;
 	}
 
-	public Operator getOperator() {
+	public AbstractDataResultSetReader getOperator() {
 		return operator;
 	}
 }

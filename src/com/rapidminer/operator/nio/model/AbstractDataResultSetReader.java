@@ -62,7 +62,7 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 	 * This parameter holds the hole information about the attribute columns. I.e. which attributes are defined, the
 	 * names, what value type they have, whether the att. is selected,
 	 */
-	private static final String PARAMETER_META_DATA = "data_set_meta_data_information";
+	public static final String PARAMETER_META_DATA = "data_set_meta_data_information";
 
 	/**
 	 * Parameters being part of the list for PARAMETER_META_DATA
@@ -84,8 +84,6 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 	public static final String PARAMETER_FIRST_ROW_AS_NAMES = "first_row_as_names";
 	public static final String PARAMETER_ANNOTATIONS = "annotations";
 	
-	
-	
 	public AbstractDataResultSetReader(OperatorDescription description) {
 		super(description);
 	}
@@ -99,9 +97,11 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 		DataResultSetTranslationConfiguration configuration = new DataResultSetTranslationConfiguration(this, dataResultSet);
 
 		// now use translator to read, translate and return example set
-		DataResultSetTranslator translator = new DataResultSetTranslator(this, dataResultSet);
+		DataResultSetTranslator translator = new DataResultSetTranslator(this);
 		translator.guessValueTypes(configuration, dataResultSet, null);
-		return translator.read(configuration, 0, null);
+		final ExampleSet exampleSet = translator.read(dataResultSet, configuration, 0, null);
+		dataResultSet.close();
+		return exampleSet;
 	}
 
 

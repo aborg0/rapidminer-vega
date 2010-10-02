@@ -615,7 +615,16 @@
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
-    
+   
+   <!--  Auto MLP -->
+   <ioobject 
+    	name="AutoMLP"
+        class="de.dfki.madm.paren.operator.learner.functions.neuralnet.AutoMLPImprovedNeuralNetModel"
+        reportable="true">
+        <renderer>de.dfki.madm.paren.gui.renderer.models.AutoMLPImprovedNeuralNetModelRenderer</renderer>      
+        <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+    </ioobject>
+     
     <!-- Dummy Entry -->
     
     <!--  ioobject 

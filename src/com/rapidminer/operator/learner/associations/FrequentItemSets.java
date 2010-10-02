@@ -112,7 +112,14 @@ public class FrequentItemSets extends ResultObjectAdapter implements Iterable<Fr
 
 	@Override
 	public String toResultString() {
-		return toString(-1);
+		if (size() > MAX_NUMBER_OF_ITEMSETS) {
+			StringBuilder stringBuilder = new StringBuilder();
+			stringBuilder.append(toString(MAX_NUMBER_OF_ITEMSETS));
+			stringBuilder.append("... (" + (size() - MAX_NUMBER_OF_ITEMSETS) + " more)");
+			return stringBuilder.toString();
+		} else {
+			return toString(-1);
+		}
 	}
 
 	/** This method generates the a string representation of this object. */
@@ -136,7 +143,7 @@ public class FrequentItemSets extends ResultObjectAdapter implements Iterable<Fr
 				} else {
 					output.append(set.getItemsAsString());
 					output.append(" / ");
-					output.append(Tools.formatNumber((double)set.getFrequency() / (double)numberOfTransactions));
+					output.append(Tools.formatNumber((double) set.getFrequency() / (double) numberOfTransactions));
 					output.append(Tools.getLineSeparator());
 				}
 

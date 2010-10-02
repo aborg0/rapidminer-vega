@@ -190,7 +190,7 @@ public class Ontology {
 		return names;
 	}
 
-	public int getParent(int parent) {
-		return parentId[parent];
+	public int getParent(int child) {
+		return parentId[child];
 	}
 }

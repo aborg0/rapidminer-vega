@@ -73,7 +73,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 	private static final List<RepositoryFactory> FACTORIES = new LinkedList<RepositoryFactory>();
 
 	private final List<Repository> repositories = new LinkedList<Repository>();
-	
+
 	public static RepositoryManager getInstance(RepositoryAccessor repositoryAccessor) {
 		synchronized (INSTANCE_LOCK) {
 			if (instance == null) {
@@ -99,13 +99,13 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 	private RepositoryManager(RepositoryManager cloned) {
 		this.repositories.addAll(cloned.repositories); 
 	}
-	
+
 	private RepositoryManager() {
 		if (sampleRepository == null) {
 			sampleRepository = new ResourceRepository("Samples", "/"+Tools.RESOURCE_PREFIX+"samples");
 		}
 		repositories.add(sampleRepository);
-		
+
 		final String homeUrl = System.getProperty(RapidMiner.PROPERTY_HOME_REPOSITORY_URL);
 		if (homeUrl != null) {
 			try {
@@ -137,7 +137,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			FACTORIES.add(factory);	
 		}		
 	}
-	
+
 	public void addRepository(Repository repository) {
 		LOGGER.config("Adding repository "+repository.getName());
 		repositories.add(repository);		
@@ -290,7 +290,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			throw new RepositoryException("Entry '"+location+"' is not a data entry, but "+entry.getType());
 		}
 	}
-	
+
 	public static void shutdown() {
 		if (instance != null) {
 			instance.save();
@@ -298,45 +298,86 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 	}
 
 	/** Copies an entry to a given destination folder. */
-	public void copy(RepositoryLocation source, Folder destination, ProgressListener l) throws RepositoryException {
+	public void copy(RepositoryLocation source, Folder destination, ProgressListener listener) throws RepositoryException {
+		listener.setTotal(100000);
+		listener.setCompleted(0);
+		try {
+			copy(source, destination, listener, 0, 100000);
+		} finally {
+			listener.complete();	
+		}		
+	}
+
+
+	private void copy(RepositoryLocation source, Folder destination, ProgressListener listener, int minProgress, int maxProgress) throws RepositoryException {
 		Entry entry = source.locateEntry();
 		if (entry == null) {
 			throw new RepositoryException("No such entry: "+source);
-		} else {
-			String newName = source.getName();
-			if (destination.containsEntry(newName)) {
-				newName = "Copy of " + source.getName();
-				int i = 1;
-				while (destination.containsEntry(newName)) {
-					newName = "Copy "+(i++)+" of "+source.getName();
-				}
-			}
-			if (entry instanceof ProcessEntry) {
-				l.setTotal(100);
-				l.setCompleted(10);
-				ProcessEntry pe = (ProcessEntry) entry;				
-				String xml = pe.retrieveXML();
-				l.setCompleted(50);
-				destination.createProcessEntry(newName, xml);
-				l.setCompleted(100);
-				l.complete();
-			} else if (entry instanceof IOObjectEntry) {
-				IOObjectEntry iooe = (IOObjectEntry) entry;
-				destination.createIOObjectEntry(newName, iooe.retrieveData(l), null, l);
-			} else if (entry instanceof BlobEntry) {
-				BlobEntry blob = (BlobEntry) entry;
-				BlobEntry target = destination.createBlobEntry(newName);
-				try {
-					Tools.copyStreamSynchronously(blob.openInputStream(), target.openOutputStream(blob.getMimeType()), true);
-				} catch (IOException e) {
-					throw new RepositoryException(e);
-				}
-			} else {
-				throw new RepositoryException("Cannot copy entry of type "+entry.getType());
+		}
+		copy(entry, destination, listener, minProgress, maxProgress);
+	}
+
+	private void copy(Entry entry, Folder destination, ProgressListener listener, int minProgress, int maxProgress) throws RepositoryException {
+		if (listener != null) {
+			listener.setMessage(entry.getName());
+		}
+		String newName = entry.getName();
+		if (destination.containsEntry(newName)) {
+			newName = "Copy of " + newName;
+			int i = 1;
+			while (destination.containsEntry(newName)) {
+				newName = "Copy "+(i++)+" of "+newName;
 			}
 		}
+		if (entry instanceof ProcessEntry) {
+			ProcessEntry pe = (ProcessEntry) entry;				
+			String xml = pe.retrieveXML();
+			if (listener != null) {
+				listener.setCompleted((minProgress + maxProgress)/2);
+			}
+			destination.createProcessEntry(newName, xml);
+			if (listener != null) {
+				listener.setCompleted(maxProgress);
+			}
+		} else if (entry instanceof IOObjectEntry) {
+			IOObjectEntry iooe = (IOObjectEntry) entry;				
+			IOObject original = iooe.retrieveData(null);
+			if (listener != null) {
+				listener.setCompleted((minProgress + maxProgress)/2);
+			}
+			destination.createIOObjectEntry(newName, original, null, null);
+			if (listener != null) {
+				listener.setCompleted(maxProgress);
+			}
+		} else if (entry instanceof BlobEntry) {
+			BlobEntry blob = (BlobEntry) entry;
+			BlobEntry target = destination.createBlobEntry(newName);
+			try {
+				Tools.copyStreamSynchronously(blob.openInputStream(), target.openOutputStream(blob.getMimeType()), true);
+				if (listener != null) {
+					listener.setCompleted(maxProgress);
+				}
+			} catch (IOException e) {
+				throw new RepositoryException(e);
+			}
+		} else if (entry instanceof Folder) {
+			Folder destinationFolder = destination.createFolder(entry.getName());
+			List<Entry> allChildren = new LinkedList<Entry>();
+			allChildren.addAll(((Folder) entry).getSubfolders());
+			allChildren.addAll(((Folder) entry).getDataEntries());
+			final int count = allChildren.size();
+			int progressStart = minProgress;
+			int progressDiff  = maxProgress-minProgress;
+			int i = 0;
+			for (Entry child : allChildren) {
+				copy(child, destinationFolder, listener, progressStart + i*progressDiff/count, progressStart + (i+1)*progressDiff/count);
+				i++;
+			}
+		} else {
+			throw new RepositoryException("Cannot copy entry of type "+entry.getType());
+		}		
 	}
-	
+
 	/** Moves an entry to a given destination folder. */
 	public void move(RepositoryLocation source, Folder destination, ProgressListener l) throws RepositoryException {
 		Entry entry = source.locateEntry();
@@ -359,7 +400,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			}
 		}
 	}
-	
+
 	/** Looks up the entry with the given path in the given repository.
 	 *  This method will return null when it finds a folder that blocks (has not yet loaded
 	 *  all its data) AND failIfBlocks is true.
@@ -412,7 +453,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 	public Repository getSampleRepository() {	
 		return sampleRepository;
 	}
-	
+
 	/** Visitor pattern for repositories. Callbacks to the visitor will be made
 	 *  only for matching types. (Recursion happens also if the type is not
 	 *  a Folder. The type can be null.

@@ -23,6 +23,8 @@
 package com.rapidminer.operator.nio;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.util.Iterator;
@@ -42,20 +44,21 @@ import com.rapidminer.datatable.DataTableExampleSetAdapter;
 import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
+import com.rapidminer.gui.tools.CellColorProviderAlternating;
 import com.rapidminer.gui.tools.ExtendedJTable;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceActionAdapter;
+import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.gui.tools.table.EditableTableHeader;
 import com.rapidminer.gui.tools.table.EditableTableHeaderColumn;
 import com.rapidminer.gui.viewer.DataTableViewerTableModel;
 import com.rapidminer.operator.OperatorException;
-import com.rapidminer.operator.nio.model.ColumnMetaData;
 import com.rapidminer.operator.nio.model.DataResultSet;
-import com.rapidminer.operator.nio.model.DataResultSetTranslationConfiguration;
 import com.rapidminer.operator.nio.model.DataResultSetTranslator;
+import com.rapidminer.operator.nio.model.ParsingError;
 import com.rapidminer.operator.nio.model.WizardState;
 
 /**
@@ -97,13 +100,22 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	};
 	private ReconfigurableButton guessButton = new ReconfigurableButton(guessValueTypes);
 
-	private JCheckBox errorsAsMissingBox = new JCheckBox(new ResourceActionAdapter("wizard.error_tolerant"));
+	private JCheckBox errorsAsMissingBox = new JCheckBox(new ResourceAction("wizard.error_tolerant") {
+		private static final long serialVersionUID = 1L;
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			state.getTranslationConfiguration().setFaultTolerant(errorsAsMissingBox.isSelected());
+		}		
+	});
 	private JCheckBox filterErrorsBox = new JCheckBox(new ResourceActionAdapter("wizard.show_error_rows"));
 
 	private WizardState state;
 
 	private JPanel panel = new JPanel(new BorderLayout());
 	private JScrollPane tableScrollPane;
+
+	private ErrorTableModel errorTableModel = new ErrorTableModel();
+	private JLabel errorLabel = new JLabel();
 
 	public MetaDataDeclarationWizardStep(WizardState state) {
 		super("importwizard.metadata");		
@@ -115,28 +127,25 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		buttonPanel.add(errorsAsMissingBox);
 		buttonPanel.add(filterErrorsBox);
 		panel.add(buttonPanel, BorderLayout.NORTH);
-		
-		tableScrollPane = new JScrollPane(new JLabel("-"));
-		//table = new JTable(); //false, false, false);
-//		table.setCellColorProvider(new CellColorProvider() {
-//            public Color getCellColor(int row, int col) {
-//            	if (row % 2 == 0) {
-//            		return Color.WHITE;
-//            	} else {
-//            		return SwingTools.LIGHTEST_BLUE;
-//            	}
-//            }
-//		});		
-		//panel.add(new ExtendedJScrollPane(table), BorderLayout.CENTER);
-		//panel.add(new JScrollPane(table), BorderLayout.CENTER);
+
+		JPanel errorPanel = new JPanel(new BorderLayout());
+		errorPanel.add(errorLabel, BorderLayout.NORTH);
+		final JTable errorTable = new JTable(errorTableModel);		
+		final JScrollPane errorScrollPane = new JScrollPane(errorTable);
+		errorScrollPane.setPreferredSize(new Dimension(500, 80));
+		errorPanel.add(errorScrollPane, BorderLayout.CENTER);		
+		panel.add(errorPanel, BorderLayout.SOUTH);
+
+		final JLabel dummy = new JLabel("-");
+		dummy.setPreferredSize(new Dimension(500, 500));
+		dummy.setMinimumSize(new Dimension(500, 500));
+		tableScrollPane = new JScrollPane(dummy);
+		panel.add(tableScrollPane, BorderLayout.CENTER);
 	}
 
 	@Override
 	protected boolean performEnteringAction(WizardStepDirection direction) {
-//		if (tableComponent != null) {
-//			panel.remove(tableComponent);
-//		}
-		
+		errorsAsMissingBox.setSelected(state.getTranslationConfiguration().isFaultTolerant());
 		ExampleSet exampleSet = state.getCachedExampleSet();
 		// Copy name annotations to name		
 		int nameIndex = state.getTranslationConfiguration().getNameRow();		
@@ -149,45 +158,35 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 				i++;
 			}
 		}
-		
-		//table = new DataTableViewerTable(new DataTableExampleSetAdapter(exampleSet, null), false, false, false);		
-				
-		updateTableModel(exampleSet);
-		panel.add(tableScrollPane, BorderLayout.CENTER);
-		
-//		table.setModel(new DataTableViewerTableModel(new DataTableExampleSetAdapter(exampleSet, null)));
-//
-//		MetaDataTableHeaderCellEditor headerEditor = new MetaDataTableHeaderCellEditor();
-//		MetaDataTableHeaderCellEditor headerRenderer = new MetaDataTableHeaderCellEditor();
-//		
-//		TableColumnModel columnModel = table.getColumnModel();
-//		table.setTableHeader(new EditableTableHeader(columnModel));
-//
-//		for (int i = 0; i < table.getColumnCount(); i++) {
-//			EditableTableHeaderColumn col = (EditableTableHeaderColumn) table.getColumnModel().getColumn(i);
-//			col.setHeaderValue(state.getTranslationConfiguration().getColumnMetaData()[i]);
-//			col.setHeaderRenderer(headerRenderer);
-//			col.setHeaderEditor(headerEditor);
-//		}
 
-		
+		guessValueTypes();
 		//updateTableModel(exampleSet);
-
 		return true;
 	}
-	
+
+	private void updateErrors() {
+		final int size = state.getTranslator().getErrors().size();
+		errorLabel.setText(size+" errors.");
+		if (size == 0) {
+			errorLabel.setIcon(SwingTools.createIcon("16/ok.png"));
+		} else {
+			errorLabel.setIcon(SwingTools.createIcon("16/error.png"));
+		}
+		errorTableModel.setErrors(state.getTranslator().getErrors());
+	}
+
 	private void updateTableModel(ExampleSet exampleSet) {
-		JTable table = new ExtendedJTable(false, false, false);
-		
+		ExtendedJTable table = new ExtendedJTable(false, false, false);
+
 		// data model
 		DataTableViewerTableModel model = new DataTableViewerTableModel(new DataTableExampleSetAdapter(exampleSet, null));
 		table.setModel(model);
-		
+
 		// Header model
-		
+
 		TableColumnModel columnModel = table.getColumnModel();
 		table.setTableHeader(new EditableTableHeader(columnModel));
-		
+
 		// header editors and renderers and values
 		MetaDataTableHeaderCellEditor headerEditor = new MetaDataTableHeaderCellEditor();
 		MetaDataTableHeaderCellEditor headerRenderer = new MetaDataTableHeaderCellEditor();
@@ -198,13 +197,20 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 			col.setHeaderEditor(headerEditor);
 		}
 		table.getTableHeader().setReorderingAllowed(false);
-		
+
+		table.setCellColorProvider(new CellColorProviderAlternating() {
+			@Override
+			public Color getCellColor(int row, int column) {
+				ParsingError error = state.getTranslator().getErrorByExampleIndexAndColumn(row, column);
+				if (error != null) {
+					return SwingTools.DARK_YELLOW;
+				} else {
+					return super.getCellColor(row, column);
+				}
+			}
+		});
 		tableScrollPane.setViewportView(table);
-	}
-	
-	private void updateTableHeader(ColumnMetaData[] cmd) {
-		
-	}
+	}	
 
 	@Override
 	protected boolean performLeavingAction(WizardStepDirection direction) {
@@ -220,7 +226,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		} 
 		return true;
 	}
-	
+
 	@Override
 	protected boolean canGoBack() {
 		return true;
@@ -235,18 +241,10 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	protected JComponent getComponent() {
 		return panel;
 	}
-	
+
 	private void reload() {
 		reloadButton.configurePropertiesFromAction(cancelReloadAction);
-	}
-	
-	private void cancelReload() {
-		reloadButton.configurePropertiesFromAction(reloadAction);
-	}
-	
-	private void guessValueTypes() {
-		guessButton.configurePropertiesFromAction(cancelGuessValueTypes);
-		new ProgressThread("guessing_value_types") {
+		new ProgressThread("loading_data") {
 			@Override
 			public void run() {
 				getProgressListener().setTotal(100);
@@ -256,21 +254,70 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 					if (state.getTranslator() != null) {
 						state.getTranslator().close();
 					}
+					// TODO: Why do we have to set the a new translator?
 					DataResultSet resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
-					state.setTranslator(new DataResultSetTranslator(state.getOperator(), resultSet));
-					getProgressListener().setCompleted(30);
-					
-//					state.setTranslationConfiguration(new DataResultSetTranslationConfiguration(resultSet));
-//					getProgressListener().setCompleted(40);					
-					state.getTranslator().guessValueTypes(state.getTranslationConfiguration(), resultSet, state.getNumberOfPreviewRows(), getProgressListener());
-					getProgressListener().setCompleted(60);
-					final ExampleSet exampleSet = state.readNow(true, getProgressListener());
+					state.getTranslator().clearErrors();
+					final ExampleSet exampleSet = state.readNow(resultSet, true, getProgressListener());
 					getProgressListener().setCompleted(80);
 
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
-							updateTableModel(exampleSet);							
+							updateTableModel(exampleSet);
+							updateErrors();
+						}
+					});
+				} catch (OperatorException e) {					
+					// TODO: Show error dialog
+					e.printStackTrace();
+				} finally {
+					getProgressListener().complete();
+					SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							cancelReload();							
+						}						
+					});
+				}
+			}			
+		}.start();
+	}
+
+	private void cancelReload() {
+		reloadButton.configurePropertiesFromAction(reloadAction);
+		isReloading = false;
+	}
+
+	private void guessValueTypes() {
+		guessButton.configurePropertiesFromAction(cancelGuessValueTypes);
+		isGuessing = true;
+		new ProgressThread("guessing_value_types") {
+			@Override
+			public void run() {
+				getProgressListener().setTotal(100);
+				getProgressListener().setCompleted(10);
+				Thread.yield();
+				try {
+					if (state.getTranslator() != null) {
+						state.getTranslator().close();
+					}				
+					DataResultSet resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
+					state.getTranslator().clearErrors();
+					getProgressListener().setCompleted(30);
+
+					//					state.setTranslationConfiguration(new DataResultSetTranslationConfiguration(resultSet));
+					//					getProgressListener().setCompleted(40);					
+					state.getTranslationConfiguration().resetValueTypes();
+					state.getTranslator().guessValueTypes(state.getTranslationConfiguration(), resultSet, state.getNumberOfPreviewRows(), getProgressListener());
+					getProgressListener().setCompleted(60);
+					final ExampleSet exampleSet = state.readNow(resultSet, true, getProgressListener());
+					getProgressListener().setCompleted(80);
+
+					SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							updateTableModel(exampleSet);		
+							updateErrors();
 						}
 					});
 				} catch (OperatorException e) {					
@@ -288,36 +335,30 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 			}			
 		}.start();
 	}
-	
+
 	private void cancelGuessing() {
 		guessButton.configurePropertiesFromAction(guessValueTypes);
 		isGuessing = false;
 	}
-	
-	private Object GUESS_LOCK = new Object();
-	private Object RELOAD_LOCK = new Object();
+
 	private boolean isGuessing = false;
 	private boolean isReloading = false;
-	
+
 	private void toggleGuessValueTypes() {
-		synchronized (GUESS_LOCK) {
-			isGuessing = !isGuessing;
-			if (isGuessing) {
-				guessValueTypes();
-			} else {
-				cancelGuessing();				
-			}
+		isGuessing = !isGuessing;
+		if (isGuessing) {
+			guessValueTypes();
+		} else {
+			cancelGuessing();				
 		}
 	}
 
 	private void toggleReload() {
-		synchronized (RELOAD_LOCK) {
-			isReloading = !isReloading;
-			if (isReloading) {
-				reload();
-			} else {
-				cancelReload();				
-			}
+		isReloading = !isReloading;
+		if (isReloading) {
+			reload();
+		} else {
+			cancelReload();				
 		}
 	}
 

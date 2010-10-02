@@ -78,7 +78,7 @@ public class AssociationRules extends ResultObjectAdapter implements Iterable<As
 
 	@Override
 	public String toResultString() {
-		return toString(-1);
+		return toString(MAXIMUM_NUMBER_OF_RULES_IN_OUTPUT);
 	}
 
 	@Override

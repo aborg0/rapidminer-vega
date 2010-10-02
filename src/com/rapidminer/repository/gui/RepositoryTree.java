@@ -431,7 +431,7 @@ public class RepositoryTree extends JTree {
 										SwingTools.showSimpleErrorMessage("error_in_copy_repository_entry", e, loc.toString(), e.getMessage());
 									}
 								}
-							}.startAndWait();
+							}.start();
 							return true;	
 						} else {
 							return false;

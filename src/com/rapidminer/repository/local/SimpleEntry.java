@@ -212,8 +212,10 @@ public abstract class SimpleEntry implements Entry {
 	}
 
 	protected void putProperty(String key, String value) {
-		getProperties().setProperty(key, value);
-		storeProperties();
+		if (value != null) {
+			getProperties().setProperty(key, value);
+			storeProperties();
+		}
 	}
 
 	protected String getProperty(String key) {

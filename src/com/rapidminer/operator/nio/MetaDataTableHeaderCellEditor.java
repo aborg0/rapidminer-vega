@@ -60,7 +60,13 @@ public class MetaDataTableHeaderCellEditor extends JPanel implements TableCellEd
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (value != null) {
-					value.setUserDefinedAttributeName(nameField.getText());
+					final String text = nameField.getText();
+					if ((text != null) && !text.isEmpty()) {
+						value.setUserDefinedAttributeName(text);
+					} else {
+						nameField.setText(value.getOriginalAttributeName());
+						value.setUserDefinedAttributeName(value.getOriginalAttributeName());
+					}
 				}
 			}
 		});

@@ -84,6 +84,8 @@ public class SingleResultOverview extends JPanel {
 	static final int MIN_HEIGHT = 300;
 	static final int MIN_WIDTH = 300;
 
+	private static final int MAX_RESULT_STRING_LENGTH = 2048;
+
 	private final Action RESTORE_FROM_REPOSITORY = new ResourceAction("resulthistory.restore_data") {
 		private static final long serialVersionUID = 1L;
 
@@ -246,7 +248,11 @@ public class SingleResultOverview extends JPanel {
 
 	private Component makeTextRenderer(IOObject result) {
 		if (result instanceof ResultObject) {
-			return makeMainLabel("<html><pre>" + ((ResultObject) result).toResultString() + "</pre></html>");
+			String resultString = ((ResultObject) result).toResultString();
+			if (resultString.length() > MAX_RESULT_STRING_LENGTH) {
+				resultString = resultString.substring(0, MAX_RESULT_STRING_LENGTH);
+			}
+			return makeMainLabel("<html><pre>" + resultString + "</pre></html>");
 		} else {
 			return makeMainLabel("No information available.");
 		}

@@ -44,7 +44,8 @@ public class MetaDataUpdateQueue extends UpdateQueue {
 
 	public MetaDataUpdateQueue(MainFrame mainFrame) {
 		super("MetaDataValidation");
-		this.mainFrame = mainFrame;
+		this.mainFrame = mainFrame;		
+		this.setPriority(MIN_PRIORITY);
 	}
 
 	/** Enqueues a tasks to validate the given process. 
@@ -76,7 +77,7 @@ public class MetaDataUpdateQueue extends UpdateQueue {
 						getProgressListener().setCompleted(100);
 						getProgressListener().complete();
 					}
-				}.start();						
+				}.startAndWait();						
 			}
 		});
 	}

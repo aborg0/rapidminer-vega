@@ -53,7 +53,7 @@ import com.rapidminer.tools.Tools;
  */
 public class ExcelWorkbookPane extends JPanel {
 
-	public class ExcelWorkbookSelection {
+	public static class ExcelWorkbookSelection {
 		private int sheetIndex;
 		private int columnIndexStart;
 		private int rowIndexStart;
@@ -197,7 +197,6 @@ public class ExcelWorkbookPane extends JPanel {
 
 					// now add everything to gui 
 					SwingUtilities.invokeLater(new Runnable() {
-
 						@Override
 						public void run() {
 							tables = new ExtendedJTable[finalWorkbook.getNumberOfSheets()];
@@ -212,7 +211,7 @@ public class ExcelWorkbookPane extends JPanel {
 								// momentary disable selection in tables
 								tables[sheetIndex].setRowSelectionAllowed(false);
 								tables[sheetIndex].setColumnSelectionAllowed(false);
-								tables[sheetIndex].setCellSelectionEnabled(false);
+								tables[sheetIndex].setCellSelectionEnabled(true);
 
 								// add table to gui
 								ExtendedJScrollPane pane = new ExtendedJScrollPane(tables[sheetIndex]);
@@ -221,6 +220,14 @@ public class ExcelWorkbookPane extends JPanel {
 									sheetsPane.removeAll();
 								}
 								sheetsPane.addTab(sheetNames[sheetIndex], pane);
+								
+								ExcelWorkbookSelection selection = new ExcelWorkbookSelection(configuration.getSheet(), 
+										configuration.getColumnOffset(), configuration.getRowOffset(), 
+										configuration.getColumnLast(), configuration.getRowLast());
+								
+								if ((configuration.getColumnOffset() > 0) || ((configuration.getRowOffset() > 0))) {
+									setSelection(selection);
+								}
 							}
 						}
 					});
@@ -231,6 +238,14 @@ public class ExcelWorkbookPane extends JPanel {
 		}.start();
 	}
 
+	public void setSelection(ExcelWorkbookSelection selection) {
+		final int sheetIndex = selection.getSheetIndex();
+		sheetsPane.setSelectedIndex(sheetIndex);
+		tables[sheetIndex].clearSelection();
+		tables[sheetIndex].setColumnSelectionInterval(selection.getColumnIndexStart(), selection.getColumnIndexEnd());
+		tables[sheetIndex].setRowSelectionInterval(selection.getRowIndexStart(), selection.getRowIndexEnd());		
+	}
+	
 	public ExcelWorkbookSelection getSelection() {
 		if (selectedView == null) {
 			int sheetIndex = sheetsPane.getSelectedIndex();

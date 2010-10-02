@@ -24,12 +24,14 @@ package com.rapidminer.operator.nio.model;
 
 import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.ANNOTATION_NAME;
 import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_ANNOTATIONS;
-import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_COLUMN_META_DATA;
+import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_META_DATA;
 import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_DATE_FORMAT;
 import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_FIRST_ROW_AS_NAMES;
 import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_LOCALE;
 
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
@@ -43,7 +45,9 @@ import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.nio.ExcelExampleSource;
 import com.rapidminer.operator.preprocessing.filter.AbstractDateDataProcessing;
+import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeTupel;
+import com.rapidminer.tools.Ontology;
 
 /**
  * This class holds information how a DataResultSet is translated into an ExampleSet. Therefore it holds information
@@ -60,6 +64,8 @@ public class DataResultSetTranslationConfiguration {
 
 	private SortedMap<Integer, String> annotationsMap = new TreeMap<Integer, String>();
 	private boolean faultTolerant = true;
+
+	private SimpleDateFormat dateFormat;
 	
 	/**
 	 * Creates the configuration based on the parameter values stored in the given reader. If these parameters aren't
@@ -84,8 +90,8 @@ public class DataResultSetTranslationConfiguration {
 			}
 
 			// initializing data structures
-			if (readerOperator.isParameterSet(PARAMETER_COLUMN_META_DATA)) {
-				metaDataSettings = readerOperator.getParameterList(PARAMETER_COLUMN_META_DATA);
+			if (readerOperator.isParameterSet(PARAMETER_META_DATA)) {
+				metaDataSettings = readerOperator.getParameterList(PARAMETER_META_DATA);
 			}
 		
 			// reading date format settings
@@ -120,8 +126,26 @@ public class DataResultSetTranslationConfiguration {
 				cmd.setAttributeValueType(Integer.parseInt(metaDataDefintionValues[2]));
 			}
 		}
-	}
+	}	
 
+	/** Sets the parameters in the given operator to describe this configuration. */
+	public void setParameters(AbstractDataResultSetReader operator) {
+		operator.getParameters().setParameter(PARAMETER_DATE_FORMAT, datePattern);
+		List<String[]> metaDataList = new LinkedList<String[]>();
+		int index = 0;
+		for (ColumnMetaData cmd : getColumnMetaData()) {
+			String[] tupel = new String[4];
+			tupel[0] = cmd.getUserDefinedAttributeName();
+			tupel[1] = String.valueOf(cmd.isSelected());
+			tupel[2] = String.valueOf(cmd.getAttributeValueType());
+			tupel[3] = cmd.getRole();
+			String encodedTupel = ParameterTypeTupel.transformTupel2String(tupel);
+			metaDataList.add(new String[] { String.valueOf(index), encodedTupel} );
+			index++;
+		}
+		operator.getParameters().setParameter(PARAMETER_META_DATA, ParameterTypeList.transformList2String(metaDataList));
+	}
+	
 	/**
 	 * This constructor can be used to generate an empty configuration just depending on the given resultSet
 	 * 
@@ -190,19 +214,6 @@ public class DataResultSetTranslationConfiguration {
 		}
 	}
 
-	public String getDatePattern() {
-		return datePattern;
-	}
-
-	// building attributes according to configuration: Using default system dependent attribute names
-	// int localeIndex = ;
-	// Locale selectedLocale = Locale.US;
-	// if ((localeIndex >= 0) && (localeIndex < availableLocales.size()))
-	// selectedLocale = availableLocales.get(getParameterAsInt(PARAMETER_LOCALE));
-	public Locale getLocale() {
-		return locale;
-	}
-
 	public int getNumerOfColumns() {
 		return columnMetaData.length;
 	}
@@ -227,4 +238,16 @@ public class DataResultSetTranslationConfiguration {
 		return annotatedRows.last();
 	}
 
+	public void resetValueTypes() {
+		for (ColumnMetaData cmd : columnMetaData) {
+			cmd.setAttributeValueType(Ontology.ATTRIBUTE_VALUE);
+		}		
+	}
+
+	public SimpleDateFormat getDateFormat() {
+		if (dateFormat == null) {
+			this.dateFormat = new SimpleDateFormat(datePattern, locale);
+		}
+		return this.dateFormat;
+	}
 }

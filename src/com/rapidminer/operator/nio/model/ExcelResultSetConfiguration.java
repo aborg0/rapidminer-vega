@@ -98,13 +98,6 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	}
 
 	/**
-	 * This returns the number of the sheet that must be returned. Counting starts at 1.
-	 */
-	public int getSheetNumber() {
-		return sheet;
-	}
-
-	/**
 	 * This returns if there is already a opened workbook present
 	 */
 	public boolean hasWorkbook() {

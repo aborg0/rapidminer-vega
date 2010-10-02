@@ -1121,13 +1121,12 @@ public class Tools {
 			return numberOfBytes + " bytes";
 		}
 	}
-
+	
 	/**
 	 * Copies the contents read from the input stream to the output stream in the current thread. Both streams will be
 	 * closed, even in case of a failure.
 	 * 
 	 * @param closeOutputStream
-	 *            TODO
 	 */
 	public static void copyStreamSynchronously(InputStream in, OutputStream out, boolean closeOutputStream) throws IOException {
 		byte[] buffer = new byte[1024 * 20];

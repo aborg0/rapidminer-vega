@@ -44,7 +44,6 @@ import com.rapidminer.gui.viewer.DataTableColumnEditTable;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.nio.model.DataResultSet;
 import com.rapidminer.operator.nio.model.DataResultSetTranslationConfiguration;
-import com.rapidminer.operator.nio.model.DataResultSetTranslator;
 import com.rapidminer.operator.nio.model.WizardState;
 import com.rapidminer.tools.container.Pair;
 
@@ -100,14 +99,12 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 							state.getTranslator().close();
 						}
 						DataResultSet resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
-						state.setTranslator(new DataResultSetTranslator(state.getOperator(), resultSet));
 						getProgressListener().setCompleted(30);
-						
-						state.setTranslationConfiguration(new DataResultSetTranslationConfiguration(resultSet));
+						state.setTranslationConfiguration(new DataResultSetTranslationConfiguration(state.getOperator(), resultSet));
 						getProgressListener().setCompleted(40);					
 						state.getTranslator().guessValueTypes(state.getTranslationConfiguration(), resultSet, state.getNumberOfPreviewRows(), getProgressListener());
 						getProgressListener().setCompleted(60);
-						final ExampleSet exampleSet = state.readNow(true, getProgressListener());
+						final ExampleSet exampleSet = state.readNow(resultSet, true, getProgressListener());
 						getProgressListener().setCompleted(80);
 
 						SwingUtilities.invokeLater(new Runnable() {
