@@ -28,12 +28,18 @@ import static com.rapidminer.operator.nio.ExcelExampleSource.PARAMETER_ROW_OFFSE
 import static com.rapidminer.operator.nio.ExcelExampleSource.PARAMETER_SHEET_NUMBER;
 
 import java.io.File;
+import java.io.IOException;
+
+import javax.swing.table.TableModel;
 
 import jxl.Workbook;
+import jxl.read.biff.BiffException;
 
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.nio.ExcelExampleSource;
+import com.rapidminer.operator.nio.ExcelSheetTableModel;
 import com.rapidminer.parameter.UndefinedParameterError;
 
 /**
@@ -107,8 +113,14 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	/**
 	 * This will return a workbook if already delivered with the configuration. This 
 	 * workbook must not be closed!
+	 * @throws IOException 
+	 * @throws BiffException 
 	 */
-	public Workbook getWorkbook() {
+	public Workbook getWorkbook() throws BiffException, IOException {
+		if (preOpenedWorkbook == null) {
+			File file = getFile();
+			preOpenedWorkbook = Workbook.getWorkbook(file);
+		}
 		return preOpenedWorkbook;
 	}
 
@@ -118,10 +130,6 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	public File getFile() {
 		return workbookFile;
 	}
-
-//	public void setPreOpenedWorkbook(Workbook preOpenedWorkbook) {
-//		this.preOpenedWorkbook = preOpenedWorkbook;
-//	}
 
 	/**
 	 * This will set the workbook file. It will assure that an existing preopened workbook will be closed if files
@@ -169,5 +177,25 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	@Override
 	public DataResultSet makeDataResultSet(Operator operator) throws OperatorException {
 		return new ExcelResultSet(operator, this);
+	}
+
+	@Override
+	public TableModel makePreviewTableModel() throws OperatorException {
+		try {
+			return new ExcelSheetTableModel(this);
+		} catch (IndexOutOfBoundsException e) {
+			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
+		} catch (BiffException e) {
+			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
+		} catch (IOException e) {
+			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
+		}
+	}
+
+	public void closeWorkbook() {
+		if (preOpenedWorkbook == null) {
+			preOpenedWorkbook.close();
+			preOpenedWorkbook = null;
+		}
 	}
 }

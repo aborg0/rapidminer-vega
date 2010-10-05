@@ -23,16 +23,12 @@
 package com.rapidminer.operator.nio;
 
 import java.awt.BorderLayout;
-import java.io.File;
 import java.io.IOException;
-import java.util.logging.Level;
 
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
-import javax.swing.table.AbstractTableModel;
 
-import jxl.Sheet;
 import jxl.Workbook;
 import jxl.read.biff.BiffException;
 
@@ -43,8 +39,6 @@ import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.operator.nio.model.ExcelResultSetConfiguration;
-import com.rapidminer.tools.LogService;
-import com.rapidminer.tools.Tools;
 
 /**
  * This is a pane, showing the contents of a complete excel workbook. There's one tab per sheet.
@@ -54,7 +48,8 @@ import com.rapidminer.tools.Tools;
 public class ExcelWorkbookPane extends JPanel {
 
 	public static class ExcelWorkbookSelection {
-		private int sheetIndex;
+	
+	private int sheetIndex;
 		private int columnIndexStart;
 		private int rowIndexStart;
 		private int columnIndexEnd;
@@ -102,46 +97,6 @@ public class ExcelWorkbookPane extends JPanel {
 		}
 	}
 
-	public class ExcelSheetTableModel extends AbstractTableModel {
-		private static final long serialVersionUID = 1L;
-
-		private Sheet sheet;
-
-		public ExcelSheetTableModel(Sheet sheet) {
-			this.sheet = sheet;
-		}
-
-		@Override
-		public Object getValueAt(int rowIndex, int columnIndex) {
-			return sheet.getCell(columnIndex, rowIndex).getContents();
-		}
-
-		@Override
-		public int getRowCount() {
-			return sheet.getRows();
-		}
-
-		@Override
-		public int getColumnCount() {
-			return sheet.getColumns();
-		}
-
-		@Override
-		public String getColumnName(int columnIndex) {
-			return Tools.getExcelColumnName(columnIndex);
-		}
-
-		@Override
-		public Class<?> getColumnClass(int columnIndex) {
-			return String.class;
-		}
-
-		@Override
-		public boolean isCellEditable(int rowIndex, int columnIndex) {
-			return false;
-		}
-	}
-
 	private static final long serialVersionUID = 9179757216097316344L;
 
 	private ExcelResultSetConfiguration configuration;
@@ -177,23 +132,7 @@ public class ExcelWorkbookPane extends JPanel {
 
 				// loading workbook if necessary
 				try {
-					Workbook workbook;
-					if (configuration.hasWorkbook()) {
-						workbook = configuration.getWorkbook();
-					} else {
-						File file = configuration.getFile();
-
-						try {
-							workbook = Workbook.getWorkbook(file);
-						} catch (BiffException e1) {
-							LogService.getRoot().log(Level.WARNING, "Error loading workbook: " + e1, e1);
-							return;
-						} catch (IOException e1) {
-							LogService.getRoot().log(Level.WARNING, "Error loading workbook: " + e1, e1);
-							return;
-						}
-					}
-					final Workbook finalWorkbook = workbook;
+					final Workbook finalWorkbook = configuration.getWorkbook();
 
 					// now add everything to gui 
 					SwingUtilities.invokeLater(new Runnable() {
@@ -231,6 +170,12 @@ public class ExcelWorkbookPane extends JPanel {
 							}
 						}
 					});
+				} catch (BiffException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				} finally {
 					getProgressListener().complete();
 				}

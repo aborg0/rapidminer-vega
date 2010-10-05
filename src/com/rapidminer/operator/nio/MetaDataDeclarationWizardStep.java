@@ -27,7 +27,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
-import java.util.Iterator;
 
 import javax.swing.Action;
 import javax.swing.JButton;
@@ -37,18 +36,19 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
 
 import com.rapidminer.datatable.DataTableExampleSetAdapter;
-import com.rapidminer.example.AttributeRole;
-import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.gui.tools.CellColorProviderAlternating;
 import com.rapidminer.gui.tools.ExtendedJTable;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceActionAdapter;
+import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
@@ -57,7 +57,6 @@ import com.rapidminer.gui.tools.table.EditableTableHeaderColumn;
 import com.rapidminer.gui.viewer.DataTableViewerTableModel;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.nio.model.DataResultSet;
-import com.rapidminer.operator.nio.model.DataResultSetTranslator;
 import com.rapidminer.operator.nio.model.ParsingError;
 import com.rapidminer.operator.nio.model.WizardState;
 
@@ -109,6 +108,8 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	});
 	private JCheckBox filterErrorsBox = new JCheckBox(new ResourceActionAdapter("wizard.show_error_rows"));
 
+	private JTextField dateFormatField = new JTextField(15);
+	
 	private WizardState state;
 
 	private JPanel panel = new JPanel(new BorderLayout());
@@ -126,6 +127,11 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		buttonPanel.add(guessButton);
 		buttonPanel.add(errorsAsMissingBox);
 		buttonPanel.add(filterErrorsBox);
+		
+		JLabel label = new ResourceLabel("date_format");
+		label.setLabelFor(dateFormatField);
+		buttonPanel.add(label);
+		buttonPanel.add(dateFormatField);
 		panel.add(buttonPanel, BorderLayout.NORTH);
 
 		JPanel errorPanel = new JPanel(new BorderLayout());
@@ -145,21 +151,45 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 
 	@Override
 	protected boolean performEnteringAction(WizardStepDirection direction) {
+		dateFormatField.setText(state.getTranslationConfiguration().getDatePattern());
+		
+		try {
+			state.getTranslationConfiguration().reconfigure(state.getOperator(), state.getDataResultSetFactory().makeDataResultSet(state.getOperator()));
+		} catch (OperatorException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			return false;
+		}
+		
 		errorsAsMissingBox.setSelected(state.getTranslationConfiguration().isFaultTolerant());
-		ExampleSet exampleSet = state.getCachedExampleSet();
+		
+		TableModel dataPreview;
+		try {
+			dataPreview = state.getDataResultSetFactory().makePreviewTableModel();
+		} catch (OperatorException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+		//ExampleSet exampleSet = state.getCachedExampleSet();
 		// Copy name annotations to name		
 		int nameIndex = state.getTranslationConfiguration().getNameRow();		
 		if (nameIndex != -1) {
-			Example nameRow = exampleSet.getExample(nameIndex);
-			int i = 0;
-			Iterator<AttributeRole> r = exampleSet.getAttributes().allAttributeRoles();
-			while (r.hasNext()) {
-				state.getTranslationConfiguration().getColumnMetaData(i).setUserDefinedAttributeName(nameRow.getValueAsString(r.next().getAttribute()));
-				i++;
+			for (int i = 0; i < dataPreview.getColumnCount(); i++) {
+				state.getTranslationConfiguration().getColumnMetaData(i).setUserDefinedAttributeName((String) dataPreview.getValueAt(nameIndex, i));
 			}
+			//Example nameRow = exampleSet.getExample(nameIndex);			
+//			int i = 0;
+//			Iterator<AttributeRole> r = exampleSet.getAttributes().allAttributeRoles();
+//			while (r.hasNext()) {
+//				state.getTranslationConfiguration().getColumnMetaData(i).setUserDefinedAttributeName(nameRow.getValueAsString(r.next().getAttribute()));
+//				i++;
+//			}
 		}
 
 		guessValueTypes();
+		
+		
 		//updateTableModel(exampleSet);
 		return true;
 	}

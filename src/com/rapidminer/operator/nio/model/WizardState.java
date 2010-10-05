@@ -14,17 +14,18 @@ import com.rapidminer.tools.ProgressListener;
 public class WizardState {
 	
 	private final DataResultSetTranslator translator;
-	private DataResultSetTranslationConfiguration config;
+	private final DataResultSetTranslationConfiguration config;
 	
 	private final DataResultSetFactory dataResultSetFactory;
 
 	private final AbstractDataResultSetReader operator;
 	
 	private int maxRows = 100;
-	private ExampleSet cachedExampleSet;
+	//private ExampleSet cachedExampleSet;
 	
 	public WizardState(AbstractDataResultSetReader operator, DataResultSetFactory dataResultSetFactory) {
 		super();
+		this.config = new DataResultSetTranslationConfiguration(operator, null);
 		this.translator = new DataResultSetTranslator(operator);
 		this.operator = operator;
 		this.dataResultSetFactory = dataResultSetFactory;
@@ -42,16 +43,16 @@ public class WizardState {
 	public DataResultSetTranslationConfiguration getTranslationConfiguration() {
 		return config;
 	}
-	public void setTranslationConfiguration(DataResultSetTranslationConfiguration config) {
-		this.config = config;
-	}
+//	public void setTranslationConfiguration(DataResultSetTranslationConfiguration config) {
+//		this.config = config;
+//	}
 	
 	public DataResultSetFactory getDataResultSetFactory() {
 		return dataResultSetFactory;
 	}	
 
 	public ExampleSet readNow(DataResultSet dataResultSet, boolean previewOnly, ProgressListener progressListener) throws OperatorException {
-		cachedExampleSet = getTranslator().read(dataResultSet, getTranslationConfiguration(), 
+		ExampleSet cachedExampleSet = getTranslator().read(dataResultSet, getTranslationConfiguration(), 
 				previewOnly ? maxRows : 0,
 				progressListener);
 		LogService.getRoot().info("Reading example set...");
@@ -62,9 +63,9 @@ public class WizardState {
 		return maxRows;
 	}
 
-	public ExampleSet getCachedExampleSet() {
-		return cachedExampleSet;
-	}
+//	public ExampleSet getCachedExampleSet() {
+//		return cachedExampleSet;
+//	}
 
 	public AbstractDataResultSetReader getOperator() {
 		return operator;

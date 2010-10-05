@@ -74,7 +74,7 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 	public static final String PARAMETER_COLUMN_VALUE_TYPE = "attribute_value_type";
 	public static final String PARAMETER_COLUMN_ROLE = "attribute_role";
 
-	public static final String PARAMETER_DATE_FORMAT = "date_format";
+	public static final String PARAMETER_DATE_FORMAT = "date_format";	
 	public static final String PARAMETER_TIME_ZONE = "time_zone";
 	public static final String PARAMETER_LOCALE = "locale";
 	/**

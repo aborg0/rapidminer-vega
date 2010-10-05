@@ -23,29 +23,19 @@
 package com.rapidminer.operator.nio;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
-import java.util.Collections;
-import java.util.TreeMap;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JTable;
 import javax.swing.SwingUtilities;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableModel;
 
-import com.rapidminer.datatable.DataTableExampleSetAdapter;
-import com.rapidminer.example.ExampleSet;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
-import com.rapidminer.gui.viewer.DataTableColumnEditTable;
 import com.rapidminer.operator.OperatorException;
-import com.rapidminer.operator.nio.model.DataResultSet;
-import com.rapidminer.operator.nio.model.DataResultSetTranslationConfiguration;
 import com.rapidminer.operator.nio.model.WizardState;
-import com.rapidminer.tools.container.Pair;
 
 /**
  * This Wizard Step might be used to select several rows as annotation rows having special meaning.
@@ -58,26 +48,30 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 	
 	private final WizardState state;
 	
-	private DataTableColumnEditTable table;
+	//private DataTableColumnEditTable table;
+	private JTable table;
 
 	public AnnotationDeclarationWizardStep(WizardState state) {
 		super("importwizard.annotations");
 		this.state = state;
 
-		TableCellRenderer renderer = new DefaultTableCellRenderer() {
-			private static final long serialVersionUID = 1L;
-			@Override
-			public Component getTableCellRendererComponent(javax.swing.JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-				if (value == null) {
-					value = "";
-				}
-				return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-			};
-		};
-		Pair<TableCellRenderer, TableCellEditor> pair = new Pair<TableCellRenderer, TableCellEditor>(renderer, new AnnotationCellEditor());
-		table = new DataTableColumnEditTable(null, 
-				Collections.singletonList("Annotations"), 
-				Collections.singletonList(pair), true, false, false);
+//		TableCellRenderer renderer = new DefaultTableCellRenderer() {
+//			private static final long serialVersionUID = 1L;
+//			@Override
+//			public Component getTableCellRendererComponent(javax.swing.JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+//				if (value == null) {
+//					value = "";
+//				}
+//				return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+//			};
+//		};
+//		Pair<TableCellRenderer, TableCellEditor> pair = new Pair<TableCellRenderer, TableCellEditor>(renderer, new AnnotationCellEditor());
+		
+		table = new JTable();
+//		
+//		table = new DataTableColumnEditTable(null, 
+//				Collections.singletonList("Annotations"), 
+//				Collections.singletonList(pair), true, false, false);
 
 		panel.add(new ExtendedJScrollPane(table), BorderLayout.CENTER);
 	}
@@ -85,7 +79,7 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 	@Override
 	protected boolean performEnteringAction(WizardStepDirection direction) {
 		if (direction == WizardStepDirection.FORWARD) {
-			new ProgressThread("guessing_value_types") {
+			new ProgressThread("loading_data") {
 				@Override
 				public void run() {
 					// TODO: We don't want an example set here. No example set needed for annotations
@@ -95,22 +89,26 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 					getProgressListener().setCompleted(10);
 
 					try {
-						if (state.getTranslator() != null) {
-							state.getTranslator().close();
-						}
-						DataResultSet resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
-						getProgressListener().setCompleted(30);
-						state.setTranslationConfiguration(new DataResultSetTranslationConfiguration(state.getOperator(), resultSet));
-						getProgressListener().setCompleted(40);					
-						state.getTranslator().guessValueTypes(state.getTranslationConfiguration(), resultSet, state.getNumberOfPreviewRows(), getProgressListener());
-						getProgressListener().setCompleted(60);
-						final ExampleSet exampleSet = state.readNow(resultSet, true, getProgressListener());
-						getProgressListener().setCompleted(80);
+						final TableModel wrappedModel = state.getDataResultSetFactory().makePreviewTableModel();
+
+//						if (state.getTranslator() != null) {
+//							state.getTranslator().close();
+//						}
+//						DataResultSet resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
+//						getProgressListener().setCompleted(30);
+//						state.setTranslationConfiguration(new DataResultSetTranslationConfiguration(state.getOperator(), resultSet));
+//						getProgressListener().setCompleted(40);					
+//						state.getTranslator().guessValueTypes(state.getTranslationConfiguration(), resultSet, state.getNumberOfPreviewRows(), getProgressListener());
+//						getProgressListener().setCompleted(60);
+//						final ExampleSet exampleSet = state.readNow(resultSet, true, getProgressListener());
+						getProgressListener().setCompleted(100);
 
 						SwingUtilities.invokeLater(new Runnable() {
 							@Override
 							public void run() {
-								table.setDataTable(new DataTableExampleSetAdapter(exampleSet, null));
+								//table.setDataTable(new DataTableExampleSetAdapter(exampleSet, null));
+								table.setModel(new AnnotationTableModel(wrappedModel, state.getTranslationConfiguration().getAnnotationsMap()));
+								table.getColumnModel().getColumn(0).setCellEditor(new AnnotationCellEditor());
 							}
 						});
 					} catch (OperatorException e) {					
@@ -140,16 +138,16 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 //			if (exampleSet == null || table == null)
 //				return false;
 
-			// modify configuration according to done annotations
-			TreeMap<Integer, String> annotationsMap = new TreeMap<Integer, String>();
-
-			Object[] annotations = table.getEnteredValues(0);
-			for (int i = 0; i < annotations.length; i++) {
-				if (annotations[i] != null) {
-					annotationsMap.put(i, annotations[i].toString());
-				}
-			}
-			state.getTranslationConfiguration().setAnnotationsMap(annotationsMap);
+//			// modify configuration according to done annotations
+//			TreeMap<Integer, String> annotationsMap = new TreeMap<Integer, String>();
+//
+//			Object[] annotations = table.getEnteredValues(0);
+//			for (int i = 0; i < annotations.length; i++) {
+//				if (annotations[i] != null) {
+//					annotationsMap.put(i, annotations[i].toString());
+//				}
+//			}
+//			state.getTranslationConfiguration().setAnnotationsMap(annotationsMap);
 		}
 		return true;
 	}

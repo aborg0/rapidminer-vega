@@ -75,17 +75,14 @@ class ExcelSheetSelectionWizardStep extends WizardStep {
 	@Override
 	protected boolean performLeavingAction(WizardStepDirection direction) {
 		if (direction == WizardStepDirection.FORWARD) {
-			ExcelWorkbookSelection selection = workbookSelectionPanel.getSelection();
-	
+			ExcelWorkbookSelection selection = workbookSelectionPanel.getSelection();	
 			configuration.setSheet(selection.getSheetIndex() + 1);
 			configuration.setColumnOffset(selection.getColumnIndexStart());
 			configuration.setColumnLast(selection.getColumnIndexEnd());
 			configuration.setRowOffset(selection.getRowIndexStart());
-			configuration.setRowLast(selection.getRowIndexEnd());
-			
+			configuration.setRowLast(selection.getRowIndexEnd());			
 		} else {
-			if (configuration.hasWorkbook())
-				configuration.getWorkbook().close();
+			configuration.closeWorkbook();				
 		}
 		
 		return true;

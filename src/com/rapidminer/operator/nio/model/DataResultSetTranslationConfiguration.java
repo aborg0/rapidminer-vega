@@ -24,16 +24,17 @@ package com.rapidminer.operator.nio.model;
 
 import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.ANNOTATION_NAME;
 import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_ANNOTATIONS;
-import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_META_DATA;
 import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_DATE_FORMAT;
 import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_FIRST_ROW_AS_NAMES;
 import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_LOCALE;
+import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_META_DATA;
 
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.SortedSet;
@@ -47,6 +48,7 @@ import com.rapidminer.operator.nio.ExcelExampleSource;
 import com.rapidminer.operator.preprocessing.filter.AbstractDateDataProcessing;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeTupel;
+import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.Ontology;
 
 /**
@@ -59,10 +61,10 @@ public class DataResultSetTranslationConfiguration {
 
 	private ColumnMetaData[] columnMetaData;
 
-	private Locale locale = Locale.US;
-	private String datePattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+	private Locale locale;
+	private String datePattern;
 
-	private SortedMap<Integer, String> annotationsMap = new TreeMap<Integer, String>();
+	private final SortedMap<Integer, String> annotationsMap = new TreeMap<Integer, String>();
 	private boolean faultTolerant = true;
 
 	private SimpleDateFormat dateFormat;
@@ -75,7 +77,11 @@ public class DataResultSetTranslationConfiguration {
 	 * 
 	 * @throws OperatorException
 	 */
-	public DataResultSetTranslationConfiguration(AbstractDataResultSetReader readerOperator, DataResultSet dataResultSet) throws OperatorException {
+	public DataResultSetTranslationConfiguration(AbstractDataResultSetReader readerOperator, DataResultSet dataResultSet) {
+		reconfigure(readerOperator, dataResultSet);
+	}
+	
+	public void reconfigure(AbstractDataResultSetReader readerOperator, DataResultSet dataResultSet) {
 		// reading parameter settings
 		List<String[]> metaDataSettings = Collections.emptyList();
 		if (readerOperator != null) {
@@ -83,7 +89,12 @@ public class DataResultSetTranslationConfiguration {
 			if (firstRowAsNames) {
 				annotationsMap.put(0, ANNOTATION_NAME);
 			} else {
-				List<String[]> annotations = readerOperator.getParameterList(PARAMETER_ANNOTATIONS);
+				List<String[]> annotations;
+				try {
+					annotations = readerOperator.getParameterList(PARAMETER_ANNOTATIONS);
+				} catch (UndefinedParameterError e) {
+					annotations = Collections.emptyList();
+				}
 				for (String[] annotation : annotations) {
 					annotationsMap.put(Integer.parseInt(annotation[0]), annotation[1]);
 				}
@@ -91,26 +102,42 @@ public class DataResultSetTranslationConfiguration {
 
 			// initializing data structures
 			if (readerOperator.isParameterSet(PARAMETER_META_DATA)) {
-				metaDataSettings = readerOperator.getParameterList(PARAMETER_META_DATA);
+				try {
+					metaDataSettings = readerOperator.getParameterList(PARAMETER_META_DATA);
+				} catch (UndefinedParameterError e) {
+					metaDataSettings = Collections.emptyList();
+				}
 			}
 		
 			// reading date format settings
-			datePattern = readerOperator.getParameterAsString(PARAMETER_DATE_FORMAT);
-			int localeIndex = readerOperator.getParameterAsInt(PARAMETER_LOCALE);
-			if ((localeIndex >= 0) && (localeIndex < AbstractDateDataProcessing.availableLocales.size()))
-				locale = AbstractDateDataProcessing.availableLocales.get(readerOperator.getParameterAsInt(PARAMETER_LOCALE));
+			try {
+				setDatePattern(readerOperator.getParameterAsString(PARAMETER_DATE_FORMAT));
+			} catch (UndefinedParameterError e) {
+				setDatePattern("");
+			}
+
+			try {
+				int localeIndex;
+				localeIndex = readerOperator.getParameterAsInt(PARAMETER_LOCALE);
+				if ((localeIndex >= 0) && (localeIndex < AbstractDateDataProcessing.availableLocales.size()))
+					locale = AbstractDateDataProcessing.availableLocales.get(localeIndex);
+			} catch (UndefinedParameterError e) {
+				locale = Locale.getDefault();
+			}
 		}
 		
-		int numberOfColumns = dataResultSet.getNumberOfColumns();
-		columnMetaData = new ColumnMetaData[numberOfColumns];
-		final String[] originalColumnNames = dataResultSet.getColumnNames();
-		int[] attributeValueTypes = dataResultSet.getValueTypes();
-		for (int i = 0; i < numberOfColumns; i++) {
-			columnMetaData[i] = new ColumnMetaData(originalColumnNames[i],
-					originalColumnNames[i],					 
-					attributeValueTypes[i],
-					Attributes.ATTRIBUTE_NAME,
-					true);			
+		if (dataResultSet != null) {
+			int numberOfColumns = dataResultSet.getNumberOfColumns();
+			columnMetaData = new ColumnMetaData[numberOfColumns];
+			final String[] originalColumnNames = dataResultSet.getColumnNames();
+			int[] attributeValueTypes = dataResultSet.getValueTypes();
+			for (int i = 0; i < numberOfColumns; i++) {
+				columnMetaData[i] = new ColumnMetaData(originalColumnNames[i],
+						originalColumnNames[i],					 
+						attributeValueTypes[i],
+						Attributes.ATTRIBUTE_NAME,
+						true);			
+			}
 		}
 
 		for (String[] metaDataDefinition : metaDataSettings) {
@@ -130,7 +157,7 @@ public class DataResultSetTranslationConfiguration {
 
 	/** Sets the parameters in the given operator to describe this configuration. */
 	public void setParameters(AbstractDataResultSetReader operator) {
-		operator.getParameters().setParameter(PARAMETER_DATE_FORMAT, datePattern);
+		operator.getParameters().setParameter(PARAMETER_DATE_FORMAT, getDatePattern());
 		List<String[]> metaDataList = new LinkedList<String[]>();
 		int index = 0;
 		for (ColumnMetaData cmd : getColumnMetaData()) {
@@ -195,9 +222,13 @@ public class DataResultSetTranslationConfiguration {
 		return result;
 	}
 
-	public void setAnnotationsMap(TreeMap<Integer, String> annotationsMap) {
-		this.annotationsMap = annotationsMap;
+	public Map<Integer, String> getAnnotationsMap() {		
+		return annotationsMap;
 	}
+
+//	public void setAnnotationsMap(TreeMap<Integer, String> annotationsMap) {
+//		this.annotationsMap = annotationsMap;
+//	}
 	
 	/** Returns the row annotated to be used as the name of the attribute or -1
 	 *  if no such row was selected. */
@@ -246,8 +277,17 @@ public class DataResultSetTranslationConfiguration {
 
 	public SimpleDateFormat getDateFormat() {
 		if (dateFormat == null) {
-			this.dateFormat = new SimpleDateFormat(datePattern, locale);
+			this.dateFormat = new SimpleDateFormat(getDatePattern(), locale);
 		}
 		return this.dateFormat;
 	}
+
+	public String getDatePattern() {
+		return datePattern;
+	}
+
+	public void setDatePattern(String datePattern) {
+		this.datePattern = datePattern;
+	}
+
 }

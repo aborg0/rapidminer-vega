@@ -82,16 +82,12 @@ public class ExcelResultSet implements DataResultSet {
 		currentRow = configuration.getRowOffset() - 1;
 
 		// load the excelWorkbook if it is not set
-		if (configuration.hasWorkbook()) {
+		try {
 			workbook = configuration.getWorkbook();
-		} else {
-			try {
-				workbook = Workbook.getWorkbook(configuration.getFile());
-			} catch (IOException e) {
-				throw new UserError(callingOperator, 302, configuration.getFile().getPath(), e.getMessage());
-			} catch (BiffException e) {
-				throw new UserError(callingOperator, 302, configuration.getFile().getPath(), e.getMessage());
-			}
+		} catch (IOException e) {
+			throw new UserError(callingOperator, 302, configuration.getFile().getPath(), e.getMessage());
+		} catch (BiffException e) {
+			throw new UserError(callingOperator, 302, configuration.getFile().getPath(), e.getMessage());
 		}
 		try {
 			sheet = workbook.getSheet(configuration.getSheet() - 1);
@@ -211,9 +207,7 @@ public class ExcelResultSet implements DataResultSet {
 
 	@Override
 	public void close() throws OperatorException {
-		// only close it if no other instance has control over this workbook
-		if (!configuration.hasWorkbook())
-			workbook.close();
+		configuration.closeWorkbook();
 	}
 
 	@Override

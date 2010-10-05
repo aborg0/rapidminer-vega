@@ -1,5 +1,7 @@
 package com.rapidminer.operator.nio.model;
 
+import javax.swing.table.TableModel;
+
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
 
@@ -11,5 +13,7 @@ import com.rapidminer.operator.OperatorException;
 public interface DataResultSetFactory {
 
 	public DataResultSet makeDataResultSet(Operator operator) throws OperatorException;
+
+	public TableModel makePreviewTableModel() throws OperatorException;
 
 }
