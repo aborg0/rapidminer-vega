@@ -22,12 +22,7 @@
  */
 package com.rapidminer.gui.properties.celleditors.value;
 
-import java.util.Vector;
-
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
-
-import com.rapidminer.gui.tools.FilterableJComboBox;
+import com.rapidminer.gui.tools.autocomplete.Java2sAutoComboBox;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 
 /** Autocompletion combo box that observes an input port so it can update
@@ -36,41 +31,44 @@ import com.rapidminer.parameter.ParameterTypeAttribute;
  * @author Simon Fischer
  *
  */
-public class AttributeComboBox extends FilterableJComboBox {
+public class AttributeComboBox extends Java2sAutoComboBox {
 
 	private static final long serialVersionUID = 1L;
 
-	private ParameterTypeAttribute type;
-	private Vector<String> displayedAttributeNames; 
+	//private ParameterTypeAttribute type;
+	//private Vector<String> displayedAttributeNames; 
 	
 	public AttributeComboBox(ParameterTypeAttribute type) {
 		super(type.getAttributeNames());
-		this.type = type;
-		displayedAttributeNames = type.getAttributeNames();
-		addPopupMenuListener(new PopupMenuListener() {
-			@Override
-			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-				if (updateComboBoxModel()) {
-					hidePopup();
-					showPopup();
-				}
-			}			
-			@Override
-			public void popupMenuWillBecomeInvisible(PopupMenuEvent e) { }			
-			@Override
-			public void popupMenuCanceled(PopupMenuEvent e) { }
-		});
-
+		setStrict(false);
+		//this.type = type;
+		//displayedAttributeNames = type.getAttributeNames();
+		setEditable(true);
+//		addPopupMenuListener(new PopupMenuListener() {
+//			@Override
+//			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+//				if (updateComboBoxModel()) {
+//					hidePopup();
+//					showPopup();
+//				}
+//			}			
+//			@Override
+//			public void popupMenuWillBecomeInvisible(PopupMenuEvent e) { }			
+//			@Override
+//			public void popupMenuCanceled(PopupMenuEvent e) { }
+//		});
 	}
 	
-	private boolean updateComboBoxModel() {
-		Vector<String> newNames = type.getAttributeNames();
-		if (!newNames.equals(displayedAttributeNames)) {
-			refreshAutoCompletionSupport(newNames);
-			displayedAttributeNames = newNames;
-			return true;
-		} else {
-			return false;
-		}
-	}	
+	
+//	private boolean updateComboBoxModel() {
+//		Vector<String> newNames = type.getAttributeNames();
+//		if (!newNames.equals(displayedAttributeNames)) {
+//			refreshAutoCompletionSupport(newNames);
+//			//setModel(new DefaultComboBoxModel(newNames));
+//			displayedAttributeNames = newNames;
+//			return true;
+//		} else {
+//			return false;
+//		}
+//	}	
 }

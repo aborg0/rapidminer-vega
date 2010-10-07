@@ -60,7 +60,7 @@ public class ListPropertyTable extends PropertyTable {
 		this.type = type;
 		this.operator = operator;
 		updateTableData(parameterList.size());
-		updateEditorsAndRenderers(this);
+		updateEditorsAndRenderers();
 		Iterator<String[]> i = parameterList.iterator();
 		int j = 0;
 		while (i.hasNext()) {
@@ -88,10 +88,11 @@ public class ListPropertyTable extends PropertyTable {
 
 	public void addRow() {
 		getDefaultModel().addRow(new Object[] { "", type.getValueType().getDefaultValue() });
-		updateEditorsAndRenderers(this);
+		updateEditorsAndRenderers();
 
 		// necessary to use default values (without changes)
 		int lastIndex = getRowCount() - 1;
+		//getModel().setValueAt(type.getKeyType().getDefaultValue(), lastIndex, 0);
 		getModel().setValueAt(getKeyEditor(lastIndex).getCellEditorValue(), lastIndex, 0);
 	}
 
@@ -103,7 +104,7 @@ public class ListPropertyTable extends PropertyTable {
 		getDefaultModel().fireTableStructureChanged();
 	}
 
-	public void getParameterList(List<String[]> list) {
+	public void storeParameterList(List<String[]> list) {
 		list.clear();
 		for (int i = 0; i < getModel().getRowCount(); i++) {
 			String firstString = null;

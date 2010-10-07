@@ -76,17 +76,20 @@ import com.rapidminer.operator.ports.metadata.MetaDataError;
 import com.rapidminer.operator.ports.metadata.Precondition;
 import com.rapidminer.operator.ports.quickfix.ParameterSettingQuickFix;
 import com.rapidminer.operator.ports.quickfix.QuickFix;
+import com.rapidminer.operator.ports.quickfix.RelativizeRepositoryLocationQuickfix;
 import com.rapidminer.parameter.ParameterHandler;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeInnerOperator;
 import com.rapidminer.parameter.ParameterTypeList;
+import com.rapidminer.parameter.ParameterTypeRepositoryLocation;
 import com.rapidminer.parameter.ParameterTypeTupel;
 import com.rapidminer.parameter.Parameters;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryLocation;
+import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.tools.AbstractObservable;
 import com.rapidminer.tools.DelegatingObserver;
 import com.rapidminer.tools.LogService;
@@ -714,7 +717,24 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 					addError(new SimpleProcessSetupError(Severity.ERROR, portOwner, Collections.singletonList(new ParameterSettingQuickFix(this, type.getKey())),
 														 "undefined_parameter", new Object[] { type.getKey().replace('_', ' ') }));
 					errorCount++;
-				}				
+				}
+				if (type instanceof ParameterTypeRepositoryLocation) {
+					String value = getParameters().getParameterOrNull(type.getKey());
+					if (value != null) {
+						if (value.startsWith(RepositoryLocation.REPOSITORY_PREFIX)) {
+							if (!value.startsWith(RepositoryLocation.REPOSITORY_PREFIX+RepositoryManager.SAMPLE_REPOSITORY_NAME)) {
+								addError(new SimpleProcessSetupError(Severity.WARNING, portOwner, 
+										Collections.<QuickFix>emptyList(),
+										 "accessing_repository_by_name", new Object[] { type.getKey().replace('_', ' '), value }));
+							}
+						} else if (value.startsWith(String.valueOf(RepositoryLocation.SEPARATOR))) {
+							addError(new SimpleProcessSetupError(Severity.WARNING, portOwner, 
+									Collections.singletonList(new RelativizeRepositoryLocationQuickfix(this, type.getKey(), value)),
+									 "absolute_repository_location", new Object[] { type.getKey().replace('_', ' '), value }));
+							
+						}
+					}
+				}
 			}
 		}
 		return errorCount;

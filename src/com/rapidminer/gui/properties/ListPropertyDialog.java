@@ -48,14 +48,14 @@ public class ListPropertyDialog extends PropertyDialog {
 
 	private boolean ok = false;
 
-	private final ListPropertyTable listPropertyTable;
+	private final ListPropertyTable2 listPropertyTable;
 
 	private final List<String[]> parameterList;
 
 	public ListPropertyDialog(final ParameterTypeList type, List<String[]> parameterList, Operator operator) {
 		super(type, "list");
 		this.parameterList = parameterList;
-		listPropertyTable = new ListPropertyTable(type, parameterList, operator);
+		listPropertyTable = new ListPropertyTable2(type, parameterList, operator);
 		JScrollPane scrollPane = new ExtendedJScrollPane(listPropertyTable);
 		scrollPane.setBorder(createBorder());
 		layoutDefault(scrollPane,
@@ -78,7 +78,7 @@ public class ListPropertyDialog extends PropertyDialog {
 	@Override
 	protected void ok() {
 		ok = true;
-		listPropertyTable.getParameterList(parameterList);
+		listPropertyTable.storeParameterList(parameterList);
 		dispose();
 	}
 

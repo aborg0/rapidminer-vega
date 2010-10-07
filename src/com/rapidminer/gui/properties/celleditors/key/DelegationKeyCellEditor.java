@@ -28,6 +28,7 @@ import java.util.EventObject;
 import javax.swing.JTable;
 import javax.swing.event.CellEditorListener;
 
+import com.rapidminer.gui.properties.PropertyPanel;
 import com.rapidminer.gui.properties.PropertyTable;
 import com.rapidminer.gui.properties.celleditors.value.PropertyValueCellEditor;
 import com.rapidminer.operator.Operator;
@@ -44,11 +45,11 @@ public class DelegationKeyCellEditor implements PropertyKeyCellEditor {
 	private PropertyValueCellEditor delegationEditor;
 
 	public DelegationKeyCellEditor(ParameterTypeList type) {
-		delegationEditor = PropertyTable.createPropertyValueCellEditor(type.getKeyType(), null);
+		delegationEditor = PropertyPanel.instantiateValueCellEditor(type.getKeyType(), null);
 	}
 
-	public DelegationKeyCellEditor(ParameterTypeEnumeration  type) {
-		delegationEditor = PropertyTable.createPropertyValueCellEditor(type.getValueType(), null);
+	public DelegationKeyCellEditor(ParameterTypeEnumeration type) {
+		delegationEditor = PropertyPanel.instantiateValueCellEditor(type.getValueType(), null);
 	}
 
 

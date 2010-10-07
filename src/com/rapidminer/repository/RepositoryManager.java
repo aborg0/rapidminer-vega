@@ -64,6 +64,8 @@ import com.rapidminer.tools.XMLException;
  */
 public class RepositoryManager extends AbstractObservable<Repository> {
 
+	public static final String SAMPLE_REPOSITORY_NAME = "Samples";
+
 	private static final Logger LOGGER = Logger.getLogger(RepositoryManager.class.getName());
 
 	private static RepositoryManager instance;
@@ -102,7 +104,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 
 	private RepositoryManager() {
 		if (sampleRepository == null) {
-			sampleRepository = new ResourceRepository("Samples", "/"+Tools.RESOURCE_PREFIX+"samples");
+			sampleRepository = new ResourceRepository(SAMPLE_REPOSITORY_NAME, "/"+Tools.RESOURCE_PREFIX+"samples");
 		}
 		repositories.add(sampleRepository);
 

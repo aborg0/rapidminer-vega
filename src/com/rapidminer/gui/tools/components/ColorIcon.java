@@ -36,8 +36,9 @@ import javax.swing.Icon;
  */
 public class ColorIcon implements Icon {
 	
-	private Color color;
-	
+	private Color color = Color.RED;
+	private Color borderColor = Color.DARK_GRAY;
+		
 	private int width = 20;
 	private int height = 8;
 	
@@ -59,6 +60,14 @@ public class ColorIcon implements Icon {
 		this.color = color;
 	}
 	
+	public Color getBorderColor() {
+		return this.borderColor;
+	}
+	
+	public void setBorderColor(Color borderColor) {
+		this.borderColor = borderColor;
+	}
+	
 	public int getIconWidth() {
 		return width;
 	}
@@ -70,7 +79,7 @@ public class ColorIcon implements Icon {
 	public void paintIcon(Component c, Graphics g, int x, int y) {
 		g.setColor(color);
 		g.fillRoundRect(x, y, getIconWidth() - 1, getIconHeight(), 2, 2);
-		g.setColor(Color.black);
+		g.setColor(borderColor);
 		g.drawRoundRect(x, y, getIconWidth() - 1, getIconHeight(), 2, 2);
 	}
 }

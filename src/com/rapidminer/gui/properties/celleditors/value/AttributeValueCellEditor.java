@@ -27,6 +27,7 @@ import java.awt.Component;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
 import javax.swing.JTable;
+import javax.swing.text.JTextComponent;
 
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterTypeAttribute;
@@ -44,23 +45,40 @@ public class AttributeValueCellEditor extends DefaultCellEditor implements Prope
 		super(new AttributeComboBox(type));	
 		((JComboBox) editorComponent).removeItemListener(this.delegate);
 		((JComboBox) editorComponent).setEditable(true);
+		final JTextComponent textField = (JTextComponent) ((JComboBox) editorComponent).getEditor().getEditorComponent();
+		
 		this.delegate = new EditorDelegate() {
 			private static final long serialVersionUID = -5592150438626222295L;
 
 			@Override
-			public void setValue(Object value) {
-				if (!((JComboBox) editorComponent).getEditor().getEditorComponent().hasFocus()) {
-					((JComboBox) editorComponent).getEditor().setItem(value);
+			public void setValue(Object x) {
+				if (x == null) {
+					super.setValue(null);
+					((JComboBox) editorComponent).setSelectedItem(null);
+				} else {
+					String value = x.toString();
+					super.setValue(x);
+					((JComboBox) editorComponent).setSelectedItem(value);
+					if (value != null) {
+						textField.setText(value.toString());
+					} else {
+						textField.setText("");
+					}
 				}
-				super.setValue(value);
+				
+//				if (!((JComboBox) editorComponent).getEditor().getEditorComponent().hasFocus()) {
+//					((JComboBox) editorComponent).getEditor().setItem(value);
+//				}				
 			}
 
 			@Override
 			public Object getCellEditorValue() {
-				String selected = (String) ((JComboBox) editorComponent).getSelectedItem();
+				String selected = textField.getText();
+//				String selected = (String) ((JComboBox) editorComponent).getSelectedItem();
 				if ((selected != null) && (selected.trim().length() == 0)) {
 					selected = null;
 				}
+				System.out.println("Selected editable combo value: "+selected);
 				return selected;
 			}
 		};

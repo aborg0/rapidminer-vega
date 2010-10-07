@@ -172,6 +172,7 @@ public class StatementCreator {
 	 * @param defaultVarcharLength 
 	 * @throws SQLException */
 	public String makeTableCreator(Attributes attributes, String tableName, int defaultVarcharLength) throws SQLException {
+		this.defaultVarCharLength = defaultVarcharLength;
 		// define all attribute names and types
 		StringBuilder b = new StringBuilder();
 		b.append("CREATE TABLE ");

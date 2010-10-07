@@ -80,9 +80,9 @@ public class ParameterTypeTupel extends CombinedParameterType {
 		String[] defaultStrings = new String[types.length];
 		for (int i = 0; i < types.length; i++) {
 			Object defaultValue = types[i].getDefaultValue();
-			if (defaultValue == null)
-				return null;
-			defaultValues[i] = types[i].toString(defaultValue);
+//			if (defaultValue == null)
+//				return null;
+			defaultStrings[i] = types[i].toString(defaultValue);
 		}
 		return ParameterTypeTupel.transformTupel2String(defaultStrings);
 	}
@@ -165,6 +165,9 @@ public class ParameterTypeTupel extends CombinedParameterType {
 			return new String[2];
 		}
 		List<String> split = Tools.unescape(parameterValue, ESCAPE_CHAR, INTERNAL_SPECIAL_CHARACTERS, INTERNAL_SEPERATOR_CHAR);
+		while (split.size() < 2) {
+			split.add(null);
+		}
 		return split.toArray(new String[split.size()]);
 	}
 

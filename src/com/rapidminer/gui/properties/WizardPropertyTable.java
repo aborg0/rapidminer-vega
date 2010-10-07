@@ -90,7 +90,7 @@ public class WizardPropertyTable extends DefaultPropertyTable {
 			getModel().setValueAt(value, j, 1);
 			j++;
 		}
-		updateEditorsAndRenderers(this);
+		updateEditorsAndRenderers();
 
 		getModel().addTableModelListener(new TableModelListener() {
 			public void tableChanged(TableModelEvent e) {

@@ -28,6 +28,8 @@ import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.Serializable;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
@@ -45,12 +47,16 @@ import com.rapidminer.tools.I18N;
  * @author Sebastian Land
  */
 public class ColorSelectionButton extends JButton {
+	
 	private static final long serialVersionUID = 1L;
 
 	private Color color;
 
 	private AbstractColorChooserPanel[] colorChoosers = null;
 
+	private List<ColorSelectionListener> listeners = new LinkedList<ColorSelectionListener>();
+	
+	
 	/**
 	 * This method will create a new Color Selection Button which will open a dialog if pressed to select a new color.
 	 * The default color can be passed.
@@ -72,12 +78,27 @@ public class ColorSelectionButton extends JButton {
 				if (newColor != null) {
 					color = newColor;
 					setIcon(new ColorIcon(color));
+					notifyColorSelectionListeners(color);
 				}
 			}
 		});
 		setIcon(new ColorIcon(color));
 	}
 
+	public void addColorSelectionListener(ColorSelectionListener listener) {
+		listeners.add(listener);
+	}
+	
+	public void removeColorSelectionListener(ColorSelectionListener listener) {
+		listeners.remove(listener);
+	}
+	
+	private void notifyColorSelectionListeners(Color color) {
+		for (ColorSelectionListener l : listeners) {
+			l.colorSelected(color);
+		}
+	}
+	
 	/**
 	 * This method can be used to retrieve the selected Color.
 	 */
@@ -90,6 +111,18 @@ public class ColorSelectionButton extends JButton {
 		setIcon(new ColorIcon(color));
 	}
 
+	@Override
+	public void setEnabled(boolean enabled) {
+		super.setEnabled(enabled);
+		if (enabled) {
+			setIcon(new ColorIcon(color));
+		} else {
+			ColorIcon colorIcon = new ColorIcon(new Color(235, 235, 235));
+			colorIcon.setBorderColor(new Color(210, 210, 210));
+			setIcon(colorIcon);
+		}
+	}
+	
 	public void setColorChooser(AbstractColorChooserPanel... colorChoosers) {
 		this.colorChoosers = colorChoosers;
 	}
@@ -115,7 +148,7 @@ public class ColorSelectionButton extends JButton {
 	}
 
 	/**
-	 * Small helper class for he color selection dialog
+	 * Small helper class for the color selection dialog
 	 */
 	private static class ColorTracker implements ActionListener, Serializable {
 		private static final long serialVersionUID = 486260520128499950L;

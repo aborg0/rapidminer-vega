@@ -272,6 +272,7 @@ public class ErrorTable extends JPanel implements Dockable, ProcessEditor {
 		onlyCurrent.setSelected(false);
 		table.setShowVerticalLines(false);
 		table.setModel(model);
+		table.installToolTip();
 		
 		table.getColumnModel().getColumn(0).setPreferredWidth(400);
 		table.getColumnModel().getColumn(1).setPreferredWidth(200);

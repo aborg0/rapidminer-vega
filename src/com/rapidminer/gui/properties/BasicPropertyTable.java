@@ -114,7 +114,7 @@ public class BasicPropertyTable extends PropertyTable {
 
 		setModel(new BasicPropertyModel());
 		
-		updateEditorsAndRenderers(this);
+		updateEditorsAndRenderers();
 	}
 	
 	public void setValue(String key, Object value) {

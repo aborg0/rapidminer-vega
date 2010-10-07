@@ -59,7 +59,7 @@ public class EnumerationPropertyTable extends PropertyTable {
 		this.type = type;
 		this.operator = operator;
 		updateTableData(valueList.size());
-		updateEditorsAndRenderers(this);
+		updateEditorsAndRenderers();
 		int j = 0;
 		for (String value: valueList) {
 			getModel().setValueAt(value, j, 0);
@@ -86,11 +86,13 @@ public class EnumerationPropertyTable extends PropertyTable {
 			getDefaultModel().addRow(new Object[] {type.getValueType().getDefaultValue()});
 		else
 			getDefaultModel().addRow(new Object[] {""});
-		updateEditorsAndRenderers(this);
+		updateEditorsAndRenderers();
 
 		// necessary to use default values (without changes)
 		int lastIndex = getRowCount() - 1;
-		getModel().setValueAt(getKeyEditor(lastIndex).getCellEditorValue(), lastIndex, 0);
+		//final Object value = getKeyEditor(lastIndex).getCellEditorValue();
+		Object value = type.getValueType().getDefaultValue();
+		getModel().setValueAt(value, lastIndex, 0);
 	}
 
 	public void removeSelected() {

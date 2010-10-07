@@ -72,13 +72,13 @@ import com.rapidminer.tools.container.Pair;
  * the escape key.</p>
  * 
  * <p>The extended table is sortable per default. Developers should note that this feature 
- * might lead to problems if the columns contain different class types end different editors.
+ * might lead to problems if the columns contain different class types and different editors.
  * In this case one of the constructors should be used which set the sortable flag to false.
  * </p>
  *   
  * @author Ingo Mierswa
  */
-public class ExtendedJTable extends JTable implements Tableable, MouseListener, TipProvider {
+public class ExtendedJTable extends JTable implements Tableable, MouseListener {
 
     private static final long serialVersionUID = 4840252601155251257L;
 
@@ -183,9 +183,13 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener, 
         getTableHeader().addMouseListener(new ExtendedJTableColumnFitMouseListener()); 
         
         addMouseListener(this);
-        
+
+    }
+    
+    /** Registers a new {@link ToolTipWindow} on this table. */
+    public void installToolTip() {
         // adding a new extended tool tip window
-        new ToolTipWindow(this, this);
+        new ToolTipWindow(new TableToolTipProvider(), this);
         setToolTipText(null);
     }
     
@@ -688,24 +692,25 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener, 
 		}
 		return subMenu;
 	}
+	
+	
+	private class TableToolTipProvider implements TipProvider {
+		@Override
+		public Component getCustomComponent(Object id) {
+			return null;
+		}
 
+		@Override
+		public Object getIdUnder(Point point) {
+			Pair<Integer, Integer> cellId = new Pair<Integer, Integer>(columnAtPoint(point), rowAtPoint(point));
+			return cellId;
+		}
 
-	/* Methods for Extended Tool Tip */
-	@Override
-	public Component getCustomComponent(Object id) {
-		return null;
-	}
-
-	@Override
-	public Object getIdUnder(Point point) {
-		Pair<Integer, Integer> cellId = new Pair<Integer, Integer>(columnAtPoint(point), rowAtPoint(point));
-		return cellId;
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public String getTip(Object id) {
-		Pair<Integer, Integer> cellId = (Pair<Integer, Integer>) id;
-		return getToolTipText(cellId.getFirst(), cellId.getSecond());
+		@SuppressWarnings("unchecked")
+		@Override
+		public String getTip(Object id) {
+			Pair<Integer, Integer> cellId = (Pair<Integer, Integer>) id;
+			return getToolTipText(cellId.getFirst(), cellId.getSecond());
+		}
 	}
 }

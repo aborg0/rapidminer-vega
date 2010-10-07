@@ -41,7 +41,6 @@ public class FilterableJComboBox extends ExtendedJComboBox{
 
 	public FilterableJComboBox(String[] values) {
 		super(values);
-		//refreshAutoCompletionSupport(values);
 		Vector<String> valueVector = new Vector<String>();
 		valueVector.addAll(Arrays.asList(values));
 		refreshAutoCompletionSupport(valueVector);
@@ -78,5 +77,9 @@ public class FilterableJComboBox extends ExtendedJComboBox{
 			autoCompl = null;
 		}
 		initAutoCompletition(values);
+	}
+
+	public AutoCompleteSupport<String> getAutoCompleteSupport() {
+		return autoCompl;
 	}
 }

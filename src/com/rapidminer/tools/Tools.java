@@ -1443,6 +1443,9 @@ public class Tools {
 	
 	/** Prefixes every occurrence*/
 	public static String escape(String source, char escapeChar, char[] specialCharacters) {
+		if (source == null) {
+			return null;
+		}
 		StringBuilder b = new StringBuilder();
 		for (char c : source.toCharArray()) {
 			if (c == escapeChar) {

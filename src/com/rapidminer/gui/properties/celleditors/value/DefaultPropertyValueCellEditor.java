@@ -35,11 +35,11 @@ import javax.swing.JComponent;
 import javax.swing.JPasswordField;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.text.JTextComponent;
 
 import com.rapidminer.gui.properties.PropertyTable;
 import com.rapidminer.gui.tools.CharTextField;
 import com.rapidminer.gui.tools.ExtendedJComboBox;
-import com.rapidminer.gui.tools.FilterableJComboBox;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterType;
@@ -76,13 +76,10 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 
 	public DefaultPropertyValueCellEditor(final ParameterTypeCategory type) {
 		super(new ExtendedJComboBox(type.getValues()));
-		//editorComponent.setBackground(javax.swing.UIManager.getColor("Table.cellBackground"));		
 		useEditorAsRenderer = true;
 		((JComboBox) editorComponent).removeItemListener(this.delegate);
 		this.delegate = new EditorDelegate() {
-
 			private static final long serialVersionUID = -2104662561680969750L;
-
 			@Override
 			public void setValue(Object x) {
 				if (x == null) {
@@ -108,20 +105,23 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 //				return Integer.valueOf(((JComboBox) editorComponent).getSelectedIndex()).toString();
 			}
 		};
-
 		((JComboBox) editorComponent).addItemListener(delegate);
 	}
 
 	public DefaultPropertyValueCellEditor(ParameterTypeStringCategory type) {
-		super(new FilterableJComboBox(type.getValues()));
-		editorComponent.addFocusListener(new FocusListener() {
-			@Override
-			public void focusGained(FocusEvent e) { 	}
-			@Override
-			public void focusLost(FocusEvent e) {
-				fireEditingStopped();
-			}        	
-		});
+		//super(new FilterableJComboBox(type.getValues()));
+		super(new JComboBox(type.getValues()));
+		final JTextComponent textField = (JTextComponent) ((JComboBox) editorComponent).getEditor().getEditorComponent();
+//		textField.addFocusListener(new FocusListener() {
+//			@Override
+//			public void focusGained(FocusEvent e) { 	}
+//			@Override
+//			public void focusLost(FocusEvent e) {
+//				System.out.println("FOCUS LOSTTT");
+//				//fireEditingStopped();
+//			}        	
+//		});
+
 		useEditorAsRenderer = true;
 		((JComboBox) editorComponent).removeItemListener(this.delegate);
 		((JComboBox) editorComponent).setEditable(type.isEditable());
@@ -138,12 +138,18 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 					String value = x.toString();
 					super.setValue(value);
 					((JComboBox) editorComponent).setSelectedItem(value);
+					if (value != null) {
+						textField.setText(value.toString());
+					} else {
+						textField.setText("");
+					}
 				}
 			}
 
 			@Override
 			public Object getCellEditorValue() {
-				String selected = (String) ((JComboBox) editorComponent).getSelectedItem();
+				//String selected = (String) ((JComboBox) editorComponent).getSelectedItem();
+				String selected = textField.getText();
 				if ((selected != null) && (selected.trim().length() == 0))
 					selected = null;
 				return selected;

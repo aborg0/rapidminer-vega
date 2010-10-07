@@ -80,46 +80,56 @@ public class ParameterTupelCellEditor extends AbstractCellEditor implements Prop
 
 	@Override
 	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+		String[] tupel;
+		if (value instanceof String) {
+			tupel = ParameterTypeTupel.transformString2Tupel((String)value);
+		} else {
+			tupel = (String[]) value;
+		}
 		if (panel == null) {
-			String[] tupel;
-			if (value instanceof String) {
-				tupel = ParameterTypeTupel.transformString2Tupel((String)value);
-			} else {
-				tupel = (String[]) value;
-			}
 			constructPanel(tupel);
 		}
+		for (int i = 0; i < editors.length; i++) {
+			editors[i].getTableCellEditorComponent(null, tupel[i], false, 0, 0);
+		}		
 		return panel;
 	}
 
 	private void constructPanel(String[] values) {
+		if (values == null) {
+			System.out.println("VALUES NULL");
+		}
+		
 		// constructing editors
 		editors = new PropertyValueCellEditor[types.length];
 		for (int i = 0; i < types.length; i++) {
 			editors[i] = PropertyPanel.instantiateValueCellEditor(types[i], operator);
-			editors[i].addCellEditorListener(this);
+			//editors[i].addCellEditorListener(this);
 		}
 
 		// building panel
-		panel = new JPanel();
+		panel = new JPanel(); 
 		panel.setLayout(new GridLayout(1,editors.length));
 		for (int i = 0; i < types.length; i++) {
-			Component editorComponent = editors[i].getTableCellEditorComponent(null, values[i], false, 0, 0); 
+			Component editorComponent = editors[i].getTableCellEditorComponent(null, values[i], false, 0, 0);
 			panel.add(editorComponent);
 		}
 	}
 
 	@Override
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+		String[] tupel;
+		if (value instanceof String) {
+			tupel = ParameterTypeTupel.transformString2Tupel((String)value);
+		} else {
+			tupel = (String[]) value;
+		}
 		if (panel == null) {
-			String[] tupel;
-			if (value instanceof String) {
-				tupel = ParameterTypeTupel.transformString2Tupel((String)value);
-			} else {
-				tupel = (String[]) value;
-			}
 			constructPanel(tupel);
 		}
+		for (int i = 0; i < editors.length; i++) {
+			editors[i].getTableCellEditorComponent(null, tupel[i], false, 0, 0);
+		}		
 		return panel;
 	}
 

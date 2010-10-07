@@ -48,14 +48,15 @@ public class EnumerationPropertyDialog extends PropertyDialog {
 
 	private boolean ok = false;
 
-	private final EnumerationPropertyTable enumerationPropertyTable;
+	//private final EnumerationPropertyTable enumerationPropertyTable;
+	private final ListPropertyTable2 enumerationPropertyTable;
 
 	private final List<String> parameterList;
 
 	public EnumerationPropertyDialog(final ParameterTypeEnumeration type, List<String> parameterList, Operator operator) {
 		super(type, "list");
 		this.parameterList = parameterList;
-		enumerationPropertyTable = new EnumerationPropertyTable(type, parameterList, operator);
+		enumerationPropertyTable = new ListPropertyTable2(type, parameterList, operator);
 		JScrollPane scrollPane = new ExtendedJScrollPane(enumerationPropertyTable);
 		scrollPane.setBorder(createBorder());
 		layoutDefault(scrollPane,
@@ -82,7 +83,7 @@ public class EnumerationPropertyDialog extends PropertyDialog {
 	@Override
 	protected void ok() {
 		ok = true;
-		enumerationPropertyTable.getParameterEnumeration(parameterList);
+		enumerationPropertyTable.storeParameterEnumeration(parameterList);
 		dispose();
 	}
 

@@ -129,17 +129,17 @@ public abstract class PropertyTable extends ExtendedJTable {
 		return model;
 	}
 
-	protected static void updateEditorsAndRenderers(PropertyTable propertyTable) {
-		propertyTable.valueEditors.clear();
-		propertyTable.keyEditors.clear();
-		propertyTable.toolTips.clear();
-		int numberOfRows = propertyTable.getModel().getRowCount();
+	protected void updateEditorsAndRenderers() {
+		valueEditors.clear();
+		keyEditors.clear();
+		toolTips.clear();
+		int numberOfRows = getModel().getRowCount();
 		for (int i = 0; i < numberOfRows; i++) {
-			ParameterType type = propertyTable.getParameterType(i);
-			propertyTable.valueEditors.add(createPropertyValueCellEditor(type, propertyTable.getOperator(i)));
-			ParameterType keyType = propertyTable.getKeyParameterType(i);
-			PropertyKeyCellEditor keyEditor = createPropertyKeyCellEditor(propertyTable, keyType, propertyTable.getOperator(i), propertyTable.changeListener);
-			propertyTable.keyEditors.add(keyEditor);
+			ParameterType type = getParameterType(i);
+			valueEditors.add(createPropertyValueCellEditor(type, getOperator(i)));
+			ParameterType keyType = getKeyParameterType(i);
+			PropertyKeyCellEditor keyEditor = createPropertyKeyCellEditor(this, keyType, getOperator(i), changeListener);
+			keyEditors.add(keyEditor);
 
 			StringBuffer toolTip = new StringBuffer(type.getDescription());
 			if ((!(type instanceof ParameterTypeCategory)) && (!(type instanceof ParameterTypeStringCategory))) {
@@ -150,7 +150,7 @@ public abstract class PropertyTable extends ExtendedJTable {
 					toolTip.append(")");
 				}
 			}
-			propertyTable.toolTips.add(SwingTools.transformToolTipText(toolTip.toString()));
+			toolTips.add(SwingTools.transformToolTipText(toolTip.toString()));
 		}
 	}
 

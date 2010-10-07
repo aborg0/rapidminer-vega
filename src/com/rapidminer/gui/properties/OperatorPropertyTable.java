@@ -175,7 +175,7 @@ public class OperatorPropertyTable extends DefaultPropertyTable implements Docka
 			getModel().setValueAt(value, i, 1);
 		}
 
-		updateEditorsAndRenderers(this);
+		updateEditorsAndRenderers();
 
 		getModel().addTableModelListener(new TableModelListener() {
 			public void tableChanged(TableModelEvent e) {

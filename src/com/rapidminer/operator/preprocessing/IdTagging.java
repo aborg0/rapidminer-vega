@@ -41,6 +41,7 @@ import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.SetRelation;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
+import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.metadata.MetaDataTools;
@@ -59,6 +60,11 @@ public class IdTagging extends AbstractDataProcessing {
 
 	/** The parameter name for &quot;True if nominal ids (instead of integer ids) should be created&quot; */
 	public static final String PARAMETER_CREATE_NOMINAL_IDS = "create_nominal_ids";
+	
+	/**
+	 * The parameter name for the offset added to the generated id.
+	 */
+	public static final String PARAMETER_OFFSET = "offset";
 
 	public IdTagging(OperatorDescription description) {
 		super(description);
@@ -110,7 +116,8 @@ public class IdTagging extends AbstractDataProcessing {
 		idAttribute = Tools.createSpecialAttribute(eSet, Attributes.ID_NAME, nominalIds ? Ontology.NOMINAL : Ontology.INTEGER);
 
 		// set IDs
-		int currentId = 1;
+		int offset = getParameterAsInt(PARAMETER_OFFSET);
+		int currentId = 1+offset;
 		Iterator<Example> r = eSet.iterator();
 		while (r.hasNext()) {
 			Example example = r.next();
@@ -128,6 +135,10 @@ public class IdTagging extends AbstractDataProcessing {
 		ParameterType type = new ParameterTypeBoolean(PARAMETER_CREATE_NOMINAL_IDS, "True if nominal ids (instead of integer ids) should be created", false);
 		type.setExpert(false);
 		types.add(type);
+		
+		ParameterType offsetType = new ParameterTypeInt(PARAMETER_OFFSET, "The offset which will be added to each id", Integer.MIN_VALUE, Integer.MAX_VALUE, 0, true);
+		types.add(offsetType);
+		
 		return types;
 	}
 	

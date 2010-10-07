@@ -32,13 +32,13 @@ import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.AbstractCellEditor;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 
-import com.rapidminer.gui.tools.FilterableJComboBox;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
@@ -57,7 +57,7 @@ public class DateFormatValueCellEditor extends AbstractCellEditor implements Pro
 
 	private static final long serialVersionUID = -1889899793777695100L;
 	private JPanel panel;
-	private FilterableJComboBox formatCombo;
+	private JComboBox formatCombo;
 	private AbstractButton selectButton;
 
 	public DateFormatValueCellEditor(final ParameterTypeDateFormat type) {
@@ -67,7 +67,8 @@ public class DateFormatValueCellEditor extends AbstractCellEditor implements Pro
 		c.anchor = GridBagConstraints.FIRST_LINE_START;
 		c.weightx = 1;
 		c.gridwidth = GridBagConstraints.RELATIVE;
-		formatCombo = new FilterableJComboBox(type.getValues());
+		formatCombo = new JComboBox(type.getValues());
+		formatCombo.setEditable(true);
 		panel.add(formatCombo, c);
 		selectButton = new JButton(new ResourceAction(true, "dateformat.select_sample") {
 			private static final long serialVersionUID = 1L;
