@@ -24,9 +24,9 @@ package com.rapidminer.operator.nio;
 
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DataImportWizard;
 import com.rapidminer.gui.wizards.ConfigurationListener;
+import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.nio.model.ExcelResultSetConfiguration;
 import com.rapidminer.operator.nio.model.WizardState;
-import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.repository.RepositoryLocation;
 
 /**
@@ -36,30 +36,30 @@ import com.rapidminer.repository.RepositoryLocation;
  * - Defining Annotations Step
  * - Defining Meta Data
  * 
- * @author Tobias Malbrecht, Sebastian Loh, Sebastian Land
+ * @author Tobias Malbrecht, Sebastian Loh, Sebastian Land, Simon Fischer
  */
 public class ExcelImportWizard extends DataImportWizard {
 
 	private static final long serialVersionUID = -4308448171060612833L;
 	private WizardState state;
 	private ExcelExampleSource source;
+	private ExcelResultSetConfiguration excelConfiguration;
 	
-	public ExcelImportWizard(ExcelExampleSource source, ConfigurationListener listener, final boolean showStoreInRepositoryStep, RepositoryLocation preselectedLocation,String i18nKey, Object... i18nArgs) throws UndefinedParameterError {
+	public ExcelImportWizard(ExcelExampleSource source, ConfigurationListener listener, final boolean showStoreInRepositoryStep, RepositoryLocation preselectedLocation,String i18nKey, Object... i18nArgs) throws OperatorException {
 		super(i18nKey, i18nArgs);
 		this.source = source;
 		
-		ExcelResultSetConfiguration configuration;
 		if (source != null) {
-			configuration = new ExcelResultSetConfiguration(source);
+			excelConfiguration = new ExcelResultSetConfiguration(source);
 		} else {
-			configuration = new ExcelResultSetConfiguration();
+			excelConfiguration = new ExcelResultSetConfiguration();
 		}
 		
-		state = new WizardState(source, configuration);
+		state = new WizardState(source, excelConfiguration);
 		
 		// adding steps		
-		addStep(new ExcelFileSelectionWizardStep(this, configuration));
-		addStep(new ExcelSheetSelectionWizardStep(configuration));
+		addStep(new ExcelFileSelectionWizardStep(this, excelConfiguration));
+		addStep(new ExcelSheetSelectionWizardStep(excelConfiguration));
 		addStep(new AnnotationDeclarationWizardStep(state));
 		addStep(new MetaDataDeclarationWizardStep(state));
 		layoutDefault(HUGE);
@@ -75,6 +75,7 @@ public class ExcelImportWizard extends DataImportWizard {
 		super.finish();
 		if (source != null) {
 			state.getTranslationConfiguration().setParameters(source);
+			excelConfiguration.setParameters(source);
 		}
 	}
 }

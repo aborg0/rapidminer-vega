@@ -90,7 +90,7 @@ public class ExcelResultSet implements DataResultSet {
 			throw new UserError(callingOperator, 302, configuration.getFile().getPath(), e.getMessage());
 		}
 		try {
-			sheet = workbook.getSheet(configuration.getSheet() - 1);
+			sheet = workbook.getSheet(configuration.getSheet());
 		} catch (IndexOutOfBoundsException e) {
 			throw new UserError(callingOperator, 953, configuration.getSheet());
 		}

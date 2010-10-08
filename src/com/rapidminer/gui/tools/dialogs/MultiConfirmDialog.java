@@ -23,13 +23,13 @@
 package com.rapidminer.gui.tools.dialogs;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collection;
 
 import javax.swing.AbstractButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 /**
  * 
@@ -47,7 +47,7 @@ public class MultiConfirmDialog extends ConfirmDialog {
 	}
 
 	@Override
-	protected void layoutDefault(Component centerComponent, Collection<AbstractButton> buttons) {
+	protected void layoutDefault(JComponent centerComponent, Collection<AbstractButton> buttons) {
 		final JCheckBox applyToAllCheckBox = new JCheckBox("Apply to All", false);
 		{
 			applyToAllCheckBox.addActionListener(new ActionListener() {

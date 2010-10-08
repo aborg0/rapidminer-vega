@@ -22,9 +22,7 @@
  */
 package com.rapidminer.operator.nio.model;
 
-import static com.rapidminer.operator.nio.ExcelExampleSource.PARAMETER_COLUMN_OFFSET;
 import static com.rapidminer.operator.nio.ExcelExampleSource.PARAMETER_EXCEL_FILE;
-import static com.rapidminer.operator.nio.ExcelExampleSource.PARAMETER_ROW_OFFSET;
 import static com.rapidminer.operator.nio.ExcelExampleSource.PARAMETER_SHEET_NUMBER;
 
 import java.io.File;
@@ -40,7 +38,7 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.nio.ExcelExampleSource;
 import com.rapidminer.operator.nio.ExcelSheetTableModel;
-import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.Tools;
 
 /**
  * A class holding information about configuration of the Excel Result Set
@@ -49,35 +47,38 @@ import com.rapidminer.parameter.UndefinedParameterError;
  */
 public class ExcelResultSetConfiguration implements DataResultSetFactory {
 
-	private int rowOffset = 0;
-	private int columnOffset = 0;
+	private int rowOffset = -1;
+	private int columnOffset = -1;
 	private int rowLast = Integer.MAX_VALUE;
 	private int columnLast = Integer.MAX_VALUE;
-	private int sheet = 0;
+	/** Numbering starts at 0. */
+	private int sheet = -1;
 
 	private Workbook preOpenedWorkbook;
 	private File workbookFile;
 
-	public ExcelResultSetConfiguration(int rowOffset, int columnOffset, int sheet, File workbookFile) {
-		this.rowOffset = rowOffset;
-		this.columnOffset = columnOffset;
-		this.sheet = sheet;
-		this.workbookFile = workbookFile;
-		this.preOpenedWorkbook = null;
-	}
+//	public ExcelResultSetConfiguration(int rowOffset, int columnOffset, int sheet, File workbookFile) {
+//		this.rowOffset = rowOffset;
+//		this.columnOffset = columnOffset;
+//		this.sheet = sheet;
+//		this.workbookFile = workbookFile;
+//		this.preOpenedWorkbook = null;
+//	}
 
 	/**
 	 * This constructor must read in all settings from the parameters of the given operator.
-	 * 
-	 * @throws UndefinedParameterError
+	 * @throws OperatorException 
 	 */
-	public ExcelResultSetConfiguration(ExcelExampleSource excelExampleSource) throws UndefinedParameterError {
-		if (excelExampleSource.isParameterSet(PARAMETER_COLUMN_OFFSET))
-			this.columnOffset = excelExampleSource.getParameterAsInt(PARAMETER_COLUMN_OFFSET);
-		if (excelExampleSource.isParameterSet(PARAMETER_ROW_OFFSET))
-			this.rowOffset = excelExampleSource.getParameterAsInt(PARAMETER_ROW_OFFSET);
+	public ExcelResultSetConfiguration(ExcelExampleSource excelExampleSource) throws OperatorException {
+		if (excelExampleSource.isParameterSet(ExcelExampleSource.PARAMETER_IMPORTED_CELL_RANGE)) {
+			parseExcelRange(excelExampleSource.getParameterAsString(ExcelExampleSource.PARAMETER_IMPORTED_CELL_RANGE));
+		}
+//		if (excelExampleSource.isParameterSet(PARAMETER_COLUMN_OFFSET))
+//			this.columnOffset = excelExampleSource.getParameterAsInt(PARAMETER_COLUMN_OFFSET);
+//		if (excelExampleSource.isParameterSet(PARAMETER_ROW_OFFSET))
+//			this.rowOffset = excelExampleSource.getParameterAsInt(PARAMETER_ROW_OFFSET);
 		if (excelExampleSource.isParameterSet(PARAMETER_SHEET_NUMBER))
-			this.sheet = excelExampleSource.getParameterAsInt(PARAMETER_SHEET_NUMBER);
+			this.sheet = excelExampleSource.getParameterAsInt(PARAMETER_SHEET_NUMBER) - 1;
 		if (excelExampleSource.isParameterSet(PARAMETER_EXCEL_FILE))
 			this.workbookFile = excelExampleSource.getParameterAsFile(PARAMETER_EXCEL_FILE);
 	}
@@ -86,7 +87,6 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	 * This will create a completely empty result set configuration
 	 */
 	public ExcelResultSetConfiguration() {
-
 	}
 
 	/**
@@ -103,9 +103,7 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 		return columnOffset;
 	}
 
-	/**
-	 * This returns if there is already a opened workbook present
-	 */
+	/** Returns whether {@link #getWorkbook()} can be called without blocking. */
 	public boolean hasWorkbook() {
 		return preOpenedWorkbook != null;
 	}
@@ -136,10 +134,20 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	 * differ.
 	 */
 	public void setWorkbookFile(File selectedFile) {
-		if (hasWorkbook() && !selectedFile.equals(workbookFile)) {
+		if (selectedFile.equals(this.workbookFile)) {
+			return;
+		}
+		if (hasWorkbook()) {
 			preOpenedWorkbook.close();
+			preOpenedWorkbook = null;
 		}
 		workbookFile = selectedFile;
+		preOpenedWorkbook = null;
+		rowOffset = 0;
+		columnOffset = 0;
+		rowLast = Integer.MAX_VALUE;
+		columnLast = Integer.MAX_VALUE;
+		sheet = 0;
 	}
 
 	public int getRowLast() {
@@ -197,5 +205,52 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 			preOpenedWorkbook.close();
 			preOpenedWorkbook = null;
 		}
+	}
+
+	public void setParameters(ExcelExampleSource source) {
+		String range = 
+			Tools.getExcelColumnName(columnOffset) + (rowOffset+1) +
+			":" + 
+			Tools.getExcelColumnName(columnLast) + (rowLast + 1);
+		source.setParameter(ExcelExampleSource.PARAMETER_IMPORTED_CELL_RANGE, range);
+		source.setParameter(PARAMETER_SHEET_NUMBER, String.valueOf(sheet + 1));
+		source.setParameter(ExcelExampleSource.PARAMETER_EXCEL_FILE, workbookFile.getAbsolutePath());
+	}
+	
+	public void parseExcelRange(String range) throws OperatorException {
+		String[] split = range.split(":", 2);
+		int[] topLeft = parseExcelCell(split[0]);
+		columnOffset = topLeft[0];
+		rowOffset = topLeft[1];
+		if (split.length < 2) {
+			rowLast = Integer.MAX_VALUE;
+			columnLast = Integer.MAX_VALUE;
+		} else {
+			int[] bottomRight = parseExcelCell(split[1]);
+			columnLast = bottomRight[0];
+			rowLast    = bottomRight[1];
+		}		
+	}
+
+	private static int[] parseExcelCell(String string) throws OperatorException {
+		int i = 0;
+		int column = 0;
+		int row = 0;
+		while (i < string.length() && (Character.isLetter(string.charAt(i)))) {
+			char c = string.charAt(i);
+			c = Character.toUpperCase(c);
+			column *= 26;
+			column += (c - 'A') + 1;
+			i++;
+		}
+		if (i < string.length()) { // at least one digit left
+			String columnStr = string.substring(i);
+			try {
+				row = Integer.parseInt(columnStr);
+			} catch (NumberFormatException e) {
+				throw new OperatorException("Illegal Excel range format: "+string);
+			}
+		}		
+		return new int[] { column - 1, row - 1};
 	}
 }

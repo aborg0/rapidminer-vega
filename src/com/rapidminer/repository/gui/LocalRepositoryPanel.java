@@ -22,7 +22,6 @@
  */
 package com.rapidminer.repository.gui;
 
-import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -30,6 +29,7 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -135,7 +135,7 @@ public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurat
 	}
 
 	@Override
-	public Component getComponent() {
+	public JComponent getComponent() {
 		return this;
 	}
 }

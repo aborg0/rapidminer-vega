@@ -22,13 +22,13 @@
  */
 package com.rapidminer.repository.gui;
 
-import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -174,7 +174,7 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 	
 
 	@Override
-	public Component getComponent() {
+	public JComponent getComponent() {
 		return this;
 	}
 }

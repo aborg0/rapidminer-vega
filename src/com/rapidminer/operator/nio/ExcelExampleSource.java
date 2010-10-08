@@ -36,6 +36,7 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeConfiguration;
 import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypeInt;
+import com.rapidminer.parameter.ParameterTypeString;
 
 /**
  * 
@@ -84,6 +85,7 @@ public class ExcelExampleSource extends AbstractDataResultSetReader {
 
 	public static final String PARAMETER_CREATE_ID = "create_id";
 
+	public static final String PARAMETER_IMPORTED_CELL_RANGE = "imported_cell_range";
 
 
 
@@ -111,7 +113,8 @@ public class ExcelExampleSource extends AbstractDataResultSetReader {
 		types.add(new ParameterTypeInt(PARAMETER_SHEET_NUMBER, "The number of the sheet which should be imported.", 1, Integer.MAX_VALUE, 1, false));
 		types.add(new ParameterTypeInt(PARAMETER_ROW_OFFSET, "The number of rows to skip at top of sheet as they contain no usable data.", 0, 65535, 0, true));
 		types.add(new ParameterTypeInt(PARAMETER_COLUMN_OFFSET, "The number of columns to skip at left side of sheet as they contain no usable data.", 0, 255, 0, true));
-
+		types.add(new ParameterTypeString(PARAMETER_IMPORTED_CELL_RANGE, "Cells to import, in Excel notation, e.g.B2:D25.", true));
+		
 		types.addAll(super.getParameterTypes());
 		return types;
 	}

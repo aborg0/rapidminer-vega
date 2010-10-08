@@ -68,7 +68,28 @@ public class DataResultSetTranslationConfiguration {
 	private boolean faultTolerant = true;
 
 	private SimpleDateFormat dateFormat;
-	
+
+
+	/**
+	 * This constructor can be used to generate an empty configuration just depending on the given resultSet
+	 * 
+	 * @param resultSet
+	 * @throws OperatorException 
+	 */
+	public DataResultSetTranslationConfiguration(DataResultSet resultSet) {
+		this(null, resultSet);
+	}
+
+	/**
+	 * This constructor can be used to generate an empty configuration just depending on the given resultSet
+	 * 
+	 * @param resultSet
+	 * @throws OperatorException 
+	 */
+	public DataResultSetTranslationConfiguration(AbstractDataResultSetReader readerOperator) {
+		this(readerOperator, null);
+	}
+
 	/**
 	 * Creates the configuration based on the parameter values stored in the given reader. If these parameters aren't
 	 * present they are derived from the data result set delivered and everything will just be passed. This means, names
@@ -78,10 +99,11 @@ public class DataResultSetTranslationConfiguration {
 	 * @throws OperatorException
 	 */
 	public DataResultSetTranslationConfiguration(AbstractDataResultSetReader readerOperator, DataResultSet dataResultSet) {
-		reconfigure(readerOperator, dataResultSet);
+		reconfigure(readerOperator);
+		reconfigure(dataResultSet);
 	}
-	
-	public void reconfigure(AbstractDataResultSetReader readerOperator, DataResultSet dataResultSet) {
+
+	public void reconfigure(AbstractDataResultSetReader readerOperator) {	
 		// reading parameter settings
 		List<String[]> metaDataSettings = Collections.emptyList();
 		if (readerOperator != null) {
@@ -100,15 +122,6 @@ public class DataResultSetTranslationConfiguration {
 				}
 			}
 
-			// initializing data structures
-			if (readerOperator.isParameterSet(PARAMETER_META_DATA)) {
-				try {
-					metaDataSettings = readerOperator.getParameterList(PARAMETER_META_DATA);
-				} catch (UndefinedParameterError e) {
-					metaDataSettings = Collections.emptyList();
-				}
-			}
-		
 			// reading date format settings
 			try {
 				setDatePattern(readerOperator.getParameterAsString(PARAMETER_DATE_FORMAT));
@@ -124,8 +137,35 @@ public class DataResultSetTranslationConfiguration {
 			} catch (UndefinedParameterError e) {
 				locale = Locale.getDefault();
 			}
+
+			// initializing data structures
+			if (readerOperator.isParameterSet(PARAMETER_META_DATA)) {
+				try {
+					metaDataSettings = readerOperator.getParameterList(PARAMETER_META_DATA);
+				} catch (UndefinedParameterError e) {
+					metaDataSettings = Collections.emptyList();
+				}
+			}			
+
+			columnMetaData = new ColumnMetaData[metaDataSettings.size()];
+			for (String[] metaDataDefinition : metaDataSettings) {
+				int currentColumn = Integer.parseInt(metaDataDefinition[0]);
+				String[] metaDataDefintionValues = ParameterTypeTupel.transformString2Tupel(metaDataDefinition[1]);
+				columnMetaData[currentColumn] = new ColumnMetaData();
+				final ColumnMetaData cmd = columnMetaData[currentColumn];
+				cmd.setSelected(Boolean.parseBoolean(metaDataDefintionValues[1]));
+				if (cmd.isSelected()) {
+					// otherwise everything else doesn't matter at all
+					cmd.setRole(metaDataDefintionValues[3].trim());
+					cmd.setUserDefinedAttributeName(metaDataDefintionValues[0].trim());
+					// TODO: introduce checking if value type matches guessed type
+					cmd.setAttributeValueType(Integer.parseInt(metaDataDefintionValues[2]));
+				}
+			}
 		}
-		
+	}
+
+	public void reconfigure(DataResultSet dataResultSet) {
 		if (dataResultSet != null) {
 			int numberOfColumns = dataResultSet.getNumberOfColumns();
 			columnMetaData = new ColumnMetaData[numberOfColumns];
@@ -138,21 +178,7 @@ public class DataResultSetTranslationConfiguration {
 						Attributes.ATTRIBUTE_NAME,
 						true);			
 			}
-		}
-
-		for (String[] metaDataDefinition : metaDataSettings) {
-			int currentColumn = Integer.parseInt(metaDataDefinition[0]);
-			String[] metaDataDefintionValues = ParameterTypeTupel.transformString2Tupel(metaDataDefinition[1]);
-			final ColumnMetaData cmd = columnMetaData[currentColumn];
-			cmd.setSelected(Boolean.parseBoolean(metaDataDefintionValues[1]));
-			if (cmd.isSelected()) {
-				// otherwise everything else doesn't matter at all
-				cmd.setRole(metaDataDefintionValues[3].trim());
-				cmd.setUserDefinedAttributeName(metaDataDefintionValues[0].trim());
-				// TODO: introduce checking if value type matches guessed type
-				cmd.setAttributeValueType(Integer.parseInt(metaDataDefintionValues[2]));
-			}
-		}
+		}		
 	}	
 
 	/** Sets the parameters in the given operator to describe this configuration. */
@@ -171,16 +197,6 @@ public class DataResultSetTranslationConfiguration {
 			index++;
 		}
 		operator.getParameters().setParameter(PARAMETER_META_DATA, ParameterTypeList.transformList2String(metaDataList));
-	}
-	
-	/**
-	 * This constructor can be used to generate an empty configuration just depending on the given resultSet
-	 * 
-	 * @param resultSet
-	 * @throws OperatorException 
-	 */
-	public DataResultSetTranslationConfiguration(DataResultSet resultSet) throws OperatorException {
-		this(null, resultSet);
 	}
 
 	public ColumnMetaData getColumnMetaData(int col) {
@@ -215,7 +231,7 @@ public class DataResultSetTranslationConfiguration {
 	public String getAnnotation(int line) {
 		return annotationsMap.get(line);
 	}
-	
+
 	public SortedSet<Integer> getAnnotatedRowIndices() {
 		SortedSet<Integer> result = new TreeSet<Integer>();
 		result.addAll(annotationsMap.keySet());
@@ -226,10 +242,10 @@ public class DataResultSetTranslationConfiguration {
 		return annotationsMap;
 	}
 
-//	public void setAnnotationsMap(TreeMap<Integer, String> annotationsMap) {
-//		this.annotationsMap = annotationsMap;
-//	}
-	
+	//	public void setAnnotationsMap(TreeMap<Integer, String> annotationsMap) {
+	//		this.annotationsMap = annotationsMap;
+	//	}
+
 	/** Returns the row annotated to be used as the name of the attribute or -1
 	 *  if no such row was selected. */
 	public int getNameRow() {

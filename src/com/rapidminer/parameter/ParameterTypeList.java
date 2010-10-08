@@ -194,7 +194,13 @@ public class ParameterTypeList extends CombinedParameterType {
 			if (!first)
 				result.append(Parameters.RECORD_SEPARATOR);
 			if (secondToken != null) {
-				result.append(firstToken + Parameters.PAIR_SEPARATOR + secondToken);
+				if (firstToken != null) {
+					result.append(firstToken);
+				}
+				result.append(Parameters.PAIR_SEPARATOR);
+				if (secondToken != null) {
+					result.append(secondToken);
+				}
 			}
 			first = false;
 		}

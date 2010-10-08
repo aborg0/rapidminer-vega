@@ -188,7 +188,9 @@ public class ParameterTypeTupel extends CombinedParameterType {
 			if (i > 0) {
 				builder.append(INTERNAL_SEPERATOR_CHAR);
 			}
-			builder.append(Tools.escape(tupel[i], ESCAPE_CHAR, INTERNAL_SPECIAL_CHARACTERS));
+			if (tupel[i] != null) {				
+				builder.append(Tools.escape(tupel[i], ESCAPE_CHAR, INTERNAL_SPECIAL_CHARACTERS));
+			}
 		}
 		return builder.toString();
 	}

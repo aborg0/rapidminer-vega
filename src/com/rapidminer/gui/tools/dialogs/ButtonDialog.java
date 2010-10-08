@@ -239,19 +239,19 @@ public class ButtonDialog extends JDialog {
 		return infoPanel;
 	}
 
-	protected void layoutDefault(Component centerComponent, int size, Collection<AbstractButton> buttons) {
+	protected void layoutDefault(JComponent centerComponent, int size, Collection<AbstractButton> buttons) {
 		layoutDefault(centerComponent, size, buttons.toArray(new AbstractButton[buttons.size()]));
 	}
 
-	protected void layoutDefault(Component centerComponent, Collection<AbstractButton> buttons) {
+	protected void layoutDefault(JComponent centerComponent, Collection<AbstractButton> buttons) {
 		layoutDefault(centerComponent, DEFAULT_SIZE, buttons.toArray(new AbstractButton[buttons.size()]));
 	}
 
-	protected void layoutDefault(Component centerComponent, AbstractButton ... buttons) {
+	protected void layoutDefault(JComponent centerComponent, AbstractButton ... buttons) {
 		layoutDefault(centerComponent, DEFAULT_SIZE, buttons);
 	}
 
-	protected void layoutDefault(Component centerComponent, int size, AbstractButton ... buttons) {
+	protected void layoutDefault(JComponent centerComponent, int size, AbstractButton ... buttons) {
 		layoutDefault(centerComponent, makeButtonPanel(buttons), size);
 	}
 

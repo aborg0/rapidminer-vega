@@ -125,10 +125,12 @@ public class ParameterTypeEnumeration extends CombinedParameterType {
 	public static String transformEnumeration2String(List<String> list) {
 		StringBuilder builder = new StringBuilder();
 		boolean isFirst = true;
-		for (String string: list) {
+		for (String string : list) {
 			if (!isFirst)
 				builder.append(SEPERATOR_CHAR);
-			builder.append(Tools.escape(string, ESCAPE_CHAR, SPECIAL_CHARACTERS));
+			if (string != null) {
+				builder.append(Tools.escape(string, ESCAPE_CHAR, SPECIAL_CHARACTERS));
+			}
 			isFirst = false;
 		}
 		return builder.toString();

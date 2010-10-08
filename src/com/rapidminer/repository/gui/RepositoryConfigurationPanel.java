@@ -1,6 +1,6 @@
 package com.rapidminer.repository.gui;
 
-import java.awt.Component;
+import javax.swing.JComponent;
 
 import com.rapidminer.repository.Repository;
 import com.rapidminer.repository.RepositoryManager;
@@ -23,6 +23,6 @@ public interface RepositoryConfigurationPanel {
 	public boolean configure(Repository repository);
 	
 	/** Returns the actual component. */
-	public Component getComponent();
+	public JComponent getComponent();
 
 }

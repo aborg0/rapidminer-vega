@@ -39,7 +39,7 @@ import com.rapidminer.parameter.ParameterTypeTupel;
  * 
  * @author Simon Fischer
  */
-public class ParameterTupelCellEditor extends AbstractCellEditor implements PropertyValueCellEditor, CellEditorListener  {
+public class ParameterTupelCellEditor extends AbstractCellEditor implements PropertyValueCellEditor {
 	private static final long serialVersionUID = -2387465714767785072L;
 
 	private JPanel panel;
@@ -95,6 +95,8 @@ public class ParameterTupelCellEditor extends AbstractCellEditor implements Prop
 		return panel;
 	}
 
+	//private long lastStopFire = 0;
+	
 	private void constructPanel(String[] values) {
 		if (values == null) {
 			System.out.println("VALUES NULL");
@@ -104,7 +106,18 @@ public class ParameterTupelCellEditor extends AbstractCellEditor implements Prop
 		editors = new PropertyValueCellEditor[types.length];
 		for (int i = 0; i < types.length; i++) {
 			editors[i] = PropertyPanel.instantiateValueCellEditor(types[i], operator);
-			//editors[i].addCellEditorListener(this);
+			editors[i].addCellEditorListener(new CellEditorListener() {
+				@Override
+				public void editingCanceled(ChangeEvent e) {
+					System.out.println("Delegating CANCEL " + System.currentTimeMillis());
+					fireEditingCanceled();
+				}
+
+				@Override
+				public void editingStopped(ChangeEvent e) {
+					fireEditingStopped();//					
+				}
+			});
 		}
 
 		// building panel
@@ -132,15 +145,4 @@ public class ParameterTupelCellEditor extends AbstractCellEditor implements Prop
 		}		
 		return panel;
 	}
-
-	@Override
-	public void editingCanceled(ChangeEvent e) {
-		fireEditingCanceled();
-	}
-
-	@Override
-	public void editingStopped(ChangeEvent e) {
-		fireEditingStopped();
-	}
-
 }

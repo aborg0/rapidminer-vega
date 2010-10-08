@@ -48,8 +48,9 @@ import com.rapidminer.operator.nio.model.ExcelResultSetConfiguration;
 public class ExcelWorkbookPane extends JPanel {
 
 	public static class ExcelWorkbookSelection {
-	
-	private int sheetIndex;
+
+		/** Numbering starts at 0. */
+		private int sheetIndex;
 		private int columnIndexStart;
 		private int rowIndexStart;
 		private int columnIndexEnd;
@@ -116,7 +117,11 @@ public class ExcelWorkbookPane extends JPanel {
 		this.add(sheetsPane);
 	}
 
-	public void loadWorkbook() { 
+	public void loadWorkbook() {
+		if (configuration.hasWorkbook()) {
+			// nothing to do
+			return;
+		}
 		// add dummy
 		sheetsPane.removeAll();
 		JPanel dummy = new JPanel();
@@ -159,15 +164,15 @@ public class ExcelWorkbookPane extends JPanel {
 									sheetsPane.removeAll();
 								}
 								sheetsPane.addTab(sheetNames[sheetIndex], pane);
-								
-								ExcelWorkbookSelection selection = new ExcelWorkbookSelection(configuration.getSheet(), 
-										configuration.getColumnOffset(), configuration.getRowOffset(), 
-										configuration.getColumnLast(), configuration.getRowLast());
-								
-								if ((configuration.getColumnOffset() > 0) || ((configuration.getRowOffset() > 0))) {
-									setSelection(selection);
-								}
 							}
+							ExcelWorkbookSelection selection = new ExcelWorkbookSelection(configuration.getSheet(), 
+									configuration.getColumnOffset(), configuration.getRowOffset(), 
+									configuration.getColumnLast(), configuration.getRowLast());
+
+							setSelection(selection);
+//							if ((configuration.getColumnOffset() >= 0) || ((configuration.getRowOffset() >= 0))) {
+//								
+//							}
 						}
 					});
 				} catch (BiffException e) {
@@ -185,12 +190,19 @@ public class ExcelWorkbookPane extends JPanel {
 
 	public void setSelection(ExcelWorkbookSelection selection) {
 		final int sheetIndex = selection.getSheetIndex();
-		sheetsPane.setSelectedIndex(sheetIndex);
-		tables[sheetIndex].clearSelection();
-		tables[sheetIndex].setColumnSelectionInterval(selection.getColumnIndexStart(), selection.getColumnIndexEnd());
-		tables[sheetIndex].setRowSelectionInterval(selection.getRowIndexStart(), selection.getRowIndexEnd());		
+		if (sheetIndex < sheetsPane.getTabCount()) {
+			sheetsPane.setSelectedIndex(sheetIndex);
+			tables[sheetIndex].clearSelection();
+			tables[sheetIndex].setColumnSelectionInterval(
+					Math.max(selection.getColumnIndexStart(), 0), 
+					Math.min(selection.getColumnIndexEnd(), tables[sheetIndex].getColumnCount()-1));
+			tables[sheetIndex].setRowSelectionInterval(
+					Math.max(selection.getRowIndexStart(), 0), 
+					Math.min(selection.getRowIndexEnd(), tables[sheetIndex].getRowCount()-1));		
+
+		}
 	}
-	
+
 	public ExcelWorkbookSelection getSelection() {
 		if (selectedView == null) {
 			int sheetIndex = sheetsPane.getSelectedIndex();

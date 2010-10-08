@@ -25,7 +25,7 @@ public class WizardState {
 	
 	public WizardState(AbstractDataResultSetReader operator, DataResultSetFactory dataResultSetFactory) {
 		super();
-		this.config = new DataResultSetTranslationConfiguration(operator, null);
+		this.config = new DataResultSetTranslationConfiguration(operator);
 		this.translator = new DataResultSetTranslator(operator);
 		this.operator = operator;
 		this.dataResultSetFactory = dataResultSetFactory;

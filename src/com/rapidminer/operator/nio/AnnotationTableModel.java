@@ -36,6 +36,15 @@ public class AnnotationTableModel extends AbstractTableModel {
 	}
 	
 	@Override
+	public String getColumnName(int column) {
+		if (column == 0) {
+			return "Annotation";
+		} else {
+			return wrappedModel.getColumnName(column - 1);
+		}
+	}
+	
+	@Override
 	public int getRowCount() {
 		return wrappedModel.getRowCount();
 	}

@@ -28,13 +28,13 @@ public class ExcelSheetTableModel extends AbstractTableModel {
 
 	public ExcelSheetTableModel(ExcelResultSetConfiguration excelResultSetConfiguration) throws IndexOutOfBoundsException, BiffException, IOException {
 		this.config = excelResultSetConfiguration;
-		this.sheet = config.getWorkbook().getSheet(config.getSheet()-1);
+		this.sheet = config.getWorkbook().getSheet(config.getSheet());
 	}
 
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		if (config != null) {
-			return sheet.getCell(columnIndex - config.getColumnOffset(), rowIndex - config.getRowOffset()).getContents();
+			return sheet.getCell(columnIndex + config.getColumnOffset(), rowIndex + config.getRowOffset()).getContents();
 		} else {
 			return sheet.getCell(columnIndex, rowIndex).getContents();
 		}

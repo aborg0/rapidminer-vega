@@ -154,7 +154,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		dateFormatField.setText(state.getTranslationConfiguration().getDatePattern());
 		
 		try {
-			state.getTranslationConfiguration().reconfigure(state.getOperator(), state.getDataResultSetFactory().makeDataResultSet(state.getOperator()));
+			state.getTranslationConfiguration().reconfigure(state.getDataResultSetFactory().makeDataResultSet(state.getOperator()));
 		} catch (OperatorException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

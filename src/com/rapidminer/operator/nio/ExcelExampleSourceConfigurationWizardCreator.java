@@ -2,8 +2,8 @@ package com.rapidminer.operator.nio;
 
 import com.rapidminer.gui.wizards.AbstractConfigurationWizardCreator;
 import com.rapidminer.gui.wizards.ConfigurationListener;
+import com.rapidminer.operator.OperatorException;
 import com.rapidminer.parameter.ParameterType;
-import com.rapidminer.parameter.UndefinedParameterError;
 
 /**
  * Creates a {@link ExcelImportWizard}.
@@ -20,8 +20,9 @@ public class ExcelExampleSourceConfigurationWizardCreator extends AbstractConfig
 		ExcelExampleSource sourceOperator = (ExcelExampleSource) listener;
 		try {
 			new ExcelImportWizard(sourceOperator, listener, false, null, getI18NKey()).setVisible(true);
-		} catch (UndefinedParameterError e) {
+		} catch (OperatorException e) {
 			// TODO : Handle correctly
+			e.printStackTrace();
 		}
 	}
 
