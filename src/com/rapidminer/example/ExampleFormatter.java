@@ -240,6 +240,10 @@ public class ExampleFormatter {
 							this.attribute = attribute;
 							break;
 						}
+						counter++;
+					}
+					if (attribute == null) {
+						throw new FormatterException("Attribute #"+column+" not found.");
 					}
 					break;
 				default:

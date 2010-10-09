@@ -6674,7 +6674,7 @@
     <shortName>Discretize</shortName>
   </operator>
     <operator>
-        <name>Mututal Information Matrix</name>
+        <name>Mutual Information Matrix</name>
         <synopsis>Determines the mutual information between all attributes.
         </synopsis>
         <help>&lt;p&gt;This operator calculates the mutual information matrix
@@ -8136,7 +8136,7 @@
     <key>pmml</key>
     <name>Pmml</name>
   </group>
-     <operator>
+  <operator>
       <key>apply_association_rules</key>
       <name>Apply Association Rules</name>
       <synopsis>This operator applies given association rules on an example set.</synopsis>
@@ -8180,14 +8180,14 @@
   pattern are to widely separated in time. The min_gap parameter does the same if they are to near.&lt;/p&gt;
       </help>
    </operator>
-
+  
   <operator>
     <key>send_mail</key>
     <name>Send Mail</name>
 	<synopsis>This operator sends a mail.</synopsis>    
     <help>This operator sends a mail with a given subject and body to a receiver.</help>
   </operator>
-
+  
 
 	<operator>
       <name>k-Means (fast)</name>

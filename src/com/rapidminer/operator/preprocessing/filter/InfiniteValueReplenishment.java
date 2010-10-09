@@ -81,7 +81,7 @@ public class InfiniteValueReplenishment extends ValueReplenishment {
 	private static final int VALUE      = 6;
 
 	private static final String[] REP_NAMES = { "none", "zero", "max_byte", "max_int", "max_double", "missing", "value" };
-	private static final String[] WHAT_NAMES = { "positive_infinity", "negative_infinity" };
+	private static final String[] WHAT_NAMES = { "positive_infinity", "negative_infinity"};
 
 	public InfiniteValueReplenishment(OperatorDescription description) {
 		super(description);
@@ -156,7 +156,7 @@ public class InfiniteValueReplenishment extends ValueReplenishment {
 		ParameterType type = new ParameterTypeCategory(PARAMETER_REPLENISHMENT_WHAT, "Decides if positive or negative infite values will be replaced.", WHAT_NAMES, 0, false);
 		types.add(type);
 
-		type = new ParameterTypeDouble(PARAMETER_REPLENISHMENT_VALUE, "This value will be inserted instead of infinity.", Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+		type = new ParameterTypeDouble(PARAMETER_REPLENISHMENT_VALUE, "This value will be inserted instead of infinity.", Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, true);
 		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_DEFAULT, getFunctionNames(), true, VALUE));
 		types.add(type);
 		return types;
