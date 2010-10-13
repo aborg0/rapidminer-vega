@@ -544,7 +544,6 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		try {
 			clone = operatorDescription.createOperatorInstance();
 		} catch (Exception e) {
-			e.printStackTrace();
 			getLogger().log(Level.SEVERE, "Can not create clone of operator '" + getName() + "': " + e, e);
 			throw new RuntimeException("Can not create clone of operator '" + getName(), e);
 		}

@@ -7,20 +7,20 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.parameter.ParameterType;
 
 /**
- * Creates a {@link ExcelImportWizard}.
+ * Creates an {@link ExcelImportWizard}.
  * 
  * @author Sebastian Loh (06.05.2010)
  * 
  */
-public class ExcelExampleSourceConfigurationWizardCreator extends AbstractConfigurationWizardCreator {
+public class CSVExampleSourceConfigurationWizardCreator extends AbstractConfigurationWizardCreator {
 
 	private static final long serialVersionUID = 1L;
 
 	@Override
 	public void createConfigurationWizard(ParameterType type, ConfigurationListener listener) {
-		ExcelExampleSource sourceOperator = (ExcelExampleSource) listener;
+		CSVExampleSource sourceOperator = (CSVExampleSource) listener;
 		try {
-			new ExcelImportWizard(sourceOperator, listener, false, null, getI18NKey()).setVisible(true);
+			new CSVImportWizard(sourceOperator, listener, false, null, getI18NKey()).setVisible(true);
 		} catch (OperatorException e) {
 			SwingTools.showSimpleErrorMessage("importwizard.error_creating_wizard", e);
 		}

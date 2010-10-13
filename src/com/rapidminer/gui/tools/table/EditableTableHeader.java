@@ -195,6 +195,7 @@ public class EditableTableHeader extends JTableHeader implements CellEditorListe
 	//
 	// CellEditorListener
 	//
+	@Override
 	public void editingStopped(ChangeEvent e) {
 		TableCellEditor editor = getCellEditor();
 		if (editor != null) {
@@ -205,6 +206,7 @@ public class EditableTableHeader extends JTableHeader implements CellEditorListe
 		}
 	}
 
+	@Override
 	public void editingCanceled(ChangeEvent e) {
 		removeEditor();
 	}

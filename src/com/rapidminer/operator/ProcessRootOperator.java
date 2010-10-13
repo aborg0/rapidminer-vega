@@ -214,13 +214,13 @@ public final class ProcessRootOperator extends OperatorChain {
 	}
 
 	/** Counts the step and notifies all process listeners. */
-	protected void processStartedOperator(Operator op) {
+	public void processStartedOperator(Operator op) {
 		for(ProcessListener listener: listenerList)
 			listener.processStartedOperator(this.process, op);
 	}
 
 	/** Counts the step and notifies all process listeners. */
-	protected void processFinishedOperator(Operator op) {
+	public void processFinishedOperator(Operator op) {
 		for(ProcessListener listener : listenerList)
 			listener.processFinishedOperator(this.process, op);
 	}

@@ -38,6 +38,7 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.nio.ExcelExampleSource;
 import com.rapidminer.operator.nio.ExcelSheetTableModel;
+import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.Tools;
 
 /**
@@ -56,14 +57,6 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 
 	private Workbook preOpenedWorkbook;
 	private File workbookFile;
-
-//	public ExcelResultSetConfiguration(int rowOffset, int columnOffset, int sheet, File workbookFile) {
-//		this.rowOffset = rowOffset;
-//		this.columnOffset = columnOffset;
-//		this.sheet = sheet;
-//		this.workbookFile = workbookFile;
-//		this.preOpenedWorkbook = null;
-//	}
 
 	/**
 	 * This constructor must read in all settings from the parameters of the given operator.
@@ -188,7 +181,7 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	}
 
 	@Override
-	public TableModel makePreviewTableModel() throws OperatorException {
+	public TableModel makePreviewTableModel(ProgressListener listener) throws OperatorException {
 		try {
 			return new ExcelSheetTableModel(this);
 		} catch (IndexOutOfBoundsException e) {
@@ -252,5 +245,10 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 			}
 		}		
 		return new int[] { column - 1, row - 1};
+	}
+
+	@Override
+	public String getResourceName() {		
+		return workbookFile.getAbsolutePath();
 	}
 }

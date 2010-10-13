@@ -184,6 +184,11 @@ public class LinearRegressionModel extends PredictionModel {
 		return useIntercept;
 	}
 	
+	/**
+	 * This method will return all used coefficients. So the 
+	 * array will be smaller than the array of used attribute names!
+	 * The ordering is the same but will only contain used attributes with the bias appended.
+	 */
 	public double[] getCoefficients() {
 		return coefficients;
 	}

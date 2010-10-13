@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.nio.model.CSVResultSetConfiguration;
 
 /**
  * @author Tobias Malbrecht, Marco Boeck
@@ -47,37 +48,31 @@ public class LineParser {
 	}
 
 	public static final String DEFAULT_COMMENT_CHARACTER_STRING = "#";
-	
 	public static final String DEFAULT_SPLIT_EXPRESSION = ",\\s*|;\\s*";
-
 	public static final String SPLIT_BY_TAB_EXPRESSION = "\t";
-
 	public static final String SPLIT_BY_SPACE_EXPRESSION = "\\s";
-
 	public static final String SPLIT_BY_COMMA_EXPRESSION = ",";
-
 	public static final String SPLIT_BY_SEMICOLON_EXPRESSION = ";";
-
 	public static final char DEFAULT_QUOTE_CHARACTER = '"';
-
 	public static final char DEFAULT_QUOTE_ESCAPE_CHARACTER = '\\';
 	
 	private Charset encoding;
-	
 	private boolean skipComments = true;
-	
 	private String commentCharacterString = DEFAULT_COMMENT_CHARACTER_STRING;
-
 	private Pattern splitPattern = Pattern.compile(DEFAULT_SPLIT_EXPRESSION);
-
 	private boolean useQuotes = true;
-
 	private char quoteCharacter = DEFAULT_QUOTE_CHARACTER;
-
 	private char quoteEscapeCharacter = DEFAULT_QUOTE_ESCAPE_CHARACTER;
-
 	private boolean trimLine = true;
 	
+	public LineParser() {		
+	}
+	
+	public LineParser(CSVResultSetConfiguration configuration) throws OperatorException {
+		this();
+		configure(configuration);
+	}
+
 	public void setEncoding(Charset encoding) {
 		this.encoding = encoding;
 	}
@@ -572,5 +567,16 @@ public class LineParser {
 		String[] resultArray = new String[resultList.size()];
 		resultList.toArray(resultArray);
 		return resultArray;
+	}
+
+	public void configure(CSVResultSetConfiguration configuration) throws OperatorException {
+		setTrimLine(configuration.isTrimLines());
+		setSkipComments(configuration.isSkipComments());
+		setSplitExpression(configuration.getColumnSeparators());
+		setUseQuotes(configuration.isUseQuotes());
+		setQuoteCharacter(configuration.getQuoteCharacter());
+		setQuoteEscapeCharacter(configuration.getEscapeCharacter());
+		setCommentCharacters(configuration.getCommentCharacters());
+		setEncoding(configuration.getEncoding());		
 	}
 }

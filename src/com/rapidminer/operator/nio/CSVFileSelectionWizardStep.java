@@ -7,46 +7,46 @@ import javax.swing.filechooser.FileFilter;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.FileSelectionWizardStep;
-import com.rapidminer.operator.nio.model.ExcelResultSetConfiguration;
+import com.rapidminer.operator.nio.model.CSVResultSetConfiguration;
 
 /**
- * This step allows to select an file. With this file the {@link ExcelResultSetConfiguration} will be created.
+ * This step allows to select an file. With this file the {@link CSVResultSetConfiguration} will be created.
  * 
- * @author Sebastian Land
+ * @author Simon Fischer
  * 
  */
-public class ExcelFileSelectionWizardStep extends FileSelectionWizardStep {
+public class CSVFileSelectionWizardStep extends FileSelectionWizardStep {
 
-	private ExcelResultSetConfiguration configuration;
+	private CSVResultSetConfiguration configuration;
 	
 	/**
 	 * There must be a configuration given, but might be empty.
 	 */
-	public ExcelFileSelectionWizardStep(AbstractWizard parent, ExcelResultSetConfiguration configuration) {
-		super(parent, new FileFilter() {
+	public CSVFileSelectionWizardStep(AbstractWizard parent, CSVResultSetConfiguration configuration) {
+		super(parent, configuration.getCsvFile(), new FileFilter() {
 			@Override
 			public boolean accept(File f) {
-				return f.isDirectory() || f.getName().endsWith("xls");
+				return f.isDirectory() || f.getName().endsWith("csv");
 			}
 			@Override
 			public String getDescription() {
-				return "Excel Files";
-			}			
+				return "Delimiter separated files";
+			}		
 		});
 		this.configuration = configuration;
 	}
 
 	@Override
 	protected boolean performEnteringAction(WizardStepDirection direction) {
-		if (configuration.getFile() != null) {
-			this.fileChooser.setSelectedFile(configuration.getFile());
+		if (configuration.getCsvFile() != null) {
+			this.fileChooser.setSelectedFile(configuration.getCsvFile());
 		}
 		return true;
 	}
 
 	@Override
 	protected boolean performLeavingAction(WizardStepDirection direction) {
-		configuration.setWorkbookFile(getSelectedFile());
+		configuration.setCsvFile(getSelectedFile());
 		return true;
 	}
 }

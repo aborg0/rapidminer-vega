@@ -47,8 +47,8 @@ import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.container.Pair;
 
 /**
- * This class encapsulates the translation step from a DataResultSet to an ExampleSet which is controlled by the
- * DataResultSetTranslationConfiguration.
+ * This class encapsulates the translation step from a {@link DataResultSetTranslator} to an
+ * {@link ExampleSet} which is controlled by the {@link DataResultSetTranslationConfiguration}.
  * 
  * @author Sebastian Land
  */
@@ -164,7 +164,8 @@ public class DataResultSetTranslator {
 						} else {
 							switch (attribute.getValueType()) {
 							case Ontology.INTEGER:
-								row.set(attribute, getNumber(dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant).intValue());
+								row.set(attribute, getOrParseNumber(configuration, dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant));
+										//getNumber(dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant).intValue());
 								break;
 							case Ontology.NUMERICAL:
 							case Ontology.REAL:

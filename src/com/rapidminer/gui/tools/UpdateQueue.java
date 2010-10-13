@@ -55,6 +55,17 @@ public class UpdateQueue extends Thread {
 			lock.notifyAll();
 		}
 	}
+	
+	/** Executes the given progress thread and waits for it, so only one will be 
+	 *  enqueued at a time. (The calling thread will *not* wait, only the queue waits! */
+	public void executeBackgroundJob(final ProgressThread progressThread) {
+		execute(new Runnable() {
+			@Override
+			public void run() {
+				progressThread.startAndWait();
+			}
+		});		
+	}
 
 	@Override
 	public void run() {

@@ -27,6 +27,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -64,34 +65,38 @@ public class OperatorResourceConsumptionHandler {
 		InputStream is;
 		String resource = "/" + Tools.RESOURCE_PREFIX + OPERATORS_RESOURCE_CONSUMPTION;
 		try {
-			is = OperatorResourceConsumptionHandler.class.getResource(resource).openStream();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-			String[] splitString;
-			String row;
-			int i = 0;
-			while ((row = reader.readLine()) != null) {
-				i++;
-				// skip empty rows
-				if (row.trim().equals("")) {
-					continue;
+			URL url = OperatorResourceConsumptionHandler.class.getResource(resource);
+			if (url == null) {
+				LOGGER.warning(I18N.getMessage(I18N.getErrorBundle(), "profiler.error.no_csv_file", OPERATORS_RESOURCE_CONSUMPTION));
+			} else {
+				is = url.openStream();
+				BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+				String[] splitString;
+				String row;
+				int i = 0;
+				while ((row = reader.readLine()) != null) {
+					i++;
+					// skip empty rows
+					if (row.trim().equals("")) {
+						continue;
+					}
+					// skip comments
+					if (row.trim().charAt(0) == '#') {
+						continue;
+					}
+					splitString = row.trim().split(";");
+					// malformed csv file
+					if (splitString.length != RESOURCE_CONSUMPTION_CSV_SPLITPARTS) {
+						LOGGER.warning(I18N.getMessage(I18N.getErrorBundle(), "profiler.error.malformed_csv_file", OPERATORS_RESOURCE_CONSUMPTION, i));
+					}
+					resourceMap.put(splitString[0], splitString);
 				}
-				// skip comments
-				if (row.trim().charAt(0) == '#') {
-					continue;
-				}
-				splitString = row.trim().split(";");
-				// malformed csv file
-				if (splitString.length != RESOURCE_CONSUMPTION_CSV_SPLITPARTS) {
-					LOGGER.warning(I18N.getMessage(I18N.getErrorBundle(), "profiler.error.malformed_csv_file", OPERATORS_RESOURCE_CONSUMPTION, i));
-				}
-				resourceMap.put(splitString[0], splitString);
 			}
 		} catch (FileNotFoundException e) {
 			LOGGER.warning(e.getLocalizedMessage());
 		} catch (IOException e) {
 			LOGGER.warning(e.getLocalizedMessage());
 		}
-		
 	}
 	
 	/**

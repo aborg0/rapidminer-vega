@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -39,6 +40,8 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.SymbolAxis;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
@@ -57,6 +60,9 @@ import com.rapidminer.datatable.DataTableRow;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.plotter.PlotterConfigurationModel;
 import com.rapidminer.gui.plotter.RangeablePlotterAdapter;
+import com.rapidminer.operator.ports.InputPort;
+import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.math.MathFunctions;
@@ -64,12 +70,14 @@ import com.rapidminer.tools.math.MathFunctions;
 /**
  * This is the series chart plotter.
  * 
- * @author Ingo Mierswa
+ * @author Ingo Mierswa, Sebastian Land
  */
 public class SeriesChartPlotter extends RangeablePlotterAdapter {
 
 	private static final long serialVersionUID = -8763693366081949249L;
 
+	private static final String PARAMETER_MARKER = "marker_at";
+	
 	private static final String VALUEAXIS_LABEL = "value";
 	private static final String SERIESINDEX_LABEL = "index";
 
@@ -84,6 +92,9 @@ public class SeriesChartPlotter extends RangeablePlotterAdapter {
 
 	/** The axis values for the upper and lower bounds. */
 	private int[] axis = new int[] { -1, -1, -1 };
+
+	private boolean useLimit = false;
+	private double limit = 0;
 
 	private static final int MIN = 0;
 	private static final int MAX = 1;
@@ -103,7 +114,7 @@ public class SeriesChartPlotter extends RangeablePlotterAdapter {
 		this(settings);
 		setDataTable(dataTable);
 	}
-	
+
 	private JFreeChart createChart(XYDataset dataset, boolean createLegend) {
 
 		// create the chart...
@@ -251,6 +262,26 @@ public class SeriesChartPlotter extends RangeablePlotterAdapter {
 	}
 
 	@Override
+	public List<ParameterType> getAdditionalParameterKeys(InputPort inputPort) {
+		List<ParameterType> types = super.getAdditionalParameterKeys(inputPort);
+		types.add(new ParameterTypeDouble(PARAMETER_MARKER, "Defines a horizontal line as a reference to the plot.", Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, true));
+		return types;
+	}
+
+	@Override
+	public void setAdditionalParameter(String key, String value) {
+		super.setAdditionalParameter(key, value);
+		if (PARAMETER_MARKER.equals(key)) {
+			try {
+				limit = Double.parseDouble(value);
+				useLimit = true;
+			} catch (NumberFormatException e) {
+				useLimit = false;
+			}
+		}
+	}
+
+	@Override
 	public int getAxis(int index) {
 		return axis[index];
 	}
@@ -269,13 +300,14 @@ public class SeriesChartPlotter extends RangeablePlotterAdapter {
 			this.plotBounds = false;
 			this.plotIndexToColumnIndexMap.clear();
 
+			// series
 			int columnCount = 0;
 			for (int c = 0; c < dataTable.getNumberOfColumns(); c++) {
 				if (getPlotColumn(c)) {
 					if (dataTable.isNumerical(c)) {
 						YIntervalSeries series = new YIntervalSeries(this.dataTable.getColumnName(c));
 						Iterator<DataTableRow> i = dataTable.iterator();
-						int index = 1;
+						int index = 0;
 						while (i.hasNext()) {
 							DataTableRow row = i.next();
 							double value = row.getValue(c);
@@ -293,11 +325,12 @@ public class SeriesChartPlotter extends RangeablePlotterAdapter {
 				}
 			}
 
+			// Lower and upper bound
 			if ((getAxis(MIN) > -1) && (getAxis(MAX) > -1)) {
 				if ((dataTable.isNumerical(getAxis(0))) && (dataTable.isNumerical(getAxis(1)))) {
 					YIntervalSeries series = new YIntervalSeries("Bounds");
 					Iterator<DataTableRow> i = dataTable.iterator();
-					int index = 1;
+					int index = 0;
 					while (i.hasNext()) {
 						DataTableRow row = i.next();
 						double lowerValue = row.getValue(getAxis(0));
@@ -316,10 +349,25 @@ public class SeriesChartPlotter extends RangeablePlotterAdapter {
 						}
 					}
 					dataset.addSeries(series);
-					columnCount++;
 					this.plotBounds = true;
 				}
 			}
+			
+			// limit
+			if (useLimit) {
+				YIntervalSeries series = new YIntervalSeries("Limit");
+				int index = 0;
+				for (DataTableRow row: dataTable) {
+					if (!dataTable.isNominal(axis[INDEX])) {
+						double indexValue = row.getValue(axis[INDEX]);
+						series.add(indexValue, limit, limit, limit);
+					} else {
+						series.add(index++, limit, limit, limit);
+					}
+				}
+				dataset.addSeries(series);
+			}
+			
 			return columnCount;
 		}
 	}
@@ -374,16 +422,28 @@ public class SeriesChartPlotter extends RangeablePlotterAdapter {
 		chart.setBackgroundPaint(Color.white);
 
 		// domain axis
-		if ((axis[INDEX] >= 0) && (!dataTable.isNominal(axis[INDEX]))) {
-			if ((dataTable.isDate(axis[INDEX])) || (dataTable.isDateTime(axis[INDEX]))) {
-				DateAxis domainAxis = new DateAxis(dataTable.getColumnName(axis[INDEX]));
-				domainAxis.setTimeZone(Tools.getPreferredTimeZone());
-				chart.getXYPlot().setDomainAxis(domainAxis);
-				if (getRangeForDimension(axis[INDEX]) != null)
-					domainAxis.setRange(getRangeForDimension(axis[INDEX]));
-				domainAxis.setLabelFont(LABEL_FONT_BOLD);
-				domainAxis.setTickLabelFont(LABEL_FONT);
-				domainAxis.setVerticalTickLabels(isLabelRotating());
+		if (axis[INDEX] >= 0) {
+			if (!dataTable.isNominal(axis[INDEX])) {
+				if ((dataTable.isDate(axis[INDEX])) || (dataTable.isDateTime(axis[INDEX]))) {
+					DateAxis domainAxis = new DateAxis(dataTable.getColumnName(axis[INDEX]));
+					domainAxis.setTimeZone(Tools.getPreferredTimeZone());
+					chart.getXYPlot().setDomainAxis(domainAxis);
+					if (getRangeForDimension(axis[INDEX]) != null)
+						domainAxis.setRange(getRangeForDimension(axis[INDEX]));
+					domainAxis.setLabelFont(LABEL_FONT_BOLD);
+					domainAxis.setTickLabelFont(LABEL_FONT);
+					domainAxis.setVerticalTickLabels(isLabelRotating());
+				}
+			} else {
+				LinkedHashSet<String> values = new LinkedHashSet<String>();
+				for (DataTableRow row : dataTable) {
+					values.add(dataTable.mapIndex(axis[INDEX], (int) row.getValue(axis[INDEX])));
+				}
+				ValueAxis categoryAxis = new SymbolAxis(dataTable.getColumnName(axis[INDEX]), values.toArray(new String[values.size()]));
+				categoryAxis.setLabelFont(LABEL_FONT_BOLD);
+				categoryAxis.setTickLabelFont(LABEL_FONT);
+				categoryAxis.setVerticalTickLabels(isLabelRotating());
+				chart.getXYPlot().setDomainAxis(categoryAxis);
 			}
 		}
 
@@ -423,7 +483,7 @@ public class SeriesChartPlotter extends RangeablePlotterAdapter {
 	@Override
 	public Collection<String> resolveYAxis(int axisIndex) {
 		Collection<String> names = new LinkedList<String>();
-		for (int i = 0; i <columns.length; i++) {
+		for (int i = 0; i < columns.length; i++) {
 			if (columns[i])
 				names.add(dataTable.getColumnName(i));
 		}

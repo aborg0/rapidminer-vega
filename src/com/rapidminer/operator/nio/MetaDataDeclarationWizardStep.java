@@ -27,16 +27,17 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
@@ -59,6 +60,7 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.nio.model.DataResultSet;
 import com.rapidminer.operator.nio.model.ParsingError;
 import com.rapidminer.operator.nio.model.WizardState;
+import com.rapidminer.parameter.ParameterTypeDateFormat;
 
 /**
  * This Wizard Step might be used to defined
@@ -108,7 +110,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	});
 	private JCheckBox filterErrorsBox = new JCheckBox(new ResourceActionAdapter("wizard.show_error_rows"));
 
-	private JTextField dateFormatField = new JTextField(15);
+	private JComboBox dateFormatField = new JComboBox(ParameterTypeDateFormat.PREDEFINED_DATE_FORMATS);
 	
 	private WizardState state;
 
@@ -121,12 +123,17 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	public MetaDataDeclarationWizardStep(WizardState state) {
 		super("importwizard.metadata");		
 		this.state = state;
+		dateFormatField.setEditable(true);
+		dateFormatField.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				MetaDataDeclarationWizardStep.this.state.getTranslationConfiguration().setDatePattern((String)dateFormatField.getSelectedItem());
+			}
+		});
 		
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		buttonPanel.add(reloadButton);
 		buttonPanel.add(guessButton);
-		buttonPanel.add(errorsAsMissingBox);
-		buttonPanel.add(filterErrorsBox);
 		
 		JLabel label = new ResourceLabel("date_format");
 		label.setLabelFor(dateFormatField);
@@ -134,6 +141,9 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		buttonPanel.add(dateFormatField);
 		panel.add(buttonPanel, BorderLayout.NORTH);
 
+		buttonPanel.add(errorsAsMissingBox);
+		buttonPanel.add(filterErrorsBox);
+		
 		JPanel errorPanel = new JPanel(new BorderLayout());
 		errorPanel.add(errorLabel, BorderLayout.NORTH);
 		final JTable errorTable = new JTable(errorTableModel);		
@@ -145,52 +155,43 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		final JLabel dummy = new JLabel("-");
 		dummy.setPreferredSize(new Dimension(500, 500));
 		dummy.setMinimumSize(new Dimension(500, 500));
-		tableScrollPane = new JScrollPane(dummy);
+		tableScrollPane = new JScrollPane(dummy, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		panel.add(tableScrollPane, BorderLayout.CENTER);
 	}
 
 	@Override
 	protected boolean performEnteringAction(WizardStepDirection direction) {
-		dateFormatField.setText(state.getTranslationConfiguration().getDatePattern());
-		
-		try {
-			state.getTranslationConfiguration().reconfigure(state.getDataResultSetFactory().makeDataResultSet(state.getOperator()));
-		} catch (OperatorException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-			return false;
-		}
-		
+		dateFormatField.setSelectedItem(state.getTranslationConfiguration().getDatePattern());
 		errorsAsMissingBox.setSelected(state.getTranslationConfiguration().isFaultTolerant());
 		
-		TableModel dataPreview;
-		try {
-			dataPreview = state.getDataResultSetFactory().makePreviewTableModel();
-		} catch (OperatorException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		}
-		//ExampleSet exampleSet = state.getCachedExampleSet();
-		// Copy name annotations to name		
-		int nameIndex = state.getTranslationConfiguration().getNameRow();		
-		if (nameIndex != -1) {
-			for (int i = 0; i < dataPreview.getColumnCount(); i++) {
-				state.getTranslationConfiguration().getColumnMetaData(i).setUserDefinedAttributeName((String) dataPreview.getValueAt(nameIndex, i));
+		new ProgressThread("loading_data") {
+			@Override
+			public void run() {
+				try {
+					final DataResultSet previewResultSet = state.getDataResultSetFactory().makeDataResultSet(state.getOperator());
+					state.getTranslationConfiguration().reconfigure(previewResultSet);
+				} catch (OperatorException e1) {
+					ImportWizardUtils.showErrorMessage(state.getDataResultSetFactory().getResourceName(), e1.toString(), e1);
+					return;
+				}
+				
+				try {
+					TableModel dataPreview = state.getDataResultSetFactory().makePreviewTableModel(getProgressListener());
+					// Copy name annotations to name		
+					int nameIndex = state.getTranslationConfiguration().getNameRow();		
+					if (nameIndex != -1) {
+						for (int i = 0; i < dataPreview.getColumnCount(); i++) {
+							state.getTranslationConfiguration().getColumnMetaData(i).setUserDefinedAttributeName((String) dataPreview.getValueAt(nameIndex, i));
+						}
+					}
+				} catch (Exception e) {
+					ImportWizardUtils.showErrorMessage(state.getDataResultSetFactory().getResourceName(), e.toString(), e);
+					return;
+				}
+				guessValueTypes();
 			}
-			//Example nameRow = exampleSet.getExample(nameIndex);			
-//			int i = 0;
-//			Iterator<AttributeRole> r = exampleSet.getAttributes().allAttributeRoles();
-//			while (r.hasNext()) {
-//				state.getTranslationConfiguration().getColumnMetaData(i).setUserDefinedAttributeName(nameRow.getValueAsString(r.next().getAttribute()));
-//				i++;
-//			}
-		}
-
-		guessValueTypes();
-		
-		
-		//updateTableModel(exampleSet);
+			
+		}.start();
 		return true;
 	}
 
@@ -216,7 +217,6 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 
 		TableColumnModel columnModel = table.getColumnModel();
 		table.setTableHeader(new EditableTableHeader(columnModel));
-
 		// header editors and renderers and values
 		MetaDataTableHeaderCellEditor headerEditor = new MetaDataTableHeaderCellEditor();
 		MetaDataTableHeaderCellEditor headerRenderer = new MetaDataTableHeaderCellEditor();
@@ -250,8 +250,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 					state.getTranslator().close();
 				}
 			} catch (OperatorException e) {
-				// TODO: Show error dialog
-				e.printStackTrace();
+				ImportWizardUtils.showErrorMessage(state.getDataResultSetFactory().getResourceName(), e.toString(), e);
 			}
 		} 
 		return true;
@@ -284,7 +283,6 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 					if (state.getTranslator() != null) {
 						state.getTranslator().close();
 					}
-					// TODO: Why do we have to set the a new translator?
 					DataResultSet resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
 					state.getTranslator().clearErrors();
 					final ExampleSet exampleSet = state.readNow(resultSet, true, getProgressListener());
@@ -297,9 +295,8 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 							updateErrors();
 						}
 					});
-				} catch (OperatorException e) {					
-					// TODO: Show error dialog
-					e.printStackTrace();
+				} catch (OperatorException e) {
+					ImportWizardUtils.showErrorMessage(state.getDataResultSetFactory().getResourceName(), e.toString(), e);
 				} finally {
 					getProgressListener().complete();
 					SwingUtilities.invokeLater(new Runnable() {
@@ -334,9 +331,6 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 					DataResultSet resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
 					state.getTranslator().clearErrors();
 					getProgressListener().setCompleted(30);
-
-					//					state.setTranslationConfiguration(new DataResultSetTranslationConfiguration(resultSet));
-					//					getProgressListener().setCompleted(40);					
 					state.getTranslationConfiguration().resetValueTypes();
 					state.getTranslator().guessValueTypes(state.getTranslationConfiguration(), resultSet, state.getNumberOfPreviewRows(), getProgressListener());
 					getProgressListener().setCompleted(60);
@@ -350,9 +344,8 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 							updateErrors();
 						}
 					});
-				} catch (OperatorException e) {					
-					// TODO: Show error dialog
-					e.printStackTrace();
+				} catch (OperatorException e) {
+					ImportWizardUtils.showErrorMessage(state.getDataResultSetFactory().getResourceName(), e.toString(), e);
 				} finally {
 					getProgressListener().complete();
 					SwingUtilities.invokeLater(new Runnable() {

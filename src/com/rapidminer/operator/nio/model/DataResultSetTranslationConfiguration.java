@@ -30,6 +30,7 @@ import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARA
 import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_META_DATA;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -99,8 +100,8 @@ public class DataResultSetTranslationConfiguration {
 	 * @throws OperatorException
 	 */
 	public DataResultSetTranslationConfiguration(AbstractDataResultSetReader readerOperator, DataResultSet dataResultSet) {
-		reconfigure(readerOperator);
 		reconfigure(dataResultSet);
+		reconfigure(readerOperator);
 	}
 
 	public void reconfigure(AbstractDataResultSetReader readerOperator) {	
@@ -304,6 +305,12 @@ public class DataResultSetTranslationConfiguration {
 
 	public void setDatePattern(String datePattern) {
 		this.datePattern = datePattern;
+		dateFormat = null;
+	}
+	
+	@Override
+	public String toString() {
+		return "Annotations: "+annotationsMap+"; columns: "+Arrays.toString(columnMetaData);
 	}
 
 }

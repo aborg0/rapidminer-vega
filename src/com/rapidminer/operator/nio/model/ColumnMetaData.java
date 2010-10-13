@@ -1,5 +1,6 @@
 package com.rapidminer.operator.nio.model;
 
+
 /** The meta data either guessed by RapidMiner or specified by the user for a
  *  column of an excel file, csv file, etc.
  * 
@@ -58,5 +59,10 @@ public class ColumnMetaData {
 	}
 	public void setSelected(boolean selected) {
 		this.selected = selected;
+	}
+	
+	@Override
+	public String toString() {
+		return getRole() + " "+getUserDefinedAttributeName() + " ("+getOriginalAttributeName()+")"+getAttributeValueType()+ " "+(isSelected()?"x":"-");
 	}
 }

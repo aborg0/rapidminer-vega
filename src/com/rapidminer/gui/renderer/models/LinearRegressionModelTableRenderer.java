@@ -52,6 +52,16 @@ public class LinearRegressionModelTableRenderer extends AbstractTableModelTableR
 		}
 		
 		@Override
+		public Class<?> getColumnClass(int columnIndex) {
+			switch (columnIndex) {
+			case 0:
+				return String.class;
+			default:
+				return Double.class;
+			}
+		}
+		
+		@Override
 		public String getColumnName(int columnIndex) {
 			switch (columnIndex) {
 			case 0:
@@ -88,25 +98,25 @@ public class LinearRegressionModelTableRenderer extends AbstractTableModelTableR
 				return model.getCoefficients()[rowIndex];
 			case 2:
 				if (model.usesIntercept() && rowIndex == model.getCoefficients().length - 1) {
-					return "";
+					return 0;
 				} else {
 					return model.getStandardErrors()[rowIndex];
 				}
 			case 3:
 				if (model.usesIntercept() && rowIndex == model.getCoefficients().length - 1) {
-					return "";
+					return 0;
 				} else {
 					return model.getStandardizedCoefficients()[rowIndex];
 				}
 			case 4:
 				if (model.usesIntercept() && rowIndex == model.getCoefficients().length - 1) {
-					return "";
+					return 0;
 				} else {
 					return model.getTStats()[rowIndex];
 				}
 			case 5:
 				if (model.usesIntercept() && rowIndex == model.getCoefficients().length - 1) {
-					return "";
+					return 0;
 				} else {
 					return model.getProbabilities()[rowIndex];
 				}

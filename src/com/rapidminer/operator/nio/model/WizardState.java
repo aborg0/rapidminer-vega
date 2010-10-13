@@ -1,8 +1,8 @@
 package com.rapidminer.operator.nio.model;
 
-import com.rapidminer.RapidMiner;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.nio.ImportWizardUtils;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ProgressListener;
 
@@ -14,14 +14,10 @@ import com.rapidminer.tools.ProgressListener;
 public class WizardState {
 	
 	private final DataResultSetTranslator translator;
-	private final DataResultSetTranslationConfiguration config;
-	
+	private final DataResultSetTranslationConfiguration config;	
 	private final DataResultSetFactory dataResultSetFactory;
-
 	private final AbstractDataResultSetReader operator;
-	
-	private int maxRows = 100;
-	//private ExampleSet cachedExampleSet;
+	private final int maxRows = ImportWizardUtils.getPreviewLength();
 	
 	public WizardState(AbstractDataResultSetReader operator, DataResultSetFactory dataResultSetFactory) {
 		super();
@@ -29,11 +25,6 @@ public class WizardState {
 		this.translator = new DataResultSetTranslator(operator);
 		this.operator = operator;
 		this.dataResultSetFactory = dataResultSetFactory;
-		try {
-			maxRows = Integer.parseInt(RapidMiner.getRapidMinerPropertyValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_MAX_TEST_ROWS));
-		} catch (NumberFormatException e) {
-			maxRows = 100;
-		}
 	}
 	
 	public DataResultSetTranslator getTranslator() {
@@ -43,9 +34,6 @@ public class WizardState {
 	public DataResultSetTranslationConfiguration getTranslationConfiguration() {
 		return config;
 	}
-//	public void setTranslationConfiguration(DataResultSetTranslationConfiguration config) {
-//		this.config = config;
-//	}
 	
 	public DataResultSetFactory getDataResultSetFactory() {
 		return dataResultSetFactory;

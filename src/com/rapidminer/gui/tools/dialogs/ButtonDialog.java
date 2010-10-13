@@ -259,7 +259,7 @@ public class ButtonDialog extends JDialog {
 		layoutDefault(centerComponent, buttonPanel, DEFAULT_SIZE);
 	}
 
-	protected void layoutDefault(final Component centerComponent, JPanel buttonPanel, int size) {
+	protected void layoutDefault(final JComponent centerComponent, JPanel buttonPanel, int size) {
 		this.centerComponent = centerComponent;
 		setTitle(getDialogTitle());
 		setLayout(new BorderLayout());

@@ -204,7 +204,7 @@ public abstract class Averagable extends ResultObjectAdapter implements Cloneabl
 		double result = meanSquaredSum / averageCount - mean * mean;
 		if (Double.isNaN(result))
 			return Double.NaN;
-		else if (result < 0.0d)
+		else if (result < 0.0d) //possible due to rounding errors
 			return 0.0d;
 		else
 			return result;

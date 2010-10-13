@@ -108,7 +108,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 		((JComboBox) editorComponent).addItemListener(delegate);
 	}
 
-	public DefaultPropertyValueCellEditor(ParameterTypeStringCategory type) {
+	public DefaultPropertyValueCellEditor(final ParameterTypeStringCategory type) {
 		//super(new FilterableJComboBox(type.getValues()));
 		super(new JComboBox(type.getValues()));
 		final JTextComponent textField = (JTextComponent) ((JComboBox) editorComponent).getEditor().getEditorComponent();
@@ -148,14 +148,19 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 
 			@Override
 			public Object getCellEditorValue() {
-				//String selected = (String) ((JComboBox) editorComponent).getSelectedItem();
-				String selected = textField.getText();
-				if ((selected != null) && (selected.trim().length() == 0))
-					selected = null;
-				return selected;
+				if (type.isEditable()) {
+					//String selected = (String) ((JComboBox) editorComponent).getSelectedItem();
+					String selected = textField.getText();
+					if ((selected != null) && (selected.trim().length() == 0))
+						selected = null;
+					return selected;
+				} else {
+					return ((JComboBox) editorComponent).getSelectedItem();
+				}
 			}
 		};
 		editorComponent.setToolTipText(type.getDescription());
+		((JComboBox) editorComponent).addItemListener(delegate);
 	}
 
 	public DefaultPropertyValueCellEditor(final ParameterTypeBoolean type) {

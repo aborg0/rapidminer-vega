@@ -82,11 +82,11 @@ import com.rapidminer.tools.XMLException;
 import com.rapidminer.tools.container.Pair;
 import com.rapidminer.tools.plugin.Plugin;
 
-
-/** Class that parses an XML DOM into an {@link Operator}.
+/**
+ * Class that parses an XML DOM into an {@link Operator}.
  * 
  * @author Simon Fischer
- *
+ * 
  */
 public class XMLImporter {
 
@@ -96,66 +96,69 @@ public class XMLImporter {
 	public static final int VERSION_RM_5 = 50;
 	public static final int CURRENT_VERSION = VERSION_RM_5;
 
-	/** Encoding in which process files are written. UTF-8 is guaranteed to exist on any JVM, see
-	 *  javadoc of {@link Charset}. */
+	/**
+	 * Encoding in which process files are written. UTF-8 is guaranteed to exist on any JVM, see javadoc of
+	 * {@link Charset}.
+	 */
 	public static final Charset PROCESS_FILE_CHARSET = Charset.forName("UTF-8");
 
 	private static List<ParseRule> PARSE_RULES = new LinkedList<ParseRule>();
+
 	/** Reads the parse rules from parserules.xml */
 	public static void init() {
 		URL rulesResource = XMLImporter.class.getResource("/com/rapidminer/resources/parserules.xml");
-		if (rulesResource != null) {			
+		if (rulesResource != null) {
 			// registering the core rules without name prefix
 			importParseRules(rulesResource, null);
 		} else {
 			LogService.getRoot().warning("Cannot find default parse rules.");
-		}		
+		}
 	}
-	
+
 	/**
 	 * This method adds the parse rules from the given resource to the import rule set. The operator name prefix
-	 * describes the operators coming from plugins. The core operators do not have any name prefix, while the 
-	 * plugin operators are registered using <plugin>:<operatorname>
+	 * describes the operators coming from plugins. The core operators do not have any name prefix, while the plugin
+	 * operators are registered using <plugin>:<operatorname>
 	 */
 	public static void importParseRules(URL rulesResource, Plugin prover) {
 		if (rulesResource == null) {
 			throw new NullPointerException("Parserules resource must not be null.");
 		} else {
-			
+
 			String operatorNamePrefix = "";
 			if (prover != null)
 				operatorNamePrefix = prover.getPrefix() + ":";
 
-			LogService.getRoot().config("Reading parse rules from "+rulesResource);
+			LogService.getRoot().config("Reading parse rules from " + rulesResource);
 			try {
 				Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(rulesResource.openStream());
 				if (!doc.getDocumentElement().getTagName().equals("parserules")) {
-					LogService.getRoot().log(Level.SEVERE, "XML document "+rulesResource+" does not start with <parserules>");	
+					LogService.getRoot().log(Level.SEVERE, "XML document " + rulesResource + " does not start with <parserules>");
 				} else {
 					NodeList operatorElements = doc.getDocumentElement().getChildNodes();
 					for (int i = 0; i < operatorElements.getLength(); i++) {
 						if (operatorElements.item(i) instanceof Element) {
-							Element operatorElement = (Element)operatorElements.item(i);
+							Element operatorElement = (Element) operatorElements.item(i);
 							String operatorTypeName = operatorElement.getNodeName();
 							// Just used for testing if all parseRules are assigned to valid operators
-							//							try {
-							//								OperatorService.createOperator(operatorTypeName);
-							//							} catch (OperatorCreationException e) {
-							//								LogService.getRoot().warning("Could not find Operator: " + operatorTypeName);
-							//							}
+							// try {
+							// OperatorService.createOperator(operatorTypeName);
+							// } catch (OperatorCreationException e) {
+							// LogService.getRoot().warning("Could not find Operator: " + operatorTypeName);
+							// }
 
 							NodeList ruleElements = operatorElement.getChildNodes();
 							for (int j = 0; j < ruleElements.getLength(); j++) {
 								if (ruleElements.item(j) instanceof Element) {
-									PARSE_RULES.add(constructRuleFromElement(operatorNamePrefix + operatorTypeName, (Element)ruleElements.item(j)));
+									PARSE_RULES.add(constructRuleFromElement(operatorNamePrefix + operatorTypeName, (Element) ruleElements.item(j)));
 								}
 							}
 						}
 					}
-					LogService.getRoot().fine("Replacement rules are: "+PARSE_RULES);
+					LogService.getRoot().fine("Replacement rules are: " + PARSE_RULES);
 				}
 			} catch (Exception e) {
-				LogService.getRoot().log(Level.SEVERE, "Error reading parse rules from "+rulesResource+": "+e, e);	
+				LogService.getRoot().log(Level.SEVERE, "Error reading parse rules from " + rulesResource + ": " + e, e);
 			}
 		}
 	}
@@ -192,7 +195,7 @@ public class XMLImporter {
 		} else if (element.getTagName().equals("replaceRoleParameter")) {
 			return new SetRoleByNameRule(operatorTypeName, element);
 		} else {
-			throw new XMLException("Unknown rule tag: <"+element.getTagName()+">");
+			throw new XMLException("Unknown rule tag: <" + element.getTagName() + ">");
 		}
 	}
 
@@ -220,19 +223,20 @@ public class XMLImporter {
 		this(listener);
 		this.version = version;
 	}
-	
+
 	private int messageCount = 0;
+
 	public void addMessage(String msg) {
 		LogService.getRoot().info(msg);
 		messageCount++;
-		messages.append("<li>");		
+		messages.append("<li>");
 		messages.append(msg);
 		messages.append("</li>");
 	}
 
 	private void setVersion(int version) {
-		this.version = version;		
-		LogService.getRoot().finest("Process file version is "+version);		
+		this.version = version;
+		LogService.getRoot().finest("Process file version is " + version);
 	}
 
 	public void parse(Document doc, Process process, List<UnknownParameterInformation> uli) throws XMLException {
@@ -244,7 +248,7 @@ public class XMLImporter {
 		case 0:
 			break;
 		case 1:
-			parseContext((Element)contextElems.item(0), process);
+			parseContext((Element) contextElems.item(0), process);
 			break;
 		default:
 			addMessage("&lt;process&gt; can have at most one &lt;context&gt; tag.");
@@ -257,13 +261,13 @@ public class XMLImporter {
 		case 0:
 			break;
 		case 1:
-			process.getAnnotations().parseXML((Element)annotationsElems.item(0));
+			process.getAnnotations().parseXML((Element) annotationsElems.item(0));
 			break;
 		default:
 			addMessage("&lt;process&gt; can have at most one &lt;annotations&gt; tag.");
 			break;
 		}
-		
+
 		if (hasMessage()) {
 			process.setImportMessage(getMessage());
 		}
@@ -272,7 +276,7 @@ public class XMLImporter {
 
 	private ProcessRootOperator parse(Element root, List<UnknownParameterInformation> uli) throws XMLException {
 		if ("experiment".equals(root.getTagName())) {
-			addMessage("<code>&lt;experiment&gt;</code> is deprecated XML syntax. Use <code>&lt;process&gt;</code> instead.");			
+			addMessage("<code>&lt;experiment&gt;</code> is deprecated XML syntax. Use <code>&lt;process&gt;</code> instead.");
 		}
 		Element rootOpElement = null;
 		if ("process".equals(root.getTagName()) || "experiment".equals(root.getTagName())) {
@@ -282,11 +286,11 @@ public class XMLImporter {
 			for (int i = 0; i < length; i++) {
 				Node childNode = children.item(i);
 				if (childNode instanceof Element) {
-					Element childElement = (Element)childNode;
+					Element childElement = (Element) childNode;
 					if (childElement.getTagName().equals("operator")) {
 						rootOpElement = childElement;
 						break;
-					}						
+					}
 				}
 			}
 			if (rootOpElement == null) {
@@ -306,11 +310,11 @@ public class XMLImporter {
 		if (mustAutoConnect) {
 			if (rootOp instanceof OperatorChain) {
 				try {
-					((OperatorChain)rootOp).getSubprocess(0).autoWire(CompatibilityLevel.PRE_VERSION_5, true, true);
+					((OperatorChain) rootOp).getSubprocess(0).autoWire(CompatibilityLevel.PRE_VERSION_5, true, true);
 					addMessage("As of version 5.0, RapidMiner processes define an explicit data flow. This data flow has been constructed automatically.");
 				} catch (Exception e) {
-					addMessage("As of version 5.0, RapidMiner processes define an explicit data flow. This data flow could not be constructed automatically: "+e);
-					LogService.getRoot().log(Level.WARNING, "Cannot autowire: "+e ,e);
+					addMessage("As of version 5.0, RapidMiner processes define an explicit data flow. This data flow could not be constructed automatically: " + e);
+					LogService.getRoot().log(Level.WARNING, "Cannot autowire: " + e, e);
 				}
 			}
 		}
@@ -318,15 +322,15 @@ public class XMLImporter {
 			runnable.run();
 		}
 		if (rootOp instanceof ProcessRootOperator) {
-			return (ProcessRootOperator)rootOp;
+			return (ProcessRootOperator) rootOp;
 		} else {
 			throw new XMLException("Outermost operator must be of type 'Process' (<operator class=\"Process\">)");
 		}
 	}
 
 	private void parseProcess(Element element, ExecutionUnit executionUnit, List<UnknownParameterInformation> unknownParameterInformation) throws XMLException {
-		assert("process".equals(element.getTagName()));		
-		parseVersion(element);		
+		assert ("process".equals(element.getTagName()));
+		parseVersion(element);
 
 		if (element.hasAttribute("expanded")) {
 			String expansionString = element.getAttribute("expanded");
@@ -339,20 +343,19 @@ public class XMLImporter {
 			}
 		}
 
-		
 		NodeList children = element.getChildNodes();
 		for (int i = 0; i < children.getLength(); i++) {
 			Node child = children.item(i);
-			if (child instanceof Element){
-				Element opElement = (Element)child; 
-				if ("operator".equals(opElement.getTagName())) {					
+			if (child instanceof Element) {
+				Element opElement = (Element) child;
+				if ("operator".equals(opElement.getTagName())) {
 					parseOperator(opElement, executionUnit, unknownParameterInformation);
 				} else if ("connect".equals(opElement.getTagName())) {
 					parseConnection(opElement, executionUnit);
 				} else if ("portSpacing".equals(opElement.getTagName())) {
 					// ignore, parsed by ProcessRenderer
 				} else {
-					addMessage("<em class=\"error\">ExecutionUnit must only contain <operator> tags as children. Ignoring unknown tag <code>&lt;"+opElement.getTagName()+"&gt;</code>.</em>");
+					addMessage("<em class=\"error\">ExecutionUnit must only contain <operator> tags as children. Ignoring unknown tag <code>&lt;" + opElement.getTagName() + "&gt;</code>.</em>");
 				}
 			}
 		}
@@ -361,32 +364,32 @@ public class XMLImporter {
 	}
 
 	private void parseConnection(Element connectionElement, ExecutionUnit executionUnit) throws XMLException {
-		final OutputPorts outputPorts;		
-		if (connectionElement.hasAttribute("from_op")) {			
+		final OutputPorts outputPorts;
+		if (connectionElement.hasAttribute("from_op")) {
 			String fromOp = connectionElement.getAttribute("from_op");
-			Operator from = executionUnit.getOperatorByName(fromOp);		
+			Operator from = executionUnit.getOperatorByName(fromOp);
 			if (from == null) {
 				addMessage("<em class=\"error\">Unkown operator " + fromOp + " referenced in <code>from_op</code>.</em>");
 				return;
 			}
 			outputPorts = from.getOutputPorts();
-		} else {			
+		} else {
 			outputPorts = executionUnit.getInnerSources();
 		}
 		String fromPort = connectionElement.getAttribute("from_port");
-		OutputPort out = outputPorts.getPortByName(fromPort);		
+		OutputPort out = outputPorts.getPortByName(fromPort);
 		if (out == null) {
-			addMessage("<em class=\"error\">The output port <var>"+fromPort+"</var> is unknown at operator <var>"+outputPorts.getOwner().getName()+"</var>.</em>");
+			addMessage("<em class=\"error\">The output port <var>" + fromPort + "</var> is unknown at operator <var>" + outputPorts.getOwner().getName() + "</var>.</em>");
 			return;
 		}
 
 		final InputPorts inputPorts;
 		if (connectionElement.hasAttribute("to_op")) {
 			String toOp = connectionElement.getAttribute("to_op");
-			Operator to = executionUnit.getOperatorByName(toOp);		
+			Operator to = executionUnit.getOperatorByName(toOp);
 			if (to == null) {
 				addMessage("<em class=\"error\">Unkown operator " + toOp + " referenced in <code>to_op</code>.</em>");
-				return;				
+				return;
 			}
 			inputPorts = to.getInputPorts();
 		} else {
@@ -395,14 +398,14 @@ public class XMLImporter {
 		String toPort = connectionElement.getAttribute("to_port");
 		InputPort in = inputPorts.getPortByName(toPort);
 		if (in == null) {
-			addMessage("<em class=\"error\">The input port <var>"+toPort+"</var> is unknown at operator <var>"+inputPorts.getOwner().getName()+"</var>.</em>");
+			addMessage("<em class=\"error\">The input port <var>" + toPort + "</var> is unknown at operator <var>" + inputPorts.getOwner().getName() + "</var>.</em>");
 			return;
 		}
 		try {
 			out.connectTo(in);
 		} catch (PortException e) {
-			addMessage("<em class=\"error\">Faild to connect ports: "+e.getMessage()+"</var>.</em>");
-			//throw new XMLException(e.getMessage(), e);
+			addMessage("<em class=\"error\">Faild to connect ports: " + e.getMessage() + "</var>.</em>");
+			// throw new XMLException(e.getMessage(), e);
 		}
 	}
 
@@ -414,23 +417,23 @@ public class XMLImporter {
 	}
 
 	private Operator parseOperator(Element opElement, ExecutionUnit addToProcess, List<UnknownParameterInformation> unknownParameterInformation) throws XMLException {
-		assert("operator".equals(opElement.getTagName()));		
+		assert ("operator".equals(opElement.getTagName()));
 		String className = opElement.getAttribute("class");
 		String replacement = OperatorService.getReplacementForDeprecatedClass(className);
 
-		if (replacement != null) {			
-			addMessage("Deprecated operator '<code>"+className+"</code>' was replaced by '<code>"+replacement+"</code>'.");
+		if (replacement != null) {
+			addMessage("Deprecated operator '<code>" + className + "</code>' was replaced by '<code>" + replacement + "</code>'.");
 			className = replacement;
 		}
 		OperatorDescription opDescr = OperatorService.getOperatorDescription(className);
-		if (opDescr == null) {			
+		if (opDescr == null) {
 			OperatorDescription[] operatorDescriptions = OperatorService.getOperatorDescriptions(DummyOperator.class);
 			if (operatorDescriptions.length == 1) {
 				opDescr = operatorDescriptions[0];
 				if (className.indexOf(':') == -1) {
-					addMessage("<em class=\"error\">The operator class '"+className+"' is unknown.</em>");
+					addMessage("<em class=\"error\">The operator class '" + className + "' is unknown.</em>");
 				} else {
-					addMessage("<em class=\"error\">The operator class '"+className+"' is unknown. Possibly you must install a plugin for operators of group '"+className.substring(0, className.indexOf(':'))+"'.</em>");
+					addMessage("<em class=\"error\">The operator class '" + className + "' is unknown. Possibly you must install a plugin for operators of group '" + className.substring(0, className.indexOf(':')) + "'.</em>");
 				}
 			} else {
 				throw new XMLException("Unknown operator class: '" + className + "'!");
@@ -444,40 +447,40 @@ public class XMLImporter {
 			}
 			ProcessXMLFilterRegistry.fireOperatorImported(operator, opElement);
 			created++;
-			if (progressListener != null && total > 0) {			
+			if (progressListener != null && total > 0) {
 				progressListener.setCompleted(100 * created / total);
 			}
 		} catch (OperatorCreationException e) {
 			throw new XMLException("Cannot create operator: " + e.getMessage(), e);
 		}
-		operator.rename(opElement.getAttribute("name"));		
+		operator.rename(opElement.getAttribute("name"));
 		String versionString = opElement.getAttribute("compatibility");
 		OperatorVersion opVersion;
 		if ((versionString != null) && !versionString.isEmpty()) {
 			try {
 				opVersion = new OperatorVersion(versionString);
 			} catch (IllegalArgumentException e) {
-				addMessage("Failed to parse version string '"+versionString+"' for operator "+operator.getName()+".");
-				opVersion = new OperatorVersion(5,0,0);
+				addMessage("Failed to parse version string '" + versionString + "' for operator " + operator.getName() + ".");
+				opVersion = new OperatorVersion(5, 0, 0);
 			}
 		} else {
-			opVersion = new OperatorVersion(5,0,0);
+			opVersion = new OperatorVersion(5, 0, 0);
 		}
 		operator.setCompatibilityLevel(opVersion);
 		OperatorVersion incompatibleVersions[] = operator.getIncompatibleVersionChanges();
 		if ((incompatibleVersions != null) && (incompatibleVersions.length > 0)) {
-			OperatorVersion latest = incompatibleVersions[incompatibleVersions.length-1];
+			OperatorVersion latest = incompatibleVersions[incompatibleVersions.length - 1];
 			if (latest.ordinal() > opVersion.ordinal()) {
-				addMessage("Operator '"+operator.getName()+"' was created with version '"+opVersion+"'. The operator's behaviour has changed as of version and can be adapted to the latest version in the parameter panel.");
+				addMessage("Operator '" + operator.getName() + "' was created with version '" + opVersion + "'. The operator's behaviour has changed as of version and can be adapted to the latest version in the parameter panel.");
 			}
 		}
-		
+
 		if (opElement.hasAttribute("breakpoints")) {
 			String breakpointString = opElement.getAttribute("breakpoints");
 			boolean ok = false;
 			if (breakpointString.equals("both")) {
 				operator.setBreakpoint(BreakpointListener.BREAKPOINT_BEFORE, true);
-				operator.setBreakpoint(BreakpointListener.BREAKPOINT_AFTER, true);				
+				operator.setBreakpoint(BreakpointListener.BREAKPOINT_AFTER, true);
 				ok = true;
 			}
 			for (int i = 0; i < BreakpointListener.BREAKPOINT_POS_NAME.length; i++) {
@@ -543,74 +546,82 @@ public class XMLImporter {
 						if ((textContent != null) && (textContent.length() > 0)) {
 							operator.setUserDescription(textContent);
 							if (version < VERSION_RM_5) {
-								addMessage("The tag &lt;description&gt; is missing a text attribute. Using the version 5.0 style XML text content as description text.");	
+								addMessage("The tag &lt;description&gt; is missing a text attribute. Using the version 5.0 style XML text content as description text.");
 							}
 						} else {
 							if (version < VERSION_RM_5) {
 								addMessage("The tag &lt;description&gt; is missing a text attribute.");
 							}
-						}					
+						}
 					}
 				} else if (inner.getTagName().toLowerCase().equals("parameter")) {
 					String[] parameter = parseParameter(inner);
 					boolean knownType = operator.getParameters().setParameter(parameter[0], parameter[1]);
 					if (!knownType) {
-						addMessage("The parameter '<code>"+parameter[0]+"</code>' is unknown for operator '<var>"+operator.getName() + "</var>' (<code>"+operator.getOperatorDescription().getName()+"</code>).");
+						addMessage("The parameter '<code>" + parameter[0] + "</code>' is unknown for operator '<var>" + operator.getName() + "</var>' (<code>" + operator.getOperatorDescription().getName() + "</code>).");
 						unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), parameter[0], parameter[1]));
 					}
 				} else if (inner.getTagName().toLowerCase().equals("list")) {
 					final String key = inner.getAttribute("key");
 					ParameterType type = operator.getParameters().getParameterType(key);
-					if (!(type instanceof ParameterTypeList)) {
-						addMessage("The parameter '"+type.getKey()+"' is a "+type.getClass().getSimpleName()+", but an list was found.");
-						type = null;
-					}
-					ListDescription listDescription = parseParameterList(inner, (ParameterTypeList)type);
-					final String listString = ParameterTypeList.transformList2String(listDescription.getList());
-					boolean knownType = operator.getParameters().setParameter(listDescription.getKey(), listString);
-					if (!knownType) {
-						addMessage("The parameter '"+listDescription.getKey()+"' is unknown for operator '"+operator.getName() + "' ("+operator.getOperatorDescription().getName()+").");
-						unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), listDescription.getKey(), listDescription.getList().toString()));
+					if (type == null) {
+						addMessage("The parameter '" + key + "' of type list is unknown for operator '" + operator.getName() + "' (" + operator.getOperatorDescription().getName() + ").");
+						unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), key, ""));
+					} else {
+						if (!(type instanceof ParameterTypeList)) {
+							addMessage("The parameter '" + type.getKey() + "' is a " + type.getClass().getSimpleName() + ", but a list was found.");
+							type = null;
+						}
+						ListDescription listDescription = parseParameterList(inner, (ParameterTypeList) type);
+						final String listString = ParameterTypeList.transformList2String(listDescription.getList());
+						boolean knownType = operator.getParameters().setParameter(listDescription.getKey(), listString);
+						if (!knownType) {
+							addMessage("The parameter '" + listDescription.getKey() + "' is unknown for operator '" + operator.getName() + "' (" + operator.getOperatorDescription().getName() + ").");
+							unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), listDescription.getKey(), listDescription.getList().toString()));
+						}
 					}
 				} else if (inner.getTagName().toLowerCase().equals("enumeration")) {
 					final String key = inner.getAttribute("key");
 					ParameterType type = operator.getParameters().getParameterType(key);
-					if (!(type instanceof ParameterTypeEnumeration)) {
-						addMessage("The parameter '"+type.getKey()+"' is a "+type.getClass().getSimpleName()+", but an enumeration was found.");
-						type = null;
+					if (type == null) {
+						addMessage("The parameter '" + key + "' of type enumeration is unknown for operator '" + operator.getName() + "' (" + operator.getOperatorDescription().getName() + ").");
+						unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), key, ""));
+					} else {
+						if (!(type instanceof ParameterTypeEnumeration)) {
+							addMessage("The parameter '" + type.getKey() + "' is a " + type.getClass().getSimpleName() + ", but an enumeration was found.");
+							type = null;
+						}
+						final List<String> parsed = parseParameterEnumeration(inner, (ParameterTypeEnumeration) type);
+						boolean knownType = operator.getParameters().setParameter(key, ParameterTypeEnumeration.transformEnumeration2String(parsed));
+						if (!knownType) {
+							addMessage("The parameter '" + key + "' is unknown for operator '" + operator.getName() + "' (" + operator.getOperatorDescription().getName() + ").");
+							unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), key, parsed.toString()));
+						}
 					}
-					final List<String> parsed = parseParameterEnumeration(inner, (ParameterTypeEnumeration)type);
-					boolean knownType = operator.getParameters().setParameter(key, ParameterTypeEnumeration.transformEnumeration2String(parsed));
-					if (!knownType) {
-						addMessage("The parameter '"+key+"' is unknown for operator '"+operator.getName() + "' ("+operator.getOperatorDescription().getName()+").");
-						unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), key, parsed.toString()));
-					}					
-				} else if (inner.getTagName().toLowerCase().equals("description")) {					
+				} else if (inner.getTagName().toLowerCase().equals("description")) {
 					operator.setUserDescription(inner.getAttribute("text"));
-				} else if (inner.getTagName().toLowerCase().equals("operator") ||
-						inner.getTagName().toLowerCase().equals("process")) {
+				} else if (inner.getTagName().toLowerCase().equals("operator") || inner.getTagName().toLowerCase().equals("process")) {
 					if (!(operator instanceof OperatorChain)) {
-						addMessage("<em class=\"error\">Operator '<class>"+operator.getOperatorDescription().getName()+"</class>' may not have children. Ignoring.");
+						addMessage("<em class=\"error\">Operator '<class>" + operator.getOperatorDescription().getName() + "</class>' may not have children. Ignoring.");
 					}
 					// otherwise, we do the parsing later
 				} else {
-					addMessage("<em class=\"error\">Ignoring unknown inner tag for <code>&gt;operator&lt;</code>: <code>&lt;" + inner.getTagName()+"&gt;</code>.");
+					addMessage("<em class=\"error\">Ignoring unknown inner tag for <code>&gt;operator&lt;</code>: <code>&lt;" + inner.getTagName() + "&gt;</code>.");
 				}
 			}
-		}		
+		}
 
 		if (operator instanceof OperatorChain) {
-			OperatorChain nop = (OperatorChain)operator;
+			OperatorChain nop = (OperatorChain) operator;
 			NodeList children = opElement.getChildNodes();
-			int subprocessIndex = 0;		
+			int subprocessIndex = 0;
 			for (int i = 0; i < children.getLength(); i++) {
-				Node child = children.item(i);				
-				if (child instanceof Element){
-					Element childProcessElement = (Element)child;
-					if ("process".equals(childProcessElement.getTagName()) ||
-							"operator".equals(childProcessElement.getTagName())) {
+				Node child = children.item(i);
+				if (child instanceof Element) {
+					Element childProcessElement = (Element) child;
+					if ("process".equals(childProcessElement.getTagName()) || "operator".equals(childProcessElement.getTagName())) {
 						if (subprocessIndex >= nop.getNumberOfSubprocesses() && !nop.areSubprocessesExtendable()) {
-							addMessage("<em class=\"error\">Cannot add child "+childProcessElement.getAttribute("name")+"</var>.</em> Operator <code>"+nop.getOperatorDescription().getName() + "</code> has only "+nop.getNumberOfSubprocesses()+ " subprocesses.");
+							addMessage("<em class=\"error\">Cannot add child " + childProcessElement.getAttribute("name") + "</var>.</em> Operator <code>" + nop.getOperatorDescription().getName() + "</code> has only " + nop.getNumberOfSubprocesses() + " subprocesses.");
 						} else {
 							if (subprocessIndex >= nop.getNumberOfSubprocesses()) {
 								// we know nop.areSubprocessesExtendable()==true now
@@ -622,17 +633,17 @@ public class XMLImporter {
 								parseProcess(childProcessElement, subprocess, unknownParameterInformation);
 							} else if ("operator".equals(childProcessElement.getTagName())) {
 								if (version >= VERSION_RM_5) {
-									addMessage("<em class=\"error\"><code>&lt;operator&gt;</code> as children of <code>&lt;operator&gt</code> is deprecated syntax. From version 5.0 on, use <code>&lt;process&gt;</code> as children.</em>");									
+									addMessage("<em class=\"error\"><code>&lt;operator&gt;</code> as children of <code>&lt;operator&gt</code> is deprecated syntax. From version 5.0 on, use <code>&lt;process&gt;</code> as children.</em>");
 								} else {
-									if (!operatorAsDirectChildrenDeprecatedReported) {				
-										addMessage("<code>&lt;operator&gt;</code> as children of <code>&lt;operator&gt</code> is deprecated syntax. From version 5.0 on, use <code>&lt;process&gt;</code> as children.");	
+									if (!operatorAsDirectChildrenDeprecatedReported) {
+										addMessage("<code>&lt;operator&gt;</code> as children of <code>&lt;operator&gt</code> is deprecated syntax. From version 5.0 on, use <code>&lt;process&gt;</code> as children.");
 										operatorAsDirectChildrenDeprecatedReported = true;
 									}
 									final ExecutionUnit subprocess = nop.getSubprocess(subprocessIndex);
 									if ((subprocessIndex <= nop.getNumberOfSubprocesses() - 2) || (nop.areSubprocessesExtendable())) {
 										subprocessIndex++;
 									}
-									parseOperator(childProcessElement, subprocess, unknownParameterInformation);							
+									parseOperator(childProcessElement, subprocess, unknownParameterInformation);
 									mustAutoConnect = true;
 								}
 							}
@@ -658,16 +669,16 @@ public class XMLImporter {
 		NodeList childNodes = parent.getElementsByTagName(childName);
 		switch (childNodes.getLength()) {
 		case 0:
-			addMessage("Missing &lt;"+childName+"&gt; tag in context.");
+			addMessage("Missing &lt;" + childName + "&gt; tag in context.");
 			break;
 		case 1:
-			NodeList locationNodes = ((Element)childNodes.item(0)).getElementsByTagName("location");
+			NodeList locationNodes = ((Element) childNodes.item(0)).getElementsByTagName("location");
 			for (int i = 0; i < locationNodes.getLength(); i++) {
 				result.add(locationNodes.item(i).getTextContent());
 			}
 			break;
 		default:
-			addMessage("&lt;context&gt; can have at most one &lt;"+childName+"&gt; tag.");
+			addMessage("&lt;context&gt; can have at most one &lt;" + childName + "&gt; tag.");
 			break;
 		}
 		return result;
@@ -683,11 +694,10 @@ public class XMLImporter {
 			addMessage("Missing &lt;macros&gt; tag in context.");
 			break;
 		case 1:
-			NodeList locationNodes = ((Element)childNodes.item(0)).getElementsByTagName("macro");
+			NodeList locationNodes = ((Element) childNodes.item(0)).getElementsByTagName("macro");
 			for (int i = 0; i < locationNodes.getLength(); i++) {
-				Element macroElem = (Element)locationNodes.item(i);
-				context.addMacro(new Pair<String,String>(XMLTools.getTagContents(macroElem, "key"), 
-						XMLTools.getTagContents(macroElem, "value")));
+				Element macroElem = (Element) locationNodes.item(i);
+				context.addMacro(new Pair<String, String>(XMLTools.getTagContents(macroElem, "key"), XMLTools.getTagContents(macroElem, "value")));
 			}
 			break;
 		default:
@@ -700,7 +710,7 @@ public class XMLImporter {
 		// TODO: type is unused here. Do we have to use type.transformNewValue for children?
 		ParameterType keyType = type.getKeyType();
 		ParameterType valueType = type.getValueType();
-		
+
 		List<String[]> values = new LinkedList<String[]>();
 		NodeList children = list.getChildNodes();
 		for (int i = 0; i < children.getLength(); i++) {
@@ -708,15 +718,15 @@ public class XMLImporter {
 			if (node instanceof Element) {
 				Element inner = (Element) node;
 				if (inner.getTagName().toLowerCase().equals("parameter")) {
-					String key   = inner.getAttribute("key");
+					String key = inner.getAttribute("key");
 					String value = inner.getAttribute("value");
 					final String transformedKey = keyType.transformNewValue(key);
 					final String transformedValue = valueType.transformNewValue(value);
-					values.add(new String[] {transformedKey, transformedValue});
-					//values.add(parseParameter(inner));
+					values.add(new String[] { transformedKey, transformedValue });
+					// values.add(parseParameter(inner));
 				} else {
-					addMessage("<em class=\"error\">Ilegal inner tag for <code>&lt;list&gt;</code>: <code>&lt;" + inner.getTagName()+"&gt;</code>.</em>");
-					return new ListDescription(list.getAttribute("key"), Collections.<String[]>emptyList());
+					addMessage("<em class=\"error\">Ilegal inner tag for <code>&lt;list&gt;</code>: <code>&lt;" + inner.getTagName() + "&gt;</code>.</em>");
+					return new ListDescription(list.getAttribute("key"), Collections.<String[]> emptyList());
 				}
 			}
 		}
@@ -733,7 +743,7 @@ public class XMLImporter {
 				if (inner.getTagName().toLowerCase().equals("parameter")) {
 					values.add(type.getValueType().transformNewValue(inner.getAttribute("value")));
 				} else {
-					addMessage("<em class=\"error\">Ilegal inner tag for <code>&lt;enumeration&gt;</code>: <code>&lt;" + inner.getTagName()+"&gt;</code>.</em>");
+					addMessage("<em class=\"error\">Ilegal inner tag for <code>&lt;enumeration&gt;</code>: <code>&lt;" + inner.getTagName() + "&gt;</code>.</em>");
 					return new LinkedList<String>();
 				}
 			}
@@ -742,7 +752,7 @@ public class XMLImporter {
 	}
 
 	private String[] parseParameter(Element parameter) {
-		return new String[] { parameter.getAttribute("key"), parameter.getAttribute("value") };				
+		return new String[] { parameter.getAttribute("key"), parameter.getAttribute("value") };
 	}
 
 	private void parseVersion(Element element) {
@@ -756,24 +766,24 @@ public class XMLImporter {
 			} else if (versionString.startsWith("5.")) {
 				setVersion(VERSION_RM_5);
 			} else {
-				addMessage("<em class=\"error\">The version "+versionString+" is not a legal RapidMiner version, assuming 4.0.</em>");
+				addMessage("<em class=\"error\">The version " + versionString + " is not a legal RapidMiner version, assuming 4.0.</em>");
 				setVersion(VERSION_RM_4);
 			}
 		}
 	}
 
-	private void unlockPorts(Operator operator) {		
+	private void unlockPorts(Operator operator) {
 		operator.getInputPorts().unlockPortExtenders();
 		operator.getOutputPorts().unlockPortExtenders();
 		if (operator instanceof OperatorChain) {
-			for (ExecutionUnit unit : ((OperatorChain)operator).getSubprocesses()) {				
+			for (ExecutionUnit unit : ((OperatorChain) operator).getSubprocesses()) {
 				unit.getInnerSinks().unlockPortExtenders();
-				unit.getInnerSources().unlockPortExtenders();		
+				unit.getInnerSources().unlockPortExtenders();
 				for (Operator child : unit.getOperators()) {
 					unlockPorts(child);
 				}
 			}
-		}		
+		}
 	}
 
 	public void doAfterAutoWire(Runnable runnable) {
@@ -785,10 +795,10 @@ public class XMLImporter {
 	}
 
 	private boolean hasMessage() {
-		return messages.length() > 0;		
+		return messages.length() > 0;
 	}
 
-	private String getMessage() {		
+	private String getMessage() {
 		return "<html><body><h3>Importing process produced the following messages:</h3><ol>" + messages.toString() + "</ol></body></html>";
 	}
 }

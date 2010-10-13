@@ -66,7 +66,11 @@ public class AnnotationTableModel extends AbstractTableModel {
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		if (columnIndex == 0) {
-			return annotationsMap.get(rowIndex);
+			String annotation = annotationsMap.get(rowIndex);
+			if (annotation == null) {
+				annotation = AnnotationCellEditor.NONE;
+			}
+			return annotation;
 		} else {
 			return wrappedModel.getValueAt(rowIndex, columnIndex - 1);
 		}

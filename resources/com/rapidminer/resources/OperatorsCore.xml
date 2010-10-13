@@ -691,6 +691,11 @@
 			</operator>
 
             <operator>
+            	 <key>read_csv_new</key>
+            	 <class>com.rapidminer.operator.nio.CSVExampleSource</class>
+			</operator>
+
+            <operator>
                <key>read_access</key>
                <class>com.rapidminer.operator.io.AccessDataReader</class>
                <replaces>AccessExampleSource</replaces>

@@ -80,7 +80,10 @@ public class NumericalStatistics implements Statistics {
         	if (valueCounter <= 1) {
         		return 0;
         	}
-        	return (squaredSum - (sum * sum) / valueCounter) / (valueCounter - 1);
+        	double variance = (squaredSum - (sum * sum) / valueCounter) / (valueCounter - 1);
+        	if (variance < 0)  // this is due to rounding errors above
+        		return 0;
+			return variance;
         } else if (SUM.equals(name)) {
             return this.sum;
         } else {

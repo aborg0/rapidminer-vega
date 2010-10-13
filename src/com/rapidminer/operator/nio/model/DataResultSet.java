@@ -134,8 +134,9 @@ public interface DataResultSet {
 	/**
 	 * This will reset the current iteration and start at the first row
 	 * @param listener 
+	 * @throws OperatorException 
 	 */
-	public void reset(ProgressListener listener);
+	public void reset(ProgressListener listener) throws OperatorException;
 
 	/**
 	 * This will return an integer array containing the value types of all columns. This might be determined by

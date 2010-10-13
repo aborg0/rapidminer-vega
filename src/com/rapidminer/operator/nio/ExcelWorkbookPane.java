@@ -43,7 +43,7 @@ import com.rapidminer.operator.nio.model.ExcelResultSetConfiguration;
 /**
  * This is a pane, showing the contents of a complete excel workbook. There's one tab per sheet.
  * 
- * @author Tobias Malbrecht, Sebastian Land
+ * @author Tobias Malbrecht, Sebastian Land, Simon Fischer
  */
 public class ExcelWorkbookPane extends JPanel {
 
@@ -170,17 +170,12 @@ public class ExcelWorkbookPane extends JPanel {
 									configuration.getColumnLast(), configuration.getRowLast());
 
 							setSelection(selection);
-//							if ((configuration.getColumnOffset() >= 0) || ((configuration.getRowOffset() >= 0))) {
-//								
-//							}
 						}
 					});
 				} catch (BiffException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					ImportWizardUtils.showErrorMessage(configuration.getResourceName(), e.toString(), e);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					ImportWizardUtils.showErrorMessage(configuration.getResourceName(), e.toString(), e);
 				} finally {
 					getProgressListener().complete();
 				}

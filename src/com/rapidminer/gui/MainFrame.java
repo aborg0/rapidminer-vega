@@ -1344,7 +1344,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	
 	public void selectOperators(List<Operator> currentlySelected) {
 		if (currentlySelected == null) {
-			return;
+			currentlySelected = Collections.<Operator>singletonList(process.getRootOperator());
 		}
 		for (Operator op : currentlySelected) {
 			Process selectedProcess = op.getProcess();

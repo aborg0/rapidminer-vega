@@ -11,8 +11,9 @@ RequestExecutionLevel admin
 !include "extension_version.nsi"
 !include "extension_settings.nsi"
 
-!define REGKEY "SOFTWARE\$(^Name)"
-!define COMPANY ""
+!define REGKEYOLD "SOFTWARE\$(^Name)"
+!define REGKEY "SOFTWARE\Rapid-i\RapidMiner 5\$(^Name)"
+!define COMPANY "Rapid-I GmbH"
 !define URL http://www.rapidminer.com
 
 # MUI defines
@@ -93,6 +94,7 @@ done${UNSECTION_ID}:
 Section /o un.Main UNSEC0000
     Delete /REBOOTOK "$INSTDIR\rapidminer-${PLUGIN_NAME}-${SHORT_VERSION}.jar"
     DeleteRegValue HKCU "${REGKEY}\Components" Main
+    DeleteRegValue HKCU "${REGKEYOLD}\Components" Main
 SectionEnd
 
 Section un.post UNSEC0001
@@ -101,13 +103,16 @@ Section un.post UNSEC0001
     DeleteRegValue HKCU "${REGKEY}" Path
     DeleteRegKey /IfEmpty HKCU "${REGKEY}\Components"
     DeleteRegKey /IfEmpty HKCU "${REGKEY}"
+    DeleteRegValue HKCU "${REGKEYOLD}" Path
+    DeleteRegKey /IfEmpty HKCU "${REGKEYOLD}\Components"
+    DeleteRegKey /IfEmpty HKCU "${REGKEYOLD}"
     #RmDir /REBOOTOK $INSTDIR
 SectionEnd
 
 # Installer functions
 Function .onInit
     InitPluginsDir
-    ReadRegStr $1 HKCU "SOFTWARE\RapidI\RapidMiner\CurrentVersion\RapidMiner 5" "RapidMiner 5 Home"
+    ReadRegStr $1 HKCU "SOFTWARE\RapidI\RapidMiner 5\CurrentVersion\RapidMiner 5" "RapidMiner 5 Home"
     StrCmp $1 "" 0 +3
     MessageBox MB_OK "Cannot install plugin: no installation of RapidMiner was found!"
     Abort "Cannot install plugin: no installation of RapidMiner was found!"
@@ -117,5 +122,7 @@ FunctionEnd
 # Uninstaller functions
 Function un.onInit
     ReadRegStr $INSTDIR HKCU "${REGKEY}" Path
+    StrCmp $INSTDIR "" 0 +1
+    ReadRegStr $INSTDIR HKCU "${REGKEYOLD}" Path
     !insertmacro SELECT_UNSECTION Main ${UNSEC0000}
 FunctionEnd

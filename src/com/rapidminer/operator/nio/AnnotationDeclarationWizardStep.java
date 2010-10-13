@@ -31,6 +31,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.TableModel;
 
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
+import com.rapidminer.gui.tools.ExtendedJTable;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
@@ -44,35 +45,14 @@ import com.rapidminer.operator.nio.model.WizardState;
  */
 public class AnnotationDeclarationWizardStep extends WizardStep {
 
-	private JPanel panel = new JPanel(new BorderLayout());
-	
+	private final JPanel panel = new JPanel(new BorderLayout());
 	private final WizardState state;
-	
-	//private DataTableColumnEditTable table;
 	private JTable table;
 
 	public AnnotationDeclarationWizardStep(WizardState state) {
 		super("importwizard.annotations");
 		this.state = state;
-
-//		TableCellRenderer renderer = new DefaultTableCellRenderer() {
-//			private static final long serialVersionUID = 1L;
-//			@Override
-//			public Component getTableCellRendererComponent(javax.swing.JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-//				if (value == null) {
-//					value = "";
-//				}
-//				return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-//			};
-//		};
-//		Pair<TableCellRenderer, TableCellEditor> pair = new Pair<TableCellRenderer, TableCellEditor>(renderer, new AnnotationCellEditor());
-		
-		table = new JTable();
-//		
-//		table = new DataTableColumnEditTable(null, 
-//				Collections.singletonList("Annotations"), 
-//				Collections.singletonList(pair), true, false, false);
-
+		table = new ExtendedJTable(false, false, false);
 		panel.add(new ExtendedJScrollPane(table), BorderLayout.CENTER);
 	}
 
@@ -82,38 +62,19 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 			new ProgressThread("loading_data") {
 				@Override
 				public void run() {
-					// TODO: We don't want an example set here. No example set needed for annotations
-					//       We already have a tabnle model: The ExcelTableModel which can be used here.
-					// TODO: This code is duplicated in MetaDataDeclarationWizardStep where it belongs
 					getProgressListener().setTotal(100);
 					getProgressListener().setCompleted(10);
-
 					try {
-						final TableModel wrappedModel = state.getDataResultSetFactory().makePreviewTableModel();
-
-//						if (state.getTranslator() != null) {
-//							state.getTranslator().close();
-//						}
-//						DataResultSet resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
-//						getProgressListener().setCompleted(30);
-//						state.setTranslationConfiguration(new DataResultSetTranslationConfiguration(state.getOperator(), resultSet));
-//						getProgressListener().setCompleted(40);					
-//						state.getTranslator().guessValueTypes(state.getTranslationConfiguration(), resultSet, state.getNumberOfPreviewRows(), getProgressListener());
-//						getProgressListener().setCompleted(60);
-//						final ExampleSet exampleSet = state.readNow(resultSet, true, getProgressListener());
-						getProgressListener().setCompleted(100);
-
+						final TableModel wrappedModel = state.getDataResultSetFactory().makePreviewTableModel(getProgressListener());
 						SwingUtilities.invokeLater(new Runnable() {
 							@Override
 							public void run() {
-								//table.setDataTable(new DataTableExampleSetAdapter(exampleSet, null));
 								table.setModel(new AnnotationTableModel(wrappedModel, state.getTranslationConfiguration().getAnnotationsMap()));
 								table.getColumnModel().getColumn(0).setCellEditor(new AnnotationCellEditor());
 							}
 						});
-					} catch (OperatorException e) {					
-						// TODO: Show error dialog
-						e.printStackTrace();
+					} catch (Exception e) {
+						ImportWizardUtils.showErrorMessage(state.getDataResultSetFactory().getResourceName(), e.toString(), e);
 					} finally {
 						getProgressListener().complete();
 					}
@@ -130,24 +91,9 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 				try {
 					state.getTranslator().close();
 				} catch (OperatorException e) {
-					// TODO: Show error dialog
-					e.printStackTrace();
+					ImportWizardUtils.showErrorMessage(state.getDataResultSetFactory().getResourceName(), e.toString(), e);
 				}
 			}
-		} else if (direction == WizardStepDirection.FORWARD) {
-//			if (exampleSet == null || table == null)
-//				return false;
-
-//			// modify configuration according to done annotations
-//			TreeMap<Integer, String> annotationsMap = new TreeMap<Integer, String>();
-//
-//			Object[] annotations = table.getEnteredValues(0);
-//			for (int i = 0; i < annotations.length; i++) {
-//				if (annotations[i] != null) {
-//					annotationsMap.put(i, annotations[i].toString());
-//				}
-//			}
-//			state.getTranslationConfiguration().setAnnotationsMap(annotationsMap);
 		}
 		return true;
 	}

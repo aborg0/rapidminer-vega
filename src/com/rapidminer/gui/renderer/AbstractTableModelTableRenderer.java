@@ -23,6 +23,8 @@
 package com.rapidminer.gui.renderer;
 
 import java.awt.Component;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.swing.JLabel;
@@ -35,6 +37,7 @@ import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.report.Reportable;
@@ -58,8 +61,14 @@ public abstract class AbstractTableModelTableRenderer extends NonGraphicalRender
 	public static final String PARAMETER_MIN_COLUMN = "min_column";
 
 	public static final String PARAMETER_MAX_COLUMN = "max_column";
+	
+	public static final String PARAMETER_SORT_COLUMN = "sort_column";
+	public static final String PARAMETER_SORT_DECREASING = "sort_decreasing";
 
-
+/**
+ * This is the default base class for all renderers having already a TableModel.
+ * This class is used to be wrapped around them in order to have a unified interface for reporting.
+ */
 	public static class DefaultTableable implements Tableable {
 
 		private TableModel model;
@@ -71,8 +80,14 @@ public abstract class AbstractTableModelTableRenderer extends NonGraphicalRender
 		private int minColumn = 0;
 
 		private int maxColumn = Integer.MAX_VALUE;
+		
+		private boolean enableSorting = false; 
+		
+		private int sortColumn = 0;
+		
+		private Integer[] sortIndices = null;
 
-		public DefaultTableable(TableModel model, Renderer renderer) {
+		public DefaultTableable(final TableModel model, Renderer renderer) {
 			this.model = model;
 
 			try {
@@ -118,6 +133,35 @@ public abstract class AbstractTableModelTableRenderer extends NonGraphicalRender
 			} catch (UndefinedParameterError e) {
 				maxColumn = Integer.MAX_VALUE;
 			}
+			
+			try {
+				Object sortColumnObj = renderer.getParameter(PARAMETER_SORT_COLUMN);
+				if (sortColumnObj != null) {
+					Object decreasingOrderO = renderer.getParameter(PARAMETER_SORT_DECREASING);
+					final boolean sortDecreasing = decreasingOrderO == null ? false: Boolean.valueOf(decreasingOrderO.toString());
+					sortColumn = Integer.valueOf(sortColumnObj.toString()) - 1;
+					enableSorting = true;
+			
+					sortIndices = new Integer[getRowNumber()];
+					for(int i = 0; i < sortIndices.length; i++)
+						sortIndices[i]=i;
+					
+					Arrays.sort(sortIndices, new Comparator<Integer>() {
+						@SuppressWarnings("unchecked")
+						@Override
+						public int compare(Integer o1, Integer o2) {
+							if (sortDecreasing)
+								return ((Comparable)model.getValueAt(minRow + o2, sortColumn)).compareTo(model.getValueAt(minRow + o1, sortColumn));
+							else
+								return ((Comparable)model.getValueAt(minRow + o1, sortColumn)).compareTo(model.getValueAt(minRow + o2, sortColumn));
+						}
+					});
+				} else {
+					enableSorting = false;
+				}
+			} catch (UndefinedParameterError e) {
+				maxColumn = Integer.MAX_VALUE;
+			}
 		}
 
 		public String getColumnName(int columnIndex) {
@@ -125,7 +169,12 @@ public abstract class AbstractTableModelTableRenderer extends NonGraphicalRender
 		}
 
 		public String getCell(int row, int column) {
-			final Object objValue = model.getValueAt(row + minRow, column + minColumn);
+			final Object objValue;
+			if (enableSorting) {
+				objValue = model.getValueAt(sortIndices[row], column + minColumn);
+			} else {
+				objValue = model.getValueAt(row + minRow, column + minColumn);
+			}
 			String value = objValue == null ? "" : objValue.toString();
 			if (Number.class.isAssignableFrom(model.getColumnClass(column))) {
 				return Tools.formatIntegerIfPossible(Double.valueOf(value));
@@ -213,6 +262,8 @@ public abstract class AbstractTableModelTableRenderer extends NonGraphicalRender
 		types.add(new ParameterTypeInt(PARAMETER_MAX_ROW, "Indicates the last row number which should be rendered.", 1, Integer.MAX_VALUE, max_row));
 		types.add(new ParameterTypeInt(PARAMETER_MIN_COLUMN, "Indicates the first column number which should be rendered.", 1, Integer.MAX_VALUE, 1));
 		types.add(new ParameterTypeInt(PARAMETER_MAX_COLUMN, "Indicates the last column number which should be rendered.", 1, Integer.MAX_VALUE, max_column));
+		types.add(new ParameterTypeInt(PARAMETER_SORT_COLUMN, "Specifies the column to use for sorting.", 1, Integer.MAX_VALUE, max_column));
+		types.add(new ParameterTypeBoolean(PARAMETER_SORT_DECREASING, "Use decrease sorting instead.", false));
 		return types;
 	}
 }

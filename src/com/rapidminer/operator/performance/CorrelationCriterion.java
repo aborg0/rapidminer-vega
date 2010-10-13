@@ -126,7 +126,12 @@ public class CorrelationCriterion extends MeasuredPerformance {
 
 	@Override
 	public double getMikroAverage() {
-		double r = (exampleCount * sumLabelPredict - sumLabel * sumPredict) / (Math.sqrt((exampleCount * sumLabelSqr - sumLabel * sumLabel) * (exampleCount * sumPredictSqr - sumPredict * sumPredict)));
+		double divider = Math.sqrt(exampleCount * sumLabelSqr - sumLabel * sumLabel) * Math.sqrt(exampleCount * sumPredictSqr - sumPredict * sumPredict);
+		double r = (exampleCount * sumLabelPredict - sumLabel * sumPredict) / divider;
+		if (r < 0 || Double.isNaN(r))
+			return 0; // possible due to rounding errors
+		if (r > 1)
+			return 1;
 		return r;
 	}
 

@@ -42,10 +42,17 @@ public class FileSelectionWizardStep extends WizardStep {
 	protected final JFileChooser fileChooser;
 	
 	public FileSelectionWizardStep(AbstractWizard parent, FileFilter ... fileFilters) {
+		this(parent, (File)null, fileFilters);
+	}
+	
+	public FileSelectionWizardStep(AbstractWizard parent, File preselected, FileFilter ... fileFilters) {
 		super("select_file");
 		this.fileChooser = SwingTools.createFileChooser("", null, false, fileFilters);
-		fileChooser.setControlButtonsAreShown(false);
-		if (fileChooser instanceof ExtendedJFileChooser) {
+		if (preselected != null) {
+			this.fileChooser.setSelectedFile(preselected);
+		}
+		this.fileChooser.setControlButtonsAreShown(false);
+		if (this.fileChooser instanceof ExtendedJFileChooser) {
 			((ExtendedJFileChooser) fileChooser).addChangeListener(parent);
 		}
 	}
