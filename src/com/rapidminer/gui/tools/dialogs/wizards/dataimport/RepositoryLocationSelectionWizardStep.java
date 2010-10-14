@@ -27,7 +27,6 @@ import javax.swing.JComponent;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.repository.MalformedRepositoryLocationException;
-import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryLocationChooser;
 
 /**
@@ -38,9 +37,9 @@ public class RepositoryLocationSelectionWizardStep extends WizardStep {
 
 	private final RepositoryLocationChooser locationChooser;
 	
-	public RepositoryLocationSelectionWizardStep(String key, AbstractWizard parent, RepositoryLocation location, String initialValue) {
-		super(key);
-		this.locationChooser = new RepositoryLocationChooser(parent, location, initialValue);
+	public RepositoryLocationSelectionWizardStep(AbstractWizard parent, String initialValue) {
+		super("select_repository_location");
+		this.locationChooser = new RepositoryLocationChooser(parent, null, initialValue);
 		this.locationChooser.addChangeListener(parent);
 	}
 

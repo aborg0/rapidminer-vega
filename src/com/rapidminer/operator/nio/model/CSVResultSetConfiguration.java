@@ -30,6 +30,7 @@ import javax.swing.table.TableModel;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.nio.CSVExampleSource;
+import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.io.Encoding;
 
@@ -44,7 +45,7 @@ public class CSVResultSetConfiguration implements DataResultSetFactory {
 
 	private boolean skipComments;
 	private boolean useQuotes;
-	private boolean firstRowAsAttributeNames;
+	//private boolean firstRowAsAttributeNames;
 	private boolean trimLines;
 	private String columnSeparators;
 
@@ -69,7 +70,7 @@ public class CSVResultSetConfiguration implements DataResultSetFactory {
 		}
 		setSkipComments(csvExampleSource.getParameterAsBoolean(CSVExampleSource.PARAMETER_SKIP_COMMENTS));
 		setUseQuotes(csvExampleSource.getParameterAsBoolean(CSVExampleSource.PARAMETER_USE_QUOTES));
-		setFirstRowAsAttributeNames(csvExampleSource.getParameterAsBoolean(CSVExampleSource.PARAMETER_USE_FIRST_ROW_AS_ATTRIBUTE_NAMES));
+		//setFirstRowAsAttributeNames(csvExampleSource.getParameterAsBoolean(CSVExampleSource.PARAMETER_USE_FIRST_ROW_AS_ATTRIBUTE_NAMES));
 		setTrimLines(csvExampleSource.getParameterAsBoolean(CSVExampleSource.PARAMETER_TRIM_LINES));
 		if (csvExampleSource.isParameterSet(CSVExampleSource.PARAMETER_COLUMN_SEPARATORS)) {
 			setColumnSeparators(csvExampleSource.getParameterAsString(CSVExampleSource.PARAMETER_COLUMN_SEPARATORS));
@@ -86,11 +87,12 @@ public class CSVResultSetConfiguration implements DataResultSetFactory {
 		encoding = Encoding.getEncoding(csvExampleSource);		
 	}
 
-	public void setParameters(CSVExampleSource source) {
+	@Override
+	public void setParameters(AbstractDataResultSetReader source) {
 		source.setParameter(CSVExampleSource.PARAMETER_CSV_FILE, getCsvFile().getAbsolutePath());
 		source.setParameter(CSVExampleSource.PARAMETER_SKIP_COMMENTS, String.valueOf(isSkipComments()));
 		source.setParameter(CSVExampleSource.PARAMETER_USE_QUOTES, String.valueOf(isUseQuotes()));
-		source.setParameter(CSVExampleSource.PARAMETER_USE_FIRST_ROW_AS_ATTRIBUTE_NAMES, String.valueOf(isFirstRowAsAttributeNames()));
+		//source.setParameter(CSVExampleSource.PARAMETER_USE_FIRST_ROW_AS_ATTRIBUTE_NAMES, String.valueOf(isFirstRowAsAttributeNames()));
 		source.setParameter(CSVExampleSource.PARAMETER_COLUMN_SEPARATORS, getColumnSeparators());
 		source.setParameter(CSVExampleSource.PARAMETER_TRIM_LINES, String.valueOf(isTrimLines()));
 		source.setParameter(CSVExampleSource.PARAMETER_QUOTES_CHARACTER, String.valueOf(getQuoteCharacter()));
@@ -117,13 +119,13 @@ public class CSVResultSetConfiguration implements DataResultSetFactory {
 		return csvFile;
 	}
 
-	public void setFirstRowAsAttributeNames(boolean firstRowAsAttributeNames) {
-		this.firstRowAsAttributeNames = firstRowAsAttributeNames;
-	}
-
-	public boolean isFirstRowAsAttributeNames() {
-		return firstRowAsAttributeNames;
-	}
+//	public void setFirstRowAsAttributeNames(boolean firstRowAsAttributeNames) {
+//		this.firstRowAsAttributeNames = firstRowAsAttributeNames;
+//	}
+//
+//	public boolean isFirstRowAsAttributeNames() {
+//		return firstRowAsAttributeNames;
+//	}
 
 	public void setUseQuotes(boolean useQuotes) {
 		this.useQuotes = useQuotes;
@@ -192,5 +194,10 @@ public class CSVResultSetConfiguration implements DataResultSetFactory {
 	@Override
 	public String getResourceName() {
 		return getCsvFile().getAbsolutePath();
+	}
+
+	@Override
+	public ExampleSetMetaData makeMetaData() {
+		return new ExampleSetMetaData();
 	}	
 }

@@ -47,7 +47,7 @@ public interface Folder extends Entry {
 	
 	public Folder createFolder(String name) throws RepositoryException;
 	
-	public IOObjectEntry createIOObjectEntry(String name, IOObject ioobject, Operator callingOperator, ProgressListener newParam) throws RepositoryException;
+	public IOObjectEntry createIOObjectEntry(String name, IOObject ioobject, Operator callingOperator, ProgressListener progressListener) throws RepositoryException;
 
 	public ProcessEntry createProcessEntry(String name, String processXML) throws RepositoryException;
 

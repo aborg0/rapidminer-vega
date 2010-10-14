@@ -40,6 +40,7 @@ import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.nio.ImportWizardUtils;
 import com.rapidminer.operator.nio.model.DataResultSet.ValueType;
 import com.rapidminer.operator.nio.model.ParsingError.ErrorCode;
 import com.rapidminer.tools.Ontology;
@@ -83,7 +84,9 @@ public class DataResultSetTranslator {
 
 	private boolean shouldStop = false;
 	private boolean isReading = false;
-	//private Object isReadingMutex = new Object();
+
+	private boolean cancelGuessingRequested = false;
+	private boolean cancelLoadingRequested = false;
 
 	private final Map<Pair<Integer,Integer>,ParsingError> errors = new HashMap<Pair<Integer,Integer>, ParsingError>();
 
@@ -95,119 +98,118 @@ public class DataResultSetTranslator {
 
 	/**
 	 * This method will start the translation of the actual ResultDataSet to an ExampleSet. 
-	 * 
 	 */
-	public ExampleSet read(DataResultSet dataResultSet, DataResultSetTranslationConfiguration configuration, int maxRows, ProgressListener listener) throws OperatorException {		
-		//synchronized (isReadingMutex) {
-			boolean isFaultTolerant = configuration.isFaultTolerant();
+	public ExampleSet read(DataResultSet dataResultSet, DataResultSetTranslationConfiguration configuration, boolean previewOnly, ProgressListener listener) throws OperatorException {
+		int maxRows = previewOnly ? ImportWizardUtils.getPreviewLength() : -1;
+		
+		cancelLoadingRequested = false;
+		boolean isFaultTolerant = configuration.isFaultTolerant();
 
-			isReading = true;
-			int[] attributeColumns = configuration.getSelectedIndices();
-			int numberOfAttributes = attributeColumns.length;
+		isReading = true;
+		int[] attributeColumns = configuration.getSelectedIndices();
+		int numberOfAttributes = attributeColumns.length;
 
-			Attribute[] attributes = new Attribute[numberOfAttributes];
-			for (int i = 0; i < attributes.length; i++) {
-				int attributeValueType = configuration.getColumnMetaData(attributeColumns[i]).getAttributeValueType();
-				if (attributeValueType == Ontology.ATTRIBUTE_VALUE)  //fallback for uninitialized reading.
-					attributeValueType = Ontology.POLYNOMINAL;
-				attributes[i] = AttributeFactory.createAttribute(configuration.getColumnMetaData(attributeColumns[i]).getOriginalAttributeName(), attributeValueType);
+		Attribute[] attributes = new Attribute[numberOfAttributes];
+		for (int i = 0; i < attributes.length; i++) {
+			int attributeValueType = configuration.getColumnMetaData(attributeColumns[i]).getAttributeValueType();
+			if (attributeValueType == Ontology.ATTRIBUTE_VALUE)  //fallback for uninitialized reading.
+				attributeValueType = Ontology.POLYNOMINAL;
+			attributes[i] = AttributeFactory.createAttribute(configuration.getColumnMetaData(attributeColumns[i]).getOriginalAttributeName(), attributeValueType);
+		}
+
+		// building example table
+		MemoryExampleTable exampleTable = new MemoryExampleTable(attributes);
+
+		// now iterate over complete dataResultSet and copy data
+		int currentRow = 0; 		// The row in the underlying DataResultSet
+		int exampleIndex = 0;		// The row in the example set
+		dataResultSet.reset(listener);
+		int maxAnnotatedRow = configuration.getLastAnnotatedRowIndex();
+		while (dataResultSet.hasNext() && !shouldStop && (currentRow < maxRows || maxRows < 0)) {
+			if (cancelLoadingRequested) {
+				break;
 			}
-
-			// building example table
-			MemoryExampleTable exampleTable = new MemoryExampleTable(attributes);
-
-			// now iterate over complete dataResultSet and copy data
-			// TODO: Insert DataRowFactory
-			// The row in the underlying DataResultSet
-			int currentRow = 0;
-			// The row in the example set
-			int exampleIndex = 0;
-			dataResultSet.reset(listener);
-			int maxAnnotatedRow = configuration.getLastAnnotatedRowIndex();
-			while (dataResultSet.hasNext() && !shouldStop && (currentRow < maxRows || maxRows <= 0)) {
-				dataResultSet.next(listener);
-
-				// checking for annotation
-				String currentAnnotation;
-				if (currentRow <= maxAnnotatedRow) {
-					currentAnnotation = configuration.getAnnotation(currentRow);
-				} else {
-					currentAnnotation = null;
-				}
-				if (currentAnnotation != null) {
-					// registering annotation on all attributes
-					int attributeIndex = 0;
-					for (Attribute attribute : attributes) {
-						if (AbstractDataResultSetReader.ANNOTATION_NAME.equals(currentAnnotation)) {
-							// resetting name
-							String newAttributeName = getString(dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant);
-							if (newAttributeName != null && !newAttributeName.isEmpty()) {
-								attribute.setName(newAttributeName);
-							}
-						} else {
-							// setting annotation
-							String annotationValue = getString(dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant);
-							if (annotationValue != null && !annotationValue.isEmpty())
-								attribute.getAnnotations().put(currentAnnotation, annotationValue);
+			dataResultSet.next(listener);
+			// checking for annotation
+			String currentAnnotation;
+			if (currentRow <= maxAnnotatedRow) {
+				currentAnnotation = configuration.getAnnotation(currentRow);
+			} else {
+				currentAnnotation = null;
+			}
+			if (currentAnnotation != null) {
+				// registering annotation on all attributes
+				int attributeIndex = 0;
+				for (Attribute attribute : attributes) {
+					if (AbstractDataResultSetReader.ANNOTATION_NAME.equals(currentAnnotation)) {
+						// resetting name
+						String newAttributeName = getString(dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant);
+						if (newAttributeName != null && !newAttributeName.isEmpty()) {
+							attribute.setName(newAttributeName);
 						}
-						attributeIndex++;
+					} else {
+						// setting annotation
+						String annotationValue = getString(dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant);
+						if (annotationValue != null && !annotationValue.isEmpty())
+							attribute.getAnnotations().put(currentAnnotation, annotationValue);
 					}
-				} else {
-					// creating data row
-					DoubleArrayDataRow row = new DoubleArrayDataRow(new double[attributes.length]);
-					exampleTable.addDataRow(row);
-					int attributeIndex = 0;
-					for (Attribute attribute : attributes) {
-						// check for missing
-						if (dataResultSet.isMissing(attributeColumns[attributeIndex])) {
-							row.set(attribute, Double.NaN);
-						} else {
-							switch (attribute.getValueType()) {
-							case Ontology.INTEGER:
-								row.set(attribute, getOrParseNumber(configuration, dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant));
-										//getNumber(dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant).intValue());
-								break;
-							case Ontology.NUMERICAL:
-							case Ontology.REAL:
-								row.set(attribute, getOrParseNumber(configuration, dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant));
-								break;
-							case Ontology.DATE_TIME:
-							case Ontology.TIME:
-							case Ontology.DATE:
-								row.set(attribute, getOrParseDate(configuration, dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant));
-								break;
-							default:
-								row.set(attribute, getStringIndex(attribute, dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant));
-							}
-						}
-						attributeIndex++;
-					}
-					exampleIndex++;
+					attributeIndex++;
 				}
-				currentRow++;
+			} else {
+				// creating data row
+				DoubleArrayDataRow row = new DoubleArrayDataRow(new double[attributes.length]);
+				exampleTable.addDataRow(row);
+				int attributeIndex = 0;
+				for (Attribute attribute : attributes) {
+					// check for missing
+					if (dataResultSet.isMissing(attributeColumns[attributeIndex])) {
+						row.set(attribute, Double.NaN);
+					} else {
+						switch (attribute.getValueType()) {
+						case Ontology.INTEGER:
+							row.set(attribute, getOrParseNumber(configuration, dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant));
+							//getNumber(dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant).intValue());
+							break;
+						case Ontology.NUMERICAL:
+						case Ontology.REAL:
+							row.set(attribute, getOrParseNumber(configuration, dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant));
+							break;
+						case Ontology.DATE_TIME:
+						case Ontology.TIME:
+						case Ontology.DATE:
+							row.set(attribute, getOrParseDate(configuration, dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant));
+							break;
+						default:
+							row.set(attribute, getStringIndex(attribute, dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant));
+						}
+					}
+					attributeIndex++;
+				}
+				exampleIndex++;
 			}
+			currentRow++;
+		}
 
-			// derive ExampleSet from exampleTable and assigning roles
-			ExampleSet exampleSet = exampleTable.createExampleSet();
-			Attributes exampleSetAttributes = exampleSet.getAttributes();
-			int attributeIndex = 0;
-			for (Attribute attribute : attributes) {
-				// if user defined names have been found, rename accordingly
-				final ColumnMetaData cmd = configuration.getColumnMetaData(attributeColumns[attributeIndex]);
-				String userDefinedName = cmd.getUserDefinedAttributeName();
-				if (userDefinedName != null)
-					attribute.setName(userDefinedName);
-				String roleId = cmd.getRole();
-				if (!Attributes.ATTRIBUTE_NAME.equals(roleId))
-					exampleSetAttributes.setSpecialAttribute(attribute, roleId);
-				attributeIndex++;
-			}
+		// derive ExampleSet from exampleTable and assigning roles
+		ExampleSet exampleSet = exampleTable.createExampleSet();
+		Attributes exampleSetAttributes = exampleSet.getAttributes();
+		int attributeIndex = 0;
+		for (Attribute attribute : attributes) {
+			// if user defined names have been found, rename accordingly
+			final ColumnMetaData cmd = configuration.getColumnMetaData(attributeColumns[attributeIndex]);
+			String userDefinedName = cmd.getUserDefinedAttributeName();
+			if (userDefinedName != null)
+				attribute.setName(userDefinedName);
+			String roleId = cmd.getRole();
+			if (!Attributes.ATTRIBUTE_NAME.equals(roleId))
+				exampleSetAttributes.setSpecialAttribute(attribute, roleId);
+			attributeIndex++;
+		}
 
-			isReading = false;
-			if (listener != null)
-				listener.complete();
-			return exampleSet;
-		//}
+		isReading = false;
+		if (listener != null)
+			listener.complete();
+		return exampleSet;
 	}
 
 	/** If native type is date, returns the date. Otherwise, uses string and parses.
@@ -332,6 +334,8 @@ public class DataResultSetTranslator {
 	 * @throws OperatorException
 	 */
 	private int[] guessValueTypes(int[] definedTypes, DataResultSetTranslationConfiguration configuration, DataResultSet dataResultSet, int maxProbeRows, ProgressListener listener) throws OperatorException {
+		cancelGuessingRequested = false;
+
 		if (listener != null)
 			listener.setTotal(1 + maxProbeRows);
 		DateFormat dateFormat = configuration.getDateFormat();
@@ -353,6 +357,9 @@ public class DataResultSetTranslator {
 		}
 		int maxAnnotatedRow = configuration.getLastAnnotatedRowIndex();		
 		while (dataResultSet.hasNext() && (currentRow < maxProbeRows || maxProbeRows <= 0)) {
+			if (cancelGuessingRequested) {
+				break;
+			}
 			dataResultSet.next(listener);
 			if (listener != null)
 				listener.setCompleted(1 + currentRow);
@@ -471,9 +478,7 @@ public class DataResultSetTranslator {
 	public void close() throws OperatorException {
 		if (isReading) {
 			shouldStop = true;
-			//synchronized (isReadingMutex) {
-				shouldStop = false;
-			//}
+			shouldStop = false;
 		}
 		// TODO: Check: Where do we close now?
 		//dataResultSet.close();
@@ -507,4 +512,19 @@ public class DataResultSetTranslator {
 		return errors.get(new Pair<Integer,Integer>(row, column));
 	}
 
+	/** Cancels {@link #guessValueTypes(int[], DataResultSetTranslationConfiguration, DataResultSet, int, ProgressListener)}
+	 *  after the next row. */
+	public void cancelGuessing() {
+		cancelGuessingRequested = true;		
+	}
+	
+	/** Cancels {@link #read(DataResultSet, DataResultSetTranslationConfiguration, int, ProgressListener)} after the 
+	 *  next row. */
+	public void cancelLoading() {
+		cancelLoadingRequested = true;
+	}
+	
+	public boolean isGuessingCancelled() {
+		return cancelGuessingRequested;
+	}
 }

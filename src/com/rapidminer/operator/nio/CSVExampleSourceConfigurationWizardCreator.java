@@ -20,7 +20,7 @@ public class CSVExampleSourceConfigurationWizardCreator extends AbstractConfigur
 	public void createConfigurationWizard(ParameterType type, ConfigurationListener listener) {
 		CSVExampleSource sourceOperator = (CSVExampleSource) listener;
 		try {
-			new CSVImportWizard(sourceOperator, listener, false, null, getI18NKey()).setVisible(true);
+			new CSVImportWizard(sourceOperator, listener, null).setVisible(true);
 		} catch (OperatorException e) {
 			SwingTools.showSimpleErrorMessage("importwizard.error_creating_wizard", e);
 		}

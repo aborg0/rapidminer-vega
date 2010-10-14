@@ -38,6 +38,7 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.nio.ExcelExampleSource;
 import com.rapidminer.operator.nio.ExcelSheetTableModel;
+import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.Tools;
 
@@ -65,15 +66,18 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	public ExcelResultSetConfiguration(ExcelExampleSource excelExampleSource) throws OperatorException {
 		if (excelExampleSource.isParameterSet(ExcelExampleSource.PARAMETER_IMPORTED_CELL_RANGE)) {
 			parseExcelRange(excelExampleSource.getParameterAsString(ExcelExampleSource.PARAMETER_IMPORTED_CELL_RANGE));
+		} else {
+			if (excelExampleSource.isParameterSet(ExcelExampleSource.PARAMETER_COLUMN_OFFSET))
+				this.columnOffset = excelExampleSource.getParameterAsInt(ExcelExampleSource.PARAMETER_COLUMN_OFFSET);
+			if (excelExampleSource.isParameterSet(ExcelExampleSource.PARAMETER_ROW_OFFSET))
+				this.rowOffset = excelExampleSource.getParameterAsInt(ExcelExampleSource.PARAMETER_ROW_OFFSET);
 		}
-//		if (excelExampleSource.isParameterSet(PARAMETER_COLUMN_OFFSET))
-//			this.columnOffset = excelExampleSource.getParameterAsInt(PARAMETER_COLUMN_OFFSET);
-//		if (excelExampleSource.isParameterSet(PARAMETER_ROW_OFFSET))
-//			this.rowOffset = excelExampleSource.getParameterAsInt(PARAMETER_ROW_OFFSET);
-		if (excelExampleSource.isParameterSet(PARAMETER_SHEET_NUMBER))
+		if (excelExampleSource.isParameterSet(PARAMETER_SHEET_NUMBER)) {
 			this.sheet = excelExampleSource.getParameterAsInt(PARAMETER_SHEET_NUMBER) - 1;
-		if (excelExampleSource.isParameterSet(PARAMETER_EXCEL_FILE))
+		}
+		if (excelExampleSource.isParameterSet(PARAMETER_EXCEL_FILE)) {
 			this.workbookFile = excelExampleSource.getParameterAsFile(PARAMETER_EXCEL_FILE);
+		}
 	}
 
 	/**
@@ -200,7 +204,8 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 		}
 	}
 
-	public void setParameters(ExcelExampleSource source) {
+	@Override
+	public void setParameters(AbstractDataResultSetReader source) {
 		String range = 
 			Tools.getExcelColumnName(columnOffset) + (rowOffset+1) +
 			":" + 
@@ -251,4 +256,15 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	public String getResourceName() {		
 		return workbookFile.getAbsolutePath();
 	}
+
+	@Override
+	public ExampleSetMetaData makeMetaData() {
+		final ExampleSetMetaData result = new ExampleSetMetaData();
+		if (rowLast != Integer.MAX_VALUE) {
+			result.setNumberOfExamples(rowLast - rowOffset + 1);
+		}
+		return result;
+	}
+	
+	
 }

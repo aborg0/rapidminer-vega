@@ -26,6 +26,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -61,6 +63,7 @@ import com.rapidminer.operator.nio.model.DataResultSet;
 import com.rapidminer.operator.nio.model.ParsingError;
 import com.rapidminer.operator.nio.model.WizardState;
 import com.rapidminer.parameter.ParameterTypeDateFormat;
+import com.rapidminer.tools.I18N;
 
 /**
  * This Wizard Step might be used to defined
@@ -111,6 +114,8 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	private JCheckBox filterErrorsBox = new JCheckBox(new ResourceActionAdapter("wizard.show_error_rows"));
 
 	private JComboBox dateFormatField = new JComboBox(ParameterTypeDateFormat.PREDEFINED_DATE_FORMATS);
+
+	private JCheckBox limitedPreviewBox = new JCheckBox(I18N.getMessage(I18N.getGUIBundle(), "gui.action.importwizard.limited_preview.label", ImportWizardUtils.getPreviewLength()));
 	
 	private WizardState state;
 
@@ -122,6 +127,8 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 
 	public MetaDataDeclarationWizardStep(WizardState state) {
 		super("importwizard.metadata");		
+		limitedPreviewBox.setSelected(true);
+		
 		this.state = state;
 		dateFormatField.setEditable(true);
 		dateFormatField.addActionListener(new ActionListener() {
@@ -134,22 +141,41 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		buttonPanel.add(reloadButton);
 		buttonPanel.add(guessButton);
+		buttonPanel.add(limitedPreviewBox);
 		
 		JLabel label = new ResourceLabel("date_format");
 		label.setLabelFor(dateFormatField);
 		buttonPanel.add(label);
 		buttonPanel.add(dateFormatField);
 		panel.add(buttonPanel, BorderLayout.NORTH);
-
-		buttonPanel.add(errorsAsMissingBox);
-		buttonPanel.add(filterErrorsBox);
 		
-		JPanel errorPanel = new JPanel(new BorderLayout());
-		errorPanel.add(errorLabel, BorderLayout.NORTH);
+		JPanel errorPanel = new JPanel(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.BOTH;
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		c.ipadx = c.ipady = 4;
+		c.weighty = 0;
+		c.weightx = 1;
+
+		c.gridwidth = 1;
+		c.weightx = 1;
+		errorPanel.add(errorLabel, c);
+
+		c.weightx = 0;
+		c.gridwidth = GridBagConstraints.RELATIVE;		
+		errorPanel.add(errorsAsMissingBox, c);
+		c.weightx = 0;
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		errorPanel.add(filterErrorsBox, c);
+		
+		
 		final JTable errorTable = new JTable(errorTableModel);		
 		final JScrollPane errorScrollPane = new JScrollPane(errorTable);
 		errorScrollPane.setPreferredSize(new Dimension(500, 80));
-		errorPanel.add(errorScrollPane, BorderLayout.CENTER);		
+		c.weighty = 1;
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		errorPanel.add(errorScrollPane, c);
+		
 		panel.add(errorPanel, BorderLayout.SOUTH);
 
 		final JLabel dummy = new JLabel("-");
@@ -276,17 +302,13 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		new ProgressThread("loading_data") {
 			@Override
 			public void run() {
-				getProgressListener().setTotal(100);
-				getProgressListener().setCompleted(10);
-
 				try {
 					if (state.getTranslator() != null) {
 						state.getTranslator().close();
 					}
 					DataResultSet resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
 					state.getTranslator().clearErrors();
-					final ExampleSet exampleSet = state.readNow(resultSet, true, getProgressListener());
-					getProgressListener().setCompleted(80);
+					final ExampleSet exampleSet = state.readNow(resultSet, limitedPreviewBox.isSelected(), getProgressListener());
 
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
@@ -302,7 +324,9 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
-							cancelReload();							
+							reloadButton.configurePropertiesFromAction(reloadAction);
+							reloadButton.setEnabled(true);
+							isReloading = false;
 						}						
 					});
 				}
@@ -311,8 +335,8 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	}
 
 	private void cancelReload() {
-		reloadButton.configurePropertiesFromAction(reloadAction);
-		isReloading = false;
+		state.getTranslator().cancelLoading();
+		reloadButton.setEnabled(false);
 	}
 
 	private void guessValueTypes() {
@@ -321,8 +345,6 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		new ProgressThread("guessing_value_types") {
 			@Override
 			public void run() {
-				getProgressListener().setTotal(100);
-				getProgressListener().setCompleted(10);
 				Thread.yield();
 				try {
 					if (state.getTranslator() != null) {
@@ -330,20 +352,18 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 					}				
 					DataResultSet resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
 					state.getTranslator().clearErrors();
-					getProgressListener().setCompleted(30);
 					state.getTranslationConfiguration().resetValueTypes();
 					state.getTranslator().guessValueTypes(state.getTranslationConfiguration(), resultSet, state.getNumberOfPreviewRows(), getProgressListener());
-					getProgressListener().setCompleted(60);
-					final ExampleSet exampleSet = state.readNow(resultSet, true, getProgressListener());
-					getProgressListener().setCompleted(80);
-
-					SwingUtilities.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							updateTableModel(exampleSet);		
-							updateErrors();
-						}
-					});
+					if (!state.getTranslator().isGuessingCancelled()) {
+						final ExampleSet exampleSet = state.readNow(resultSet, limitedPreviewBox.isSelected(), getProgressListener());
+						SwingUtilities.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								updateTableModel(exampleSet);		
+								updateErrors();
+							}
+						});
+					}
 				} catch (OperatorException e) {
 					ImportWizardUtils.showErrorMessage(state.getDataResultSetFactory().getResourceName(), e.toString(), e);
 				} finally {
@@ -351,7 +371,9 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
-							cancelGuessing();							
+							guessButton.configurePropertiesFromAction(guessValueTypes);
+							guessButton.setEnabled(true);
+							isGuessing = false;
 						}						
 					});
 				}
@@ -359,13 +381,14 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		}.start();
 	}
 
-	private void cancelGuessing() {
-		guessButton.configurePropertiesFromAction(guessValueTypes);
-		isGuessing = false;
-	}
-
 	private boolean isGuessing = false;
 	private boolean isReloading = false;
+
+	private void cancelGuessing() {
+		state.getTranslator().cancelGuessing();
+		state.getTranslator().cancelLoading();
+		guessButton.setEnabled(false);
+	}
 
 	private void toggleGuessValueTypes() {
 		isGuessing = !isGuessing;

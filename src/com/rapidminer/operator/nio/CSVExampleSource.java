@@ -29,7 +29,8 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.io.AbstractReader;
 import com.rapidminer.operator.nio.model.AbstractDataResultSetReader;
-import com.rapidminer.operator.nio.model.DataResultSet;
+import com.rapidminer.operator.nio.model.CSVResultSetConfiguration;
+import com.rapidminer.operator.nio.model.DataResultSetFactory;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeChar;
@@ -80,9 +81,8 @@ public class CSVExampleSource extends AbstractDataResultSetReader {
 	}
 
 	@Override
-	protected DataResultSet getDataResultSet() throws OperatorException {
-		//return new CSVResultSet(this, new CSVResultSetConfiguration(this));
-		return null;
+	protected DataResultSetFactory getDataResultSetFactory() throws OperatorException {
+		return new CSVResultSetConfiguration(this);
 	}
 	
 	@Override

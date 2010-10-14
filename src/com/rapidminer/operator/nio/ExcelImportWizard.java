@@ -22,11 +22,11 @@
  */
 package com.rapidminer.operator.nio;
 
-import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DataImportWizard;
 import com.rapidminer.gui.wizards.ConfigurationListener;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.nio.model.AbstractDataResultSetReader;
+import com.rapidminer.operator.nio.model.DataResultSetFactory;
 import com.rapidminer.operator.nio.model.ExcelResultSetConfiguration;
-import com.rapidminer.operator.nio.model.WizardState;
 import com.rapidminer.repository.RepositoryLocation;
 
 /**
@@ -38,30 +38,22 @@ import com.rapidminer.repository.RepositoryLocation;
  * 
  * @author Tobias Malbrecht, Sebastian Loh, Sebastian Land, Simon Fischer
  */
-public class ExcelImportWizard extends DataImportWizard {
+public class ExcelImportWizard extends AbstractDataImportWizard {
 
-	private static final long serialVersionUID = -4308448171060612833L;
-	private WizardState state;
-	private ExcelExampleSource source;
-	private ExcelResultSetConfiguration excelConfiguration;
+	private static final long serialVersionUID = 1L;
 	
-	public ExcelImportWizard(ExcelExampleSource source, ConfigurationListener listener, final boolean showStoreInRepositoryStep, RepositoryLocation preselectedLocation,String i18nKey, Object... i18nArgs) throws OperatorException {
-		super(i18nKey, i18nArgs);
-		this.source = source;
-		
-		if (source != null) {
-			excelConfiguration = new ExcelResultSetConfiguration(source);
-		} else {
-			excelConfiguration = new ExcelResultSetConfiguration();
-		}
-		
-		state = new WizardState(source, excelConfiguration);
+	public ExcelImportWizard(ExcelExampleSource source, ConfigurationListener listener, RepositoryLocation preselectedLocation) throws OperatorException {
+		super(source, preselectedLocation, "data_import_wizard");
 		
 		// adding steps		
-		addStep(new ExcelFileSelectionWizardStep(this, excelConfiguration));
-		addStep(new ExcelSheetSelectionWizardStep(excelConfiguration));
-		addStep(new AnnotationDeclarationWizardStep(state));
-		addStep(new MetaDataDeclarationWizardStep(state));
+		addStep(new ExcelFileSelectionWizardStep(this, (ExcelResultSetConfiguration) getState().getDataResultSetFactory()));
+		addStep(new ExcelSheetSelectionWizardStep((ExcelResultSetConfiguration) getState().getDataResultSetFactory()));
+		addCommonSteps();
+//		addStep(new AnnotationDeclarationWizardStep(state));
+//		addStep(new MetaDataDeclarationWizardStep(state));
+//		if (source == null) {
+//			addStep(new StoreDataWizardStep(this, state, (preselectedLocation != null) ? preselectedLocation.getAbsoluteLocation() : null));
+//		}
 		layoutDefault(HUGE);
 	}
 	
@@ -71,11 +63,11 @@ public class ExcelImportWizard extends DataImportWizard {
 	}
 
 	@Override
-	public void finish() {
-		super.finish();
-		if (source != null) {
-			state.getTranslationConfiguration().setParameters(source);
-			excelConfiguration.setParameters(source);
+	protected DataResultSetFactory makeFactory(AbstractDataResultSetReader reader) throws OperatorException {
+		if (reader != null) {
+			return new ExcelResultSetConfiguration((ExcelExampleSource) reader);
+		} else {
+			return new ExcelResultSetConfiguration();
 		}
 	}
 }

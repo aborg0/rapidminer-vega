@@ -22,11 +22,11 @@
  */
 package com.rapidminer.operator.nio;
 
-import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DataImportWizard;
 import com.rapidminer.gui.wizards.ConfigurationListener;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.nio.model.AbstractDataResultSetReader;
 import com.rapidminer.operator.nio.model.CSVResultSetConfiguration;
-import com.rapidminer.operator.nio.model.WizardState;
+import com.rapidminer.operator.nio.model.DataResultSetFactory;
 import com.rapidminer.repository.RepositoryLocation;
 
 /**
@@ -38,30 +38,23 @@ import com.rapidminer.repository.RepositoryLocation;
  * 
  * @author Tobias Malbrecht, Sebastian Loh, Sebastian Land, Simon Fischer
  */
-public class CSVImportWizard extends DataImportWizard {
+public class CSVImportWizard extends AbstractDataImportWizard {
 
-	private static final long serialVersionUID = -4308448171060612833L;
-	private WizardState state;
-	private CSVExampleSource source;
-	private CSVResultSetConfiguration csvConfiguration;
-	
-	public CSVImportWizard(CSVExampleSource source, ConfigurationListener listener, final boolean showStoreInRepositoryStep, RepositoryLocation preselectedLocation,String i18nKey, Object... i18nArgs) throws OperatorException {
-		super(i18nKey, i18nArgs);
-		this.source = source;
-		
-		if (source != null) {
-			csvConfiguration = new CSVResultSetConfiguration(source);
-		} else {
-			csvConfiguration = new CSVResultSetConfiguration();
-		}
-		
-		state = new WizardState(source, csvConfiguration);
+	private static final long serialVersionUID = 1L;
+
+	public CSVImportWizard(CSVExampleSource source, ConfigurationListener listener, RepositoryLocation preselectedLocation) throws OperatorException {
+		super(source, preselectedLocation, "data_import_wizard");
 		
 		// adding steps		
-		addStep(new CSVFileSelectionWizardStep(this, csvConfiguration));
-		addStep(new CSVSyntaxConfigurationWizardStep(this, csvConfiguration));
-		addStep(new AnnotationDeclarationWizardStep(state));
-		addStep(new MetaDataDeclarationWizardStep(state));
+		addStep(new CSVFileSelectionWizardStep(this, (CSVResultSetConfiguration) getState().getDataResultSetFactory()));
+		addStep(new CSVSyntaxConfigurationWizardStep(this, (CSVResultSetConfiguration) getState().getDataResultSetFactory()));
+		addCommonSteps();
+//		addStep(new AnnotationDeclarationWizardStep(state));
+//		addStep(new MetaDataDeclarationWizardStep(state));
+//		if (source == null) {
+//			addStep(new StoreDataWizardStep(this, state, (preselectedLocation != null) ? preselectedLocation.getAbsoluteLocation() : null));
+//		}
+
 		layoutDefault(HUGE);
 	}
 	
@@ -71,11 +64,11 @@ public class CSVImportWizard extends DataImportWizard {
 	}
 
 	@Override
-	public void finish() {
-		super.finish();
+	protected DataResultSetFactory makeFactory(AbstractDataResultSetReader source) throws OperatorException {
 		if (source != null) {
-			state.getTranslationConfiguration().setParameters(source);
-			csvConfiguration.setParameters(source);
+			return new CSVResultSetConfiguration((CSVExampleSource) source);
+		} else {
+			return new CSVResultSetConfiguration();
 		}
 	}
 }

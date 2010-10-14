@@ -70,7 +70,7 @@ public class BlobImportWizard extends AbstractWizard {
 				return true;
 			}
 		});
-		addStep(new RepositoryLocationSelectionWizardStep("select_repository_location", this, null, null) {
+		addStep(new RepositoryLocationSelectionWizardStep(this, null) {
 			@Override
 			protected boolean performLeavingAction(WizardStepDirection direction) {
 				try {

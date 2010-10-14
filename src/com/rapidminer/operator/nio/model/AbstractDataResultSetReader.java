@@ -31,8 +31,10 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
-import com.rapidminer.operator.io.AbstractExampleSource;
 import com.rapidminer.operator.io.AbstractDataReader.AttributeColumn;
+import com.rapidminer.operator.io.AbstractExampleSource;
+import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
+import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.preprocessing.filter.AbstractDateDataProcessing;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
@@ -91,24 +93,38 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 	@Override
 	public ExampleSet createExampleSet() throws OperatorException {
 		// loading data result set
-		DataResultSet dataResultSet = getDataResultSet();
+		DataResultSetFactory dataResultSetFactory = getDataResultSetFactory();
+		DataResultSet dataResultSet = dataResultSetFactory.makeDataResultSet(this);
 
 		// loading configuration
-		DataResultSetTranslationConfiguration configuration = new DataResultSetTranslationConfiguration(this, dataResultSet);
+		DataResultSetTranslationConfiguration configuration = new DataResultSetTranslationConfiguration(this);
+		if (!configuration.isComplete()) {
+			configuration.reconfigure(dataResultSet);
+		}
 
 		// now use translator to read, translate and return example set
 		DataResultSetTranslator translator = new DataResultSetTranslator(this);
-		translator.guessValueTypes(configuration, dataResultSet, null);
-		final ExampleSet exampleSet = translator.read(dataResultSet, configuration, 0, null);
+		if (!configuration.isComplete()) {
+			translator.guessValueTypes(configuration, dataResultSet, null);
+		}
+		final ExampleSet exampleSet = translator.read(dataResultSet, configuration, false, null);
 		dataResultSet.close();
 		return exampleSet;
 	}
 
+	@Override
+	public MetaData getGeneratedMetaData() throws OperatorException {
+		DataResultSetFactory dataResultSetFactory = getDataResultSetFactory();
+		ExampleSetMetaData result = dataResultSetFactory.makeMetaData();		
+		DataResultSetTranslationConfiguration configuration = new DataResultSetTranslationConfiguration(this);
+		configuration.addColumnMetaData(result);
+		return result;
+	}
 
 	/**
 	 * Must be implemented by subclasses to return the DataResultSet.
 	 */
-	protected abstract DataResultSet getDataResultSet() throws OperatorException;
+	protected abstract DataResultSetFactory getDataResultSetFactory() throws OperatorException;
 
 	@Override
 	public List<ParameterType> getParameterTypes() {

@@ -4,6 +4,7 @@ import javax.swing.table.TableModel;
 
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.tools.ProgressListener;
 
 /**
@@ -13,7 +14,6 @@ import com.rapidminer.tools.ProgressListener;
  */
 public interface DataResultSetFactory {
 
-	// TODO: Add progress listener
 	public DataResultSet makeDataResultSet(Operator operator) throws OperatorException;
 
 	public TableModel makePreviewTableModel(ProgressListener listener) throws OperatorException, ParseException;
@@ -21,4 +21,10 @@ public interface DataResultSetFactory {
 	/** Returns the human readable name of the resource read (most often, this will be a file or URL). */
 	public String getResourceName();
 
+	/** Makes initial meta data. Only the number of rows should be filled in here. All other information
+	 *  will later be added by {@link DataResultSetTranslationConfiguration}*/
+	public ExampleSetMetaData makeMetaData();
+
+	/** Sets the configuration parameters in the given reader operator. */
+	public void setParameters(AbstractDataResultSetReader reader);
 }

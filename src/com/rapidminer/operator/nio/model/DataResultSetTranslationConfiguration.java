@@ -46,6 +46,8 @@ import com.rapidminer.example.Attributes;
 import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.nio.ExcelExampleSource;
+import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
+import com.rapidminer.operator.ports.metadata.MDInteger;
 import com.rapidminer.operator.preprocessing.filter.AbstractDateDataProcessing;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeTupel;
@@ -71,15 +73,15 @@ public class DataResultSetTranslationConfiguration {
 	private SimpleDateFormat dateFormat;
 
 
-	/**
-	 * This constructor can be used to generate an empty configuration just depending on the given resultSet
-	 * 
-	 * @param resultSet
-	 * @throws OperatorException 
-	 */
-	public DataResultSetTranslationConfiguration(DataResultSet resultSet) {
-		this(null, resultSet);
-	}
+//	/**
+//	 * This constructor can be used to generate an empty configuration just depending on the given resultSet
+//	 * 
+//	 * @param resultSet
+//	 * @throws OperatorException 
+//	 */
+//	public DataResultSetTranslationConfiguration(DataResultSet resultSet) {
+//		this(null, resultSet);
+//	}
 
 	/**
 	 * This constructor can be used to generate an empty configuration just depending on the given resultSet
@@ -99,29 +101,27 @@ public class DataResultSetTranslationConfiguration {
 	 * 
 	 * @throws OperatorException
 	 */
-	public DataResultSetTranslationConfiguration(AbstractDataResultSetReader readerOperator, DataResultSet dataResultSet) {
+	private DataResultSetTranslationConfiguration(AbstractDataResultSetReader readerOperator, DataResultSet dataResultSet) {
 		reconfigure(dataResultSet);
 		reconfigure(readerOperator);
 	}
 
 	public void reconfigure(AbstractDataResultSetReader readerOperator) {	
-		// reading parameter settings
-		List<String[]> metaDataSettings = Collections.emptyList();
+		// reading parameter settings		
 		if (readerOperator != null) {
+			List<String[]> annotations;
+			try {
+				annotations = readerOperator.getParameterList(PARAMETER_ANNOTATIONS);
+			} catch (UndefinedParameterError e) {
+				annotations = Collections.emptyList();
+			}
+			for (String[] annotation : annotations) {
+				annotationsMap.put(Integer.parseInt(annotation[0]), annotation[1]);
+			}
 			boolean firstRowAsNames = readerOperator.getParameterAsBoolean(PARAMETER_FIRST_ROW_AS_NAMES);
 			if (firstRowAsNames) {
 				annotationsMap.put(0, ANNOTATION_NAME);
-			} else {
-				List<String[]> annotations;
-				try {
-					annotations = readerOperator.getParameterList(PARAMETER_ANNOTATIONS);
-				} catch (UndefinedParameterError e) {
-					annotations = Collections.emptyList();
-				}
-				for (String[] annotation : annotations) {
-					annotationsMap.put(Integer.parseInt(annotation[0]), annotation[1]);
-				}
-			}
+			}			
 
 			// reading date format settings
 			try {
@@ -140,13 +140,16 @@ public class DataResultSetTranslationConfiguration {
 			}
 
 			// initializing data structures
+			List<String[]> metaDataSettings;
 			if (readerOperator.isParameterSet(PARAMETER_META_DATA)) {
 				try {
 					metaDataSettings = readerOperator.getParameterList(PARAMETER_META_DATA);
 				} catch (UndefinedParameterError e) {
 					metaDataSettings = Collections.emptyList();
 				}
-			}			
+			} else {
+				metaDataSettings = Collections.emptyList();
+			}
 
 			columnMetaData = new ColumnMetaData[metaDataSettings.size()];
 			for (String[] metaDataDefinition : metaDataSettings) {
@@ -155,11 +158,9 @@ public class DataResultSetTranslationConfiguration {
 				columnMetaData[currentColumn] = new ColumnMetaData();
 				final ColumnMetaData cmd = columnMetaData[currentColumn];
 				cmd.setSelected(Boolean.parseBoolean(metaDataDefintionValues[1]));
-				if (cmd.isSelected()) {
-					// otherwise everything else doesn't matter at all
+				if (cmd.isSelected()) { // otherwise details don't matter
 					cmd.setRole(metaDataDefintionValues[3].trim());
 					cmd.setUserDefinedAttributeName(metaDataDefintionValues[0].trim());
-					// TODO: introduce checking if value type matches guessed type
 					cmd.setAttributeValueType(Integer.parseInt(metaDataDefintionValues[2]));
 				}
 			}
@@ -313,4 +314,16 @@ public class DataResultSetTranslationConfiguration {
 		return "Annotations: "+annotationsMap+"; columns: "+Arrays.toString(columnMetaData);
 	}
 
+	public void addColumnMetaData(ExampleSetMetaData emd) {
+		MDInteger numberOfExamples = emd.getNumberOfExamples();
+		numberOfExamples.subtract(annotationsMap.size());
+		for (ColumnMetaData cmd : columnMetaData) {
+			emd.addAttribute(cmd.getAttributeMetaData());
+		}
+	}
+
+	/** Returns true if meta data is manually set. */
+	public boolean isComplete() {
+		return (columnMetaData != null) && (columnMetaData.length > 0);
+	}
 }

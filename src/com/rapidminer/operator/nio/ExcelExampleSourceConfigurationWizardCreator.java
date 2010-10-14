@@ -20,7 +20,7 @@ public class ExcelExampleSourceConfigurationWizardCreator extends AbstractConfig
 	public void createConfigurationWizard(ParameterType type, ConfigurationListener listener) {
 		ExcelExampleSource sourceOperator = (ExcelExampleSource) listener;
 		try {
-			new ExcelImportWizard(sourceOperator, listener, false, null, getI18NKey()).setVisible(true);
+			new ExcelImportWizard(sourceOperator, listener, null).setVisible(true);
 		} catch (OperatorException e) {
 			SwingTools.showSimpleErrorMessage("importwizard.error_creating_wizard", e);
 		}

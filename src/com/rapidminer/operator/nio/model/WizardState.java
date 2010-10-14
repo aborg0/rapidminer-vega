@@ -40,20 +40,14 @@ public class WizardState {
 	}	
 
 	public ExampleSet readNow(DataResultSet dataResultSet, boolean previewOnly, ProgressListener progressListener) throws OperatorException {
-		ExampleSet cachedExampleSet = getTranslator().read(dataResultSet, getTranslationConfiguration(), 
-				previewOnly ? maxRows : 0,
-				progressListener);
 		LogService.getRoot().info("Reading example set...");
+		ExampleSet cachedExampleSet = getTranslator().read(dataResultSet, getTranslationConfiguration(), previewOnly, progressListener);
 		return cachedExampleSet;
 	}
 
 	public int getNumberOfPreviewRows() {		
 		return maxRows;
 	}
-
-//	public ExampleSet getCachedExampleSet() {
-//		return cachedExampleSet;
-//	}
 
 	public AbstractDataResultSetReader getOperator() {
 		return operator;

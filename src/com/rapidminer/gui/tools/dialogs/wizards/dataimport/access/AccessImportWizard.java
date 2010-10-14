@@ -30,7 +30,6 @@ import javax.swing.JComponent;
 import com.rapidminer.gui.tools.SimpleFileFilter;
 import com.rapidminer.gui.tools.dialogs.SQLQueryBuilder;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
-import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DataImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.FileSelectionWizardStep;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.RepositoryLocationSelectionWizardStep;
@@ -129,7 +128,7 @@ public class AccessImportWizard extends DataImportWizard {
 //			}
 //
 //		});
-		addStep(new RepositoryLocationSelectionWizardStep("select_repository_location", this, null, preselectedLocation != null ? preselectedLocation.getAbsoluteLocation() : null) {
+		addStep(new RepositoryLocationSelectionWizardStep(this, preselectedLocation != null ? preselectedLocation.getAbsoluteLocation() : null) {
 			@Override
 			protected boolean performLeavingAction(WizardStepDirection direction) {
 				return transferData(reader, getRepositoryLocation());

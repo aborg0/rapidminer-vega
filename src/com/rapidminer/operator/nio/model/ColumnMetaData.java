@@ -1,5 +1,7 @@
 package com.rapidminer.operator.nio.model;
 
+import com.rapidminer.operator.ports.metadata.AttributeMetaData;
+
 
 /** The meta data either guessed by RapidMiner or specified by the user for a
  *  column of an excel file, csv file, etc.
@@ -64,5 +66,10 @@ public class ColumnMetaData {
 	@Override
 	public String toString() {
 		return getRole() + " "+getUserDefinedAttributeName() + " ("+getOriginalAttributeName()+")"+getAttributeValueType()+ " "+(isSelected()?"x":"-");
+	}
+
+	public AttributeMetaData getAttributeMetaData() {
+		AttributeMetaData result = new AttributeMetaData(getUserDefinedAttributeName(), getAttributeValueType(), getRole());
+		return result;
 	}
 }

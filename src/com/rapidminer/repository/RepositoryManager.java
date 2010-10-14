@@ -264,6 +264,10 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 	}
 
 	public IOObject store(IOObject ioobject, RepositoryLocation location, Operator callingOperator) throws RepositoryException {
+		return store(ioobject, location, callingOperator, null);
+	}
+	
+	public IOObject store(IOObject ioobject, RepositoryLocation location, Operator callingOperator, ProgressListener progressListener) throws RepositoryException {
 		Entry entry = location.locateEntry();
 		if (entry == null) {
 			RepositoryLocation parentLocation = location.parent();
@@ -280,7 +284,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 				} else {
 					parentFolder = parentLocation.createFoldersRecursively();
 				}
-				parentFolder.createIOObjectEntry(childName, ioobject, callingOperator, null);
+				parentFolder.createIOObjectEntry(childName, ioobject, callingOperator, progressListener);
 				return ioobject;
 			} else {
 				throw new RepositoryException("Entry '"+location+"' does not exist.");

@@ -29,8 +29,7 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.io.AbstractReader;
 import com.rapidminer.operator.nio.model.AbstractDataResultSetReader;
-import com.rapidminer.operator.nio.model.DataResultSet;
-import com.rapidminer.operator.nio.model.ExcelResultSet;
+import com.rapidminer.operator.nio.model.DataResultSetFactory;
 import com.rapidminer.operator.nio.model.ExcelResultSetConfiguration;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeConfiguration;
@@ -76,7 +75,6 @@ public class ExcelExampleSource extends AbstractDataResultSetReader {
 	 */
 	public static final String PARAMETER_ID_COLUMN = "id_column";
 
-
 	public static final String PARAMETER_COLUMN_OFFSET = "column_offset";
 
 	public static final String PARAMETER_ROW_OFFSET = "row_offset";
@@ -87,20 +85,17 @@ public class ExcelExampleSource extends AbstractDataResultSetReader {
 
 	public static final String PARAMETER_IMPORTED_CELL_RANGE = "imported_cell_range";
 
-
-
 	static {
 		AbstractReader.registerReaderDescription(new ReaderDescription("xls", ExcelExampleSource.class, PARAMETER_EXCEL_FILE));
-	}
-	
+	}	
 	
 	public ExcelExampleSource(OperatorDescription description) {
 		super(description);
 	}
 
 	@Override
-	protected DataResultSet getDataResultSet() throws OperatorException {
-		return new ExcelResultSet(this, new ExcelResultSetConfiguration(this));
+	protected DataResultSetFactory getDataResultSetFactory() throws OperatorException {
+		return new ExcelResultSetConfiguration(this);
 	}
 
 	@Override

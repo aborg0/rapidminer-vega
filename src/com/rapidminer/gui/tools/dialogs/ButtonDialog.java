@@ -125,6 +125,17 @@ public class ButtonDialog extends JDialog {
 		configure(key);
 		pack();
 	}
+	
+	/**
+	 * The key will be used for the properties gui.dialog.-key-.title and
+	 * gui.dialog.-key-.icon
+	 */
+	public ButtonDialog(String key, ModalityType type, Object ... arguments) {
+		super(ApplicationFrame.getApplicationFrame(), I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + key + ".title", arguments), type);
+		this.arguments = arguments;
+		configure(key);
+		pack();
+	}
 
 	/**
 	 * @param key			Key for the message in the I18n-GUI-properties file
