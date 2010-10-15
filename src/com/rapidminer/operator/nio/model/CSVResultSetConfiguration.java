@@ -35,25 +35,26 @@ import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.io.Encoding;
 
 /**
- * A class holding information about configuration of the Excel Result Set
+ * A class holding information about syntactical configuration for parsing
+ * CSV files
  * 
- * @author Sebastian Land
+ * @author Simon Fischer
  */
 public class CSVResultSetConfiguration implements DataResultSetFactory {
 
 	private File csvFile;
 
-	private boolean skipComments;
-	private boolean useQuotes;
+	private boolean skipComments = true;
+	private boolean useQuotes = true;
 	//private boolean firstRowAsAttributeNames;
-	private boolean trimLines;
-	private String columnSeparators;
+	private boolean trimLines = false;
+	private String columnSeparators = ";";
 
-	private char quoteCharacter;
-	private char escapeCharacter;
-	private String commentCharacters;
+	private char quoteCharacter = '"';
+	private char escapeCharacter = '\\';
+	private String commentCharacters ="#";
 
-	private Charset encoding;
+	private Charset encoding = Charset.defaultCharset();
 	
 	/**
 	 * This will create a completely empty result set configuration

@@ -42,6 +42,10 @@ public class CSVImportWizard extends AbstractDataImportWizard {
 
 	private static final long serialVersionUID = 1L;
 
+	public CSVImportWizard() throws OperatorException {
+		this(null, null, null);
+	}
+	
 	public CSVImportWizard(CSVExampleSource source, ConfigurationListener listener, RepositoryLocation preselectedLocation) throws OperatorException {
 		super(source, preselectedLocation, "data_import_wizard");
 		

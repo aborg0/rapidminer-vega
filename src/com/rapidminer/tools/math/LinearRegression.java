@@ -22,7 +22,11 @@
  */
 package com.rapidminer.tools.math;
 
+import java.util.logging.Logger;
+
 import Jama.Matrix;
+
+import com.rapidminer.Process;
 
 /**
  * This class can be used to calculate the coefficients of a (weighted) linear
@@ -34,7 +38,8 @@ import Jama.Matrix;
  * @author Ingo Mierswa
  */
 public class LinearRegression {
-
+	private static Logger logger = Logger.getLogger(Process.class.getName());
+	
 	/** Performs a weighted linear ridge regression. */
 	public static double[] performRegression(Matrix x, Matrix y, double[] weights, double ridge) {
 		Matrix weightedIndependent = new Matrix(x.getRowDimension(), x.getColumnDimension());
@@ -71,8 +76,13 @@ public class LinearRegression {
 					coefficients[i] = result.get(i, 0);
 				finished = true;
 			} catch (Exception ex) {
-				ridge *= 10;
+				double ridgeOld = ridge;
+				if (ridge > 0)
+					ridge *= 10;
+				else
+					ridge = 0.0000001;
 				finished = false;
+				logger.warning("Error during calculation: " + ex.getMessage() + ": Increasing ridge factor from " + ridgeOld + " to " + ridge);
 			}
 		}		
 		return coefficients;

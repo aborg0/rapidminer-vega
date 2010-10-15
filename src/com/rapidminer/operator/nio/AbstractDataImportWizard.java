@@ -7,6 +7,12 @@ import com.rapidminer.operator.nio.model.DataResultSetFactory;
 import com.rapidminer.operator.nio.model.WizardState;
 import com.rapidminer.repository.RepositoryLocation;
 
+/** All new data import wizards should inherit from this class. It provides 
+ *  the common steps (annotations, meta data, saving) for all import wizards.
+ * 
+ * @author Simon Fischer
+ *
+ */
 public abstract class AbstractDataImportWizard extends DataImportWizard {
 
 	private static final long serialVersionUID = 1L;

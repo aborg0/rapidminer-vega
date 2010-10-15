@@ -124,12 +124,13 @@ import com.rapidminer.gui.tools.dialogs.ManageDatabaseDriversDialog;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.BlobImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DatabaseImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.access.AccessImportWizard;
-import com.rapidminer.gui.tools.dialogs.wizards.dataimport.csv.CSVImportWizard;
-import com.rapidminer.gui.tools.dialogs.wizards.dataimport.excel.ExcelImportWizard;
 import com.rapidminer.operator.DebugMode;
 import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.Operator;
+import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UnknownParameterInformation;
+import com.rapidminer.operator.nio.CSVImportWizard;
+import com.rapidminer.operator.nio.ExcelImportWizard;
 import com.rapidminer.operator.ports.metadata.CompatibilityLevel;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
@@ -292,8 +293,15 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			CSVImportWizard wizard = new CSVImportWizard("import_csv_file");
-			wizard.setVisible(true);
+			//CSVImportWizard wizard = new CSVImportWizard("import_csv_file");
+			CSVImportWizard wizard;
+			try {
+				wizard = new CSVImportWizard();
+				wizard.setVisible(true);
+			} catch (OperatorException e1) {
+				// should not happen if operator == null
+				throw new RuntimeException("Failed to create wizard.", e1);
+			}			
 		}
 
 	};
@@ -302,8 +310,15 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			ExcelImportWizard wizard = new ExcelImportWizard("import_excel_sheet");
-			wizard.setVisible(true);
+			try {
+				ExcelImportWizard wizard = new ExcelImportWizard();
+				wizard.setVisible(true);
+			} catch (OperatorException e1) {
+				// should not happen if operator == null
+				throw new RuntimeException("Failed to create wizard.", e1);
+			}
+//			ExcelImportWizard wizard = new ExcelImportWizard("import_excel_sheet");
+//			wizard.setVisible(true);
 		}
 
 	};

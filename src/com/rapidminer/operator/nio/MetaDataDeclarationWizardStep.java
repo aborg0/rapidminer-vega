@@ -30,6 +30,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.Action;
 import javax.swing.JButton;
@@ -41,6 +43,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
@@ -50,7 +54,6 @@ import com.rapidminer.gui.tools.CellColorProviderAlternating;
 import com.rapidminer.gui.tools.ExtendedJTable;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
-import com.rapidminer.gui.tools.ResourceActionAdapter;
 import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
@@ -111,7 +114,15 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 			state.getTranslationConfiguration().setFaultTolerant(errorsAsMissingBox.isSelected());
 		}		
 	});
-	private JCheckBox filterErrorsBox = new JCheckBox(new ResourceActionAdapter("wizard.show_error_rows"));
+	private JCheckBox filterErrorsBox = new JCheckBox(new ResourceAction("wizard.show_error_rows") {
+		private static final long serialVersionUID = 1L;
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (filteredModel != null) {
+				filteredModel.setFilterEnabled(filterErrorsBox.isSelected());
+			}
+		}
+	});
 
 	private JComboBox dateFormatField = new JComboBox(ParameterTypeDateFormat.PREDEFINED_DATE_FORMATS);
 
@@ -123,6 +134,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	private JScrollPane tableScrollPane;
 
 	private ErrorTableModel errorTableModel = new ErrorTableModel();
+	private RowFilteringTableModel filteredModel;
 	private JLabel errorLabel = new JLabel();
 
 	public MetaDataDeclarationWizardStep(WizardState state) {
@@ -169,7 +181,26 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		errorPanel.add(filterErrorsBox, c);
 		
 		
-		final JTable errorTable = new JTable(errorTableModel);		
+		final JTable errorTable = new JTable(errorTableModel);
+		errorTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				if (!e.getValueIsAdjusting()) {
+					final int selected = errorTable.getSelectedRow();
+					if (selected >= 0) {
+						ParsingError error = errorTableModel.getErrorInRow(selected);
+						int row = error.getExampleIndex();
+						row = filteredModel.inverseTranslateRow(row);
+						if (row == -1) {
+							return;
+						}
+						int col = error.getColumn();
+						previewTable.setRowSelectionInterval(row, row);
+						previewTable.setColumnSelectionInterval(col, col);
+					}					
+				}
+			}
+		});
 		final JScrollPane errorScrollPane = new JScrollPane(errorTable);
 		errorScrollPane.setPreferredSize(new Dimension(500, 80));
 		c.weighty = 1;
@@ -233,30 +264,47 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	}
 
 	private void updateTableModel(ExampleSet exampleSet) {
-		ExtendedJTable table = new ExtendedJTable(false, false, false);
+		if (previewTable == null) {
+			previewTable = new ExtendedJTable(false, false, false);
+		}
 
 		// data model
 		DataTableViewerTableModel model = new DataTableViewerTableModel(new DataTableExampleSetAdapter(exampleSet, null));
-		table.setModel(model);
+		List<Integer> rowsList = new LinkedList<Integer>();
+		int lastHit = -1;
+		for (ParsingError error : state.getTranslator().getErrors()) {
+			if (error.getExampleIndex() != lastHit) {
+				rowsList.add(error.getExampleIndex());
+				lastHit = error.getExampleIndex();
+			}
+		}
+		int[] rowMap = new int[rowsList.size()];
+		int j = 0;
+		for (Integer row : rowsList) {
+			rowMap[j++] = row;
+		}
+		filteredModel = new RowFilteringTableModel(model, rowMap, filterErrorsBox.isSelected());
+		previewTable.setModel(filteredModel);
 
 		// Header model
 
-		TableColumnModel columnModel = table.getColumnModel();
-		table.setTableHeader(new EditableTableHeader(columnModel));
+		TableColumnModel columnModel = previewTable.getColumnModel();
+		previewTable.setTableHeader(new EditableTableHeader(columnModel));
 		// header editors and renderers and values
 		MetaDataTableHeaderCellEditor headerEditor = new MetaDataTableHeaderCellEditor();
 		MetaDataTableHeaderCellEditor headerRenderer = new MetaDataTableHeaderCellEditor();
-		for (int i = 0; i < table.getColumnCount(); i++) {
-			EditableTableHeaderColumn col = (EditableTableHeaderColumn) table.getColumnModel().getColumn(i);
+		for (int i = 0; i < previewTable.getColumnCount(); i++) {
+			EditableTableHeaderColumn col = (EditableTableHeaderColumn) previewTable.getColumnModel().getColumn(i);
 			col.setHeaderValue(state.getTranslationConfiguration().getColumnMetaData()[i]);
 			col.setHeaderRenderer(headerRenderer);
 			col.setHeaderEditor(headerEditor);
 		}
-		table.getTableHeader().setReorderingAllowed(false);
+		previewTable.getTableHeader().setReorderingAllowed(false);
 
-		table.setCellColorProvider(new CellColorProviderAlternating() {
+		previewTable.setCellColorProvider(new CellColorProviderAlternating() {
 			@Override
 			public Color getCellColor(int row, int column) {
+				row = filteredModel.translateRow(row);
 				ParsingError error = state.getTranslator().getErrorByExampleIndexAndColumn(row, column);
 				if (error != null) {
 					return SwingTools.DARK_YELLOW;
@@ -265,7 +313,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 				}
 			}
 		});
-		tableScrollPane.setViewportView(table);
+		tableScrollPane.setViewportView(previewTable);
 	}	
 
 	@Override
@@ -383,6 +431,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 
 	private boolean isGuessing = false;
 	private boolean isReloading = false;
+	private ExtendedJTable previewTable;
 
 	private void cancelGuessing() {
 		state.getTranslator().cancelGuessing();

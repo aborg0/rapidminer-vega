@@ -42,6 +42,10 @@ public class ExcelImportWizard extends AbstractDataImportWizard {
 
 	private static final long serialVersionUID = 1L;
 	
+	public ExcelImportWizard() throws OperatorException {
+		this(null, null, null);
+	}
+	
 	public ExcelImportWizard(ExcelExampleSource source, ConfigurationListener listener, RepositoryLocation preselectedLocation) throws OperatorException {
 		super(source, preselectedLocation, "data_import_wizard");
 		

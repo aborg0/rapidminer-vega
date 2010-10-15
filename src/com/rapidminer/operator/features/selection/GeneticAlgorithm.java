@@ -97,7 +97,6 @@ public class GeneticAlgorithm extends AbstractGeneticAlgorithm {
 	public static final String PARAMETER_USE_EXACT_NUMBER = "use_exact_number_of_attributes";
 	public static final String PARAMETER_RESTRICT_NUMBER = "restrict_maximum";
 
-
 	private InputPort attributeWeightsInput = getInputPorts().createPort("attribute weights in");
 
 	public GeneticAlgorithm(OperatorDescription description) {
@@ -147,6 +146,7 @@ public class GeneticAlgorithm extends AbstractGeneticAlgorithm {
 		boolean useExactNumber = false;
 		boolean restrictMaxNumber = false;
 
+		int numberOfAttributes = es.getAttributes().size();
 		if (getParameterAsBoolean(PARAMETER_USE_EXACT_NUMBER)) {
 			useExactNumber = true;
 			exactNumber = getParameterAsInt(PARAMETER_EXACT_NUMBER_OF_ATTRIBUTES);
@@ -157,7 +157,7 @@ public class GeneticAlgorithm extends AbstractGeneticAlgorithm {
 				maxNumber = getParameterAsInt(PARAMETER_MAX_NUMBER_OF_ATTRIBUTES);
 				restrictMaxNumber = true;
 			} else
-				maxNumber = es.getAttributes().size();
+				maxNumber = numberOfAttributes;
 			if (minNumber > maxNumber) {
 				throw new UserError(this, 210, PARAMETER_MAX_NUMBER_OF_ATTRIBUTES, PARAMETER_MIN_NUMBER_OF_ATTRIBUTES);
 			}
@@ -169,7 +169,7 @@ public class GeneticAlgorithm extends AbstractGeneticAlgorithm {
 		if (attributeWeightsInput.isConnected()) {
 			AttributeWeights inputWeights = null;
 			inputWeights = attributeWeightsInput.getData();
-			initialWeights = new double[es.getAttributes().size()];
+			initialWeights = new double[numberOfAttributes];
 			int index = 0;
 			for (Attribute attribute : es.getAttributes()) {
 				double weight = inputWeights.getWeight(attribute.getName());
@@ -203,7 +203,7 @@ public class GeneticAlgorithm extends AbstractGeneticAlgorithm {
 
 		if (useExactNumber) { // exact feature number
 			while (initP.getNumberOfIndividuals() < getParameterAsInt(PARAMETER_POPULATION_SIZE)) {
-				double[] weights = new double[es.getAttributes().size()];
+				double[] weights = new double[numberOfAttributes];
 
 				double prob = 1.0d / weights.length * exactNumber;
 				for (int i = 0; i < weights.length; i++) {
@@ -222,7 +222,7 @@ public class GeneticAlgorithm extends AbstractGeneticAlgorithm {
 			}
 		} else { // within range
 			while (initP.getNumberOfIndividuals() < getParameterAsInt(PARAMETER_POPULATION_SIZE)) {
-				double[] weights = new double[es.getAttributes().size()];
+				double[] weights = new double[numberOfAttributes];
 
 				if ((initialWeights != null) && (getRandom().nextBoolean())) {
 					for (int i = 0; i < weights.length; i++) {
@@ -244,8 +244,29 @@ public class GeneticAlgorithm extends AbstractGeneticAlgorithm {
 					}
 				}
 				Individual individual = new Individual(weights);
-				int numberOfFeatures = individual.getNumberOfUsedAttributes();
-				if (((!restrictMaxNumber) || (numberOfFeatures <= maxNumber)) && (numberOfFeatures >= minNumber)) {
+				int numberOfSelectedAttributes = individual.getNumberOfUsedAttributes();
+				// increase number of selected if needed
+				while (numberOfSelectedAttributes < minNumber && numberOfAttributes >= minNumber) {
+					int random = getRandom().nextInt(numberOfAttributes);
+					if (weights[random] == 0) {
+						weights[random] = 1.0d;
+						numberOfSelectedAttributes++;
+					}
+				}
+				// deselect attributes if more than needed
+				if (restrictMaxNumber && maxNumber > minNumber) {
+					while (numberOfSelectedAttributes > maxNumber) {
+						// double probability to converge faster
+						double deSelectProb = ((numberOfSelectedAttributes - maxNumber)) / ((double) numberOfSelectedAttributes - 1);
+						for (int i = 0; i < numberOfAttributes; i++) {
+							if (weights[i] > 0 && getRandom().nextDouble() < deSelectProb) {
+								weights[i] = 0;
+								numberOfSelectedAttributes--;
+							}
+						}
+					}
+				}
+				if (((!restrictMaxNumber) || (numberOfSelectedAttributes <= maxNumber)) && (numberOfSelectedAttributes >= minNumber)) {
 					initP.add(individual);
 				}
 			}
@@ -278,7 +299,7 @@ public class GeneticAlgorithm extends AbstractGeneticAlgorithm {
 				maxNumber = eSet.getAttributes().size();
 		}
 
-		return new SelectionMutation(pMutation, getRandom(), minNumber, restrictMaxNumber? maxNumber : -1, useExactNumber ? exactNumber: -1);
+		return new SelectionMutation(pMutation, getRandom(), minNumber, restrictMaxNumber ? maxNumber : -1, useExactNumber ? exactNumber : -1);
 	}
 
 	/**
@@ -306,13 +327,12 @@ public class GeneticAlgorithm extends AbstractGeneticAlgorithm {
 			} else
 				maxNumber = eSet.getAttributes().size();
 		}
-		return new SelectionCrossover(crossoverType, pCrossover, getRandom(), minNumber, restrictMaxNumber? maxNumber : -1, useExactNumber ? exactNumber : -1);
+		return new SelectionCrossover(crossoverType, pCrossover, getRandom(), minNumber, restrictMaxNumber ? maxNumber : -1, useExactNumber ? exactNumber : -1);
 	}
 
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = new LinkedList<ParameterType>();
-
 
 		ParameterType type = new ParameterTypeBoolean(PARAMETER_USE_EXACT_NUMBER, "Determines if only combinations containing this numbers of attributes should be tested.", false);
 		type.setExpert(false);
@@ -322,7 +342,6 @@ public class GeneticAlgorithm extends AbstractGeneticAlgorithm {
 		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_EXACT_NUMBER, false, false));
 		type.setExpert(false);
 		types.add(type);
-
 
 		type = new ParameterTypeInt(PARAMETER_MIN_NUMBER_OF_ATTRIBUTES, "Determines the minimum number of features used for the combinations.", 1, Integer.MAX_VALUE, 1);
 		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_EXACT_NUMBER, true, false));

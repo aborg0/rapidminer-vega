@@ -79,12 +79,15 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 	public static final String PARAMETER_DATE_FORMAT = "date_format";	
 	public static final String PARAMETER_TIME_ZONE = "time_zone";
 	public static final String PARAMETER_LOCALE = "locale";
+
 	/**
 	 * The parameter name for &quot;Determines, how the data is represented internally.&quot;
 	 */
 	public static final String PARAMETER_DATAMANAGEMENT = "datamanagement";
 	public static final String PARAMETER_FIRST_ROW_AS_NAMES = "first_row_as_names";
 	public static final String PARAMETER_ANNOTATIONS = "annotations";
+	
+	public static final String PARAMETER_ERROR_TOLERANT = "read_not_matching_values_as_missings";
 	
 	public AbstractDataResultSetReader(OperatorDescription description) {
 		super(description);
@@ -164,6 +167,8 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 
 		types.add(type);
 
+		types.add(new ParameterTypeBoolean(PARAMETER_ERROR_TOLERANT, "Values which does not match to the specified value typed are considered as missings.", true, true));
+		
 		return types;
 	}
 }

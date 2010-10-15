@@ -40,7 +40,7 @@ public final class StoreDataWizardStep extends RepositoryLocationSelectionWizard
 				SwingTools.showSimpleErrorMessage("malformed_rep_location", e, repositoryLocationPath);
 				return false;
 			}					
-			new ProgressThread("importing_data") {
+			new ProgressThread("importing_data", true) {
 				@Override
 				public void run() {
 					try {

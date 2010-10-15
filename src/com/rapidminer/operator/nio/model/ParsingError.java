@@ -8,10 +8,18 @@ package com.rapidminer.operator.nio.model;
 public class ParsingError {
 
 	public static enum ErrorCode {
-		UNPARSEABLE_DATE,
-		UNPARSEABLE_INTEGER,
-		UNPARSEABLE_REAL,
-		MORE_THAN_TWO_VALUES
+		UNPARSEABLE_DATE("unparseable date"),
+		UNPARSEABLE_INTEGER("unparseable integer"),
+		UNPARSEABLE_REAL("unparseable real number"),
+		MORE_THAN_TWO_VALUES("more than two values for binominal attribute");
+		
+		private final String message;
+		private ErrorCode(String message) {
+			this.message = message;
+		}
+		public String getMessage() {
+			return message;
+		}
 	}
 	
 	/** The row number in which this error occurred. */

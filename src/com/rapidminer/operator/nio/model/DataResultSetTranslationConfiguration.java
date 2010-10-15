@@ -29,6 +29,7 @@ import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARA
 import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_LOCALE;
 import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_META_DATA;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
@@ -64,24 +65,13 @@ public class DataResultSetTranslationConfiguration {
 
 	private ColumnMetaData[] columnMetaData;
 
-	private Locale locale;
-	private String datePattern;
+	private Locale locale = Locale.getDefault();
+	private String datePattern = "";
 
 	private final SortedMap<Integer, String> annotationsMap = new TreeMap<Integer, String>();
 	private boolean faultTolerant = true;
 
-	private SimpleDateFormat dateFormat;
-
-
-//	/**
-//	 * This constructor can be used to generate an empty configuration just depending on the given resultSet
-//	 * 
-//	 * @param resultSet
-//	 * @throws OperatorException 
-//	 */
-//	public DataResultSetTranslationConfiguration(DataResultSet resultSet) {
-//		this(null, resultSet);
-//	}
+	private DateFormat dateFormat;
 
 	/**
 	 * This constructor can be used to generate an empty configuration just depending on the given resultSet
@@ -164,6 +154,8 @@ public class DataResultSetTranslationConfiguration {
 					cmd.setAttributeValueType(Integer.parseInt(metaDataDefintionValues[2]));
 				}
 			}
+			
+			setFaultTolerant(readerOperator.getParameterAsBoolean(AbstractDataResultSetReader.PARAMETER_ERROR_TOLERANT));
 		}
 	}
 
@@ -199,6 +191,7 @@ public class DataResultSetTranslationConfiguration {
 			index++;
 		}
 		operator.getParameters().setParameter(PARAMETER_META_DATA, ParameterTypeList.transformList2String(metaDataList));
+		operator.getParameters().setParameter(AbstractDataResultSetReader.PARAMETER_ERROR_TOLERANT, String.valueOf(isFaultTolerant()));
 	}
 
 	public ColumnMetaData getColumnMetaData(int col) {
@@ -293,9 +286,13 @@ public class DataResultSetTranslationConfiguration {
 		}		
 	}
 
-	public SimpleDateFormat getDateFormat() {
+	public DateFormat getDateFormat() {
 		if (dateFormat == null) {
-			this.dateFormat = new SimpleDateFormat(getDatePattern(), locale);
+			if ((getDatePattern() != null) && !getDatePattern().isEmpty()) {
+				this.dateFormat = new SimpleDateFormat(getDatePattern(), locale);
+			} else {
+				this.dateFormat = DateFormat.getDateTimeInstance();
+			}
 		}
 		return this.dateFormat;
 	}

@@ -45,7 +45,6 @@ public class CSVSyntaxConfigurationWizardStep extends WizardStep {
 	private final JCheckBox trimLinesBox = new JCheckBox("Trim Lines", true);
 	private final JComboBox encodingComboBox = new JComboBox(Encoding.CHARSETS);
 	private final JCheckBox skipCommentsBox = new JCheckBox("Skip Comments", true); // just temp preselection, real value is defined in the constructor
-	//private final JCheckBox useFirstRowAsColumnNamesBox = new JCheckBox("Use First Row as Column Names",true);  // just temp preselection, real value is defined in the constructor
 	private final JCheckBox useQuotesBox = new JCheckBox("Use Quotes",true); // just temp preselection, real value is defined in the constructor 
 	private final JTextField commentCharacterTextField = new JTextField(LineParser.DEFAULT_COMMENT_CHARACTER_STRING);
 	private final CharTextField quoteCharacterTextField = new CharTextField(LineParser.DEFAULT_QUOTE_CHARACTER);
@@ -70,7 +69,6 @@ public class CSVSyntaxConfigurationWizardStep extends WizardStep {
 
 		// configuration -> UI components
 		skipCommentsBox.setSelected(configuration.isSkipComments());
-		//useFirstRowAsColumnNamesBox.setSelected(configuration.isFirstRowAsAttributeNames());
 		useQuotesBox.setSelected(configuration.isUseQuotes());
 		trimLinesBox.setSelected(configuration.isTrimLines());
 		commentCharacterTextField.setText(configuration.getCommentCharacters());
@@ -121,13 +119,6 @@ public class CSVSyntaxConfigurationWizardStep extends WizardStep {
 				settingsChanged();
 			}
 		});
-//		useFirstRowAsColumnNamesBox.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				configuration.setFirstRowAsAttributeNames(useFirstRowAsColumnNamesBox.isSelected());
-//				settingsChanged();
-//			}
-//		});
 		useQuotesBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				quoteCharacterTextField.setEnabled(useQuotesBox.isSelected());
