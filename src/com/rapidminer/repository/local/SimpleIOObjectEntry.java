@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.lang.ref.WeakReference;
 
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Operator;
@@ -53,7 +54,7 @@ import com.rapidminer.tools.ProgressListener;
  */
 public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntry {
 	
-	private MetaData metaData;	
+	private WeakReference<MetaData> metaData = null;	
 	
 	SimpleIOObjectEntry(String name, SimpleFolder containingFolder, LocalRepository repository) {
 		super(name, containingFolder, repository);
@@ -87,35 +88,42 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 
 	@Override
 	public MetaData retrieveMetaData() throws RepositoryException {
-		if (metaData == null) {
-			File metaDataFile = getMetaDataFile();
-			if (metaDataFile.exists()) {
-				ObjectInputStream objectIn = null;
-				try {
-					objectIn = new RMObjectInputStream(new FileInputStream(metaDataFile));
-					this.metaData = (MetaData)objectIn.readObject();
-					if (this.metaData instanceof ExampleSetMetaData) {
-						for (AttributeMetaData amd : ((ExampleSetMetaData) metaData).getAllAttributes()) {
-							if (amd.isNominal()) {
-								amd.shrinkValueSet();
-							}
+		if (metaData != null) {
+			MetaData storedData = metaData.get();
+			if (storedData != null) {
+				return storedData;
+			}
+		}
+		// otherwise metaData == null OR get() == null -> re-read
+		MetaData readObject;
+		File metaDataFile = getMetaDataFile();
+		if (metaDataFile.exists()) {
+			ObjectInputStream objectIn = null;
+			try {
+				objectIn = new RMObjectInputStream(new FileInputStream(metaDataFile));
+				readObject = (MetaData)objectIn.readObject();
+				this.metaData = new WeakReference<MetaData>(readObject);
+				if (readObject instanceof ExampleSetMetaData) {
+					for (AttributeMetaData amd : ((ExampleSetMetaData)readObject).getAllAttributes()) {
+						if (amd.isNominal()) {
+							amd.shrinkValueSet();
 						}
 					}
-					objectIn.close();
-				} catch (Exception e) {
-					throw new RepositoryException("Cannot load meta data from '"+metaDataFile+"': "+e, e);
-				} finally {
-					if (objectIn != null) {
-						try {
-							objectIn.close();
-						} catch (IOException e) { }
-					}
 				}
-			} else {
-				throw new RepositoryException("Meta data file '"+metaDataFile+" does not exist'.");
-			}	
+				objectIn.close();
+			} catch (Exception e) {
+				throw new RepositoryException("Cannot load meta data from '"+metaDataFile+"': "+e, e);
+			} finally {
+				if (objectIn != null) {
+					try {
+						objectIn.close();
+					} catch (IOException e) { }
+				}
+			}
+		} else {
+			throw new RepositoryException("Meta data file '"+metaDataFile+" does not exist'.");
 		}
-		return metaData;
+		return readObject;
 	}
 	
 	@Override
@@ -164,7 +172,7 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 				l.complete();
 			}
 		}		
-		this.metaData = md;
+		this.metaData = new WeakReference<MetaData>(md);
 	}
 
 	@Override
@@ -175,7 +183,12 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 	@Override
 	public String getDescription() {
 		if (metaData != null) {
-			return metaData.getDescription();
+			MetaData md = metaData.get();
+			if (md != null) {
+				return md.getDescription();	
+			} else {
+				return "Simple entry.";
+			}			
 		} else {
 			return "Simple entry.";
 		}
@@ -222,6 +235,6 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 	
 	@Override
 	public boolean willBlock() {
-		return metaData == null;
+		return (metaData == null) || (metaData.get() == null);
 	}
 }

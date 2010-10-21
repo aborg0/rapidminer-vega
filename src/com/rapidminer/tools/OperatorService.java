@@ -103,7 +103,7 @@ public class OperatorService {
 	// private static final String OPERATORS_XML = "operators.xml";
 
 	public static final String RAPID_MINER_CORE_PREFIX = "RapidMiner Core";
-
+	public static final String RAPID_MINER_CORE_NAMESPACE = "core";
 	// static final String DEFAULT_OPERATOR_DOC_RESOURCE =
 	// "com.rapidminer.resources.i18n.renamedOperatorDoc";
 	private static final String OPERATORS_XML = "OperatorsCore.xml";

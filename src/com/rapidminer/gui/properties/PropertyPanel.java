@@ -56,6 +56,7 @@ import com.rapidminer.gui.properties.celleditors.value.DatabaseTableValueCellEdi
 import com.rapidminer.gui.properties.celleditors.value.DateFormatValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.DefaultPropertyValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.EnumerationValueCellEditor;
+import com.rapidminer.gui.properties.celleditors.value.ExpressionValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.InnerOperatorValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.ListValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.MatrixValueCellEditor;
@@ -84,6 +85,7 @@ import com.rapidminer.parameter.ParameterTypeDatabaseTable;
 import com.rapidminer.parameter.ParameterTypeDateFormat;
 import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.ParameterTypeEnumeration;
+import com.rapidminer.parameter.ParameterTypeExpression;
 import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypeInnerOperator;
 import com.rapidminer.parameter.ParameterTypeInt;
@@ -141,6 +143,7 @@ public abstract class PropertyPanel extends JPanel {
 		registerPropertyValueCellEditor(ParameterTypeInnerOperator.class, InnerOperatorValueCellEditor.class);
 		registerPropertyValueCellEditor(ParameterTypeList.class, ListValueCellEditor.class);
 		registerPropertyValueCellEditor(ParameterTypeMatrix.class, MatrixValueCellEditor.class);
+		registerPropertyValueCellEditor(ParameterTypeExpression.class, ExpressionValueCellEditor.class);
 		registerPropertyValueCellEditor(ParameterTypeText.class, TextValueCellEditor.class);
 		registerPropertyValueCellEditor(ParameterTypeAttribute.class, AttributeValueCellEditor.class);
 		registerPropertyValueCellEditor(ParameterTypeTupel.class, ParameterTupelCellEditor.class);

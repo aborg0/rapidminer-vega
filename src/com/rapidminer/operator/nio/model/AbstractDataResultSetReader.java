@@ -101,13 +101,14 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 
 		// loading configuration
 		DataResultSetTranslationConfiguration configuration = new DataResultSetTranslationConfiguration(this);
-		if (!configuration.isComplete()) {
+		final boolean configComplete = !configuration.isComplete();
+		if (configComplete) {
 			configuration.reconfigure(dataResultSet);
 		}
 
 		// now use translator to read, translate and return example set
 		DataResultSetTranslator translator = new DataResultSetTranslator(this);
-		if (!configuration.isComplete()) {
+		if (configComplete) {
 			translator.guessValueTypes(configuration, dataResultSet, null);
 		}
 		final ExampleSet exampleSet = translator.read(dataResultSet, configuration, false, null);

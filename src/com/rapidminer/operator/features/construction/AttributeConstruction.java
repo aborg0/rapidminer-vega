@@ -37,6 +37,7 @@ import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.preprocessing.filter.ChangeAttributeName;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
+import com.rapidminer.parameter.ParameterTypeExpression;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
@@ -48,15 +49,14 @@ import com.rapidminer.tools.math.function.ExpressionParser;
  * and their construction description are defined in the parameter list &quot;functions&quot;.
  * </p>
  * 
- * <p>
- * The following <em>operators</em> are supported:
+ * <p>The following <em>operators</em> are supported:
  * <ul>
  * <li>Addition: +</li>
  * <li>Subtraction: -</li>
  * <li>Multiplication: *</li>
  * <li>Division: /</li>
  * <li>Power: ^</li>
- * <li>Modulus: %</li>
+ * <li>Modulus: %</li> 
  * <li>Less Than: &lt;</li>
  * <li>Greater Than: &gt;</li>
  * <li>Less or Equal: &lt;=</li>
@@ -64,13 +64,12 @@ import com.rapidminer.tools.math.function.ExpressionParser;
  * <li>Equal: ==</li>
  * <li>Not Equal: !=</li>
  * <li>Boolean Not: !</li>
- * <li>Boolean And: two ampers and</li>
+ * <li>Boolean And: &&</li>
  * <li>Boolean Or: ||</li>
  * </ul>
  * </p>
  * 
- * <p>
- * The following <em>log and exponential functions</em> are supported:
+ * <p>The following <em>log and exponential functions</em> are supported:
  * <ul>
  * <li>Natural Logarithm: ln(x)</li>
  * <li>Logarithm Base 10: log(x)</li>
@@ -80,8 +79,7 @@ import com.rapidminer.tools.math.function.ExpressionParser;
  * </ul>
  * </p>
  * 
- * <p>
- * The following <em>trigonometric functions</em> are supported:
+ * <p>The following <em>trigonometric functions</em> are supported:
  * <ul>
  * <li>Sine: sin(x)</li>
  * <li>Cosine: cos(x)</li>
@@ -93,41 +91,68 @@ import com.rapidminer.tools.math.function.ExpressionParser;
  * <li>Hyperbolic Sine: sinh(x)</li>
  * <li>Hyperbolic Cosine: cosh(x)</li>
  * <li>Hyperbolic Tangent: tanh(x)</li>
- * <li>Inverse Hyperbolic Sine: asinh(x)</li>
- * <li>Inverse Hyperbolic Cosine: acosh(x)</li>
- * <li>Inverse Hyperbolic Tangent: atanh(x)</li>
+ * <li>Inverse Hyperbolic Sine: asinh(x)</li></li>
+ * <li>Inverse Hyperbolic Cosine: acosh(x)</li></li>
+ * <li>Inverse Hyperbolic Tangent: atanh(x)</li></li>
  * </ul>
  * </p>
  * 
- * <p>
- * The following <em>statistical functions</em> are supported:
+ * <p>The following <em>statistical functions</em> are supported:
  * <ul>
  * <li>Round: round(x)</li>
  * <li>Round to p decimals: round(x,p)</li>
  * <li>Floor: floor(x)</li>
  * <li>Ceiling: ceil(x)</li>
+ * </ul>
+ * </p>
+ *
+ * <p>The following <em>aggregation functions</em> are supported:
+ * <ul>
  * <li>Average: avg(x,y,z...)</li>
  * <li>Minimum: min(x,y,z...)</li>
  * <li>Maximum: max(x,y,z...)</li>
  * </ul>
  * </p>
  * 
- * <p>
- * The following <em>miscellaneous functions</em> are supported:
+ * <p>The following <em>text functions</em> are supported:
+ * <ul>
+ * <li>Number to String: str(x)</li>
+ * <li>String to Number: parse(text)</li>
+ * <li>Substring: cut(text, start, length)</li>
+ * <li>Concatenation (also possible by &quot+&quot;): concat(text1, text2, text3...)</li>
+ * <li>Replace: replace(text, what, by)</li>
+ * <li>Replace All: replaceAll(text, what, by)</li> 
+ * <li>To lower case: lower(text)</li>
+ * <li>To upper case: upper(text)</li>
+ * <li>First position of string in text: index(text, string)</li>
+ * <li>Length: length(text)</li>
+ * <li>Character at position pos in text: char(text, pos)</li>
+ * <li>Compare: compare(text1, text2)</li>
+ * <li>Contains string in text: contains(text, string)</li>
+ * <li>Equals: equals(text1, text2)</li>
+ * <li>Starts with string: starts(text, string)</li>
+ * <li>Ends with string: ends(text, string)</li>
+ * <li>Matches with regular expression exp: matches(text, exp)</li>
+ * <li>Suffix of length: suffix(text, length)</li>
+ * <li>Prefix of length: prefix(text, length)</li>
+ * <li>Trim (remove leading and trailing whitespace): trim(text)</li>
+ * </ul>
+ * </p> 
+ * 
+ * <p>The following <em>miscellaneous functions</em> are supported:
  * <ul>
  * <li>If-Then-Else: if(cond,true-evaluation, false-evaluation)</li>
  * <li>Absolute: abs(x)</li>
+ * <li>Constant: const(x)</li>
  * <li>Square Root: sqrt(x)</li>
  * <li>Signum (delivers the sign of a number): sgn(x)</li>
  * <li>Random Number (between 0 and 1): rand()</li>
  * <li>Modulus (x % y): mod(x,y)</li>
  * <li>Sum of k Numbers: sum(x,y,z...)</li>
  * <li>Binomial Coefficients: binom(n, i)</li>
- * <li>Number to String: str(x)</li>
- * <li>String to Number: parse(x)</li>
- * <li>Substring: cut(x, start, len)</li>
+ * <li>Retrieving parameter value: param(operator name, parameter name)</li>
  * </ul>
- * </p>
+ * </p> 
  * 
  * <p>
  * The following <em>process related functions</em> are supported:
@@ -136,27 +161,25 @@ import com.rapidminer.tools.math.function.ExpressionParser;
  * </ul>
  * </p>
  * 
- * <p>
- * Beside those operations and functions, this operator also supports the constants pi and e if this is indicated by the
- * corresponding parameter (default: true). You can also use strings in formulas (for example in a conditioned
- * if-formula) but the string values have to be enclosed in double quotes.
- * </p>
  * 
- * <p>
- * Please note that there are some restrictions for the attribute names in order to let this operator work properly:
+ * <p>Beside those operators and functions, this operator also supports the constants
+ * pi and e if this is indicated by the corresponding parameter (default: true). You can
+ * also use strings in formulas (for example in a conditioned if-formula) but the string
+ * values have to be enclosed in double quotes.</p>
+ *  
+ * <p>Please note that there are some restrictions for the attribute names in order
+ * to let this operator work properly:
  * <ul>
- * <li>If the standard constants are usable, attribute names with names like &quot;e&quot; or &quot;pi&quot; are not
- * allowed.</li>
+ * <li>If the standard constants are usable, attribute names with names like &quot;e&quot; or 
+ * &quot;pi&quot; are not allowed.</li>
  * <li>Attribute names with function or operator names are also not allowed.</li>
  * <li>Attribute names containing parentheses are not allowed.</li>
  * </ul>
- * If these conditions are not fulfilled, the names must be changed beforehand, for example with the
- * {@link ChangeAttributeName} operator.
+ * If these conditions are not fulfilled, the names must be changed beforehand, for example
+ * with the {@link ChangeAttributeName} operator.
  * </p>
  * 
- * <p>
- * <br/>
- * <em>Examples:</em><br/>
+ * <p><br/><em>Examples:</em><br/>
  * a1+sin(a2*a3)<br/>
  * if (att1>5, att2*att3, -abs(att1))<br/>
  * </p>
@@ -233,7 +256,7 @@ public class AttributeConstruction extends AbstractFeatureConstruction {
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
 
-		ParameterType type = new ParameterTypeList(PARAMETER_FUNCTIONS, "List of functions to generate.", new ParameterTypeString("attribute_name", "Specifies the name of the constructed attribute"), new ParameterTypeString("function_expressions", "Function and arguments to use for generation."));
+		ParameterType type = new ParameterTypeList(PARAMETER_FUNCTIONS, "List of functions to generate.", new ParameterTypeString("attribute_name", "Specifies the name of the constructed attribute"), new ParameterTypeExpression("function_expressions", "Function and arguments to use for generation.", getInputPort()));
 		type.setExpert(false);
 		types.add(type);
 

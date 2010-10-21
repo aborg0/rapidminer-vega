@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 
 import com.rapid_i.repository.wsimport.EntryResponse;
@@ -45,7 +46,7 @@ import com.rapidminer.tools.ProgressListener;
  */
 public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntry {
 
-	private MetaData metaData;
+	private WeakReference<MetaData> metaData;
 	private final Object metaDatalLock = new Object();
 
 	RemoteIOObjectEntry(EntryResponse response, RemoteFolder container, RemoteRepository repository) {
@@ -86,28 +87,33 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 	@Override
 	public MetaData retrieveMetaData() throws RepositoryException {
 		synchronized (metaDatalLock) {
-			if (metaData == null) {
-				try {
-					HttpURLConnection connection = getRepository().getHTTPConnection(getLocation().getPath(), EntryStreamType.METADATA);
-					connection.setRequestMethod("GET");
-					InputStream in;
-					try {
-						in = connection.getInputStream();
-					} catch (IOException e) {
-						throw new RepositoryException("Cannot download meta data: " + connection.getResponseCode() + ": " + connection.getResponseMessage(), e);
-					}
-					Object result = IOObjectSerializer.getInstance().deserialize(in);
-					if (result instanceof MetaData) {
-						this.metaData = (MetaData) result;
-					} else {
-						throw new RepositoryException("Server did not send MetaData, but instance of " + result.getClass());
-					}
-				} catch (IOException e) {
-					throw new RepositoryException("Cannot parse I/O-Object: " + e, e);
+			if (metaData != null) {
+				MetaData storedData = metaData.get();
+				if (storedData != null) {
+					return storedData;
 				}
 			}
-		}
-		return metaData;
+			// otherwise metaData == null OR get() == null
+			try {
+				HttpURLConnection connection = getRepository().getHTTPConnection(getLocation().getPath(), EntryStreamType.METADATA);
+				connection.setRequestMethod("GET");
+				InputStream in;
+				try {
+					in = connection.getInputStream();
+				} catch (IOException e) {
+					throw new RepositoryException("Cannot download meta data: " + connection.getResponseCode() + ": " + connection.getResponseMessage(), e);
+				}
+				Object result = IOObjectSerializer.getInstance().deserialize(in);
+				if (result instanceof MetaData) {
+					this.metaData = new WeakReference<MetaData>((MetaData) result);
+					return (MetaData) result;
+				} else {
+					throw new RepositoryException("Server did not send MetaData, but instance of " + result.getClass());
+				}
+			} catch (IOException e) {
+				throw new RepositoryException("Cannot parse I/O-Object: " + e, e);
+			}
+		}		
 	}
 
 	@Override
@@ -183,6 +189,6 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 
 	@Override
 	public boolean willBlock() {
-		return metaData == null;
+		return (metaData == null) || (metaData.get() == null);
 	}
 }

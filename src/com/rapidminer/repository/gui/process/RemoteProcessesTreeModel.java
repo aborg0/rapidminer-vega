@@ -53,9 +53,9 @@ import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.tools.LogService;
 
 /**
+ * The TreeModel for the log of remotely executed processes.
  * 
  * @author Simon Fischer
- *
  */
 public class RemoteProcessesTreeModel implements TreeModel {
 

@@ -62,6 +62,7 @@ public class SimplePopulationEvaluator implements PopulationEvaluator {
 	public void evaluate(Population population) throws OperatorException {
 		for (int i = 0; i < population.getNumberOfIndividuals(); i++) {
 			evaluate(population.get(i));
+			population.updateEvaluation();
 		}
 	}
 

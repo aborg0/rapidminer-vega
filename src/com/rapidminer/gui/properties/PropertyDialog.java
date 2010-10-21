@@ -41,6 +41,10 @@ public class PropertyDialog extends ButtonDialog {
 		this.type = type;
 	}
 
+	protected ParameterType getParameterType() {
+		return this.type;
+	}
+	
 	@Override
 	protected String getInfoText() {
 		return "<html>" + I18N.getMessage(I18N.getGUIBundle(), getKey() + ".title") +

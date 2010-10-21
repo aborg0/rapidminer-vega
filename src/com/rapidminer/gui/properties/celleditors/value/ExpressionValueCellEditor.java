@@ -25,48 +25,44 @@ package com.rapidminer.gui.properties.celleditors.value;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.io.File;
 
 import javax.swing.AbstractCellEditor;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 
-import com.rapidminer.gui.RapidMinerGUI;
-import com.rapidminer.gui.tools.ResourceAction;
+import com.rapidminer.gui.properties.ExpressionPropertyDialog;
 import com.rapidminer.gui.tools.SwingTools;
-import com.rapidminer.parameter.ParameterTypeDirectory;
-import com.rapidminer.parameter.ParameterTypeFile;
+import com.rapidminer.operator.Operator;
+import com.rapidminer.parameter.ParameterTypeExpression;
 
+public class ExpressionValueCellEditor extends AbstractCellEditor implements PropertyValueCellEditor {
+	
+	private static final long serialVersionUID = 2355429695124754211L;
 
-/**
- * Cell editor consisting of a text field and a small button for opening a file
- * chooser. Should be used for parameters / properties which are files (but no
- * special files like attribute description files). If the desired property is a
- * directory, the button automatically opens a file chooser for directories.
- * 
- * @see com.rapidminer.gui.properties.celleditors.value.AttributeFileValueCellEditor
- * @author Simon Fischer, Ingo Mierswa
- */
-public abstract class FileValueCellEditor extends AbstractCellEditor implements PropertyValueCellEditor {
-
-	private static final long serialVersionUID = -8235047960089702819L;
-
+	private static final String CALCULATOR_NAME = "calculator.png";
+	
+	private static Icon CALCULATOR_ICON = null;
+	
+	static {
+		CALCULATOR_ICON = SwingTools.createIcon("16/" + CALCULATOR_NAME);
+	}
+	
 	private final JPanel panel = new JPanel();
 
 	private final JTextField textField = new JTextField(12);
 
-	private final ParameterTypeFile type;
+	private final ParameterTypeExpression type;
 
 	private final GridBagLayout gridBagLayout = new GridBagLayout();
-
-	public FileValueCellEditor(ParameterTypeFile type) {
+	
+	public ExpressionValueCellEditor(ParameterTypeExpression type) {
 		this.type = type;
 		panel.setLayout(gridBagLayout);
 		panel.setToolTipText(type.getDescription());
@@ -91,47 +87,45 @@ public abstract class FileValueCellEditor extends AbstractCellEditor implements 
 		c.weightx = 1;
 		gridBagLayout.setConstraints(textField, c);
 		panel.add(textField);
-	}
-
-	protected JButton createFileChooserButton() {
-		JButton button = new JButton(new ResourceAction(true, "choose_file") {
-			private static final long serialVersionUID = 1L;
+		
+		JButton button = new JButton(CALCULATOR_ICON);
+		button.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				buttonPressed();
 			}
 		});
-		button.setMargin(new Insets(0, 0, 0, 0));
-		return button;
-	}
-
-	protected void addButton(JButton button, int gridwidth) {
-		GridBagConstraints c = new GridBagConstraints();
-		c.gridwidth = gridwidth;
+		c.gridwidth = GridBagConstraints.REMAINDER;
 		c.weightx = 0;
-		c.fill = GridBagConstraints.BOTH;
 		gridBagLayout.setConstraints(button, c);
 		panel.add(button);
 	}
 
 	private void buttonPressed() {
-		String value = (String) getCellEditorValue();
-		File file = (value == null || value.length() == 0) ? null : RapidMinerGUI.getMainFrame().getProcess().resolveFileName(value);
-		File selectedFile = SwingTools.chooseFile(RapidMinerGUI.getMainFrame(), file, true, type instanceof ParameterTypeDirectory, type.getExtension(), type.getKey());
-		if ((selectedFile != null)) {
-			setText(selectedFile);
-			fireEditingStopped();
-		} else {
-			fireEditingCanceled();
-		}
+		Object value = getCellEditorValue();
+		String initial = value == null ? null : value.toString();
+		ExpressionPropertyDialog dialog = new ExpressionPropertyDialog(type, initial);
+		dialog.setVisible(true);
+		if (dialog.isOk())
+			setText(dialog.getExpression());
+		fireEditingStopped();
 	}
 
-	protected void setText(File file) {
-		if (file == null)
+	protected void setText(String text) {
+		if (text == null)
 			textField.setText("");
 		else
-			textField.setText(file.getPath());
+			textField.setText(text);
 	}
-
+	
+    /** Does nothing. */
+    public void setOperator(Operator operator) {}
+    
+	@Override
+	public boolean rendersLabel() {
+		return false;
+	}
+	
 	public Object getCellEditorValue() {
 		return (textField.getText().trim().length() == 0) ? null : textField.getText().trim();
 	}
@@ -148,5 +142,4 @@ public abstract class FileValueCellEditor extends AbstractCellEditor implements 
 	public boolean useEditorAsRenderer() {
 		return true;
 	}
-
 }

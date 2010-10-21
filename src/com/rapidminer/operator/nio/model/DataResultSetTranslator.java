@@ -146,6 +146,14 @@ public class DataResultSetTranslator {
 						String newAttributeName = getString(dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant);
 						if (newAttributeName != null && !newAttributeName.isEmpty()) {
 							attribute.setName(newAttributeName);
+							// We also remember the name in the CMD since we otherwise would override the attribute name later in this method
+							ColumnMetaData cmd = configuration.getColumnMetaData(attributeColumns[attributeIndex]);
+							if (cmd != null) {
+								if (!cmd.isAttributeNameSpecified()) {
+									cmd.setUserDefinedAttributeName(newAttributeName);
+								}
+							}
+
 						}
 					} else {
 						// setting annotation

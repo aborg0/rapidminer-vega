@@ -272,6 +272,15 @@ public class OperatorDescription implements Comparable<OperatorDescription> {
 	public String getProviderName() {
 		return provider != null ? provider.getName() : OperatorService.RAPID_MINER_CORE_PREFIX;
 	}
+	
+	/**
+	 * This defines the namespace of the provider. If is core, OperatorService.RAPID_MINER_CORE_NAMESPACE is returned.
+	 * Otherwise the namespace of the extension is returned as defined by the manifest.xml
+	 * @return
+	 */
+	public String getProviderNamespace() {
+		return provider != null ? provider.getExtensionId() : OperatorService.RAPID_MINER_CORE_NAMESPACE;
+	}
 
 	public String getKey() {
 		if (provider != null) {

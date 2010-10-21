@@ -71,8 +71,9 @@ public class RandomForestLearner extends RandomTreeLearner {
 		// learn base models
 		List<TreeModel> baseModels = new LinkedList<TreeModel>();
 		int numberOfTrees = getParameterAsInt(PARAMETER_NUMBER_OF_TREES);
+		
 		for (int i = 0; i < numberOfTrees; i++) {
-			TreeModel model = (TreeModel)super.learn((ExampleSet)exampleSet.clone());
+			TreeModel model = (TreeModel)super.learn(bootstrapping.apply(exampleSet));
 			model.setSource(getName());
 			baseModels.add(model);
 		}

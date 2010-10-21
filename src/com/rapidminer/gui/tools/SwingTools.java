@@ -273,6 +273,23 @@ public class SwingTools {
 	}
 	
 	/**
+	 * This method returns the path of the icon given.
+	 * @param iconName 
+	 * @return
+	 */
+	public static String getIconPath(String iconName) {
+		if (RapidMiner.getExecutionMode().isHeadless()) {
+			return null;
+		}
+		for (String path: iconPaths) {
+			ImageIcon icon = createImage(path + iconName);
+			if (icon != null)
+				return Tools.getResource(path + iconName).toString();
+		}
+		return null;
+	}
+	
+	/**
 	 * This method adds a path to the set of paths which are searched for icons if 
 	 * the {@link SwingTools#createIcon(String)} is called.
 	 */

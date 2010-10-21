@@ -149,11 +149,22 @@ public abstract class AbstractTableModelTableRenderer extends NonGraphicalRender
 					Arrays.sort(sortIndices, new Comparator<Integer>() {
 						@SuppressWarnings("unchecked")
 						@Override
-						public int compare(Integer o1, Integer o2) {
-							if (sortDecreasing)
-								return ((Comparable)model.getValueAt(minRow + o2, sortColumn)).compareTo(model.getValueAt(minRow + o1, sortColumn));
-							else
-								return ((Comparable)model.getValueAt(minRow + o1, sortColumn)).compareTo(model.getValueAt(minRow + o2, sortColumn));
+						public int compare(Integer o1, Integer o2) {							
+							Comparable c2 = (Comparable) model.getValueAt(minRow + o1, sortColumn);
+							Comparable c1 = (Comparable)model.getValueAt(minRow + o2, sortColumn);
+							if ((c1 == null) & (c2 == null)) {
+								return 0;
+							}
+							if ((c1 == null) && (c2 != null)) {
+								return -1;
+							}
+							if ((c1 != null) && (c2  == null)) {
+								return +1;
+							}
+							if (sortDecreasing) {								
+								return c1.compareTo(c2);
+							} else
+								return c2.compareTo(c1);
 						}
 					});
 				} else {

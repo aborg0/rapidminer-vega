@@ -63,7 +63,7 @@ public class OutputPortExtender extends SinglePortExtender<OutputPort> {
 		for (OutputPort port : getManagedPorts()) {
 			if (port.isConnected()) {
 				if (i >= inputs.size()) {
-					getPorts().getOwner().getOperator().getLogger().warning("Insufficient input for "+port.getSpec());
+					getPorts().getOwner().getOperator().getLogger().fine("Insufficient input for "+port.getSpec());
 				} else {
 					IOObject input = inputs.get(i);
 					port.deliver(input);

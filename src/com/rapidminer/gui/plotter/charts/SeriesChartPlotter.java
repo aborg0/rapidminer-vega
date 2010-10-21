@@ -24,6 +24,8 @@ package com.rapidminer.gui.plotter.charts;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,6 +37,7 @@ import java.util.Locale;
 
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JTextField;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -77,9 +80,11 @@ public class SeriesChartPlotter extends RangeablePlotterAdapter {
 	private static final long serialVersionUID = -8763693366081949249L;
 
 	private static final String PARAMETER_MARKER = "marker_at";
-	
+
 	private static final String VALUEAXIS_LABEL = "value";
 	private static final String SERIESINDEX_LABEL = "index";
+
+	private JTextField limitField = new JTextField();
 
 	/** The currently used data table object. */
 	private transient DataTable dataTable;
@@ -102,12 +107,24 @@ public class SeriesChartPlotter extends RangeablePlotterAdapter {
 
 	/** Indicates if bounds are plotted. */
 	private boolean plotBounds = false;
+	private int boundsSeriesIndex = 1;
 
 	private List<Integer> plotIndexToColumnIndexMap = new ArrayList<Integer>();
 
-	public SeriesChartPlotter(PlotterConfigurationModel settings) {
+	public SeriesChartPlotter(final PlotterConfigurationModel settings) {
 		super(settings);
 		setBackground(Color.white);
+
+		limitField.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					double value = Double.parseDouble(limitField.getText());
+					settings.setParameterAsDouble(PARAMETER_MARKER, value);
+				} catch (NumberFormatException ex) {
+					useLimit = false;
+				}
+			}
+		});
 	}
 
 	public SeriesChartPlotter(PlotterConfigurationModel settings, DataTable dataTable) {
@@ -137,33 +154,24 @@ public class SeriesChartPlotter extends RangeablePlotterAdapter {
 		plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
 		DeviationRenderer renderer = new DeviationRenderer(true, false);
 
-		if (plotBounds) {
-			if (dataset.getSeriesCount() == 2) {
-				renderer.setSeriesStroke(0, new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-				renderer.setSeriesPaint(0, getColorProvider().getPointColor(1.0d));
-			} else {
-				for (int i = 0; i < dataset.getSeriesCount() - 1; i++) {
-					renderer.setSeriesStroke(i, new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-					renderer.setSeriesPaint(i, getColorProvider().getPointColor(i / (double) (dataset.getSeriesCount() - 2)));
-				}
-			}
-
-			float[] dashArray = new float[] { 7, 14 };
-			renderer.setSeriesStroke(dataset.getSeriesCount() - 1, new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1.0f, dashArray, 0));
-			renderer.setSeriesPaint(dataset.getSeriesCount() - 1, Color.GRAY.brighter());
-			renderer.setSeriesFillPaint(dataset.getSeriesCount() - 1, Color.GRAY);
-		} else {
-			if (dataset.getSeriesCount() == 1) {
-				renderer.setSeriesStroke(0, new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-				renderer.setSeriesPaint(0, getColorProvider().getPointColor(1.0d));
-
-			} else {
-				for (int i = 0; i < dataset.getSeriesCount(); i++) {
-					renderer.setSeriesStroke(i, new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-					renderer.setSeriesPaint(i, getColorProvider().getPointColor(i / (double) (dataset.getSeriesCount() - 1)));
-				}
+		// colors
+		if (dataset.getSeriesCount() == 1) {
+			renderer.setSeriesStroke(0, new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+			renderer.setSeriesPaint(0, getColorProvider().getPointColor(1.0d));
+		} else {  // special case needed for avoiding devision by zero
+			for (int i = 0; i < dataset.getSeriesCount(); i++) {
+				renderer.setSeriesStroke(i, new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+				renderer.setSeriesPaint(i, getColorProvider().getPointColor(1.0d - i / (double) (dataset.getSeriesCount() - 1)));
 			}
 		}
+		// background for bounds 
+		if (plotBounds) {
+			float[] dashArray = new float[] { 7, 14 };
+			renderer.setSeriesStroke(boundsSeriesIndex, new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1.0f, dashArray, 0));
+			renderer.setSeriesPaint(boundsSeriesIndex, Color.GRAY.brighter());
+			renderer.setSeriesFillPaint(boundsSeriesIndex, Color.GRAY);
+		}
+		// alpha
 		renderer.setAlpha(0.25f);
 
 		plot.setRenderer(renderer);
@@ -273,10 +281,18 @@ public class SeriesChartPlotter extends RangeablePlotterAdapter {
 		super.setAdditionalParameter(key, value);
 		if (PARAMETER_MARKER.equals(key)) {
 			try {
-				limit = Double.parseDouble(value);
+				double newLimit = Double.parseDouble(value);
 				useLimit = true;
+				if (limit != newLimit) {
+					limitField.setText(limit + "");
+					limit = newLimit;
+					updatePlotter();
+				}
 			} catch (NumberFormatException e) {
-				useLimit = false;
+				if (useLimit) {
+					useLimit = false;
+					updatePlotter();
+				}
 			}
 		}
 	}
@@ -327,7 +343,7 @@ public class SeriesChartPlotter extends RangeablePlotterAdapter {
 
 			// Lower and upper bound
 			if ((getAxis(MIN) > -1) && (getAxis(MAX) > -1)) {
-				if ((dataTable.isNumerical(getAxis(0))) && (dataTable.isNumerical(getAxis(1)))) {
+				if ((dataTable.isNumerical(getAxis(MIN))) && (dataTable.isNumerical(getAxis(MAX)))) {
 					YIntervalSeries series = new YIntervalSeries("Bounds");
 					Iterator<DataTableRow> i = dataTable.iterator();
 					int index = 0;
@@ -350,14 +366,15 @@ public class SeriesChartPlotter extends RangeablePlotterAdapter {
 					}
 					dataset.addSeries(series);
 					this.plotBounds = true;
+					this.boundsSeriesIndex = dataset.getSeriesCount() - 1;
 				}
 			}
-			
+
 			// limit
 			if (useLimit) {
 				YIntervalSeries series = new YIntervalSeries("Limit");
 				int index = 0;
-				for (DataTableRow row: dataTable) {
+				for (DataTableRow row : dataTable) {
 					if (!dataTable.isNominal(axis[INDEX])) {
 						double indexValue = row.getValue(axis[INDEX]);
 						series.add(indexValue, limit, limit, limit);
@@ -367,7 +384,7 @@ public class SeriesChartPlotter extends RangeablePlotterAdapter {
 				}
 				dataset.addSeries(series);
 			}
-			
+
 			return columnCount;
 		}
 	}
@@ -399,6 +416,8 @@ public class SeriesChartPlotter extends RangeablePlotterAdapter {
 	@Override
 	public JComponent getOptionsComponent(int index) {
 		if (index == 0)
+			return limitField;
+		else if (index == 1)
 			return getRotateLabelComponent();
 		return null;
 	}
@@ -437,7 +456,10 @@ public class SeriesChartPlotter extends RangeablePlotterAdapter {
 			} else {
 				LinkedHashSet<String> values = new LinkedHashSet<String>();
 				for (DataTableRow row : dataTable) {
-					values.add(dataTable.mapIndex(axis[INDEX], (int) row.getValue(axis[INDEX])));
+					String stringValue = dataTable.mapIndex(axis[INDEX], (int) row.getValue(axis[INDEX]));
+					if (stringValue.length() > 40)
+						stringValue = stringValue.substring(0, 40);
+					values.add(stringValue);
 				}
 				ValueAxis categoryAxis = new SymbolAxis(dataTable.getColumnName(axis[INDEX]), values.toArray(new String[values.size()]));
 				categoryAxis.setLabelFont(LABEL_FONT_BOLD);

@@ -195,7 +195,11 @@ public class DataResultSetTranslationConfiguration {
 	}
 
 	public ColumnMetaData getColumnMetaData(int col) {
-		return columnMetaData[col];
+		if ((columnMetaData != null) && (col < columnMetaData.length)) {
+			return columnMetaData[col];
+		} else {
+			return null;
+		}
 	}
 
 	/**

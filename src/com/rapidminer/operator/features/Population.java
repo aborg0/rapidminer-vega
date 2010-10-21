@@ -45,7 +45,16 @@ public class Population {
 		public int compare(Individual i1, Individual i2) {
 			PerformanceVector p1 = i1.getPerformance();
 			PerformanceVector p2 = i2.getPerformance();
-			return p1.compareTo(p2);
+			if (p1 == null) {
+				if (p2 == null)
+					return 0;
+				return -1;
+			} else {
+				if (p2 == null)
+					return 1;
+				else
+					return p1.compareTo(p2);		
+			}
 		}
 	};
 

@@ -146,7 +146,7 @@ import com.rapidminer.tools.math.function.text.UpperCase;
  * </ul>
  * </p>
  *
- * <p>The following <em>miscellaneous functions</em> are supported:
+ * <p>The following <em>aggregation functions</em> are supported:
  * <ul>
  * <li>Average: avg(x,y,z...)</li>
  * <li>Minimum: min(x,y,z...)</li>
@@ -194,6 +194,14 @@ import com.rapidminer.tools.math.function.text.UpperCase;
  * </ul>
  * </p> 
  * 
+ * <p>
+ * The following <em>process related functions</em> are supported:
+ * <ul>
+ * <li>Retrieving a parameter value: param("operator", "parameter")</li>
+ * </ul>
+ * </p>
+ * 
+ * 
  * <p>Beside those operators and functions, this operator also supports the constants
  * pi and e if this is indicated by the corresponding parameter (default: true). You can
  * also use strings in formulas (for example in a conditioned if-formula) but the string
@@ -220,6 +228,117 @@ import com.rapidminer.tools.math.function.text.UpperCase;
  */
 public class ExpressionParser {
 
+	private static final String[] FUNCTION_GROUPS = 
+			{ 
+				"Basic Operators",
+				"Log and Exponential",
+				"Trigonometric",
+				"Statistical",
+				"Text",
+				"Process",
+				"Miscellaneous"
+			};
+	
+	private static final Map<String, List<FunctionDescription>> FUNCTIONS = new HashMap<String, List<FunctionDescription>>();
+	
+	static {
+		// basic operators
+		List<FunctionDescription> operatorFunctions = new LinkedList<FunctionDescription>();
+		operatorFunctions.add(new FunctionDescription("+", "Addition", "Calculates the addition of the two terms surrounding this operator; example: att1 + 7", 2));
+		operatorFunctions.add(new FunctionDescription("-", "Subtraction", "Calculates the subtraction of the first term by the second one; example: 42 - att2", 2));
+		operatorFunctions.add(new FunctionDescription("*", "Multiplication", "Calculates the multiplication of the two terms surrounding this operator; example: 5 * att3", 2));
+		operatorFunctions.add(new FunctionDescription("/", "Division", "Calculates the division of the first term by the second one; example: 12 / 4", 2));
+		operatorFunctions.add(new FunctionDescription("^", "Power", "Calculates the first term to the power of the second one; example: 2^3", 2));
+		operatorFunctions.add(new FunctionDescription("%", "Modulus", "Calculates the modulus of the first term by the second one; example: 11 % 2", 2));
+		operatorFunctions.add(new FunctionDescription("<", "Less Than", "Delivers true if the first term is less than the second; example: att1 < 4", 2));
+		operatorFunctions.add(new FunctionDescription(">", "Greater Than", "Delivers true if the first term is greater than the second; example: att2 > 3", 2));
+		operatorFunctions.add(new FunctionDescription("<=", "Less Equals", "Delivers true if the first term is less than or equal to the second; example: att3 <= 5", 2));
+		operatorFunctions.add(new FunctionDescription(">=", "Greater Equals", "Delivers true if the first term is greater than or equal to the second; example: att4 >= 4", 2));
+		operatorFunctions.add(new FunctionDescription("==", "Equals", "Delivers true if the first term is equal to the second; example: att1 == att2", 2));
+		operatorFunctions.add(new FunctionDescription("!=", "Not Equals", "Delivers true if the first term is not equal to the second; example: att1 != att2", 2));
+		operatorFunctions.add(new FunctionDescription("!", "Boolean Not", "Delivers true if the following term is false or vice versa; example: !(att1 > 2)", 1));
+		operatorFunctions.add(new FunctionDescription("&&", "Boolean And", "Delivers true if both surrounding terms are true; example: (att1 > 2) && (att2 < 4)", 2));
+		operatorFunctions.add(new FunctionDescription("||", "Boolean Or", "Delivers true if at least one of the surrounding terms is true; example: (att1 < 3) || (att2 > 1)", 2));
+		FUNCTIONS.put(FUNCTION_GROUPS[0], operatorFunctions);
+		
+		// log and exponential functions
+		List<FunctionDescription> logFunctions = new LinkedList<FunctionDescription>();
+		logFunctions.add(new FunctionDescription("ln()", "Natural Logarithm", "Calculates the logarithm of the argument to the base e; example: ln(5)", 1));
+		logFunctions.add(new FunctionDescription("log()", "Logarithm Base 10", "Calculates the logarithm of the argument to the base 10; example: log(att1)", 1));
+		logFunctions.add(new FunctionDescription("ld()", "Logarithm Base 2", "Calculates the logarithm of the argument to the base 2; example: ld(att2)", 1));
+		logFunctions.add(new FunctionDescription("exp()", "Exponential", "Calculates the value of the constant e to the power of the argument; example: exp(att3)", 1));
+		logFunctions.add(new FunctionDescription("pow()", "Power", "Calculates the first term to the power of the second one; example: pow(att1, 3)", 2));
+		FUNCTIONS.put(FUNCTION_GROUPS[1], logFunctions);
+		
+		// trigonometric functions
+		List<FunctionDescription> trigonometricFunctions = new LinkedList<FunctionDescription>();
+		trigonometricFunctions.add(new FunctionDescription("sin()", "Sine", "Calculates the sine of the given argument; example: sin(att1)", 1));
+		trigonometricFunctions.add(new FunctionDescription("cos()", "Cosine", "Calculates the cosine of the given argument; example: cos(att2)", 1));
+		trigonometricFunctions.add(new FunctionDescription("tan()", "Tangent", "Calculates the tangent of the given argument; example: tan(att3)", 1));
+		trigonometricFunctions.add(new FunctionDescription("asin()", "Arc Sine", "Calculates the inverse sine of the given argument; example: asin(att1)", 1));
+		trigonometricFunctions.add(new FunctionDescription("acos()", "Arc Cos", "Calculates the inverse cosine of the given argument; example: acos(att2)", 1));
+		trigonometricFunctions.add(new FunctionDescription("atan()", "Arc Tangent", "Calculates the inverse tangent of the given argument; example: atan(att3)", 1));
+		trigonometricFunctions.add(new FunctionDescription("atan2()", "Arc Tangent 2", "Calculates the inverse tangent based on the two given arguments; example: atan(att1, 0.5)", 2));
+		trigonometricFunctions.add(new FunctionDescription("sinh()", "Hyperbolic Sine", "Calculates the hyperbolic sine of the given argument; example: sinh(att2)", 1));
+		trigonometricFunctions.add(new FunctionDescription("cosh()", "Hyperbolic Cosine", "Calculates the hyperbolic cosine of the given argument; example: cosh(att3)", 1));
+		trigonometricFunctions.add(new FunctionDescription("tanh()", "Hyperbolic Tangent", "Calculates the hyperbolic tangent of the given argument; example: tanh(att1)", 1));
+		trigonometricFunctions.add(new FunctionDescription("asinh()", "Inverse Hyperbolic Sine", "Calculates the inverse hyperbolic sine of the given argument; example: asinh(att2)", 1));
+		trigonometricFunctions.add(new FunctionDescription("acosh()", "Inverse Hyperbolic Cosine", "Calculates the inverse hyperbolic cosine of the given argument; example: acosh(att3)", 1));
+		trigonometricFunctions.add(new FunctionDescription("atanh()", "Inverse Hyperbolic Tangent", "Calculates the inverse hyperbolic tangent of the given argument; example: atanh(att1)", 1));
+		FUNCTIONS.put(FUNCTION_GROUPS[2], trigonometricFunctions);
+		
+		// statistical functions
+		List<FunctionDescription> statisticalFunctions = new LinkedList<FunctionDescription>();
+		statisticalFunctions.add(new FunctionDescription("round()", "Round", "Rounds the given number to the next integer. If two arguments are given, the first one is rounded to the number of digits indicated by the second argument; example: round(att1) or round(att2, 3)", 2));
+		statisticalFunctions.add(new FunctionDescription("floor()", "Floor", "Calculates the next integer less than the given argument; example: floor(att3)", 1));
+		statisticalFunctions.add(new FunctionDescription("ceil()", "Ceil", "Calculates the next integer greater than the given argument; example: ceil(att1)", 1));
+		statisticalFunctions.add(new FunctionDescription("avg()", "Average", "Calculates the average of the given arguments; example: avg(att1, att3)", FunctionDescription.UNLIMITED_NUMBER_OF_ARGUMENTS));
+		statisticalFunctions.add(new FunctionDescription("min()", "Minimum", "Calculates the minimum of the given arguments; example: min(0, att2, att3)", FunctionDescription.UNLIMITED_NUMBER_OF_ARGUMENTS));
+		statisticalFunctions.add(new FunctionDescription("max()", "Maximum", "Calculates the maximum of the given arguments; example: max(att1, att2)", FunctionDescription.UNLIMITED_NUMBER_OF_ARGUMENTS));
+		FUNCTIONS.put(FUNCTION_GROUPS[3], statisticalFunctions);
+		
+		// text functions
+		List<FunctionDescription> textFunctions = new LinkedList<FunctionDescription>();
+		textFunctions.add(new FunctionDescription("str()", "To String", "Transforms the given number into a string (nominal value); example: str(17)", 1));
+		textFunctions.add(new FunctionDescription("parse()", "To Number", "Transforms the given string (nominal value) into a number by parsing it; example: parse(att2)", 1));
+		textFunctions.add(new FunctionDescription("cut()", "Cut", "Cuts the substring of given length at the given start out of a string; example: cut(\"Text\", 1, 2) delivers \"ex\"", 3));
+		textFunctions.add(new FunctionDescription("concat()", "Concatenation", "Concatenates the given arguments (the + operator can also be used for this); example: both concat(\"At\", \"om\") and \"At\" + \"om\" deliver \"Atom\"", FunctionDescription.UNLIMITED_NUMBER_OF_ARGUMENTS));
+		textFunctions.add(new FunctionDescription("replace()", "Replace", "Replaces the first occurence of a search string by the defined replacement; example: replace(att1, \"am\", \"pm\") replaces the first \"am\" in each value of attribute att1 by \"pm\"", 3));
+		textFunctions.add(new FunctionDescription("replaceAll()", "Replace All", "Replaces all occurences of a search string by the defined replacement; example: replaceAll(att1, \"am\", \"pm\") replaces all \"am\" in each value of attribute att1 by \"pm\"", 3));
+		textFunctions.add(new FunctionDescription("lower()", "Lower", "Transforms the given argument into lower case characters; example: lower(att2)", 1));
+		textFunctions.add(new FunctionDescription("upper()", "Upper", "Transforms the given argument into upper case characters; example: upper(att3)", 1));
+		textFunctions.add(new FunctionDescription("index()", "Index", "Delivers the first position of the given search string in the text; example: index(\"Text\", \"e\") delivers 1", 2));
+		textFunctions.add(new FunctionDescription("length()", "Length", "Delivers the length of the given argument; example: length(att1)", 1));
+		textFunctions.add(new FunctionDescription("char()", "Character At", "Delivers the character at the specified position; example: char(att2, 3)", 2));
+		textFunctions.add(new FunctionDescription("compare()", "Compare", "Compares the two arguments and deliver a negative value, if the first argument is lexicographically smaller; example: compare(att2, att3)", 2));
+		textFunctions.add(new FunctionDescription("contains()", "Contains", "Delivers true if the second argument is part of the first one; example: contains(att1, \"pa\")", 2));
+		textFunctions.add(new FunctionDescription("equals()", "Equals", "Delivers true if the two arguments are lexicographically equal to each other; example: equals(att1, att2)", 2));
+		textFunctions.add(new FunctionDescription("starts()", "Starts With", "Delivers true if the first argument starts with the second; example: starts(att1, \"OS\")", 2));
+		textFunctions.add(new FunctionDescription("ends()", "Ends With", "Delivers true if the first argument ends with the second; example: ends(att2, \"AM\")", 2));
+		textFunctions.add(new FunctionDescription("matches()", "Matches", "Delivers true if the first argument matches the regular expression defined by the second argument; example: matches(att3, \".*mm.*\"", 2));
+		textFunctions.add(new FunctionDescription("suffix()", "Suffix", "Delivers the suffix of the specified length; example: suffix(att1, 2)", 2));
+		textFunctions.add(new FunctionDescription("prefix()", "Prefix", "Delivers the prefix of the specified length; example: prefix(att2, 3)", 2));
+		textFunctions.add(new FunctionDescription("trim()", "Trim", "Removes all leading and trailing white space characters; example: trim(att3)", 1));
+		FUNCTIONS.put(FUNCTION_GROUPS[4], textFunctions);
+		
+		// process functions
+		List<FunctionDescription> processFunctions = new LinkedList<FunctionDescription>();
+		processFunctions.add(new FunctionDescription("param()", "Parameter", "Delivers the specified parameter of the specified operator; example: param(\"Read Excel\", \"file\")", 2));
+		FUNCTIONS.put(FUNCTION_GROUPS[5], processFunctions);
+		
+		// miscellaneous functions
+		List<FunctionDescription> miscellaneousFunctions = new LinkedList<FunctionDescription>();
+		miscellaneousFunctions.add(new FunctionDescription("if()", "If-Then-Else", "Delivers the result of the second argument if the first one is evaluated to true and the result of the third argument otherwise; example: if(att1 > 5, 7 * att1, att2 / 2)", 3));
+		miscellaneousFunctions.add(new FunctionDescription("const()", "Constant", "Delivers the argument as numerical constant value; example: const(att1)", 1));
+		miscellaneousFunctions.add(new FunctionDescription("sqrt()", "Square Root", "Delivers the square root of the given argument; example: sqrt(att2)", 1));
+		miscellaneousFunctions.add(new FunctionDescription("sgn()", "Signum", "Delivers -1 or +1 depending on the signum of the argument; example: sgn(-5)", 1));
+		miscellaneousFunctions.add(new FunctionDescription("rand()", "Random", "Delivers a random number between 0 and 1; example: rand()", 0));
+		miscellaneousFunctions.add(new FunctionDescription("mod()", "Modulus", "Calculates the modulus of the first term by the second one; example: 11 % 2", 2));
+		miscellaneousFunctions.add(new FunctionDescription("sum()", "Sum", "Calculates the sum of all arguments; example: sum(att1, att3, 42)", FunctionDescription.UNLIMITED_NUMBER_OF_ARGUMENTS));
+		miscellaneousFunctions.add(new FunctionDescription("binom()", "Binomial", "Calculates the binomial coefficients; example: binom(5, 2)", 2));
+		FUNCTIONS.put(FUNCTION_GROUPS[6], miscellaneousFunctions);
+	}
+		 
 	private final JEP parser = new JEP();
 
 	public ExpressionParser(boolean useStandardConstants) {
@@ -275,6 +394,14 @@ public class ExpressionParser {
 		parser.addFunction("trim", new Trim());
 	}
 
+	public String[] getFunctionGroups() {
+		return FUNCTION_GROUPS;
+	}
+	
+	public List<FunctionDescription> getFunctions(String functionGroup) {
+		return FUNCTIONS.get(functionGroup);
+	}
+	
 	public void addMacro(MacroHandler macroHandler, String name, String function) throws GenerationException {
 		// parse expression
 		parser.parseExpression(function);

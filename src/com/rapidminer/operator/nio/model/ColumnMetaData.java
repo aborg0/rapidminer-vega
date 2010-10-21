@@ -72,4 +72,12 @@ public class ColumnMetaData {
 		AttributeMetaData result = new AttributeMetaData(getUserDefinedAttributeName(), getAttributeValueType(), getRole());
 		return result;
 	}
+
+	/** Returns whether the user specified a name different from the default. */
+	public boolean isAttributeNameSpecified() {
+		if (userDefinedAttributeName == null) {
+			return false;
+		}
+		return !userDefinedAttributeName.equals(originalAttributeName);
+	}
 }

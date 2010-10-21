@@ -1463,15 +1463,30 @@ public class Tools {
 		}
 		return b.toString();
 	}
-	
+
 	/** Splits the string at every split character unless escaped. */
-	public static List<String> unescape(String source, char escapeChar, char[] specialCharacters,
+	public static List<String> unescape(String source, 
+			char escapeChar, 
+			char[] specialCharacters,
 			char splitCharacter) {
+		return unescape(source, escapeChar, specialCharacters, splitCharacter, -1);
+	}
+	
+	/** Splits the string at every split character unless escaped.
+	 *  If the split limit is not -1, at most so many tokens will be returned. No more escaping
+	 *  is performed in the last token! */
+	public static List<String> unescape(String source, 
+			char escapeChar, 
+			char[] specialCharacters,
+			char splitCharacter,
+			int splitLimit) {
 		List<String> result = new LinkedList<String>();
 		StringBuilder b = new StringBuilder();
 		// was the last character read an escape character?
 		boolean readEscape = false;
+		int indexCount = -1;
 		for (char c : source.toCharArray()) {
+			indexCount++;
 			// in escape mode -> just write special character, throw exception if not special?
 			if (readEscape) {
 				boolean found = false;
@@ -1502,6 +1517,13 @@ public class Tools {
 				// not in escape mode and read split character -> split
 				readEscape = false;
 				result.add(b.toString());
+				if (splitLimit != -1) {
+					if (result.size() == splitLimit -1) {
+						// Only one left? Add to result and terminate.
+						result.add(source.substring(indexCount+1));
+						return result;
+					}
+				}
 				b = new StringBuilder();
 			} else {
 				// not in escape mode and read other character -> just write it

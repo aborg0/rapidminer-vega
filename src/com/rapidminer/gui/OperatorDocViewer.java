@@ -31,18 +31,29 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 
+import javax.swing.JButton;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JToggleButton;
+import javax.swing.SwingWorker;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.text.Document;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.StyleSheet;
 
 import com.rapidminer.Process;
 import com.rapidminer.RapidMiner;
+import com.rapidminer.gui.actions.RefreshHelpTextFromWikiAction;
+import com.rapidminer.gui.actions.ShowHelpTextAction;
+import com.rapidminer.gui.actions.ShowHelpTextInBrowserAction;
 import com.rapidminer.gui.processeditor.ProcessEditor;
 import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ResourceDockKey;
+import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.ViewToolBar;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.ports.Port;
@@ -51,35 +62,103 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.Parameters;
 import com.rapidminer.parameter.conditions.ParameterCondition;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.RMUrlHandler;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.documentation.ExampleProcess;
 import com.vlsolutions.swing.docking.DockKey;
 import com.vlsolutions.swing.docking.Dockable;
 
-/** Displays HTML help text for an operator
+/**
+ * Displays HTML help text for an operator
  * 
  * @author Simon Fischer
- *
+ * 
  */
 public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor {
 
 	private static final long serialVersionUID = 1L;
+	
+	private final ExtendedHTMLJEditorPane editor = new ExtendedHTMLJEditorPane("text/html", "<html></html>") {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 
-	private final ExtendedHTMLJEditorPane editor = new ExtendedHTMLJEditorPane("text/html", "<html></html>");
+		public void installDefaultStylesheet() {
+			//StyleSheet css = new StyleSheet(); 
+			HTMLEditorKit hed = new HTMLEditorKit();
+			StyleSheet css = hed.getStyleSheet();
+			css.addRule("body {font-family:Sans;font-size:12pt}");
+			css.addRule("h4 {margin-bottom:2px; margin-top:2ex; padding-left:4px; padding:0; color:#446699; font-size:16pt}");
+			css.addRule("p {margin-top:0; margin-bottom:2ex; padding:0}");			
+			css.addRule("dt {font-weight:bold;}");
+			css.addRule("ul.ports {margin-top:0; margin-bottom:1ex; list-style-image:url(" + Tools.getResource("icons/help/circle.png") + "); }");
+			css.addRule("ul li {padding-bottom:1ex}");
+			css.addRule("ul.param_dep {margin-top:0; margin-bottom:1ex; list-style-type:none; list-style-image:none; }");
+			css.addRule("li ul li {padding-bottom:0}");
+			css.addRule("hr {color:red; background-color:red}");
+			css.addRule("table {font-style:italic;}");
+//			css.addRule("div.thumb tright {align:right;}");
+//			css.addRule("div.thumb left {align:left;}");
+			
+			//String hcolor = Integer.toHexString(SwingTools.DARKEST_BLUE.darker().darker().darker().getRGB());
+			//hcolor = hcolor.substring(2, 8);
+			//css.addRule("h2, h3, h4 { border-width:3px; border-style:solid; border-color:#"+Integer.toHexString(SwingTools.RAPID_I_ORANGE.getRGB())+"; }");
+			//css.addRule("a:hover  {text-decoration:underline}");
+			//css.addRule("hr  {color:red; background-color:red}");
+
+			//((HTMLEditorKit)getEditorKit()).setStyleSheet(css);
+			Document doc = hed.createDefaultDocument();
+			editor.setDocument(doc);
+
+		};
+	};
 
 	private Operator displayedOperator;
 
+	private String displayedOperatorDescName;
+
+	public String getDisplayedOperatorDescName() {
+		return displayedOperatorDescName;
+	}
+
 	public OperatorDocViewer() {
 		super();
-		setLayout(new BorderLayout());
-		JScrollPane scrollPane = new ExtendedJScrollPane(editor);
-		scrollPane.setBorder(null);
-		add(scrollPane, BorderLayout.CENTER);
-		setSelection(Collections.<Operator>emptyList());
-		editor.installDefaultStylesheet();
 
-		getEditor().addHyperlinkListener(new HyperlinkListener() {			
+		setLayout(new BorderLayout());
+		scrollPane = new ExtendedJScrollPane(editor);
+		scrollPane.setBorder(null);
+
+		setSelection(Collections.<Operator> emptyList());
+		editor.installDefaultStylesheet();
+		editor.setEditable(false);
+
+		// scrollPane.setOpaque(false);
+		// scrollPane.getViewport().setOpaque(false);
+		// editor.setOpaque(false);
+		// Image helpTextBackgroundImage = null;
+		// URL url = Tools.getResource("helptext.png");
+		// if (url != null) {
+		// try {
+		// helpTextBackgroundImage = ImageIO.read(url);
+		// } catch (IOException e1) {
+		// e1.printStackTrace();
+		// }
+		// }
+		// helpTextBackgroundPanel = new ImagePanel(helpTextBackgroundImage,
+		// ImagePanel.CHILDRENS_PREFERRED_SIZE);
+		// BoxLayout textLayout = new BoxLayout(helpTextBackgroundPanel,
+		// BoxLayout.X_AXIS);
+		// helpTextBackgroundPanel.setLayout(textLayout);
+		// helpTextBackgroundPanel.add(scrollPane);
+		// add(helpTextBackgroundPanel, BorderLayout.CENTER);
+
+		addToolBar();
+
+		add(scrollPane, BorderLayout.CENTER);
+
+		editor.addHyperlinkListener(new HyperlinkListener() {
 			@Override
 			public void hyperlinkUpdate(HyperlinkEvent e) {
 				if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
@@ -90,53 +169,131 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 							RapidMinerGUI.getMainFrame().setProcess(example.getProcess(), true);
 						}
 					}
+					if (e.getDescription().startsWith("/wiki/index.php?title=")) {
+						String op = e.getDescription().split("=")[1];
+						op = op.replaceAll(" ", "_");
+						op = op.toLowerCase();
+						op = op.replaceAll("\\(", "");
+						op = op.replaceAll("\\)", "");
+						op = op.replaceAll("-", "_");
+						OperatorDescription opDesc = OperatorService.getOperatorDescription(op);
+						if (opDesc != null) {
+							displayedOperatorDescName = opDesc.getName();
+							showDocumentation(opDesc);
+//							if (showHelpTextAction.isSelected()) {
+//								RapidDocBotImporter.showNewHelptext(true, true, getOperatorDocViewer(), opDesc);
+//							} else {
+//								RapidDocBotImporter.showNewHelptext(false, false, getOperatorDocViewer(), opDesc);
+//							}
+						}
+					}
 				}
 			}
 		});
 	}
 
-	protected JEditorPane getEditor() {
+	public JPanel getHelpTextBackgroundPanel() {
+		return helpTextBackgroundPanel;
+	}
+
+	private void addToolBar() {
+		ViewToolBar toolBar = new ViewToolBar();
+
+		this.showHelpTextAction = new ShowHelpTextAction(this);
+		JToggleButton toggleShowHelpTextButton = this.showHelpTextAction.createToggleButton();
+		toolBar.add(new JButton(new ShowHelpTextInBrowserAction(true, "rapid_doc_bot_importer_showInBrowser", null, this)), ViewToolBar.LEFT);
+		toolBar.add(new JButton(new RefreshHelpTextFromWikiAction(true, "rapid_doc_bot_importer_refresh", null, this)), ViewToolBar.RIGHT);
+		toolBar.add(toggleShowHelpTextButton, ViewToolBar.RIGHT);
+		
+		add(toolBar, BorderLayout.NORTH);
+	}
+
+	public JEditorPane getEditor() {
 		return editor;
 	}
 
-	protected Operator getDisplayedOperator() {
+	public Operator getDisplayedOperator() {
 		return displayedOperator;
 	}
 
+	public OperatorDocViewer getCurrentOperatorDocViewerObject() {
+		return this;
+	}
+
 	public void setDisplayedOperator(Operator operator) {
-		this.displayedOperator = operator;
-		showHelptext();
+		if (operator != null && !operator.getOperatorDescription().isDeprecated()
+				&& (this.displayedOperator == null || (this.displayedOperator != null && !operator.getOperatorDescription().getName().equals(this.displayedOperatorDescName)))) {
+			this.displayedOperator = operator;
+			this.displayedOperatorDescName = this.displayedOperator.getOperatorDescription().getName();
+			showDocumentation(operator.getOperatorDescription());
+//			if (this.showHelpTextAction.isSelected()) {
+//				RapidDocBotImporter.showNewHelptext(true, true, getOperatorDocViewer(), null);
+//			} else {
+//				RapidDocBotImporter.showNewHelptext(false, false, getOperatorDocViewer(), null);
+//			}
+			// showHelptext();
+		}
+	}
+	
+	private void showDocumentation(final OperatorDescription opDesc) {
+		if (opDesc == null) {
+			return;
+		}
+		if (showHelpTextAction.isSelected() && !OperatorDocImporter.hasCache(opDesc)) {
+			showLoadScreen();
+		}
+		new SwingWorker<String, Void>() {
+			
+			@Override
+			protected String doInBackground() {
+				return OperatorDocImporter.loadOperatorDocumentation(
+						showHelpTextAction.isSelected(), showHelpTextAction.isSelected(),
+						opDesc);
+			}			
+			
+			@Override
+			protected void done() {
+				try {
+					String toShow = get();
+					JEditorPane editor = getEditor();
+					editor.setText(toShow);
+					editor.setCaretPosition(0);
+				} catch (Exception e) {
+					SwingTools.showFinalErrorMessage("rapid_doc_bot_importer_showInBrowser", e, true, e.getMessage());
+				}
+			}			
+		}.execute();
 	}
 
 	protected void showHelptext() {
 		editor.setEditable(false);
 		if (displayedOperator == null) {
 			editor.setText("<html></html>");
-		} else {			
-			OperatorDescription descr = displayedOperator.getOperatorDescription();			
+		} else {
+			OperatorDescription descr = displayedOperator.getOperatorDescription();
 			StringBuilder buf = new StringBuilder("<html>");
 			buf.append("<table cellpadding=0 cellspacing=0><tr><td>");
 
 			String iconName = "icons/24/" + displayedOperator.getOperatorDescription().getIconName();
 			URL resource = Tools.getResource(iconName);
 			if (resource != null) {
-				buf.append("<img src=\"" + resource + "\"/>");
+				buf.append("<img src=\"" + resource + "\"/> ");
 			}
 
-			buf.append("</td><td style=\"padding-left:4px;\">"); 
+			buf.append("</td><td style=\"padding-left:4px;\">");
 			buf.append("<h2>" + descr.getName());
 			String wikiName;
 			try {
 				wikiName = URLEncoder.encode(descr.getName(), "UTF-8");
 				buf.append(" <small><a href=\"http://rapid-i.com/wiki/index.php?title=").append(wikiName).append("\">(Wiki)</a></small>");
 			} catch (UnsupportedEncodingException e) {
-				LogService.getRoot().log(Level.WARNING, "Failed to URL-encode operator name: "+descr.getName()+": "+e, e);
+				LogService.getRoot().log(Level.WARNING, "Failed to URL-encode operator name: " + descr.getName() + ": " + e, e);
 			}
 			buf.append("</h2>");
 			buf.append("</td></tr></table>");
-			//#"+Integer.toHexString(SwingTools.RAPID_I_ORANGE.getRGB()).substring(0,6)+"
+			// #"+Integer.toHexString(SwingTools.RAPID_I_ORANGE.getRGB()).substring(0,6)+"
 			buf.append("<hr noshade=\"true\"/><br/>");
-			//System.out.println("<hr color=\"#"+Integer.toHexString(SwingTools.RAPID_I_ORANGE.getRGB()).substring(0,6)+"\"/>");
+			// System.out.println("<hr color=\"#"+Integer.toHexString(SwingTools.RAPID_I_ORANGE.getRGB()).substring(0,6)+"\"/>");
 			buf.append(makeSynopsisHeader());
 			buf.append("<p>");
 			buf.append(descr.getShortDescription());
@@ -153,7 +310,7 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 					buf.append("</p>");
 				}
 				buf.append("<br/>");
-			}		
+			}
 			appendPorts(displayedOperator.getInputPorts(), "Input", null, buf);
 			appendPorts(displayedOperator.getOutputPorts(), "Output", "outPorts", buf);
 			Parameters parameters = displayedOperator.getParameters();
@@ -162,20 +319,20 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 				for (String key : parameters.getKeys()) {
 					ParameterType type = parameters.getParameterType(key);
 					if (type == null) {
-						LogService.getRoot().warning("Unknown parameter key: " + displayedOperator.getName() + "# " +key);
+						LogService.getRoot().warning("Unknown parameter key: " + displayedOperator.getName() + "# " + key);
 						continue;
 					}
 					buf.append("<dt>");
 					if (type.isExpert()) {
 						buf.append("<i>");
 					}
-					//if (type.isOptional()) {
-					buf.append(makeParameterHeader(type));					
-					//} else {
-					//buf.append("<strong>");
-					//buf.append(makeParameterHeader(type));
-					//buf.append("</strong>");
-					//}
+					// if (type.isOptional()) {
+					buf.append(makeParameterHeader(type));
+					// } else {
+					// buf.append("<strong>");
+					// buf.append(makeParameterHeader(type));
+					// buf.append("</strong>");
+					// }
 					if (type.isExpert()) {
 						buf.append("</i>");
 					}
@@ -196,7 +353,7 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 					// conditions
 					if (type.getDependencyConditions().size() > 0) {
 						buf.append("Depends on:<ul class=\"param_dep\">");
-						for (ParameterCondition condition: type.getDependencyConditions()) {
+						for (ParameterCondition condition : type.getDependencyConditions()) {
 							buf.append("<li>");
 							buf.append(condition.toString());
 							buf.append("</li>");
@@ -211,8 +368,8 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 			if (!descr.getOperatorDocumentation().getExamples().isEmpty()) {
 				buf.append("<h4>Examples</h4><ul>");
 				int i = 0;
-				for (ExampleProcess exampleProcess : descr.getOperatorDocumentation().getExamples()) {					
-					buf.append("<li>");					
+				for (ExampleProcess exampleProcess : descr.getOperatorDocumentation().getExamples()) {
+					buf.append("<li>");
 					buf.append(exampleProcess.getComment());
 					buf.append(makeExampleFooter(i));
 					buf.append("</li>");
@@ -228,7 +385,7 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 	}
 
 	protected Object makeExampleFooter(int exampleIndex) {
-		return "<br/><a href=\"show_example_"+exampleIndex+"\">Show example process</a>.";
+		return "<br/><a href=\"show_example_" + exampleIndex + "\">Show example process</a>.";
 	}
 
 	protected String makeSynopsisHeader() {
@@ -240,18 +397,18 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 	}
 
 	protected String makeParameterHeader(ParameterType type) {
-		return  type.getKey().replace('_',' ');
+		return type.getKey().replace('_', ' ');
 	}
 
 	private void appendPorts(Ports<? extends Port> ports, String title, String ulClass, StringBuilder buf) {
-		//buf.append("<dl><dt>Input:<dt></dt><dd>");
+		// buf.append("<dl><dt>Input:<dt></dt><dd>");
 		if (ports.getNumberOfPorts() > 0) {
 			buf.append("<h4>" + title + "</h4><ul class=\"ports\">");
 			for (Port port : ports.getAllPorts()) {
 				if (ulClass != null)
 					buf.append("<li class=\"" + ulClass + "\"><strong>");
 				else
-					buf.append("<li><strong>");				
+					buf.append("<li><strong>");
 				buf.append(port.getName());
 				buf.append("</strong>");
 				if (port.getDescription() != null && port.getDescription().length() > 0) {
@@ -264,9 +421,9 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 		}
 	}
 
-	public void setSelection(List<Operator> selection) {		
+	public void setSelection(List<Operator> selection) {
 		if (selection.isEmpty()) {
-			setDisplayedOperator(null);			
+			setDisplayedOperator(null);
 		} else {
 			setDisplayedOperator(selection.get(0));
 		}
@@ -274,9 +431,17 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 
 	public static final String OPERATOR_HELP_DOCK_KEY = "operator_help";
 	private final DockKey DOCK_KEY = new ResourceDockKey(OPERATOR_HELP_DOCK_KEY);
+
+	private JScrollPane scrollPane;
+
+	private JPanel helpTextBackgroundPanel;
+
+	private ShowHelpTextAction showHelpTextAction;
+
 	{
 		DOCK_KEY.setDockGroup(MainFrame.DOCK_GROUP_ROOT);
 	}
+
 	@Override
 	public Component getComponent() {
 		return this;
@@ -300,6 +465,24 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 			return new OperatorDocEditor();
 		} else {
 			return new OperatorDocViewer();
+		}
+	}
+
+	public ShowHelpTextAction getShowHelpTextAction() {
+		return showHelpTextAction;
+	}
+
+	private static String LOADING_TEXT_FROM_RAPIDWIKI = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">"
+		+ "<html xmlns=\"http://www.w3.org/1999/xhtml\" dir=\"ltr\" lang=\"en\" xml:lang=\"en\">" + "<head>" + "<table cellpadding=0 cellspacing=0>" + "<tr><td>"
+		+ "<img src=\"" + SwingTools.getIconPath("48/hourglass.png") + "\" /></td>" + "<td width=\"5\">" + "</td>" + "<td>" + "Please stand by while loading from RapidWiki..." + "</td></tr>" + "</table>" + "</head>" + "</html>";
+
+	public void showLoadScreen() {
+		this.editor.setText(LOADING_TEXT_FROM_RAPIDWIKI);
+	}
+
+	public void refresh() {		
+		if (displayedOperator != null) {
+			showDocumentation(displayedOperator.getOperatorDescription());
 		}
 	}
 }

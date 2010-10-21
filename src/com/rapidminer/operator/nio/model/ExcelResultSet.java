@@ -95,8 +95,8 @@ public class ExcelResultSet implements DataResultSet {
 			throw new UserError(callingOperator, 953, configuration.getSheet());
 		}
 
-		totalNumberOfColumns = configuration.getColumnLast() - columnOffset + 1;
-		totalNumberOfRows = configuration.getRowLast() - rowOffset + 1;
+		totalNumberOfColumns = Math.min(configuration.getColumnLast(), sheet.getColumns()-1) - columnOffset + 1;
+		totalNumberOfRows = Math.min(configuration.getRowLast(), sheet.getRows()-1) - rowOffset + 1;
 		
 		emptyColumns = new boolean[totalNumberOfColumns];
 		emptyRows = new boolean[totalNumberOfRows];
