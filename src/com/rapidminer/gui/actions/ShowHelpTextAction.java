@@ -2,7 +2,7 @@ package com.rapidminer.gui.actions;
 
 import java.awt.event.ActionEvent;
 
-import com.rapidminer.gui.OperatorDocImporter;
+import com.rapidminer.gui.OperatorDocLoader;
 import com.rapidminer.gui.OperatorDocViewer;
 
 public class ShowHelpTextAction extends ToggleAction {
@@ -24,7 +24,7 @@ public class ShowHelpTextAction extends ToggleAction {
 	}
 	
 	private void showNewHelptextFirstTime() {
-		if (OperatorDocImporter.hostHasNetworkConnection()) {
+		if (OperatorDocLoader.hostHasNetworkConnection()) {
 			setSelected(true);
 		}
 		this.operatorDocViewer.refresh();

@@ -57,7 +57,15 @@
 
 	<target name="init" depends="version.get" unless="lock.isInitialized">
 		<tstamp />
-		<taskdef onerror="report" resource="org/apache/ant/http/antlib.xml" classpath="${basedir}/ant/ant_http.jar" />
+		<!-- HTTP and Documentation tasks -->
+		<taskdef onerror="fail" resource="antlib.xml" classpath="ant/rapidAntTasks.jar" />
+
+		<!-- RPM Tasks-->
+		<taskdef onerror="fail" resource="org/freecompany/redline/ant/antlib.xml" classpath="ant/redline-1.1.3.jar" />
+
+		<!-- FOR Tasks -->
+		<taskdef onerror="fail" resource="net/sf/antcontrib/antlib.xml" classpath="ant/ant-contrib-1.0b3.jar" />
+
 		<mkdir dir="${build}" />
 		<mkdir dir="${pluginslib}" />
 		<echo file="${pluginslib}/Readme.txt">Copy downloaded plugins into this directory.</echo>
@@ -65,6 +73,11 @@
 		<mkdir dir="${release}" />
 
 		<property name="lock.isInitialized" value="true" />
+	</target>
+
+	<target name="release.prepareDocumentation" depends="init" unless="lock.isDocumentationPrepared">
+		<downloadOperatorDocumentation resourcedir="${resources}" namespace="core" operatorsdocfile="resources/com/rapidminer/resources/i18n/OperatorsCoreDocumentation.xml" operatorsfile="resources/com/rapidminer/resources/OperatorsCore.xml"/>
+		<property name="lock.isDocumentationPrepared" value="true" />
 	</target>
 
 	<target name="clean" unless="lock.isCleaned" description="Delete the build directory, java doc, rapidminer.jar">
@@ -739,10 +752,10 @@
 </target>
 
 <target name="signJars" depends="createJar" description="Don't forget to add jarsign.alias and jarsign.storepass to the file server.properties">
-	<signjar lazy="true" alias="${jarsign.alias}" storepass="${jarsign.storepass}">
-		<path>
-		    <fileset dir="${lib}" includes="**/*.jar" />
-		</path>
-	</signjar>
-</target>	
+<signjar lazy="true" alias="${jarsign.alias}" storepass="${jarsign.storepass}">
+<path>
+	<fileset dir="${lib}" includes="**/*.jar" />
+</path>
+</signjar>
+</target>
 </project>

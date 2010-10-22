@@ -62,6 +62,7 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.Parameters;
 import com.rapidminer.parameter.conditions.ParameterCondition;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.NetTools;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.RMUrlHandler;
 import com.rapidminer.tools.Tools;
@@ -79,12 +80,14 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 
 	private static final long serialVersionUID = 1L;
 	
+	static {
+		NetTools.init();
+	}
+	
 	private final ExtendedHTMLJEditorPane editor = new ExtendedHTMLJEditorPane("text/html", "<html></html>") {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 1L;
 
+		@Override
 		public void installDefaultStylesheet() {
 			//StyleSheet css = new StyleSheet(); 
 			HTMLEditorKit hed = new HTMLEditorKit();
@@ -239,14 +242,14 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 		if (opDesc == null) {
 			return;
 		}
-		if (showHelpTextAction.isSelected() && !OperatorDocImporter.hasCache(opDesc)) {
+		if (showHelpTextAction.isSelected() && !OperatorDocLoader.hasCache(opDesc)) {
 			showLoadScreen();
 		}
 		new SwingWorker<String, Void>() {
 			
 			@Override
 			protected String doInBackground() {
-				return OperatorDocImporter.loadOperatorDocumentation(
+				return OperatorDocLoader.loadOperatorDocumentation(
 						showHelpTextAction.isSelected(), showHelpTextAction.isSelected(),
 						opDesc);
 			}			

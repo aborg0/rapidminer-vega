@@ -339,17 +339,10 @@ public class ExpressionParser {
 		FUNCTIONS.put(FUNCTION_GROUPS[6], miscellaneousFunctions);
 	}
 		 
-	private final JEP parser = new JEP();
+	private JEP parser;
 
 	public ExpressionParser(boolean useStandardConstants) {
-		parser.addStandardFunctions();
-		if (useStandardConstants)
-			parser.addStandardConstants();
-
-		addCustomFunctions(parser);
-
-		parser.setAllowUndeclared(false);
-		parser.setImplicitMul(false);		
+		initParser(useStandardConstants);
 	}
 
 	/**
@@ -400,6 +393,18 @@ public class ExpressionParser {
 	
 	public List<FunctionDescription> getFunctions(String functionGroup) {
 		return FUNCTIONS.get(functionGroup);
+	}
+	
+	public void initParser(boolean useStandardConstants) {
+		parser = new JEP();
+		parser.addStandardFunctions();
+		if (useStandardConstants)
+			parser.addStandardConstants();
+
+		addCustomFunctions(parser);
+
+		parser.setAllowUndeclared(false);
+		parser.setImplicitMul(false);	
 	}
 	
 	public void addMacro(MacroHandler macroHandler, String name, String function) throws GenerationException {

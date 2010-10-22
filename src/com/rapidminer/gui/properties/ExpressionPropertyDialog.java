@@ -20,6 +20,7 @@ import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -68,21 +69,12 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 		
 		final Vector<String> knownAttributes = new Vector<String>();
 		
-		// initialize parser
-		//parser.getParser().setAllowUndeclared(true);
-		// TODO: better to simply allow all unknown attributes? Then remove the following and reactivate the line before...
-		// TODO: Or add a checkbox for specifying this explicitly by user input
 		InputPort inPort = ((ParameterTypeExpression)getParameterType()).getInputPort();
 		if (inPort != null) {
 			if (inPort.getMetaData() instanceof ExampleSetMetaData) {
 				ExampleSetMetaData emd = (ExampleSetMetaData) inPort.getMetaData();
 				for (AttributeMetaData amd : emd.getAllAttributes()) {
 					knownAttributes.add(amd.getName());
-					if (amd.isNominal()) {
-						parser.getParser().addVariable(amd.getName(), "");
-					} else {
-						parser.getParser().addVariable(amd.getName(), Double.NaN);
-					}
 				}
 			} else if (inPort.getMetaData() instanceof ModelMetaData) {
 				ModelMetaData mmd = (ModelMetaData) inPort.getMetaData();
@@ -91,16 +83,12 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 					if (emd != null) {
 						for (AttributeMetaData amd : emd.getAllAttributes()) {
 							knownAttributes.add(amd.getName());
-							if (amd.isNominal()) {
-								parser.getParser().addVariable(amd.getName(), "");
-							} else {
-								parser.getParser().addVariable(amd.getName(), Double.NaN);
-							}
 						}
 					}
 				}
 			}
 		}
+
 		Collections.sort(knownAttributes);
 		
 		Collection<AbstractButton> buttons = new LinkedList<AbstractButton>();
@@ -145,9 +133,20 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 		expressionPanel.add(currentExpression);
 		
 		expressionC.weightx = 0;
-		expressionC.gridwidth = GridBagConstraints.REMAINDER;
 		expressionLayout.setConstraints(validationLabel, expressionC);
 		expressionPanel.add(validationLabel);
+		
+		final JCheckBox allowUndeclaredBox = new JCheckBox("Allow Unknown?", false);
+		allowUndeclaredBox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				setAllowUndeclared(allowUndeclaredBox.isSelected());
+			}
+		});
+		setAllowUndeclared(false);
+		expressionC.gridwidth = GridBagConstraints.REMAINDER;
+		expressionLayout.setConstraints(allowUndeclaredBox, expressionC);
+		expressionPanel.add(allowUndeclaredBox);
 		
 		mainC.gridwidth = GridBagConstraints.REMAINDER;
 		mainLayout.setConstraints(expressionPanel, mainC);
@@ -253,6 +252,43 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 			currentExpression.setText(initialValue);
 		
 		validateExpression();
+	}
+	
+	private void setAllowUndeclared(boolean allowUndeclared) {
+		parser.initParser(true);
+		if (allowUndeclared) {
+			parser.getParser().setAllowUndeclared(true);
+		} else {
+			InputPort inPort = ((ParameterTypeExpression)getParameterType()).getInputPort();
+			if (inPort != null) {
+				if (inPort.getMetaData() instanceof ExampleSetMetaData) {
+					ExampleSetMetaData emd = (ExampleSetMetaData) inPort.getMetaData();
+					for (AttributeMetaData amd : emd.getAllAttributes()) {
+						if (amd.isNominal()) {
+							parser.getParser().addVariable(amd.getName(), "");
+						} else {
+							parser.getParser().addVariable(amd.getName(), Double.NaN);
+						}
+					}
+				} else if (inPort.getMetaData() instanceof ModelMetaData) {
+					ModelMetaData mmd = (ModelMetaData) inPort.getMetaData();
+					if (mmd != null) {
+						ExampleSetMetaData emd = mmd.getTrainingSetMetaData();
+						if (emd != null) {
+							for (AttributeMetaData amd : emd.getAllAttributes()) {
+								if (amd.isNominal()) {
+									parser.getParser().addVariable(amd.getName(), "");
+								} else {
+									parser.getParser().addVariable(amd.getName(), Double.NaN);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		validateExpression();
+		requestExpressionFocus();
 	}
 	
 	private void addToExpression(String value) {

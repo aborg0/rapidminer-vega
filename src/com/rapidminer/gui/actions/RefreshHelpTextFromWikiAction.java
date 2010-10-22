@@ -2,7 +2,7 @@ package com.rapidminer.gui.actions;
 
 import java.awt.event.ActionEvent;
 
-import com.rapidminer.gui.OperatorDocImporter;
+import com.rapidminer.gui.OperatorDocLoader;
 import com.rapidminer.gui.OperatorDocViewer;
 import com.rapidminer.gui.tools.ResourceAction;
 
@@ -19,7 +19,7 @@ public class RefreshHelpTextFromWikiAction extends ResourceAction {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		OperatorDocImporter.clearOperatorCache();
+		OperatorDocLoader.clearOperatorCache();
 		this.operatorDocViewer.refresh();
 	}
 

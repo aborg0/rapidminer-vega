@@ -24,6 +24,7 @@
          </operator>
          <group key="todo">
             <operator>
+               <deprecatedSince>5.0</deprecatedSince>
                <key>fixedsplitvalidation</key>
                <class>com.rapidminer.operator.validation.FixedSplitValidationChain</class>
                <replaces>FixedSplitValidation</replaces>
@@ -35,6 +36,7 @@
                <replaces>OperatorEnabler</replaces>
             </operator>
             <operator>
+               <deprecatedSince>5.0</deprecatedSince>
                <key>conditionedfeaturegeneration</key>
                <class>com.rapidminer.operator.features.construction.ConditionedFeatureGeneration
                </class>
@@ -49,11 +51,13 @@
             </operator>
             <operator>
                <key>valuesubgroupiterator</key>
+               <deprecatedSince>5.0</deprecatedSince>
                <class>com.rapidminer.operator.meta.ValueSubgroupIteration</class>
                <replaces>ValueSubgroupIterator</replaces>
             </operator>
             <operator>
                <key>attributebasedvote</key>
+               <deprecatedSince>5.0</deprecatedSince>
                <class>com.rapidminer.operator.learner.lazy.AttributeBasedVotingLearner</class>
                <replaces>AttributeBasedVote</replaces>
             </operator>
@@ -65,6 +69,7 @@
             </operator>
             <operator>
                <key>absolutestratifiedsampling</key>
+               <deprecatedSince>5.0</deprecatedSince>
                <class>com.rapidminer.operator.preprocessing.sampling.AbsoluteStratifiedSampling
                </class>
                <replaces>AbsoluteStratifiedSampling</replaces>
@@ -77,6 +82,7 @@
             </operator>
             <operator>
                <key>minmaxbindiscretization</key>
+               <deprecatedSince>5.0</deprecatedSince>
                <class>com.rapidminer.operator.preprocessing.discretization.MinMaxBinDiscretization
                </class>
                <replaces>MinMaxBinDiscretization</replaces>
@@ -89,36 +95,43 @@
             </operator>
             <operator>
                <key>splitchain</key>
+               <deprecatedSince>5.0</deprecatedSince>
                <class>com.rapidminer.operator.meta.RatioSplitChain</class>
                <replaces>SplitChain</replaces>
             </operator>
             <operator>
                <key>absolutesampling</key>
+               <deprecatedSince>5.0</deprecatedSince>
                <class>com.rapidminer.operator.preprocessing.sampling.AbsoluteSampling</class>
                <replaces>AbsoluteSampling</replaces>
             </operator>
             <operator>
                <key>simpleexamplesource</key>
+               <deprecatedSince>5.0</deprecatedSince>
                <class>com.rapidminer.operator.io.SimpleExampleSource</class>
                <replaces>SimpleExampleSource</replaces>
             </operator>
             <operator>
                <key>multicriteriondecisionstump</key>
+               <deprecatedSince>5.0</deprecatedSince>
                <class>com.rapidminer.operator.learner.tree.MultiCriterionDecisionStumps</class>
                <replaces>MultiCriterionDecisionStump</replaces>
             </operator>
             <operator>
                <key>weightedbootstrapping</key>
+               <deprecatedSince>5.0</deprecatedSince>
                <class>com.rapidminer.operator.preprocessing.sampling.WeightedBootstrapping</class>
                <replaces>WeightedBootstrapping</replaces>
             </operator>
             <operator>
                <key>weightedbootstrappingvalidation</key>
+               <deprecatedSince>5.0</deprecatedSince>
                <class>com.rapidminer.operator.validation.WeightedBootstrappingValidation</class>
                <replaces>WeightedBootstrappingValidation</replaces>
             </operator>
             <operator>
                <key>absolutesplitchain</key>
+               <deprecatedSince>5.0</deprecatedSince>
                <class>com.rapidminer.operator.meta.AbsoluteSplitChain</class>
                <replaces>AbsoluteSplitChain</replaces>
             </operator>
@@ -130,16 +143,19 @@
             </operator>
             <operator>
                <key>exampleset2clustermodel</key>
+               <deprecatedSince>5.0</deprecatedSince>
                <class>com.rapidminer.operator.clustering.clusterer.ExampleSet2ClusterModel</class>
                <replaces>ExampleSet2ClusterModel</replaces>
             </operator>
             <operator>
                <key>apply_cluster_model</key>
+               <deprecatedSince>5.0</deprecatedSince>
                <class>com.rapidminer.operator.clustering.ClusterModel2ExampleSet</class>
                <replaces>ClusterModel2ExampleSet</replaces>
             </operator>
             <operator>
                <key>missingvaluereplenishmentview</key>
+               <deprecatedSince>5.0</deprecatedSince>
                <class>com.rapidminer.operator.preprocessing.filter.MissingValueReplenishmentView
                </class>
                <replaces>MissingValueReplenishmentView</replaces>
@@ -613,11 +629,11 @@
          </group>
          <group key="misc">
             <icon>wrench.png</icon>
-         	<operator>
+            <operator>
                <key>send_mail</key>
                <class>com.rapidminer.operator.tools.SendMailOperator</class>
-    	       <icon>mail.png</icon>         
-	        </operator>
+               <icon>mail.png</icon>
+            </operator>
             <operator>
                <key>delay</key>
                <class>com.rapidminer.operator.tools.DelayOperator</class>
@@ -686,14 +702,14 @@
             </operator>
 
             <operator>
-            	 <key>read_excel_new</key>
-            	 <class>com.rapidminer.operator.nio.ExcelExampleSource</class>
-			</operator>
+               <key>read_excel_new</key>
+               <class>com.rapidminer.operator.nio.ExcelExampleSource</class>
+            </operator>
 
             <operator>
-            	 <key>read_csv_new</key>
-            	 <class>com.rapidminer.operator.nio.CSVExampleSource</class>
-			</operator>
+               <key>read_csv_new</key>
+               <class>com.rapidminer.operator.nio.CSVExampleSource</class>
+            </operator>
 
             <operator>
                <key>read_access</key>
@@ -1663,8 +1679,8 @@
                   <class>com.rapidminer.operator.learner.functions.neuralnet.ImprovedNeuralNetLearner
                   </class>
                   <replaces>NeuralNetImproved</replaces>
-               </operator>               
-			   <operator>
+               </operator>
+               <operator>
                   <key>auto_mlp</key>
                   <class>de.dfki.madm.paren.operator.learner.functions.neuralnet.AutoMLPImprovedNeuralNetLearner</class>
                   <replaces>AutoMLP</replaces>
