@@ -79,7 +79,9 @@ public class OpenAction extends ResourceAction {
 	public static void open(final ProcessLocation processLocation, final boolean showInfo) {
 		RapidMinerGUI.getMainFrame().stopProcess();
 		ProgressThread openProgressThread = new ProgressThread("open_file") {
-			public void run() {		
+			public void run() {
+				getProgressListener().setTotal(100);
+				getProgressListener().setCompleted(10);
 				try {				
 					Process process = processLocation.load(getProgressListener());
 					process.setProcessLocation(processLocation);
@@ -94,7 +96,9 @@ public class OpenAction extends ResourceAction {
 				} catch (Exception e) {
 					SwingTools.showSimpleErrorMessage("while_loading", e, processLocation, e.getMessage());
 					return;
-				}			
+				} finally {
+					getProgressListener().complete();
+				}
 			}
 		};
 		openProgressThread.start();

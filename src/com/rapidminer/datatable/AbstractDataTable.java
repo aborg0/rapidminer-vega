@@ -95,16 +95,19 @@ public abstract class AbstractDataTable implements DataTable, Tableable {
 	}
 
 	public String getValueAsString(DataTableRow row, int column) {
-		if (isDate(column)) {
-			return Tools.formatDate(new Date((long)row.getValue(column)));
+		final double value = row.getValue(column);
+		if (Double.isNaN(value)) {
+			return null;
+		} else if (isDate(column)) {
+			return Tools.formatDate(new Date((long)value));
 		} else if (isDateTime(column)) {
-			return Tools.formatDateTime(new Date((long)row.getValue(column)));
+			return Tools.formatDateTime(new Date((long)value));
 		} else if (isTime(column)) {
-			return Tools.formatTime(new Date((long)row.getValue(column)));
+			return Tools.formatTime(new Date((long)value));
 		} else if (isNominal(column)) {
-			return mapIndex(column, (int)row.getValue(column));
+			return mapIndex(column, (int)value);
 		} else {
-			return row.getValue(column) + "";
+			return value + "";
 		}
 	}
 	

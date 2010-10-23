@@ -10,8 +10,9 @@ public class ParsingError {
 	public static enum ErrorCode {
 		UNPARSEABLE_DATE("unparseable date"),
 		UNPARSEABLE_INTEGER("unparseable integer"),
-		UNPARSEABLE_REAL("unparseable real number"),
-		MORE_THAN_TWO_VALUES("more than two values for binominal attribute");
+		UNPARSEABLE_REAL("unparseable real number"),		
+		MORE_THAN_TWO_VALUES("more than two values for binominal attribute"),
+		ROW_TOO_LONG("row too long");
 		
 		private final String message;
 		private ErrorCode(String message) {

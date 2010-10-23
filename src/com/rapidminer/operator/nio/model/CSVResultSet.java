@@ -106,7 +106,9 @@ public class CSVResultSet implements DataResultSet {
 
 	@Override
 	public boolean isMissing(int columnIndex) {
-		return (current[columnIndex] == null) || current[columnIndex].isEmpty();
+		return
+			(columnIndex >= current.length) ||
+			(current[columnIndex] == null) || current[columnIndex].isEmpty();
 	}
 
 	@Override

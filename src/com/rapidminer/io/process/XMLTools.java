@@ -236,7 +236,7 @@ public class XMLTools {
 			return getTagContents(element, tag, false);
 		} catch (XMLException e) {
 			// cannot happen
-			return null;
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -361,4 +361,24 @@ public class XMLTools {
 		return elements;
 	}
 
+	public static int getTagContentsAsInt(Element element, String tag) throws XMLException {
+		final String string = getTagContents(element, tag, true);
+		try {			
+			return Integer.parseInt(string);
+		} catch (NumberFormatException e) {
+			throw new XMLException("Contents of tag <"+tag+"> must be integer, but found '"+string+"'.");
+		}
+	}
+
+	public static boolean getTagContentsAsBoolean(Element element, String tag, boolean dflt) throws XMLException {
+		String string = getTagContents(element, tag, false);
+		if (string == null) {
+			return dflt;
+		}
+		try {			
+			return Boolean.parseBoolean(string);
+		} catch (NumberFormatException e) {
+			throw new XMLException("Contents of tag <"+tag+"> must be true or false, but found '"+string+"'.");
+		}
+	}
 }

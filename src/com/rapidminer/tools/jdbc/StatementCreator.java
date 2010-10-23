@@ -349,6 +349,25 @@ public class StatementCreator {
 	public String makeSelectAllStatement(String tableName) {
 		return "SELECT * FROM "+makeIdentifier(tableName);
 	}
+	
+	public String makeSelectStatement(String tableName, boolean distinct, String ... columns) {
+		StringBuilder b = new StringBuilder("SELECT ");
+		if (distinct) {
+			b.append(" DISTINCT ");
+		}
+		boolean first = true;
+		for (String col : columns) {
+			if (first) {
+				first = false;
+			} else {
+				b.append(", ");
+			}
+			b.append(makeIdentifier(col));
+		}
+		b.append(" FROM ");
+		b.append(makeIdentifier(tableName));
+		return b.toString();
+	}
 
 	/** Selects count(*). */
 	public String makeSelectSizeStatement(String tableName) {

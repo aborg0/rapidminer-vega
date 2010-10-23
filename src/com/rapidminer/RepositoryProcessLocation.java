@@ -71,8 +71,15 @@ public class RepositoryProcessLocation implements ProcessLocation {
 
 	@Override
 	public Process load(ProgressListener listener) throws IOException, XMLException {
-		Process process = new Process(getRawXML());
+		if (listener != null) {
+			listener.setCompleted(60);
+		}
+		final String xml = getRawXML();
+		Process process = new Process(xml);
 		process.setProcessLocation(this);
+		if (listener != null) {
+			listener.setCompleted(80);
+		}
 		return process;
 	}
 

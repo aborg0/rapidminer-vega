@@ -374,7 +374,13 @@ public class DataResultSetTranslator {
 
 			// skip rows with annotations
 			if ((currentRow > maxAnnotatedRow) || (configuration.getAnnotation(currentRow) == null)) {
-				for (int column = 0; column < dataResultSet.getNumberOfColumns(); column++) {
+				int numCols = dataResultSet.getNumberOfColumns();
+				// number of columns can change as we read the data set.
+				if (numCols >= definedTypes.length) {
+					addError(new ParsingError(dataResultSet.getCurrentRow(), 0, ErrorCode.ROW_TOO_LONG, null, null),
+							exampleIndex);				
+				}
+				for (int column = 0; column < definedTypes.length; column++) {
 					// No more guessing necessary if guessed type is polynomial (this is the most general case)
 					if ((definedTypes[column] == Ontology.POLYNOMINAL) || dataResultSet.isMissing(column)) {
 						continue;

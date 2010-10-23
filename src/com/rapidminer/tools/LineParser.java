@@ -55,6 +55,7 @@ public class LineParser {
 	public static final String SPLIT_BY_SEMICOLON_EXPRESSION = ";";
 	public static final char DEFAULT_QUOTE_CHARACTER = '"';
 	public static final char DEFAULT_QUOTE_ESCAPE_CHARACTER = '\\';
+	private static final char NONE = 0;
 	
 	private Charset encoding;
 	private boolean skipComments = true;
@@ -169,16 +170,20 @@ public class LineParser {
 		if (splitPattern == null) {
 			return new String[] { line };
 		}
-		if (useQuotes) {
+//		if (useQuotes) {
 			if (splitPattern.toString().length() > 1) {
-				return split(line, splitPattern, trimLine, quoteCharacter, quoteEscapeCharacter);
+				return split(line, splitPattern, trimLine, 
+						useQuotes ? quoteCharacter : NONE, 
+						quoteEscapeCharacter);
 			} else {
-				return fastSplit(line, splitPattern.toString().charAt(0), trimLine, quoteCharacter, quoteEscapeCharacter);
+				return fastSplit(line, splitPattern.toString().charAt(0), trimLine,
+						useQuotes ? quoteCharacter : NONE, 
+						quoteEscapeCharacter);
 			}
-		} else {
-//			return fastSplit(line, splitPattern.toString().charAt(0), trimLine, quoteCharacter, quoteEscapeCharacter);
-			return split(line, splitPattern, trimLine);
-		}
+//		} else {
+////			return fastSplit(line, splitPattern.toString().charAt(0), trimLine, quoteCharacter, quoteEscapeCharacter);
+//			return split(line, splitPattern, trimLine);
+//		}
 	}
 	
 	public static String[] split(String line, Pattern splitPattern, boolean trimLine) {
@@ -209,9 +214,9 @@ public class LineParser {
 		/** holding the temporary split string */
 		StringBuilder tempString = new StringBuilder();
 		/** character read in iteration i */
-		Character currentChar = null;
+		//Character currentChar = null;
 		/** character which would be read in iteration i+1 */
-		Character nextChar = null;
+		//Character nextChar = null;
 		/** error message to display */
 		String errorMessage = "";
 		/** column index where the error occured */
@@ -226,20 +231,17 @@ public class LineParser {
 		// go through the line
 		for (int i = 0; i<line.length(); i++) {
 			// read current character and next character (if applicaple)
-			currentChar = line.charAt(i);
-//			if (currentChar.equals('n')){
-//				System.out.println(" ");
-//			}
-			try {
+			char currentChar = line.charAt(i);
+			char nextChar;
+			if (i + 1 < line.length()) {
 				nextChar = line.charAt(i+1);
-			} catch (IndexOutOfBoundsException e) {
-				nextChar = null;
+			} else {
+				nextChar = NONE;
 			}
 			// run through our split machine
 			switch(machineState) {
 			case NEW_SPLIT:			
 				tempString.setLength(0); //faster??
-//				tempString = new StringBuilder();
 				if (currentChar == splitChar) {
 					resultList.add("");
 					continue;
@@ -255,7 +257,7 @@ public class LineParser {
 					continue;
 				}
 				if (currentChar == escapeChar) {
-					if (nextChar == null) {
+					if (nextChar == NONE) {
 						// special case: escape char followed by EndOfLine -> empty value
 						resultList.add("");
 						machineState = SplitMachineState.NEW_SPLIT;
@@ -285,7 +287,7 @@ public class LineParser {
 					continue;
 				}
 				if (currentChar == escapeChar) {
-					if (nextChar == null) {
+					if (nextChar == NONE) {
 						// special case: escape char followed by EndOfLine -> empty value
 						resultList.add(null);
 						machineState = SplitMachineState.END_OF_LINE;
@@ -302,10 +304,9 @@ public class LineParser {
 				continue;
 			case WRITE_NOT_QUOTE:
 				if (currentChar == splitChar) {
-//					resultList.add(tempString.toString().trim());
 					resultList.add(tempString.toString());
 					// splitChar at end of line handling
-					if (nextChar == null) {
+					if (nextChar == NONE) {
 						resultList.add("");
 						tempString = new StringBuilder();
 						machineState = SplitMachineState.END_OF_LINE;
@@ -315,7 +316,7 @@ public class LineParser {
 					continue;
 				}
 				if (currentChar == escapeChar) {
-					if (nextChar == null) {
+					if (nextChar == NONE) {
 						// special case: escape char followed by EndOfLine -> string read so far w/o escape char
 						resultList.add(tempString.toString().trim());
 						machineState = SplitMachineState.END_OF_LINE;
@@ -369,7 +370,7 @@ public class LineParser {
 					continue;
 				}
 				if (currentChar == escapeChar) {
-					if (nextChar == null) {
+					if (nextChar == NONE) {
 						// special case: quote char followed by escape char followed by EndOfLine -> error
 						errorMessage = "Value quotes malformed";
 						errorColumnIndex = i;
@@ -411,7 +412,7 @@ public class LineParser {
 				continue;
 			case WRITE_QUOTE:
 				// special case: double quotes (eg. "") are used to escape the quote character. Excel exports it so...
-				if (nextChar != null && nextChar == quoteChar && currentChar == quoteChar ){
+				if (nextChar != NONE && nextChar == quoteChar && currentChar == quoteChar ){
 					tempString.append(nextChar);
 					i++;
 					continue;
@@ -422,7 +423,7 @@ public class LineParser {
 					continue;
 				}
 				if (currentChar == escapeChar) {
-					if (nextChar == null) {
+					if (nextChar == NONE) {
 						// special case: quote char followed by char* followed by escape char followed by EndOfLine -> error
 						errorMessage = "Value quotes malformed";
 						errorColumnIndex = i;
@@ -473,7 +474,7 @@ public class LineParser {
 						resultList.add(tempString.toString());
 					}
 					// splitChar at end of line handling
-					if (nextChar == null) {
+					if (nextChar == NONE) {
 						resultList.add("");
 						tempString = new StringBuilder();
 						machineState = SplitMachineState.END_OF_LINE;
