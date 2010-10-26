@@ -23,6 +23,7 @@
 package com.rapidminer.operator.nio.model;
 
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -292,12 +293,25 @@ public class DataResultSetTranslator {
 			return getNumber(dataResultSet, row, column, isFaultTolerant).doubleValue();
 		} else {
 			String value = getString(dataResultSet, row, column, isFaultTolerant);
-			try {
-				return Double.parseDouble(value);
-			} catch (NumberFormatException e) {
-				ParsingError error = new ParsingError(dataResultSet.getCurrentRow(), column, ErrorCode.UNPARSEABLE_REAL, value, e);
-				addOrThrow(isFaultTolerant, error, row);
-				return Double.NaN;
+			NumberFormat numberFormat = config.getNumberFormat();
+			if (numberFormat != null) {				
+				try {			
+					Number parsedValue;
+					parsedValue = numberFormat.parse(value);
+					return parsedValue.doubleValue();
+				} catch (ParseException e) {
+					ParsingError error = new ParsingError(dataResultSet.getCurrentRow(), column, ErrorCode.UNPARSEABLE_REAL, value, e);
+					addOrThrow(isFaultTolerant, error, row);
+					return Double.NaN;
+				}
+			} else {
+				try {
+					return Double.parseDouble(value);					
+				} catch (NumberFormatException e) {
+					ParsingError error = new ParsingError(dataResultSet.getCurrentRow(), column, ErrorCode.UNPARSEABLE_REAL, value, e);
+					addOrThrow(isFaultTolerant, error, row);
+					return Double.NaN;
+				}
 			}
 		}
 	}
@@ -347,6 +361,7 @@ public class DataResultSetTranslator {
 		if (listener != null)
 			listener.setTotal(1 + maxProbeRows);
 		DateFormat dateFormat = configuration.getDateFormat();
+		NumberFormat numberFormat = configuration.getNumberFormat();
 
 		if (listener != null)
 			listener.setCompleted(1);
@@ -377,7 +392,13 @@ public class DataResultSetTranslator {
 				int numCols = dataResultSet.getNumberOfColumns();
 				// number of columns can change as we read the data set.
 				if (numCols >= definedTypes.length) {
-					addError(new ParsingError(dataResultSet.getCurrentRow(), 0, ErrorCode.ROW_TOO_LONG, null, null),
+					String excessString;
+					try {
+						excessString = dataResultSet.getString(definedTypes.length);
+					} catch (com.rapidminer.operator.nio.model.ParseException e) {
+						excessString = null;
+					}
+					addError(new ParsingError(dataResultSet.getCurrentRow(), 0, ErrorCode.ROW_TOO_LONG, excessString, null),
 							exampleIndex);				
 				}
 				for (int column = 0; column < definedTypes.length; column++) {
@@ -433,7 +454,7 @@ public class DataResultSetTranslator {
 					} else {
 						// for strings, we try parsing ourselves
 						// fill value buffer for binominal assessment
-						definedTypes[column] = guessValueType(definedTypes[column], stringRepresentation, !nominalValues[column].moreThanTwo, dateFormat);
+						definedTypes[column] = guessValueType(definedTypes[column], stringRepresentation, !nominalValues[column].moreThanTwo, dateFormat, numberFormat);
 					}					
 				}
 				exampleIndex++;
@@ -449,7 +470,7 @@ public class DataResultSetTranslator {
 	 * This method tries to guess the value type by taking into account the current guessed type and the string value.
 	 * The type will be transformed to more general ones.
 	 */
-	private int guessValueType(int currentValueType, String value, boolean onlyTwoValues, DateFormat dateFormat) {
+	private int guessValueType(int currentValueType, String value, boolean onlyTwoValues, DateFormat dateFormat, NumberFormat numberFormat) {
 		if (currentValueType == Ontology.POLYNOMINAL)
 			return currentValueType;
 		if (currentValueType == Ontology.BINOMINAL) {
@@ -464,22 +485,31 @@ public class DataResultSetTranslator {
 				dateFormat.parse(value);
 				return currentValueType;
 			} catch (ParseException e) {
-				return guessValueType(Ontology.BINOMINAL, value, onlyTwoValues, dateFormat);
+				return guessValueType(Ontology.BINOMINAL, value, onlyTwoValues, dateFormat, numberFormat);
 			}
 		}
-		if (currentValueType == Ontology.REAL) {
-			try {
-				Double.parseDouble(value);
-				return currentValueType;
-			} catch (NumberFormatException e) {
-				return guessValueType(Ontology.DATE, value, onlyTwoValues, dateFormat);
+		if (currentValueType == Ontology.REAL) {			
+			if (numberFormat != null) {
+				try {
+					numberFormat.parse(value);
+					return currentValueType;
+				} catch (ParseException e) {
+					return guessValueType(Ontology.DATE, value, onlyTwoValues, dateFormat, numberFormat);
+				}				
+			} else {
+				try {
+					Double.parseDouble(value);
+					return currentValueType;
+				} catch (NumberFormatException e) {
+					return guessValueType(Ontology.DATE, value, onlyTwoValues, dateFormat, numberFormat);
+				}
 			}
 		}
 		try {
 			Integer.parseInt(value);
 			return Ontology.INTEGER;
 		} catch (NumberFormatException e) {
-			return guessValueType(Ontology.REAL, value, onlyTwoValues, dateFormat);
+			return guessValueType(Ontology.REAL, value, onlyTwoValues, dateFormat, numberFormat);
 		}
 	}
 
@@ -506,7 +536,7 @@ public class DataResultSetTranslator {
 		if (isFaultTolerant) {
 			addError(error, row);			
 		} else {
-			throw new UserError(operator, "data_parsing_error", error.toString());
+			throw new UserError(operator, 403, error.toString());
 		}
 	}
 

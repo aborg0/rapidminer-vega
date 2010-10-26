@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator.nio;
 
+import java.text.NumberFormat;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -98,6 +99,11 @@ public class ExcelExampleSource extends AbstractDataResultSetReader {
 		return new ExcelResultSetConfiguration(this);
 	}
 
+	@Override
+	protected NumberFormat getNumberFormat() throws OperatorException {
+		return null;
+	}
+	
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = new LinkedList<ParameterType>();

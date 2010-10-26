@@ -81,4 +81,9 @@ public class ParsingError {
 	public Throwable getCause() {
 		return cause;
 	}
+	
+	@Override
+	public String toString() {
+		return "line "+getRow()+", column "+getColumn()+": "+getErrorCode().getMessage() + "("+getOriginalValue()+")";
+	}
 }

@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator.nio;
 
+import java.text.NumberFormat;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -84,7 +85,12 @@ public class CSVExampleSource extends AbstractDataResultSetReader {
 	protected DataResultSetFactory getDataResultSetFactory() throws OperatorException {
 		return new CSVResultSetConfiguration(this);
 	}
-	
+
+	@Override
+	protected NumberFormat getNumberFormat() throws OperatorException {
+		return StrictDecimalFormat.getInstance(this, true);
+	}
+
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = new LinkedList<ParameterType>();
@@ -114,8 +120,10 @@ public class CSVExampleSource extends AbstractDataResultSetReader {
 		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_QUOTES, false, true));
 		types.add(type);
 		types.add(new ParameterTypeString(PARAMETER_COLUMN_SEPARATORS, "Column separators for data files (regular expression)", ";"));
+		
 		types.addAll(StrictDecimalFormat.getParameterTypes(this, true));
 		types.addAll(DateParser.getParameterTypes(this));
+		
 		types.addAll(super.getParameterTypes());
 		return types;
 	}

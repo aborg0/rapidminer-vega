@@ -30,6 +30,7 @@ import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARA
 import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_META_DATA;
 
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
@@ -72,7 +73,8 @@ public class DataResultSetTranslationConfiguration {
 	private boolean faultTolerant = true;
 
 	private DateFormat dateFormat;
-
+	private NumberFormat numberFormat;
+	
 	/**
 	 * This constructor can be used to generate an empty configuration just depending on the given resultSet
 	 * 
@@ -156,6 +158,8 @@ public class DataResultSetTranslationConfiguration {
 			}
 			
 			setFaultTolerant(readerOperator.getParameterAsBoolean(AbstractDataResultSetReader.PARAMETER_ERROR_TOLERANT));
+						
+			//this.setNumberFormat(DecimalFormat.getInstance(locale));
 		}
 	}
 
@@ -326,5 +330,13 @@ public class DataResultSetTranslationConfiguration {
 	/** Returns true if meta data is manually set. */
 	public boolean isComplete() {
 		return (columnMetaData != null) && (columnMetaData.length > 0);
+	}
+
+	public void setNumberFormat(NumberFormat numberFormat) {
+		this.numberFormat = numberFormat;
+	}
+
+	public NumberFormat getNumberFormat() {
+		return numberFormat;
 	}
 }

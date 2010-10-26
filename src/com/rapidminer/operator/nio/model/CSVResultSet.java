@@ -65,16 +65,21 @@ public class CSVResultSet implements DataResultSet {
 	}
 
 	private void readNext() throws IOException {
-		String line = reader.readLine();
-		if (line == null) {
-			next = null;
-			return;
-		}
-		try {			
-			next = parser.parse(line);			
-		} catch (IllegalArgumentException e){
-			next = new String [] { line };
-		}
+		do {
+			String line = reader.readLine();
+			if (line == null) {
+				next = null;
+				return;
+			}
+			try {			
+				next = parser.parse(line);
+				if (next != null) { // no comment read
+					break;
+				}
+			} catch (IllegalArgumentException e){
+				next = new String [] { line };
+			}			
+		} while (true);
 		numColumns = Math.max(numColumns, next.length);
 	}
 

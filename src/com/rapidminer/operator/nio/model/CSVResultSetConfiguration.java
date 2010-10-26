@@ -46,7 +46,6 @@ public class CSVResultSetConfiguration implements DataResultSetFactory {
 
 	private boolean skipComments = true;
 	private boolean useQuotes = true;
-	//private boolean firstRowAsAttributeNames;
 	private boolean trimLines = false;
 	private String columnSeparators = ";";
 

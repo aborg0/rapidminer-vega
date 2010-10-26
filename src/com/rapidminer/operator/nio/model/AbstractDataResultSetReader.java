@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator.nio.model;
 
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -108,6 +109,11 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 
 		// now use translator to read, translate and return example set
 		DataResultSetTranslator translator = new DataResultSetTranslator(this);
+		NumberFormat numberFormat = getNumberFormat();
+		if (numberFormat != null) {
+			configuration.setNumberFormat(numberFormat);
+		}
+		
 		if (configComplete) {
 			translator.guessValueTypes(configuration, dataResultSet, null);
 		}
@@ -130,6 +136,10 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 	 */
 	protected abstract DataResultSetFactory getDataResultSetFactory() throws OperatorException;
 
+	/** Returns the configured number format or null if a default number format should be 
+	 *  used. */
+	protected abstract NumberFormat getNumberFormat() throws OperatorException;
+	
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
