@@ -41,6 +41,8 @@ public class AttributeValueFilterSingleCondition implements Condition {
 
 	private static final String[] COMPARISON_TYPES = { "<=", ">=", "!=", "<>", "=", "<", ">" };
 
+	private static final String MISSING_ENCODING = "\\?";
+
 	public static final int LEQ = 0;
 
 	public static final int GEQ = 1;
@@ -64,6 +66,7 @@ public class AttributeValueFilterSingleCondition implements Condition {
 	private String nominalValue;
 
 	private HashSet<Integer> allowedNominalValueIndices;
+	private boolean isMissingAllowed = false;
 
 	/**
 	 * Creates a new AttributeValueFilter. If attribute is not nominal, value must be a number.
@@ -110,6 +113,9 @@ public class AttributeValueFilterSingleCondition implements Condition {
 			if ((comparisonType != EQUALS) && (comparisonType != NEQ1 && comparisonType != NEQ2))
 				throw new IllegalArgumentException("For nominal attributes only '=' and '!=' or '<>' is allowed!");
 			this.nominalValue = value;
+			// Check if this string is equal to missing
+			this.isMissingAllowed = nominalValue.equals(MISSING_ENCODING);
+
 			this.allowedNominalValueIndices = new HashSet<Integer>(attribute.getMapping().size());
 			for (String attributeValue : attribute.getMapping().getValues()) {
 				try {
@@ -149,15 +155,28 @@ public class AttributeValueFilterSingleCondition implements Condition {
 	/** Returns true if the condition is fulfilled for the given example. */
 	public boolean conditionOk(Example e) {
 		if (attribute.isNominal()) {
-			int value = (int) e.getValue(attribute);
-			switch (comparisonType) {
-			case NEQ1:
-			case NEQ2:
-				return !allowedNominalValueIndices.contains(value);
-			case EQUALS:
-				return allowedNominalValueIndices.contains(value);
-			default:
-				return false;
+			double doubleValue = e.getValue(attribute);
+			if (Double.isNaN(doubleValue)) {
+				switch (comparisonType) {
+				case NEQ1:
+				case NEQ2:
+					return !isMissingAllowed;
+				case EQUALS:
+					return isMissingAllowed;
+				default:
+					return false;
+				}
+			} else {
+				int value = (int) doubleValue;
+				switch (comparisonType) {
+				case NEQ1:
+				case NEQ2:
+					return !allowedNominalValueIndices.contains(value);
+				case EQUALS:
+					return allowedNominalValueIndices.contains(value);
+				default:
+					return false;
+				}
 			}
 		} else {
 			switch (comparisonType) {

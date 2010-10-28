@@ -503,7 +503,7 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
         return getToolTipText(colIndex, rowIndex);
     }
 
-	private String getToolTipText(int colIndex, int rowIndex) {
+	protected String getToolTipText(int colIndex, int rowIndex) {
 		int realColumnIndex = convertColumnIndexToModel(colIndex);
 		String text = null;
 		if (rowIndex >= 0 && rowIndex < getRowCount() && realColumnIndex >= 0 && realColumnIndex < getModel().getColumnCount()) {

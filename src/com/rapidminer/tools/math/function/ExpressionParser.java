@@ -24,6 +24,8 @@ package com.rapidminer.tools.math.function;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -57,11 +59,22 @@ import com.rapidminer.operator.preprocessing.filter.ChangeAttributeName;
 import com.rapidminer.tools.LoggingHandler;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.math.function.date.Date2String;
+import com.rapidminer.tools.math.function.date.Date2StringWithLocale;
+import com.rapidminer.tools.math.function.date.DateAdd;
+import com.rapidminer.tools.math.function.date.DateCreate;
+import com.rapidminer.tools.math.function.date.DateAfter;
+import com.rapidminer.tools.math.function.date.DateBefore;
+import com.rapidminer.tools.math.function.date.DateDiff;
+import com.rapidminer.tools.math.function.date.DateParse;
+import com.rapidminer.tools.math.function.date.DateParseWithLocale;
+import com.rapidminer.tools.math.function.date.DateSet;
 import com.rapidminer.tools.math.function.expressions.Average;
 import com.rapidminer.tools.math.function.expressions.Constant;
 import com.rapidminer.tools.math.function.expressions.LogarithmDualis;
 import com.rapidminer.tools.math.function.expressions.Maximum;
 import com.rapidminer.tools.math.function.expressions.Minimum;
+import com.rapidminer.tools.math.function.expressions.Missing;
 import com.rapidminer.tools.math.function.expressions.ParameterValue;
 import com.rapidminer.tools.math.function.expressions.Signum;
 import com.rapidminer.tools.math.function.text.CharAt;
@@ -236,7 +249,8 @@ public class ExpressionParser {
 				"Statistical",
 				"Text",
 				"Process",
-				"Miscellaneous"
+				"Miscellaneous",
+				"Date"
 			};
 	
 	private static final Map<String, List<FunctionDescription>> FUNCTIONS = new HashMap<String, List<FunctionDescription>>();
@@ -336,7 +350,22 @@ public class ExpressionParser {
 		miscellaneousFunctions.add(new FunctionDescription("mod()", "Modulus", "Calculates the modulus of the first term by the second one; example: 11 % 2", 2));
 		miscellaneousFunctions.add(new FunctionDescription("sum()", "Sum", "Calculates the sum of all arguments; example: sum(att1, att3, 42)", FunctionDescription.UNLIMITED_NUMBER_OF_ARGUMENTS));
 		miscellaneousFunctions.add(new FunctionDescription("binom()", "Binomial", "Calculates the binomial coefficients; example: binom(5, 2)", 2));
+		miscellaneousFunctions.add(new FunctionDescription("missing()", "Missing", "Checks if the given number is missing; example: missing(att1)", 1));
 		FUNCTIONS.put(FUNCTION_GROUPS[6], miscellaneousFunctions);
+		
+		// date functions
+		List<FunctionDescription> dateFunctions = new LinkedList<FunctionDescription>();
+		dateFunctions.add(new FunctionDescription("date_parse()", "Parse Date", "Parses the given (sring) or (double) to a Date; example: date_parse(att1)", 1));
+		dateFunctions.add(new FunctionDescription("date_parse_loc()", "Parse Date with Locale", "Parses the given (sring) or (double) to a Date with the given locale (via lowercase two-letter ISO-639 code); example: date_parse(att1, en)", 2));
+		dateFunctions.add(new FunctionDescription("date_before()", "Date Before", "Determines if the first Date is strictly earlier than the second Date; example: date_before(att1, att2)", 2));
+		dateFunctions.add(new FunctionDescription("date_after()", "Date After", "Determines if the first Date is strictly later than the second Date; example: date_after(att1, att2)", 2));
+		dateFunctions.add(new FunctionDescription("date_to_string()", "Date To String", "Changes a Date object to a String; example: date_to_string(att1, DATE_FULL, DATE_SHOW_DATE_AND_TIME)", 3));
+		dateFunctions.add(new FunctionDescription("date_to_string_loc()", "Date To String with Locale", "Changes a Date object to a String using the given locale (via lowercase two-letter ISO-639 code); example: date_to_string_loc(att1, DATE_MEDIUM, DATE_SHOW_TIME_ONLY, \"us\")", 4));
+		dateFunctions.add(new FunctionDescription("date_create()", "Create Date", "Creates the current date; example: date_create()", 0));
+		dateFunctions.add(new FunctionDescription("date_diff()", "Date Difference", "Calculates the elapsed time between two dates. Locale and Timezone arguments are optional; example: date_diff(timeStart, timeEnd, \"us\", \"America/Los_Angeles\")", 4));
+		dateFunctions.add(new FunctionDescription("date_add()", "Add Time", "Allows to add a custom amount of time to a given Date. Note that only the integer portion of a given value will be used! Locale and Timezone arguments are optional; example: date_add(date, value, DATE_UNIT_DAY, \"us\", \"America/Los_Angeles\")", 5));
+		dateFunctions.add(new FunctionDescription("date_set()", "Set Time", "Allows to set a custom value for a portion of a given Date, e.g. set the day to 23. Note that only the integer portion of a given value will be used! Locale and Timezone arguments are optional; example: date_set(date, value, DATE_UNIT_DAY, \"us\", \"America/Los_Angeles\")", 5));
+		FUNCTIONS.put(FUNCTION_GROUPS[7], dateFunctions);
 	}
 		 
 	private JEP parser;
@@ -364,6 +393,7 @@ public class ExpressionParser {
 		parser.addFunction("max", new Maximum());
 		parser.addFunction("ld", new LogarithmDualis());
 		parser.addFunction("sgn", new Signum());
+		parser.addFunction("missing", new Missing());
 		
 		// text functions
 		parser.addFunction("parse", new ParseNumber());
@@ -385,6 +415,36 @@ public class ExpressionParser {
 		parser.addFunction("prefix", new Prefix());
 		parser.addFunction("suffix", new Suffix());
 		parser.addFunction("trim", new Trim());
+		
+		// date functions
+		parser.addFunction("date_parse", new DateParse());
+		parser.addFunction("date_parse_loc", new DateParseWithLocale());
+		parser.addFunction("date_before", new DateBefore());
+		parser.addFunction("date_after", new DateAfter());
+		parser.addFunction("date_to_string", new Date2String());
+		parser.addFunction("date_to_string_loc", new Date2StringWithLocale());
+		parser.addFunction("date_create", new DateCreate());
+		parser.addFunction("date_diff", new DateDiff());
+		parser.addFunction("date_add", new DateAdd());
+		parser.addFunction("date_set", new DateSet());
+	}
+	
+	private void addCustomConstants(JEP parser) {
+		parser.addConstant("DATE_SHORT", ExpressionParserConstants.DATE_FORMAT_SHORT);
+		parser.addConstant("DATE_MEDIUM", ExpressionParserConstants.DATE_FORMAT_MEDIUM);
+		parser.addConstant("DATE_LONG", ExpressionParserConstants.DATE_FORMAT_LONG);
+		parser.addConstant("DATE_FULL", ExpressionParserConstants.DATE_FORMAT_FULL);
+		parser.addConstant("DATE_SHOW_DATE_ONLY", ExpressionParserConstants.DATE_SHOW_DATE_ONLY);
+		parser.addConstant("DATE_SHOW_TIME_ONLY", ExpressionParserConstants.DATE_SHOW_TIME_ONLY);
+		parser.addConstant("DATE_SHOW_DATE_AND_TIME", ExpressionParserConstants.DATE_SHOW_DATE_AND_TIME);
+		parser.addConstant("DATE_UNIT_YEAR", ExpressionParserConstants.DATE_UNIT_YEAR);
+		parser.addConstant("DATE_UNIT_MONTH", ExpressionParserConstants.DATE_UNIT_MONTH);
+		parser.addConstant("DATE_UNIT_WEEK", ExpressionParserConstants.DATE_UNIT_WEEK);
+		parser.addConstant("DATE_UNIT_DAY", ExpressionParserConstants.DATE_UNIT_DAY);
+		parser.addConstant("DATE_UNIT_HOUR", ExpressionParserConstants.DATE_UNIT_HOUR);
+		parser.addConstant("DATE_UNIT_MINUTE", ExpressionParserConstants.DATE_UNIT_MINUTE);
+		parser.addConstant("DATE_UNIT_SECOND", ExpressionParserConstants.DATE_UNIT_SECOND);
+		parser.addConstant("DATE_UNIT_MILLISECOND", ExpressionParserConstants.DATE_UNIT_MILLISECOND);
 	}
 
 	public String[] getFunctionGroups() {
@@ -402,6 +462,7 @@ public class ExpressionParser {
 			parser.addStandardConstants();
 
 		addCustomFunctions(parser);
+		addCustomConstants(parser);
 
 		parser.setAllowUndeclared(false);
 		parser.setImplicitMul(false);	
@@ -477,6 +538,10 @@ public class ExpressionParser {
 						newAttribute = new AttributeMetaData(name, Ontology.REAL);
 					} else if (result instanceof Complex) {
 						newAttribute = new AttributeMetaData(name, Ontology.REAL);
+					} else if (result instanceof Date) {
+						newAttribute = new AttributeMetaData(name, Ontology.DATE_TIME);
+					}  else if (result instanceof Calendar) {
+						newAttribute = new AttributeMetaData(name, Ontology.DATE_TIME);
 					} else {
 						newAttribute = new AttributeMetaData(name, Ontology.NOMINAL);
 					}
@@ -563,6 +628,10 @@ public class ExpressionParser {
 			newAttribute = AttributeFactory.createAttribute(name, Ontology.REAL);
 		} else if (result instanceof Complex) {
 			newAttribute = AttributeFactory.createAttribute(name, Ontology.REAL);
+		} else if (result instanceof Date) {
+			newAttribute = AttributeFactory.createAttribute(name, Ontology.DATE_TIME);
+		}  else if (result instanceof Calendar) {
+			newAttribute = AttributeFactory.createAttribute(name, Ontology.DATE_TIME);
 		} else {
 			newAttribute = AttributeFactory.createAttribute(name, Ontology.NOMINAL);
 		}
@@ -607,6 +676,10 @@ public class ExpressionParser {
 				example.setValue(newAttribute, ((Number)result).doubleValue());
 			} else if (result instanceof Complex) {
 				example.setValue(newAttribute, ((Complex)result).doubleValue());
+			} else if (result instanceof Date) {
+				example.setValue(newAttribute, ((Date)result).getTime());
+			}  else if (result instanceof Calendar) {
+				example.setValue(newAttribute, ((Calendar)result).getTimeInMillis());
 			} else {
 				example.setValue(newAttribute, newAttribute.getMapping().mapString(result.toString()));
 			}
