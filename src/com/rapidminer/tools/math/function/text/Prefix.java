@@ -43,7 +43,7 @@ public class Prefix extends PostfixMathCommand {
 	@Override
 	public void run(Stack stack) throws ParseException {
 		if (stack.size() != 2)
-			throw new ParseException("Needs three arguments: The string and the length");
+			throw new ParseException("Needs two arguments: The string and the length");
 
 		// initialize the result to the first argument
 		Object lengthObject = stack.pop();

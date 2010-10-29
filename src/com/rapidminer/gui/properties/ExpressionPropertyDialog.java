@@ -42,6 +42,8 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 
 	private static final long serialVersionUID = 5567661137372752202L;
 
+	private static final int FUNCTION_ROW_LENGTH = 5;
+	
 	private JTextField currentExpression = new JTextField();
 	
 	private static final String OK_ICON_NAME = "ok.png";
@@ -397,7 +399,7 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 			
 			index++;
 			
-			if (index % 4 == 0) {
+			if (index % FUNCTION_ROW_LENGTH == 0) {
 				index = 0;
 				functionButtonsC.gridwidth = GridBagConstraints.REMAINDER;
 			} else {

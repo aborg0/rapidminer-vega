@@ -83,6 +83,7 @@ import com.rapidminer.tools.math.function.text.Concat;
 import com.rapidminer.tools.math.function.text.Contains;
 import com.rapidminer.tools.math.function.text.EndsWith;
 import com.rapidminer.tools.math.function.text.Equals;
+import com.rapidminer.tools.math.function.text.EscapeHTML;
 import com.rapidminer.tools.math.function.text.IndexOf;
 import com.rapidminer.tools.math.function.text.Length;
 import com.rapidminer.tools.math.function.text.LowerCase;
@@ -248,9 +249,9 @@ public class ExpressionParser {
 				"Trigonometric",
 				"Statistical",
 				"Text",
+				"Date",
 				"Process",
-				"Miscellaneous",
-				"Date"
+				"Miscellaneous"
 			};
 	
 	private static final Map<String, List<FunctionDescription>> FUNCTIONS = new HashMap<String, List<FunctionDescription>>();
@@ -333,12 +334,27 @@ public class ExpressionParser {
 		textFunctions.add(new FunctionDescription("suffix()", "Suffix", "Delivers the suffix of the specified length; example: suffix(att1, 2)", 2));
 		textFunctions.add(new FunctionDescription("prefix()", "Prefix", "Delivers the prefix of the specified length; example: prefix(att2, 3)", 2));
 		textFunctions.add(new FunctionDescription("trim()", "Trim", "Removes all leading and trailing white space characters; example: trim(att3)", 1));
+		textFunctions.add(new FunctionDescription("escape_html()", "Escape HTML", "Escapes the given string with HTML entities; example: escape_html(att1)", 1));
 		FUNCTIONS.put(FUNCTION_GROUPS[4], textFunctions);
+		
+		// date functions
+		List<FunctionDescription> dateFunctions = new LinkedList<FunctionDescription>();
+		dateFunctions.add(new FunctionDescription("date_parse()", "Parse Date", "Parses the given string or double to a date; example: date_parse(att1)", 1));
+		dateFunctions.add(new FunctionDescription("date_parse_loc()", "Parse Date with Locale", "Parses the given string or double to a date with the given locale (via lowercase two-letter ISO-639 code); example: date_parse(att1, en)", 2));
+		dateFunctions.add(new FunctionDescription("date_before()", "Date Before", "Determines if the first date is strictly earlier than the second Date; example: date_before(att1, att2)", 2));
+		dateFunctions.add(new FunctionDescription("date_after()", "Date After", "Determines if the first date is strictly later than the second Date; example: date_after(att1, att2)", 2));
+		dateFunctions.add(new FunctionDescription("date_str()", "Date to String", "Changes a date object to a string using the specified format; example: date_str(att1, DATE_FULL, DATE_SHOW_DATE_AND_TIME)", 3));
+		dateFunctions.add(new FunctionDescription("date_str_loc()", "Date to String with Locale", "Changes a date object to a string using the specified format and the given locale (via lowercase two-letter ISO-639 code); example: date_str_loc(att1, DATE_MEDIUM, DATE_SHOW_TIME_ONLY, \"us\")", 4));
+		dateFunctions.add(new FunctionDescription("date_now()", "Create Date", "Creates the current date; example: date_now()", 0));
+		dateFunctions.add(new FunctionDescription("date_diff()", "Date Difference", "Calculates the elapsed time between two dates. Locale and time zone arguments are optional; example: date_diff(timeStart, timeEnd, \"us\", \"America/Los_Angeles\")", 4));
+		dateFunctions.add(new FunctionDescription("date_add()", "Add Time", "Allows to add a custom amount of time to a given Date. Note that only the integer portion of a given value will be used! Locale and Timezone arguments are optional; example: date_add(date, value, DATE_UNIT_DAY, \"us\", \"America/Los_Angeles\")", 5));
+		dateFunctions.add(new FunctionDescription("date_set()", "Set Time", "Allows to set a custom value for a portion of a given Date, e.g. set the day to 23. Note that only the integer portion of a given value will be used! Locale and Timezone arguments are optional; example: date_set(date, value, DATE_UNIT_DAY, \"us\", \"America/Los_Angeles\")", 5));
+		FUNCTIONS.put(FUNCTION_GROUPS[5], dateFunctions);
 		
 		// process functions
 		List<FunctionDescription> processFunctions = new LinkedList<FunctionDescription>();
 		processFunctions.add(new FunctionDescription("param()", "Parameter", "Delivers the specified parameter of the specified operator; example: param(\"Read Excel\", \"file\")", 2));
-		FUNCTIONS.put(FUNCTION_GROUPS[5], processFunctions);
+		FUNCTIONS.put(FUNCTION_GROUPS[6], processFunctions);
 		
 		// miscellaneous functions
 		List<FunctionDescription> miscellaneousFunctions = new LinkedList<FunctionDescription>();
@@ -351,21 +367,7 @@ public class ExpressionParser {
 		miscellaneousFunctions.add(new FunctionDescription("sum()", "Sum", "Calculates the sum of all arguments; example: sum(att1, att3, 42)", FunctionDescription.UNLIMITED_NUMBER_OF_ARGUMENTS));
 		miscellaneousFunctions.add(new FunctionDescription("binom()", "Binomial", "Calculates the binomial coefficients; example: binom(5, 2)", 2));
 		miscellaneousFunctions.add(new FunctionDescription("missing()", "Missing", "Checks if the given number is missing; example: missing(att1)", 1));
-		FUNCTIONS.put(FUNCTION_GROUPS[6], miscellaneousFunctions);
-		
-		// date functions
-		List<FunctionDescription> dateFunctions = new LinkedList<FunctionDescription>();
-		dateFunctions.add(new FunctionDescription("date_parse()", "Parse Date", "Parses the given (sring) or (double) to a Date; example: date_parse(att1)", 1));
-		dateFunctions.add(new FunctionDescription("date_parse_loc()", "Parse Date with Locale", "Parses the given (sring) or (double) to a Date with the given locale (via lowercase two-letter ISO-639 code); example: date_parse(att1, en)", 2));
-		dateFunctions.add(new FunctionDescription("date_before()", "Date Before", "Determines if the first Date is strictly earlier than the second Date; example: date_before(att1, att2)", 2));
-		dateFunctions.add(new FunctionDescription("date_after()", "Date After", "Determines if the first Date is strictly later than the second Date; example: date_after(att1, att2)", 2));
-		dateFunctions.add(new FunctionDescription("date_to_string()", "Date To String", "Changes a Date object to a String; example: date_to_string(att1, DATE_FULL, DATE_SHOW_DATE_AND_TIME)", 3));
-		dateFunctions.add(new FunctionDescription("date_to_string_loc()", "Date To String with Locale", "Changes a Date object to a String using the given locale (via lowercase two-letter ISO-639 code); example: date_to_string_loc(att1, DATE_MEDIUM, DATE_SHOW_TIME_ONLY, \"us\")", 4));
-		dateFunctions.add(new FunctionDescription("date_create()", "Create Date", "Creates the current date; example: date_create()", 0));
-		dateFunctions.add(new FunctionDescription("date_diff()", "Date Difference", "Calculates the elapsed time between two dates. Locale and Timezone arguments are optional; example: date_diff(timeStart, timeEnd, \"us\", \"America/Los_Angeles\")", 4));
-		dateFunctions.add(new FunctionDescription("date_add()", "Add Time", "Allows to add a custom amount of time to a given Date. Note that only the integer portion of a given value will be used! Locale and Timezone arguments are optional; example: date_add(date, value, DATE_UNIT_DAY, \"us\", \"America/Los_Angeles\")", 5));
-		dateFunctions.add(new FunctionDescription("date_set()", "Set Time", "Allows to set a custom value for a portion of a given Date, e.g. set the day to 23. Note that only the integer portion of a given value will be used! Locale and Timezone arguments are optional; example: date_set(date, value, DATE_UNIT_DAY, \"us\", \"America/Los_Angeles\")", 5));
-		FUNCTIONS.put(FUNCTION_GROUPS[7], dateFunctions);
+		FUNCTIONS.put(FUNCTION_GROUPS[7], miscellaneousFunctions);
 	}
 		 
 	private JEP parser;
@@ -415,15 +417,16 @@ public class ExpressionParser {
 		parser.addFunction("prefix", new Prefix());
 		parser.addFunction("suffix", new Suffix());
 		parser.addFunction("trim", new Trim());
+		parser.addFunction("escape_html", new EscapeHTML());
 		
 		// date functions
 		parser.addFunction("date_parse", new DateParse());
 		parser.addFunction("date_parse_loc", new DateParseWithLocale());
 		parser.addFunction("date_before", new DateBefore());
 		parser.addFunction("date_after", new DateAfter());
-		parser.addFunction("date_to_string", new Date2String());
-		parser.addFunction("date_to_string_loc", new Date2StringWithLocale());
-		parser.addFunction("date_create", new DateCreate());
+		parser.addFunction("date_str", new Date2String());
+		parser.addFunction("date_str_loc", new Date2StringWithLocale());
+		parser.addFunction("date_now", new DateCreate());
 		parser.addFunction("date_diff", new DateDiff());
 		parser.addFunction("date_add", new DateAdd());
 		parser.addFunction("date_set", new DateSet());

@@ -27,38 +27,32 @@ import java.util.Stack;
 import org.nfunk.jep.ParseException;
 import org.nfunk.jep.function.PostfixMathCommand;
 
+import com.rapidminer.tools.Tools;
+
 /**
- * Calculates the suffix of the given string and pushes it on the result stack. If the
+ * Escapes the given string with HTML entities and pushes it on the result stack. If the 
  * given string is too short, the complete string will be returned.
  * 
  * @author Ingo Mierswa
  */
-public class Suffix extends PostfixMathCommand {
+public class EscapeHTML extends PostfixMathCommand {
 
-	public Suffix() {
-		numberOfParameters = 2;
+	public EscapeHTML() {
+		numberOfParameters = 1;
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		if (stack.size() != 2)
-			throw new ParseException("Needs two arguments: The string and the length");
+		if (stack.size() != 1)
+			throw new ParseException("Needs one argument: The string which should be escaped");
 
-		// initialize the result to the first argument
-		Object lengthObject = stack.pop();
 		Object textObject = stack.pop();
-		if (!(textObject instanceof String) || !(lengthObject instanceof Number)) {
-			throw new ParseException("Invalid argument type, must be (string, number)");
+		if (!(textObject instanceof String)) {
+			throw new ParseException("Invalid argument type, must be (string)");
 		}
-		int length = ((Number) lengthObject).intValue();
-		String text = (String) textObject;
 		
-		int beginIndex = Math.max(0, text.length() - length);
-		try {
-			stack.push(text.substring(beginIndex));
-		} catch (IndexOutOfBoundsException e) {
-			stack.push(text);
-		}
+		String text = (String) textObject;
+		stack.push(Tools.escapeHTML(text));
 	}
 }
