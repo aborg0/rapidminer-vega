@@ -381,4 +381,29 @@ public class XMLTools {
 			throw new XMLException("Contents of tag <"+tag+"> must be true or false, but found '"+string+"'.");
 		}
 	}
+
+	/** Returns the list of children and returns the given tag. This tag must be unique, or an exception will
+	 *  be raised. If optional is false and the tag is missing, this method also raises an exception. Otherwise 
+	 *  it returns null. */
+	public static Element getChildTag(Element element, String xmlTagName, boolean optional) throws XMLException {
+		NodeList children = element.getChildNodes();
+		Element found = null;
+		for (int i = 0; i < children.getLength(); i++) {
+			Node n = children.item(i);
+			if (n instanceof Element) {
+				if (((Element) n).getTagName().equals(xmlTagName)) {
+					if (found != null) {
+						throw new XMLException("Tag <"+xmlTagName+"> in <"+element.getTagName()+"> must be unique.");
+					} else {
+						found = (Element)n;
+					}
+				}
+			}
+		}
+		if (!optional && (found == null)) {
+			throw new XMLException("Tag <"+xmlTagName+"> in <"+element.getTagName()+"> is missing.");
+		} else {
+			return found;
+		}
+	}
 }
