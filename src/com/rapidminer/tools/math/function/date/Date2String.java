@@ -23,7 +23,7 @@
 package com.rapidminer.tools.math.function.date;
 
 import java.text.DateFormat;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.Stack;
 
 import org.nfunk.jep.ParseException;
@@ -52,22 +52,21 @@ public class Date2String extends PostfixMathCommand {
 		
 		Object constantShowObject = stack.pop();
 		if (!(constantShowObject instanceof String)) {
-			throw new ParseException("Invalid argument type for 'date_to_string', third argument must be show constant (e.g. DATE_SHOW_DATE_ONLY)");
+			throw new ParseException("Invalid argument type for 'date_str', third argument must be show constant (e.g. DATE_SHOW_DATE_ONLY)");
 		}
 		String constantShow = (String)constantShowObject;
 		
 		Object constantFormatObject = stack.pop();
 		if (!(constantFormatObject instanceof String)) {
-			throw new ParseException("Invalid argument type for 'date_to_string', second argument must be formatting constant (e.g. DATE_FULL)");
+			throw new ParseException("Invalid argument type for 'date_str', second argument must be formatting constant (e.g. DATE_FULL)");
 		}
 		String constantFormat = (String)constantFormatObject;
 		
 		Object dateObject = stack.pop();
-		if (!(dateObject instanceof Double)) {
-			throw new ParseException("Invalid argument type for 'date_to_string', first argument must be a date (double)");
+		if (!(dateObject instanceof Calendar)) {
+			throw new ParseException("Invalid argument type for 'date_str', first argument must be Calendar");
 		}
-		double dateDouble = (Double)dateObject;
-		Date date = new Date((long)dateDouble);
+		Calendar dateCal = (Calendar)dateObject;
 		
 		String result;
 		DateFormat dateFormat;
@@ -90,9 +89,9 @@ public class Date2String extends PostfixMathCommand {
 		} else if (constantShow.equals(ExpressionParserConstants.DATE_SHOW_DATE_AND_TIME)) {
 			dateFormat = DateFormat.getDateTimeInstance(formatting, formatting);
 		} else {
-			throw new ParseException("Invalid show constant for 'date_to_string'");
+			throw new ParseException("Invalid show constant for 'date_str'");
 		}
-		result = dateFormat.format(date);
+		result = dateFormat.format(dateCal.getTime());
 		stack.push(result);
 	}
 }

@@ -22,14 +22,14 @@
  */
 package com.rapidminer.tools.math.function.date;
 
-import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Stack;
 
 import org.nfunk.jep.ParseException;
 import org.nfunk.jep.function.PostfixMathCommand;
 
 /**
- * Adds the current Date.
+ * Adds the current date as a Calendar.
  * 
  * @author Marco Boeck
  */
@@ -40,14 +40,13 @@ public class DateCreate extends PostfixMathCommand {
 	}
 	
 	/**
-	 * Creates the Date.
+	 * Creates the Calendar.
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
 		checkStack(stack);
 		
-		Date result = new Date();
-		stack.push(result);
+		stack.push(GregorianCalendar.getInstance());
 	}
 }

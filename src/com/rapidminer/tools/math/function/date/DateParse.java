@@ -23,14 +23,16 @@
 package com.rapidminer.tools.math.function.date;
 
 import java.text.DateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Stack;
 
 import org.nfunk.jep.ParseException;
 import org.nfunk.jep.function.PostfixMathCommand;
 
 /**
- * Parses a Date object from either a long value or a string using the default locale.
+ * Parses a Calendar object from either a long value or a string using the default locale.
  * 
  * @author Marco Boeck
  */
@@ -41,7 +43,7 @@ public class DateParse extends PostfixMathCommand {
 	}
 	
 	/**
-	 * Create the resulting Date object.
+	 * Create the resulting Calendar object.
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
@@ -53,25 +55,29 @@ public class DateParse extends PostfixMathCommand {
 			try {
 				dateObject = (long)(double)(Double)dateObject;
 			} catch (ClassCastException e) {
-				throw new ParseException("Invalid second argument for 'date_parse', cannot convert to Date");
+				throw new ParseException("Invalid argument for 'date_parse', cannot convert to Date");
 			}
 		}
 		if (!(dateObject instanceof String) && !(dateObject instanceof Long)) {
-			throw new ParseException("Invalid argument type for 'date_parse', second argument must be (string) or (long)");
+			throw new ParseException("Invalid argument type for 'date_parse', argument must be (string) or (long)");
 		}
 		Date date;
 		if (dateObject instanceof String) {
 			String dateString = (String)dateObject;
 			try {
 				date = DateFormat.getDateInstance(DateFormat.SHORT).parse(dateString);
-				stack.push(date);
+				Calendar cal = GregorianCalendar.getInstance();
+				cal.setTime(date);
+				stack.push(cal);
 			} catch (java.text.ParseException e) {
 				throw new ParseException("Bad string argument for 'date_parse' (" + e.getMessage() + ")");
 			}
 		} else if (dateObject instanceof Long) {
 			long dateLong = (Long)dateObject;
 			date = new Date(dateLong);
-			stack.push(date);
+			Calendar cal = GregorianCalendar.getInstance();
+			cal.setTime(date);
+			stack.push(cal);
 		}
 	}
 }

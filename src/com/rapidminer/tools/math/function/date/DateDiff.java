@@ -68,18 +68,18 @@ public class DateDiff extends PostfixMathCommand {
 			}
 			locale = new Locale(String.valueOf(localeObject));
 		} else if (curNumberOfParameters != 2) {
-			throw new ParseException("Invalid number of arguments for 'date_diff', must be 2 or 4.");
+			throw new ParseException("Invalid number of arguments for 'date_diff', must be either 2 or 4.");
 		}
 		
-		Object dateObjectTwo = stack.pop();
-		Object dateObjectOne = stack.pop();
-		if (!(dateObjectOne instanceof Double) && !(dateObjectTwo instanceof Double)) {
-			throw new ParseException("Invalid argument type for 'date_diff', first and second argument must both be date (double)");
+		Object calObjectTwo = stack.pop();
+		Object calObjectOne = stack.pop();
+		if (!(calObjectOne instanceof Calendar) || !(calObjectTwo instanceof Calendar)) {
+			throw new ParseException("Invalid argument type for 'date_diff', first and second argument must both be Calendar");
 		}
-		double dateDoubleOne = (Double)dateObjectOne;
-		double dateDoubleTwo = (Double)dateObjectTwo;
-		Date dateOne = new Date((long)dateDoubleOne);
-		Date dateTwo = new Date((long)dateDoubleTwo);
+		Calendar calOldOne = (Calendar)calObjectOne;
+		Calendar calOldTwo = (Calendar)calObjectTwo;
+		Date dateOne = calOldOne.getTime();
+		Date dateTwo = calOldTwo.getTime();
 		Calendar calOne = GregorianCalendar.getInstance(zone, locale);
 		calOne.setTime(dateOne);
 		Calendar calTwo = GregorianCalendar.getInstance(zone, locale);

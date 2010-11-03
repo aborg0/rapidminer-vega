@@ -247,6 +247,7 @@ public class ButtonDialog extends JDialog {
 		}
 		infoTextLabel = new FixedWidthLabel(width, message);		
 		infoPanel.add(infoTextLabel, BorderLayout.CENTER);
+		
 		return infoPanel;
 	}
 

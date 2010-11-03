@@ -66,7 +66,9 @@ import com.rapidminer.tools.math.function.date.DateCreate;
 import com.rapidminer.tools.math.function.date.DateAfter;
 import com.rapidminer.tools.math.function.date.DateBefore;
 import com.rapidminer.tools.math.function.date.DateDiff;
+import com.rapidminer.tools.math.function.date.DateGet;
 import com.rapidminer.tools.math.function.date.DateParse;
+import com.rapidminer.tools.math.function.date.DateParseCustom;
 import com.rapidminer.tools.math.function.date.DateParseWithLocale;
 import com.rapidminer.tools.math.function.date.DateSet;
 import com.rapidminer.tools.math.function.expressions.Average;
@@ -341,14 +343,16 @@ public class ExpressionParser {
 		List<FunctionDescription> dateFunctions = new LinkedList<FunctionDescription>();
 		dateFunctions.add(new FunctionDescription("date_parse()", "Parse Date", "Parses the given string or double to a date; example: date_parse(att1)", 1));
 		dateFunctions.add(new FunctionDescription("date_parse_loc()", "Parse Date with Locale", "Parses the given string or double to a date with the given locale (via lowercase two-letter ISO-639 code); example: date_parse(att1, en)", 2));
-		dateFunctions.add(new FunctionDescription("date_before()", "Date Before", "Determines if the first date is strictly earlier than the second Date; example: date_before(att1, att2)", 2));
-		dateFunctions.add(new FunctionDescription("date_after()", "Date After", "Determines if the first date is strictly later than the second Date; example: date_after(att1, att2)", 2));
-		dateFunctions.add(new FunctionDescription("date_str()", "Date to String", "Changes a date object to a string using the specified format; example: date_str(att1, DATE_FULL, DATE_SHOW_DATE_AND_TIME)", 3));
-		dateFunctions.add(new FunctionDescription("date_str_loc()", "Date to String with Locale", "Changes a date object to a string using the specified format and the given locale (via lowercase two-letter ISO-639 code); example: date_str_loc(att1, DATE_MEDIUM, DATE_SHOW_TIME_ONLY, \"us\")", 4));
+		dateFunctions.add(new FunctionDescription("date_parse_custom()", "Parse Custom Date", "Parses the given date string to a date using a custom pattern and the given locale (via lowercase two-letter ISO-639 code); example: date_parse_custom(att1, \"dd|MM|yy\", \"de\")", 3));
+		dateFunctions.add(new FunctionDescription("date_before()", "Date Before", "Determines if the first date is strictly earlier than the second date; example: date_before(att1, att2)", 2));
+		dateFunctions.add(new FunctionDescription("date_after()", "Date After", "Determines if the first date is strictly later than the second date; example: date_after(att1, att2)", 2));
+		dateFunctions.add(new FunctionDescription("date_str()", "Date to String", "Changes a date to a string using the specified format; example: date_str(att1, DATE_FULL, DATE_SHOW_DATE_AND_TIME)", 3));
+		dateFunctions.add(new FunctionDescription("date_str_loc()", "Date to String with Locale", "Changes a date to a string using the specified format and the given locale (via lowercase two-letter ISO-639 code); example: date_str_loc(att1, DATE_MEDIUM, DATE_SHOW_TIME_ONLY, \"us\")", 4));
 		dateFunctions.add(new FunctionDescription("date_now()", "Create Date", "Creates the current date; example: date_now()", 0));
 		dateFunctions.add(new FunctionDescription("date_diff()", "Date Difference", "Calculates the elapsed time between two dates. Locale and time zone arguments are optional; example: date_diff(timeStart, timeEnd, \"us\", \"America/Los_Angeles\")", 4));
-		dateFunctions.add(new FunctionDescription("date_add()", "Add Time", "Allows to add a custom amount of time to a given Date. Note that only the integer portion of a given value will be used! Locale and Timezone arguments are optional; example: date_add(date, value, DATE_UNIT_DAY, \"us\", \"America/Los_Angeles\")", 5));
-		dateFunctions.add(new FunctionDescription("date_set()", "Set Time", "Allows to set a custom value for a portion of a given Date, e.g. set the day to 23. Note that only the integer portion of a given value will be used! Locale and Timezone arguments are optional; example: date_set(date, value, DATE_UNIT_DAY, \"us\", \"America/Los_Angeles\")", 5));
+		dateFunctions.add(new FunctionDescription("date_add()", "Add Time", "Allows to add a custom amount of time to a given date. Note that only the integer portion of a given value will be used! Locale and Timezone arguments are optional; example: date_add(date, value, DATE_UNIT_DAY, \"us\", \"America/Los_Angeles\")", 5));
+		dateFunctions.add(new FunctionDescription("date_set()", "Set Time", "Allows to set a custom value for a portion of a given date, e.g. set the day to 23. Note that only the integer portion of a given value will be used! Locale and Timezone arguments are optional; example: date_set(date, value, DATE_UNIT_DAY, \"us\", \"America/Los_Angeles\")", 5));
+		dateFunctions.add(new FunctionDescription("date_get()", "Get Time", "Allows to get a portion of a given date, e.g. get the day of a month only. Locale and Timezone arguments are optional; example: date_get(date, DATE_UNIT_DAY, \"us\", \"America/Los_Angeles\")", 4));
 		FUNCTIONS.put(FUNCTION_GROUPS[5], dateFunctions);
 		
 		// process functions
@@ -422,6 +426,7 @@ public class ExpressionParser {
 		// date functions
 		parser.addFunction("date_parse", new DateParse());
 		parser.addFunction("date_parse_loc", new DateParseWithLocale());
+		parser.addFunction("date_parse_custom", new DateParseCustom());
 		parser.addFunction("date_before", new DateBefore());
 		parser.addFunction("date_after", new DateAfter());
 		parser.addFunction("date_str", new Date2String());
@@ -430,9 +435,12 @@ public class ExpressionParser {
 		parser.addFunction("date_diff", new DateDiff());
 		parser.addFunction("date_add", new DateAdd());
 		parser.addFunction("date_set", new DateSet());
+		parser.addFunction("date_get", new DateGet());
 	}
 	
 	private void addCustomConstants(JEP parser) {
+		parser.addConstant("MISSING_VALUE", ExpressionParserConstants.MISSING_VALUE);
+		
 		parser.addConstant("DATE_SHORT", ExpressionParserConstants.DATE_FORMAT_SHORT);
 		parser.addConstant("DATE_MEDIUM", ExpressionParserConstants.DATE_FORMAT_MEDIUM);
 		parser.addConstant("DATE_LONG", ExpressionParserConstants.DATE_FORMAT_LONG);
@@ -563,8 +571,8 @@ public class ExpressionParser {
 	/** Iterates over the {@link ExampleSet}, interprets attributes as variables, evaluates
 	 *  the function and creates a new attribute with the given name that takes the expression's value.
 	 *  The type of the attribute depends on the expression type and is {@link Ontology#NOMINAL} for strings,
-	 *  {@link Ontology#NUMERICAL} for reals and complex numbers and {@link Ontology#BINOMINAL} with values
-	 *  &quot;true&quot; and &quot;false&quot; for booleans.
+	 *  {@link Ontology#NUMERICAL} for reals and complex numbers, {@link Ontology#DATE_TIME} for Dates and Calendars
+	 *   and {@link Ontology#BINOMINAL} with values &quot;true&quot; and &quot;false&quot; for booleans.
 	 *  @return The generated attribute
 	 * */
 	public Attribute addAttribute(ExampleSet exampleSet, String name, String function) throws GenerationException {
@@ -595,7 +603,15 @@ public class ExpressionParser {
 					if (exampleSet.size() > 0) {
 						Example example = exampleSet.iterator().next();
 						if (attribute.isNominal()) {
-							parser.addVariable(attribute.getName(), example.getValueAsString(attribute));
+							if (Double.isNaN(example.getValue(attribute))) {
+								parser.addVariable(attribute.getName(), ExpressionParserConstants.MISSING_VALUE);
+							} else {
+								parser.addVariable(attribute.getName(), example.getValueAsString(attribute));
+							}
+						} else if (attribute.getValueType() == Ontology.DATE_TIME) {
+							Calendar cal = Calendar.getInstance();
+							cal.setTime(new Date((long)example.getValue(attribute)));
+							parser.addVariable(attribute.getName(), cal);
 						} else {
 							parser.addVariable(attribute.getName(), example.getValue(attribute));
 						}
@@ -654,10 +670,19 @@ public class ExpressionParser {
 			for (Map.Entry<String, Attribute> entry : name2attributes.entrySet()) {
 				String variableName = entry.getKey();
 				Attribute attribute = entry.getValue();
-				if (attribute.isNominal())
-					parser.setVarValue(variableName, example.getValueAsString(attribute));
-				else
+				if (attribute.isNominal()) {
+					if (Double.isNaN(example.getValue(attribute))) {
+						parser.setVarValue(variableName, ExpressionParserConstants.MISSING_VALUE);
+					} else {
+						parser.setVarValue(variableName, example.getValueAsString(attribute));
+					}
+				} else if (attribute.getValueType() == Ontology.DATE_TIME) {
+					Calendar cal = Calendar.getInstance();
+					cal.setTime(new Date((long)example.getValue(attribute)));
+					parser.setVarValue(variableName, cal);
+				} else {
 					parser.setVarValue(variableName, example.getValue(attribute));
+				}
 			}
 
 			// calculate result

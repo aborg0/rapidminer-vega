@@ -23,7 +23,7 @@
 package com.rapidminer.tools.math.function.date;
 
 import java.text.DateFormat;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.Locale;
 import java.util.Stack;
 
@@ -54,28 +54,27 @@ public class Date2StringWithLocale extends PostfixMathCommand {
 		
 		Object localeObject = stack.pop();
 		if (!(localeObject instanceof String)) {
-			throw new ParseException("Invalid argument type for 'date_to_string_loc', fourth argument must be (String) for locale (e.g. \"en\")");
+			throw new ParseException("Invalid argument type for 'date_str_loc', fourth argument must be (String) for locale (e.g. \"en\")");
 		}
 		locale = new Locale(String.valueOf(localeObject));
 		
 		Object constantShowObject = stack.pop();
 		if (!(constantShowObject instanceof String)) {
-			throw new ParseException("Invalid argument type for 'date_to_string_loc', third argument must be show constant (e.g. DATE_SHOW_DATE_ONLY)");
+			throw new ParseException("Invalid argument type for 'date_str_loc', third argument must be show constant (e.g. DATE_SHOW_DATE_ONLY)");
 		}
 		String constantShow = (String)constantShowObject;
 		
 		Object constantFormatObject = stack.pop();
 		if (!(constantFormatObject instanceof String)) {
-			throw new ParseException("Invalid argument type for 'date_to_string_loc', second argument must be formatting constant (e.g. DATE_FULL)");
+			throw new ParseException("Invalid argument type for 'date_str_loc', second argument must be formatting constant (e.g. DATE_FULL)");
 		}
 		String constantFormat = (String)constantFormatObject;
 		
 		Object dateObject = stack.pop();
-		if (!(dateObject instanceof Double)) {
-			throw new ParseException("Invalid argument type for 'date_to_string_loc', first argument must be a date (double)");
+		if (!(dateObject instanceof Calendar)) {
+			throw new ParseException("Invalid argument type for 'date_str_loc', first argument must be Calendar");
 		}
-		double dateDouble = (Double)dateObject;
-		Date date = new Date((long)dateDouble);
+		Calendar dateCal = (Calendar)dateObject;
 		
 		String result;
 		DateFormat dateFormat;
@@ -89,7 +88,7 @@ public class Date2StringWithLocale extends PostfixMathCommand {
 		} else if (constantFormat.equals(ExpressionParserConstants.DATE_FORMAT_SHORT)) {
 			formatting = DateFormat.SHORT;
 		} else {
-			throw new ParseException("Invalid format constant for 'date_to_string_loc'");
+			throw new ParseException("Invalid format constant for 'date_str_loc'");
 		}
 		if (constantShow.equals(ExpressionParserConstants.DATE_SHOW_DATE_ONLY)) {
 			dateFormat = DateFormat.getDateInstance(formatting, locale);
@@ -98,9 +97,9 @@ public class Date2StringWithLocale extends PostfixMathCommand {
 		} else if (constantShow.equals(ExpressionParserConstants.DATE_SHOW_DATE_AND_TIME)) {
 			dateFormat = DateFormat.getDateTimeInstance(formatting, formatting, locale);
 		} else {
-			throw new ParseException("Invalid show constant for 'date_to_string_loc'");
+			throw new ParseException("Invalid show constant for 'date_str_loc'");
 		}
-		result = dateFormat.format(date);
+		result = dateFormat.format(dateCal.getTime());
 		stack.push(result);
 	}
 }

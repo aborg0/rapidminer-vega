@@ -23,6 +23,7 @@
 package com.rapidminer.tools.math.function.date;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.Stack;
@@ -34,19 +35,18 @@ import org.nfunk.jep.function.PostfixMathCommand;
 import com.rapidminer.tools.math.function.ExpressionParserConstants;
 
 /**
- * Allows to add a custom amount of time to a given Date.
+ * Gets a specified portion of a given Calendar, e.g. the month.
  * 
  * @author Marco Boeck
  */
-public class DateAdd extends PostfixMathCommand {
+public class DateGet extends PostfixMathCommand {
 	
-	public DateAdd() {
-		// variable numer of parameters
-		numberOfParameters = -1;
+	public DateGet() {
+		numberOfParameters = 2;
 	}
 	
 	/**
-	 * Creates the new Date.
+	 * Returns the specified portion as a double.
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
@@ -59,58 +59,54 @@ public class DateAdd extends PostfixMathCommand {
 		if (curNumberOfParameters == 5) {
 			Object timezoneObject = stack.pop();
 			if (!(timezoneObject instanceof String)) {
-				throw new ParseException("Invalid argument type for 'date_add', fifth argument must be (String) for TimeZone (e.g. America/Los_Angeles)");
+				throw new ParseException("Invalid argument type for 'date_get', fourth argument must be (String) for TimeZone (e.g. America/Los_Angeles)");
 			}
 			zone = TimeZone.getTimeZone(String.valueOf(timezoneObject));
 			
 			Object localeObject = stack.pop();
 			if (!(localeObject instanceof String)) {
-				throw new ParseException("Invalid argument type for 'date_add', fourth argument must be (String) for locale (e.g. \"en\")");
+				throw new ParseException("Invalid argument type for 'date_get', third argument must be (String) for locale (e.g. \"en\")");
 			}
 			locale = new Locale(String.valueOf(localeObject));
 		} else if (curNumberOfParameters != 3) {
-			throw new ParseException("Invalid number of arguments for 'date_add', must be either 3 or 5.");
+			throw new ParseException("Invalid number of arguments for 'date_get', must be 2 or 4.");
 		}
 		Object unitConstantObject = stack.pop();
 		if (!(unitConstantObject instanceof String)) {
-			throw new ParseException("Invalid argument type for 'date_add', third argument must be unit constant (e.g. DATE_UNIT_HOUR)");
+			throw new ParseException("Invalid argument type for 'date_get', second argument must be unit constant (e.g. DATE_UNIT_HOUR)");
 		}
 		String unitConstant = String.valueOf(unitConstantObject);
 		
-		Object addedValueObject = stack.pop();
-		if (!(addedValueObject instanceof Double)) {
-			throw new ParseException("Invalid argument type for 'date_add', second argument must be a number");
+		Object calObject = stack.pop();
+		if (!(calObject instanceof Calendar)) {
+			throw new ParseException("Invalid argument type for 'date_get', first argument must be Calendar");
 		}
-		double addedValue = (Double)addedValueObject;
-		
-		Object dateObject = stack.pop();
-		if (!(dateObject instanceof Calendar)) {
-			throw new ParseException("Invalid argument type for 'date_add', first argument must be Calendar");
-		}
-		Calendar dateCal = (Calendar)dateObject;
+		Calendar calOld = (Calendar)calObject;
+		Date date = calOld.getTime();
 		Calendar cal = GregorianCalendar.getInstance(zone, locale);
-		cal.setTime(dateCal.getTime());
+		cal.setTime(date);
+		double result;
 		
 		if (unitConstant.equals(ExpressionParserConstants.DATE_UNIT_YEAR)) {
-			cal.add(Calendar.YEAR, (int)addedValue);
+			result = cal.get(Calendar.YEAR);
 		} else if (unitConstant.equals(ExpressionParserConstants.DATE_UNIT_MONTH)) {
-			cal.add(Calendar.MONTH, (int)addedValue);
+			result = cal.get(Calendar.MONTH);
 		} else if (unitConstant.equals(ExpressionParserConstants.DATE_UNIT_WEEK)) {
-			cal.add(Calendar.WEEK_OF_YEAR, (int)addedValue);
+			result = cal.get(Calendar.WEEK_OF_MONTH);
 		} else if (unitConstant.equals(ExpressionParserConstants.DATE_UNIT_DAY)) {
-			cal.add(Calendar.DAY_OF_MONTH, (int)addedValue);
+			result = cal.get(Calendar.DAY_OF_MONTH);
 		} else if (unitConstant.equals(ExpressionParserConstants.DATE_UNIT_HOUR)) {
-			cal.add(Calendar.HOUR_OF_DAY, (int)addedValue);
+			result = cal.get(Calendar.HOUR_OF_DAY);
 		} else if (unitConstant.equals(ExpressionParserConstants.DATE_UNIT_MINUTE)) {
-			cal.add(Calendar.MINUTE, (int)addedValue);
+			result = cal.get(Calendar.MINUTE);
 		} else if (unitConstant.equals(ExpressionParserConstants.DATE_UNIT_SECOND)) {
-			cal.add(Calendar.SECOND, (int)addedValue);
+			result = cal.get(Calendar.SECOND);
 		} else if (unitConstant.equals(ExpressionParserConstants.DATE_UNIT_MILLISECOND)) {
-			cal.add(Calendar.MILLISECOND, (int)addedValue);
+			result = cal.get(Calendar.MILLISECOND);
 		} else {
-			throw new ParseException("Invalid argument type for 'date_add', third argument must be unit constant (e.g. DATE_UNIT_HOUR)");
+			throw new ParseException("Invalid argument type for 'date_get', second argument must be unit constant (e.g. DATE_UNIT_HOUR)");
 		}
 		
-		stack.push(cal);
+		stack.push(result);
 	}
 }

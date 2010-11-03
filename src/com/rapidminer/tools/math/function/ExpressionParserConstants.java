@@ -24,6 +24,9 @@ package com.rapidminer.tools.math.function;
 
 public abstract class ExpressionParserConstants {
 	
+	// general purpose constants
+	public static final String MISSING_VALUE = "EPConstants_missing_value";
+	
 	// date constants
 	public static final String DATE_FORMAT_FULL = "EPConstants_date_rep_full";
 	public static final String DATE_FORMAT_LONG = "EPConstants_date_rep_long";

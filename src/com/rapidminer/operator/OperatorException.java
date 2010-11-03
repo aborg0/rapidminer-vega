@@ -27,7 +27,6 @@ package com.rapidminer.operator;
  * {@link Operator} or of one of its subclasses.
  * 
  * @author Ingo Mierswa, Simon Fischer
- *          Exp $
  */
 public class OperatorException extends Exception {
 

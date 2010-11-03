@@ -35,7 +35,7 @@ import org.nfunk.jep.function.PostfixMathCommand;
 import com.rapidminer.tools.math.function.ExpressionParserConstants;
 
 /**
- * Allows to set a custom value for a portion of a given Date, e.g. set the month to 4 or the day to 23.
+ * Allows to set a custom value for a portion of a given Calendar, e.g. set the month to 4 or the day to 23.
  * 
  * @author Marco Boeck
  */
@@ -47,7 +47,7 @@ public class DateSet extends PostfixMathCommand {
 	}
 	
 	/**
-	 * Creates the new Date.
+	 * Creates the new Calendar.
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
@@ -70,7 +70,7 @@ public class DateSet extends PostfixMathCommand {
 			}
 			locale = new Locale(String.valueOf(localeObject));
 		} else if (curNumberOfParameters != 3) {
-			throw new ParseException("Invalid number of arguments for 'date_set', must be 3 or 5.");
+			throw new ParseException("Invalid number of arguments for 'date_set', must be either 3 or 5.");
 		}
 		Object unitConstantObject = stack.pop();
 		if (!(unitConstantObject instanceof String)) {
@@ -84,12 +84,12 @@ public class DateSet extends PostfixMathCommand {
 		}
 		double setValue = (Double)setValueObject;
 		
-		Object dateObject = stack.pop();
-		if (!(dateObject instanceof Double)) {
-			throw new ParseException("Invalid argument type for 'date_set', first argument must be date (double)");
+		Object calObject = stack.pop();
+		if (!(calObject instanceof Calendar)) {
+			throw new ParseException("Invalid argument type for 'date_set', first argument must be Calendar");
 		}
-		double dateDouble = (Double)dateObject;
-		Date date = new Date((long)dateDouble);
+		Calendar calOld = (Calendar)calObject;
+		Date date = calOld.getTime();
 		Calendar cal = GregorianCalendar.getInstance(zone, locale);
 		cal.setTime(date);
 		

@@ -27,6 +27,8 @@ import java.util.Stack;
 import org.nfunk.jep.ParseException;
 import org.nfunk.jep.function.PostfixMathCommand;
 
+import com.rapidminer.tools.math.function.ExpressionParserConstants;
+
 /**
  * Returns true if the given argument is a missing value; false otherwise.
  * 
@@ -46,11 +48,17 @@ public class Missing extends PostfixMathCommand {
 	public void run(Stack stack) throws ParseException {
 		checkStack(stack);
 		
-		Object numberObject = stack.pop();
-		if (!(numberObject instanceof Double)) {
-			throw new ParseException("Invalid argument type for 'missing', must be a number");
+		Object toTestObject = stack.pop();
+		try {
+			Double number = (Double)toTestObject;
+			stack.push(number.isNaN());
+		} catch (ClassCastException e) {
+			String valStr = String.valueOf(toTestObject);
+			if (valStr.equals(ExpressionParserConstants.MISSING_VALUE)) {
+				stack.push(true);
+			} else {
+				stack.push(false);
+			}
 		}
-		Double number = (Double)numberObject;
-		stack.push(number.isNaN());
 	}
 }

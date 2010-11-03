@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -62,6 +63,7 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
+import org.freehep.util.io.ReaderInputStream;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -72,8 +74,9 @@ import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
 
 /**
+ * This class offers several convenience methods for treating XML documents-
  * 
- * @author Sebastian Land
+ * @author Sebastian Land, Simon Fischer
  */
 public class XMLTools {
 
@@ -82,6 +85,7 @@ public class XMLTools {
 	private final static DocumentBuilder BUILDER;
 
 	public static final String SCHEMA_URL_PROCESS = "http://www.rapidminer.com/xml/schema/RapidMinerProcess";
+
 	static {
 		DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
 		domFactory.setNamespaceAware(true);
@@ -134,7 +138,7 @@ public class XMLTools {
 	}
 
 	/**
-	 * The schema URL might be given as URI for performance reasons. 
+	 * The schema URL might be given as URI for performance reasons.
 	 */
 	public static Document parseAndValidate(InputStream in, URI schemaURL, String sourceName) throws XMLException, IOException {
 		XMLErrorHandler errorHandler = new XMLErrorHandler(sourceName);
@@ -159,6 +163,10 @@ public class XMLTools {
 			throw new XMLException(errorHandler.toString());
 		}
 		return (Document) result.getNode();
+	}
+
+	public static Document parse(String string) throws SAXException, IOException {
+		return BUILDER.parse(new ReaderInputStream(new StringReader(string)));
 	}
 
 	public static Document parse(InputStream in) throws SAXException, IOException {
@@ -229,31 +237,69 @@ public class XMLTools {
 		}
 	}
 
-	/** As {@link #getTagContents(Element, String, boolean)}, but never throws an exception. Returns null
-	 * if can't retrieve string. */
+	/**
+	 * As {@link #getTagContents(Element, String, boolean)}, but never throws an exception. Returns null if can't
+	 * retrieve string.
+	 */
 	public static String getTagContents(Element element, String tag) {
 		try {
 			return getTagContents(element, tag, false);
 		} catch (XMLException e) {
 			// cannot happen
-			throw new RuntimeException(e);
+			return null;
 		}
 	}
 
-	/** For a tag <tag>content</tag> returns content. */
-	public static String getTagContents(Element element, String tag, boolean throwExceptionOnError) throws XMLException {
-		NodeList nodeList = element.getChildNodes();
+	/**
+	 * For a tag <parent> <tagName>content</tagName> <something>else</something> ... </parent>
+	 * 
+	 * returns "content". This will return the content of the first occurring child element with name tagName. If no
+	 * such tag exists and {@link XMLException} is thrown if throwExceptionOnError is true. Otherwise null is returned.
+	 * */
+	public static String getTagContents(Element parent, String tagName, boolean throwExceptionOnError) throws XMLException {
+		NodeList nodeList = parent.getChildNodes();
 		for (int i = 0; i < nodeList.getLength(); i++) {
 			Node node = nodeList.item(i);
-			if ((node instanceof Element) && ((Element) node).getTagName().equals(tag)) {
+			if ((node instanceof Element) && ((Element) node).getTagName().equals(tagName)) {
 				Element child = (Element) node;
 				return child.getTextContent();
 			}
 		}
 		if (throwExceptionOnError) {
-			throw new XMLException("Missing tag: <" + tag + "> in <" + element.getTagName() + ">.");
+			throw new XMLException("Missing tag: <" + tagName + "> in <" + parent.getTagName() + ">.");
 		} else {
 			return null;
+		}
+	}
+
+	/**
+	 * This will parse the text contents of an child element of element parent with the given tagName as integer. If no
+	 * such child element can be found an XMLException is thrown. If more than one exists, the first is used. A
+	 * {@link NumberFormatException} is thrown if the text content is not a valid boolean.
+	 */
+	public static int getTagContentsAsInt(Element element, String tag) throws XMLException {
+		final String string = getTagContents(element, tag, true);
+		try {
+			return Integer.parseInt(string);
+		} catch (NumberFormatException e) {
+			throw new XMLException("Contents of tag <" + tag + "> must be integer, but found '" + string + "'.");
+		}
+	}
+
+	/**
+	 * This will parse the text contents of an child element of element parent with the given tagName as boolean. If no
+	 * such child element can be found the default is returned. If more than one exists, the first is used. A
+	 * {@link NumberFormatException} is thrown if the text content is not a valid integer.
+	 */
+	public static boolean getTagContentsAsBoolean(Element parent, String tagName, boolean dflt) throws XMLException {
+		String string = getTagContents(parent, tagName, false);
+		if (string == null) {
+			return dflt;
+		}
+		try {
+			return Boolean.parseBoolean(string);
+		} catch (NumberFormatException e) {
+			throw new XMLException("Contents of tag <" + tagName + "> must be true or false, but found '" + string + "'.");
 		}
 	}
 
@@ -287,11 +333,14 @@ public class XMLTools {
 		child.appendChild(parent.getOwnerDocument().createTextNode(value));
 	}
 
-	public static void deleteTagContents(Element annotationsElement, String name) {
-		NodeList children = annotationsElement.getElementsByTagName(name);
+	/**
+	 * This method removes all child elements with the given name of the given element.
+	 */
+	public static void deleteTagContents(Element parentElement, String name) {
+		NodeList children = parentElement.getElementsByTagName(name);
 		for (int i = 0; i < children.getLength(); i++) {
 			Element child = (Element) children.item(i);
-			annotationsElement.removeChild(child);
+			parentElement.removeChild(child);
 		}
 	}
 
@@ -305,7 +354,7 @@ public class XMLTools {
 		try {
 			datatypeFactory = DatatypeFactory.newInstance();
 		} catch (DatatypeConfigurationException e) {
-			throw new RuntimeException("Failed to create XMLGregorianCalendar: "+e, e);
+			throw new RuntimeException("Failed to create XMLGregorianCalendar: " + e, e);
 		}
 		XMLGregorianCalendar xmlGregorianCalendar = datatypeFactory.newXMLGregorianCalendar();
 		xmlGregorianCalendar.setYear(calendar.get(Calendar.YEAR));
@@ -315,18 +364,21 @@ public class XMLTools {
 		xmlGregorianCalendar.setMinute(calendar.get(Calendar.MINUTE));
 		xmlGregorianCalendar.setSecond(calendar.get(Calendar.SECOND));
 		xmlGregorianCalendar.setMillisecond(calendar.get(Calendar.MILLISECOND));
-		//xmlGregorianCalendar.setTimezone(calendar.get(((Calendar.DST_OFFSET)+calendar.get(Calendar.ZONE_OFFSET))/(60*1000)));
+		// xmlGregorianCalendar.setTimezone(calendar.get(((Calendar.DST_OFFSET)+calendar.get(Calendar.ZONE_OFFSET))/(60*1000)));
 		return xmlGregorianCalendar;
 	}
 
+	/**
+	 * This will return the inner tag of the given element with the given tagName. If no such element can be found, or
+	 * if there are more than one, an {@link XMLException} is thrown.
+	 */
 	public static Element getUniqueInnerTag(Element element, String tagName) throws XMLException {
 		return getUniqueInnerTag(element, tagName, true);
 	}
 
 	/**
-	 * This method will return null if the element doesn't exist if obligatory is false. Otherwise
-	 * an exception is thrown.
-	 * If the element is not unique, an exception is thrown in any cases.
+	 * This method will return null if the element doesn't exist if obligatory is false. Otherwise an exception is
+	 * thrown. If the element is not unique, an exception is thrown in any cases.
 	 */
 	public static Element getUniqueInnerTag(Element element, String tagName, boolean obligatory) throws XMLException {
 		NodeList children = element.getElementsByTagName(tagName);
@@ -361,30 +413,56 @@ public class XMLTools {
 		return elements;
 	}
 
-	public static int getTagContentsAsInt(Element element, String tag) throws XMLException {
-		final String string = getTagContents(element, tag, true);
-		try {			
-			return Integer.parseInt(string);
-		} catch (NumberFormatException e) {
-			throw new XMLException("Contents of tag <"+tag+"> must be integer, but found '"+string+"'.");
+	/**
+	 * This method will return the single inner child with the given name of the given father element. If obligatory is
+	 * true, an Exception is thrown if the element is not present. If it's ambiguous, an execption is thrown in any
+	 * case.
+	 */
+	public static Element getChildElement(Element father, String tagName, boolean obligatory) throws XMLException {
+		Collection<Element> children = getChildElements(father, tagName);
+		switch (children.size()) {
+		case 0:
+			if (obligatory)
+				throw new XMLException("Missing child tag <" + tagName + "> inside <" + father.getTagName() + ">.");
+			else
+				return null;
+		case 1:
+			return children.iterator().next();
+		default:
+			throw new XMLException("Child tag <" + tagName + "> inside <" + father.getTagName() + "> must be unique, but found " + children.size() + ".");
 		}
+
 	}
 
-	public static boolean getTagContentsAsBoolean(Element element, String tag, boolean dflt) throws XMLException {
-		String string = getTagContents(element, tag, false);
-		if (string == null) {
-			return dflt;
-		}
-		try {			
-			return Boolean.parseBoolean(string);
-		} catch (NumberFormatException e) {
-			throw new XMLException("Contents of tag <"+tag+"> must be true or false, but found '"+string+"'.");
-		}
+	/**
+	 * This adds a single tag with the given content to the given parent element. The new tag is automatically appended.
+	 */
+	public static void addTag(Element parent, String name, String textValue) {
+		Element child = parent.getOwnerDocument().createElement(name);
+		child.setTextContent(textValue);
+		parent.appendChild(child);
 	}
 
-	/** Returns the list of children and returns the given tag. This tag must be unique, or an exception will
-	 *  be raised. If optional is false and the tag is missing, this method also raises an exception. Otherwise 
-	 *  it returns null. */
+	/**
+	 * Creates a new, empty document.
+	 */
+	public static Document createDocument() {
+		return BUILDER.newDocument();
+	}
+
+	/**
+	 * This will add an empty new tag to the given fatherElement with the given name.
+	 */
+	public static Element addTag(Element fatherElement, String tagName) {
+		Element createElement = fatherElement.getOwnerDocument().createElement(tagName);
+		fatherElement.appendChild(createElement);
+		return createElement;
+	}
+
+	/**
+	 * Returns the list of children and returns the given tag. This tag must be unique, or an exception will be raised.
+	 * If optional is false and the tag is missing, this method also raises an exception. Otherwise it returns null.
+	 */
 	public static Element getChildTag(Element element, String xmlTagName, boolean optional) throws XMLException {
 		NodeList children = element.getChildNodes();
 		Element found = null;
@@ -393,15 +471,15 @@ public class XMLTools {
 			if (n instanceof Element) {
 				if (((Element) n).getTagName().equals(xmlTagName)) {
 					if (found != null) {
-						throw new XMLException("Tag <"+xmlTagName+"> in <"+element.getTagName()+"> must be unique.");
+						throw new XMLException("Tag <" + xmlTagName + "> in <" + element.getTagName() + "> must be unique.");
 					} else {
-						found = (Element)n;
+						found = (Element) n;
 					}
 				}
 			}
 		}
 		if (!optional && (found == null)) {
-			throw new XMLException("Tag <"+xmlTagName+"> in <"+element.getTagName()+"> is missing.");
+			throw new XMLException("Tag <" + xmlTagName + "> in <" + element.getTagName() + "> is missing.");
 		} else {
 			return found;
 		}

@@ -22,6 +22,7 @@
  */
 package com.rapidminer.tools.math.function.date;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Stack;
 
@@ -29,7 +30,7 @@ import org.nfunk.jep.ParseException;
 import org.nfunk.jep.function.PostfixMathCommand;
 
 /**
- * Determines if the first Date is strictly later than the second Date.
+ * Determines if the first Calendar is strictly later than the second Calendar.
  * 
  * @author Marco Boeck
  */
@@ -48,15 +49,15 @@ public class DateAfter extends PostfixMathCommand {
 	public void run(Stack stack) throws ParseException {
 		checkStack(stack);
 		
-		Object dateObjectTwo = stack.pop();
-		Object dateObjectOne = stack.pop();
-		if (!(dateObjectOne instanceof Double) && !(dateObjectTwo instanceof Double)) {
-			throw new ParseException("Invalid argument type for 'date_before', must both be a date (double)");
+		Object calObjectTwo = stack.pop();
+		Object calObjectOne = stack.pop();
+		if (!(calObjectOne instanceof Calendar) || !(calObjectTwo instanceof Calendar)) {
+			throw new ParseException("Invalid argument type for 'date_after', must both be Calendar");
 		}
-		double dateDoubleOne = (Double)dateObjectOne;
-		double dateDoubleTwo = (Double)dateObjectTwo;
-		Date dateOne = new Date((long)dateDoubleOne);
-		Date dateTwo = new Date((long)dateDoubleTwo);
+		Calendar calOne = (Calendar)calObjectOne;
+		Calendar calTwo = (Calendar)calObjectTwo;
+		Date dateOne = calOne.getTime();
+		Date dateTwo = calTwo.getTime();
 		boolean result = dateOne.after(dateTwo);
 		stack.push(result);
 	}

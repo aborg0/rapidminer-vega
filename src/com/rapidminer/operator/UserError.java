@@ -113,9 +113,12 @@ public class UserError extends OperatorException implements NoBugError {
 		this.operator = operator;
 	}
 
-	/** Convenience constructor for messages with no arguments and cause. */
+	/** Convenience constructor for messages with no arguments and cause.
+	 * This constructor is in fact equivalent to the call of the above constructor but
+	 * must kept for compatibility issues for existing compiled extensions. 
+	 */
 	public UserError(Operator operator, Throwable cause,  String errorId) {
-		this(operator, errorId, new Object[0], cause);
+		this(operator, cause, errorId, new Object[0]);
 	}
 
 	public UserError(Operator operator, String errorId, Object ... arguments) {

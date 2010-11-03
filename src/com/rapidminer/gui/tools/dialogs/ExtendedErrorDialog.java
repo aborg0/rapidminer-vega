@@ -57,13 +57,10 @@ import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.XMLException;
 
-
 /**
- * The error message dialog. Several buttons are provided in addition to the
- * error message. Details about the exception can be shown and an edit button
- * can jump to the source code if an editor was defined in the properties /
- * settings. In case of a non-expected error (i.e. all non-user errors) a button
- * for sending a bug report is also provided.
+ * The error message dialog. Several buttons are provided in addition to the error message. Details about the exception
+ * can be shown and an edit button can jump to the source code if an editor was defined in the properties / settings. In
+ * case of a non-expected error (i.e. all non-user errors) a button for sending a bug report is also provided.
  * 
  * @author Ingo Mierswa, Simon Fischer, Tobias Malbrecht
  */
@@ -71,53 +68,54 @@ public class ExtendedErrorDialog extends ButtonDialog {
 
 	private static final long serialVersionUID = -8136329951869702133L;
 
-	private static final int SIZE = MESSAGE;
-	
+	private static final int SIZE = ButtonDialog.DEFAULT_SIZE;
+
 	private final JButton editButton = new JButton("Edit");
-	
-	/**
-	 * Indicates if the exception message will be add to the 
-	 * internationalized message. Default is <code>false</code>
-	 */
-	private boolean displayExceptionMessage = false;
-	
+
 	private Throwable error;
 
 	private final JComponent mainComponent = new JPanel(new BorderLayout());
 
 	/**
-	 * Creates a dialog with the internationalized I18n-message from the
-	 * given key and a panel for detailed stack trace.
+	 * Creates a dialog with the internationalized I18n-message from the given key and a panel for detailed stack trace.
 	 * 
-	 * @param key						the I18n-key which will be used to display the internationalized message
-	 * @param error						the exception associated to this message
-	 * @param arguments					additional arguments for the internationalized message, which replace <code>{0}</code>, <code>{1}</code>, etcpp.
+	 * @param key
+	 *            the I18n-key which will be used to display the internationalized message
+	 * @param error
+	 *            the exception associated to this message
+	 * @param arguments
+	 *            additional arguments for the internationalized message, which replace <code>{0}</code>,
+	 *            <code>{1}</code>, etcpp.
 	 */
-	public ExtendedErrorDialog(String key, Throwable error, Object...arguments) {
+	public ExtendedErrorDialog(String key, Throwable error, Object... arguments) {
 		this(key, error, false, arguments);
 	}
-	
+
 	/**
-	 * Creates a dialog with the internationalized I18n-message from the
-	 * given key and a panel for detailed stack trace.
+	 * Creates a dialog with the internationalized I18n-message from the given key and a panel for detailed stack trace.
 	 * 
-	 * @param key						the I18n-key which will be used to display the internationalized message
-	 * @param error						the exception associated to this message
-	 * @param displayExceptionMessage	indicates if the exception message will be displayed in the dialog or just in the detailed panel
-	 * @param arguments					additional arguments for the internationalized message, which replace <code>{0}</code>, <code>{1}</code>, etcpp.
+	 * @param key
+	 *            the I18n-key which will be used to display the internationalized message
+	 * @param error
+	 *            the exception associated to this message
+	 * @param displayExceptionMessage
+	 *            indicates if the exception message can be shown using the details button.
+	 * @param arguments
+	 *            additional arguments for the internationalized message, which replace <code>{0}</code>,
+	 *            <code>{1}</code>, etcpp.
 	 */
-	public ExtendedErrorDialog(String key, Throwable error, boolean displayExceptionMessage, Object...arguments) {
-		super("error."+key, true , arguments);
-		this.displayExceptionMessage = displayExceptionMessage;
+	public ExtendedErrorDialog(String key, Throwable error, boolean displayExceptionMessage, Object... arguments) {
+		super("error." + key, true, arguments);
 		this.error = error;
-		
+
 		boolean hasError = (error != null);
-		JComponent detailedPane = hasError ? createDetailPanel( error ) : null;
+		JComponent detailedPane = hasError ? createDetailPanel(error) : null;
 
 		if ((error != null) && (error instanceof UserError) && (((UserError) error).getOperator() != null)) {
 			final String opName = ((UserError) error).getOperator().getName();
 			mainComponent.add(new LinkButton(new ResourceAction("show_offending_operator", opName) {
 				private static final long serialVersionUID = 1L;
+
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					MainFrame mainFrame = RapidMinerGUI.getMainFrame();
@@ -127,53 +125,56 @@ public class ExtendedErrorDialog extends ButtonDialog {
 		}
 
 		layoutDefault(mainComponent, SIZE, getButtons(hasError && displayExceptionMessage, isBugReportException(error), detailedPane, error));
+		pack();
 	}
-	
+
 	/**
-	 * Creates a dialog with the internationalized I18n-message from the
-	 * given key.
+	 * Creates a dialog with the internationalized I18n-message from the given key.
 	 * 
-	 * @param key						the I18n-key which will be used to display the internationalized message
-	 * @param errorMessage				the error message associated to this message
-	 * @param arguments					additional arguments for the internationalized message, which replace <code>{0}</code>, <code>{1}</code>, etcpp.
+	 * @param key
+	 *            the I18n-key which will be used to display the internationalized message
+	 * @param errorMessage
+	 *            the error message associated to this message
+	 * @param arguments
+	 *            additional arguments for the internationalized message, which replace <code>{0}</code>,
+	 *            <code>{1}</code>, etcpp.
 	 */
-	public ExtendedErrorDialog( String key, String errorMessage, Object...arguments ) {
-		super("error."+key, true , arguments);
+	public ExtendedErrorDialog(String key, String errorMessage, Object... arguments) {
+		super("error." + key, true, arguments);
 
 		boolean hasError = (errorMessage != null) && !errorMessage.isEmpty();
-		JScrollPane detailedPane = hasError ? createDetailPanel( errorMessage ) : null;
+		JScrollPane detailedPane = hasError ? createDetailPanel(errorMessage) : null;
 
-		layoutDefault(mainComponent, SIZE, getButtons( hasError, false, detailedPane, null ));
+		layoutDefault(mainComponent, SIZE, getButtons(hasError, false, detailedPane, null));
 	}
-	
+
 	@Override
 	protected Icon getInfoIcon() {
 		return SwingTools.createIcon("48/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.icon"));
 	}
 
 	/**
-	 * Creates a Panel for the error details and attaches the exception to it, but doesn't
-	 * add the Panel to the dialog.
+	 * Creates a Panel for the error details and attaches the exception to it, but doesn't add the Panel to the dialog.
 	 * 
 	 * @param error
 	 * @return
 	 */
-	private JComponent createDetailPanel( Throwable error ) {
+	private JComponent createDetailPanel(Throwable error) {
 		StackTraceList stl = new StackTraceList(error);
 		JScrollPane detailPane = new ExtendedJScrollPane(stl);
 		detailPane.setPreferredSize(new Dimension(getWidth(), 200));
 		return detailPane;
 	}
-	
+
 	/**
-	 * Creates a Panel for the error details and attaches the error message to it, but doesn't
-	 * add the Panel to the dialog.
+	 * Creates a Panel for the error details and attaches the error message to it, but doesn't add the Panel to the
+	 * dialog.
 	 * 
 	 * @param error
 	 * @return
 	 */
-	private JScrollPane createDetailPanel( String errorMessage ) {
-		
+	private JScrollPane createDetailPanel(String errorMessage) {
+
 		JTextArea textArea = new JTextArea(errorMessage);
 		textArea.setLineWrap(true);
 		textArea.setEditable(false);
@@ -181,21 +182,22 @@ public class ExtendedErrorDialog extends ButtonDialog {
 		detailPane.setPreferredSize(new Dimension(getWidth(), 200));
 		return detailPane;
 	}
-	
+
 	/**
 	 * Adds all necessary buttons to the dialog.
 	 * 
 	 * @param hasError
 	 * @param isBug
-	 * @param detailedPane	the Panel which will be shown, if the user clicks on the 'Show Details' Button
-	 * @param error			The error occurred
-	 * @return 
+	 * @param detailedPane
+	 *            the Panel which will be shown, if the user clicks on the 'Show Details' Button
+	 * @param error
+	 *            The error occurred
+	 * @return
 	 */
 	private Collection<AbstractButton> getButtons(boolean hasError, boolean isBug, final JComponent detailedPane, final Throwable error) {
 		Collection<AbstractButton> buttons = new LinkedList<AbstractButton>();
-		if( hasError ) {
-			buttons.add(new JToggleButton(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.show_details.label"),
-					SwingTools.createIcon("24/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.show_details.icon"))) {
+		if (hasError) {
+			buttons.add(new JToggleButton(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.show_details.label"), SwingTools.createIcon("24/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.show_details.icon"))) {
 				private static final long serialVersionUID = 8889251336231161227L;
 
 				private boolean detailsShown = false;
@@ -211,84 +213,82 @@ public class ExtendedErrorDialog extends ButtonDialog {
 							} else {
 								mainComponent.add(detailedPane, BorderLayout.CENTER);
 								setDefaultSize(MESSAGE_EXTENDED);
-							}							
-//							pack();
-//							ExtendedErrorDialog.this.repaint();
-//							detailedPane.invalidate();
-//							mainComponent.invalidate();
-//							detailedPane.revalidate();
-//							detailedPane.repaint();
-//							//ExtendedErrorDialog.this.invalidate();
-//							ExtendedErrorDialog.this.setSize(getDefaultSize(SIZE));
-//							ExtendedErrorDialog.this.setPreferredSize(getDefaultSize(SIZE));
-//							ExtendedErrorDialog.this.setMinimumSize(getDefaultSize(SIZE));
-//							ExtendedErrorDialog.this.pack();
-//							ExtendedErrorDialog.this.repaint();
+							}
+							// pack();
+							// ExtendedErrorDialog.this.repaint();
+							// detailedPane.invalidate();
+							// mainComponent.invalidate();
+							// detailedPane.revalidate();
+							// detailedPane.repaint();
+							// //ExtendedErrorDialog.this.invalidate();
+							// ExtendedErrorDialog.this.setSize(getDefaultSize(SIZE));
+							// ExtendedErrorDialog.this.setPreferredSize(getDefaultSize(SIZE));
+							// ExtendedErrorDialog.this.setMinimumSize(getDefaultSize(SIZE));
+							// ExtendedErrorDialog.this.pack();
+							// ExtendedErrorDialog.this.repaint();
 							detailsShown = !detailsShown;
 						}
-					});	
+					});
 				}
 			});
 		}
-		if( isBug ) {
+		if (isBug) {
 			buttons.add(new JButton(new ResourceAction("send_bugreport") {
 				private static final long serialVersionUID = 1L;
+
 				public void actionPerformed(ActionEvent e) {
 					new BugAssistant(error).setVisible(true);
 				}
 			}));
 		}
-		
+
 		buttons.add(makeCloseButton());
 		return buttons;
-		//add(makeButtonPanel(buttons), BorderLayout.SOUTH);
+		// add(makeButtonPanel(buttons), BorderLayout.SOUTH);
 	}
-	
+
 	/**
-	 * Returns <code>true</code> if this is a "real" bug, <code>false</code>
-	 * otherwise.
+	 * Returns <code>true</code> if this is a "real" bug, <code>false</code> otherwise.
 	 * 
 	 * @param t
 	 * @return
 	 */
 	private boolean isBugReportException(Throwable t) {
-		return !(t instanceof NoBugError ||
-				 t instanceof XMLException);
+		return !(t instanceof NoBugError || t instanceof XMLException);
 	}
-	
+
 	/**
-	 * Overrides the {@link ButtonDialog} method to add the exception message
-	 * to the internationalized message
+	 * Overrides the {@link ButtonDialog} method to add the exception message to the internationalized message
 	 */
 	@Override
-	protected String getInfoText() {		
-		if( !displayExceptionMessage )
-			return super.getInfoText();
-		else if ( error != null ) {
-			
+	protected String getInfoText() {
+		if (error != null) {
 			StringBuilder infoText = new StringBuilder();
-			infoText.append("<p>");
-			
+			infoText.append("<div>");
+
 			infoText.append(super.getInfoText());
-			infoText.append("</p>");
+			infoText.append("</div>");
 
-			String message = Tools.escapeHTML(error.getMessage());
-			if (message == null) {
-				message = error.toString();
+			Throwable cause = error.getCause();
+			if (cause != null) {
+				String message = Tools.escapeHTML(cause.getMessage());
+				if (message == null) {
+					message = cause.toString();
+				}
+
+				if (!"null".equals(message)) {
+					infoText.append("<p><strong>Reason: </strong>");
+					infoText.append(message);
+					infoText.append("</p>");
+				}
 			}
-
-			if (!"null".equals(message)) {				
-				infoText.append("<p><strong>Reason: </strong>");
-				infoText.append(message);
-				infoText.append("</p>");
-			}	
 			return infoText.toString();
 		} else {
 			return super.getInfoText();
 		}
-		
+
 	}
-	
+
 	private static class FormattedStackTraceElement {
 
 		private final StackTraceElement ste;
