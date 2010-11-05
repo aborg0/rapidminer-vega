@@ -205,7 +205,7 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 	 * The list which stores the errors of this operator (parameter not set,
 	 * wrong children number, wrong IO).
 	 */
-	private List<ProcessSetupError> errorList = new LinkedList<ProcessSetupError>();
+	private List<ProcessSetupError> errorList = Collections.synchronizedList(new LinkedList<ProcessSetupError>());
 
 	/**
 	 * The operator description of this operator (icon, classname, description,

@@ -4,6 +4,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -43,10 +45,21 @@ public class CSVResultSet implements DataResultSet {
 	private void open() throws OperatorException {
 		close();
 		InputStream in;
+		
 		try {
-			in = new FileInputStream(configuration.getCsvFile());
-		} catch (FileNotFoundException e) {
-			throw new UserError(operator, 301, e, configuration.getCsvFile());
+			URL url = new URL(configuration.getCsvFile());
+			try {
+				in = url.openStream();
+			} catch (IOException e) {
+				throw new UserError(operator, 301, e, configuration.getCsvFile());
+			}
+		} catch (MalformedURLException e) {
+			// URL did not work? Try as file...
+			try {
+				in = new FileInputStream(configuration.getCsvFile());
+			} catch (FileNotFoundException e1) {
+				throw new UserError(operator, 301, e1, configuration.getCsvFile());
+			}
 		}
 		reader = new LineReader(in, configuration.getEncoding());
 		parser = new LineParser(configuration);

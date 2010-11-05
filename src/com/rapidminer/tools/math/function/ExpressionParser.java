@@ -62,9 +62,9 @@ import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.math.function.date.Date2String;
 import com.rapidminer.tools.math.function.date.Date2StringWithLocale;
 import com.rapidminer.tools.math.function.date.DateAdd;
-import com.rapidminer.tools.math.function.date.DateCreate;
 import com.rapidminer.tools.math.function.date.DateAfter;
 import com.rapidminer.tools.math.function.date.DateBefore;
+import com.rapidminer.tools.math.function.date.DateCreate;
 import com.rapidminer.tools.math.function.date.DateDiff;
 import com.rapidminer.tools.math.function.date.DateGet;
 import com.rapidminer.tools.math.function.date.DateParse;
@@ -172,8 +172,8 @@ import com.rapidminer.tools.math.function.text.UpperCase;
  * 
  * <p>The following <em>text functions</em> are supported:
  * <ul>
- * <li>Number to String: str(x)</li>
- * <li>String to Number: parse(text)</li>
+ * <li>Number to string: str(x)</li>
+ * <li>String to number: parse(text)</li>
  * <li>Substring: cut(text, start, length)</li>
  * <li>Concatenation (also possible by &quot+&quot;): concat(text1, text2, text3...)</li>
  * <li>Replace: replace(text, what, by)</li>
@@ -195,6 +195,29 @@ import com.rapidminer.tools.math.function.text.UpperCase;
  * </ul>
  * </p> 
  * 
+ * <p>The following <em>date functions</em> are supported:
+ * <ul>
+ * <li>Parse date: date_parse(x)</li>
+ * <li>Parse date using locale: date_parse_loc(x, code)</li>
+ * <li>Parse date using custom format: date_parse_custom(x, format, code)</li>
+ * <li>Date before: date_before(x, y)</li>
+ * <li>Date after: date_after(x, y)</li>
+ * <li>Date to string: date_str(x)</li>
+ * <li>Date to string using locale: date_str_loc(x, code)</li>
+ * <li>Current date: date_now()</li>
+ * <li>Date difference: date_diff(x, y)</li>
+ * <li>Date add: date_add(x, unit, y)</li>
+ * <li>Date set: date_set(x, unit, y)</li>
+ * <li>Date get: date_get(x, unit)</li>
+ * </ul>
+ * 
+ * <p>
+ * The following <em>process related functions</em> are supported:
+ * <ul>
+ * <li>Retrieving a parameter value: param("operator", "parameter")</li>
+ * </ul>
+ * </p>
+ * 
  * <p>The following <em>miscellaneous functions</em> are supported:
  * <ul>
  * <li>If-Then-Else: if(cond,true-evaluation, false-evaluation)</li>
@@ -206,16 +229,9 @@ import com.rapidminer.tools.math.function.text.UpperCase;
  * <li>Modulus (x % y): mod(x,y)</li>
  * <li>Sum of k Numbers: sum(x,y,z...)</li>
  * <li>Binomial Coefficients: binom(n, i)</li>
- * <li>Retrieving parameter value: param(operator name, parameter name)</li>
+ * <li>Check for Missing: missing(x)</li>
  * </ul>
  * </p> 
- * 
- * <p>
- * The following <em>process related functions</em> are supported:
- * <ul>
- * <li>Retrieving a parameter value: param("operator", "parameter")</li>
- * </ul>
- * </p>
  * 
  * 
  * <p>Beside those operators and functions, this operator also supports the constants
@@ -608,7 +624,7 @@ public class ExpressionParser {
 							} else {
 								parser.addVariable(attribute.getName(), example.getValueAsString(attribute));
 							}
-						} else if (attribute.getValueType() == Ontology.DATE_TIME) {
+						} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
 							Calendar cal = Calendar.getInstance();
 							cal.setTime(new Date((long)example.getValue(attribute)));
 							parser.addVariable(attribute.getName(), cal);
@@ -676,7 +692,7 @@ public class ExpressionParser {
 					} else {
 						parser.setVarValue(variableName, example.getValueAsString(attribute));
 					}
-				} else if (attribute.getValueType() == Ontology.DATE_TIME) {
+				} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
 					Calendar cal = Calendar.getInstance();
 					cal.setTime(new Date((long)example.getValue(attribute)));
 					parser.setVarValue(variableName, cal);

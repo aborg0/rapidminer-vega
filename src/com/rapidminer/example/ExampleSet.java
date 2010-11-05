@@ -77,6 +77,7 @@ public interface ExampleSet extends ResultObject, Cloneable, Iterable<Example> {
 	/**
 	 * Returns the example with the given id value. If the example set does not
 	 * contain an id attribute this method should return null.
+	 * Call {@link #remapIds()} before using this method.
 	 */
 	public Example getExampleFromId(double value);
 	

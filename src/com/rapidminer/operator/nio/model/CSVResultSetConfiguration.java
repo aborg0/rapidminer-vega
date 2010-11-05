@@ -22,7 +22,6 @@
  */
 package com.rapidminer.operator.nio.model;
 
-import java.io.File;
 import java.nio.charset.Charset;
 
 import javax.swing.table.TableModel;
@@ -42,7 +41,7 @@ import com.rapidminer.tools.io.Encoding;
  */
 public class CSVResultSetConfiguration implements DataResultSetFactory {
 
-	private File csvFile;
+	private String csvFile;
 
 	private boolean skipComments = true;
 	private boolean useQuotes = true;
@@ -66,7 +65,7 @@ public class CSVResultSetConfiguration implements DataResultSetFactory {
 	 */
 	public CSVResultSetConfiguration(CSVExampleSource csvExampleSource) throws OperatorException {
 		if (csvExampleSource.isParameterSet(CSVExampleSource.PARAMETER_CSV_FILE)) {
-			setCsvFile(csvExampleSource.getParameterAsFile(CSVExampleSource.PARAMETER_CSV_FILE));
+			setCsvFile(csvExampleSource.getParameterAsString(CSVExampleSource.PARAMETER_CSV_FILE));
 		}
 		setSkipComments(csvExampleSource.getParameterAsBoolean(CSVExampleSource.PARAMETER_SKIP_COMMENTS));
 		setUseQuotes(csvExampleSource.getParameterAsBoolean(CSVExampleSource.PARAMETER_USE_QUOTES));
@@ -89,7 +88,7 @@ public class CSVResultSetConfiguration implements DataResultSetFactory {
 
 	@Override
 	public void setParameters(AbstractDataResultSetReader source) {
-		source.setParameter(CSVExampleSource.PARAMETER_CSV_FILE, getCsvFile().getAbsolutePath());
+		source.setParameter(CSVExampleSource.PARAMETER_CSV_FILE, getCsvFile());
 		source.setParameter(CSVExampleSource.PARAMETER_SKIP_COMMENTS, String.valueOf(isSkipComments()));
 		source.setParameter(CSVExampleSource.PARAMETER_USE_QUOTES, String.valueOf(isUseQuotes()));
 		//source.setParameter(CSVExampleSource.PARAMETER_USE_FIRST_ROW_AS_ATTRIBUTE_NAMES, String.valueOf(isFirstRowAsAttributeNames()));
@@ -111,11 +110,11 @@ public class CSVResultSetConfiguration implements DataResultSetFactory {
 		return new DefaultPreview(makeDataResultSet(null), listener);
 	}
 
-	public void setCsvFile(File csvFile) {
+	public void setCsvFile(String csvFile) {
 		this.csvFile = csvFile;
 	}
 
-	public File getCsvFile() {
+	public String getCsvFile() {
 		return csvFile;
 	}
 
@@ -193,7 +192,7 @@ public class CSVResultSetConfiguration implements DataResultSetFactory {
 
 	@Override
 	public String getResourceName() {
-		return getCsvFile().getAbsolutePath();
+		return getCsvFile();
 	}
 
 	@Override
