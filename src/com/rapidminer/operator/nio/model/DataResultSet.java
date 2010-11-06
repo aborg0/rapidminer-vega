@@ -145,4 +145,5 @@ public interface DataResultSet {
 	public int[] getValueTypes();
 
 	public int getCurrentRow();
+
 }

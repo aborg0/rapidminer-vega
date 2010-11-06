@@ -1,6 +1,7 @@
 package com.rapidminer.operator.nio;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -63,6 +64,9 @@ public class CSVSyntaxConfigurationWizardStep extends WizardStep {
 
 	private JScrollPane tablePane;
 
+	private ErrorTableModel errorTableModel = new ErrorTableModel();
+	private JTable errorTable = new JTable(errorTableModel);
+	
 	public CSVSyntaxConfigurationWizardStep(CSVImportWizard csvImportWizard, CSVResultSetConfiguration csvConfiguration) {	
 		super("specify_csv_parsing_options");
 		this.configuration = csvConfiguration;
@@ -236,6 +240,10 @@ public class CSVSyntaxConfigurationWizardStep extends WizardStep {
 		
 		//panel.add(new JScrollPane(previewTable), BorderLayout.CENTER);
 		panel.add(tablePane, BorderLayout.CENTER);
+		
+		JScrollPane errorScrollPane = new JScrollPane(errorTable);
+		errorScrollPane.setPreferredSize(new Dimension(500, 80));		
+		panel.add(errorScrollPane, BorderLayout.SOUTH);
 	}
 
 	private String getSplitExpression() {
@@ -275,6 +283,7 @@ public class CSVSyntaxConfigurationWizardStep extends WizardStep {
 							//panel.remove(tablePane);
 							
 							previewTable.setModel(model);
+							errorTableModel.setErrors(configuration.getErrors());
 //							tablePane = new JScrollPane(previewTable);
 //							tablePane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 //							tablePane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -287,6 +296,7 @@ public class CSVSyntaxConfigurationWizardStep extends WizardStep {
 						}
 					});
 				} catch (Exception e) {
+					errorTableModel.setErrors(configuration.getErrors());
 					ImportWizardUtils.showErrorMessage(configuration.getResourceName(), e.toString(), e);
 				}
 			}});

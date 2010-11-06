@@ -23,7 +23,7 @@ public class CSVFileSelectionWizardStep extends FileSelectionWizardStep {
 	 * There must be a configuration given, but might be empty.
 	 */
 	public CSVFileSelectionWizardStep(AbstractWizard parent, CSVResultSetConfiguration configuration) {
-		super(parent, new File(configuration.getCsvFile()), new FileFilter() {
+		super(parent, configuration.getCsvFileAsFile(), new FileFilter() {
 			@Override
 			public boolean accept(File f) {
 				return f.isDirectory() || f.getName().endsWith("csv");
@@ -39,7 +39,7 @@ public class CSVFileSelectionWizardStep extends FileSelectionWizardStep {
 	@Override
 	protected boolean performEnteringAction(WizardStepDirection direction) {
 		if (configuration.getCsvFile() != null) {
-			this.fileChooser.setSelectedFile(new File(configuration.getCsvFile()));
+			this.fileChooser.setSelectedFile(configuration.getCsvFileAsFile());
 		}
 		return true;
 	}

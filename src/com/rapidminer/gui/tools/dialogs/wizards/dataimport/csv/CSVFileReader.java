@@ -44,6 +44,7 @@ import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
+import com.rapidminer.tools.CSVParseException;
 import com.rapidminer.tools.LineParser;
 import com.rapidminer.tools.Ontology;
 
@@ -171,7 +172,11 @@ public class CSVFileReader {
 
 			@Override
 			public String[] next() {
-				return parser.parse(line);
+				try {
+					return parser.parse(line);
+				} catch (CSVParseException e) {
+					throw new IllegalArgumentException(e);
+				}
 			}
 
 			@Override

@@ -32,7 +32,7 @@ import org.nfunk.jep.function.PostfixMathCommand;
 import com.rapidminer.tools.math.function.ExpressionParserConstants;
 
 /**
- * Changes a Date object to a String.
+ * Changes a Calendar object to a String.
  * 
  * @author Marco Boeck
  */

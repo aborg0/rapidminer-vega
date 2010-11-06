@@ -22,7 +22,9 @@
  */
 package com.rapidminer.operator.nio.model;
 
+import java.io.File;
 import java.nio.charset.Charset;
+import java.util.List;
 
 import javax.swing.table.TableModel;
 
@@ -53,6 +55,8 @@ public class CSVResultSetConfiguration implements DataResultSetFactory {
 	private String commentCharacters ="#";
 
 	private Charset encoding = Charset.defaultCharset();
+
+	private List<ParsingError> errors;
 	
 	/**
 	 * This will create a completely empty result set configuration
@@ -107,7 +111,9 @@ public class CSVResultSetConfiguration implements DataResultSetFactory {
 
 	@Override
 	public TableModel makePreviewTableModel(ProgressListener listener) throws OperatorException, ParseException {
-		return new DefaultPreview(makeDataResultSet(null), listener);
+		final DataResultSet resultSet = makeDataResultSet(null);
+		this.errors = ((CSVResultSet) resultSet).getErrors();
+		return new DefaultPreview(resultSet, listener);
 	}
 
 	public void setCsvFile(String csvFile) {
@@ -117,14 +123,10 @@ public class CSVResultSetConfiguration implements DataResultSetFactory {
 	public String getCsvFile() {
 		return csvFile;
 	}
-
-//	public void setFirstRowAsAttributeNames(boolean firstRowAsAttributeNames) {
-//		this.firstRowAsAttributeNames = firstRowAsAttributeNames;
-//	}
-//
-//	public boolean isFirstRowAsAttributeNames() {
-//		return firstRowAsAttributeNames;
-//	}
+	
+	public File getCsvFileAsFile() {
+		return csvFile == null ? null : new File(csvFile);
+	}
 
 	public void setUseQuotes(boolean useQuotes) {
 		this.useQuotes = useQuotes;
@@ -198,5 +200,9 @@ public class CSVResultSetConfiguration implements DataResultSetFactory {
 	@Override
 	public ExampleSetMetaData makeMetaData() {
 		return new ExampleSetMetaData();
-	}	
+	}
+	
+	public List<ParsingError> getErrors() {
+		return errors;
+	}
 }

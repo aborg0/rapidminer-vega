@@ -8,11 +8,15 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.csv.LineReader;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.nio.model.ParsingError.ErrorCode;
+import com.rapidminer.tools.CSVParseException;
 import com.rapidminer.tools.LineParser;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.ProgressListener;
@@ -35,6 +39,7 @@ public class CSVResultSet implements DataResultSet {
 	private int[] valueTypes;
 	private int numColumns = 0;
 	private Operator operator;
+	private final List<ParsingError> errors = new LinkedList<ParsingError>();
 
 	public CSVResultSet(CSVResultSetConfiguration configuration, Operator operator) throws OperatorException {
 		this.configuration = configuration;
@@ -43,6 +48,7 @@ public class CSVResultSet implements DataResultSet {
 	}
 
 	private void open() throws OperatorException {
+		getErrors().clear();
 		close();
 		InputStream in;
 		
@@ -68,13 +74,20 @@ public class CSVResultSet implements DataResultSet {
 		} catch (IOException e) {
 			throw new UserError(operator, e, 321, configuration.getCsvFile(), e.toString());
 		}
-		columnNames = new String[next.length];
-		for (int i = 0; i < next.length; i++) {
-			columnNames[i] = "att"+(i+1);
+		if (next == null) {
+			errors.add(new ParsingError(1, -1, ErrorCode.FILE_SYNTAX_ERROR, "No valid line found."));
+			//throw new UserError(operator, 321, configuration.getCsvFile(), "No valid line found.");
+			columnNames = new String[0];
+			valueTypes = new int[0];			
+		} else {
+			columnNames = new String[next.length];
+			for (int i = 0; i < next.length; i++) {
+				columnNames[i] = "att"+(i+1);
+			}
+			valueTypes = new int[next.length];
+			Arrays.fill(valueTypes, Ontology.NOMINAL); 
+			currentRow = -1;
 		}
-		valueTypes = new int[next.length];
-		Arrays.fill(valueTypes, Ontology.NOMINAL); 
-		currentRow = -1;		
 	}
 
 	private void readNext() throws IOException {
@@ -89,7 +102,8 @@ public class CSVResultSet implements DataResultSet {
 				if (next != null) { // no comment read
 					break;
 				}
-			} catch (IllegalArgumentException e){
+			} catch (CSVParseException e) {
+				getErrors().add(new ParsingError(currentRow, -1, ErrorCode.FILE_SYNTAX_ERROR, line, e));
 				next = new String [] { line };
 			}			
 		} while (true);
@@ -180,5 +194,9 @@ public class CSVResultSet implements DataResultSet {
 	@Override
 	public int getCurrentRow() {
 		return currentRow;
+	}
+
+	public List<ParsingError> getErrors() {
+		return errors;
 	}
 }

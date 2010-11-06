@@ -12,7 +12,8 @@ public class ParsingError {
 		UNPARSEABLE_INTEGER("unparseable integer"),
 		UNPARSEABLE_REAL("unparseable real number"),		
 		MORE_THAN_TWO_VALUES("more than two values for binominal attribute"),
-		ROW_TOO_LONG("row too long");
+		ROW_TOO_LONG("row too long"),
+		FILE_SYNTAX_ERROR("file syntax error");
 		
 		private final String message;
 		private ErrorCode(String message) {

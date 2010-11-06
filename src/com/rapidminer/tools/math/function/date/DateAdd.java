@@ -34,7 +34,7 @@ import org.nfunk.jep.function.PostfixMathCommand;
 import com.rapidminer.tools.math.function.ExpressionParserConstants;
 
 /**
- * Allows to add a custom amount of time to a given Date.
+ * Allows to add a custom amount of time to a given Calendar.
  * 
  * @author Marco Boeck
  */

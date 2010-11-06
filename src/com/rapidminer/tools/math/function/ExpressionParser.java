@@ -60,6 +60,7 @@ import com.rapidminer.tools.LoggingHandler;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.math.function.date.Date2String;
+import com.rapidminer.tools.math.function.date.Date2StringCustom;
 import com.rapidminer.tools.math.function.date.Date2StringWithLocale;
 import com.rapidminer.tools.math.function.date.DateAdd;
 import com.rapidminer.tools.math.function.date.DateAfter;
@@ -204,6 +205,7 @@ import com.rapidminer.tools.math.function.text.UpperCase;
  * <li>Date after: date_after(x, y)</li>
  * <li>Date to string: date_str(x)</li>
  * <li>Date to string using locale: date_str_loc(x, code)</li>
+ * <li>Date to string with custom pattern: date_str_custom(x, pattern, code)</li>
  * <li>Current date: date_now()</li>
  * <li>Date difference: date_diff(x, y)</li>
  * <li>Date add: date_add(x, unit, y)</li>
@@ -364,6 +366,7 @@ public class ExpressionParser {
 		dateFunctions.add(new FunctionDescription("date_after()", "Date After", "Determines if the first date is strictly later than the second date; example: date_after(att1, att2)", 2));
 		dateFunctions.add(new FunctionDescription("date_str()", "Date to String", "Changes a date to a string using the specified format; example: date_str(att1, DATE_FULL, DATE_SHOW_DATE_AND_TIME)", 3));
 		dateFunctions.add(new FunctionDescription("date_str_loc()", "Date to String with Locale", "Changes a date to a string using the specified format and the given locale (via lowercase two-letter ISO-639 code); example: date_str_loc(att1, DATE_MEDIUM, DATE_SHOW_TIME_ONLY, \"us\")", 4));
+		dateFunctions.add(new FunctionDescription("date_str_custom()", "Date to String with custom pattern", "Changes a date to a string using the specified custom format pattern and the (optional) given locale (via lowercase two-letter ISO-639 code); example: date_str_custom(att1, \"dd|MM|yy\", \"us\")", 4));
 		dateFunctions.add(new FunctionDescription("date_now()", "Create Date", "Creates the current date; example: date_now()", 0));
 		dateFunctions.add(new FunctionDescription("date_diff()", "Date Difference", "Calculates the elapsed time between two dates. Locale and time zone arguments are optional; example: date_diff(timeStart, timeEnd, \"us\", \"America/Los_Angeles\")", 4));
 		dateFunctions.add(new FunctionDescription("date_add()", "Add Time", "Allows to add a custom amount of time to a given date. Note that only the integer portion of a given value will be used! Locale and Timezone arguments are optional; example: date_add(date, value, DATE_UNIT_DAY, \"us\", \"America/Los_Angeles\")", 5));
@@ -447,6 +450,7 @@ public class ExpressionParser {
 		parser.addFunction("date_after", new DateAfter());
 		parser.addFunction("date_str", new Date2String());
 		parser.addFunction("date_str_loc", new Date2StringWithLocale());
+		parser.addFunction("date_str_custom", new Date2StringCustom());
 		parser.addFunction("date_now", new DateCreate());
 		parser.addFunction("date_diff", new DateDiff());
 		parser.addFunction("date_add", new DateAdd());

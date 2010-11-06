@@ -142,7 +142,7 @@ public class LineParser {
 		this.quoteEscapeCharacter = quoteEscapeCharacter;
 	}
 	
-	public String[] parse(String line) {
+	public String[] parse(String line) throws CSVParseException {
 		line = removeComment(line);
 		if (line == null || "".equals(line.trim())) {
 			return null;
@@ -166,7 +166,7 @@ public class LineParser {
 		return resultingLine;
 	}
 
-	public String[] split(String line) {
+	public String[] split(String line) throws CSVParseException {
 		if (splitPattern == null) {
 			return new String[] { line };
 		}
@@ -186,12 +186,12 @@ public class LineParser {
 //		}
 	}
 	
-	public static String[] split(String line, Pattern splitPattern, boolean trimLine) {
+	public static String[] split(String line, Pattern splitPattern, boolean trimLine) throws CSVParseException {
 		String[] splittedString = splitPattern.split(trimLine ? line.trim() : line);
 		return splittedString;
 	}
 	
-	public static String[] split(String line, Pattern splitPattern, boolean trimLine, char quoteCharacter, char quoteEscapeCharacter) {
+	public static String[] split(String line, Pattern splitPattern, boolean trimLine, char quoteCharacter, char quoteEscapeCharacter) throws CSVParseException {
 //		String s = Tools.escapeQuoteCharsInQuotes(trimLine ? line.trim() : line, splitPattern, quoteCharacter, quoteEscapeCharacter, true);
 		String s = line;
 		return Tools.quotedSplit(trimLine ? s.trim() : s, splitPattern, quoteCharacter, quoteEscapeCharacter);		
@@ -209,7 +209,7 @@ public class LineParser {
 	 * 			[val;ue1],[30.545],[value3]
 	 * @return an array with the splitted strings
 	 */
-	public static String[] fastSplit(String line, char splitChar, boolean trimLine, char quoteChar, char escapeChar) {
+	public static String[] fastSplit(String line, char splitChar, boolean trimLine, char quoteChar, char escapeChar) throws CSVParseException {
 		List<String> resultList = new ArrayList<String>();
 		/** holding the temporary split string */
 		StringBuilder tempString = new StringBuilder();
@@ -453,7 +453,7 @@ public class LineParser {
 						}
 						machineState = SplitMachineState.ERROR;
 						// needs to be thrown here as the loop exists after this pass
-						throw new IllegalArgumentException(errorMessage + " at position " + i + ". Last characters read: " + errorLastFewReadChars);
+						throw new CSVParseException(errorMessage + " at position " + i + ". Last characters read: " + errorLastFewReadChars);
 					}
 					// next character was escaped, therefore add it to the string and bypass it in loop
 					tempString.append(nextChar);
@@ -515,9 +515,9 @@ public class LineParser {
 					errorLastFewReadChars = tempString.substring(tempString.length()-9).toString() + currentChar;
 				}
 				// needs to be thrown here as the loop exists after this pass
-				throw new IllegalArgumentException(errorMessage + " at position " + i + ". Last characters read: " + errorLastFewReadChars);
+				throw new CSVParseException(errorMessage + " at position " + i + ". Last characters read: " + errorLastFewReadChars);
 			case ERROR:
-				throw new IllegalArgumentException(errorMessage + " at position " + i + ". Last characters read: " + errorLastFewReadChars);
+				throw new CSVParseException(errorMessage + " at position " + i + ". Last characters read: " + errorLastFewReadChars);
 			}
 		}
 		

@@ -31,8 +31,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.rapidminer.gui.tools.dialogs.wizards.dataimport.csv.LineReader;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.csv.CSVImportWizard.CSVDataReaderWizardCreator;
+import com.rapidminer.gui.tools.dialogs.wizards.dataimport.csv.LineReader;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
@@ -43,6 +43,7 @@ import com.rapidminer.parameter.ParameterTypeConfiguration;
 import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
+import com.rapidminer.tools.CSVParseException;
 import com.rapidminer.tools.DateParser;
 import com.rapidminer.tools.LineParser;
 import com.rapidminer.tools.StrictDecimalFormat;
@@ -182,9 +183,9 @@ public class CSVDataReader extends AbstractDataReader {
 						}
 						try {
 							parsedLine = parser.parse(line);
-						} catch (IllegalArgumentException e){
+						} catch (CSVParseException e){
 							if (!isErrorTolerant()){
-								throw e;
+								throw new IllegalArgumentException(e);
 							} else {
 								parsedLine = new String [] { line};
 							}
