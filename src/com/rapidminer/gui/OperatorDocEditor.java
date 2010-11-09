@@ -208,25 +208,25 @@ public class OperatorDocEditor extends OperatorDocViewer {
 		});
 	}
 	
-	@Override
-	protected Object makeExampleFooter(int exampleIndex) {
-		return super.makeExampleFooter(exampleIndex) + " <small><a href=\"delete_example_"+exampleIndex+"\">(delete)</a></small>";
-	}
-	
-	@Override
-	protected String makeSynopsisHeader() {
-		return "<h4>Synopsis <small><a href=\"edit_synopsis\">(edit)</a></small></h4>";
-	}
-	
-	@Override
-	protected String makeDescriptionHeader() {
-		return  "<h4>Description <small><a href=\"edit_description\">(edit)</a></h4>";
-	}
-
-	@Override
-	protected String makeParameterHeader(ParameterType type) {
-		return super.makeParameterHeader(type) + " <small><a href=\"edit_parameter_"+type.getKey()+"\">(edit)</a></small>";
-	}
+//	@Override
+//	protected Object makeExampleFooter(int exampleIndex) {
+//		return super.makeExampleFooter(exampleIndex) + " <small><a href=\"delete_example_"+exampleIndex+"\">(delete)</a></small>";
+//	}
+//	
+//	@Override
+//	protected String makeSynopsisHeader() {
+//		return "<h4>Synopsis <small><a href=\"edit_synopsis\">(edit)</a></small></h4>";
+//	}
+//	
+//	@Override
+//	protected String makeDescriptionHeader() {
+//		return  "<h4>Description <small><a href=\"edit_description\">(edit)</a></h4>";
+//	}
+//
+//	@Override
+//	protected String makeParameterHeader(ParameterType type) {
+//		return super.makeParameterHeader(type) + " <small><a href=\"edit_parameter_"+type.getKey()+"\">(edit)</a></small>";
+//	}
 
 	/** Enables/disables all actions for editing HTML text.*/
 	private void setEditEnabled(boolean enabled) {

@@ -57,7 +57,11 @@ public class AnnotationTableModel extends AbstractTableModel {
 	@Override
 	public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
 		if (columnIndex == 0) {
-			annotationsMap.put(rowIndex, (String) aValue);
+			if (AnnotationCellEditor.NONE.equals(aValue)) {
+				annotationsMap.remove(rowIndex);
+			} else {
+				annotationsMap.put(rowIndex, (String) aValue);
+			}
 		} else {
 			wrappedModel.setValueAt(aValue, rowIndex, columnIndex-1);
 		}

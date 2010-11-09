@@ -82,6 +82,8 @@ public class DefaultPreview extends AbstractTableModel {
 		final String[] row = data[rowIndex];
 		if (row == null) {
 			return null;
+		} else if (columnIndex >= row.length) {
+			return null;
 		} else {
 			return row[columnIndex];
 		}

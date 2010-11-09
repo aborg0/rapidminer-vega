@@ -38,6 +38,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 import javax.swing.TransferHandler;
 
+import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.operatortree.actions.CutCopyPasteAction;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.LogService;
@@ -106,9 +107,16 @@ public abstract class OperatorTransferHandler extends TransferHandler {
 		if (data instanceof TransferableOperator) {
 			TransferableOperator top = (TransferableOperator) data;
 			switch (action) {
-			case MOVE:
+			case MOVE:		
+				Operator parent = null;
 				for (Operator operator : top.getOperators()) {
+					if (parent == null) {
+						parent = operator.getParent();
+					}
 					operator.removeAndKeepConnections(Arrays.asList(top.getOperators()));
+				}
+				if (parent != null)  {					
+					RapidMinerGUI.getMainFrame().selectOperator(parent);
 				}
 				break;
 			default:

@@ -391,7 +391,7 @@ public class DataResultSetTranslator {
 			if ((currentRow > maxAnnotatedRow) || (configuration.getAnnotation(currentRow) == null)) {
 				int numCols = dataResultSet.getNumberOfColumns();
 				// number of columns can change as we read the data set.
-				if (numCols >= definedTypes.length) {
+				if (numCols > definedTypes.length) {
 					String excessString;
 					try {
 						excessString = dataResultSet.getString(definedTypes.length);

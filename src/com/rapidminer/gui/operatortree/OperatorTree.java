@@ -288,6 +288,11 @@ public class OperatorTree extends JTree implements TreeSelectionListener, TreeEx
 	public void valueChanged(TreeSelectionEvent e) {
 		if (mainFrame != null) {
 			List<Operator> selectedOperators = getSelectedOperators();
+//			System.out.println("Tree has selection: "+selectedOperators);
+//			System.out.println("Event selection:");
+//			for (TreePath path :e.getPaths()) {
+//				System.out.println(path.getLastPathComponent());
+//			}
 			mainFrame.selectOperators(selectedOperators);
 		}
 	}

@@ -237,6 +237,11 @@ public class DataResultSetTranslationConfiguration {
 
 	public SortedSet<Integer> getAnnotatedRowIndices() {
 		SortedSet<Integer> result = new TreeSet<Integer>();
+//		for (Entry<Integer, String> entry : annotationsMap.entrySet()) {
+//			if (entry.getValue() != null) {
+//				result.add(entry.getKey());
+//			}
+//		}
 		result.addAll(annotationsMap.keySet());
 		return result;
 	}

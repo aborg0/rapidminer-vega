@@ -32,7 +32,9 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,9 +56,17 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorDescription;
+import com.rapidminer.operator.ports.Port;
+import com.rapidminer.operator.ports.Ports;
+import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.Parameters;
+import com.rapidminer.parameter.conditions.ParameterCondition;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.documentation.ExampleProcess;
 import com.rapidminer.tools.xml.XHTMLEntityResolver;
 import common.Logger;
 
@@ -68,7 +78,7 @@ import common.Logger;
  * resource. If the user does have an internet connection the operators are loaded directly from the RapidWiki site. The
  * operator description is shown in the RapidMiner Help Window.
  * 
- * @author Miguel Büscher, Sebastian Land
+ * @author Miguel Bï¿½scher, Sebastian Land
  * 
  */
 public class OperatorDocLoader {
@@ -232,7 +242,7 @@ public class OperatorDocLoader {
 			try {
 				document = documentBuilder.parse(url.openStream());
 			} catch (IOException e) {
-				logger.error("Folgende URL (parseDocumentForOperator()) konnte nicht geöffnet werden: " + e.getMessage());
+				logger.error("Folgende URL (parseDocumentForOperator()) konnte nicht geï¿½ffnet werden: " + e.getMessage());
 			} catch (SAXException e) {
 				logger.error("Folgende SAXParseException (parseDocumentForOperator()) ist aufgetreten: " + e.getMessage());
 			}
@@ -488,19 +498,33 @@ public class OperatorDocLoader {
 			} finally {
 				input.close();
 			}
+		} else {
+			try {
+				return makeOperatorDocumentation(opDesc.createOperatorInstance());
+			} catch (OperatorCreationException e) {
+				LogService.getRoot().log(Level.WARNING, "Failed to create operator: "+e, e);
+				return ERROR_TEXT_FOR_LOCAL;
+			}
+//			opDesc.createOperatorInstance();
+//			return opDesc.getOperatorDocumentation().getDocumentation();
+			//return ERROR_TEXT_FOR_LOCAL;
 		}
-		return ERROR_TEXT_FOR_LOCAL;
 	}
 
 	/**
 	 * This loads the documentation of the operator referenced by the operator description from the Wiki in the
-	 * internet.
+	 * internet. 
 	 */
-	private static String loadSelectedOperatorDocuFromWiki(OperatorDescription opDesc) throws IOException, ParserConfigurationException, OperatorCreationException, TransformerException {
+	private static String loadSelectedOperatorDocuFromWiki(OperatorDescription opDesc) throws IOException, ParserConfigurationException, OperatorCreationException, TransformerException, URISyntaxException {
 		String operatorWikiName = StringUtils.EMPTY;
 		if (!opDesc.isDeprecated()) {
 			operatorWikiName = opDesc.getName().replace(" ", "_");
-
+			if (opDesc.getProvider() != null) {
+				String prefix = opDesc.getProvider().getPrefix();
+				prefix = Character.toUpperCase(prefix.charAt(0)) + prefix.substring(1);
+				operatorWikiName = prefix + ":" + operatorWikiName;
+			}
+			
 			Document documentOperator = parseDocumentForOperator(operatorWikiName, opDesc);
 
 			if (documentOperator != null) {
@@ -519,6 +543,149 @@ public class OperatorDocLoader {
 				return HTMLString;
 			}
 		}
-		return null;
+		return loadSelectedOperatorDocuLocally(opDesc);
 	}
+	
+	private static String makeOperatorDocumentation(Operator displayedOperator) {
+		OperatorDescription descr = displayedOperator.getOperatorDescription();
+		StringBuilder buf = new StringBuilder("<html>");
+		buf.append("<table cellpadding=0 cellspacing=0><tr><td>");
+
+		String iconName = "icons/24/" + displayedOperator.getOperatorDescription().getIconName();
+		URL resource = Tools.getResource(iconName);
+		if (resource != null) {
+			buf.append("<img src=\"" + resource + "\"/> ");
+		}
+
+		buf.append("</td><td style=\"padding-left:4px;\">");
+		buf.append("<h2>" + descr.getName());
+		String wikiName;
+		try {
+			wikiName = URLEncoder.encode(descr.getName(), "UTF-8");
+			buf.append(" <small><a href=\"http://rapid-i.com/wiki/index.php?title=").append(wikiName).append("\">(Wiki)</a></small>");
+		} catch (UnsupportedEncodingException e) {
+			LogService.getRoot().log(Level.WARNING, "Failed to URL-encode operator name: " + descr.getName() + ": " + e, e);
+		}
+		buf.append("</h2>");
+		buf.append("</td></tr></table>");
+		// #"+Integer.toHexString(SwingTools.RAPID_I_ORANGE.getRGB()).substring(0,6)+"
+		buf.append("<hr noshade=\"true\"/><br/>");
+		// System.out.println("<hr color=\"#"+Integer.toHexString(SwingTools.RAPID_I_ORANGE.getRGB()).substring(0,6)+"\"/>");
+		buf.append("<h4>Synopsis</h4>");
+		buf.append("<p>");
+		buf.append(descr.getShortDescription());
+		buf.append("</p>");
+		buf.append("</p><br/>");
+		buf.append("<h4>Description</h4>");
+		String descriptionText = descr.getLongDescriptionHTML();
+		if (descriptionText != null) {
+			if (!descriptionText.trim().startsWith("<p>")) {
+				buf.append("<p>");
+			}
+			buf.append(descriptionText);
+			if (!descriptionText.trim().endsWith("</p>")) {
+				buf.append("</p>");
+			}
+			buf.append("<br/>");
+		}
+		appendPortsToDocumentation(displayedOperator.getInputPorts(), "Input", null, buf);
+		appendPortsToDocumentation(displayedOperator.getOutputPorts(), "Output", "outPorts", buf);
+		Parameters parameters = displayedOperator.getParameters();
+		if (parameters.getKeys().size() > 0) {
+			buf.append("<h4>Parameters</h4><dl>");
+			for (String key : parameters.getKeys()) {
+				ParameterType type = parameters.getParameterType(key);
+				if (type == null) {
+					LogService.getRoot().warning("Unknown parameter key: " + displayedOperator.getName() + "# " + key);
+					continue;
+				}
+				buf.append("<dt>");
+				if (type.isExpert()) {
+					buf.append("<i>");
+				}
+				// if (type.isOptional()) {
+				buf.append(makeParameterHeader(type));
+				// } else {
+				// buf.append("<strong>");
+				// buf.append(makeParameterHeader(type));
+				// buf.append("</strong>");
+				// }
+				if (type.isExpert()) {
+					buf.append("</i>");
+				}
+				buf.append("</dt><dd style=\"padding-bottom:10px\">");
+				// description
+				buf.append(" ");
+				buf.append(type.getDescription() + "<br/><font color=\"#777777\" size=\"-2\">");
+				if (type.getDefaultValue() != null) {
+					if (!type.toString(type.getDefaultValue()).equals("")) {
+						buf.append(" Default value: ");
+						buf.append(type.toString(type.getDefaultValue()));
+						buf.append("<br/>");
+					}
+				}
+				if (type.isExpert()) {
+					buf.append("Expert parameter<br/>");
+				}
+				// conditions
+				if (type.getDependencyConditions().size() > 0) {
+					buf.append("Depends on:<ul class=\"param_dep\">");
+					for (ParameterCondition condition : type.getDependencyConditions()) {
+						buf.append("<li>");
+						buf.append(condition.toString());
+						buf.append("</li>");
+					}
+					buf.append("</ul>");
+				}
+				buf.append("</small></dd>");
+			}
+			buf.append("</dl>");
+		}
+
+		if (!descr.getOperatorDocumentation().getExamples().isEmpty()) {
+			buf.append("<h4>Examples</h4><ul>");
+			int i = 0;
+			for (ExampleProcess exampleProcess : descr.getOperatorDocumentation().getExamples()) {
+				buf.append("<li>");
+				buf.append(exampleProcess.getComment());
+				buf.append(makeExampleFooter(i));
+				buf.append("</li>");
+				i++;
+			}
+			buf.append("</ul>");
+		}
+
+		buf.append("</html>");
+		return buf.toString();
+	}
+
+	private static Object makeExampleFooter(int exampleIndex) {
+		return "<br/><a href=\"show_example_" + exampleIndex + "\">Show example process</a>.";
+	}
+	
+	private static void appendPortsToDocumentation(Ports<? extends Port> ports, String title, String ulClass, StringBuilder buf) {
+		// buf.append("<dl><dt>Input:<dt></dt><dd>");
+		if (ports.getNumberOfPorts() > 0) {
+			buf.append("<h4>" + title + "</h4><ul class=\"ports\">");
+			for (Port port : ports.getAllPorts()) {
+				if (ulClass != null)
+					buf.append("<li class=\"" + ulClass + "\"><strong>");
+				else
+					buf.append("<li><strong>");
+				buf.append(port.getName());
+				buf.append("</strong>");
+				if (port.getDescription() != null && port.getDescription().length() > 0) {
+					buf.append(": ");
+					buf.append(port.getDescription());
+				}
+				buf.append("</li>");
+			}
+			buf.append("</ul><br/>");
+		}
+	}
+	
+	private static String makeParameterHeader(ParameterType type) {
+		return type.getKey().replace('_', ' ');
+	}
+
 }

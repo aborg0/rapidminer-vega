@@ -863,7 +863,7 @@ public class Plugin {
 		System.setProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS_LOCATION, directory);
 	}
 
-	/** Returns the prefix to be used in the operator keys. */
+	/** Returns the prefix to be used in the operator keys (namespace). This is also used for the Wiki URL. */
 	public String getPrefix() {
 		return this.prefix;
 	}

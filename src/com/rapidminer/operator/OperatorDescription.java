@@ -315,13 +315,14 @@ public class OperatorDescription implements Comparable<OperatorDescription> {
 		if (!(o instanceof OperatorDescription)) {
 			return false;
 		} else {
-			return this.key.equals(((OperatorDescription)o).key);
+			OperatorDescription other = (OperatorDescription)o;
+			return this.getKey().equals(other.getKey());
 		}
 	}
 
 	@Override
 	public int hashCode() {
-		return this.key.hashCode();
+		return this.getKey().hashCode();
 	}
 
 	/** Creates a new operator based on the description. */

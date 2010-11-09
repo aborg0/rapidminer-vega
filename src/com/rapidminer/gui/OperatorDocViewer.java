@@ -273,121 +273,126 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 		if (displayedOperator == null) {
 			editor.setText("<html></html>");
 		} else {
-			OperatorDescription descr = displayedOperator.getOperatorDescription();
-			StringBuilder buf = new StringBuilder("<html>");
-			buf.append("<table cellpadding=0 cellspacing=0><tr><td>");
-
-			String iconName = "icons/24/" + displayedOperator.getOperatorDescription().getIconName();
-			URL resource = Tools.getResource(iconName);
-			if (resource != null) {
-				buf.append("<img src=\"" + resource + "\"/> ");
-			}
-
-			buf.append("</td><td style=\"padding-left:4px;\">");
-			buf.append("<h2>" + descr.getName());
-			String wikiName;
-			try {
-				wikiName = URLEncoder.encode(descr.getName(), "UTF-8");
-				buf.append(" <small><a href=\"http://rapid-i.com/wiki/index.php?title=").append(wikiName).append("\">(Wiki)</a></small>");
-			} catch (UnsupportedEncodingException e) {
-				LogService.getRoot().log(Level.WARNING, "Failed to URL-encode operator name: " + descr.getName() + ": " + e, e);
-			}
-			buf.append("</h2>");
-			buf.append("</td></tr></table>");
-			// #"+Integer.toHexString(SwingTools.RAPID_I_ORANGE.getRGB()).substring(0,6)+"
-			buf.append("<hr noshade=\"true\"/><br/>");
-			// System.out.println("<hr color=\"#"+Integer.toHexString(SwingTools.RAPID_I_ORANGE.getRGB()).substring(0,6)+"\"/>");
-			buf.append(makeSynopsisHeader());
-			buf.append("<p>");
-			buf.append(descr.getShortDescription());
-			buf.append("</p>");
-			buf.append("</p><br/>");
-			buf.append(makeDescriptionHeader());
-			String descriptionText = descr.getLongDescriptionHTML();
-			if (descriptionText != null) {
-				if (!descriptionText.trim().startsWith("<p>")) {
-					buf.append("<p>");
-				}
-				buf.append(descriptionText);
-				if (!descriptionText.trim().endsWith("</p>")) {
-					buf.append("</p>");
-				}
-				buf.append("<br/>");
-			}
-			appendPorts(displayedOperator.getInputPorts(), "Input", null, buf);
-			appendPorts(displayedOperator.getOutputPorts(), "Output", "outPorts", buf);
-			Parameters parameters = displayedOperator.getParameters();
-			if (parameters.getKeys().size() > 0) {
-				buf.append("<h4>Parameters</h4><dl>");
-				for (String key : parameters.getKeys()) {
-					ParameterType type = parameters.getParameterType(key);
-					if (type == null) {
-						LogService.getRoot().warning("Unknown parameter key: " + displayedOperator.getName() + "# " + key);
-						continue;
-					}
-					buf.append("<dt>");
-					if (type.isExpert()) {
-						buf.append("<i>");
-					}
-					// if (type.isOptional()) {
-					buf.append(makeParameterHeader(type));
-					// } else {
-					// buf.append("<strong>");
-					// buf.append(makeParameterHeader(type));
-					// buf.append("</strong>");
-					// }
-					if (type.isExpert()) {
-						buf.append("</i>");
-					}
-					buf.append("</dt><dd style=\"padding-bottom:10px\">");
-					// description
-					buf.append(" ");
-					buf.append(type.getDescription() + "<br/><font color=\"#777777\" size=\"-2\">");
-					if (type.getDefaultValue() != null) {
-						if (!type.toString(type.getDefaultValue()).equals("")) {
-							buf.append(" Default value: ");
-							buf.append(type.toString(type.getDefaultValue()));
-							buf.append("<br/>");
-						}
-					}
-					if (type.isExpert()) {
-						buf.append("Expert parameter<br/>");
-					}
-					// conditions
-					if (type.getDependencyConditions().size() > 0) {
-						buf.append("Depends on:<ul class=\"param_dep\">");
-						for (ParameterCondition condition : type.getDependencyConditions()) {
-							buf.append("<li>");
-							buf.append(condition.toString());
-							buf.append("</li>");
-						}
-						buf.append("</ul>");
-					}
-					buf.append("</small></dd>");
-				}
-				buf.append("</dl>");
-			}
-
-			if (!descr.getOperatorDocumentation().getExamples().isEmpty()) {
-				buf.append("<h4>Examples</h4><ul>");
-				int i = 0;
-				for (ExampleProcess exampleProcess : descr.getOperatorDocumentation().getExamples()) {
-					buf.append("<li>");
-					buf.append(exampleProcess.getComment());
-					buf.append(makeExampleFooter(i));
-					buf.append("</li>");
-					i++;
-				}
-				buf.append("</ul>");
-			}
-
-			buf.append("</html>");
-			editor.setText(buf.toString());
+			String doc = makeOperatorDocumentation(displayedOperator);
+			editor.setText(doc);
 			editor.setCaretPosition(0);
 		}
 	}
 
-	protected Object makeExampleFooter(int exampleIndex) {
+	protected static String makeOperatorDocumentation(Operator displayedOperator) {
+		OperatorDescription descr = displayedOperator.getOperatorDescription();
+		StringBuilder buf = new StringBuilder("<html>");
+		buf.append("<table cellpadding=0 cellspacing=0><tr><td>");
+
+		String iconName = "icons/24/" + displayedOperator.getOperatorDescription().getIconName();
+		URL resource = Tools.getResource(iconName);
+		if (resource != null) {
+			buf.append("<img src=\"" + resource + "\"/> ");
+		}
+
+		buf.append("</td><td style=\"padding-left:4px;\">");
+		buf.append("<h2>" + descr.getName());
+		String wikiName;
+		try {
+			wikiName = URLEncoder.encode(descr.getName(), "UTF-8");
+			buf.append(" <small><a href=\"http://rapid-i.com/wiki/index.php?title=").append(wikiName).append("\">(Wiki)</a></small>");
+		} catch (UnsupportedEncodingException e) {
+			LogService.getRoot().log(Level.WARNING, "Failed to URL-encode operator name: " + descr.getName() + ": " + e, e);
+		}
+		buf.append("</h2>");
+		buf.append("</td></tr></table>");
+		// #"+Integer.toHexString(SwingTools.RAPID_I_ORANGE.getRGB()).substring(0,6)+"
+		buf.append("<hr noshade=\"true\"/><br/>");
+		// System.out.println("<hr color=\"#"+Integer.toHexString(SwingTools.RAPID_I_ORANGE.getRGB()).substring(0,6)+"\"/>");
+		buf.append("<h4>Synopsis</h4>");
+		buf.append("<p>");
+		buf.append(descr.getShortDescription());
+		buf.append("</p>");
+		buf.append("</p><br/>");
+		buf.append("<h4>Description</h4>");
+		String descriptionText = descr.getLongDescriptionHTML();
+		if (descriptionText != null) {
+			if (!descriptionText.trim().startsWith("<p>")) {
+				buf.append("<p>");
+			}
+			buf.append(descriptionText);
+			if (!descriptionText.trim().endsWith("</p>")) {
+				buf.append("</p>");
+			}
+			buf.append("<br/>");
+		}
+		appendPortsToDocumentation(displayedOperator.getInputPorts(), "Input", null, buf);
+		appendPortsToDocumentation(displayedOperator.getOutputPorts(), "Output", "outPorts", buf);
+		Parameters parameters = displayedOperator.getParameters();
+		if (parameters.getKeys().size() > 0) {
+			buf.append("<h4>Parameters</h4><dl>");
+			for (String key : parameters.getKeys()) {
+				ParameterType type = parameters.getParameterType(key);
+				if (type == null) {
+					LogService.getRoot().warning("Unknown parameter key: " + displayedOperator.getName() + "# " + key);
+					continue;
+				}
+				buf.append("<dt>");
+				if (type.isExpert()) {
+					buf.append("<i>");
+				}
+				// if (type.isOptional()) {
+				buf.append(makeParameterHeader(type));
+				// } else {
+				// buf.append("<strong>");
+				// buf.append(makeParameterHeader(type));
+				// buf.append("</strong>");
+				// }
+				if (type.isExpert()) {
+					buf.append("</i>");
+				}
+				buf.append("</dt><dd style=\"padding-bottom:10px\">");
+				// description
+				buf.append(" ");
+				buf.append(type.getDescription() + "<br/><font color=\"#777777\" size=\"-2\">");
+				if (type.getDefaultValue() != null) {
+					if (!type.toString(type.getDefaultValue()).equals("")) {
+						buf.append(" Default value: ");
+						buf.append(type.toString(type.getDefaultValue()));
+						buf.append("<br/>");
+					}
+				}
+				if (type.isExpert()) {
+					buf.append("Expert parameter<br/>");
+				}
+				// conditions
+				if (type.getDependencyConditions().size() > 0) {
+					buf.append("Depends on:<ul class=\"param_dep\">");
+					for (ParameterCondition condition : type.getDependencyConditions()) {
+						buf.append("<li>");
+						buf.append(condition.toString());
+						buf.append("</li>");
+					}
+					buf.append("</ul>");
+				}
+				buf.append("</small></dd>");
+			}
+			buf.append("</dl>");
+		}
+
+		if (!descr.getOperatorDocumentation().getExamples().isEmpty()) {
+			buf.append("<h4>Examples</h4><ul>");
+			int i = 0;
+			for (ExampleProcess exampleProcess : descr.getOperatorDocumentation().getExamples()) {
+				buf.append("<li>");
+				buf.append(exampleProcess.getComment());
+				buf.append(makeExampleFooter(i));
+				buf.append("</li>");
+				i++;
+			}
+			buf.append("</ul>");
+		}
+
+		buf.append("</html>");
+		return buf.toString();
+	}
+
+	protected static Object makeExampleFooter(int exampleIndex) {
 		return "<br/><a href=\"show_example_" + exampleIndex + "\">Show example process</a>.";
 	}
 
@@ -399,11 +404,11 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 		return "<h4>Description</h4>";
 	}
 
-	protected String makeParameterHeader(ParameterType type) {
+	protected static String makeParameterHeader(ParameterType type) {
 		return type.getKey().replace('_', ' ');
 	}
 
-	private void appendPorts(Ports<? extends Port> ports, String title, String ulClass, StringBuilder buf) {
+	private static void appendPortsToDocumentation(Ports<? extends Port> ports, String title, String ulClass, StringBuilder buf) {
 		// buf.append("<dl><dt>Input:<dt></dt><dd>");
 		if (ports.getNumberOfPorts() > 0) {
 			buf.append("<h4>" + title + "</h4><ul class=\"ports\">");

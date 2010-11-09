@@ -128,7 +128,11 @@ public class CSVResultSet implements DataResultSet {
 
 	@Override
 	public int getNumberOfColumns() {
-		return numColumns;
+		if (current != null) {
+			return current.length;
+		} else {
+			return numColumns;
+		}
 	}
 
 	@Override
