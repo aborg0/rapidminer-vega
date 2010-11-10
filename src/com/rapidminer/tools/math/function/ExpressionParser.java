@@ -337,9 +337,9 @@ public class ExpressionParser {
 		textFunctions.add(new FunctionDescription("str()", "To String", "Transforms the given number into a string (nominal value); example: str(17)", 1));
 		textFunctions.add(new FunctionDescription("parse()", "To Number", "Transforms the given string (nominal value) into a number by parsing it; example: parse(att2)", 1));
 		textFunctions.add(new FunctionDescription("cut()", "Cut", "Cuts the substring of given length at the given start out of a string; example: cut(\"Text\", 1, 2) delivers \"ex\"", 3));
-		textFunctions.add(new FunctionDescription("concat()", "Concatenation", "Concatenates the given arguments (the + operator can also be used for this); example: both concat(\"At\", \"om\") and \"At\" + \"om\" deliver \"Atom\"", FunctionDescription.UNLIMITED_NUMBER_OF_ARGUMENTS));
-		textFunctions.add(new FunctionDescription("replace()", "Replace", "Replaces the first occurence of a search string by the defined replacement; example: replace(att1, \"am\", \"pm\") replaces the first \"am\" in each value of attribute att1 by \"pm\"", 3));
-		textFunctions.add(new FunctionDescription("replaceAll()", "Replace All", "Replaces all occurences of a search string by the defined replacement; example: replaceAll(att1, \"am\", \"pm\") replaces all \"am\" in each value of attribute att1 by \"pm\"", 3));
+		textFunctions.add(new FunctionDescription("concat()", "Concatenation", "Concatenates the given arguments (the + operator can also be used for this); <br>example: both concat(\"At\", \"om\") and \"At\" + \"om\" deliver \"Atom\"", FunctionDescription.UNLIMITED_NUMBER_OF_ARGUMENTS));
+		textFunctions.add(new FunctionDescription("replace()", "Replace", "Replaces the first occurence of a search string by the defined replacement; <br>example: replace(att1, \"am\", \"pm\") replaces the first \"am\" in each value of attribute att1 by \"pm\"", 3));
+		textFunctions.add(new FunctionDescription("replaceAll()", "Replace All", "Replaces all occurences of a search string by the defined replacement; <br>example: replaceAll(att1, \"am\", \"pm\") replaces all \"am\" in each value of attribute att1 by \"pm\"", 3));
 		textFunctions.add(new FunctionDescription("lower()", "Lower", "Transforms the given argument into lower case characters; example: lower(att2)", 1));
 		textFunctions.add(new FunctionDescription("upper()", "Upper", "Transforms the given argument into upper case characters; example: upper(att3)", 1));
 		textFunctions.add(new FunctionDescription("index()", "Index", "Delivers the first position of the given search string in the text; example: index(\"Text\", \"e\") delivers 1", 2));
@@ -360,17 +360,17 @@ public class ExpressionParser {
 		// date functions
 		List<FunctionDescription> dateFunctions = new LinkedList<FunctionDescription>();
 		dateFunctions.add(new FunctionDescription("date_parse()", "Parse Date", "Parses the given string or double to a date; example: date_parse(att1)", 1));
-		dateFunctions.add(new FunctionDescription("date_parse_loc()", "Parse Date with Locale", "Parses the given string or double to a date with the given locale (via lowercase two-letter ISO-639 code); example: date_parse(att1, en)", 2));
-		dateFunctions.add(new FunctionDescription("date_parse_custom()", "Parse Custom Date", "Parses the given date string to a date using a custom pattern and the given locale (via lowercase two-letter ISO-639 code); example: date_parse_custom(att1, \"dd|MM|yy\", \"de\")", 3));
+		dateFunctions.add(new FunctionDescription("date_parse_loc()", "Parse Date with Locale", "Parses the given string or double to a date with the given locale (via lowercase two-letter ISO-639 code); <br>example: date_parse(att1, en)", 2));
+		dateFunctions.add(new FunctionDescription("date_parse_custom()", "Parse Custom Date", "Parses the given date string to a date using a custom pattern and the given locale (via lowercase two-letter ISO-639 code); <br>example: date_parse_custom(att1, \"dd|MM|yy\", \"de\")", 3));
 		dateFunctions.add(new FunctionDescription("date_before()", "Date Before", "Determines if the first date is strictly earlier than the second date; example: date_before(att1, att2)", 2));
 		dateFunctions.add(new FunctionDescription("date_after()", "Date After", "Determines if the first date is strictly later than the second date; example: date_after(att1, att2)", 2));
 		dateFunctions.add(new FunctionDescription("date_str()", "Date to String", "Changes a date to a string using the specified format; example: date_str(att1, DATE_FULL, DATE_SHOW_DATE_AND_TIME)", 3));
-		dateFunctions.add(new FunctionDescription("date_str_loc()", "Date to String with Locale", "Changes a date to a string using the specified format and the given locale (via lowercase two-letter ISO-639 code); example: date_str_loc(att1, DATE_MEDIUM, DATE_SHOW_TIME_ONLY, \"us\")", 4));
-		dateFunctions.add(new FunctionDescription("date_str_custom()", "Date to String with custom pattern", "Changes a date to a string using the specified custom format pattern and the (optional) given locale (via lowercase two-letter ISO-639 code); example: date_str_custom(att1, \"dd|MM|yy\", \"us\")", 4));
+		dateFunctions.add(new FunctionDescription("date_str_loc()", "Date to String with Locale", "Changes a date to a string using the specified format and the given locale (via lowercase two-letter ISO-639 code); <br>example: date_str_loc(att1, DATE_MEDIUM, DATE_SHOW_TIME_ONLY, \"us\")", 4));
+		dateFunctions.add(new FunctionDescription("date_str_custom()", "Date to String with custom pattern", "Changes a date to a string using the specified custom format pattern and the (optional) given locale (via lowercase two-letter ISO-639 code); <br>example: date_str_custom(att1, \"dd|MM|yy\", \"us\")", 4));
 		dateFunctions.add(new FunctionDescription("date_now()", "Create Date", "Creates the current date; example: date_now()", 0));
 		dateFunctions.add(new FunctionDescription("date_diff()", "Date Difference", "Calculates the elapsed time between two dates. Locale and time zone arguments are optional; example: date_diff(timeStart, timeEnd, \"us\", \"America/Los_Angeles\")", 4));
-		dateFunctions.add(new FunctionDescription("date_add()", "Add Time", "Allows to add a custom amount of time to a given date. Note that only the integer portion of a given value will be used! Locale and Timezone arguments are optional; example: date_add(date, value, DATE_UNIT_DAY, \"us\", \"America/Los_Angeles\")", 5));
-		dateFunctions.add(new FunctionDescription("date_set()", "Set Time", "Allows to set a custom value for a portion of a given date, e.g. set the day to 23. Note that only the integer portion of a given value will be used! Locale and Timezone arguments are optional; example: date_set(date, value, DATE_UNIT_DAY, \"us\", \"America/Los_Angeles\")", 5));
+		dateFunctions.add(new FunctionDescription("date_add()", "Add Time", "Allows to add a custom amount of time to a given date. Note that only the integer portion of a given value will be used! <br>Locale and Timezone arguments are optional; example: date_add(date, value, DATE_UNIT_DAY, \"us\", \"America/Los_Angeles\")", 5));
+		dateFunctions.add(new FunctionDescription("date_set()", "Set Time", "Allows to set a custom value for a portion of a given date, e.g. set the day to 23. Note that only the integer portion of a given value will be used! <br>Locale and Timezone arguments are optional; example: date_set(date, value, DATE_UNIT_DAY, \"us\", \"America/Los_Angeles\")", 5));
 		dateFunctions.add(new FunctionDescription("date_get()", "Get Time", "Allows to get a portion of a given date, e.g. get the day of a month only. Locale and Timezone arguments are optional; example: date_get(date, DATE_UNIT_DAY, \"us\", \"America/Los_Angeles\")", 4));
 		FUNCTIONS.put(FUNCTION_GROUPS[5], dateFunctions);
 		
@@ -381,7 +381,7 @@ public class ExpressionParser {
 		
 		// miscellaneous functions
 		List<FunctionDescription> miscellaneousFunctions = new LinkedList<FunctionDescription>();
-		miscellaneousFunctions.add(new FunctionDescription("if()", "If-Then-Else", "Delivers the result of the second argument if the first one is evaluated to true and the result of the third argument otherwise; example: if(att1 > 5, 7 * att1, att2 / 2)", 3));
+		miscellaneousFunctions.add(new FunctionDescription("if()", "If-Then-Else", "Delivers the result of the second argument if the first one is evaluated to true and the result of the third argument otherwise; <br>example: if(att1 > 5, 7 * att1, att2 / 2)", 3));
 		miscellaneousFunctions.add(new FunctionDescription("const()", "Constant", "Delivers the argument as numerical constant value; example: const(att1)", 1));
 		miscellaneousFunctions.add(new FunctionDescription("sqrt()", "Square Root", "Delivers the square root of the given argument; example: sqrt(att2)", 1));
 		miscellaneousFunctions.add(new FunctionDescription("sgn()", "Signum", "Delivers -1 or +1 depending on the signum of the argument; example: sgn(-5)", 1));
