@@ -22,6 +22,7 @@
  */
 package com.rapidminer.io.process;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -29,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -63,7 +63,6 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
-import org.freehep.util.io.ReaderInputStream;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -166,7 +165,8 @@ public class XMLTools {
 	}
 
 	public static Document parse(String string) throws SAXException, IOException {
-		return BUILDER.parse(new ReaderInputStream(new StringReader(string)));
+		return BUILDER.parse(new ByteArrayInputStream(string.getBytes(Charset.forName("UTF-8"))));
+				//new ReaderInputStream(new StringReader(string)));
 	}
 
 	public static Document parse(InputStream in) throws SAXException, IOException {

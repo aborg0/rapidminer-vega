@@ -50,6 +50,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
 
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.ports.InputPort;
@@ -79,11 +81,12 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 		ERROR_ICON = SwingTools.createIcon("16/" + ERROR_ICON_NAME);
 	}
 	
-	private JLabel validationLabel = new JLabel(ERROR_ICON);
+	private JLabel validationLabel = new JLabel();
+	private JLabel validationIcon = new JLabel(ERROR_ICON);
 	
 	private ExpressionParser parser = new ExpressionParser(true);
 	
-	
+	private JScrollPane functionButtonScrollPane;
 	private JPanel functionsButtonsPanel = new JPanel();
 	private GridBagLayout functionButtonsLayout = new GridBagLayout();
 	private GridBagConstraints functionButtonsC = new GridBagConstraints();
@@ -153,12 +156,30 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 			}
 		});
 		expressionC.weightx = 1;
+		expressionC.gridwidth = GridBagConstraints.REMAINDER;
 		expressionLayout.setConstraints(currentExpression, expressionC);
 		expressionPanel.add(currentExpression);
 		
 		expressionC.weightx = 0;
+		expressionC.gridwidth = GridBagConstraints.RELATIVE;
+		expressionLayout.setConstraints(validationIcon, expressionC);
+		expressionPanel.add(validationIcon);
+		
+		Dimension dimension200to30 = new Dimension(200, 30);
+		validationLabel.setPreferredSize(dimension200to30);
+		validationLabel.setMinimumSize(dimension200to30);
+		validationLabel.setMaximumSize(dimension200to30);
+		validationLabel.setAlignmentX(SwingConstants.TOP);
+		expressionC.weightx = 1;
+		expressionC.gridwidth = GridBagConstraints.REMAINDER;
 		expressionLayout.setConstraints(validationLabel, expressionC);
 		expressionPanel.add(validationLabel);
+		
+		expressionC.weightx = 0;
+		expressionC.gridwidth = GridBagConstraints.RELATIVE;
+		JLabel hiddenLabel = new JLabel();
+		expressionLayout.setConstraints(hiddenLabel, expressionC);
+		expressionPanel.add(hiddenLabel);
 		
 		final JCheckBox allowUndeclaredBox = new JCheckBox("Allow Unknown?", false);
 		allowUndeclaredBox.addActionListener(new ActionListener() {
@@ -168,6 +189,8 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 			}
 		});
 		setAllowUndeclared(false);
+		expressionC.weightx = 0;
+		expressionC.anchor = GridBagConstraints.WEST;
 		expressionC.gridwidth = GridBagConstraints.REMAINDER;
 		expressionLayout.setConstraints(allowUndeclaredBox, expressionC);
 		expressionPanel.add(allowUndeclaredBox);
@@ -179,9 +202,9 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 		
 		
 		JPanel functionPanel = new JPanel();
-		functionPanel.setBorder(BorderFactory.createTitledBorder("Functions"));
 		GridBagLayout functionsLayout = new GridBagLayout();
 		functionPanel.setLayout(functionsLayout);
+		functionPanel.setBorder(BorderFactory.createTitledBorder("Functions"));
 		GridBagConstraints functionsC = new GridBagConstraints();
 		functionsC.fill = GridBagConstraints.BOTH;
 		functionsC.insets = new Insets(7, 7, 7, 7);
@@ -206,27 +229,36 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 		
 		functionsButtonsPanel.setLayout(functionButtonsLayout);
 		functionButtonsC.fill = GridBagConstraints.BOTH;
-		functionButtonsC.anchor = GridBagConstraints.NORTH;
+		functionButtonsC.anchor = GridBagConstraints.NORTHWEST;
 		functionButtonsC.insets = new Insets(7, 7, 7, 7);
-		functionButtonsC.weightx = 0;
+		functionButtonsC.weightx = 1;
 		functionButtonsC.weighty = 0;
 
 		updateFunctions(parser.getFunctionGroups()[0]);
-
-		functionsC.weightx = 0;
-		functionsC.weighty = 0;
-		functionsLayout.setConstraints(functionsButtonsPanel, functionsC);
-		functionPanel.add(functionsButtonsPanel);
 		
-		JPanel fillPanel = new JPanel();
+		JPanel outerButtonPanel = new JPanel();
+		outerButtonPanel.setLayout(new GridBagLayout());
+		GridBagConstraints outerButtonC = new GridBagConstraints();
+		outerButtonC.gridwidth = GridBagConstraints.REMAINDER;
+		outerButtonC.fill = GridBagConstraints.HORIZONTAL;
+		outerButtonC.weightx = 1;
+		outerButtonC.weighty = 1;
+		outerButtonC.anchor = GridBagConstraints.NORTHWEST;
+		outerButtonPanel.add(functionsButtonsPanel, outerButtonC);
+		
+		outerButtonC.weighty = 1;
+		outerButtonC.fill = GridBagConstraints.BOTH;
+		outerButtonPanel.add(new JPanel(), outerButtonC);
+		
 		functionsC.weightx = 0;
 		functionsC.weighty = 1;
-		functionsLayout.setConstraints(fillPanel, functionsC);
-		functionPanel.add(fillPanel);
-		
+		functionsC.anchor = GridBagConstraints.NORTH;
+		functionButtonScrollPane = new JScrollPane(outerButtonPanel);
+		functionButtonScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+		functionsLayout.setConstraints(functionButtonScrollPane, functionsC);
+		functionPanel.add(functionButtonScrollPane);
 		
 		JPanel attributesPanel = new JPanel();
-		attributesPanel.setBorder(BorderFactory.createTitledBorder("Attributes"));
 		GridBagLayout attributesLayout = new GridBagLayout();
 		attributesPanel.setLayout(attributesLayout);
 		GridBagConstraints attributesC = new GridBagConstraints();
@@ -253,22 +285,21 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 				}
 			}
 		});
-		JScrollPane attributePane = new JScrollPane(attributeList);
-		attributeList.setPreferredSize(new Dimension(200, 300));
 		attributesC.gridwidth = GridBagConstraints.REMAINDER;
-		attributesLayout.setConstraints(attributePane, attributesC);
-		attributesPanel.add(attributePane);
+		attributesLayout.setConstraints(attributeList, attributesC);
+		attributesPanel.add(attributeList);
 		
 		mainC.weighty = 1;
-		mainC.weightx = 0;
+		mainC.weightx = 0.6;
 		mainC.gridwidth = GridBagConstraints.RELATIVE;
 		mainLayout.setConstraints(functionPanel, mainC);
 		mainPanel.add(functionPanel);
 		
-		mainC.weightx = 1;
-		mainC.gridwidth = GridBagConstraints.REMAINDER;
-		mainLayout.setConstraints(attributesPanel, mainC);
-		mainPanel.add(attributesPanel);
+		mainC.weightx = 0.4;
+		JScrollPane attributeScrollPane = new JScrollPane(attributesPanel);
+		attributeScrollPane.setBorder(BorderFactory.createTitledBorder("Attributes"));
+		mainLayout.setConstraints(attributeScrollPane, mainC);
+		mainPanel.add(attributeScrollPane);
 		
 		layoutDefault(mainPanel, NORMAL, buttons.toArray(new AbstractButton[buttons.size()]));
 		
@@ -278,7 +309,7 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 		
 		validateExpression();
 		
-		setSize(700, 600);
+		setSize(850, 675);
 	}
 	
 	private void setAllowUndeclared(boolean allowUndeclared) {
@@ -395,10 +426,24 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 	}
 	
 	private void updateFunctions(String functionGroup) {
+		// hack to prevent extremely wide rows due to long function names
+		// future function groups may need to be added as well
+		int funtionRowLength = FUNCTION_ROW_LENGTH;
+		if (functionGroup.equals("Date")) {
+			funtionRowLength -= 1;
+		}
 		functionsButtonsPanel.removeAll();
 		
 		List<FunctionDescription> functions = parser.getFunctions(functionGroup);
 		functionButtonsC.gridwidth = 1;
+		// dummy components so buttons always start at the top-left corner
+		for (int i=0; i<funtionRowLength-1; i++) {
+			functionsButtonsPanel.add(new JLabel(), functionButtonsC);
+		}
+		functionButtonsC.gridwidth = GridBagConstraints.REMAINDER;
+		functionsButtonsPanel.add(new JLabel(), functionButtonsC);
+		functionButtonsC.gridwidth = 1;
+		
 		int index = 1;
 		for (final FunctionDescription currentFunction : functions) {			
 			JButton currentButton = new JButton();
@@ -424,7 +469,7 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 			
 			index++;
 			
-			if (index % FUNCTION_ROW_LENGTH == 0) {
+			if (index % funtionRowLength == 0) {
 				index = 0;
 				functionButtonsC.gridwidth = GridBagConstraints.REMAINDER;
 			} else {
@@ -442,20 +487,20 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 			if (expression.length() > 0) {								
 				parser.getParser().parseExpression(expression);
 				if (parser.getParser().hasError()) {
-					validationLabel.setIcon(ERROR_ICON);
-					validationLabel.setToolTipText("<html><b>Error: </b>" + parser.getParser().getErrorInfo() + "</html>");
+					validationIcon.setIcon(ERROR_ICON);
+					validationLabel.setText("<html><b>Error: </b>" + parser.getParser().getErrorInfo() + "</html>");
 					return;
 				} else {
-					validationLabel.setIcon(OK_ICON);
-					validationLabel.setToolTipText("Expression is syntactically correct.");			
+					validationIcon.setIcon(OK_ICON);
+					validationLabel.setText("Expression is syntactically correct.");			
 				}
 			} else {
-				validationLabel.setIcon(ERROR_ICON);
-				validationLabel.setToolTipText("<html><b>Warning: </b>Please specify a valid expression.</html>");
+				validationIcon.setIcon(ERROR_ICON);
+				validationLabel.setText("<html><b>Warning: </b>Please specify a valid expression.</html>");
 			}
 		} else {
-			validationLabel.setIcon(ERROR_ICON);
-			validationLabel.setToolTipText("<html><b>Warning: </b>Please specify a valid expression.</html>");
+			validationIcon.setIcon(ERROR_ICON);
+			validationLabel.setText("<html><b>Warning: </b>Please specify a valid expression.</html>");
 		}
 	}
 	
