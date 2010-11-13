@@ -459,8 +459,6 @@ public class ExpressionParser {
 	}
 	
 	private void addCustomConstants(JEP parser) {
-		parser.addConstant("MISSING_VALUE", ExpressionParserConstants.MISSING_VALUE);
-		
 		parser.addConstant("DATE_SHORT", ExpressionParserConstants.DATE_FORMAT_SHORT);
 		parser.addConstant("DATE_MEDIUM", ExpressionParserConstants.DATE_FORMAT_MEDIUM);
 		parser.addConstant("DATE_LONG", ExpressionParserConstants.DATE_FORMAT_LONG);
