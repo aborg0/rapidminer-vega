@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.rapidminer.RapidMiner;
 import com.rapidminer.gui.properties.ConfigureParameterOptimizationDialogCreator;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Operator;
@@ -247,7 +248,9 @@ public abstract class ParameterIteratingOperatorChain extends OperatorChain {
 				return getPerformanceInnerSink().getDataOrNull();
 			}
 		} catch (OperatorException e) {
-			getLogger().warning("Cannot evaluate performance for current parameter combination: " + e.getMessage());
+			getLogger().severe("Cannot evaluate performance for current parameter combination: " + e.getMessage());
+			if (Boolean.parseBoolean(RapidMiner.getRapidMinerPropertyValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_DEBUGMODE)))
+				e.printStackTrace();
 			return null;
 		}
 	}

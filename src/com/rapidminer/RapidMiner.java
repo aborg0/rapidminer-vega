@@ -87,33 +87,35 @@ public class RapidMiner {
 	/** Indicates how RapidMiner is being executed. */
 	public enum ExecutionMode {    	
 		/** It is unknown how RM was invoked. */
-		UNKNOWN(true, false, false),
+		UNKNOWN(true, false, false, true),
 		/** RM is executed using {@link RapidMinerCommandLine#main(String[])}. */
-		COMMAND_LINE(true, true, false),
+		COMMAND_LINE(true, true, false, true),
 		/** RM is executed using {@link RapidMinerGUI#main(String[])}. */
-		UI(false, true, true),
+		UI(false, true, true, true),
 		/** RM is running inside an application server. */
-		APPSERVER(true, false, false),
+		APPSERVER(true, false, false, false),
 		/** RM is running as an applet inside a browser. */
-		APPLET(false, true, true),
+		APPLET(false, true, true, false),
 		/** RM is embedded into another program. */
-		EMBEDDED_WITH_UI(false, true, false),    	
+		EMBEDDED_WITH_UI(false, true, false, false),    	
 		/** RM is embedded into another program. */
-		EMBEDDED_WITHOUT_UI(true, true, false),    	
+		EMBEDDED_WITHOUT_UI(true, true, false, false),    	
 		/** RM is embedded into an applet. */
-		EMBEDDED_AS_APPLET(false, false, false),    	
+		EMBEDDED_AS_APPLET(false, false, false, false),    	
 		/** RM is running within Java Web Start. */
-		WEBSTART(false, true, true),
+		WEBSTART(false, true, true, true),
 		/** We are executing unit tests. */
-		TEST(true, false, false);
+		TEST(true, false, false, true);
 
 		private final boolean isHeadless;
 		private final boolean canAccessFilesystem;
 		private final boolean hasMainFrame;
-		private ExecutionMode(boolean isHeadless, boolean canAccessFilesystem, boolean hasMainFrame) {
+		private final boolean loadManagedExtensions;
+		private ExecutionMode(boolean isHeadless, boolean canAccessFilesystem, boolean hasMainFrame, boolean loadManagedExtensions) {
 			this.isHeadless = isHeadless;
 			this.canAccessFilesystem = canAccessFilesystem; 
 			this.hasMainFrame = hasMainFrame;
+			this.loadManagedExtensions = loadManagedExtensions;
 		}    	
 		public boolean isHeadless() {
 			return isHeadless;
@@ -123,6 +125,9 @@ public class RapidMiner {
 		}
 		public boolean hasMainFrame() {
 			return hasMainFrame;
+		}
+		public boolean isLoadingManagedExtensions() {
+			return loadManagedExtensions;
 		}
 	}
 

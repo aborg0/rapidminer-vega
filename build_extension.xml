@@ -3,6 +3,7 @@
 
     <property name="extension.updateServerId" value="rmx_${extension.namespace}"/>
     
+	<property name="rm.ant" location="${rm.dir}/ant" />
     <property name="rm.lib" location="${rm.dir}/lib" />
     <property name="rm.plugins" location="${rm.dir}/lib/plugins" />
     <property name="build" location="build" />
@@ -61,10 +62,19 @@
         <pathelement location="${java.home}/classes" />
     </path>
 
-	<taskdef onerror="report" resource="net/sf/antcontrib/antlib.xml"/>
-	
     <target name="init" depends="version.get, init.setEncoding" unless="lock.isInitialized">
-        <!-- Building properties here, because they depend on version number -->
+        <tstamp />
+        <!-- HTTP and Documentation tasks -->
+    	<taskdef onerror="fail" resource="antlib.xml" classpath="${rm.ant}/rapidAntTasks.jar" />
+
+        <!-- RPM Tasks-->
+        <taskdef onerror="fail" resource="org/freecompany/redline/ant/antlib.xml" classpath="${rm.ant}/redline-1.1.3.jar" />
+
+        <!-- FOR Tasks -->
+        <taskdef onerror="fail" resource="net/sf/antcontrib/antlib.xml" classpath="${rm.ant}/ant-contrib-1.0b3.jar" />
+
+    	
+    	<!-- Building properties here, because they depend on version number -->
         <property name="release.name" value="rapidminer-${extension.name}-${extension.longversion}.jar" />
         <property name="release.installer.name" value="rapidminer-${extension.name}-${extension.longversion}-installer.exe" />
         <property name="release.src.name" value="rapidminer-${extension.name}-${extension.longversion}-src.zip" />
@@ -73,8 +83,6 @@
         
         <antcall target="init.setEncoding" />
 
-        <tstamp />
-		<taskdef onerror="report" resource="org/apache/ant/http/antlib.xml" classpath="${rm.dir}/ant/ant_http.jar" />
         <mkdir dir="${build.build}" />
         <mkdir dir="${javadoc.targetDir}" />
         <mkdir dir="${release.targetDir}" />

@@ -137,26 +137,6 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 		editor.installDefaultStylesheet();
 		editor.setEditable(false);
 
-		// scrollPane.setOpaque(false);
-		// scrollPane.getViewport().setOpaque(false);
-		// editor.setOpaque(false);
-		// Image helpTextBackgroundImage = null;
-		// URL url = Tools.getResource("helptext.png");
-		// if (url != null) {
-		// try {
-		// helpTextBackgroundImage = ImageIO.read(url);
-		// } catch (IOException e1) {
-		// e1.printStackTrace();
-		// }
-		// }
-		// helpTextBackgroundPanel = new ImagePanel(helpTextBackgroundImage,
-		// ImagePanel.CHILDRENS_PREFERRED_SIZE);
-		// BoxLayout textLayout = new BoxLayout(helpTextBackgroundPanel,
-		// BoxLayout.X_AXIS);
-		// helpTextBackgroundPanel.setLayout(textLayout);
-		// helpTextBackgroundPanel.add(scrollPane);
-		// add(helpTextBackgroundPanel, BorderLayout.CENTER);
-
 		addToolBar();
 
 		add(scrollPane, BorderLayout.CENTER);

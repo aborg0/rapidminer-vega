@@ -741,7 +741,10 @@ public class Plugin {
 	 * set, in the RapidMiner/lib/plugins directory.
 	 */
 	public static void initAll() {
-		ManagedExtension.init();
+		// only load managed extensions if execution modes indicates
+		if (RapidMiner.getExecutionMode().isLoadingManagedExtensions())
+			ManagedExtension.init();
+		
 		String loadPluginsString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS);
 		boolean loadPlugins = Tools.booleanValue(loadPluginsString, true);
 		if (loadPlugins) {
@@ -769,10 +772,10 @@ public class Plugin {
 			if (webstartPluginDir != null) {
 				findAndRegisterPlugins(webstartPluginDir, true);
 			}
-			registerPlugins(ManagedExtension.getActivePluginJars(), true);
 			if (pluginDir != null) {
 				findAndRegisterPlugins(pluginDir, true);
 			}
+			registerPlugins(ManagedExtension.getActivePluginJars(), true);
 			
 			registerAllPluginDescriptions();
 			initPlugins();

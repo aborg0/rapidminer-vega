@@ -35,18 +35,14 @@ import java.util.LinkedList;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
-import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
-import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.text.html.StyleSheet;
 
-import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
-import com.rapidminer.gui.tools.ExtendedJScrollPane;
+import com.rapidminer.gui.OperatorDocViewer;
 import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.FixedWidthLabel;
@@ -66,14 +62,134 @@ import com.rapidminer.operator.ports.Ports;
  * like name, group, expected input and delivered output. In case of an operator
  * chain the desired numbers of inner operators are also shown.
  * 
- * @author Ingo Mierswa, Tobias Malbrecht
+ * @author Ingo Mierswa, Tobias Malbrecht, Sebastian Land
  */
 public class OperatorInfoScreen extends ButtonDialog {
 
 	private static final long serialVersionUID = -6566133238783779634L;
 
 	private final transient Operator operator;
+	
+	public OperatorInfoScreen(Operator operator) {
+		// TODO: externalize strings and icon names
+		super("operator_info", true);
+		this.operator = operator;
+		setTitle(getTitle());  // must be executed after setting member field  
+		
+		JTabbedPane tabs = new JTabbedPane();
 
+		OperatorDocViewer documentationViewer = new OperatorDocViewer();
+		documentationViewer.setDisplayedOperator(operator);
+		
+		final JPanel overviewPanel = new JPanel(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 1;
+		c.weighty = 0;
+		c.insets = new Insets(0, 0, 0, 0);
+
+		if (operator.getOperatorDescription().isDeprecated()) {
+			final JPanel deprecatedPanel = new JPanel(new BorderLayout());
+			final JLabel label = new JLabel(SwingTools.createIcon("24/sign_warning.png"));
+			label.setHorizontalTextPosition(SwingConstants.CENTER);
+			label.setVerticalTextPosition(SwingConstants.BOTTOM);
+			label.setText("<html><b>Depreceated!</b></html>");
+			label.setPreferredSize(new Dimension(180,50));
+			label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 40));
+			deprecatedPanel.add(label, BorderLayout.WEST);
+			deprecatedPanel.add(createDeprecationInfoPanel(operator), BorderLayout.CENTER);
+			deprecatedPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
+					BorderFactory.createEmptyBorder(4, 4, 4, 4)));
+			overviewPanel.add(deprecatedPanel, c);
+		}
+
+		if (operator instanceof Learner) {
+			JPanel learnerPanel = new JPanel(new BorderLayout());
+			JLabel label = new JLabel(SwingTools.createIcon("24/briefcase2.png"));
+			label.setHorizontalTextPosition(SwingConstants.CENTER);
+			label.setVerticalTextPosition(SwingConstants.BOTTOM);
+			label.setText("Capabilities");
+			label.setPreferredSize(new Dimension(180,50));
+			label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 40));
+			learnerPanel.add(label, BorderLayout.WEST);
+
+			learnerPanel.add(createCapabilitiesPanel(operator), BorderLayout.CENTER);
+			learnerPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
+					BorderFactory.createEmptyBorder(4, 4, 4, 4)));
+
+			overviewPanel.add(learnerPanel, c);
+		}
+
+		// ports
+		if (operator.getInputPorts().getNumberOfPorts() > 0 ||
+				operator.getOutputPorts().getNumberOfPorts() > 0) {
+			JPanel portPanel = new JPanel(new BorderLayout());
+			JLabel label = new JLabel(SwingTools.createIcon("24/plug.png"));
+			label.setHorizontalTextPosition(SwingConstants.CENTER);
+			label.setVerticalTextPosition(SwingConstants.BOTTOM);
+			label.setText("Ports");
+			label.setPreferredSize(new Dimension(180,50));
+			label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 40));
+			portPanel.add(label, BorderLayout.WEST);
+
+			portPanel.add(createPortsDescriptionPanel("input_ports", "output_ports", operator.getInputPorts(), operator.getOutputPorts()), BorderLayout.CENTER);
+			portPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
+					BorderFactory.createEmptyBorder(4, 4, 4, 4)));
+
+			overviewPanel.add(portPanel, c);
+		}
+
+		if (operator instanceof OperatorChain) {
+			OperatorChain chain = (OperatorChain) operator;
+
+			for (ExecutionUnit subprocess : chain.getSubprocesses()) {
+				JPanel subprocessPanel = new JPanel(new BorderLayout());
+				JLabel label = new JLabel(SwingTools.createIcon("24/elements_selection.png"));
+				label.setHorizontalTextPosition(SwingConstants.CENTER);
+				label.setVerticalTextPosition(SwingConstants.BOTTOM);
+				label.setText(subprocess.getName());
+				label.setPreferredSize(new Dimension(180,50));
+				label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 40));
+				subprocessPanel.add(label, BorderLayout.WEST);
+
+				subprocessPanel.add(createPortsDescriptionPanel("inner_sources", "inner_sinks", subprocess.getInnerSources(), subprocess.getInnerSinks()), BorderLayout.CENTER);
+				subprocessPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
+						BorderFactory.createEmptyBorder(4, 4, 4, 4)));
+
+				overviewPanel.add(subprocessPanel, c);
+			}
+		}
+
+
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 1;
+		overviewPanel.add(new JPanel(new BorderLayout()), c);	
+		final JScrollPane overviewPane = new JScrollPane(overviewPanel);
+		overviewPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		overviewPane.getViewport().addComponentListener(new ComponentListener() {
+
+			@Override
+			public void componentHidden(ComponentEvent e) {}
+
+			@Override
+			public void componentMoved(ComponentEvent e) {}
+
+			@Override
+			public void componentResized(ComponentEvent e) {
+				// transfer width to contained panel
+				overviewPanel.setPreferredSize(new Dimension((int) overviewPane.getViewport().getExtentSize().getWidth(), (int) overviewPanel.getPreferredSize().getHeight()));
+			}
+
+			@Override
+			public void componentShown(ComponentEvent e) {}
+
+		});
+		tabs.add("Overview", overviewPane);
+		tabs.add("Description", documentationViewer);
+		layoutDefault(tabs, NORMAL, makeCloseButton());
+	}
+	
 	@Override
 	protected Icon getInfoIcon() {
 		return operator.getOperatorDescription().getLargeIcon();
@@ -87,7 +203,9 @@ public class OperatorInfoScreen extends ButtonDialog {
 
 	@Override
 	public String getTitle() {
-		return super.getTitle() + ": " + operator.getOperatorDescription().getName();
+		if (operator != null)
+			return super.getTitle() + ": " + operator.getOperatorDescription().getName();
+		return super.getTitle();
 	}
 
 	public static JPanel createPortsDescriptionPanel(String inKey, String outKey, Ports<? extends Port> inputPorts, Ports<? extends Port> outputPorts) {
@@ -213,135 +331,5 @@ public class OperatorInfoScreen extends ButtonDialog {
 		return capabilitiesPanel;
 	}
 
-	public OperatorInfoScreen(Operator operator) {
-		// TODO: externalize strings and icon names
-		super("operator_info", true);
-		this.operator = operator;
 
-		JTabbedPane tabs = new JTabbedPane();
-
-		// description
-		JEditorPane description = new ExtendedHTMLJEditorPane("text/html", "");
-		StyleSheet css = ((HTMLEditorKit)description.getEditorKit()).getStyleSheet();
-		css.addRule("P { margin : 0; font-family : sans-serif; font-size : 9px; font-style : normal; }");
-		description.setToolTipText("The description of this operator");
-		description.setEditable(false);
-		description.setBackground(this.getBackground());
-		String descriptionString = operator.getOperatorDescription().getLongDescriptionHTML();
-		if (descriptionString == null) {
-			descriptionString = operator.getOperatorDescription().getShortDescription();
-		}
-		description.setText("<p>" + descriptionString + "</p>");
-		description.setCaretPosition(0);
-		JScrollPane scrollPane = new ExtendedJScrollPane(description);
-		scrollPane.setPreferredSize(new Dimension(600, 300));
-
-		final JPanel overviewPanel = new JPanel(new GridBagLayout());
-		GridBagConstraints c = new GridBagConstraints();
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.weightx = 1;
-		c.weighty = 0;
-		c.insets = new Insets(0, 0, 0, 0);
-
-		if (operator.getOperatorDescription().isDeprecated()) {
-			final JPanel deprecatedPanel = new JPanel(new BorderLayout());
-			final JLabel label = new JLabel(SwingTools.createIcon("24/sign_warning.png"));
-			label.setHorizontalTextPosition(SwingConstants.CENTER);
-			label.setVerticalTextPosition(SwingConstants.BOTTOM);
-			label.setText("<html><b>Depreceated!</b></html>");
-			label.setPreferredSize(new Dimension(180,50));
-			label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 40));
-			deprecatedPanel.add(label, BorderLayout.WEST);
-			deprecatedPanel.add(createDeprecationInfoPanel(operator), BorderLayout.CENTER);
-			deprecatedPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
-					BorderFactory.createEmptyBorder(4, 4, 4, 4)));
-			overviewPanel.add(deprecatedPanel, c);
-		}
-
-		if (operator instanceof Learner) {
-			JPanel learnerPanel = new JPanel(new BorderLayout());
-			JLabel label = new JLabel(SwingTools.createIcon("24/briefcase2.png"));
-			label.setHorizontalTextPosition(SwingConstants.CENTER);
-			label.setVerticalTextPosition(SwingConstants.BOTTOM);
-			label.setText("Capabilities");
-			label.setPreferredSize(new Dimension(180,50));
-			label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 40));
-			learnerPanel.add(label, BorderLayout.WEST);
-
-			learnerPanel.add(createCapabilitiesPanel(operator), BorderLayout.CENTER);
-			learnerPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
-					BorderFactory.createEmptyBorder(4, 4, 4, 4)));
-
-			overviewPanel.add(learnerPanel, c);
-		}
-
-		// ports
-		if (operator.getInputPorts().getNumberOfPorts() > 0 ||
-				operator.getOutputPorts().getNumberOfPorts() > 0) {
-			JPanel portPanel = new JPanel(new BorderLayout());
-			JLabel label = new JLabel(SwingTools.createIcon("24/plug.png"));
-			label.setHorizontalTextPosition(SwingConstants.CENTER);
-			label.setVerticalTextPosition(SwingConstants.BOTTOM);
-			label.setText("Ports");
-			label.setPreferredSize(new Dimension(180,50));
-			label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 40));
-			portPanel.add(label, BorderLayout.WEST);
-
-			portPanel.add(createPortsDescriptionPanel("input_ports", "output_ports", operator.getInputPorts(), operator.getOutputPorts()), BorderLayout.CENTER);
-			portPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
-					BorderFactory.createEmptyBorder(4, 4, 4, 4)));
-
-			overviewPanel.add(portPanel, c);
-		}
-
-		if (operator instanceof OperatorChain) {
-			OperatorChain chain = (OperatorChain) operator;
-
-			for (ExecutionUnit subprocess : chain.getSubprocesses()) {
-				JPanel subprocessPanel = new JPanel(new BorderLayout());
-				JLabel label = new JLabel(SwingTools.createIcon("24/elements_selection.png"));
-				label.setHorizontalTextPosition(SwingConstants.CENTER);
-				label.setVerticalTextPosition(SwingConstants.BOTTOM);
-				label.setText(subprocess.getName());
-				label.setPreferredSize(new Dimension(180,50));
-				label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 40));
-				subprocessPanel.add(label, BorderLayout.WEST);
-
-				subprocessPanel.add(createPortsDescriptionPanel("inner_sources", "inner_sinks", subprocess.getInnerSources(), subprocess.getInnerSinks()), BorderLayout.CENTER);
-				subprocessPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
-						BorderFactory.createEmptyBorder(4, 4, 4, 4)));
-
-				overviewPanel.add(subprocessPanel, c);
-			}
-		}
-
-
-		c.fill = GridBagConstraints.BOTH;
-		c.weighty = 1;
-		overviewPanel.add(new JPanel(new BorderLayout()), c);	
-		final JScrollPane overviewPane = new JScrollPane(overviewPanel);
-		overviewPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		overviewPane.getViewport().addComponentListener(new ComponentListener() {
-
-			@Override
-			public void componentHidden(ComponentEvent e) {}
-
-			@Override
-			public void componentMoved(ComponentEvent e) {}
-
-			@Override
-			public void componentResized(ComponentEvent e) {
-				// transfer width to contained panel
-				overviewPanel.setPreferredSize(new Dimension((int) overviewPane.getViewport().getExtentSize().getWidth(), (int) overviewPanel.getPreferredSize().getHeight()));
-			}
-
-			@Override
-			public void componentShown(ComponentEvent e) {}
-
-		});
-		tabs.add("Overview", overviewPane);
-		tabs.add("Description", scrollPane);
-		layoutDefault(tabs, NORMAL, makeCloseButton());
-	}
 }

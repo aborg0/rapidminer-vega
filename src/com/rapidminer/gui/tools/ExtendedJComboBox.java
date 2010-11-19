@@ -178,11 +178,7 @@ public class ExtendedJComboBox extends JComboBox {
 	public Dimension getPreferredSize() {
 		Dimension dim = super.getPreferredSize();
 		if (this.preferredWidth != -1) {
-			if (preferredWidth < dim.getWidth()) {
-				return new Dimension(preferredWidth, (int) dim.getHeight());
-			} else {
-				return dim;
-			}
+			return new Dimension(preferredWidth, (int) dim.getHeight());
 		} else {
 			return dim;
 		}
@@ -192,11 +188,7 @@ public class ExtendedJComboBox extends JComboBox {
 	public Dimension getMinimumSize() {
 		Dimension dim = super.getMinimumSize();
 		if (this.minimumWidth != -1) {
-			if (minimumWidth < dim.getWidth()) {
-				return new Dimension(minimumWidth, (int) dim.getHeight());
-			} else {
-				return dim;
-			}
+			return new Dimension(minimumWidth, (int) dim.getHeight());
 		} else {
 			return dim;
 		}

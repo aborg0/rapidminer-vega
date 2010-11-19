@@ -138,7 +138,7 @@ public class ParameterTypeEnumeration extends CombinedParameterType {
 
 
 	public static String[] transformString2Enumeration(String parameterValue) {
-		if (parameterValue == null) {
+		if (parameterValue == null || "".equals(parameterValue)) {
 			return new String[0];
 		}
 		List<String> split = Tools.unescape(parameterValue, ESCAPE_CHAR, SPECIAL_CHARACTERS, SEPERATOR_CHAR);
@@ -166,6 +166,7 @@ public class ParameterTypeEnumeration extends CombinedParameterType {
 //
 //	}
 	
+	@Override
 	public String substituteMacros(String parameterValue, MacroHandler mh) {
 		if (parameterValue.indexOf("%{") == -1) {
 			return parameterValue;
