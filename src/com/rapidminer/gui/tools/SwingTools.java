@@ -510,6 +510,23 @@ public class SwingTools {
 	}
 
 	/**
+	 * This will open a simple input dialog, where a comboBox presents the given values. The Combobox might be editable depending
+	 * on parameter setting.
+	 * 
+	 * The key will be used for the properties gui.dialog.-key-.title and
+	 * gui.dialog.input.-key-.icon
+	 */
+	public static Object showInputDialog(final String key, boolean editable, Object[] selectionValues, Object initialSelectionVale, final Object...keyArguments) {
+		SelectionInputDialog dialog = new SelectionInputDialog(key, editable, selectionValues, initialSelectionVale, keyArguments);
+		dialog.setVisible(true);
+		if (dialog.wasConfirmed()) {
+			return dialog.getInputSelection();
+		} else {
+			return null;
+		}
+	}
+
+	/**
 	 * Shows a very simple error message without any Java exception hints. 
 	 * 
 	 * @param key						the I18n-key which will be used to display the internationalized message

@@ -22,6 +22,9 @@
  */
 package com.rapidminer.operator.preprocessing.filter;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -39,6 +42,7 @@ import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.preprocessing.AbstractDataProcessing;
 import com.rapidminer.operator.tools.AttributeSubsetSelector;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
@@ -46,9 +50,12 @@ import com.rapidminer.tools.OperatorResourceConsumptionHandler;
  * This operator removed duplicate examples from an example set by comparing all examples
  * with each other on basis of the specified attributes.
  * 
- * @author Ingo Mierswa, Sebastian Land
+ * @author Ingo Mierswa, Sebastian Land, Zoltan Prekopcsak
  */
 public class RemoveDuplicates extends AbstractDataProcessing {
+	
+	/** parameter to define the handling of missing values */
+	private static final String PARAMETER_TREAT_MISSING_VALUES_AS_DUPLICATES = "treat_missing_values_as_duplicates";
 
 	private AttributeSubsetSelector subsetSelector = new AttributeSubsetSelector(this, getExampleSetInputPort());
 
@@ -71,31 +78,47 @@ public class RemoveDuplicates extends AbstractDataProcessing {
 		// if set is empty: Nothing can be done!
 		if (compareAttributes.isEmpty())
 			throw new UserError(this, 153, 1, 0);
-		
+
+		// Creating hash buckets and check in case of collision if the example is equal to any other in the bucket
+		HashMap<Integer, List<Integer>> buckets = new HashMap<Integer, List<Integer>>();
 		for (int i = 0; i < exampleSet.size(); i++) {
 			Example example = exampleSet.getExample(i);
-			for (int j = i + 1; j < exampleSet.size(); j++) {
-				Example compExample = exampleSet.getExample(j);
-				if (partition[j] == 0) {
+			int hash = 0;
+			for (Attribute attribute : compareAttributes) {
+				long bits = Double.doubleToLongBits(example.getValue(attribute));
+				hash = hash * 31 + (int)(bits ^ (bits >>> 32));
+			}
+			if (! buckets.containsKey(hash)) {
+				buckets.put(hash, Collections.singletonList(Integer.valueOf(i)));
+			} else {
+				List<Integer> bucketExampleIndicesList = buckets.get(hash);
+				for (Integer exampleIndex: bucketExampleIndicesList) {
 					boolean equal = true;
+					Example compExample = exampleSet.getExample(exampleIndex);
 					for (Attribute attribute : compareAttributes) {
-						if (attribute.isNominal()) {
-							String firstValue  = example.getNominalValue(attribute);
-							String secondValue = compExample.getNominalValue(attribute);
-							if (!firstValue.equals(secondValue)) {
-								equal = false;
-								break;
+							if (getParameterAsBoolean(PARAMETER_TREAT_MISSING_VALUES_AS_DUPLICATES)) {
+								if (Double.isNaN(example.getValue(attribute)) && Double.isNaN(compExample.getValue(attribute))) {
+									continue;
+								}
 							}
-						} else {
 							if (example.getValue(attribute) != compExample.getValue(attribute)) {
 								equal = false;
 								break;
 							}
-						}
 					}
-
 					if (equal) {
-						partition[j] = 1;
+						partition[i] = 1;
+					}
+				}
+				if (partition[i] == 0) { // then it is unequal with same hash value
+					if (bucketExampleIndicesList.size() == 1) {
+						// in case of a collision we have to replace the singeltonList by an extendable collection.
+						List<Integer> newList = new ArrayList<Integer>(bucketExampleIndicesList);
+						newList.add(Integer.valueOf(i));
+						buckets.put(hash, newList);
+					} else {
+						// in this case we already have put in an ArrayList, because we had to store a second example on a previous collision
+						bucketExampleIndicesList.add(i);
 					}
 				}
 			}
@@ -111,6 +134,10 @@ public class RemoveDuplicates extends AbstractDataProcessing {
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
 		types.addAll(subsetSelector.getParameterTypes());
+		
+		ParameterType type = new ParameterTypeBoolean(PARAMETER_TREAT_MISSING_VALUES_AS_DUPLICATES, "If set to true, treats missing values as duplicates", false);
+		type.setExpert(false);
+		types.add(type);
 
 		return types;
 	}

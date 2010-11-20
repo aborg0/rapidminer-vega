@@ -49,7 +49,20 @@ public class SelectionInputDialog extends ButtonDialog {
 		layoutDefault(comboBox, makeOkButton(), makeCancelButton());
 	}
 	
-	public SelectionInputDialog(String key, Collection selectionValues, Object initialSelectionValue, Object...keyArguments) {
+	/**
+	 * This will create a SelectionInputDIalog whose Combobox is editable.
+	 */
+	public SelectionInputDialog(String key, boolean editable, Collection<?> selectionValues, Object initialSelectionValue, Object...keyArguments) {
+		this(key, selectionValues, initialSelectionValue, keyArguments);
+		comboBox.setEditable(editable);
+	}
+	
+	public SelectionInputDialog(String key, boolean editable, Object[] selectionValues, Object initialSelectionValue, Object...keyArguments) {
+		this(key, selectionValues, initialSelectionValue, keyArguments);
+		comboBox.setEditable(editable);
+	}
+	
+	public SelectionInputDialog(String key, Collection<?> selectionValues, Object initialSelectionValue, Object...keyArguments) {
 		super("input." + key, true, keyArguments);
 		for (Object selectionValue : selectionValues) {
 			comboBox.addItem(selectionValue);
