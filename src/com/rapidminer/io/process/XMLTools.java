@@ -418,11 +418,11 @@ public class XMLTools {
 	 * true, an Exception is thrown if the element is not present. If it's ambiguous, an execption is thrown in any
 	 * case.
 	 */
-	public static Element getChildElement(Element father, String tagName, boolean obligatory) throws XMLException {
+	public static Element getChildElement(Element father, String tagName, boolean mandatory) throws XMLException {
 		Collection<Element> children = getChildElements(father, tagName);
 		switch (children.size()) {
 		case 0:
-			if (obligatory)
+			if (mandatory)
 				throw new XMLException("Missing child tag <" + tagName + "> inside <" + father.getTagName() + ">.");
 			else
 				return null;

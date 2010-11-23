@@ -84,11 +84,6 @@ public class EditableTableHeader extends JTableHeader implements CellEditorListe
 		}
 	}
 
-	public boolean editCellAt(int index) {
-		// TODO: This recursion looks evil
-		return editCellAt(index);
-	}
-
 	public boolean editCellAt(int index, EventObject e) {
 		if (cellEditor != null && !cellEditor.stopCellEditing()) {
 			return false;

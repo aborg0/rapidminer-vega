@@ -198,7 +198,7 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	}
 
 	public void closeWorkbook() {
-		if (preOpenedWorkbook == null) {
+		if (preOpenedWorkbook != null) {
 			preOpenedWorkbook.close();
 			preOpenedWorkbook = null;
 		}
