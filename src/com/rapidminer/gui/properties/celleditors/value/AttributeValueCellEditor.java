@@ -78,7 +78,6 @@ public class AttributeValueCellEditor extends DefaultCellEditor implements Prope
 				if ((selected != null) && (selected.trim().length() == 0)) {
 					selected = null;
 				}
-				System.out.println("Selected editable combo value: "+selected);
 				return selected;
 			}
 		};

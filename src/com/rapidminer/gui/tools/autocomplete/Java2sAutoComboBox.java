@@ -41,8 +41,13 @@ import javax.swing.JComboBox;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
 
 public class Java2sAutoComboBox extends JComboBox {
+	
+	private AutoTextFieldEditor autoTextFieldEditor;
+
+	private boolean isFired;
 
 	private static final long serialVersionUID = 1L;
+	
 
 	private class AutoTextFieldEditor extends BasicComboBoxEditor {
 
@@ -112,9 +117,4 @@ public class Java2sAutoComboBox extends JComboBox {
 		if (!isFired)
 			super.fireActionEvent();
 	}
-
-	private AutoTextFieldEditor autoTextFieldEditor;
-
-	private boolean isFired;
-
 }

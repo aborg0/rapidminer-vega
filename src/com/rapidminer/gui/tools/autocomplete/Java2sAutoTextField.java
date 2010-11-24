@@ -44,18 +44,31 @@ import javax.swing.text.PlainDocument;
 
 public class Java2sAutoTextField extends JTextField {
 
+	private List dataList;
+
+	private boolean isCaseSensitive;
+
+	private boolean isStrict;
+
+	private Java2sAutoComboBox autoComboBox;
+	
 	private static final long serialVersionUID = 1L;
+	
 
 	class AutoDocument extends PlainDocument {
 
 		private static final long serialVersionUID = 1L;
+		
 
 		public void replace(int i, int j, String s, AttributeSet attributeset)
 		throws BadLocationException {
-			super.remove(i, j);
+			if (j>0) {
+				super.remove(i, j);
+			}
 			insertString(i, s, attributeset);
 		}
 
+		@Override
 		public void insertString(int i, String s, AttributeSet attributeset)
 		throws BadLocationException {
 			if (s == null || "".equals(s))
@@ -77,25 +90,28 @@ public class Java2sAutoTextField extends JTextField {
 			setSelectionStart(j + 1);
 			setSelectionEnd(getLength());
 		}
-
+		
+		@Override
 		public void remove(int i, int j) throws BadLocationException {
-			int k = getSelectionStart();
-			if (k > 0)
-				k--;
-			String s = getMatch(getText(0, k));
-			if (!isStrict && s == null) {
+			if (j>0) {
 				super.remove(i, j);
-			} else {
-				super.remove(0, getLength());
-				super.insertString(0, s, null);
 			}
-			if (autoComboBox != null && s != null)
-				autoComboBox.setSelectedValue(s);
-			try {
-				setSelectionStart(k);
-				setSelectionEnd(getLength());
-			} catch (Exception exception) {
-			}
+//			int k = getSelectionStart();
+//			if (k > 0)
+//				k--;
+//			String s = getMatch(getText(0, k));
+//			if (!isStrict && s == null) {
+//				super.remove(i, j);
+//			} else {
+//				super.remove(0, getLength());
+//				super.insertString(0, s, null);
+//			}
+//			if (autoComboBox != null && s != null)
+//				autoComboBox.setSelectedValue(s);
+//			try {
+//				setSelectionStart(k);
+//				setSelectionEnd(getLength());
+//			} catch (Exception exception) { }
 		}
 
 	}
@@ -147,14 +163,15 @@ public class Java2sAutoTextField extends JTextField {
 
 		return null;
 	}
-
+	
+	@Override
 	public void replaceSelection(String s) {
-		AutoDocument _lb = (AutoDocument) getDocument();
-		if (_lb != null)
+		AutoDocument ad = (AutoDocument) getDocument();
+		if (ad != null)
 			try {
 				int i = Math.min(getCaret().getDot(), getCaret().getMark());
 				int j = Math.max(getCaret().getDot(), getCaret().getMark());
-				_lb.replace(i, j - i, s, null);
+				ad.replace(i, j - i, s, null);
 			} catch (Exception exception) {
 			}
 	}
@@ -187,13 +204,5 @@ public class Java2sAutoTextField extends JTextField {
 			return;
 		}
 	}
-
-	private List dataList;
-
-	private boolean isCaseSensitive;
-
-	private boolean isStrict;
-
-	private Java2sAutoComboBox autoComboBox;
 }
 
