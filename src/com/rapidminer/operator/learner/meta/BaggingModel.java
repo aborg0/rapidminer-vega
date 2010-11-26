@@ -118,7 +118,7 @@ public class BaggingModel extends PredictionModel implements MetaModel {
 			// numerical prediction
 			double[] predictionSums = new double[origExampleSet.size()];
 			for (Model model : models) {
-				ExampleSet resultSet = model.apply(origExampleSet);
+				ExampleSet resultSet = model.apply((ExampleSet) origExampleSet.clone());
 				int index = 0;
 				Attribute innerPredictedLabel = resultSet.getAttributes().getPredictedLabel();
 				for (Example example : resultSet) {
