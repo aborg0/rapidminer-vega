@@ -40,8 +40,7 @@ public class ParseNumber extends PostfixMathCommand {
 
 	@SuppressWarnings("unchecked")
 	public void run(Stack stack) throws ParseException {
-		if (stack.size() < 1)
-			throw new ParseException("Needs one argument: The string to be converted into a number");
+		checkStack(stack);// check the stack
 
 		// initialize the result to the first argument
 		Object value = stack.pop();

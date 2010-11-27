@@ -30,8 +30,9 @@ import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.learner.bayes.DistributionModel;
 
 /**
+ * A Renderer for a DistributionModel.
+ * 
  * @author Tobias Malbrecht, Sebastian Land
- * @version $Id: DistributionModelTableRenderer.java,v 1.1.2.3 2009-04-08 14:40:23 tobiasmalbrecht Exp $
  */
 public class DistributionModelTableRenderer extends AbstractTableModelTableRenderer {
 

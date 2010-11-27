@@ -49,9 +49,6 @@ public class ParameterValue extends PostfixMathCommand {
 	public void run(Stack stack) throws ParseException {
 		checkStack(stack);// check the stack
 
-		if (numberOfParameters != 2)
-			throw new ParseException("Needs two arguments: Operator and Parameter");
-
 		// initialize the result to the first argument
 		Object parameter = stack.pop();
 		if (!(parameter instanceof String)) {

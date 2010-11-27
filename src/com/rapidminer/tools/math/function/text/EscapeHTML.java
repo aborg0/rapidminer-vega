@@ -44,8 +44,7 @@ public class EscapeHTML extends PostfixMathCommand {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		if (stack.size() != 1)
-			throw new ParseException("Needs one argument: The string which should be escaped");
+		checkStack(stack);// check the stack
 
 		Object textObject = stack.pop();
 		if (!(textObject instanceof String)) {

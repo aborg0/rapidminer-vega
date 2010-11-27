@@ -46,6 +46,7 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Operator;
+import com.rapidminer.repository.db.DBRepository;
 import com.rapidminer.repository.gui.NewRepositoryDialog;
 import com.rapidminer.repository.local.LocalRepository;
 import com.rapidminer.repository.remote.RemoteRepository;
@@ -107,7 +108,8 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			sampleRepository = new ResourceRepository(SAMPLE_REPOSITORY_NAME, "/"+Tools.RESOURCE_PREFIX+"samples");
 		}
 		repositories.add(sampleRepository);
-
+		repositories.add(new DBRepository());
+		
 		final String homeUrl = System.getProperty(RapidMiner.PROPERTY_HOME_REPOSITORY_URL);
 		if (homeUrl != null) {
 			try {

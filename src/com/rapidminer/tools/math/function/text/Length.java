@@ -41,8 +41,7 @@ public class Length extends PostfixMathCommand {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		if (stack.size() != 1)
-			throw new ParseException("Needs one argument: The text for which the length should be calculated.");
+		checkStack(stack);// check the stack
 
 		// initialize the result to the first argument
 		Object textObject = stack.pop();

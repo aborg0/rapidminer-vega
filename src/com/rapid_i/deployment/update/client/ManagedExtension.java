@@ -183,7 +183,7 @@ public class ManagedExtension {
 		return doc;
 	}
 	
-	static void saveConfiguration() {		
+	public static void saveConfiguration() {		
 		try {
 			File localDir = getUserExtensionsDir();
 			if (!localDir.exists()) {

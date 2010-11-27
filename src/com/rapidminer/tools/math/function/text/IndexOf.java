@@ -41,8 +41,7 @@ public class IndexOf extends PostfixMathCommand {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		if (stack.size() != 2)
-			throw new ParseException("Needs two arguments: The text in which should be searched and the search string.");
+		checkStack(stack);// check the stack
 
 		// initialize the result to the first argument
 		Object indexObject = stack.pop();

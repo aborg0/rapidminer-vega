@@ -41,8 +41,7 @@ public class Concat extends PostfixMathCommand{
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		if (stack.size() < 2 || curNumberOfParameters < 2)
-			throw new ParseException("Needs at least two string arguments.");
+		checkStack(stack);// check the stack
 
 		// initialize the result to the first argument
 		ArrayList<String> strings = new ArrayList<String>();

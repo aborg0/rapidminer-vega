@@ -22,7 +22,9 @@
  */
 package com.rapidminer.gui.properties.celleditors.value;
 
-import com.rapidminer.gui.tools.autocomplete.Java2sAutoComboBox;
+import javax.swing.JComboBox;
+
+import com.rapidminer.gui.tools.autocomplete.AutoCompleteComboBoxAddition;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 
 /** Autocompletion combo box that observes an input port so it can update
@@ -31,7 +33,7 @@ import com.rapidminer.parameter.ParameterTypeAttribute;
  * @author Simon Fischer
  *
  */
-public class AttributeComboBox extends Java2sAutoComboBox {
+public class AttributeComboBox extends JComboBox {
 
 	private static final long serialVersionUID = 1L;
 
@@ -40,10 +42,12 @@ public class AttributeComboBox extends Java2sAutoComboBox {
 	
 	public AttributeComboBox(ParameterTypeAttribute type) {
 		super(type.getAttributeNames());
-		setStrict(false);
+		AutoCompleteComboBoxAddition autoCompleteCBA = new AutoCompleteComboBoxAddition(this);
+		autoCompleteCBA.setCaseSensitive(false);
+//		setStrict(false);
 		//this.type = type;
 		//displayedAttributeNames = type.getAttributeNames();
-		setEditable(true);
+//		setEditable(true);
 //		addPopupMenuListener(new PopupMenuListener() {
 //			@Override
 //			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {

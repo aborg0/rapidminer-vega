@@ -41,8 +41,7 @@ public class Replace extends PostfixMathCommand {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		if (stack.size() < 3)
-			throw new ParseException("Needs three arguments: The string, the target and the replacement string.");
+		checkStack(stack);// check the stack
 
 		// initialize the result to the first argument
 		Object byObject = stack.pop();

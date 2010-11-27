@@ -41,8 +41,7 @@ public class UpperCase extends PostfixMathCommand {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		if (stack.size() != 1)
-			throw new ParseException("Needs one argument: The text which should be transformed to upper case.");
+		checkStack(stack);// check the stack
 
 		// initialize the result to the first argument
 		Object textObject = stack.pop();

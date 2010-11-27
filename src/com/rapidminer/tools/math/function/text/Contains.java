@@ -41,8 +41,7 @@ public class Contains extends PostfixMathCommand {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		if (stack.size() != 2)
-			throw new ParseException("Needs two arguments: The text and the search string for which the text should be checked.");
+		checkStack(stack);// check the stack
 
 		// initialize the result to the first argument
 		Object searchStringObject = stack.pop();

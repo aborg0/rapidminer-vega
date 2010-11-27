@@ -42,9 +42,8 @@ public class Equals extends PostfixMathCommand {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		if (stack.size() != 2)
-			throw new ParseException("Needs two arguments: The two texts which should be compared.");
-
+		checkStack(stack);// check the stack
+		
 		// initialize the result to the first argument
 		Object secondTextObject = stack.pop();
 		Object firstTextObject = stack.pop();

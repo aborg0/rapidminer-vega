@@ -42,8 +42,7 @@ public class Suffix extends PostfixMathCommand {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		if (stack.size() != 2)
-			throw new ParseException("Needs two arguments: The string and the length");
+		checkStack(stack);// check the stack
 
 		// initialize the result to the first argument
 		Object lengthObject = stack.pop();

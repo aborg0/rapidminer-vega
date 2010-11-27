@@ -41,8 +41,7 @@ public class CharAt extends PostfixMathCommand {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		if (stack.size() != 2)
-			throw new ParseException("Needs two arguments: The text and the position.");
+		checkStack(stack);// check the stack
 
 		// initialize the result to the first argument
 		Object positionObject = stack.pop();

@@ -40,8 +40,8 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Ontology;
 
-/** 
- * Helper class to create SQL statements and escape column names. 
+/**
+ * Helper class to create SQL statements and escape column names.
  * 
  * @author Simon Fischer
  */
@@ -54,7 +54,8 @@ public class StatementCreator {
 		private final int dataType;
 		private final String typeName;
 		private String createParams;
-		private long precision;		
+		private long precision;
+
 		private DataTypeSyntaxInformation(ResultSet typesResult) throws SQLException {
 			typeName = typesResult.getString("TYPE_NAME");
 			dataType = typesResult.getInt("DATA_TYPE");
@@ -63,41 +64,50 @@ public class StatementCreator {
 			precision = typesResult.getLong("PRECISION");
 			createParams = typesResult.getString("CREATE_PARAMS");
 		}
+
 		public String getTypeName() {
 			return typeName;
 		}
+
 		public int getDataType() {
 			return dataType;
 		}
+
 		@Override
 		public String toString() {
-			return getTypeName()+" (prec="+precision+"; params="+createParams+")";
+			return getTypeName() + " (prec=" + precision + "; params=" + createParams + ")";
 		}
+
 		public long getPrecision() {
 			return precision;
 		}
+
 		public String getLiteralPrefix() {
 			return literalPrefix;
 		}
+
 		public String getLiteralSuffix() {
 			return literalSuffix;
 		}
 	}
-	
-	/** Maps types as defined by {@link Ontology#ATTRIBUTE_VALUE_TYPE} to syntactical SQL information. Must be linkedHashMap to ensure prefered types are taken first.*/
+
+	/**
+	 * Maps types as defined by {@link Ontology#ATTRIBUTE_VALUE_TYPE} to syntactical SQL information. Must be
+	 * linkedHashMap to ensure prefered types are taken first.
+	 */
 	private Map<Integer, DataTypeSyntaxInformation> typeMap = new LinkedHashMap<Integer, DataTypeSyntaxInformation>();
 	private String identifierQuote;
 	private long defaultVarCharLength = -1;
-	
+
 	public StatementCreator(Connection connection) throws SQLException {
 		this(connection, -1);
 	}
-	
+
 	StatementCreator(Connection connection, long defaultVarcharLength) throws SQLException {
 		this.defaultVarCharLength = defaultVarcharLength;
-		buildTypeMap(connection);	
+		buildTypeMap(connection);
 	}
-	
+
 	public void setDefaultVarcharLength(long defaultVarcharLength) {
 		this.defaultVarCharLength = defaultVarcharLength;
 	}
@@ -107,7 +117,7 @@ public class StatementCreator {
 	private void buildTypeMap(Connection con) throws SQLException {
 		DatabaseMetaData dbMetaData = con.getMetaData();
 		this.identifierQuote = dbMetaData.getIdentifierQuoteString();
-		LogService.getRoot().fine("Identifier quote character is: "+this.identifierQuote);
+		LogService.getRoot().fine("Identifier quote character is: " + this.identifierQuote);
 		// Maps java sql Types to data types as reported by the sql driver
 		Map<Integer, DataTypeSyntaxInformation> dataTypeToMDMap = new HashMap<Integer, DataTypeSyntaxInformation>();
 		ResultSet typesResult = dbMetaData.getTypeInfo();
@@ -119,7 +129,7 @@ public class StatementCreator {
 				dataTypeToMDMap.put(dtmd.getDataType(), dtmd);
 			}
 		}
-		
+
 		registerSyntaxInfo(Ontology.NOMINAL, dataTypeToMDMap, Types.VARCHAR);
 		registerSyntaxInfo(Ontology.STRING, dataTypeToMDMap, Types.CLOB, Types.BLOB, Types.LONGVARCHAR, Types.LONGNVARCHAR, Types.VARCHAR);
 		registerSyntaxInfo(Ontology.REAL, dataTypeToMDMap, Types.DOUBLE, Types.REAL, Types.FLOAT);
@@ -128,24 +138,33 @@ public class StatementCreator {
 		registerSyntaxInfo(Ontology.DATE, dataTypeToMDMap, Types.DATE, Types.TIMESTAMP);
 		registerSyntaxInfo(Ontology.DATE_TIME, dataTypeToMDMap, Types.TIMESTAMP);
 		registerSyntaxInfo(Ontology.TIME, dataTypeToMDMap, Types.TIME, Types.TIMESTAMP);
-		registerSyntaxInfo(Ontology.ATTRIBUTE_VALUE, dataTypeToMDMap, Types.DOUBLE, Types.REAL, Types.FLOAT); // fallback; same will be used by actual insertion code
-		registerSyntaxInfo(Ontology.BINOMINAL, dataTypeToMDMap, Types.VARCHAR); // fallback; same will be used by actual insertion code
+		registerSyntaxInfo(Ontology.ATTRIBUTE_VALUE, dataTypeToMDMap, Types.DOUBLE, Types.REAL, Types.FLOAT); // fallback;
+																												// same
+																												// will
+																												// be
+																												// used
+																												// by
+																												// actual
+																												// insertion
+																												// code
+		registerSyntaxInfo(Ontology.BINOMINAL, dataTypeToMDMap, Types.VARCHAR); // fallback; same will be used by actual
+																				// insertion code
 	}
 
-	private void registerSyntaxInfo(int attributeType, Map<Integer,DataTypeSyntaxInformation> dataTypeToMDMap, int ... possibleDataTypes) throws SQLException {
+	private void registerSyntaxInfo(int attributeType, Map<Integer, DataTypeSyntaxInformation> dataTypeToMDMap, int... possibleDataTypes) throws SQLException {
 		for (int i : possibleDataTypes) {
 			DataTypeSyntaxInformation si = dataTypeToMDMap.get(i);
 			if (si != null) {
 				typeMap.put(attributeType, si);
-				LogService.getRoot().fine("Mapping "+Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(attributeType)+" to "+si);
+				LogService.getRoot().fine("Mapping " + Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(attributeType) + " to " + si);
 				return;
 			}
 		}
-		LogService.getRoot().warning("No SQL value type found for "+Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(attributeType));
-	}	
-	
+		LogService.getRoot().warning("No SQL value type found for " + Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(attributeType));
+	}
+
 	// mapping types
-	
+
 	/** Maps attribute types as defined by {@link Ontology#ATTRIBUTE_VALUE_TYPE} to SQL types. */
 	private String mapAttributeTypeToSQLDataType(int type) {
 		DataTypeSyntaxInformation typeStr = getSQLTypeForRMValueType(type);
@@ -163,14 +182,17 @@ public class StatementCreator {
 				parent = Ontology.ATTRIBUTE_VALUE_TYPE.getParent(parent);
 			}
 		}
-		throw new NoSuchElementException("No SQL type mapped to attribute type "+Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(type));
+		throw new NoSuchElementException("No SQL type mapped to attribute type " + Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(type));
 	}
 
 	// statement creation
-	
-	/** Creates an SQL statement for creating a table where each attribute is mapped to a column of an appropriate type. 
-	 * @param defaultVarcharLength 
-	 * @throws SQLException */
+
+	/**
+	 * Creates an SQL statement for creating a table where each attribute is mapped to a column of an appropriate type.
+	 * 
+	 * @param defaultVarcharLength
+	 * @throws SQLException
+	 */
 	public String makeTableCreator(Attributes attributes, String tableName, int defaultVarcharLength) throws SQLException {
 		this.defaultVarCharLength = defaultVarcharLength;
 		// define all attribute names and types
@@ -187,56 +209,52 @@ public class StatementCreator {
 			AttributeRole attributeRole = a.next();
 			makeColumnCreator(b, attributeRole);
 		}
-		
+
 		// use id as primary key
-		Attribute idAttribute = attributes.getId(); 
+		Attribute idAttribute = attributes.getId();
 		if (idAttribute != null) {
 			b.append(", PRIMARY KEY( ");
 			b.append(makeColumnIdentifier(idAttribute));
 			b.append(")");
-		}		
+		}
 		b.append(")");
 		return b.toString();
 	}
 
 	/** Quotes and escapes the given name such that it can be used as an SQL table or column identifier. */
 	public String makeIdentifier(String identifier) {
- //		if (isLegalIdentifier(identifier)) {
-//			return identifier;
-//		}
+		// if (isLegalIdentifier(identifier)) {
+		// return identifier;
+		// }
 		if (identifier == null) {
 			throw new NullPointerException("Identifier must not be null");
 		}
 		// for performance reasons, don't use regexp when identifier has length 1
 		if (identifierQuote != null) {
 			switch (identifierQuote.length()) {
-			case 0: break;
+			case 0:
+				break;
 			case 1:
 				identifier = identifier.replace(identifierQuote.charAt(0), '_');
 				break;
-			default:			
+			default:
 				identifier = identifier.replace(identifierQuote, "_");
 			}
 		}
-		return this.identifierQuote + 
-			identifier + 
-			this.identifierQuote;
+		return this.identifierQuote +
+				identifier +
+				this.identifierQuote;
 	}
-	
-	/*
-	private boolean isLegalIdentifier(String identifier) {
-		for (char c : identifier.toCharArray()) {
-			if (!Character.isLetter(c) && (c != '_')) {
-				return false;
-			}
-		}
-		return true;
-	}
-	*/
 
-	/** Creates an SQL INSERT statement for filling attributes into a table.
-	 *  This can be used to make a prepared statement where the i-th parameter is mapped to
-	 *  the i-th attribute in the example set. */
+	/*
+	 * private boolean isLegalIdentifier(String identifier) { for (char c : identifier.toCharArray()) { if
+	 * (!Character.isLetter(c) && (c != '_')) { return false; } } return true; }
+	 */
+
+	/**
+	 * Creates an SQL INSERT statement for filling attributes into a table. This can be used to make a prepared
+	 * statement where the i-th parameter is mapped to the i-th attribute in the example set.
+	 */
 	public String makeInsertStatement(String tableName, ExampleSet exampleSet) throws SQLException {
 		StringBuffer b = new StringBuffer("INSERT INTO ");
 		b.append(makeIdentifier(tableName));
@@ -245,7 +263,8 @@ public class StatementCreator {
 		boolean first = true;
 		while (a.hasNext()) {
 			Attribute attribute = a.next();
-			if (!first)	b.append(", ");
+			if (!first)
+				b.append(", ");
 			b.append(makeColumnIdentifier(attribute));
 			first = false;
 		}
@@ -253,16 +272,45 @@ public class StatementCreator {
 		b.append(" VALUES (");
 		int size = exampleSet.getAttributes().allSize();
 		for (int i = 0; i < size; i++) {
-			if (i != 0) b.append(", ");
+			if (i != 0)
+				b.append(", ");
 			b.append("?");
 		}
 		b.append(")");
 		return b.toString();
 	}
 
-	/** Makes an SQL fragment that can be used for creating a table column. 
-	 *  Basically, this is the quoted column name plus the SQL data type. 
-	 * @throws SQLException */
+	/**
+	 * This will create an alteration statement for the given role. That can be used for
+	 * constructing an table alteration
+	 */
+	public void makeColumnAlter(StringBuilder b, AttributeRole role) throws SQLException {
+		b.append("ALTER ");
+		makeColumnCreator(b, role);
+	}
+	/**
+	 * This will create an add statement for the given role that can be used for constructing
+	 * a table alteration.
+	 */
+	public void makeColumnAdd(StringBuilder b, AttributeRole role) throws SQLException {
+		b.append("ADD ");
+		makeColumnCreator(b, role);
+	}
+	/**
+	 * This will create an add statement for the given role that can be used for constructing
+	 * a table alteration.
+	 */
+	public void makeColumnDrop(StringBuilder b, Attribute attribute) throws SQLException {
+		b.append("DROP ");
+		b.append(makeColumnIdentifier(attribute));
+		b.append(" CASCADE");
+	}
+	/**
+	 * Makes an SQL fragment that can be used for creating a table column. Basically, this is the quoted column name
+	 * plus the SQL data type.
+	 * 
+	 * @throws SQLException
+	 */
 	private void makeColumnCreator(StringBuilder b, AttributeRole role) throws SQLException {
 		// TODO: Varchar length?
 		final Attribute attribute = role.getAttribute();
@@ -270,11 +318,11 @@ public class StatementCreator {
 		b.append(" ");
 		DataTypeSyntaxInformation si = getSQLTypeForRMValueType(attribute.getValueType());
 		b.append(si.getTypeName());
-		
+
 		// varchar length parameter
 		if (attribute.isNominal()) {
 			if ((si.getPrecision() > 0) && (defaultVarCharLength > si.getPrecision())) {
-				throw new SQLException("minimum requested varchar length >"+si.getPrecision()+" which is the maximum length for columns of SQL type "+si.getTypeName());
+				throw new SQLException("minimum requested varchar length >" + si.getPrecision() + " which is the maximum length for columns of SQL type " + si.getTypeName());
 			}
 			int maxLength = 1;
 			for (String value : attribute.getMapping().getValues()) {
@@ -282,10 +330,10 @@ public class StatementCreator {
 				if (length > maxLength) {
 					maxLength = length;
 					if ((si.getPrecision() > 0) && (length > si.getPrecision())) {
-						throw new SQLException("Attribute "+attribute.getName()+" contains values with length >"+si.getPrecision()+" which is the maximum length for columns of SQL type "+si.getTypeName());
+						throw new SQLException("Attribute " + attribute.getName() + " contains values with length >" + si.getPrecision() + " which is the maximum length for columns of SQL type " + si.getTypeName());
 					}
 					if ((defaultVarCharLength != -1) && (maxLength > defaultVarCharLength)) {
-						throw new SQLException("Attribute "+attribute.getName()+" contains values with length >"+defaultVarCharLength+" which is the requested default varchar length.");
+						throw new SQLException("Attribute " + attribute.getName() + " contains values with length >" + defaultVarCharLength + " which is the requested default varchar length.");
 					}
 				}
 			}
@@ -293,11 +341,11 @@ public class StatementCreator {
 				if (defaultVarCharLength != -1) {
 					b.append("(").append(defaultVarCharLength).append(")");
 				} else {
-					b.append("(").append(maxLength).append(")");					
+					b.append("(").append(maxLength + maxLength / 2).append(")");
 				}
 			}
 		}
-		
+
 		// IDs must not be missing
 		if (role.isSpecial()) {
 			if (role.getSpecialName().equals(Attributes.ID_NAME)) {
@@ -306,8 +354,10 @@ public class StatementCreator {
 		}
 	}
 
-	/** Makes an SQL fragment that can be used for creating a table column. 
-	 *  Basically, this is the quoted column name plus the SQL data type. */
+	/**
+	 * Makes an SQL fragment that can be used for creating a table column. Basically, this is the quoted column name
+	 * plus the SQL data type.
+	 */
 	private void makeColumnCreator(StringBuilder b, Attribute attribute) {
 		b.append(makeColumnIdentifier(attribute));
 		b.append(" ");
@@ -325,7 +375,6 @@ public class StatementCreator {
 		return makeIdentifier(attribute.getName());
 	}
 
-	
 	/**
 	 * DROP TABLE ...
 	 * 
@@ -335,22 +384,23 @@ public class StatementCreator {
 	public String makeDropStatement(String tableName) {
 		return "DROP TABLE " + makeIdentifier(tableName);
 	}
-	
+
 	/**
 	 * DELETE FROM ...
+	 * 
 	 * @param tableName
 	 * @return
 	 */
 	public String makeDeleteStatement(String tableName) {
-		return "DELETE FROM "+makeIdentifier(tableName);
+		return "DELETE FROM " + makeIdentifier(tableName);
 	}
-	
+
 	/** SELECT * */
 	public String makeSelectAllStatement(String tableName) {
-		return "SELECT * FROM "+makeIdentifier(tableName);
+		return "SELECT * FROM " + makeIdentifier(tableName);
 	}
-	
-	public String makeSelectStatement(String tableName, boolean distinct, String ... columns) {
+
+	public String makeSelectStatement(String tableName, boolean distinct, String... columns) {
 		StringBuilder b = new StringBuilder("SELECT ");
 		if (distinct) {
 			b.append(" DISTINCT ");
@@ -371,55 +421,57 @@ public class StatementCreator {
 
 	/** Selects count(*). */
 	public String makeSelectSizeStatement(String tableName) {
-		return "SELECT count(*) FROM "+makeIdentifier(tableName);
+		return "SELECT count(*) FROM " + makeIdentifier(tableName);
 	}
-	
-	/** Makes a statement selecting all attributes but no rows. Can be used to 
-	 *  fetch header meta data. 
-	 * @deprecated You don't want to use this method. Use the table meta data. */
+
+	/**
+	 * Makes a statement selecting all attributes but no rows. Can be used to fetch header meta data.
+	 * 
+	 * @deprecated You don't want to use this method. Use the table meta data.
+	 */
 	@Deprecated
 	public String makeSelectEmptySetStatement(String tableName) {
-		return "SELECT * FROM "+makeIdentifier(tableName) + " WHERE 1=0";
+		return "SELECT * FROM " + makeIdentifier(tableName) + " WHERE 1=0";
 	}
 
 	public String makeClobCreator(String columnName, int minLength) {
 		StringBuilder b = new StringBuilder();
 		b.append(makeIdentifier(columnName)).append(" ");
-		
+
 		final String typeString = mapAttributeTypeToSQLDataType(Ontology.STRING);
 		b.append(typeString);
 		if (typeString.toLowerCase().startsWith("varchar")) {
 			if (minLength != -1) {
-				b.append("(").append(minLength).append(")");				
+				b.append("(").append(minLength).append(")");
 			} else {
 				b.append("(").append(defaultVarCharLength).append(")");
 			}
 		}
 		return b.toString();
 	}
-	
+
 	public String makeVarcharCreator(String columnName, int minLength) {
 		if (minLength == 0) {
 			minLength = 1;
 		}
 		StringBuilder b = new StringBuilder();
 		b.append(makeIdentifier(columnName)).append(" ");
-		
+
 		final String typeString = mapAttributeTypeToSQLDataType(Ontology.NOMINAL);
 		b.append(typeString);
 		if (typeString.toLowerCase().startsWith("varchar")) {
 			if (minLength != -1) {
-				b.append("(").append(minLength).append(")");				
+				b.append("(").append(minLength).append(")");
 			} else {
 				b.append("(").append(defaultVarCharLength).append(")");
 			}
 		}
 		return b.toString();
 	}
-	
+
 	public String makeIntegerCreator(String columnName) {
 		StringBuilder b = new StringBuilder();
-		b.append(makeIdentifier(columnName)).append(" ");	
+		b.append(makeIdentifier(columnName)).append(" ");
 		final String typeString = mapAttributeTypeToSQLDataType(Ontology.INTEGER);
 		b.append(typeString);
 		return b.toString();
