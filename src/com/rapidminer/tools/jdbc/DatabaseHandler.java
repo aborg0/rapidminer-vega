@@ -840,12 +840,8 @@ public class DatabaseHandler {
         }
         return result;
     }
-
-//    private List<ColumnIdentifier> getAllColumnNames(String tableName) throws SQLException {
-//    	return getAllColumnNames(tableName, connection.getMetaData());
-//    }
     
-    private List<ColumnIdentifier> getAllColumnNames(String tableName, DatabaseMetaData metaData) throws SQLException {
+    public List<ColumnIdentifier> getAllColumnNames(String tableName, DatabaseMetaData metaData) throws SQLException {
         if (tableName == null) {
             throw new SQLException("Cannot read column names: table name must not be null!");
         }
@@ -859,7 +855,10 @@ public class DatabaseHandler {
         		columnResult = metaData.getColumns(null, null, tableName, "%");
         		List<ColumnIdentifier> result = new LinkedList<ColumnIdentifier>();
         		while (columnResult.next()) {
-        			result.add(new ColumnIdentifier(this, tableName, columnResult.getString("COLUMN_NAME")));
+        			result.add(new ColumnIdentifier(this, tableName, 
+        					columnResult.getString("COLUMN_NAME"),
+        					columnResult.getInt("DATA_TYPE"),
+        					columnResult.getString("TYPE_NAME")));
         		}
         		//columnResult.close();
         		return result;
@@ -871,7 +870,10 @@ public class DatabaseHandler {
         		emptyQueryResult = statement.executeQuery(emptySelect);
         		final ResultSetMetaData resultSetMetaData = emptyQueryResult.getMetaData();
 				for (int i = 0; i < resultSetMetaData.getColumnCount(); i++) {
-        			result.add(new ColumnIdentifier(this, tableName, resultSetMetaData.getColumnName(i+1)));
+        			result.add(new ColumnIdentifier(this, tableName, 
+        					resultSetMetaData.getColumnName(i+1),
+        					resultSetMetaData.getColumnType(i+1),
+        					resultSetMetaData.getColumnTypeName(i+1)));
         		}
         		return result;
         	}

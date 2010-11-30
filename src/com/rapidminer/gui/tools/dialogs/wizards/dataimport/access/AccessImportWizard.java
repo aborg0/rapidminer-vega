@@ -111,7 +111,8 @@ public class AccessImportWizard extends DataImportWizard {
 				reader.setParameter(DatabaseHandler.PARAMETER_PASSWORD, new String(connectionEntry.getPassword()));
 				reader.setParameter(DatabaseHandler.PARAMETER_DEFINE_QUERY, DatabaseHandler.QUERY_MODES[DatabaseHandler.QUERY_QUERY]);
 				reader.setParameter(DatabaseHandler.PARAMETER_QUERY, dialog.getQuery());
-				reader.getGeneratedMetaData();
+				// TODO: Check
+				//reader.getGeneratedMetaData();
 				return true;
 			}
 		});

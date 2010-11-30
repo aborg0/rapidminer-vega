@@ -137,7 +137,8 @@ public class DatabaseImportWizard extends DataImportWizard {
 			protected boolean performLeavingAction(WizardStepDirection direction) {
 				reader.setParameter(DatabaseHandler.PARAMETER_DEFINE_QUERY, DatabaseHandler.QUERY_MODES[DatabaseHandler.QUERY_QUERY]);
 				reader.setParameter(DatabaseHandler.PARAMETER_QUERY, sqlQueryBuilder.getQuery());
-				reader.getGeneratedMetaData();
+				// TODO: Check
+				//reader.getGeneratedMetaData();
 				return true;
 			}
 		});

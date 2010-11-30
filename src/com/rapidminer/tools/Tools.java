@@ -1534,4 +1534,18 @@ public class Tools {
 		result.add(b.toString());
 		return result;
 	}
+
+	/** In contrast to o1.equals(o2), this method also works with p1==null. */
+	public static boolean equals(Object o1, Object o2) {
+		if ((o1 == null) && (o2 == null)) {
+			return true;
+		} else if ((o1 == null) && (o2 != null)) {
+			return false;
+		} else if ((o1 != null) && (o2 == null)) {
+			return false;
+		} else {
+			return o1.equals(o2);
+		}
+	}
+
 }

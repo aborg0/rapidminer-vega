@@ -340,7 +340,7 @@ public class ErrorTable extends JPanel implements Dockable, ProcessEditor {
 			errorString = "One potential problem";
 			break;
 		default: 
-			errorString = errors.size() + " potential problem";
+			errorString = errors.size() + " potential problems";
 			break;
 		}		
 		if (errors.size() != numTotal) {

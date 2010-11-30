@@ -39,17 +39,17 @@ public class DBConnectionEntry implements IOObjectEntry {
 
 	@Override
 	public int getRevision() {
-		return 0;
+		return 1;
 	}
 
 	@Override
 	public long getSize() {
-		return 0;
+		return -1;
 	}
 
 	@Override
 	public long getDate() {
-		return 0;
+		return -1;
 	}
 
 	@Override
@@ -64,7 +64,7 @@ public class DBConnectionEntry implements IOObjectEntry {
 
 	@Override
 	public String getOwner() {
-		return null;
+		return folder.getConnectionEntry().getUser();
 	}
 
 	@Override

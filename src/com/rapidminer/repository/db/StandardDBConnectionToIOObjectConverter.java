@@ -10,7 +10,6 @@ import com.rapidminer.operator.io.DatabaseDataReader;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
-import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
@@ -43,7 +42,8 @@ public class StandardDBConnectionToIOObjectConverter implements DBConnectionToIO
 	public MetaData convertMetaData(ConnectionEntry connection, String tableName, List<ColumnIdentifier> columns) {
 		ExampleSetMetaData metaData = new ExampleSetMetaData();
 		for (ColumnIdentifier column : columns) {
-			metaData.addAttribute(new AttributeMetaData(column.getColumnName(), Ontology.ATTRIBUTE_VALUE));
+			metaData.addAttribute(new AttributeMetaData(column.getColumnName(), 
+					DatabaseHandler.getRapidMinerTypeIndex(column.getSqlType())));
 		}
 		return metaData;
 	}

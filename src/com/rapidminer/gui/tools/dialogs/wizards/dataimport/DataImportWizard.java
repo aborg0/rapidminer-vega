@@ -34,7 +34,7 @@ import com.rapidminer.gui.tools.dialogs.wizards.dataimport.access.AccessImportWi
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.csv.CSVImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.excel.ExcelImportWizard;
 import com.rapidminer.operator.OperatorException;
-import com.rapidminer.operator.io.AbstractDataReader;
+import com.rapidminer.operator.io.AbstractExampleSource;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
@@ -51,7 +51,7 @@ public class DataImportWizard extends AbstractWizard {
 		super(RapidMinerGUI.getMainFrame(), key, arguments);
 	}
 	
-	protected boolean transferData(final AbstractDataReader reader, final String repositoryLocationPath) {
+	protected boolean transferData(final AbstractExampleSource reader, final String repositoryLocationPath) {
 		if (repositoryLocationPath == null) {
 			return false;
 		}

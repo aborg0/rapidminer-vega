@@ -23,11 +23,13 @@
 package com.rapidminer.operator.io;
 
 import java.io.File;
+import java.sql.ResultSet;
 import java.util.List;
 
 import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeDatabaseTable;
@@ -97,11 +99,22 @@ public class AccessDataReader extends DatabaseDataReader {
 		}, false);
 	}
 
-	
+		
 	@Override
-	protected DataSet getDataSet()  throws OperatorException{
-		this.clearAllReaderSettings();
+	protected ResultSet getResultSet()  throws OperatorException{
+		//this.clearAllReaderSettings();
+		setAccessParameters();
+		return super.getResultSet();
+	}
 
+	@Override
+	public MetaData getGeneratedMetaData() throws OperatorException {
+		setAccessParameters();
+		return super.getGeneratedMetaData();
+	}
+
+
+	protected void setAccessParameters() throws UndefinedParameterError {
 		File databaseFile = getParameterAsFile(PARAMETER_DATABASE_FILE);
 		this.setParameter(DatabaseHandler.PARAMETER_DATABASE_URL, DATABASE_URL_PREFIX + databaseFile.getAbsolutePath());
 
@@ -115,8 +128,6 @@ public class AccessDataReader extends DatabaseDataReader {
 		}
 		this.setParameter(DatabaseHandler.PARAMETER_USERNAME, userName);
 		this.setParameter(DatabaseHandler.PARAMETER_PASSWORD, password);
-		
-		return super.getDataSet();
 	}
 	
 	@Override
@@ -167,27 +178,27 @@ public class AccessDataReader extends DatabaseDataReader {
 		return null;
 	}
 	
-	protected class CacheResetParameterObserver implements Observer<String> {
-		private String parameterKey;
-		private String oldFilename;
-
-		protected CacheResetParameterObserver(String parameterKey) {
-			this.parameterKey = parameterKey;
-		}
-
-		@Override
-		public void update(Observable<String> observable, String arg) {
-			if (arg == null || !arg.equals(CSVDataReader.PARAMETER_CSV_FILE) || arg.equals(ExcelExampleSource.PARAMETER_EXCEL_FILE)) {
-				return;
-			}
-			String newFilename = getParameters().getParameterOrNull(parameterKey);
-			if (((newFilename == null) && (oldFilename != null)) || ((newFilename != null) && (oldFilename == null))
-					|| ((newFilename != null) && (oldFilename != null) && !newFilename.equals(oldFilename))) {
-				clearAllReaderSettings();
-				this.oldFilename = newFilename;
-			}
-		}
-	}
+//	protected class CacheResetParameterObserver implements Observer<String> {
+//		private String parameterKey;
+//		private String oldFilename;
+//
+//		protected CacheResetParameterObserver(String parameterKey) {
+//			this.parameterKey = parameterKey;
+//		}
+//
+//		@Override
+//		public void update(Observable<String> observable, String arg) {
+//			if (arg == null || !arg.equals(CSVDataReader.PARAMETER_CSV_FILE) || arg.equals(ExcelExampleSource.PARAMETER_EXCEL_FILE)) {
+//				return;
+//			}
+//			String newFilename = getParameters().getParameterOrNull(parameterKey);
+//			if (((newFilename == null) && (oldFilename != null)) || ((newFilename != null) && (oldFilename == null))
+//					|| ((newFilename != null) && (oldFilename != null) && !newFilename.equals(oldFilename))) {
+//				clearAllReaderSettings();
+//				this.oldFilename = newFilename;
+//			}
+//		}
+//	}
 	
 }
 ///**

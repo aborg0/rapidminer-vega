@@ -87,6 +87,7 @@ import com.rapidminer.tools.math.function.text.Contains;
 import com.rapidminer.tools.math.function.text.EndsWith;
 import com.rapidminer.tools.math.function.text.Equals;
 import com.rapidminer.tools.math.function.text.EscapeHTML;
+import com.rapidminer.tools.math.function.text.Finds;
 import com.rapidminer.tools.math.function.text.IndexOf;
 import com.rapidminer.tools.math.function.text.Length;
 import com.rapidminer.tools.math.function.text.LowerCase;
@@ -437,6 +438,7 @@ public class ExpressionParser {
 		parser.addFunction("starts", new StartsWith());
 		parser.addFunction("ends", new EndsWith());
 		parser.addFunction("matches", new Matches());
+		parser.addFunction("finds", new Finds());
 		parser.addFunction("prefix", new Prefix());
 		parser.addFunction("suffix", new Suffix());
 		parser.addFunction("trim", new Trim());
