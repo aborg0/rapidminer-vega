@@ -29,7 +29,11 @@ import com.rapidminer.RepositoryProcessLocation;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
+import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.MalformedRepositoryLocationException;
+import com.rapidminer.repository.ProcessEntry;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryLocationChooser;
 
@@ -61,8 +65,17 @@ public class SaveAsAction extends ResourceAction {
 		String loc = RepositoryLocationChooser.selectLocation(null, initial, RapidMinerGUI.getMainFrame(), true, false);
 		if (loc!= null) {
 			try {
-				process.setProcessLocation(new RepositoryProcessLocation(new RepositoryLocation(loc)));
+				RepositoryLocation location = new RepositoryLocation(loc);
+				Entry entry = location.locateEntry();
+				if (entry instanceof ProcessEntry) {
+					if (SwingTools.showConfirmDialog("overwrite", ConfirmDialog.YES_NO_OPTION, entry.getLocation()) == ConfirmDialog.NO_OPTION) {
+						return;
+					}
+				}
+				process.setProcessLocation(new RepositoryProcessLocation(location));
 			} catch (MalformedRepositoryLocationException e) {
+				SwingTools.showSimpleErrorMessage("cannot_save_process", e);
+			} catch (RepositoryException e) {
 				SwingTools.showSimpleErrorMessage("cannot_save_process", e);
 			}
 			SaveAction.save(process);
