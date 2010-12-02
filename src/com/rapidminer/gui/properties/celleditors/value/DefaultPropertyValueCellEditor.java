@@ -41,6 +41,7 @@ import com.rapidminer.gui.properties.PropertyTable;
 import com.rapidminer.gui.tools.CharTextField;
 import com.rapidminer.gui.tools.ExtendedJComboBox;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.autocomplete.AutoCompleteComboBoxAddition;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
@@ -111,6 +112,10 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 	public DefaultPropertyValueCellEditor(final ParameterTypeStringCategory type) {
 		//super(new FilterableJComboBox(type.getValues()));
 		super(new JComboBox(type.getValues()));
+		
+		AutoCompleteComboBoxAddition autoCompleteCBA = new AutoCompleteComboBoxAddition((JComboBox) editorComponent);
+		autoCompleteCBA.setCaseSensitive(false);
+		
 		final JTextComponent textField = (JTextComponent) ((JComboBox) editorComponent).getEditor().getEditorComponent();
 //		textField.addFocusListener(new FocusListener() {
 //			@Override

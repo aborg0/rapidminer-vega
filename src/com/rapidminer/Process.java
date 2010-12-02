@@ -768,7 +768,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		}
 	}
 
-	private void applyContextMacros() {
+	public void applyContextMacros() {
 		for (Pair<String, String> macro : context.getMacros()) {
 			getLogger().fine("Defining context macro: " + macro.getFirst() + " = " + macro.getSecond() + ".");
 			getMacroHandler().addMacro(macro.getFirst(), macro.getSecond());

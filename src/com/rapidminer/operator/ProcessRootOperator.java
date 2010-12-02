@@ -118,6 +118,12 @@ public final class ProcessRootOperator extends OperatorChain {
 					return;
 				}
 				ProcessContext context = getProcess().getContext();
+				if ((getProcess().getProcessState() == Process.PROCESS_STATE_STOPPED)) {
+					// We apply macros only if process is stopped so we dont break the process
+					// in case we have a meta data propagation while process runs (in which
+					// case it should be disabled anyway
+					getProcess().applyContextMacros();
+				}
 				for (int i = 0; i < context.getInputRepositoryLocations().size(); i++) {
 					String location = context.getInputRepositoryLocations().get(i);
 					if ((location != null) && (location.length() > 0)) {

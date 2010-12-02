@@ -59,15 +59,18 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
 
 	@Override
 	public ExampleSet read() throws OperatorException {
-		ExampleSet result = super.read();
-		if ((databaseHandler != null) && (databaseHandler.getConnection() != null)) {
-			try {
-				databaseHandler.getConnection().close();
-			} catch (SQLException e) {
-				getLogger().log(Level.WARNING, "Error closing database connection: "+e, e);
+		try {
+			ExampleSet result = super.read();
+			return result;
+		} finally {
+			if ((databaseHandler != null) && (databaseHandler.getConnection() != null)) {
+				try {
+					databaseHandler.getConnection().close();
+				} catch (SQLException e) {
+					getLogger().log(Level.WARNING, "Error closing database connection: "+e, e);
+				}
 			}
-		}
-		return result;
+		}		
 	}
 	
 	protected ResultSet getResultSet() throws OperatorException {
@@ -90,9 +93,14 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
 		try {
 			List<Attribute> attributes = getAttributes(resultSet);
 			table = createExampleTable(resultSet, attributes);
-			resultSet.close();
 		} catch (SQLException e) {
 			throw new UserError(this, e, 304, e.getMessage());
+		} finally {
+			try {
+				resultSet.close();
+			} catch (SQLException e) {
+				getLogger().log(Level.WARNING, "DB error closing result set: "+e, e);
+			}
 		}
 		return table.createExampleSet();
 	}
@@ -122,10 +130,15 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
 					metaData.addAttribute(new AttributeMetaData(att));
 				}
 				break;
-			}
-			databaseHandler.getConnection().close();
+			}			
 		} catch (SQLException e) {
 			LogService.getRoot().log(Level.WARNING, "Failed to fetch meta data: "+e, e);
+		} finally {
+			try {
+				databaseHandler.getConnection().close();
+			} catch (SQLException e) {
+				getLogger().log(Level.WARNING, "DB error closing connection: "+e, e);
+			}
 		}
 		return metaData ;
 	}
