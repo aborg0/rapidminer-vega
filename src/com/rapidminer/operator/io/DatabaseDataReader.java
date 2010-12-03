@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Clob;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -23,7 +24,6 @@ import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
-import com.rapidminer.operator.io.AbstractExampleSource;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
@@ -120,12 +120,12 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
 				break;
 			case DatabaseHandler.QUERY_QUERY:
 			case DatabaseHandler.QUERY_FILE:
-			default:
+			default:				
 				String query = getQuery(databaseHandler.getStatementCreator());
-				query += " LIMIT 0";
-				// TODO: Alternative: WHERE 1=0
-				ResultSet resultSet = databaseHandler.executeStatement(query, true, this, getLogger());
-				List<Attribute> attributes = getAttributes(resultSet);
+				PreparedStatement prepared = databaseHandler.getConnection().prepareStatement(query);
+//				query = "SELECT * FROM (" + query + ") dummy WHERE 1=0";				
+//				ResultSet resultSet = databaseHandler.executeStatement(query, true, this, getLogger());
+				List<Attribute> attributes = getAttributes(prepared.getMetaData());
 				for (Attribute att : attributes) {
 					metaData.addAttribute(new AttributeMetaData(att));
 				}
@@ -135,7 +135,9 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
 			LogService.getRoot().log(Level.WARNING, "Failed to fetch meta data: "+e, e);
 		} finally {
 			try {
-				databaseHandler.getConnection().close();
+				if ((databaseHandler != null) && (databaseHandler.getConnection() != null)) {
+					databaseHandler.getConnection().close();
+				}
 			} catch (SQLException e) {
 				getLogger().log(Level.WARNING, "DB error closing connection: "+e, e);
 			}
@@ -214,10 +216,13 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
 
 	private List<Attribute> getAttributes(ResultSet resultSet) throws SQLException {
 		ResultSetMetaData metaData = resultSet.getMetaData();
-
+		return getAttributes(metaData);
+	}
+	
+	private List<Attribute> getAttributes(ResultSetMetaData metaData) throws SQLException {
 		List<Attribute> result = new LinkedList<Attribute>();
 		for (int columnIndex = 1; columnIndex <= metaData.getColumnCount(); columnIndex++) {
-			String columnName = metaData.getColumnName(columnIndex);
+			String columnName = metaData.getColumnLabel(columnIndex);
 			int attributeType = DatabaseHandler.getRapidMinerTypeIndex(metaData.getColumnType(columnIndex));
 			final Attribute attribute = AttributeFactory.createAttribute(columnName, attributeType);
 			attribute.getAnnotations().setAnnotation("sql_type", metaData.getColumnTypeName(columnIndex));

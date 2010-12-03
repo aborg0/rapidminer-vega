@@ -72,10 +72,10 @@ import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.tools.LaunchListener;
+import com.rapidminer.tools.LaunchListener.RemoteControlHandler;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
-import com.rapidminer.tools.LaunchListener.RemoteControlHandler;
 import com.rapidminer.tools.jdbc.connection.DatabaseConnectionService;
 import com.rapidminer.tools.plugin.Plugin;
 import com.rapidminer.tools.usagestats.UsageStatistics;
@@ -140,6 +140,8 @@ public class RapidMinerGUI extends RapidMiner {
 	
 	public static final String PROPERTY_CONFIRM_EXIT = "rapidminer.gui.confirm_exit";
 	
+	public static final String PROPERTY_FETCH_DATA_BASE_TABLES_NAMES = "rapidminer.gui.fetch_data_base_table_names";
+	
 	static {
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_UPDATE_CHECK, "Check for new RapidMiner versions at start up time?", true)); 
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_MAX_STATISTICS_ROWS, "Indicates the maximum number of rows for the automatic calculation of statistics and other time intensive data viewing actions.", 1, Integer.MAX_VALUE, 100000));
@@ -150,6 +152,8 @@ public class RapidMinerGUI extends RapidMiner {
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_AUTOWIRE_INPUT, "If checked, operator's inputs are wired automatically when added. Can be checked also in the \"Operators\" tree.", true));
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_AUTOWIRE_OUTPUT, "If checked, operator's outputs are wired automatically when added. Can be checked also in the \"Operators\" tree.", true));
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_CLOSE_RESULTS_BEFORE_RUN, "Close active result tabs when new process starts?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
+		
+		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_FETCH_DATA_BASE_TABLES_NAMES, "Fetch the data base tables names in the SQL query dialog of all SQL operators.", true));
 		
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(RapidMinerGUI.PROPERTY_TRANSFER_USAGESTATS, "Allow RapidMiner to transfer RapidMiner operator usage statistics?", RapidMinerGUI.PROPERTY_TRANSFER_USAGESTATS_ANSWERS, UsageStatsTransmissionDialog.ASK));
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(RapidMinerGUI.PROPERTY_ADD_BREAKPOINT_RESULTS_TO_HISTORY, "Should results produced at breakpoints be added to the result history?", false));

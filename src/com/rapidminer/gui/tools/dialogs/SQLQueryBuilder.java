@@ -42,6 +42,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.SQLEditor;
@@ -98,7 +99,9 @@ public class SQLQueryBuilder extends ButtonDialog {
 	public void setConnectionEntry(ConnectionEntry entry) {
 		try {
 			this.databaseHandler = DatabaseHandler.getConnectedDatabaseHandler(entry);
-			retrieveTableAndAttributeNames();
+			if (!"false".equals(System.getProperty(RapidMinerGUI.PROPERTY_FETCH_DATA_BASE_TABLES_NAMES))){
+				retrieveTableAndAttributeNames();	
+			}
 		} catch (SQLException e) {
 			SwingTools.showSimpleErrorMessage("db_connection_failed_url", e, entry.getURL());
 			this.databaseHandler = null;
@@ -261,7 +264,7 @@ public class SQLQueryBuilder extends ButtonDialog {
 	                    if (databaseHandler != null) {
 	                        Map<String, List<ColumnIdentifier>> newAttributeMap;
 							try {
-								newAttributeMap = databaseHandler.getAllTableMetaData(getProgressListener(), 10, 100, true);
+								newAttributeMap = databaseHandler.getAllTableMetaData(getProgressListener(), 10, 100, true);								
 		                        attributeNameMap.putAll(newAttributeMap);
 							} catch (SQLException e) {
 								SwingTools.showSimpleErrorMessage("db_connection_failed_simple", e, e.getMessage());

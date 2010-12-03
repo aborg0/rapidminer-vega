@@ -29,6 +29,7 @@ import com.rapidminer.operator.IOObjectCollection;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.metadata.CollectionMetaData;
@@ -79,7 +80,11 @@ public class SelectionOperator extends Operator {
 		} else {
 			elements = collection.getObjects();
 		}
-		selectedOutput.deliver(elements.get(getParameterAsInt(PARAMETER_INDEX)-1));
+		int index = getParameterAsInt(PARAMETER_INDEX);
+		if ((index < 1) || (index > elements.size())) {
+			throw new UserError(this, 159, index, elements.size());
+		}
+		selectedOutput.deliver(elements.get(index-1));
 	}
 	
 	@Override

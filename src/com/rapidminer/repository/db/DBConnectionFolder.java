@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 
 import javax.swing.Action;
 
@@ -20,6 +21,7 @@ import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
@@ -162,9 +164,10 @@ public class DBConnectionFolder implements Folder {
 	private void ensureLoaded() throws RepositoryException {
 		if (entries == null) {
 			entries = new LinkedList<DataEntry>();
+			DatabaseHandler handler = null;
 			try {
-				DatabaseHandler handler = DatabaseHandler.getConnectedDatabaseHandler(entry);
-				Map<String, List<ColumnIdentifier>> allTableMetaData = handler.getAllTableMetaData();
+				handler = DatabaseHandler.getConnectedDatabaseHandler(entry);
+				Map<String, List<ColumnIdentifier>> allTableMetaData = handler.getAllTableMetaData();				
 				for (DBConnectionToIOObjectConverter converter : repository.getConverters()) {
 					for (Entry<String, List<ColumnIdentifier>> tableEntry : allTableMetaData.entrySet()) {
 						entries.add(new DBConnectionEntry(this, converter, tableEntry.getKey(), tableEntry.getValue()));
@@ -172,7 +175,15 @@ public class DBConnectionFolder implements Folder {
 				}
 			} catch (SQLException e) {
 				throw new RepositoryException("Failed to load table data: "+e ,e);
-			}		
+			} finally {
+				if ((handler != null) && (handler.getConnection() != null)) {
+					try {
+						handler.getConnection().close();
+					} catch (SQLException e) {
+						LogService.getRoot().log(Level.WARNING, "Failed to close connection: "+e, e);
+					}
+				}
+			}
 		}		
 	}
 }
