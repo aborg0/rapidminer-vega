@@ -23,14 +23,11 @@
 package com.rapidminer.operator.preprocessing.filter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
-import com.rapidminer.example.table.DataRow;
-import com.rapidminer.example.table.DataRowReader;
-import com.rapidminer.example.table.ExampleTable;
-import com.rapidminer.example.table.MemoryExampleTable;
+import com.rapidminer.example.set.SortedExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
@@ -40,9 +37,9 @@ import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.RandomGenerator;
 
 
-/** This operator creates a new, shuffled ExampleSet by making <em>a new copy</em>
- *  of the exampletable in main memory!
- *  Caution! System may run out of memory, if the example table is too large.
+/** 
+ *  This operator creates a new, shuffled ExampleSet by making creating 
+ *  a shuffled view using a {@link SortedExampleSet}
  *
  *  @author Sebastian Land, Ingo Mierswa
  */
@@ -54,37 +51,18 @@ public class PermutationOperator extends AbstractDataProcessing {
 
 	@Override
 	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {         
-		ExampleTable table = exampleSet.getExampleTable();
-
-		// generate attribute list (clones)
-		List<Attribute> attributeList = new ArrayList<Attribute>();
-		for (Attribute attribute : exampleSet.getAttributes()) {
-			attributeList.add((Attribute)attribute.clone());
-		}
-		int toCopy = table.size();
-
-		// generate new ExampleTable of size of old table
-		MemoryExampleTable shuffledTable = new MemoryExampleTable(attributeList);
-
-		// copy all dataRows
-		RandomGenerator random = RandomGenerator.getRandomGenerator(this);
-		DataRow[] isCopied = new DataRow[toCopy];
-		int areCopied = 0;
-		DataRowReader reader = table.getDataRowReader();
-		while (areCopied < toCopy) {
-			int currentRow = (int)Math.round((random.nextDouble()*(toCopy-1)));
-			if (isCopied[currentRow] == null){
-				isCopied[currentRow] = reader.next();
-				// increase counter of copied rows
-				areCopied++;
-			}
-			checkForStop();
-		}
-		for (int i=0; i < toCopy; i++) {
-			shuffledTable.addDataRow(isCopied[i]);
-		}
-
-		return shuffledTable.createExampleSet(exampleSet.getAttributes().specialAttributes());
+		
+		ArrayList<Integer> indicesCollection = new ArrayList<Integer>(exampleSet.size());
+		for (int i = 0; i < exampleSet.size(); i++)
+			indicesCollection.add(i);
+		
+		Collections.shuffle(indicesCollection, RandomGenerator.getRandomGenerator(this));
+		
+		int[] indices = new int[exampleSet.size()];
+		for (int i = 0; i < exampleSet.size(); i++)
+			indices[i] = indicesCollection.get(i);
+		
+		return new SortedExampleSet(exampleSet, indices);
 	}
 
 	@Override

@@ -31,7 +31,6 @@ import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.Iterator;
 import java.util.Map;
 
 import javax.swing.Icon;
@@ -39,6 +38,7 @@ import javax.swing.JComponent;
 
 import com.rapidminer.gui.plotter.ColorProvider;
 import com.rapidminer.operator.learner.tree.Tree;
+import com.rapidminer.operator.learner.tree.TreeModel;
 
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.graph.Graph;
@@ -66,11 +66,13 @@ public class TreeModelNodeRenderer<V,E> implements Renderer.Vertex<V,E> {
     private static final int FREQUENCY_BAR_OFFSET_Y = 3;
     
     private TreeModelGraphCreator graphCreator;
+    private TreeModel model;
     
     private int maxLeafSize = 0;
     
     public TreeModelNodeRenderer(TreeModelGraphCreator graphCreator, int maxLeafSize) {
         this.graphCreator = graphCreator;
+        this.model = graphCreator.getModel();
         this.maxLeafSize = maxLeafSize;
     }
     
@@ -167,26 +169,25 @@ public class TreeModelNodeRenderer<V,E> implements Renderer.Vertex<V,E> {
             Map<String,Integer> countMap = tree.getCounterMap();
             int numberOfLabels = countMap.size();
             int frequencySum = tree.getFrequencySum();
-            Iterator<String> i = countMap.keySet().iterator();
+            
             double height = tree.getFrequencySum() / (double)maxLeafSize * (FREQUENCY_BAR_MAX_HEIGHT - FREQUENCY_BAR_MIN_HEIGHT) + FREQUENCY_BAR_MIN_HEIGHT;
             double width = shape.getBounds().getWidth() - 2 * FREQUENCY_BAR_OFFSET_X - 1;
             double xPos = shape.getBounds().getX() + FREQUENCY_BAR_OFFSET_X;
             double yPos = shape.getBounds().getY() + shape.getBounds().getHeight() - FREQUENCY_BAR_OFFSET_Y - height;
-            int counter = 0;
             ColorProvider colorProvider = new ColorProvider();
-            while (i.hasNext()) {
-                int count = tree.getCount(i.next());
+            for (String labelValue: countMap.keySet()) {
+            	int count = tree.getCount(labelValue);
                 double currentWidth = ((double)count / (double)frequencySum) * width;
                 Rectangle2D.Double frequencyRect = 
                     new Rectangle2D.Double(xPos, 
                                            yPos,
                                            currentWidth,
                                            height);
+                int counter = model.getTrainingHeader().getAttributes().getLabel().getMapping().mapString(labelValue);
                 g.setColor(colorProvider.getPointColor((double) counter / (double) (numberOfLabels - 1)));
                 g.fill(frequencyRect);
                 g.setColor(Color.BLACK);
                 xPos += currentWidth;
-                counter++;
             }
             g.setColor(Color.BLACK);
             g.draw(new Rectangle2D.Double(shape.getBounds().getX() + FREQUENCY_BAR_OFFSET_X, yPos, width, height));

@@ -176,6 +176,13 @@ public class TreeModelGraphCreator extends GraphCreatorAdaptor {
 		}
 	}
 
+	/**
+	 * Returns the model.
+	 */
+	public TreeModel getModel() {
+		return model;
+	}
+	
 	@Override
 	public Vertex<String, String> getVertexRenderer() {
 		int maxSize = -1;

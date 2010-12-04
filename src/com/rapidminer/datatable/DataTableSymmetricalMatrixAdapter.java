@@ -96,7 +96,10 @@ public class DataTableSymmetricalMatrixAdapter extends AbstractDataTable {
 	}
 	
 	public int getNumberOfValues(int column) {
-		return this.index2NameMap.length;
+		if (column == 0)
+			return this.index2NameMap.length;
+		else 
+			return -1;
 	}
 	
 	public String getColumnName(int i) {

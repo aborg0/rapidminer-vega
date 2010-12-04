@@ -23,8 +23,8 @@
 package com.rapidminer.gui.tools.autocomplete;
 
 import java.awt.Component;
+import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -132,12 +132,7 @@ public class AutoCompleteComboBoxAddition {
 		// workaround for java bug #6433257
 		for (Component c : cBox.getComponents()) {
 			
-			c.addFocusListener(new FocusListener() {
-				
-				@Override
-				public void focusLost(FocusEvent e) {
-					// not needed
-				}
+			c.addFocusListener(new FocusAdapter() {
 				
 				@Override
 				public void focusGained(FocusEvent e) {
@@ -146,6 +141,7 @@ public class AutoCompleteComboBoxAddition {
 					// this happens due to some RapidLookComboBoxEditor mechanics.
 					allowAutoFill = true;
 				}
+				
 			});
 		}
 	}

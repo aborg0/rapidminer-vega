@@ -25,8 +25,10 @@ package com.rapidminer.io.process;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -96,6 +98,11 @@ public class XMLImporter {
 	public static final int VERSION_RM_5 = 50;
 	public static final int CURRENT_VERSION = VERSION_RM_5;
 
+	private static final Set<String> IRRELEVANT_PARAMETERS = new HashSet<String>();
+	static {		
+		IRRELEVANT_PARAMETERS.add("read_database.data_set_meta_data_information");
+	}
+	
 	/**
 	 * Encoding in which process files are written. UTF-8 is guaranteed to exist on any JVM, see javadoc of
 	 * {@link Charset}.
@@ -557,16 +564,20 @@ public class XMLImporter {
 				} else if (inner.getTagName().toLowerCase().equals("parameter")) {
 					String[] parameter = parseParameter(inner);
 					boolean knownType = operator.getParameters().setParameter(parameter[0], parameter[1]);
-					if (!knownType) {
-						addMessage("The parameter '<code>" + parameter[0] + "</code>' is unknown for operator '<var>" + operator.getName() + "</var>' (<code>" + operator.getOperatorDescription().getName() + "</code>).");
-						unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), parameter[0], parameter[1]));
+					if (!knownType) {						
+						if (relevantParameter(className, parameter[0])) {
+							addMessage("The parameter '<code>" + parameter[0] + "</code>' is unknown for operator '<var>" + operator.getName() + "</var>' (<code>" + operator.getOperatorDescription().getName() + "</code>).");
+							unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), parameter[0], parameter[1]));
+						}
 					}
 				} else if (inner.getTagName().toLowerCase().equals("list")) {
 					final String key = inner.getAttribute("key");
 					ParameterType type = operator.getParameters().getParameterType(key);
 					if (type == null) {
-						addMessage("The parameter '" + key + "' of type list is unknown for operator '" + operator.getName() + "' (" + operator.getOperatorDescription().getName() + ").");
-						unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), key, ""));
+						if (relevantParameter(className, key)) {
+							addMessage("The parameter '" + key + "' of type list is unknown for operator '" + operator.getName() + "' (" + operator.getOperatorDescription().getName() + ").");
+							unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), key, ""));							
+						}
 					} else {
 						if (!(type instanceof ParameterTypeList)) {
 							addMessage("The parameter '" + type.getKey() + "' is a " + type.getClass().getSimpleName() + ", but a list was found.");
@@ -576,16 +587,20 @@ public class XMLImporter {
 						final String listString = ParameterTypeList.transformList2String(listDescription.getList());
 						boolean knownType = operator.getParameters().setParameter(listDescription.getKey(), listString);
 						if (!knownType) {
-							addMessage("The parameter '" + listDescription.getKey() + "' is unknown for operator '" + operator.getName() + "' (" + operator.getOperatorDescription().getName() + ").");
-							unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), listDescription.getKey(), listDescription.getList().toString()));
+							if (relevantParameter(className, listDescription.getKey())) {
+								addMessage("The parameter '" + listDescription.getKey() + "' is unknown for operator '" + operator.getName() + "' (" + operator.getOperatorDescription().getName() + ").");
+								unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), listDescription.getKey(), listDescription.getList().toString()));
+							}
 						}
 					}
 				} else if (inner.getTagName().toLowerCase().equals("enumeration")) {
 					final String key = inner.getAttribute("key");
 					ParameterType type = operator.getParameters().getParameterType(key);
 					if (type == null) {
-						addMessage("The parameter '" + key + "' of type enumeration is unknown for operator '" + operator.getName() + "' (" + operator.getOperatorDescription().getName() + ").");
-						unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), key, ""));
+						if (relevantParameter(className, key)) {
+							addMessage("The parameter '" + key + "' of type enumeration is unknown for operator '" + operator.getName() + "' (" + operator.getOperatorDescription().getName() + ").");
+							unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), key, ""));
+						}
 					} else {
 						if (!(type instanceof ParameterTypeEnumeration)) {
 							addMessage("The parameter '" + type.getKey() + "' is a " + type.getClass().getSimpleName() + ", but an enumeration was found.");
@@ -594,8 +609,10 @@ public class XMLImporter {
 						final List<String> parsed = parseParameterEnumeration(inner, (ParameterTypeEnumeration) type);
 						boolean knownType = operator.getParameters().setParameter(key, ParameterTypeEnumeration.transformEnumeration2String(parsed));
 						if (!knownType) {
-							addMessage("The parameter '" + key + "' is unknown for operator '" + operator.getName() + "' (" + operator.getOperatorDescription().getName() + ").");
-							unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), key, parsed.toString()));
+							if (relevantParameter(className, key)) {
+								addMessage("The parameter '" + key + "' is unknown for operator '" + operator.getName() + "' (" + operator.getOperatorDescription().getName() + ").");
+								unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), key, parsed.toString()));
+							}
 						}
 					}
 				} else if (inner.getTagName().toLowerCase().equals("description")) {
@@ -662,6 +679,10 @@ public class XMLImporter {
 			}
 		}
 		return operator;
+	}
+
+	private boolean relevantParameter(String opName, String paramName) {
+		return !(IRRELEVANT_PARAMETERS.contains(opName+"."+paramName) || IRRELEVANT_PARAMETERS.contains(paramName));
 	}
 
 	private List<String> parseList(Element parent, String childName) {

@@ -45,8 +45,10 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.rapidminer.example.Attributes;
+import com.rapidminer.example.table.DataRowFactory;
 import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.io.ExampleSource;
 import com.rapidminer.operator.nio.ExcelExampleSource;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MDInteger;
@@ -75,6 +77,8 @@ public class DataResultSetTranslationConfiguration {
 	private DateFormat dateFormat;
 	private NumberFormat numberFormat;
 	
+	private int dataManagementType = DataRowFactory.TYPE_DOUBLE_ARRAY;
+	
 	/**
 	 * This constructor can be used to generate an empty configuration just depending on the given resultSet
 	 * 
@@ -101,6 +105,12 @@ public class DataResultSetTranslationConfiguration {
 	public void reconfigure(AbstractDataResultSetReader readerOperator) {	
 		// reading parameter settings		
 		if (readerOperator != null) {
+			try {
+				dataManagementType = readerOperator.getParameterAsInt(ExampleSource.PARAMETER_DATAMANAGEMENT);
+			} catch (UndefinedParameterError e1) {
+				dataManagementType = DataRowFactory.TYPE_DOUBLE_ARRAY;
+			}			
+			
 			List<String[]> annotations;
 			try {
 				annotations = readerOperator.getParameterList(PARAMETER_ANNOTATIONS);
@@ -343,5 +353,9 @@ public class DataResultSetTranslationConfiguration {
 
 	public NumberFormat getNumberFormat() {
 		return numberFormat;
+	}
+
+	public int getDataManagementType() {
+		return dataManagementType;
 	}
 }

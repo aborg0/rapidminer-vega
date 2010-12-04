@@ -11,14 +11,17 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
-import com.rapidminer.example.table.DoubleArrayDataRow;
+import com.rapidminer.example.table.DataRow;
+import com.rapidminer.example.table.DataRowFactory;
 import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.OperatorDescription;
@@ -28,6 +31,7 @@ import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.Tools;
@@ -60,17 +64,17 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
 	@Override
 	public ExampleSet read() throws OperatorException {
 		try {
-			ExampleSet result = super.read();
+		ExampleSet result = super.read();
 			return result;
 		} finally {
-			if ((databaseHandler != null) && (databaseHandler.getConnection() != null)) {
-				try {
-					databaseHandler.getConnection().close();
-				} catch (SQLException e) {
-					getLogger().log(Level.WARNING, "Error closing database connection: "+e, e);
-				}
+		if ((databaseHandler != null) && (databaseHandler.getConnection() != null)) {
+			try {
+				databaseHandler.getConnection().close();
+			} catch (SQLException e) {
+				getLogger().log(Level.WARNING, "Error closing database connection: "+e, e);
 			}
-		}		
+		}
+	}
 	}
 	
 	protected ResultSet getResultSet() throws OperatorException {
@@ -97,8 +101,8 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
 			throw new UserError(this, e, 304, e.getMessage());
 		} finally {
 			try {
-				resultSet.close();
-			} catch (SQLException e) {
+			resultSet.close();
+		} catch (SQLException e) {
 				getLogger().log(Level.WARNING, "DB error closing result set: "+e, e);
 			}
 		}
@@ -120,8 +124,10 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
 				break;
 			case DatabaseHandler.QUERY_QUERY:
 			case DatabaseHandler.QUERY_FILE:
-			default:				
+			default:
 				String query = getQuery(databaseHandler.getStatementCreator());
+				// TODO: Limit does not work on Access
+				// TODO: LIMIT might already be defined in query!
 				PreparedStatement prepared = databaseHandler.getConnection().prepareStatement(query);
 //				query = "SELECT * FROM (" + query + ") dummy WHERE 1=0";				
 //				ResultSet resultSet = databaseHandler.executeStatement(query, true, this, getLogger());
@@ -130,15 +136,15 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
 					metaData.addAttribute(new AttributeMetaData(att));
 				}
 				break;
-			}			
+			}
 		} catch (SQLException e) {
 			LogService.getRoot().log(Level.WARNING, "Failed to fetch meta data: "+e, e);
 		} finally {
 			try {
 				if ((databaseHandler != null) && (databaseHandler.getConnection() != null)) {
-					databaseHandler.getConnection().close();
+			databaseHandler.getConnection().close();
 				}
-			} catch (SQLException e) {
+		} catch (SQLException e) {
 				getLogger().log(Level.WARNING, "DB error closing connection: "+e, e);
 			}
 		}
@@ -149,8 +155,10 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
 		ResultSetMetaData metaData = resultSet.getMetaData();
 		Attribute[] attributeArray = attributes.toArray(new Attribute[attributes.size()]);
 		MemoryExampleTable table = new MemoryExampleTable(attributes);
+		DataRowFactory factory = new DataRowFactory(getParameterAsInt(ExampleSource.PARAMETER_DATAMANAGEMENT), '.');
 		while (resultSet.next()) {
-			double[] data = new double[attributeArray.length];
+			DataRow dataRow = factory.create(attributeArray.length);
+			//double[] data = new double[attributeArray.length];
 			for (int i = 1; i <= metaData.getColumnCount(); i++) {
 				Attribute attribute = attributeArray[i-1];
 				int valueType = attribute.getValueType();
@@ -207,9 +215,10 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
 						value = Double.NaN;
 					}
 				}
-				data[i-1] = value;
+				dataRow.set(attribute, value);
+				//data[i-1] = value;
 			}
-			table.addDataRow(new DoubleArrayDataRow(data));
+			table.addDataRow(dataRow); //new DoubleArrayDataRow(data));
 		}	
 		return table;
 	}
@@ -218,11 +227,23 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
 		ResultSetMetaData metaData = resultSet.getMetaData();
 		return getAttributes(metaData);
 	}
-	
+
 	private List<Attribute> getAttributes(ResultSetMetaData metaData) throws SQLException {
 		List<Attribute> result = new LinkedList<Attribute>();
+		// A map mapping original column names to a counter specifying how often
+		// they were chosen
+		Map<String,Integer> duplicateNameMap = new HashMap<String, Integer>();
+		
 		for (int columnIndex = 1; columnIndex <= metaData.getColumnCount(); columnIndex++) {
 			String columnName = metaData.getColumnLabel(columnIndex);
+			Integer duplicateCount = duplicateNameMap.get(columnName);
+			if (duplicateCount != null) {
+				columnName = columnName + "_" + duplicateCount;
+				Integer incremented = new Integer(duplicateCount.intValue() + 1);
+				duplicateNameMap.put(columnName, incremented);
+			} else {
+				duplicateNameMap.put(columnName, new Integer(1));
+			}
 			int attributeType = DatabaseHandler.getRapidMinerTypeIndex(metaData.getColumnType(columnIndex));
 			final Attribute attribute = AttributeFactory.createAttribute(columnName, attributeType);
 			attribute.getAnnotations().setAnnotation("sql_type", metaData.getColumnTypeName(columnIndex));
@@ -286,6 +307,8 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
 		list.addAll(DatabaseHandler.getConnectionParameterTypes(this));
 		list.addAll(DatabaseHandler.getQueryParameterTypes(this, false));
 		list.addAll(DatabaseHandler.getStatementPreparationParamterTypes(this));
+		
+		list.add(new ParameterTypeCategory(ExampleSource.PARAMETER_DATAMANAGEMENT, "Determines, how the data is represented internally.", DataRowFactory.TYPE_NAMES, DataRowFactory.TYPE_DOUBLE_ARRAY, false));
 		return list;
 	}
 

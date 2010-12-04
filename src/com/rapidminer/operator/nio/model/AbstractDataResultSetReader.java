@@ -29,11 +29,13 @@ import java.util.List;
 
 import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
+import com.rapidminer.example.table.DataRowFactory;
 import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.io.AbstractDataReader.AttributeColumn;
 import com.rapidminer.operator.io.AbstractExampleSource;
+import com.rapidminer.operator.io.ExampleSource;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.preprocessing.filter.AbstractDateDataProcessing;
@@ -179,6 +181,8 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 		types.add(type);
 
 		types.add(new ParameterTypeBoolean(PARAMETER_ERROR_TOLERANT, "Values which does not match to the specified value typed are considered as missings.", true, true));
+		
+		types.add(new ParameterTypeCategory(ExampleSource.PARAMETER_DATAMANAGEMENT, "Determines, how the data is represented internally.", DataRowFactory.TYPE_NAMES, DataRowFactory.TYPE_DOUBLE_ARRAY, false));
 		
 		return types;
 	}

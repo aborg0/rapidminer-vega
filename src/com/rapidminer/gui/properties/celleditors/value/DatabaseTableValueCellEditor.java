@@ -109,14 +109,16 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 									} catch (SQLException e) {
 									}
 								}
-								if (model.getSize() == 0) {
-									setSelectedItem(null);
-								} else {
-									if (selected != null) {
-										setSelectedItem(selected);
+								if (getSelectedItem() == null) {
+									if (model.getSize() == 0) {
+										setSelectedItem(null);
 									} else {
-										if (model.getSize() > 0) {
-											setSelectedItem(model.getElementAt(0));
+										if (selected != null) {
+											setSelectedItem(selected);
+										} else {
+											if (model.getSize() > 0) {
+												setSelectedItem(model.getElementAt(0));
+											}
 										}
 									}
 								}

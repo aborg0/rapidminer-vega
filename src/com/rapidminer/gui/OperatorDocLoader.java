@@ -35,6 +35,7 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -68,7 +69,7 @@ import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.documentation.ExampleProcess;
 import com.rapidminer.tools.xml.XHTMLEntityResolver;
-import common.Logger;
+
 
 /**
  * This class loads the operator's descriptions either live from the internet wiki or from the resources. The latter
@@ -78,7 +79,7 @@ import common.Logger;
  * resource. If the user does have an internet connection the operators are loaded directly from the RapidWiki site. The
  * operator description is shown in the RapidMiner Help Window.
  * 
- * @author Miguel B�scher, Sebastian Land
+ * @author Miguel Buescher, Sebastian Land
  * 
  */
 public class OperatorDocLoader {
@@ -88,7 +89,7 @@ public class OperatorDocLoader {
 	private static final String WIKI_PREFIX_FOR_IMAGES = "http://www.rapid-i.com";;
 	private static final String WIKI_PREFIX_FOR_OPERATORS = "http://rapid-i.com/wiki/index.php?title=";
 
-	private static final Logger logger = Logger.getLogger(OperatorDocLoader.class);
+	private static final Logger logger = Logger.getLogger(OperatorDocLoader.class.getName());
 	private static String CORRECT_HTML_STRING_DIRTY = "<html xmlns=\"http://www.w3.org/1999/xhtml\" dir=\"ltr\" lang=\"en\">";
 	private static String CURRENT_OPERATOR_NAME_READ_FROM_RAPIDWIKI;
 	private static String ERROR_TEXT_FOR_WIKI;
@@ -203,7 +204,7 @@ public class OperatorDocLoader {
 		try {
 			url = new URL(HOST_NAME);
 		} catch (MalformedURLException e) {
-			logger.error(e.getMessage());
+			logger.severe(e.getMessage());
 		}
 		if (url != null) {
 			try {
@@ -215,7 +216,7 @@ public class OperatorDocLoader {
 					return true;
 				}
 			} catch (IOException e) {
-				logger.error(e.getMessage());
+				logger.severe(e.getMessage());
 			}
 		}
 		return false;
@@ -242,9 +243,10 @@ public class OperatorDocLoader {
 			try {
 				document = documentBuilder.parse(url.openStream());
 			} catch (IOException e) {
-				logger.error("Folgende URL (parseDocumentForOperator()) konnte nicht ge�ffnet werden: " + e.getMessage());
+				// TODO: Replace Unicode, replace language!!!
+				logger.severe("Folgende URL (parseDocumentForOperator()) konnte nicht ge�ffnet werden: " + e.getMessage());
 			} catch (SAXException e) {
-				logger.error("Folgende SAXParseException (parseDocumentForOperator()) ist aufgetreten: " + e.getMessage());
+				logger.severe("Folgende SAXParseException (parseDocumentForOperator()) ist aufgetreten: " + e.getMessage());
 			}
 
 			int i = 0;

@@ -47,50 +47,6 @@ import com.rapidminer.tools.Ontology;
  */
 public class StatementCreator {
 
-	/** Type information as reported by database meta data {@link DatabaseMetaData#getTypeInfo()}. */
-	protected static class DataTypeSyntaxInformation {
-		private final String literalPrefix;
-		private final String literalSuffix;
-		private final int dataType;
-		private final String typeName;
-		private String createParams;
-		private long precision;
-
-		private DataTypeSyntaxInformation(ResultSet typesResult) throws SQLException {
-			typeName = typesResult.getString("TYPE_NAME");
-			dataType = typesResult.getInt("DATA_TYPE");
-			literalPrefix = typesResult.getString("LITERAL_PREFIX");
-			literalSuffix = typesResult.getString("LITERAL_SUFFIX");
-			precision = typesResult.getLong("PRECISION");
-			createParams = typesResult.getString("CREATE_PARAMS");
-		}
-
-		public String getTypeName() {
-			return typeName;
-		}
-
-		public int getDataType() {
-			return dataType;
-		}
-
-		@Override
-		public String toString() {
-			return getTypeName() + " (prec=" + precision + "; params=" + createParams + ")";
-		}
-
-		public long getPrecision() {
-			return precision;
-		}
-
-		public String getLiteralPrefix() {
-			return literalPrefix;
-		}
-
-		public String getLiteralSuffix() {
-			return literalSuffix;
-		}
-	}
-
 	/**
 	 * Maps types as defined by {@link Ontology#ATTRIBUTE_VALUE_TYPE} to syntactical SQL information. Must be
 	 * linkedHashMap to ensure prefered types are taken first.
@@ -117,6 +73,7 @@ public class StatementCreator {
 	private void buildTypeMap(Connection con) throws SQLException {
 		DatabaseMetaData dbMetaData = con.getMetaData();
 		this.identifierQuote = dbMetaData.getIdentifierQuoteString();
+
 		LogService.getRoot().fine("Identifier quote character is: " + this.identifierQuote);
 		// Maps java sql Types to data types as reported by the sql driver
 		Map<Integer, DataTypeSyntaxInformation> dataTypeToMDMap = new HashMap<Integer, DataTypeSyntaxInformation>();
@@ -172,7 +129,7 @@ public class StatementCreator {
 	}
 
 	/** Maps RM ontology attribute value types to syntax information as reported by the database driver. */
-	protected DataTypeSyntaxInformation getSQLTypeForRMValueType(int type) {
+	DataTypeSyntaxInformation getSQLTypeForRMValueType(int type) {
 		int parent = type;
 		while (parent != Ontology.ATTRIBUTE_VALUE) {
 			DataTypeSyntaxInformation si = typeMap.get(parent);

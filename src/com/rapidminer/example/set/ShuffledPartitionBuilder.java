@@ -35,7 +35,6 @@ import com.rapidminer.tools.RandomGenerator;
  * element to the current position, inclusive.
  * 
  * @author Ingo Mierswa
- *          ingomierswa Exp $
  */
 public class ShuffledPartitionBuilder extends SimplePartitionBuilder {
 

@@ -36,7 +36,8 @@ import com.rapidminer.example.AttributeTypeException;
 import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
-import com.rapidminer.example.table.DoubleArrayDataRow;
+import com.rapidminer.example.table.DataRow;
+import com.rapidminer.example.table.DataRowFactory;
 import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
@@ -125,6 +126,7 @@ public class DataResultSetTranslator {
 		int currentRow = 0; 		// The row in the underlying DataResultSet
 		int exampleIndex = 0;		// The row in the example set
 		dataResultSet.reset(listener);
+		DataRowFactory factory = new DataRowFactory(configuration.getDataManagementType(), '.');
 		int maxAnnotatedRow = configuration.getLastAnnotatedRowIndex();
 		while (dataResultSet.hasNext() && !shouldStop && (currentRow < maxRows || maxRows < 0)) {
 			if (cancelLoadingRequested) {
@@ -166,7 +168,8 @@ public class DataResultSetTranslator {
 				}
 			} else {
 				// creating data row
-				DoubleArrayDataRow row = new DoubleArrayDataRow(new double[attributes.length]);
+				DataRow row = factory.create(attributes.length);
+				//DoubleArrayDataRow row = new DoubleArrayDataRow(new double[attributes.length]);
 				exampleTable.addDataRow(row);
 				int attributeIndex = 0;
 				for (Attribute attribute : attributes) {
