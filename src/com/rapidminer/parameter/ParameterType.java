@@ -24,6 +24,7 @@ package com.rapidminer.parameter;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 
 import org.w3c.dom.Document;
@@ -159,6 +160,10 @@ public abstract class ParameterType implements Comparable, Serializable {
 			conditionsMet &= condition.dependencyMet();
 		}
 		return hidden || !conditionsMet;
+	}
+	
+	public Collection<ParameterCondition> getConditions() {
+		return Collections.unmodifiableCollection(conditions);
 	}
 
 	/**

@@ -58,6 +58,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.logging.Level;
@@ -100,8 +101,8 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.ProcessRootOperator;
-import com.rapidminer.operator.ResultObject;
 import com.rapidminer.operator.ProcessSetupError.Severity;
+import com.rapidminer.operator.ResultObject;
 import com.rapidminer.operator.io.RepositorySource;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.InputPorts;
@@ -124,7 +125,8 @@ import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParentResolvingMap;
 import com.rapidminer.tools.StringColorMap;
 
-/** This class renders a process graph. It also stores all data about visualization
+/** 
+ * This class renders a process graph. It also stores all data about visualization
  *  like location and size of the operators. This data is stored in a weak hash map
  *  so it should be garbage collected when the operators are removed.
  *  
@@ -1617,7 +1619,10 @@ public class ProcessRenderer extends JPanel {
 				}
 
 				// find operator under mouse
-				for (Operator op : processes[hoveringProcessIndex].getOperators()) {
+				List<Operator> operators = processes[hoveringProcessIndex].getOperators();
+				ListIterator<Operator> iterator = operators.listIterator(operators.size());
+				while (iterator.hasPrevious()) {
+					Operator op = iterator.previous();
 					// first, check whether we are over a port
 					if (checkPortUnder(op.getInputPorts(), relativeX, relativeY) || 
 							checkPortUnder(op.getOutputPorts(), relativeX, relativeY)) {

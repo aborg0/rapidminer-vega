@@ -31,6 +31,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.HeadlessException;
 import java.awt.Insets;
 import java.awt.Paint;
 import java.awt.event.ActionEvent;
@@ -54,6 +55,7 @@ import javax.swing.border.BevelBorder;
 import org.apache.commons.collections15.Transformer;
 import org.freehep.util.export.ExportDialog;
 
+import com.rapidminer.RapidMiner;
 import com.rapidminer.gui.graphs.actions.PickingModeAction;
 import com.rapidminer.gui.graphs.actions.TransformingModeAction;
 import com.rapidminer.gui.graphs.actions.ZoomInAction;
@@ -140,7 +142,7 @@ public class GraphViewer<V,E> extends JPanel implements Renderable {
     
     private transient ScalingControl scaler = new CrossoverScalingControl();
     
-    private transient DefaultModalGraphMouse graphMouse = new DefaultModalGraphMouse(1/1.1f, 1.1f);
+    private transient DefaultModalGraphMouse graphMouse;
     
     private boolean showEdgeLabels = true;
     
@@ -151,6 +153,12 @@ public class GraphViewer<V,E> extends JPanel implements Renderable {
     private transient ModalGraphMouse.Mode currentMode = ModalGraphMouse.Mode.TRANSFORMING;
     
     public GraphViewer(final GraphCreator<V,E> graphCreator) {
+    	try {
+    		if (!RapidMiner.getExecutionMode().isHeadless()) {
+    			graphMouse = new DefaultModalGraphMouse(1/1.1f, 1.1f);
+    		}
+    	} catch (HeadlessException e) { }
+    	 
         this.graphCreator = graphCreator;
         
     	setLayout(new BorderLayout());
@@ -393,10 +401,12 @@ public class GraphViewer<V,E> extends JPanel implements Renderable {
     }
     
     private JComponent createControlPanel() {
-        // === mouse behaviour ===        
-        vv.setGraphMouse(graphMouse);
-        vv.addKeyListener(graphMouse.getModeKeyListener());
-        graphMouse.setMode(ModalGraphMouse.Mode.TRANSFORMING);
+        // === mouse behaviour === 
+    	if (graphMouse != null) {
+    		vv.setGraphMouse(graphMouse);
+    		vv.addKeyListener(graphMouse.getModeKeyListener());
+    		graphMouse.setMode(ModalGraphMouse.Mode.TRANSFORMING);
+    	}
         transformAction.setEnabled(false);
         pickingAction.setEnabled(true);
      
@@ -607,7 +617,9 @@ public class GraphViewer<V,E> extends JPanel implements Renderable {
     }
     
     public void changeMode(ModalGraphMouse.Mode mode) {
-    	graphMouse.setMode(mode);
+    	if (graphMouse != null) {
+    		graphMouse.setMode(mode);
+    	}
     	this.currentMode = mode;
     	if (mode.equals(ModalGraphMouse.Mode.PICKING)) {
     		pickingAction.setEnabled(false);

@@ -64,6 +64,7 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.gui.tools.dialogs.DecisionRememberingConfirmDialog;
 import com.rapidminer.gui.viewer.MetaDataViewerTableModel;
+import com.rapidminer.operator.io.DatabaseDataReader;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeInt;
@@ -141,6 +142,7 @@ public class RapidMinerGUI extends RapidMiner {
 	public static final String PROPERTY_CONFIRM_EXIT = "rapidminer.gui.confirm_exit";
 	
 	public static final String PROPERTY_FETCH_DATA_BASE_TABLES_NAMES = "rapidminer.gui.fetch_data_base_table_names";
+	public static final String PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES  = DatabaseDataReader.PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES;
 	
 	static {
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_UPDATE_CHECK, "Check for new RapidMiner versions at start up time?", true)); 
@@ -154,6 +156,7 @@ public class RapidMinerGUI extends RapidMiner {
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_CLOSE_RESULTS_BEFORE_RUN, "Close active result tabs when new process starts?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
 		
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_FETCH_DATA_BASE_TABLES_NAMES, "Fetch the data base tables names in the SQL query dialog of all SQL operators.", true));
+		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES,  "If selected, the SQL meta data will be fetched during meta data evaluation in RapidMiner. For some databases, this may be slow.", true));
 		
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(RapidMinerGUI.PROPERTY_TRANSFER_USAGESTATS, "Allow RapidMiner to transfer RapidMiner operator usage statistics?", RapidMinerGUI.PROPERTY_TRANSFER_USAGESTATS_ANSWERS, UsageStatsTransmissionDialog.ASK));
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(RapidMinerGUI.PROPERTY_ADD_BREAKPOINT_RESULTS_TO_HISTORY, "Should results produced at breakpoints be added to the result history?", false));

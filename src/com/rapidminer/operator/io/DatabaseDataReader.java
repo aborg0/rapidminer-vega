@@ -55,6 +55,9 @@ import com.rapidminer.tools.jdbc.connection.ConnectionProvider;
  */
 public class DatabaseDataReader extends AbstractExampleSource implements ConnectionProvider {
 
+	/** System property to decide whether meta data should be fetched from DB for database queries. */
+	public static final String PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES = "rapidminer.gui.evaluate_meta_data_for_sql_queries";
+
 	public DatabaseDataReader(OperatorDescription description) {
 		super(description);
 	}
@@ -64,17 +67,17 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
 	@Override
 	public ExampleSet read() throws OperatorException {
 		try {
-		ExampleSet result = super.read();
+			ExampleSet result = super.read();
 			return result;
 		} finally {
-		if ((databaseHandler != null) && (databaseHandler.getConnection() != null)) {
-			try {
-				databaseHandler.getConnection().close();
-			} catch (SQLException e) {
-				getLogger().log(Level.WARNING, "Error closing database connection: "+e, e);
+			if ((databaseHandler != null) && (databaseHandler.getConnection() != null)) {
+				try {
+					databaseHandler.getConnection().close();
+				} catch (SQLException e) {
+					getLogger().log(Level.WARNING, "Error closing database connection: "+e, e);
+				}
 			}
 		}
-	}
 	}
 	
 	protected ResultSet getResultSet() throws OperatorException {
@@ -125,15 +128,15 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
 			case DatabaseHandler.QUERY_QUERY:
 			case DatabaseHandler.QUERY_FILE:
 			default:
-				String query = getQuery(databaseHandler.getStatementCreator());
-				// TODO: Limit does not work on Access
-				// TODO: LIMIT might already be defined in query!
-				PreparedStatement prepared = databaseHandler.getConnection().prepareStatement(query);
-//				query = "SELECT * FROM (" + query + ") dummy WHERE 1=0";				
-//				ResultSet resultSet = databaseHandler.executeStatement(query, true, this, getLogger());
-				List<Attribute> attributes = getAttributes(prepared.getMetaData());
-				for (Attribute att : attributes) {
-					metaData.addAttribute(new AttributeMetaData(att));
+				if (!"false".equals(System.getProperty(PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES))) {
+					String query = getQuery(databaseHandler.getStatementCreator());
+					PreparedStatement prepared = databaseHandler.getConnection().prepareStatement(query);
+					//query = "SELECT * FROM (" + query + ") dummy WHERE 1=0";				
+					//ResultSet resultSet = databaseHandler.executeStatement(query, true, this, getLogger());
+					List<Attribute> attributes = getAttributes(prepared.getMetaData());
+					for (Attribute att : attributes) {
+						metaData.addAttribute(new AttributeMetaData(att));
+					}
 				}
 				break;
 			}
@@ -301,6 +304,11 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
 		}
 	}
 
+	@Override
+	protected boolean isMetaDataCacheable() {
+		return true;
+	}
+	
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> list = super.getParameterTypes();
