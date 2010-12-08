@@ -352,6 +352,7 @@ public class ExpressionParser {
 		textFunctions.add(new FunctionDescription("starts()", "Starts With", "Delivers true if the first argument starts with the second; example: starts(att1, \"OS\")", 2));
 		textFunctions.add(new FunctionDescription("ends()", "Ends With", "Delivers true if the first argument ends with the second; example: ends(att2, \"AM\")", 2));
 		textFunctions.add(new FunctionDescription("matches()", "Matches", "Delivers true if the first argument matches the regular expression defined by the second argument; example: matches(att3, \".*mm.*\"", 2));
+		textFunctions.add(new FunctionDescription("finds()", "Finds", "Delivers true if, and only if, a subsequence of the first matches the regular expression defined by the second argument; example: finds(att3, \".*AM.*|.*PM.*\"", 2));
 		textFunctions.add(new FunctionDescription("suffix()", "Suffix", "Delivers the suffix of the specified length; example: suffix(att1, 2)", 2));
 		textFunctions.add(new FunctionDescription("prefix()", "Prefix", "Delivers the prefix of the specified length; example: prefix(att2, 3)", 2));
 		textFunctions.add(new FunctionDescription("trim()", "Trim", "Removes all leading and trailing white space characters; example: trim(att3)", 1));

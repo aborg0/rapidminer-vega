@@ -144,7 +144,7 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 		expressionLayout.setConstraints(label, expressionC);
 		expressionPanel.add(label);
 		
-		currentExpression.setPreferredSize(new Dimension(200, 20));
+		currentExpression.setPreferredSize(new Dimension(200, 23));
 		currentExpression.addKeyListener(new KeyListener() {
 			@Override
 			public void keyTyped(KeyEvent e) {}
