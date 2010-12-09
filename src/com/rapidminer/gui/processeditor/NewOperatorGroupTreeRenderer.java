@@ -92,6 +92,7 @@ public class NewOperatorGroupTreeRenderer extends DefaultTreeCellRenderer {
         	if (op.getDeprecationInfo() != null) {
         		label.setEnabled(false);
         	}
+        	
         	return label;
         }        
     }

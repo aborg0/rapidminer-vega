@@ -135,6 +135,11 @@ public class SetData extends AbstractDataProcessing {
 	}
 	
 	@Override
+	public boolean writesIntoExistingData() {
+		return true;
+	}
+	
+	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), SetData.class, null);
 	}

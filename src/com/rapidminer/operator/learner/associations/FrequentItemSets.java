@@ -27,9 +27,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 
-import javax.swing.Icon;
-
-import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.ResultObjectAdapter;
 import com.rapidminer.tools.Tools;
 
@@ -43,14 +40,6 @@ public class FrequentItemSets extends ResultObjectAdapter implements Iterable<Fr
 	private static final long serialVersionUID = -6195363961857170621L;
 
 	private static final int MAX_NUMBER_OF_ITEMSETS = 100;
-
-	private static final String RESULT_ICON_NAME = "lightbulb_on.png";
-
-	private static Icon resultIcon = null;
-
-	static {
-		resultIcon = SwingTools.createIcon("16/" + RESULT_ICON_NAME);
-	}
 
 	private int numberOfTransactions;
 
@@ -152,8 +141,4 @@ public class FrequentItemSets extends ResultObjectAdapter implements Iterable<Fr
 		return output.toString();
 	}
 
-	@Override
-	public Icon getResultIcon() {
-		return resultIcon;
-	}
 }

@@ -25,43 +25,51 @@ package com.rapidminer.gui.tools;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-/** Matches, e.g. BiDi to BinDiscretization
+/**
+ * Matches, e.g. BiDi to BinDiscretization
  * 
  * @author Simon Fischer
- *
+ * 
  */
 public class CamelCaseFilter {
 
 	private final String filterString;
 	private Pattern pattern = null;
-	
+
 	public CamelCaseFilter(String filterString) {
-    	if (filterString != null && filterString.trim().length() > 0) {
-        	StringBuilder regexp = new StringBuilder();
-        	filterString = filterString.trim();
-        	regexp.append(".*");
-        	regexp.append(filterString);
-        	regexp.append(".*|(");
-        	boolean first = true;
-        	for (char c : filterString.toCharArray()) {
-        		if (first || Character.isUpperCase(c) || Character.isDigit(c)) {
-        			regexp.append(".*");
-        		}
-        		regexp.append(c);
-        		first = false;
-        	}
+		if (filterString != null && filterString.trim().length() > 0) {
+			StringBuilder regexp = new StringBuilder();
+			filterString = filterString.trim();
+			regexp.append(".*");
+			regexp.append(filterString);
+			regexp.append(".*|(");
+			boolean first = true;
+			for (char c : filterString.toCharArray()) {
+				if (first || Character.isUpperCase(c) || Character.isDigit(c)) {
+					regexp.append(".*");
+				}
+				if (c != ' ') {
+					if (first) {
+						regexp.append(Character.toUpperCase(c));
+					} else {
+						regexp.append(c);
+					}
+					first = false;
+				}
+				
+			}
 			regexp.append(".*)");
 			try {
-	        	this.pattern = Pattern.compile(regexp.toString());
+				this.pattern = Pattern.compile(regexp.toString());
 			} catch (PatternSyntaxException e) {
 				this.pattern = null;
 				// TODO: maybe other handling than NoOp?
 				// can happen only if regexp special chars in filter string
 			}
-    	}
-    	this.filterString = filterString.toLowerCase();
+		}
+		this.filterString = filterString.toLowerCase();
 	}
-	
+
 	public boolean matches(String string) {
 		if (string == null) {
 			return false;
@@ -69,7 +77,7 @@ public class CamelCaseFilter {
 			return string.toLowerCase().contains(filterString) || ((pattern != null) && pattern.matcher(string).matches());
 		}
 	}
-	
+
 	@Override
 	public String toString() {
 		if (pattern != null) {

@@ -87,4 +87,9 @@ public class FloatSparseArrayDataRow extends AbstractSparseArrayDataRow {
     		result[i] = this.values[i];
     	return result;
     }
+    
+	@Override
+	public int getType() {
+		return DataRowFactory.TYPE_FLOAT_SPARSE_ARRAY;
+	}
 }

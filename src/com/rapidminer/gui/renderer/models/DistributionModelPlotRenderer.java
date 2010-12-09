@@ -117,7 +117,8 @@ public class DistributionModelPlotRenderer extends AbstractRenderer {
 		final PlotterConfigurationModel settings = new PlotterConfigurationModel(PlotterConfigurationModel.COMPLETE_PLOTTER_SELECTION, table);
 		final Plotter plotter = new DistributionPlotter(settings, distributionModel);
 		settings.setPlotter(plotter);
-
+		
+		
 		graphPanel.add(plotter.getPlotter(), BorderLayout.CENTER);
 
 		final ListeningJComboBox combo = new ListeningJComboBox(settings, PlotterAdapter.PARAMETER_PLOT_COLUMN + "_" + PlotterAdapter.transformParameterName(plotter.getPlotName()), distributionModel.getAttributeNames());

@@ -196,6 +196,12 @@ public class GuessValueTypes extends AbstractDataProcessing {
 	}
 	
 	@Override
+	public boolean writesIntoExistingData() {
+		//TODO: Can be changed if attribute would be removed from table. 
+		return true;
+	}
+	
+	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), GuessValueTypes.class, attributeSelector);
 	}

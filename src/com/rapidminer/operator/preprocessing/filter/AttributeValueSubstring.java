@@ -24,9 +24,9 @@ package com.rapidminer.operator.preprocessing.filter;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.Map.Entry;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
@@ -152,6 +152,11 @@ public class AttributeValueSubstring extends AbstractValueProcessing {
 		type.setExpert(false);
 		types.add(type);
 		return types;
+	}
+	
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
 	}
 	
 	@Override

@@ -162,4 +162,12 @@ public class FourierTransform extends AbstractFeatureTransformation {
 			checkForStop();
 		}
 	}
+	
+	/**
+	 * This constructs a new table and hence doesn't modify existing example set
+	 */
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
+	}
 }

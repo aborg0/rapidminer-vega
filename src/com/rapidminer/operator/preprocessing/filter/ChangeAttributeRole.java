@@ -29,15 +29,18 @@ import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.AttributeSetPrecondition;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
+import com.rapidminer.operator.ports.metadata.SimpleMetaDataError;
 import com.rapidminer.operator.preprocessing.AbstractDataProcessing;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttribute;
+import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeStringCategory;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
@@ -77,6 +80,8 @@ public class ChangeAttributeRole extends AbstractDataProcessing {
 	/** The parameter name for &quot;The target type of the attribute (only changed if parameter change_attribute_type is true).&quot; */
 	public static final String PARAMETER_TARGET_ROLE = "target_role";
 
+	public static final String PARAMETER_CHANGE_ATTRIBUTES = "set_additional_roles";
+	
 	private static final String REGULAR_NAME = "regular";
 
 	private static final String[] TARGET_ROLES = new String[] { REGULAR_NAME, Attributes.ID_NAME, Attributes.LABEL_NAME, Attributes.PREDICTION_NAME, Attributes.CLUSTER_NAME, Attributes.WEIGHT_NAME, Attributes.BATCH_NAME };
@@ -85,36 +90,70 @@ public class ChangeAttributeRole extends AbstractDataProcessing {
 	public ChangeAttributeRole(OperatorDescription description) {
 		super(description);
 		getExampleSetInputPort().addPrecondition(new AttributeSetPrecondition(getExampleSetInputPort(), AttributeSetPrecondition.getAttributesByParameter(this, PARAMETER_NAME)));
+		getExampleSetInputPort().addPrecondition(new AttributeSetPrecondition(getExampleSetInputPort(), AttributeSetPrecondition.getAttributesByParameterListEntry(this, PARAMETER_CHANGE_ATTRIBUTES, 0)));
 	}
 
 	@Override
 	protected MetaData modifyMetaData(ExampleSetMetaData metaData) {
 		try {
+			String targetRole = null;
+			if (isParameterSet(PARAMETER_TARGET_ROLE))
+				targetRole = getParameterAsString(PARAMETER_TARGET_ROLE);
+			
 			if (isParameterSet(PARAMETER_NAME)) {
 				String name = getParameter(PARAMETER_NAME);
-				AttributeMetaData amd = metaData.getAttributeByName(name);
-				if (amd != null) {
-					if (isParameterSet(PARAMETER_TARGET_ROLE)) {
-						String role = getParameterAsString(PARAMETER_TARGET_ROLE);
-						if (REGULAR_NAME.equals(role)) {
-							amd.setRegular();
-						} else {
-							AttributeMetaData oldRole = metaData.getAttributeByRole(role);
-							if (oldRole != null && oldRole != amd)
-								metaData.removeAttribute(oldRole);
-							amd.setRole(role);
-						}
-					}				
-				}			
+				setRoleMetaData(metaData, name, targetRole);			
+			}
+			
+			// now proceed with list
+			if (isParameterSet(PARAMETER_CHANGE_ATTRIBUTES)) {
+				List<String[]> list = getParameterList(PARAMETER_CHANGE_ATTRIBUTES);
+				for (String[] pairs: list) {
+					setRoleMetaData(metaData, pairs[0], pairs[1]);
+				}
 			}
 		} catch (UndefinedParameterError e) {			
 		}
 		return metaData;
 	}
 
+	private void setRoleMetaData(ExampleSetMetaData metaData, String name, String targetRole) {
+		AttributeMetaData amd = metaData.getAttributeByName(name);
+		if (amd != null) {
+			if (targetRole != null) {
+				if (REGULAR_NAME.equals(targetRole)) {
+					amd.setRegular();
+				} else {
+					AttributeMetaData oldRole = metaData.getAttributeByRole(targetRole);
+					if (oldRole != null && oldRole != amd) {
+						getInputPort().addError(new SimpleMetaDataError(Severity.WARNING, getInputPort(), "already_contains_role", targetRole));
+						metaData.removeAttribute(oldRole);
+					}
+					amd.setRole(targetRole);
+				}
+			}				
+		}
+	}
+
 	@Override
 	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {		 
 		String name = getParameterAsString(PARAMETER_NAME);
+		String newRole = getParameterAsString(PARAMETER_TARGET_ROLE);
+		
+		setRole(exampleSet, name, newRole);
+
+		// now do the list
+		if (isParameterSet(PARAMETER_CHANGE_ATTRIBUTES)) {
+			List<String[]> list = getParameterList(PARAMETER_CHANGE_ATTRIBUTES);
+			for (String[] pairs: list) {
+				setRole(exampleSet, pairs[0], pairs[1]);
+			}
+		}
+		
+		return exampleSet;
+	}
+
+	private void setRole(ExampleSet exampleSet, String name, String newRole) throws UserError {
 		Attribute attribute = exampleSet.getAttributes().get(name);
 
 		if (attribute == null) {
@@ -122,16 +161,13 @@ public class ChangeAttributeRole extends AbstractDataProcessing {
 		}
 
 		exampleSet.getAttributes().remove(attribute);
-		String newType = getParameterAsString(PARAMETER_TARGET_ROLE);
-		if ((newType == null) || (newType.trim().length() == 0))
+		if ((newRole == null) || (newRole.trim().length() == 0))
 			throw new UserError(this, 205, PARAMETER_TARGET_ROLE);
-		if (newType.equals(REGULAR_NAME)) {
+		if (newRole.equals(REGULAR_NAME)) {
 			exampleSet.getAttributes().addRegular(attribute);
 		} else {
-			exampleSet.getAttributes().setSpecialAttribute(attribute, newType);
+			exampleSet.getAttributes().setSpecialAttribute(attribute, newRole);
 		}
-
-		return exampleSet;
 	}
 
 	@Override
@@ -141,7 +177,17 @@ public class ChangeAttributeRole extends AbstractDataProcessing {
 		ParameterType type = new ParameterTypeStringCategory(PARAMETER_TARGET_ROLE, "The target role of the attribute (only changed if parameter change_attribute_type is true).", TARGET_ROLES, TARGET_ROLES[0]);
 		type.setExpert(false);
 		types.add(type);
+		
+		types.add(new ParameterTypeList(PARAMETER_CHANGE_ATTRIBUTES, "This parameter defines additional attribute role combinations.", 
+				new ParameterTypeAttribute(PARAMETER_NAME, "The name of the attribute whose role should be changed.", getExampleSetInputPort(), false, false), 
+				new ParameterTypeStringCategory(PARAMETER_TARGET_ROLE, "The target role of the attribute (only changed if parameter change_attribute_type is true).", TARGET_ROLES, TARGET_ROLES[0]), 
+				false));
 		return types;
+	}
+	
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
 	}
 	
 	@Override

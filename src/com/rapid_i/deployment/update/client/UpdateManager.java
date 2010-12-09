@@ -56,7 +56,6 @@ import javax.xml.namespace.QName;
 
 import com.rapid_i.Launcher;
 import com.rapidminer.RapidMiner;
-import com.rapidminer.Version;
 import com.rapidminer.RapidMiner.ExecutionMode;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.deployment.client.wsimport.UpdateService;
@@ -118,7 +117,7 @@ public class UpdateManager {
 					extension.addAndSelectVersion(desc.getVersion());
 				} else {
 					URL url = UpdateManager.getUpdateServerURL(urlString + 
-							(incremental ? "?baseVersion="+URLEncoder.encode(Version.getLongVersion(), "UTF-8") : ""));
+							(incremental ? "?baseVersion="+URLEncoder.encode(RapidMiner.getLongVersion(), "UTF-8") : ""));
 					LogService.getRoot().info("Updating RapidMiner core.");					
 					updateRapidMiner(openStream(url, progressListener, minProgress, maxProgress), desc.getVersion());
 				}

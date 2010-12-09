@@ -22,6 +22,7 @@
  */
 package com.rapidminer.io.process.rules;
 
+import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
@@ -35,10 +36,11 @@ import com.rapidminer.tools.OperatorService;
  * @author Sebastian Land
  */
 public class OperatorEnablerRepairRule implements ParseRule {
-
+	private static final VersionNumber APPLIES_UNTIL = new VersionNumber(5, 0, 0, false, 0, false, 0);
+	
 	@Override
-	public String apply(Operator operator, XMLImporter importer) {
-		if (operator.getClass().equals(OperatorEnabler.class)) {
+	public String apply(Operator operator, VersionNumber processVersion, XMLImporter importer) {
+		if (operator.getClass().equals(OperatorEnabler.class) && (processVersion == null || processVersion.compareTo(APPLIES_UNTIL) < 0)) {
 			OperatorEnabler enabler = (OperatorEnabler) operator;
 			Operator selected = null;
 			String selectedName;

@@ -22,11 +22,8 @@
  */
 package com.rapidminer.operator;
 
-import javax.swing.Icon;
-
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.set.HeaderExampleSet;
-import com.rapidminer.gui.tools.SwingTools;
 
 
 /**
@@ -40,19 +37,7 @@ import com.rapidminer.gui.tools.SwingTools;
  * @author Ingo Mierswa
  */
 public abstract class AbstractModel extends ResultObjectAdapter implements Model {
-
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1640348739650532634L;
-
-	private static final String RESULT_ICON_NAME = "lightbulb_on.png";
-
-	private static Icon resultIcon = null;
-
-	static {
-		resultIcon = SwingTools.createIcon("16/" + RESULT_ICON_NAME);
-	}
 
 	/** This header example set contains all important nominal mappings of all training attributes.
 	 *  These mappings are necessary in order to ensure that the internally used
@@ -111,11 +96,6 @@ public abstract class AbstractModel extends ResultObjectAdapter implements Model
 	public String getExtension() { return "mod"; }
 
 	public String getFileDescription() { return "model file"; }
-
-	@Override
-	public Icon getResultIcon() {
-		return resultIcon;
-	}
 	
 	@Override
 	public boolean isInTargetEncoding() {

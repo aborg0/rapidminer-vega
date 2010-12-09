@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
-import javax.swing.Icon;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -54,7 +53,6 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Statistics;
 import com.rapidminer.example.table.SparseFormatDataRowReader;
-import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.IOObject;
@@ -78,14 +76,6 @@ import com.rapidminer.tools.XMLException;
 public abstract class AbstractExampleSet extends ResultObjectAdapter implements ExampleSet {
 
 	private static final long serialVersionUID = 8596141056047402798L;
-
-	private static final String RESULT_ICON_NAME = "data.png";
-
-	private static Icon resultIcon = null;
-
-	static {
-		resultIcon = SwingTools.createIcon("16/" + RESULT_ICON_NAME);
-	}
 
 	/** Maps attribute names to list of statistics objects. */
 	private final Map<String, List<Statistics>> statisticsMap = new HashMap<String, List<Statistics>>();
@@ -162,11 +152,6 @@ public abstract class AbstractExampleSet extends ResultObjectAdapter implements 
 		return  new DataTableExampleSetAdapter(this, weights);
 	}
 
-
-	@Override
-	public Icon getResultIcon() {
-		return resultIcon;
-	}
 
 	// -------------------- File Writing --------------------
 

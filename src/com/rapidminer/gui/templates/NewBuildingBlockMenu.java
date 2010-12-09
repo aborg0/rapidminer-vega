@@ -42,6 +42,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import com.rapidminer.Process;
 import com.rapidminer.gui.actions.Actions;
 import com.rapidminer.gui.tools.ResourceMenu;
 import com.rapidminer.gui.tools.SwingTools;
@@ -51,7 +52,6 @@ import com.rapidminer.operator.UnknownParameterInformation;
 import com.rapidminer.tools.BuildingBlockService;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
-
 
 /**
  * This menu contains all building blocks, the predefined and the user defined.
@@ -94,7 +94,7 @@ public class NewBuildingBlockMenu extends ResourceMenu {
 			            InputSource source = new InputSource(new StringReader(xmlDescription));
 			            Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(source);
 			            Element element = document.getDocumentElement();
-                        Operator operator = Operator.createFromXML(element, new LinkedList<UnknownParameterInformation>(), null, XMLImporter.CURRENT_VERSION);
+                        Operator operator = Operator.createFromXML(element, actions.getProcess(), new LinkedList<UnknownParameterInformation>(), null, XMLImporter.CURRENT_VERSION);
 			            actions.insert(Collections.singletonList(operator));
 			        } catch (Exception ex) {
 			            SwingTools.showSimpleErrorMessage("cannot_instantiate_building_block", ex, name);
@@ -116,7 +116,7 @@ public class NewBuildingBlockMenu extends ResourceMenu {
             InputSource source = new InputSource(new StringReader(xmlDescription));
             Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(source);
             Element element = document.getDocumentElement();
-            Operator.createFromXML(element, new LinkedList<UnknownParameterInformation>(), null, XMLImporter.CURRENT_VERSION);
+            Operator.createFromXML(element, new Process(), new LinkedList<UnknownParameterInformation>(), null, XMLImporter.CURRENT_VERSION);
             //operator.remove();
             return true;
         } catch (IOException ex) {

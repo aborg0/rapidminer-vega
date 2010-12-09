@@ -75,6 +75,11 @@ public class PermutationOperator extends AbstractDataProcessing {
 	}
 	
 	@Override
+	public boolean writesIntoExistingData() {
+		return false;
+	}
+	
+	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), PermutationOperator.class, null);
 	}

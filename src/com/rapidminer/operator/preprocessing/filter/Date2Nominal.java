@@ -214,7 +214,26 @@ public class Date2Nominal extends AbstractDateDataProcessing {
 			AttributeMetaData newAmd = new AttributeMetaData(amd.getName(), amd.getValueType(), amd.getRole());
 			newAmd.setType(Ontology.NOMINAL);
 			newAmd.getMean().setUnkown();
-			newAmd.setValueSet(new HashSet<String>(), SetRelation.SUPERSET);
+			HashSet<String> valueSet = new HashSet<String>();
+			if (amd.getValueRange() != null) {
+				String dateFormat = getParameterAsString(PARAMETER_DATE_FORMAT);
+				int localeIndex = getParameterAsInt(PARAMETER_LOCALE);
+				Locale selectedLocale = Locale.US;
+				if ((localeIndex >= 0) && (localeIndex < availableLocales.size())) 
+					selectedLocale = availableLocales.get(getParameterAsInt(PARAMETER_LOCALE));
+
+				SimpleDateFormat parser = new SimpleDateFormat(dateFormat, selectedLocale);
+
+				Date date = new Date((long)amd.getValueRange().getLower());
+				String newDateStr = parser.format(date);
+				valueSet.add(newDateStr);
+				
+				date = new Date((long)amd.getValueRange().getUpper());
+				newDateStr = parser.format(date);
+				valueSet.add(newDateStr);
+			}
+			
+			newAmd.setValueSet(valueSet, SetRelation.SUPERSET);
 			if (!getParameterAsBoolean(PARAMETER_KEEP_OLD_ATTRIBUTE))
 				metaData.removeAttribute(amd);
 			else {
@@ -277,6 +296,11 @@ public class Date2Nominal extends AbstractDateDataProcessing {
 
 		types.add(new ParameterTypeBoolean(PARAMETER_KEEP_OLD_ATTRIBUTE, "Indicates if the original date attribute should be kept.", false));
 		return types;
+	}
+	
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
 	}
 	
 	@Override

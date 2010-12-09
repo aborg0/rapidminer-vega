@@ -106,6 +106,11 @@ public class EqualLabelWeighting extends AbstractExampleWeighting {
 	}
 	
 	@Override
+	public boolean writesIntoExistingData() {
+		return true;
+	}
+	
+	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), EqualLabelWeighting.class, null);
 	}

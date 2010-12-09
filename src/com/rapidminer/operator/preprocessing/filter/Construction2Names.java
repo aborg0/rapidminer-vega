@@ -68,6 +68,11 @@ public class Construction2Names extends AbstractDataProcessing {
 	}
 	
 	@Override
+	public boolean writesIntoExistingData() {
+		return false;
+	}
+	
+	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), Construction2Names.class, null);
 	}

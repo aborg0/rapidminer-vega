@@ -24,7 +24,7 @@ public class ListTableModel extends AbstractTableModel {
 
 	@Override
 	public String getColumnName(int column) {
-		return types[column].getKey();
+		return types[column].getKey().replace('_', ' ');
 	}
 
 	@Override
@@ -75,4 +75,5 @@ public class ListTableModel extends AbstractTableModel {
 	public List<String[]> getParameterList() {
 		return parameterList;
 	}
+	
 }

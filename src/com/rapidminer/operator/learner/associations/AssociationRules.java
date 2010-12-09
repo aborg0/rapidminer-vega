@@ -29,9 +29,6 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.swing.Icon;
-
-import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.ResultObjectAdapter;
 import com.rapidminer.tools.Tools;
 
@@ -45,14 +42,6 @@ public class AssociationRules extends ResultObjectAdapter implements Iterable<As
 	private static final long serialVersionUID = 3734387908954857589L;
 
 	private static final int MAXIMUM_NUMBER_OF_RULES_IN_OUTPUT = 100;
-
-	private static final String RESULT_ICON_NAME = "lightbulb_on.png";
-
-	private static Icon resultIcon = null;
-
-	static {
-		resultIcon = SwingTools.createIcon("16/" + RESULT_ICON_NAME);
-	}
 
 	private List<AssociationRule> associationRules = new ArrayList<AssociationRule>();
 
@@ -102,10 +91,6 @@ public class AssociationRules extends ResultObjectAdapter implements Iterable<As
 		return buffer.toString();
 	}
 
-	@Override
-	public Icon getResultIcon() {
-		return resultIcon;
-	}
 
 	public Iterator<AssociationRule> iterator() {
 		return associationRules.iterator();

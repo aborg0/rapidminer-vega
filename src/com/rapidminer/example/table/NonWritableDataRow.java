@@ -63,4 +63,9 @@ public class NonWritableDataRow extends DataRow {
 	public void trim() {
 		delegate.trim();
 	}
+	
+	@Override
+	public int getType() {
+		return DataRowFactory.TYPE_SPECIAL;
+	}
 }

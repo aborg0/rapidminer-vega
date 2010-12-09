@@ -73,66 +73,6 @@ public class NominalNumbers2Numerical extends AbstractFilteredDataProcessing {
 	}
 
 	@Override
-	public ExampleSet applyOnFiltered(ExampleSet exampleSet) throws OperatorException {
-		NumberFormat format = makeFormat();
-		
-		List<Attribute> newAttributes = new LinkedList<Attribute>();
-		// using iterator for avoiding "concurrent modification"
-		Iterator<Attribute> a = exampleSet.getAttributes().iterator();
-		while (a.hasNext()) {
-			Attribute attribute = a.next();
-			if (attribute.isNominal()) {
-				boolean isNumericalNominal = true;
-				try {
-					for(String value : attribute.getMapping().getValues()) {
-						format.parse(value);
-					}
-				} catch (Exception e){
-					isNumericalNominal = false;
-				}
-
-				if (isNumericalNominal) {
-					// new attribute
-					Attribute newAttribute = AttributeFactory.createAttribute(Ontology.NUMERICAL);
-					exampleSet.getExampleTable().addAttribute(newAttribute);
-					newAttributes.add(newAttribute);
-
-					// copy data
-					for (Example e : exampleSet) {
-						double oldValue = e.getValue(attribute);
-						if (!Double.isNaN(oldValue)) {
-							String value = e.getValueAsString(attribute);
-							try {
-								e.setValue(newAttribute, format.parse(value).doubleValue());
-							} catch (ParseException ex) {
-								throw new UserError(this, ex, 946, value);
-							}
-						} else {
-							e.setValue(newAttribute, Double.NaN);
-						}
-					}
-
-					// delete attribute and rename the new attribute
-					exampleSet.getExampleTable().removeAttribute(attribute);
-					a.remove();
-					newAttribute.setName(attribute.getName());
-				}
-			}
-		}
-
-		for (Attribute attribute : newAttributes) {
-			exampleSet.getAttributes().addRegular(attribute);
-		}
-
-		return exampleSet;
-	}
-
-	private NumberFormat makeFormat() throws UndefinedParameterError {
-		StrictDecimalFormat format = StrictDecimalFormat.getInstance(this);
-		return format;
-	}
-
-	@Override
 	public ExampleSetMetaData applyOnFilteredMetaData(ExampleSetMetaData emd) throws UndefinedParameterError {
 		NumberFormat format = makeFormat();
 		
@@ -177,6 +117,67 @@ public class NominalNumbers2Numerical extends AbstractFilteredDataProcessing {
 		emd.addAllAttributes(affectedList);
 		return emd;
 	}
+	
+	@Override
+	public ExampleSet applyOnFiltered(ExampleSet exampleSet) throws OperatorException {
+		NumberFormat format = makeFormat();
+		
+		List<Attribute> newAttributes = new LinkedList<Attribute>();
+		// using iterator for avoiding "concurrent modification"
+		Iterator<Attribute> a = exampleSet.getAttributes().iterator();
+		while (a.hasNext()) {
+			Attribute attribute = a.next();
+			if (attribute.isNominal()) {
+				boolean isNumericalNominal = true;
+				try {
+					for(String value : attribute.getMapping().getValues()) {
+						format.parse(value);
+					}
+				} catch (Exception e){
+					isNumericalNominal = false;
+				}
+
+				if (isNumericalNominal) {
+					// new attribute
+					Attribute newAttribute = AttributeFactory.createAttribute(Ontology.NUMERICAL);
+					exampleSet.getExampleTable().addAttribute(newAttribute);
+					newAttributes.add(newAttribute);
+
+					// copy data
+					for (Example e : exampleSet) {
+						double oldValue = e.getValue(attribute);
+						if (!Double.isNaN(oldValue)) {
+							String value = e.getValueAsString(attribute);
+							try {
+								e.setValue(newAttribute, format.parse(value).doubleValue());
+							} catch (ParseException ex) {
+								throw new UserError(this, ex, 946, value);
+							}
+						} else {
+							e.setValue(newAttribute, Double.NaN);
+						}
+					}
+
+					// delete attribute and rename the new attribute
+					a.remove();
+					newAttribute.setName(attribute.getName());
+				}
+			}
+		}
+
+		for (Attribute attribute : newAttributes) {
+			exampleSet.getAttributes().addRegular(attribute);
+		}
+
+		return exampleSet;
+	}
+
+	private NumberFormat makeFormat() throws UndefinedParameterError {
+		StrictDecimalFormat format = StrictDecimalFormat.getInstance(this);
+		return format;
+	}
+
+
 
 	@Override
 	protected int[] getFilterValueTypes() {
@@ -191,6 +192,11 @@ public class NominalNumbers2Numerical extends AbstractFilteredDataProcessing {
 //		types.add(new ParameterTypeChar(PARAMETER_DECIMAL_POINT_CHARACTER, "Character that is used as decimal point.", '.', false));
 //		types.add(new ParameterTypeChar(PARAMETER_GROUP_SEPARATOR, "Character that is used to separate groups (e.g. in 1.000.000 or 1,000,000).", false));
 		return types;
+	}
+	
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
 	}
 	
 	@Override

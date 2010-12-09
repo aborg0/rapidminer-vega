@@ -131,9 +131,10 @@ public class WelcomeScreen extends JPanel implements Dockable {
 		
 		// border top
 		JPanel borderTopPanel = new ImagePanel(borderTopImage, ImagePanel.IMAGE_PREFERRED_HEIGHT);		
-		layout.setConstraints(borderTopPanel, c);
-		add(borderTopPanel);
+
+		add(borderTopPanel, c);
 		
+
 		// central actions		
 		JToolBar actionBar = new ExtendedJToolBar();
 		actionBar.setBorder(null);
@@ -186,14 +187,13 @@ public class WelcomeScreen extends JPanel implements Dockable {
 		button.setVerticalTextPosition(SwingConstants.BOTTOM);
 		actionBar.add(button);
 		
-	    layout.setConstraints(actionBar, c);
-		add(actionBar);
+
+		add(actionBar, c);
 
 		// recent files
 		recentFileList = new JList(RapidMinerGUI.getRecentFiles().toArray(new Object[RapidMinerGUI.getRecentFiles().size()]));
 		recentFileList.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
 		recentFileList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-//		recentFileList.setBorder(BorderFactory.createTitledBorder("Recent Processes"));
 		recentFileList.setBorder(ButtonDialog.createTitledBorder("Recent Processes"));
 		MouseListener mouseListener = new MouseAdapter() {
 			@Override
@@ -209,13 +209,12 @@ public class WelcomeScreen extends JPanel implements Dockable {
 		JPanel listPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		listPanel.add(recentFileList);
 		listPanel.setBackground(Color.WHITE);
-		layout.setConstraints(listPanel, c);
-		add(listPanel);
+		add(listPanel, c);
 
 		// border bottom
 		JPanel borderBottomPanel = new ImagePanel(borderBottomImage, ImagePanel.IMAGE_PREFERRED_HEIGHT);
-		layout.setConstraints(borderBottomPanel, c);
-		add(borderBottomPanel);
+
+		add(borderBottomPanel, c);
 		
 		// bottom text panel
 		JPanel bottomTextPanel = new ImagePanel(bottomImage, ImagePanel.CHILDRENS_PREFERRED_SIZE);
@@ -235,6 +234,7 @@ public class WelcomeScreen extends JPanel implements Dockable {
 		((ExtendedHTMLJEditorPane) newsPane).installDefaultStylesheet();
 		//newsPane.setText("<html><body><h1>RapidMiner News</h1><p>Downloading news. If news don't show up, check your Internet connection and proxy settings in the preferences.</body></html>");
 		new Thread("Load News") {
+			@Override
 			public void run() {
 				try {
 					newsPane.setPage(new URL("http://news.rapidminer.com/"));
@@ -247,9 +247,9 @@ public class WelcomeScreen extends JPanel implements Dockable {
 		}.start();
 		newsPane.setOpaque(false);
 		newsPane.setEditable(false);
-		newsPane.setPreferredSize(new Dimension(300, 100));
+		newsPane.setPreferredSize(new Dimension(300, 180));
 		JScrollPane newsScrollPane = new JScrollPane(newsPane);
-		newsScrollPane.setPreferredSize(new Dimension(300, 100));
+		newsScrollPane.setPreferredSize(new Dimension(300, 180));
 		newsScrollPane.setOpaque(false);
 		newsScrollPane.getViewport().setOpaque(false);
 		//newsScrollPane.setBorder(BorderFactory.createTitledBorder("News"));

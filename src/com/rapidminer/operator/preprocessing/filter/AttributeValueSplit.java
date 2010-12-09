@@ -303,6 +303,11 @@ public class AttributeValueSplit extends AbstractDataProcessing {
 	}
 	
 	@Override
+	public boolean writesIntoExistingData() {
+		return false;
+	}
+	
+	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), AttributeValueSplit.class, attributeSubsetSelector);
 	}

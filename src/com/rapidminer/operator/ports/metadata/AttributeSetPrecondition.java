@@ -24,6 +24,7 @@ package com.rapidminer.operator.ports.metadata;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.ProcessSetupError.Severity;
@@ -78,6 +79,44 @@ public class AttributeSetPrecondition extends AbstractPrecondition {
 
 		public String[] getParameterKeys() {
 			return this.parameterKeys;
+		}
+	}
+	
+	private static class ParameterListAttributeNameProvider extends AttributeNameProvider {
+		private final ParameterHandler handler;
+		private final String parameterKey;
+		private final int entry;
+		
+		public ParameterListAttributeNameProvider(ParameterHandler handler, String parameterKey, int entry) {
+			this.handler = handler;
+			this.parameterKey = parameterKey;
+			this.entry = entry;
+		}
+
+		@Override
+		public String[] getRequiredAttributeNames() {
+			try {
+				if (handler.isParameterSet(parameterKey)) {
+					List<String[]> parameterList = handler.getParameterList(parameterKey);
+					String[] attributeNames = new String[parameterList.size()];
+					int i = 0;
+					for (String[] pair: parameterList) {
+						attributeNames[i] = pair[entry];
+						i++;
+					}
+					return attributeNames;
+				}
+			} catch (UndefinedParameterError e) {
+			}
+			return new String[0];
+		}
+
+		public ParameterHandler getHandler() {
+			return this.handler;
+		}
+
+		public String getParameterKey() {
+			return this.parameterKey;
 		}
 	}
 
@@ -208,6 +247,13 @@ public class AttributeSetPrecondition extends AbstractPrecondition {
 
 	public static AttributeNameProvider getAttributesByParameter(ParameterHandler handler, String... parameterKeys) {
 		return new ParameterAttributeNameProvider(handler, parameterKeys);
+	}
+	
+	/**
+	 * Returns an AttributeNameProvider that can extract one column of a ParameterTypeList for use them as attribute names.
+	 */
+	public static AttributeNameProvider getAttributesByParameterListEntry(ParameterHandler handler, String parameterListKey, int entry) {
+		return new ParameterListAttributeNameProvider(handler, parameterListKey, entry);
 	}
 
 }

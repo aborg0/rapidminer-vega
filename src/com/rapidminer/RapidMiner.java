@@ -38,6 +38,7 @@ import com.rapid_i.Launcher;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.renderer.RendererService;
 import com.rapidminer.gui.tools.SplashScreen;
+import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.operator.ProcessRootOperator;
 import com.rapidminer.operator.learner.CapabilityProvider;
@@ -132,6 +133,7 @@ public class RapidMiner {
 	}
 
 	private static ExecutionMode executionMode = ExecutionMode.UNKNOWN;
+	private static VersionNumber version = new RapidMinerVersion();
 	
 	// ---  GENERAL PROPERTIES  ---
 	
@@ -315,11 +317,15 @@ public class RapidMiner {
 	private static final List<Runnable> shutdownHooks = new LinkedList<Runnable>();
 	
 	public static String getShortVersion() {
-		return Version.getShortVersion();
+		return version.getShortVersion();
 	}
 
 	public static String getLongVersion() {
-		return Version.getLongVersion();
+		return version.getLongVersion();
+	}
+	
+	public static VersionNumber getVersion() {
+		return version;
 	}
 
 	/**

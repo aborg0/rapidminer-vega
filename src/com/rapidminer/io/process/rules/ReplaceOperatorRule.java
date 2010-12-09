@@ -29,6 +29,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
@@ -45,7 +46,8 @@ import com.rapidminer.tools.XMLException;
  * @author Sebastian Land
  */
 public class ReplaceOperatorRule extends AbstractConditionedParseRule {
-
+	private static final VersionNumber APPLIES_UNTIL = new VersionNumber(5, 0, 0, false, 0, false, 0);
+	
 	private String replacementName;
 	private final List<ParseRule> parseRules = new LinkedList<ParseRule>();
 
@@ -94,7 +96,7 @@ public class ReplaceOperatorRule extends AbstractConditionedParseRule {
 			if (!parseRules.isEmpty()) {
 				builder.append(" In <code>" + replacementName + "</code>, the following modifications were applied:<ul>");
 				for (ParseRule rule: parseRules) {
-					String result = rule.apply(operator, importer);
+					String result = rule.apply(operator, null, importer);
 					if (result != null)
 						builder.append("<li>" + result + "</li>");
 				}

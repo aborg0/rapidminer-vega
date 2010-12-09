@@ -1,5 +1,7 @@
 package com.rapidminer.gui.properties;
 
+import java.awt.Point;
+import java.awt.event.MouseEvent;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -7,10 +9,13 @@ import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeEnumeration;
 import com.rapidminer.parameter.ParameterTypeList;
+import com.rapidminer.parameter.ParameterTypeStringCategory;
 
 /** Parameter table for list and enumeration types.
  * 
@@ -37,7 +42,7 @@ public class ListPropertyTable2 extends JTable {
 	private List<TableCellRenderer[]> renderers = new LinkedList<TableCellRenderer[]>();
 	private List<TableCellEditor[]> editors = new LinkedList<TableCellEditor[]>();
 	private ParameterType[] types;
-	private Operator operator;;
+	private Operator operator;
 	
 	private ListPropertyTable2(ParameterType[] types, List<String[]> parameterList, Operator operator) {
 		this.types = types;
@@ -111,5 +116,24 @@ public class ListPropertyTable2 extends JTable {
 	@Override
 	public TableCellEditor getCellEditor(int row, int column) {
 		return editors.get(row)[column];
+	}
+	
+	/** This method ensures that the correct tool tip for the current table cell is delivered. */
+	@Override
+	public String getToolTipText(MouseEvent e) {
+		Point p = e.getPoint();
+		int column = columnAtPoint(p);
+		ParameterType type = types[column];
+		StringBuffer toolTip = new StringBuffer(type.getDescription());
+		if ((!(type instanceof ParameterTypeCategory)) && (!(type instanceof ParameterTypeStringCategory))) {
+			String range = type.getRange();
+			if ((range != null) && (range.trim().length() > 0)) {
+				toolTip.append(" (");
+				toolTip.append(type.getRange());
+				toolTip.append(")");
+			}
+		}
+		String toolTipText = SwingTools.transformToolTipText(toolTip.toString());
+		return toolTipText;
 	}
 }

@@ -269,7 +269,6 @@ public class StatementCreator {
 	 * @throws SQLException
 	 */
 	private void makeColumnCreator(StringBuilder b, AttributeRole role) throws SQLException {
-		// TODO: Varchar length?
 		final Attribute attribute = role.getAttribute();
 		b.append(makeColumnIdentifier(attribute));
 		b.append(" ");
@@ -295,10 +294,10 @@ public class StatementCreator {
 				}
 			}
 			if (si.getTypeName().toLowerCase().startsWith("varchar")) {
-				if (defaultVarCharLength != -1) {
+				if (defaultVarCharLength != -1 && defaultVarCharLength < maxLength) {
 					b.append("(").append(defaultVarCharLength).append(")");
 				} else {
-					b.append("(").append(maxLength + maxLength / 2).append(")");
+					b.append("(").append(maxLength).append(")");
 				}
 			}
 		}

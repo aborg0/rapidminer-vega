@@ -237,7 +237,8 @@ public abstract class AbstractExampleTable implements ExampleTable {
 	}
 	
 
-	/** Returns a new example set with all attributes of the given attribute set. */
+	/** Returns a new example set with all attributes of the {@link ExampleTable} 
+	 * and with the special roles defined by the given attribute set. */
 	public ExampleSet createExampleSet(AttributeSet attributeSet) {
 		Map<Attribute, String> specialAttributes = new HashMap<Attribute, String>();
 		Iterator<String> i = attributeSet.getSpecialNames().iterator();

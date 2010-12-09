@@ -22,6 +22,7 @@
  */
 package com.rapidminer.io.process.rules;
 
+import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorChain;
@@ -35,10 +36,11 @@ import com.rapidminer.operator.ports.OutputPorts;
  * @author Sebastian Land
  */
 public class PassthroughShortcutRule implements ParseRule {
-
+	private static final VersionNumber APPLIES_UNTIL = new VersionNumber(5, 0, 0, false, 0, false, 0);
+	
 	@Override
-	public String apply(final Operator operator, final XMLImporter importer) {
-		if (operator.getClass().equals(SimpleOperatorChain.class)) {
+	public String apply(final Operator operator, VersionNumber processVersion, final XMLImporter importer) {
+		if (operator.getClass().equals(SimpleOperatorChain.class) && (processVersion == null || processVersion.compareTo(APPLIES_UNTIL) < 0)) {
 			importer.doAfterAutoWire(new Runnable() {
 				@Override
 				public void run() {

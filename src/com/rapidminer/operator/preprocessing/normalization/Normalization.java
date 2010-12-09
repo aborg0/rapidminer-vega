@@ -22,37 +22,25 @@
  */
 package com.rapidminer.operator.preprocessing.normalization;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
-import com.rapidminer.example.Attribute;
-import com.rapidminer.example.Attributes;
-import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
-import com.rapidminer.example.Statistics;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
-import com.rapidminer.operator.UserError;
-import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
-import com.rapidminer.operator.ports.metadata.MDReal;
-import com.rapidminer.operator.ports.metadata.SetRelation;
-import com.rapidminer.operator.ports.metadata.SimpleMetaDataError;
 import com.rapidminer.operator.preprocessing.PreprocessingModel;
 import com.rapidminer.operator.preprocessing.PreprocessingOperator;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeCategory;
-import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
-import com.rapidminer.tools.container.Tupel;
-import com.rapidminer.tools.math.container.Range;
 
 
 /**
@@ -65,11 +53,19 @@ import com.rapidminer.tools.math.container.Range;
  */
 public class Normalization extends PreprocessingOperator {
 
-	public static final String[] NORMALIZATION_METHODS = new String[] {
-		"Z-transformation",
-		"range transformation",
-		"proportion transformation"
-	};
+	private static final ArrayList<NormalizationMethod> METHODS = new ArrayList<NormalizationMethod>();
+	
+	static {
+		registerNormalizationMethod(new ZTransformationNormalizationMethod());
+		registerNormalizationMethod(new RangeNormalizationMethod());
+		registerNormalizationMethod(new ProportionNormalizationMethod());
+		registerNormalizationMethod(new IQRNormalizationMethod());
+	}
+	
+	/**
+	 * This must not be modified outside this class!
+	 */
+	public static String[] NORMALIZATION_METHODS;
 
 	public static final int METHOD_Z_TRANSFORMATION = 0;
 
@@ -79,11 +75,6 @@ public class Normalization extends PreprocessingOperator {
 
 	public static final String PARAMETER_NORMALIZATION_METHOD = "method";
 
-	/** The parameter name for &quot;The minimum value after normalization&quot; */
-	public static final String PARAMETER_MIN = "min";
-
-	/** The parameter name for &quot;The maximum value after normalization&quot; */
-	public static final String PARAMETER_MAX = "max";
 
 	/** Creates a new Normalization operator. */
 	public Normalization(OperatorDescription description) {
@@ -95,99 +86,18 @@ public class Normalization extends PreprocessingOperator {
 		if (amd.isNumerical()) {
 			amd.setType(Ontology.REAL);
 			int method = getParameterAsInt(PARAMETER_NORMALIZATION_METHOD);
-			switch (method) {
-			case METHOD_Z_TRANSFORMATION:
-				amd.setMean(new MDReal((double) 0));
-				amd.setValueRange(new Range(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY), SetRelation.SUBSET);
-				return Collections.singleton(amd);
-			case METHOD_RANGE_TRANSFORMATION:
-				double min = getParameterAsDouble(PARAMETER_MIN);
-				double max = getParameterAsDouble(PARAMETER_MAX);
-				amd.setMean(new MDReal());
-				amd.setValueRange(new Range(min, max), SetRelation.EQUAL);
-				return Collections.singleton(amd);
-			case METHOD_PROPORTION_TRANSFORMATION:
-				if (amd.getValueSetRelation() == SetRelation.EQUAL) {
-					if (emd.getNumberOfExamples().isKnown())
-						amd.setMean(new MDReal(1d / emd.getNumberOfExamples().getValue()));
-					else
-						amd.setMean(new MDReal());
-					Range range = amd.getValueRange();
-					if (range.getLower() < 0d)
-						getExampleSetInputPort().addError(new SimpleMetaDataError(Severity.WARNING, getExampleSetInputPort(), "attribute_contains_negative_values", amd.getName(), NORMALIZATION_METHODS[2]));
-				} else {
-					// set to unknown
-					amd.setMean(new MDReal());
-					amd.setValueRange(new Range(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY), SetRelation.UNKNOWN);
-				}
-				return Collections.singleton(amd);
-			}
+			NormalizationMethod normalizationMethod = METHODS.get(method);
+			return normalizationMethod.modifyAttributeMetaData(emd, amd, getExampleSetInputPort(), this);
 		}
 		return Collections.singleton(amd);
 	}
 
-	/**
-	 * Depending on the parameter value of &quot;standardize&quot; this method
-	 * creates either a ZTransformationModel, MinMaxNormalizationModel or PercentageNormalizationModel.
-	 */
 	@Override
 	public PreprocessingModel createPreprocessingModel(ExampleSet exampleSet) throws OperatorException {
-
 		int method = getParameterAsInt(PARAMETER_NORMALIZATION_METHOD);
-		if (method == METHOD_Z_TRANSFORMATION) {
-			// Z-Transformation
-			exampleSet.recalculateAllAttributeStatistics();
-			HashMap<String, Tupel<Double, Double>> attributeMeanVarianceMap = new HashMap<String, Tupel<Double, Double>>(); 
-			for (Attribute attribute : exampleSet.getAttributes()) {
-				if (attribute.isNumerical()) {
-					attributeMeanVarianceMap.put(attribute.getName(), new Tupel<Double, Double>( 
-							exampleSet.getStatistics(attribute, Statistics.AVERAGE),
-							exampleSet.getStatistics(attribute, Statistics.VARIANCE)));
-				}
-			}
-			ZTransformationModel model = new ZTransformationModel(exampleSet, attributeMeanVarianceMap);
-			return model;
-		} else if (method == METHOD_RANGE_TRANSFORMATION){
-			// Range Normalization
-			double min = getParameterAsDouble(PARAMETER_MIN);
-			double max = getParameterAsDouble(PARAMETER_MAX);
-			if (max <= min)
-				throw new UserError(this, 116, "max", "Must be greater than 'min'");
-
-			// calculating attribute ranges
-			HashMap<String, Tupel<Double, Double>> attributeRanges = new HashMap<String, Tupel<Double, Double>>();
-			exampleSet.recalculateAllAttributeStatistics();
-			for (Attribute attribute : exampleSet.getAttributes()) {
-				if (attribute.isNumerical()) {
-					attributeRanges.put(attribute.getName(), new Tupel<Double, Double>(exampleSet.getStatistics(attribute, Statistics.MINIMUM), exampleSet.getStatistics(attribute, Statistics.MAXIMUM)));
-				}
-			}
-			return new MinMaxNormalizationModel(exampleSet, min, max, attributeRanges);
-		} else {
-			// Percentage Normalization
-			// calculating attribute sums
-			Attributes attributes = exampleSet.getAttributes();
-			double[] attributeSum = new double[attributes.size()];
-			for (Example example: exampleSet) {
-				int i = 0;
-				for (Attribute attribute: attributes) {
-					if (attribute.isNumerical()) {
-						attributeSum[i] += example.getValue(attribute);
-					}
-					i++;
-				}
-			}
-			HashMap<String, Double> attributeSums = new HashMap<String, Double>();
-			int i = 0;
-			for (Attribute attribute : exampleSet.getAttributes()) {
-				if (attribute.isNumerical()) {
-					attributeSums.put(attribute.getName(), attributeSum[i]);
-				}
-				i++;
-			}
-
-			return new ProportionNormalizationModel(exampleSet, attributeSums); 
-		}
+		NormalizationMethod normalizationMethod = METHODS.get(method);
+		normalizationMethod.init();
+		return normalizationMethod.getNormalizationModel(exampleSet, this);
 	}
 
 	@Override
@@ -200,12 +110,14 @@ public class Normalization extends PreprocessingOperator {
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
 		types.add(new ParameterTypeCategory(PARAMETER_NORMALIZATION_METHOD, "Select the normalization method.", NORMALIZATION_METHODS, 0));
-		ParameterType type = new ParameterTypeDouble(PARAMETER_MIN, "The minimum value after normalization", Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 0.0d);
-		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_NORMALIZATION_METHOD, NORMALIZATION_METHODS, true, new int[] {1}));
-		types.add(type);
-		type = new ParameterTypeDouble(PARAMETER_MAX, "The maximum value after normalization", Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 1.0d);
-		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_NORMALIZATION_METHOD, NORMALIZATION_METHODS, true, new int[] {1}));
-		types.add(type);
+		int i = 0; 
+		for (NormalizationMethod method: METHODS) {
+			for (ParameterType type: method.getParameterTypes(this)) {
+				type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_NORMALIZATION_METHOD, NORMALIZATION_METHODS, true, new int[] {i}));
+				types.add(type);
+			}
+			i++;
+		}
 		return types;
 	}
 
@@ -219,4 +131,18 @@ public class Normalization extends PreprocessingOperator {
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), Normalization.class, attributeSelector);
 	}
+	
+	/**
+	 * This method can be used for registering additional normalization methods.
+	 */
+	public static void registerNormalizationMethod(NormalizationMethod newMethod) {
+		METHODS.add(newMethod);
+		NORMALIZATION_METHODS = new String[METHODS.size()];
+		int i = 0;
+		for (NormalizationMethod method: METHODS) {
+			NORMALIZATION_METHODS[i] = method.getName();
+			i++;
+		}
+	}
+
 }

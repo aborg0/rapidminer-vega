@@ -148,6 +148,14 @@ public class Obfuscator extends AbstractDataProcessing {
 		return types;
 	}
 	
+	/**
+	 * Only nominal mapping is changed, not write through on data
+	 */
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
+	}
+	
 	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), Obfuscator.class, null);

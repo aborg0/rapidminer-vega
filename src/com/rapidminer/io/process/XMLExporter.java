@@ -37,6 +37,7 @@ import org.w3c.dom.Element;
 import com.rapidminer.BreakpointListener;
 import com.rapidminer.Process;
 import com.rapidminer.ProcessContext;
+import com.rapidminer.RapidMiner;
 import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
@@ -73,7 +74,7 @@ public class XMLExporter {
 			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();			
 			Element rootElement = doc.createElement("process");			
 			doc.appendChild(rootElement);
-			rootElement.setAttribute("version", "5.0");
+			rootElement.setAttribute("version", RapidMiner.getLongVersion());
 
 			final Process process = operator.getProcess();
 			if (process != null) {

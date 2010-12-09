@@ -91,6 +91,10 @@ public class GeneratePredictionOperator extends AbstractExampleSetProcessing {
 		return exampleSet;
 	}
 
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
+	}
 	
 	@Override
 	public List<ParameterType> getParameterTypes() {

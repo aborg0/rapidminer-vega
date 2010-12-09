@@ -33,7 +33,6 @@ import com.rapidminer.example.Tools;
  * {@link DoubleSparseArrayDataRow} should be more efficient.
  * 
  * @author Ingo Mierswa
- *          Exp $
  */
 public class SparseMapDataRow extends DataRow {
 
@@ -73,5 +72,10 @@ public class SparseMapDataRow extends DataRow {
 	@Override
 	public String toString() {
 		return data.toString();
+	}
+	
+	@Override
+	public int getType() {
+		return DataRowFactory.TYPE_SPARSE_MAP;
 	}
 }

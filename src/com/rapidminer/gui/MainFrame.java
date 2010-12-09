@@ -253,7 +253,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         RapidMiner.registerRapidMinerProperty(new ParameterTypeColor(PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_LOGSERVICE, "The color for the logging service indicator in the message viewer.", new java.awt.Color(184,184,184)));
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_PROCESSINFO_SHOW, "Shows process info screen after loading?", true));
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_SAVE_BEFORE_RUN, "Save process before running process?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
-		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_SAVE_ON_PROCESS_CREATION, "Save process when creating them?", true));
+		RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_SAVE_ON_PROCESS_CREATION, "Save process when creating them?", false));
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_AUTO_SWITCH_TO_RESULTVIEW, "Automatically switch to results perspective when results are created?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_RESULT_DISPLAY_TYPE, "Determines the result display style.", ResultDisplayTools.TYPE_NAMES, 0));
 		RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_LOG_LEVEL , "Minimum level of messages that are logged in the GUIs log view.", LoggingViewer.SELECTABLE_LEVEL_NAMES, LoggingViewer.DEFAULT_LEVEL_INDEX));

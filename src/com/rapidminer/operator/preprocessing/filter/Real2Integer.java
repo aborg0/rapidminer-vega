@@ -58,6 +58,24 @@ public class Real2Integer extends AbstractFilteredDataProcessing {
 	}
 
 	@Override
+	public ExampleSetMetaData applyOnFilteredMetaData(ExampleSetMetaData emd) {
+		boolean round = getParameterAsBoolean(PARAMETER_ROUND);
+		
+		for (AttributeMetaData amd: emd.getAllAttributes()) {
+			if ((Ontology.ATTRIBUTE_VALUE_TYPE.isA(amd.getValueType(), Ontology.NUMERICAL)) &&
+				(!Ontology.ATTRIBUTE_VALUE_TYPE.isA(amd.getValueType(), Ontology.INTEGER))) {
+				amd.setType(Ontology.INTEGER);
+			}
+			if (round) {
+				amd.setValueRange(new Range(Math.round(amd.getValueRange().getLower()), Math.round(amd.getValueRange().getUpper())), SetRelation.EQUAL);
+			} else {
+				amd.setValueRange(new Range((long) amd.getValueRange().getLower(), (long) amd.getValueRange().getUpper()), SetRelation.EQUAL);
+			}
+		}
+		return emd;
+	}
+	
+	@Override
 	public ExampleSet applyOnFiltered(ExampleSet exampleSet) throws OperatorException {
 		boolean round = getParameterAsBoolean(PARAMETER_ROUND);
 
@@ -86,23 +104,6 @@ public class Real2Integer extends AbstractFilteredDataProcessing {
 	}
 
 	@Override
-	public ExampleSetMetaData applyOnFilteredMetaData(ExampleSetMetaData emd) {
-		boolean round = getParameterAsBoolean(PARAMETER_ROUND);
-		
-		for (AttributeMetaData amd: emd.getAllAttributes()) {
-			if ((Ontology.ATTRIBUTE_VALUE_TYPE.isA(amd.getValueType(), Ontology.NUMERICAL)) &&
-				(!Ontology.ATTRIBUTE_VALUE_TYPE.isA(amd.getValueType(), Ontology.INTEGER))) {
-				amd.setType(Ontology.INTEGER);
-			}
-			if (round) {
-				amd.setValueRange(new Range(Math.round(amd.getValueRange().getLower()), Math.round(amd.getValueRange().getUpper())), SetRelation.EQUAL);
-			} else {
-				amd.setValueRange(new Range((long) amd.getValueRange().getLower(), (long) amd.getValueRange().getUpper()), SetRelation.EQUAL);
-			}
-		}
-		return emd;
-	}
-	
 	protected int[] getFilterValueTypes() {
 		return new int[] { Ontology.REAL };
 	}
@@ -112,6 +113,12 @@ public class Real2Integer extends AbstractFilteredDataProcessing {
 		List<ParameterType> types = super.getParameterTypes();
 		types.add(new ParameterTypeBoolean(PARAMETER_ROUND, "Indicates if the values should be rounded instead of cutted.", false));
 		return types;
+	}
+	
+	
+	@Override
+	public boolean writesIntoExistingData() {
+		return true;
 	}
 	
 	@Override

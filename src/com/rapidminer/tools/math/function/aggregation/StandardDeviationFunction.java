@@ -45,6 +45,9 @@ public class StandardDeviationFunction extends VarianceFunction {
     @Override
 	public double getValue() {
     	// return the square root of the variance
-		return Math.sqrt(super.getValue());
+    	double value = super.getValue();
+		if (value >0)
+			return Math.sqrt(value);
+		return 0d;
     }
 }

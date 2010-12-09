@@ -48,18 +48,6 @@ public class Numerical2Real extends AbstractFilteredDataProcessing {
 	}
 
 	@Override
-	public ExampleSet applyOnFiltered(ExampleSet exampleSet) throws OperatorException {
-		for (Attribute attribute : exampleSet.getAttributes()) {
-			if ((Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.NUMERICAL)) &&
-				(!Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.REAL))) {
-				Attribute newAttribute = AttributeFactory.changeValueType(attribute, Ontology.REAL);
-				exampleSet.getAttributes().replace(attribute, newAttribute);
-			}
-		}
-		return exampleSet;
-	}
-
-	@Override
 	public ExampleSetMetaData applyOnFilteredMetaData(ExampleSetMetaData emd) {
 		for (AttributeMetaData amd: emd.getAllAttributes()) {
 			if (!amd.isSpecial()) {
@@ -72,8 +60,26 @@ public class Numerical2Real extends AbstractFilteredDataProcessing {
 		return emd;
 	}
 	
+	@Override
+	public ExampleSet applyOnFiltered(ExampleSet exampleSet) throws OperatorException {
+		for (Attribute attribute : exampleSet.getAttributes()) {
+			if ((Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.NUMERICAL)) &&
+				(!Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.REAL))) {
+				Attribute newAttribute = AttributeFactory.changeValueType(attribute, Ontology.REAL);
+				exampleSet.getAttributes().replace(attribute, newAttribute);
+			}
+		}
+		return exampleSet;
+	}
+
+	@Override
 	protected int[] getFilterValueTypes() {
 		return new int[] { Ontology.NUMERICAL };
+	}
+
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
 	}
 	
 	@Override

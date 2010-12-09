@@ -26,9 +26,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -39,9 +39,9 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.SimpleProcessSetupError;
 import com.rapidminer.operator.UserError;
-import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
@@ -115,6 +115,148 @@ public class AttributeValueMapper extends AbstractValueProcessing {
 		super(description);
 	}
 
+	@Override
+	public ExampleSetMetaData applyOnFilteredMetaData(ExampleSetMetaData emd) {
+		try {
+			if (emd.getAllAttributes().isEmpty()) {
+				return emd;
+			}
+			boolean first   = true;
+			boolean nominal = false;
+			for (AttributeMetaData amd : emd.getAllAttributes()) {
+				if (first) {
+					nominal = amd.isNominal();
+					first   = false;
+				} else {
+					if (nominal != amd.isNominal()) {
+						this.addError(new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), "attributes_must_have_same_type"));
+						return emd;
+					}
+				}
+			}			
+
+			boolean useValueRegex = getParameterAsBoolean(PARAMETER_CONSIDER_REGULAR_EXPRESSIONS);
+			List<String[]> mappingParameterList = getParameterList(PARAMETER_VALUE_MAPPINGS);
+
+			String replaceWhat = getParameterAsString(PARAMETER_REPLACE_WHAT);
+			String replaceBy   = getParameterAsString(PARAMETER_REPLACE_BY);
+			HashMap<String, String> mappings = new LinkedHashMap<String, String>();
+			HashMap<Pattern, String> patternMappings = new LinkedHashMap<Pattern, String>();
+			if (replaceWhat != null && replaceBy != null && !replaceWhat.equals("") && !replaceBy.equals("")) {
+				mappings.put(replaceWhat, replaceBy);
+				if (useValueRegex) {
+					try {
+						Pattern valuePattern =  Pattern.compile(replaceWhat);
+						patternMappings.put(valuePattern, replaceBy);
+					} catch (PatternSyntaxException e) {
+					}
+				}
+			}
+			Iterator<String[]> listIterator = mappingParameterList.iterator();
+			int j = 0;
+			while (listIterator.hasNext()) {
+				String[] pair = listIterator.next();
+				replaceWhat = pair[0];
+				replaceBy = pair[1];
+				mappings.put(replaceWhat,replaceBy);
+				if (useValueRegex) {
+					try {
+						Pattern valuePattern =  Pattern.compile(replaceWhat);
+						patternMappings.put(valuePattern, replaceBy);
+					} catch (PatternSyntaxException e) {
+					}
+				}
+				j++;
+			}
+
+			boolean defaultMappingAdded = getParameterAsBoolean(PARAMETER_ADD_DEFAULT_MAPPING); 
+			String defaultValue = getParameterAsString(PARAMETER_DEFAULT_VALUE);
+
+			if (nominal) {
+				for (AttributeMetaData amd : emd.getAllAttributes()) {
+					Set<String> valueSet = new TreeSet<String>();
+					for (String value : amd.getValueSet()) {
+						String mappedValue = mappings.get(value);
+						if (useValueRegex) {
+							for (Entry<Pattern, String> patternEntry : patternMappings.entrySet()) {
+								Matcher matcher = patternEntry.getKey().matcher(value);
+								if (matcher.matches()) {
+									mappedValue = patternEntry.getValue();
+									break;
+								}
+							}
+						}
+						if (mappedValue == null) {
+							if (defaultMappingAdded) {
+								if (defaultValue.equals("?")) {
+								} else {
+									valueSet.add(defaultValue);
+								}
+							} else {
+								valueSet.add(value);
+							}
+						} else {
+							valueSet.add(mappedValue);
+						}
+					}
+					amd.setValueSet(valueSet, SetRelation.SUBSET);
+				}
+			} else {
+				HashMap<Double, Double> numericalValueMapping = new HashMap<Double, Double>();
+				for (Entry<String, String> entry : mappings.entrySet()) {
+					double oldValue = Double.NaN;
+					double newValue = Double.NaN;
+					if (!entry.getKey().equals("?")) {
+						try {
+							oldValue = Double.valueOf(entry.getKey());
+						} catch (NumberFormatException e) {							
+							this.addError(new SimpleProcessSetupError(Severity.ERROR, AttributeValueMapper.this.getPortOwner(), "mapping_must_be_number", entry.getKey()));
+							continue;
+						}
+					}
+					if (!entry.getValue().equals("?")) {
+						try {
+							newValue = Double.valueOf(entry.getValue());
+						} catch (NumberFormatException e) {
+							this.addError(new SimpleProcessSetupError(Severity.ERROR, AttributeValueMapper.this.getPortOwner(), "mapping_must_be_number", entry.getValue()));
+							continue;
+						}
+					}
+					numericalValueMapping.put(oldValue, newValue);
+				}
+				double numericalDefaultValue = Double.NaN;
+				if (defaultMappingAdded && !defaultValue.equals("?")) {
+					numericalDefaultValue = Double.valueOf(defaultValue);
+				}
+
+				for (AttributeMetaData amd : emd.getAllAttributes()) {
+					double lower = amd.getValueRange().getLower();
+					double upper = amd.getValueRange().getUpper();
+					double mappedLower = Double.POSITIVE_INFINITY;
+					double mappedUpper = Double.NEGATIVE_INFINITY;
+					for (Double value : numericalValueMapping.values()) {
+						if (value < mappedLower) {
+							mappedLower = value;
+						}
+						if (value > mappedUpper) {
+							mappedUpper = value;
+						}
+					}
+					if (!Double.isNaN(numericalDefaultValue) && numericalDefaultValue < mappedLower) {
+						mappedLower = numericalDefaultValue;
+					}
+					if (!Double.isNaN(numericalDefaultValue) && numericalDefaultValue > mappedUpper) {
+						mappedUpper = numericalDefaultValue;
+					}
+					amd.setValueRange(new Range(Math.min(lower, mappedLower), Math.max(upper, mappedUpper)), SetRelation.SUBSET);
+				}
+			}
+		} catch (UndefinedParameterError e) {
+		}
+
+		return emd;
+	}
+	
 	@Override
 	public ExampleSet applyOnFiltered(ExampleSet exampleSet) throws OperatorException {
 		boolean first   = true;
@@ -273,147 +415,7 @@ public class AttributeValueMapper extends AbstractValueProcessing {
 		return exampleSet;
 	}
 
-	@Override
-	public ExampleSetMetaData applyOnFilteredMetaData(ExampleSetMetaData emd) {
-		try {
-			if (emd.getAllAttributes().isEmpty()) {
-				return emd;
-			}
-			boolean first   = true;
-			boolean nominal = false;
-			for (AttributeMetaData amd : emd.getAllAttributes()) {
-				if (first) {
-					nominal = amd.isNominal();
-					first   = false;
-				} else {
-					if (nominal != amd.isNominal()) {
-						this.addError(new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), "attributes_must_have_same_type"));
-						return emd;
-					}
-				}
-			}			
 
-			boolean useValueRegex = getParameterAsBoolean(PARAMETER_CONSIDER_REGULAR_EXPRESSIONS);
-			List<String[]> mappingParameterList = getParameterList(PARAMETER_VALUE_MAPPINGS);
-
-			String replaceWhat = getParameterAsString(PARAMETER_REPLACE_WHAT);
-			String replaceBy   = getParameterAsString(PARAMETER_REPLACE_BY);
-			HashMap<String, String> mappings = new LinkedHashMap<String, String>();
-			HashMap<Pattern, String> patternMappings = new LinkedHashMap<Pattern, String>();
-			if (replaceWhat != null && replaceBy != null && !replaceWhat.equals("") && !replaceBy.equals("")) {
-				mappings.put(replaceWhat, replaceBy);
-				if (useValueRegex) {
-					try {
-						Pattern valuePattern =  Pattern.compile(replaceWhat);
-						patternMappings.put(valuePattern, replaceBy);
-					} catch (PatternSyntaxException e) {
-					}
-				}
-			}
-			Iterator<String[]> listIterator = mappingParameterList.iterator();
-			int j = 0;
-			while (listIterator.hasNext()) {
-				String[] pair = listIterator.next();
-				replaceWhat = pair[0];
-				replaceBy = pair[1];
-				mappings.put(replaceWhat,replaceBy);
-				if (useValueRegex) {
-					try {
-						Pattern valuePattern =  Pattern.compile(replaceWhat);
-						patternMappings.put(valuePattern, replaceBy);
-					} catch (PatternSyntaxException e) {
-					}
-				}
-				j++;
-			}
-
-			boolean defaultMappingAdded = getParameterAsBoolean(PARAMETER_ADD_DEFAULT_MAPPING); 
-			String defaultValue = getParameterAsString(PARAMETER_DEFAULT_VALUE);
-
-			if (nominal) {
-				for (AttributeMetaData amd : emd.getAllAttributes()) {
-					Set<String> valueSet = new TreeSet<String>();
-					for (String value : amd.getValueSet()) {
-						String mappedValue = mappings.get(value);
-						if (useValueRegex) {
-							for (Entry<Pattern, String> patternEntry : patternMappings.entrySet()) {
-								Matcher matcher = patternEntry.getKey().matcher(value);
-								if (matcher.matches()) {
-									mappedValue = patternEntry.getValue();
-									break;
-								}
-							}
-						}
-						if (mappedValue == null) {
-							if (defaultMappingAdded) {
-								if (defaultValue.equals("?")) {
-								} else {
-									valueSet.add(defaultValue);
-								}
-							} else {
-								valueSet.add(value);
-							}
-						} else {
-							valueSet.add(mappedValue);
-						}
-					}
-					amd.setValueSet(valueSet, SetRelation.SUBSET);
-				}
-			} else {
-				HashMap<Double, Double> numericalValueMapping = new HashMap<Double, Double>();
-				for (Entry<String, String> entry : mappings.entrySet()) {
-					double oldValue = Double.NaN;
-					double newValue = Double.NaN;
-					if (!entry.getKey().equals("?")) {
-						try {
-							oldValue = Double.valueOf(entry.getKey());
-						} catch (NumberFormatException e) {							
-							this.addError(new SimpleProcessSetupError(Severity.ERROR, AttributeValueMapper.this.getPortOwner(), "mapping_must_be_number", entry.getKey()));
-							continue;
-						}
-					}
-					if (!entry.getValue().equals("?")) {
-						try {
-							newValue = Double.valueOf(entry.getValue());
-						} catch (NumberFormatException e) {
-							this.addError(new SimpleProcessSetupError(Severity.ERROR, AttributeValueMapper.this.getPortOwner(), "mapping_must_be_number", entry.getValue()));
-							continue;
-						}
-					}
-					numericalValueMapping.put(oldValue, newValue);
-				}
-				double numericalDefaultValue = Double.NaN;
-				if (defaultMappingAdded && !defaultValue.equals("?")) {
-					numericalDefaultValue = Double.valueOf(defaultValue);
-				}
-
-				for (AttributeMetaData amd : emd.getAllAttributes()) {
-					double lower = amd.getValueRange().getLower();
-					double upper = amd.getValueRange().getUpper();
-					double mappedLower = Double.POSITIVE_INFINITY;
-					double mappedUpper = Double.NEGATIVE_INFINITY;
-					for (Double value : numericalValueMapping.values()) {
-						if (value < mappedLower) {
-							mappedLower = value;
-						}
-						if (value > mappedUpper) {
-							mappedUpper = value;
-						}
-					}
-					if (!Double.isNaN(numericalDefaultValue) && numericalDefaultValue < mappedLower) {
-						mappedLower = numericalDefaultValue;
-					}
-					if (!Double.isNaN(numericalDefaultValue) && numericalDefaultValue > mappedUpper) {
-						mappedUpper = numericalDefaultValue;
-					}
-					amd.setValueRange(new Range(Math.min(lower, mappedLower), Math.max(upper, mappedUpper)), SetRelation.SUBSET);
-				}
-			}
-		} catch (UndefinedParameterError e) {
-		}
-
-		return emd;
-	}
 
 	@Override
 	protected int[] getFilterValueTypes() {
@@ -450,6 +452,11 @@ public class AttributeValueMapper extends AbstractValueProcessing {
 		types.add(type);
 
 		return types;
+	}
+	
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
 	}
 	
 	@Override

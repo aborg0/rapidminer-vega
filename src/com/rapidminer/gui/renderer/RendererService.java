@@ -30,10 +30,13 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
@@ -42,6 +45,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
@@ -56,6 +60,8 @@ import com.rapidminer.tools.Tools;
  */
 public class RendererService {
 
+	private static final Icon ICON_DEFAULT = SwingTools.createIcon("16/data.png");
+	
 	private static Set<String> objectNames = new TreeSet<String>();
 
 	/** Maps names of IOObjects to lists of renderers that can render this object. These
@@ -73,6 +79,8 @@ public class RendererService {
 
 	private static Map<Class<?>, String> class2NameMap = new HashMap<Class<?>, String>();
 
+	private static Map<Class<? extends IOObject>, Icon> class2IconMap = new HashMap<Class<? extends IOObject>, Icon>();
+	
 	public static void init() {
 		URL url = Tools.getResource("ioobjects.xml");
 		init(url);
@@ -126,6 +134,12 @@ public class RendererService {
 							reportableString = ioObjectElement.getAttribute("reportable");
 						}
 						boolean reportable = Tools.booleanValue(reportableString, true);
+						
+						String icon = null;
+						if (ioObjectElement.hasAttribute("icon")) {
+							icon = ioObjectElement.getAttribute("icon");
+						}
+						
 
 						NodeList rendererNodes = ioObjectElement.getElementsByTagName("renderer");
 						List<String> renderers = new LinkedList<String>();
@@ -138,7 +152,7 @@ public class RendererService {
 							}
 						}
 
-						registerRenderers(name, className, reportable, renderers, classLoader);
+						registerRenderers(name, className, reportable, icon, renderers, classLoader);
 					}
 				}
 			} else {
@@ -162,8 +176,16 @@ public class RendererService {
 
 	}
 
-	@SuppressWarnings("unchecked")
+	/**
+	 * This method remains for compatibility reasons. But one should use {@link #registerRenderers(String, String, boolean, String, List, ClassLoader)} in order
+	 * to assign an icon to the ioobject class.
+	 */
+	@Deprecated
 	public static void registerRenderers(String reportableNames, String className, boolean reportable, List<String> rendererClassNames, ClassLoader classLoader) {
+		registerRenderers(reportableNames, className, reportable, null, rendererClassNames, classLoader);
+	}
+	@SuppressWarnings("unchecked")
+	public static void registerRenderers(String reportableNames, String className, boolean reportable, String iconName, List<String> rendererClassNames, ClassLoader classLoader) {
 		objectNames.add(reportableNames);
 
 		try {
@@ -180,7 +202,7 @@ public class RendererService {
 					// classes
 					rendererClass = (Class<? extends Renderer>) Class.forName(rendererClassName);
 				}
-				Renderer renderer = (Renderer) rendererClass.newInstance();
+				Renderer renderer = rendererClass.newInstance();
 				renderers.add(renderer);
 				rendererClassMap.put(renderer.getName(), rendererClass);
 			}
@@ -192,6 +214,14 @@ public class RendererService {
 			if (reportable) {
 				reportableMap.add(reportableNames);
 			}
+			
+			// try to create icon
+			if (iconName != null && !iconName.isEmpty()) {
+				ImageIcon icon = SwingTools.createIcon("16/" + iconName);
+				if (icon != null)
+					class2IconMap.put(clazz, icon);
+			}
+			
 		} catch (Throwable e) {
 			LogService.getRoot().log(Level.WARNING, "Cannot register renderer: " + e, e);
 		}
@@ -217,17 +247,12 @@ public class RendererService {
 	public static String getName(Class<?> clazz) {
 		String result = class2NameMap.get(clazz);
 		if (result == null) {
-			result = getNameForSuperClass(clazz);
+			for (Class<?> renderable: class2NameMap.keySet()) {
+				if (renderable.isAssignableFrom(clazz))
+					return class2NameMap.get(renderable);
+			}
 		}
 		return result;
-	}
-
-	private static String getNameForSuperClass(Class<?> clazz) {
-		for (Class<?> renderable: class2NameMap.keySet()) {
-			if (renderable.isAssignableFrom(clazz))
-				return class2NameMap.get(renderable);
-		}
-		return null;
 	}
 
 	/**
@@ -264,6 +289,21 @@ public class RendererService {
 		return null;
 	}
 	
+	/**
+	 * This returns the icon registered for the given class or a default icon,
+	 * if nothing has been registered.
+	 */
+	public static Icon getIcon(Class<? extends IOObject> objectClass) {
+		Icon icon = class2IconMap.get(objectClass);
+		if (icon == null) {
+			for (Entry<Class<? extends IOObject>, Icon> renderableClassEntry: class2IconMap.entrySet()) {
+				if (renderableClassEntry.getKey().isAssignableFrom(objectClass))
+					return renderableClassEntry.getValue();
+			}
+			return ICON_DEFAULT;
+		} 
+		return icon;
+	}
 	/** Creates a new renderer for the given object. 
 	 * @throws IllegalAccessException 
 	 * @throws InstantiationException */

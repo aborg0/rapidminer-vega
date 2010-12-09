@@ -123,6 +123,14 @@ public abstract class NumericToNominal extends AbstractFilteredDataProcessing {
 		return exampleSet;
 	}
 	
+	/**
+	 * This adds another column, does not modify existing.
+	 */
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
+	}
+	
 	@Override
 	protected int[] getFilterValueTypes() {
 		return new int[] { Ontology.NUMERICAL };

@@ -188,7 +188,7 @@ public abstract class ReceivingOperatorTransferHandler extends OperatorTransferH
 							if (child instanceof Element) {
 								Element elem = (Element) child;
 								if ("operator".equals(elem.getTagName())) {
-									newOp = new XMLImporter(null).parseOperator(elem, new LinkedList<UnknownParameterInformation>());									
+									newOp = new XMLImporter(null).parseOperator(elem, RapidMiner.getVersion(), getProcess(), new LinkedList<UnknownParameterInformation>());									
 									break;
 								}
 							}

@@ -24,8 +24,6 @@ package com.rapidminer.operator.visualization.dependencies;
 
 import java.text.NumberFormat;
 
-import javax.swing.Icon;
-
 import Jama.Matrix;
 
 import com.rapidminer.datatable.DataTable;
@@ -33,7 +31,6 @@ import com.rapidminer.datatable.DataTablePairwiseMatrixExtractionAdapter;
 import com.rapidminer.datatable.DataTableSymmetricalMatrixAdapter;
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
-import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.ResultObjectAdapter;
 import com.rapidminer.tools.Tools;
 
@@ -49,14 +46,6 @@ public class NumericalMatrix extends ResultObjectAdapter {
 	private static final long serialVersionUID = -5498982791125720765L;
 
 	private static final int MAX_NUMBER_OF_RESULT_STRING_ATTRIBUTES = 20;
-
-	private static final String RESULT_ICON_NAME = "table.png";
-
-	private static Icon resultIcon = null;
-
-	static {
-		resultIcon = SwingTools.createIcon("16/" + RESULT_ICON_NAME);
-	}
 
 	private Matrix matrix;
 
@@ -169,11 +158,6 @@ public class NumericalMatrix extends ResultObjectAdapter {
 	public String getExtension() { return "mat"; }
 
 	public String getFileDescription() { return name.toLowerCase() + " matrix"; }
-
-	@Override
-	public Icon getResultIcon() {
-		return resultIcon;
-	}
 
 	@Override
 	public String toString() {

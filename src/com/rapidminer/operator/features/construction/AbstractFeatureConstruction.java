@@ -28,7 +28,7 @@ import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.parameter.UndefinedParameterError;
 
-/** 
+/**
  * Abstract superclass of all feature processing operators who generate new features.
  * 
  * @author Simon Fischer
@@ -43,6 +43,14 @@ public abstract class AbstractFeatureConstruction extends AbstractFeatureProcess
 	protected MetaData modifyMetaData(ExampleSetMetaData metaData) throws UndefinedParameterError {
 		metaData.attributesAreSuperset();
 		return metaData;
+	}
+
+	/**
+	 * These operators will build additional columns, but won't touch existing ones.
+	 */
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
 	}
 
 }

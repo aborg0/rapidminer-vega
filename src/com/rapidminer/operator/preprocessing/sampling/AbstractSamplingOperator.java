@@ -56,4 +56,9 @@ public abstract class AbstractSamplingOperator extends AbstractDataProcessing {
 	 *  subclasses must implement this method for exact size meta data. 
 	 */
 	protected abstract MDInteger getSampledSize(ExampleSetMetaData emd) throws UndefinedParameterError;
+	
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
+	}
 }

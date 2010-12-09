@@ -90,4 +90,8 @@ public class BooleanSparseArrayDataRow extends AbstractSparseArrayDataRow {
             result[i] = this.values[i] ? 1.0d : 0.0d;
         return result;
     }
+	@Override
+	public int getType() {
+		return DataRowFactory.TYPE_BOOLEAN_SPARSE_ARRAY;
+	}
 }

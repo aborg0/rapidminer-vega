@@ -128,6 +128,10 @@ public class GeneratePredictionRankingOperator extends AbstractExampleSetProcess
 		return exampleSet;
 	}
 
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
+	}
 	
 	@Override
 	public List<ParameterType> getParameterTypes() {

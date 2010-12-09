@@ -25,9 +25,6 @@ package com.rapidminer.operator.performance;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.swing.Icon;
-
-import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.math.Averagable;
@@ -46,14 +43,6 @@ public class PerformanceVector extends AverageVector {
 	private static final long serialVersionUID = 3123587140049371098L;
 
 	public static final String MAIN_CRITERION_FIRST = "first";
-
-	private static final String RESULT_ICON_NAME = "symbol_percent.png";
-
-	private static Icon resultIcon = null;
-
-	static {
-		resultIcon = SwingTools.createIcon("16/" + RESULT_ICON_NAME);
-	}
 
 	/**
 	 * The default performance comparator compares the main criterion of two
@@ -157,11 +146,6 @@ public class PerformanceVector extends AverageVector {
 			av.addAveragable((Averagable) (avg).clone());
 		}
 		return av;
-	}
-
-	@Override
-	public Icon getResultIcon() {
-		return resultIcon;
 	}
 
 	@Override

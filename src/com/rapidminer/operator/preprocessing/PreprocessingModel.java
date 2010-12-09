@@ -27,8 +27,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.swing.Icon;
-
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.Attributes;
@@ -36,7 +34,6 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.set.ModelViewExampleSet;
 import com.rapidminer.example.set.NonSpecialAttributesExampleSet;
 import com.rapidminer.example.set.RemappedExampleSet;
-import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.AbstractModel;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ViewModel;
@@ -56,15 +53,7 @@ public abstract class PreprocessingModel extends AbstractModel implements ViewMo
 
 	private static final long serialVersionUID = -2603663450216521777L;
 
-	private static final String RESULT_ICON_NAME = "objects_transform.png";
-
-	private static Icon resultIcon = null;
-
 	private HashMap<String, Object> parameterMap = new HashMap<String, Object>();
-
-	static {
-		resultIcon = SwingTools.createIcon("16/" + RESULT_ICON_NAME);
-	}
 
 	protected PreprocessingModel(ExampleSet exampleSet) {
 		super(exampleSet);
@@ -141,11 +130,6 @@ public abstract class PreprocessingModel extends AbstractModel implements ViewMo
 	@Override
 	public void setParameter(String key, Object value) {
 		parameterMap.put(key, value);
-	}
-
-	@Override
-	public Icon getResultIcon() {
-		return resultIcon;
 	}
 
 	/**

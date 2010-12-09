@@ -52,6 +52,7 @@ import org.w3c.dom.Element;
 import com.rapidminer.BreakpointListener;
 import com.rapidminer.Process;
 import com.rapidminer.RapidMiner;
+import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.gui.wizards.ConfigurationListener;
 import com.rapidminer.gui.wizards.PreviewListener;
 import com.rapidminer.io.process.XMLExporter;
@@ -1648,22 +1649,26 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		}
 	}
 
-	public static Operator createFromXML(Element element, List<UnknownParameterInformation> unknownParameterInformation) throws XMLException {
-		return createFromXML(element, unknownParameterInformation, null);
+	public static Operator createFromXML(Element element, Process targetProcess, List<UnknownParameterInformation> unknownParameterInformation) throws XMLException {
+		return createFromXML(element, targetProcess, unknownParameterInformation, null);
 	}
 
-	public static Operator createFromXML(Element element, List<UnknownParameterInformation> unknownParameterInformation, ProgressListener l) throws XMLException {
+	/**
+	 * This will create an operator by interpreting the given XML element as being generated from the current RapidMiner version. No Import
+	 * Rules will be applied to adapt it to version changes.
+	 */
+	public static Operator createFromXML(Element element, Process process, List<UnknownParameterInformation> unknownParameterInformation, ProgressListener l) throws XMLException {
 		XMLImporter importer = new XMLImporter(l);
-		return importer.parseOperator(element, unknownParameterInformation);
+		return importer.parseOperator(element, XMLImporter.CURRENT_VERSION, process, unknownParameterInformation);
 	}
 
 	/**
 	 * This will create an operator from a XML element describing this operator. The given version will be passed to the XMLImporter
 	 * to enable the handling of this element as if it would have been created from this version. See {@link XMLImporter#VERSION_RM_5} for details.
 	 */
-	public static Operator createFromXML(Element element, List<UnknownParameterInformation> unknownParameterInformation, ProgressListener l, int version) throws XMLException {
-		XMLImporter importer = new XMLImporter(l, version);
-		return importer.parseOperator(element, unknownParameterInformation);
+	public static Operator createFromXML(Element element, Process process, List<UnknownParameterInformation> unknownParameterInformation, ProgressListener progressListener, VersionNumber originatingVersion) throws XMLException {
+		XMLImporter importer = new XMLImporter(progressListener);
+		return importer.parseOperator(element, originatingVersion, process, unknownParameterInformation);
 	}
 
 	/**

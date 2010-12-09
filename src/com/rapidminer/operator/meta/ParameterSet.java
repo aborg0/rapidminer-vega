@@ -33,7 +33,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.Icon;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -45,7 +44,6 @@ import org.xml.sax.SAXException;
 
 import com.rapidminer.Process;
 import com.rapidminer.RapidMiner;
-import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.ResultObjectAdapter;
 import com.rapidminer.operator.performance.PerformanceVector;
@@ -60,14 +58,6 @@ import com.rapidminer.tools.Tools;
 public class ParameterSet extends ResultObjectAdapter {
 
 	private static final long serialVersionUID = -2615523039124583537L;
-
-	private static final String RESULT_ICON_NAME = "preferences.png";
-	
-	private static Icon resultIcon = null;
-	
-	static {
-		resultIcon = SwingTools.createIcon("16/" + RESULT_ICON_NAME);
-	}
 
 	private final List<ParameterValue> parameterValues = new LinkedList<ParameterValue>();
 
@@ -199,9 +189,4 @@ public class ParameterSet extends ResultObjectAdapter {
         }
 		return parameterSet;
 	}
-	
-	@Override
-	public Icon getResultIcon() {
-		return resultIcon;
 	}
-}

@@ -53,6 +53,7 @@ import java.util.jar.Manifest;
 import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -167,6 +168,8 @@ public class Plugin {
 		this.classLoader = makeNonDelegatingClassloader();
 		Tools.addResourceSource(new ResourceSource(this.classLoader));
 		fetchMetaData();
+		
+		RapidMiner.getSplashScreen().addExtension(this);
 	}
 
 	private PluginClassLoader makeNonDelegatingClassloader() {
@@ -891,5 +894,15 @@ public class Plugin {
 		} else {
 			return new File(locationProperty);
 		}
+	}
+
+	/**
+	 * This returns the Icon of the extension or null if not present.
+	 */
+	public ImageIcon getExtensionIcon() {
+		URL iconURL = classLoader.findResource("META-INF/icon.png");
+		if (iconURL != null)
+			return new ImageIcon(iconURL);
+		return null;
 	}
 }

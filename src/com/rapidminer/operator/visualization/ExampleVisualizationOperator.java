@@ -58,4 +58,9 @@ public class ExampleVisualizationOperator extends AbstractExampleSetProcessing {
 
 		return exampleSet;
 	}
+	
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
+	}
 }

@@ -133,6 +133,11 @@ public class Numerical2Date extends AbstractDateDataProcessing {
 	}
 
 	@Override
+	public boolean writesIntoExistingData() {
+		return false;
+	}
+	
+	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), Date2Numerical.class, null);
 	}

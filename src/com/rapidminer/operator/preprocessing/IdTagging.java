@@ -142,6 +142,12 @@ public class IdTagging extends AbstractDataProcessing {
 		return types;
 	}
 	
+	
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
+	}
+	
 	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), IdTagging.class, null);

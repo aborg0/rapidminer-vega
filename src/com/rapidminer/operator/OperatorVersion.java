@@ -2,7 +2,7 @@ package com.rapidminer.operator;
 
 import java.util.Comparator;
 
-import com.rapidminer.Version;
+import com.rapidminer.RapidMiner;
 import com.rapidminer.tools.plugin.Plugin;
 
 /** Operators can change their behaviour from one version to another. 
@@ -96,7 +96,7 @@ public class OperatorVersion implements Comparable<OperatorVersion> {
 		try {
 			Plugin plugin = desc.getProvider();
 			if (plugin == null) {
-				return new OperatorVersion(Version.getLongVersion());
+				return new OperatorVersion(RapidMiner.getLongVersion());
 			} else {
 				return new OperatorVersion(plugin.getVersion());
 			}

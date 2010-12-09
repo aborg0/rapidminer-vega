@@ -22,9 +22,6 @@
  */
 package com.rapidminer.tools.math;
 
-import javax.swing.Icon;
-
-import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.ResultObjectAdapter;
 
 /**
@@ -37,14 +34,6 @@ import com.rapidminer.operator.ResultObjectAdapter;
 public abstract class SignificanceTestResult extends ResultObjectAdapter {
 
 	private static final long serialVersionUID = 2586381371596047181L;
-
-	private static final String RESULT_ICON_NAME = "symbol_percent.png";
-
-	private static Icon resultIcon = null;
-
-	static {
-		resultIcon = SwingTools.createIcon("16/" + RESULT_ICON_NAME);
-	}
 
 	/** Returns the name of the test. */
 	@Override
@@ -60,9 +49,4 @@ public abstract class SignificanceTestResult extends ResultObjectAdapter {
 	public String getExtension() { return "sgf"; }
 
 	public String getFileDescription() { return "significance test"; }
-
-	@Override
-	public Icon getResultIcon() {
-		return resultIcon;
-	}
 }

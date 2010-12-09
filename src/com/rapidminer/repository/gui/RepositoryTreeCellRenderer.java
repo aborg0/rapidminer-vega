@@ -31,6 +31,7 @@ import javax.swing.JLabel;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
+import com.rapidminer.gui.renderer.RendererService;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.repository.BlobEntry;
 import com.rapidminer.repository.DataEntry;
@@ -39,6 +40,7 @@ import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.Repository;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.tools.Tools;
 /**
  * @author Simon Fischer
@@ -47,16 +49,16 @@ public class RepositoryTreeCellRenderer extends DefaultTreeCellRenderer {
 
 	private static final long serialVersionUID = 1L;
 
-	private final Icon ICON_SERVER        = SwingTools.createIcon("16/server.png");
-	private final Icon ICON_FOLDER_OPEN   = SwingTools.createIcon("16/folder.png");
-	private final Icon ICON_FOLDER_CLOSED = SwingTools.createIcon("16/folder_closed.png");
-	private final Icon ICON_FOLDER_LOCKED = SwingTools.createIcon("16/folder_lock.png");
-	private final Icon ICON_PROCESS       = SwingTools.createIcon("16/gear.png");
-	private final Icon ICON_DATA          = SwingTools.createIcon("16/data.png");
-	private final Icon ICON_BLOB          = SwingTools.createIcon("16/data.png");
-	private final Icon ICON_TEXT          = SwingTools.createIcon("16/text.png");
-	private final Icon ICON_TABLE          = SwingTools.createIcon("16/table2.png");
-	private final Icon ICON_IMAGE         = SwingTools.createIcon("16/photo_landscape2.png");
+	private static final Icon ICON_SERVER        = SwingTools.createIcon("16/server.png");
+	private static final Icon ICON_FOLDER_OPEN   = SwingTools.createIcon("16/folder.png");
+	private static final Icon ICON_FOLDER_CLOSED = SwingTools.createIcon("16/folder_closed.png");
+	private static final Icon ICON_FOLDER_LOCKED = SwingTools.createIcon("16/folder_lock.png");
+	private static final Icon ICON_PROCESS       = SwingTools.createIcon("16/gear.png");
+	private static final Icon ICON_DATA          = SwingTools.createIcon("16/data.png");
+	private static final Icon ICON_BLOB          = SwingTools.createIcon("16/data.png");
+	private static final Icon ICON_TEXT          = SwingTools.createIcon("16/text.png");
+	private static final Icon ICON_TABLE          = SwingTools.createIcon("16/table2.png");
+	private static final Icon ICON_IMAGE         = SwingTools.createIcon("16/photo_landscape2.png");
 
 	private static final DateFormat DATE_FORMAT = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 	
@@ -98,7 +100,16 @@ public class RepositoryTreeCellRenderer extends DefaultTreeCellRenderer {
 					label.setIcon(ICON_FOLDER_CLOSED);
 				}
 			} else if (entry.getType().equals(IOObjectEntry.TYPE_NAME)) {
-				label.setIcon(ICON_DATA);
+				if (entry instanceof IOObjectEntry) {
+					IOObjectEntry dataEntry = (IOObjectEntry) entry;
+					try {
+						label.setIcon(RendererService.getIcon(dataEntry.retrieveMetaData().getObjectClass()));
+					} catch (RepositoryException e) {
+						label.setIcon(ICON_DATA);
+					}
+				} else {
+					label.setIcon(ICON_DATA);
+				}
 			} else if (entry.getType().equals(ProcessEntry.TYPE_NAME)) {
 				label.setIcon(ICON_PROCESS);
 			} else if (entry.getType().equals(BlobEntry.TYPE_NAME)) {

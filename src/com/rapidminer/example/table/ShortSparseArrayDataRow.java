@@ -90,4 +90,9 @@ public class ShortSparseArrayDataRow extends AbstractSparseArrayDataRow {
             result[i] = this.values[i];
         return result;
     }
+    
+	@Override
+	public int getType() {
+		return DataRowFactory.TYPE_SHORT_SPARSE_ARRAY;
+	}
 }

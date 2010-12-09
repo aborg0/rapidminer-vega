@@ -124,5 +124,8 @@ public class FastSparseDoubleArrayDataRow extends DataRow {
         return result.toString();
     }
 
-
+	@Override
+	public int getType() {
+		return DataRowFactory.TYPE_DOUBLE_SPARSE_ARRAY;
+	}
 }

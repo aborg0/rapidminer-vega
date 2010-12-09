@@ -68,8 +68,14 @@ public class String2Nominal extends AbstractFilteredDataProcessing {
 		return emd;
 	}
 	
+	@Override
 	protected int[] getFilterValueTypes() {
 		return new int[] { Ontology.STRING };
+	}
+	
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
 	}
 	
 	@Override

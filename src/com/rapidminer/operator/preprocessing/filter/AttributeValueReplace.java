@@ -24,9 +24,9 @@ package com.rapidminer.operator.preprocessing.filter;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -156,6 +156,11 @@ public class AttributeValueReplace extends AbstractValueProcessing {
 		types.add(new ParameterTypeRegexp(PARAMETER_REPLACE_WHAT, "A regular expression specifying what should be replaced.", false, false));
 		types.add(new ParameterTypeString(PARAMETER_REPLACE_BY, "The replacement for the region matched by the regular expression. Possibly including capturing groups.", true, false));
 		return types;
+	}
+	
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
 	}
 	
 	@Override

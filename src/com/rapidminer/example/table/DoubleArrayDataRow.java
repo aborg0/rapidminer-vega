@@ -77,4 +77,9 @@ public class DoubleArrayDataRow extends DataRow {
 			result.append((i == 0 ? "" : ",") + data[i]);
 		return result.toString();
 	}
+	
+	@Override
+	public int getType() {
+		return DataRowFactory.TYPE_DOUBLE_ARRAY;
+	}
 }

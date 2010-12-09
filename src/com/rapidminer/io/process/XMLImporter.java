@@ -41,6 +41,7 @@ import org.w3c.dom.NodeList;
 import com.rapidminer.BreakpointListener;
 import com.rapidminer.Process;
 import com.rapidminer.ProcessContext;
+import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.io.process.rules.ChangeParameterValueRule;
 import com.rapidminer.io.process.rules.DeleteAfterAutoWireRule;
 import com.rapidminer.io.process.rules.DeleteUnnecessaryOperatorChainRule;
@@ -92,17 +93,16 @@ import com.rapidminer.tools.plugin.Plugin;
  */
 public class XMLImporter {
 
-	public static final int VERSION_NONE = 0;
-	public static final int VERSION_RM_3 = 30;
-	public static final int VERSION_RM_4 = 40;
-	public static final int VERSION_RM_5 = 50;
-	public static final int CURRENT_VERSION = VERSION_RM_5;
+	public static final VersionNumber VERSION_RM_3 = new VersionNumber(3, 0);
+	public static final VersionNumber VERSION_RM_4 = new VersionNumber(4, 0);
+	public static final VersionNumber VERSION_RM_5 = new VersionNumber(5, 0);
+	public static final VersionNumber CURRENT_VERSION = VERSION_RM_5;
 
 	private static final Set<String> IRRELEVANT_PARAMETERS = new HashSet<String>();
-	static {		
+	static {
 		IRRELEVANT_PARAMETERS.add("read_database.data_set_meta_data_information");
 	}
-	
+
 	/**
 	 * Encoding in which process files are written. UTF-8 is guaranteed to exist on any JVM, see javadoc of
 	 * {@link Charset}.
@@ -206,8 +206,6 @@ public class XMLImporter {
 		}
 	}
 
-	private int version = VERSION_NONE;
-
 	private final List<Runnable> jobsAfterAutoWire = new LinkedList<Runnable>();
 	private final List<Runnable> jobsAfterTreeConstruction = new LinkedList<Runnable>();
 
@@ -226,9 +224,13 @@ public class XMLImporter {
 		progressListener = listener;
 	}
 
+	
+	/**
+	 * This constructor will simply ignore the version. It will always use the one of RapidMiner.
+	 */
+	@Deprecated
 	public XMLImporter(ProgressListener listener, int version) {
 		this(listener);
-		this.version = version;
 	}
 
 	private int messageCount = 0;
@@ -241,14 +243,15 @@ public class XMLImporter {
 		messages.append("</li>");
 	}
 
-	private void setVersion(int version) {
-		this.version = version;
-		LogService.getRoot().finest("Process file version is " + version);
-	}
-
-	public void parse(Document doc, Process process, List<UnknownParameterInformation> uli) throws XMLException {
-		ProcessRootOperator rootOperator = parse(doc.getDocumentElement(), uli);
+	public void parse(Document doc, Process process, List<UnknownParameterInformation> unknownParameters) throws XMLException {
+		// find version number
+		VersionNumber processVersion = parseVersion(doc.getDocumentElement());
+		
+		// parse root operator 
+		Element rootOperatorElement = getRootOperatorElement(doc);
+		ProcessRootOperator rootOperator = parseRootOperator(rootOperatorElement, processVersion, process, unknownParameters);
 		process.setRootOperator(rootOperator);
+
 		// Process context
 		NodeList contextElems = doc.getDocumentElement().getElementsByTagName("context");
 		switch (contextElems.getLength()) {
@@ -278,37 +281,10 @@ public class XMLImporter {
 		if (hasMessage()) {
 			process.setImportMessage(getMessage());
 		}
-		process.setProcessFileVersion(version);
 	}
 
-	private ProcessRootOperator parse(Element root, List<UnknownParameterInformation> uli) throws XMLException {
-		if ("experiment".equals(root.getTagName())) {
-			addMessage("<code>&lt;experiment&gt;</code> is deprecated XML syntax. Use <code>&lt;process&gt;</code> instead.");
-		}
-		Element rootOpElement = null;
-		if ("process".equals(root.getTagName()) || "experiment".equals(root.getTagName())) {
-			parseVersion(root);
-			NodeList children = root.getChildNodes();
-			int length = children.getLength();
-			for (int i = 0; i < length; i++) {
-				Node childNode = children.item(i);
-				if (childNode instanceof Element) {
-					Element childElement = (Element) childNode;
-					if (childElement.getTagName().equals("operator")) {
-						rootOpElement = childElement;
-						break;
-					}
-				}
-			}
-			if (rootOpElement == null) {
-				throw new XMLException("The <process> tag must contain exactly one inner operator of type 'Process'!");
-			}
-		} else if ("operator".equals(root.getTagName())) {
-			rootOpElement = root;
-		} else {
-			throw new XMLException("Root element must be one out of <process>, <experiment>, or <operator>.");
-		}
-		Operator rootOp = parseOperator(rootOpElement, uli);
+	private ProcessRootOperator parseRootOperator(Element rootOperatorElement, VersionNumber processFileVersion, Process process, List<UnknownParameterInformation> unknownParameters) throws XMLException {
+		Operator rootOp = parseOperator(rootOperatorElement, processFileVersion, process, unknownParameters);
 
 		for (Runnable runnable : jobsAfterTreeConstruction) {
 			runnable.run();
@@ -334,10 +310,36 @@ public class XMLImporter {
 			throw new XMLException("Outermost operator must be of type 'Process' (<operator class=\"Process\">)");
 		}
 	}
-
-	private void parseProcess(Element element, ExecutionUnit executionUnit, List<UnknownParameterInformation> unknownParameterInformation) throws XMLException {
+	
+	private Element getRootOperatorElement(Document document) throws XMLException {
+		Element documentElement = document.getDocumentElement();
+		Element rootOperatorElement = null;
+		if ("process".equals(documentElement.getTagName()) || "experiment".equals(documentElement.getTagName())) {
+			NodeList children = documentElement.getChildNodes();
+			int length = children.getLength();
+			for (int i = 0; i < length; i++) {
+				Node childNode = children.item(i);
+				if (childNode instanceof Element) {
+					Element childElement = (Element) childNode;
+					if (childElement.getTagName().equals("operator")) {
+						rootOperatorElement = childElement;
+						break;
+					}
+				}
+			}
+			if (rootOperatorElement == null) {
+				throw new XMLException("The <process> tag must contain exactly one inner operator of type 'Process'!");
+			}
+		} else if ("operator".equals(documentElement.getTagName())) {
+			rootOperatorElement = documentElement;
+		} else {
+			throw new XMLException("Root element must be one out of <process>, <experiment>, or <operator>.");
+		}
+		return rootOperatorElement;
+	}
+	
+	private void parseProcess(Element element, ExecutionUnit executionUnit, VersionNumber processFileVersion, Process process, List<UnknownParameterInformation> unknownParameterInformation) throws XMLException {
 		assert ("process".equals(element.getTagName()));
-		parseVersion(element);
 
 		if (element.hasAttribute("expanded")) {
 			String expansionString = element.getAttribute("expanded");
@@ -356,7 +358,7 @@ public class XMLImporter {
 			if (child instanceof Element) {
 				Element opElement = (Element) child;
 				if ("operator".equals(opElement.getTagName())) {
-					parseOperator(opElement, executionUnit, unknownParameterInformation);
+					parseOperator(opElement, executionUnit, processFileVersion, process, unknownParameterInformation);
 				} else if ("connect".equals(opElement.getTagName())) {
 					parseConnection(opElement, executionUnit);
 				} else if ("portSpacing".equals(opElement.getTagName())) {
@@ -416,14 +418,14 @@ public class XMLImporter {
 		}
 	}
 
-	public Operator parseOperator(Element opElement, List<UnknownParameterInformation> unknownParameterInformation) throws XMLException {
+	public Operator parseOperator(Element opElement, VersionNumber processVersion, Process process, List<UnknownParameterInformation> unknownParameterInformation) throws XMLException {
 		total = opElement.getElementsByTagName("operator").getLength();
-		Operator operator = parseOperator(opElement, null, unknownParameterInformation);
+		Operator operator = parseOperator(opElement, null, processVersion, process, unknownParameterInformation);
 		unlockPorts(operator);
 		return operator;
 	}
 
-	private Operator parseOperator(Element opElement, ExecutionUnit addToProcess, List<UnknownParameterInformation> unknownParameterInformation) throws XMLException {
+	private Operator parseOperator(Element opElement, ExecutionUnit addToProcess, VersionNumber processFileVersion, Process process, List<UnknownParameterInformation> unknownParameterInformation) throws XMLException {
 		assert ("operator".equals(opElement.getTagName()));
 		String className = opElement.getAttribute("class");
 		String replacement = OperatorService.getReplacementForDeprecatedClass(className);
@@ -537,14 +539,14 @@ public class XMLImporter {
 					// first check for old-style <description text="bla"/>
 					if (inner.hasAttribute("text")) {
 						String descriptionText = inner.getAttribute("text");
-						if (version < VERSION_RM_5) {
+						if (processFileVersion.compareTo(VERSION_RM_5) < 0) {
 							// this is only necessary for old versions
 							descriptionText = descriptionText.replaceAll("#yquot#", "&quot;");
 							descriptionText = descriptionText.replaceAll("#ygt#", ">");
 							descriptionText = descriptionText.replaceAll("#ylt#", "<");
 						}
 						operator.setUserDescription(descriptionText);
-						if (version >= VERSION_RM_5) {
+						if (processFileVersion.compareTo(VERSION_RM_5) >= 0) {
 							addMessage("The tag &lt;description text=\"TEXT\"&gt; is deprecated. From version 5.0 on, use &lt;description&gt;TEXT&lt;/description&gt;.");
 						}
 					} else {
@@ -552,11 +554,11 @@ public class XMLImporter {
 						String textContent = inner.getTextContent();
 						if ((textContent != null) && (textContent.length() > 0)) {
 							operator.setUserDescription(textContent);
-							if (version < VERSION_RM_5) {
+							if (processFileVersion.compareTo(VERSION_RM_5) < 0) {
 								addMessage("The tag &lt;description&gt; is missing a text attribute. Using the version 5.0 style XML text content as description text.");
 							}
 						} else {
-							if (version < VERSION_RM_5) {
+							if (processFileVersion.compareTo(VERSION_RM_5) < 0) {
 								addMessage("The tag &lt;description&gt; is missing a text attribute.");
 							}
 						}
@@ -564,7 +566,7 @@ public class XMLImporter {
 				} else if (inner.getTagName().toLowerCase().equals("parameter")) {
 					String[] parameter = parseParameter(inner);
 					boolean knownType = operator.getParameters().setParameter(parameter[0], parameter[1]);
-					if (!knownType) {						
+					if (!knownType) {
 						if (relevantParameter(className, parameter[0])) {
 							addMessage("The parameter '<code>" + parameter[0] + "</code>' is unknown for operator '<var>" + operator.getName() + "</var>' (<code>" + operator.getOperatorDescription().getName() + "</code>).");
 							unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), parameter[0], parameter[1]));
@@ -576,7 +578,7 @@ public class XMLImporter {
 					if (type == null) {
 						if (relevantParameter(className, key)) {
 							addMessage("The parameter '" + key + "' of type list is unknown for operator '" + operator.getName() + "' (" + operator.getOperatorDescription().getName() + ").");
-							unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), key, ""));							
+							unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), key, ""));
 						}
 					} else {
 						if (!(type instanceof ParameterTypeList)) {
@@ -647,9 +649,9 @@ public class XMLImporter {
 							if ("process".equals(childProcessElement.getTagName())) {
 								ExecutionUnit subprocess = nop.getSubprocess(subprocessIndex);
 								subprocessIndex++;
-								parseProcess(childProcessElement, subprocess, unknownParameterInformation);
+								parseProcess(childProcessElement, subprocess, processFileVersion, process, unknownParameterInformation);
 							} else if ("operator".equals(childProcessElement.getTagName())) {
-								if (version >= VERSION_RM_5) {
+								if (processFileVersion.compareTo(VERSION_RM_5) >= 0) {
 									addMessage("<em class=\"error\"><code>&lt;operator&gt;</code> as children of <code>&lt;operator&gt</code> is deprecated syntax. From version 5.0 on, use <code>&lt;process&gt;</code> as children.</em>");
 								} else {
 									if (!operatorAsDirectChildrenDeprecatedReported) {
@@ -660,7 +662,7 @@ public class XMLImporter {
 									if ((subprocessIndex <= nop.getNumberOfSubprocesses() - 2) || (nop.areSubprocessesExtendable())) {
 										subprocessIndex++;
 									}
-									parseOperator(childProcessElement, subprocess, unknownParameterInformation);
+									parseOperator(childProcessElement, subprocess, processFileVersion, process, unknownParameterInformation);
 									mustAutoConnect = true;
 								}
 							}
@@ -670,19 +672,21 @@ public class XMLImporter {
 			}
 		}
 
-		if (version < VERSION_RM_5) {
-			for (ParseRule rule : PARSE_RULES) {
-				String msg = rule.apply(operator, this);
-				if (msg != null) {
-					addMessage(msg);
-				}
+		/**
+		 * Apply all parse rules
+		 */
+		for (ParseRule rule : PARSE_RULES) {
+			String msg = rule.apply(operator, processFileVersion, this);
+			if (msg != null) {
+				process.setProcessConverted(true);
+				addMessage(msg);
 			}
 		}
 		return operator;
 	}
 
 	private boolean relevantParameter(String opName, String paramName) {
-		return !(IRRELEVANT_PARAMETERS.contains(opName+"."+paramName) || IRRELEVANT_PARAMETERS.contains(paramName));
+		return !(IRRELEVANT_PARAMETERS.contains(opName + "." + paramName) || IRRELEVANT_PARAMETERS.contains(paramName));
 	}
 
 	private List<String> parseList(Element parent, String childName) {
@@ -776,21 +780,18 @@ public class XMLImporter {
 		return new String[] { parameter.getAttribute("key"), parameter.getAttribute("value") };
 	}
 
-	private void parseVersion(Element element) {
-		// TODO: parse version properly
+	private VersionNumber parseVersion(Element element) {
 		if (element.hasAttribute("version")) {
-			String versionString = element.getAttribute("version");
-			if (versionString.startsWith("3.")) {
-				setVersion(VERSION_RM_3);
-			} else if (versionString.startsWith("4.")) {
-				setVersion(VERSION_RM_4);
-			} else if (versionString.startsWith("5.")) {
-				setVersion(VERSION_RM_5);
-			} else {
-				addMessage("<em class=\"error\">The version " + versionString + " is not a legal RapidMiner version, assuming 4.0.</em>");
-				setVersion(VERSION_RM_4);
+			try {
+				VersionNumber version = new VersionNumber(element.getAttribute("version"));
+				return version;
+			} catch (NumberFormatException e) {
+				addMessage("<em class=\"error\">The version " + element.getAttribute("version") + " is not a legal RapidMiner version, assuming 4.0.</em>");
+				return new VersionNumber(4, 0);
 			}
 		}
+		addMessage("<em class=\"error\">Found no version information, assuming 4.0.</em>");
+		return new VersionNumber(4, 0);
 	}
 
 	private void unlockPorts(Operator operator) {

@@ -134,8 +134,10 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	 */
 	private ProcessLocation processLocation;
 
-	/** Version of the format in which the file is stored. */
-	private int lastProcessFileVersion = XMLImporter.CURRENT_VERSION;
+	/** Indicates if the original process file has been changed by import rules.
+	 * If this happens, overwriting will destroy the backward compatibility. This flag indicates that
+	 * this would happen during saving. */
+	private boolean isProcessConverted = false;
 
 	/** This list contains all unknown parameter information which existed during the loading of the process. */
 	private final List<UnknownParameterInformation> unknownParameterInformation = new LinkedList<UnknownParameterInformation>();
@@ -980,8 +982,8 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	/** Saves the process to the process file. */
 	public void save() throws IOException {
 		if (processLocation != null) {
+			this.isProcessConverted = false;
 			processLocation.store(this, null);
-			setProcessFileVersion(XMLImporter.CURRENT_VERSION);
 		} else {
 			throw new IOException("No process location is specified.");
 		}
@@ -1212,6 +1214,21 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	}
 
 	/**
+	 * This returns true if the process has been imported and ImportRules have been applied
+	 * during importing. Since the backward compatibility is lost on save, one can warn by 
+	 * retrieving this value.
+	 */
+	public boolean isProcessConverted() {
+		return isProcessConverted;
+	}
+	
+	/**
+	 * This sets whether the process is converted.
+	 */
+	public void setProcessConverted(boolean isProcessConverted) {
+		this.isProcessConverted = isProcessConverted;
+	}
+	/**
 	 * Returns some user readable messages generated during import by {@link XMLImporter}.
 	 */
 	public String getImportMessage() {
@@ -1267,7 +1284,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	public void setProcessLocation(ProcessLocation processLocation) {
 		// keep process file version if same file, otherwise overwrite
 		if ((this.processLocation != null) && !this.processLocation.equals(processLocation)) {
-			this.lastProcessFileVersion = XMLImporter.CURRENT_VERSION;
+			this.isProcessConverted = false;
 		}
 		if (this.processLocation != null) {
 			getLogger().info("Decoupling process from location " + this.processLocation + ". Process is now associated with file " + processLocation + ".");
@@ -1289,14 +1306,6 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		}
 	}
 
-	public void setProcessFileVersion(int lastProcessFileVersion) {
-		this.lastProcessFileVersion = lastProcessFileVersion;
-	}
-
-	public int getProcessFileVersion() {
-		return lastProcessFileVersion;
-	}
-
 	/**
 	 * Can be called by GUI components if visual representation or any other state not known to the process itself has
 	 * changed.
@@ -1316,4 +1325,6 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	public Annotations getAnnotations() {
 		return annotations;
 	}
+
+	
 }

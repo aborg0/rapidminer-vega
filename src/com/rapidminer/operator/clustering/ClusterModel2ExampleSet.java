@@ -92,7 +92,7 @@ public class ClusterModel2ExampleSet extends Operator {
 		int i = 0;
 		for (Example example: exampleSet) {
 			if (clusterIndices[i] != ClusterModel.UNASSIGNABLE) {
-				example.setValue(targetAttribute, "cluster_" + clusterIndices[i]);
+				example.setValue(targetAttribute, model.getCluster(clusterIndices[i]).toString());
 			} else {
 				example.setValue(targetAttribute, Double.NaN);
 			}

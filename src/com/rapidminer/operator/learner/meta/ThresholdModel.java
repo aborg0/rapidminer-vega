@@ -25,12 +25,9 @@ package com.rapidminer.operator.learner.meta;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.swing.Icon;
-
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
-import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.Model;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.learner.PredictionModel;
@@ -44,14 +41,6 @@ import com.rapidminer.tools.Tools;
 public class ThresholdModel extends PredictionModel implements DelegationModel {
 
 	private static final long serialVersionUID = -4224958349396815500L;
-
-	private static final String RESULT_ICON_NAME = "cut.png";
-
-	private static Icon resultIcon = null;
-
-	static {
-		resultIcon = SwingTools.createIcon("16/" + RESULT_ICON_NAME);
-	}
 
 	private double[] thresholds;
 
@@ -77,11 +66,6 @@ public class ThresholdModel extends PredictionModel implements DelegationModel {
 		}
 
 		return exampleSet;
-	}
-
-	@Override
-	public Icon getResultIcon() {
-		return resultIcon;
 	}
 
 	@Override

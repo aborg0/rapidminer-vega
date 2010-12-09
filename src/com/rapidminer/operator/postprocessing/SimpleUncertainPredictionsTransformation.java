@@ -122,6 +122,11 @@ public class SimpleUncertainPredictionsTransformation extends AbstractDataProces
 	}
 	
 	@Override
+	public boolean writesIntoExistingData() {
+		return true;
+	}
+	
+	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> list = super.getParameterTypes();
 		list.add(new ParameterTypeCategory(PARAMETER_CLASS_HANDLING, "The mode which defines if all classes are handled equally or if class individual thresholds are set.", CLASS_HANDLING_MODES, CLASS_HANDLING_BALANCED, false));

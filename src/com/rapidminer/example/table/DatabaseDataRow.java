@@ -152,4 +152,9 @@ public class DatabaseDataRow extends DataRow {
 			}
 		}
 	}
+	
+	@Override
+	public int getType() {
+		return DataRowFactory.TYPE_SPECIAL;
+	}
 }

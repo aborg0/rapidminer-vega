@@ -27,16 +27,29 @@ import javax.swing.JComponent;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.repository.MalformedRepositoryLocationException;
+import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryLocationChooser;
 
 /**
- * 
- * @author Tobias Malbrecht
+ * This is a WizardStep for selecting a repository location.
+ * @author Tobias Malbrecht, Sebastian Land
  */
 public class RepositoryLocationSelectionWizardStep extends WizardStep {
 
 	private final RepositoryLocationChooser locationChooser;
 	
+	/**
+	 * This constructor is only left for compatibility issues with the paren extension. Hence it doesn't make any sense
+	 * please refer to the {@link #RepositoryLocationSelectionWizardStep(AbstractWizard, String)} Constructor instead.
+	 */
+	@Deprecated
+	public RepositoryLocationSelectionWizardStep(String notUsed, AbstractWizard parent, RepositoryLocation notUsedToo, String initialValue) {
+		this(parent, initialValue);
+	}
+	
+	/**
+	 * Constructor for this wizard step.
+	 */
 	public RepositoryLocationSelectionWizardStep(AbstractWizard parent, String initialValue) {
 		super("select_repository_location");
 		this.locationChooser = new RepositoryLocationChooser(parent, null, initialValue);

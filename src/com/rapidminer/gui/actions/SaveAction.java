@@ -30,7 +30,6 @@ import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.DecisionRememberingConfirmDialog;
-import com.rapidminer.io.process.XMLImporter;
 
 
 /**
@@ -74,7 +73,7 @@ public class SaveAction extends ResourceAction {
 	}
 	
 	private static boolean confirmOverwriteWithNewVersion(Process process) {
-		return (process.getProcessFileVersion() == XMLImporter.CURRENT_VERSION) || 
+		return (!process.isProcessConverted()) || 
 			DecisionRememberingConfirmDialog.confirmAction("save_over_with_new_version", "rapidminer.gui.saveover_new_version");
 	}
 }

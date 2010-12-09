@@ -31,8 +31,6 @@ import java.util.Random;
 
 import com.rapidminer.example.set.AttributeWeightedExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
-import com.rapidminer.example.table.DataRow;
-import com.rapidminer.example.table.DataRowReader;
 import com.rapidminer.example.table.DoubleArrayDataRow;
 import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.example.table.NominalMapping;
@@ -147,7 +145,10 @@ public class Tools {
 	}
 
 
-
+	/**
+	 * This method adds a new Weight Attribute initialized with 1.0d for each example to
+	 * the example table as well as to the given ExampleSet.
+	 */
 	public static Attribute createWeightAttribute(ExampleSet exampleSet) {
 		Attribute weight = exampleSet.getAttributes().getWeight();
 		if (weight != null) {
@@ -158,10 +159,8 @@ public class Tools {
 		exampleSet.getExampleTable().addAttribute(weight);
 		exampleSet.getAttributes().setWeight(weight);
 
-		DataRowReader reader = exampleSet.getExampleTable().getDataRowReader();
-		while (reader.hasNext()) {
-			DataRow data = reader.next();
-			data.set(weight, 1.0d);
+		for (Example example: exampleSet) {
+			example.setValue(weight, 1d);
 		}
 		return weight;
 	}

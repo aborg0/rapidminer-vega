@@ -23,9 +23,9 @@
 package com.rapidminer.operator.preprocessing.filter;
 
 import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.Map.Entry;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
@@ -111,6 +111,11 @@ public class AttributeValueTrim extends AbstractValueProcessing {
 	@Override
 	protected int[] getFilterValueTypes() {
 		return new int[] { Ontology.NOMINAL };
+	}
+	
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
 	}
 	
 	@Override

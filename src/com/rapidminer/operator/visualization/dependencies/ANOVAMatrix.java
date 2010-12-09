@@ -24,9 +24,6 @@ package com.rapidminer.operator.visualization.dependencies;
 
 import java.util.List;
 
-import javax.swing.Icon;
-
-import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.ResultObjectAdapter;
 
 
@@ -38,14 +35,6 @@ import com.rapidminer.operator.ResultObjectAdapter;
 public class ANOVAMatrix extends ResultObjectAdapter {
 
 	private static final long serialVersionUID = 6245314851143584397L;
-
-	private static final String RESULT_ICON_NAME = "table.png";
-
-	private static Icon resultIcon = null;
-
-	static {
-		resultIcon = SwingTools.createIcon("16/" + RESULT_ICON_NAME);
-	}
 
 	private double[][] probabilities;
 
@@ -79,11 +68,6 @@ public class ANOVAMatrix extends ResultObjectAdapter {
 
 	public double getSignificanceLevel() {
 		return significanceLevel;
-	}
-
-	@Override
-	public Icon getResultIcon() {
-		return resultIcon;
 	}
 
 	@Override

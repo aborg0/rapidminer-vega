@@ -76,18 +76,17 @@ public class RemoveUselessFeatures extends AbstractFeatureSelection {
 
 	@Override
 	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {		 
-		ExampleSet clone = (ExampleSet) exampleSet.clone();
-		clone.recalculateAllAttributeStatistics();
+		exampleSet.recalculateAllAttributeStatistics();
 
 		double numericalMinDeviation = getParameterAsDouble(PARAMETER_NUMERICAL_MIN_DEVIATION);
 		double nominalSingleValueUpper = getParameterAsDouble(PARAMETER_NOMINAL_SINGLE_VALUE_UPPER);
 		double nominalSingleValueLower = getParameterAsDouble(PARAMETER_NOMINAL_SINGLE_VALUE_LOWER);
 
 		if (getParameterAsBoolean(PARAMETER_REMOVE_ID_LIKE)) {
-			nominalSingleValueLower = 1.0d / clone.size();
+			nominalSingleValueLower = 1.0d / exampleSet.size();
 		}
 
-		Iterator<Attribute> i = clone.getAttributes().iterator();
+		Iterator<Attribute> i = exampleSet.getAttributes().iterator();
 		while (i.hasNext()) {
 			Attribute attribute = i.next();
 
@@ -98,11 +97,11 @@ public class RemoveUselessFeatures extends AbstractFeatureSelection {
 				int n = 0;
 				while (v.hasNext()) {
 					String value = (String) v.next();
-					valueCounts[n] = clone.getStatistics(attribute, Statistics.COUNT, value);
+					valueCounts[n] = exampleSet.getStatistics(attribute, Statistics.COUNT, value);
 					n++;
 				}
 
-				if (clone.getStatistics(attribute, Statistics.UNKNOWN) / clone.size() >= nominalSingleValueUpper) {
+				if (exampleSet.getStatistics(attribute, Statistics.UNKNOWN) / exampleSet.size() >= nominalSingleValueUpper) {
 					i.remove();
 					continue;
 				}
@@ -111,7 +110,7 @@ public class RemoveUselessFeatures extends AbstractFeatureSelection {
 				// calculate maximum
 				double maximumValueCount = Double.NEGATIVE_INFINITY;
 				for (n = 0; n < valueCounts.length; n++) {
-					double percent = valueCounts[n] / clone.size();
+					double percent = valueCounts[n] / exampleSet.size();
 					maximumValueCount = Math.max(maximumValueCount, percent);
 					if (percent >= nominalSingleValueUpper) {
 						i.remove();
@@ -125,13 +124,13 @@ public class RemoveUselessFeatures extends AbstractFeatureSelection {
 					continue;
 				}
 			} else if (attribute.isNumerical()) {
-				if (clone.getStatistics(attribute, Statistics.UNKNOWN) / clone.size() >= nominalSingleValueUpper) {
+				if (exampleSet.getStatistics(attribute, Statistics.UNKNOWN) / exampleSet.size() >= nominalSingleValueUpper) {
 					i.remove();
 					continue;
 				}
 
 				// remove numerical attribute with low deviation
-				if (Math.sqrt(clone.getStatistics(attribute, Statistics.VARIANCE)) <= numericalMinDeviation)
+				if (Math.sqrt(exampleSet.getStatistics(attribute, Statistics.VARIANCE)) <= numericalMinDeviation)
 					i.remove();
 			} else {
 				// do nothing for data attributes
@@ -140,13 +139,13 @@ public class RemoveUselessFeatures extends AbstractFeatureSelection {
 			checkForStop();
 		}
 
-		if (clone.getAttributes().size() <= 0) {
+		if (exampleSet.getAttributes().size() <= 0) {
 			logWarning("Example set does not not have any attribute after removing the useless attributes!");
 		}
 
-		return clone;
+		return exampleSet;
 	}
-
+	
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();

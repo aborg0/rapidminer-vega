@@ -35,7 +35,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 
-import com.rapidminer.Version;
+import com.rapidminer.RapidMiner;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.gui.tools.SwingTools;
 
@@ -124,7 +124,7 @@ final class UpdateListCellRenderer extends JPanel implements ListCellRenderer {
 				}
 			}	
 		} else if (desc.getPackageTypeName().equals("STAND_ALONE")) {
-			String myVersion = Version.getLongVersion();
+			String myVersion = RapidMiner.getLongVersion();
 			upToDate = ManagedExtension.normalizeVersion(myVersion).compareTo(ManagedExtension.normalizeVersion(desc.getVersion())) >= 0;
 			if (upToDate) {
 				text += "This package is up to date.";

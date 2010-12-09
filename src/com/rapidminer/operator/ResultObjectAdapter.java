@@ -30,6 +30,7 @@ import java.util.List;
 import javax.swing.Action;
 import javax.swing.Icon;
 
+import com.rapidminer.gui.renderer.RendererService;
 import com.rapidminer.tools.LoggingHandler;
 import com.rapidminer.tools.Tools;
 
@@ -89,10 +90,12 @@ public abstract class ResultObjectAdapter extends AbstractIOObject implements Re
 		return toString();
 	}
 
-	/** Returns null. Subclasses might want to override this method and returns an appropriate
-	 *  icon. */
+	/** Returns the icon registered for this class on the {@link RendererService}. 
+	 *  This method can be replaced by {@link RendererService#getIcon(Class)} if no instanciated object
+	 *  of this class is available. 
+	 *  */
 	public Icon getResultIcon() {
-		return null;
+		return RendererService.getIcon(this.getClass());
 	}
 
 	/**

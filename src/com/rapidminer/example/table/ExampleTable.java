@@ -145,7 +145,8 @@ public interface ExampleTable extends Serializable {
 	 */
 	public ExampleSet createExampleSet(Attribute labelAttribute, Attribute weightAttribute, Attribute idAttribute);
 	
-	/** Returns a new example set with all attributes of the given attribute set. */
+	/** Returns a new example set with all attributes of the {@link ExampleTable} 
+	 * and with the special roles defined by the given attribute set. */
 	public ExampleSet createExampleSet(AttributeSet attributeSet);
 	
 	/**

@@ -85,6 +85,7 @@ public class DateFormatValueCellEditor extends AbstractCellEditor implements Pro
 							String selectedAttributeName = type.getInputPort().getPorts().getOwner().getOperator().getParameters().getParameterOrNull(attributeParameterType.getKey());
 							AttributeMetaData selectedAttribute = emd.getAttributeByName(selectedAttributeName);
 							if (selectedAttribute != null && (selectedAttribute.isNominal()) && (selectedAttribute.getValueSet() != null)) {
+								boolean isNotMenuEmpty = false;
 								for (final String value : selectedAttribute.getValueSet()) {
 									menu.add(new JMenuItem(new AbstractAction(value) {
 										private static final long serialVersionUID = 1L;
@@ -94,13 +95,19 @@ public class DateFormatValueCellEditor extends AbstractCellEditor implements Pro
 											formatCombo.setSelectedItem(value);
 										}
 									}));
+									isNotMenuEmpty = true;
 								}
-								menu.show(selectButton, 0, selectButton.getHeight());
+								if (isNotMenuEmpty)
+									menu.show(selectButton, 0, selectButton.getHeight());
+								selectButton.setEnabled(isNotMenuEmpty);
 							} else if (emd.getAllAttributes() != null) {
+								int j = 0;
+								boolean isNotMenuEmpty = false;
 								for (final AttributeMetaData amd : emd.getAllAttributes()) {
 									if (amd.isNominal() && (amd.getValueSet() != null)) {
 										JMenu subMenu = new JMenu(amd.getName());
 										menu.add(subMenu);
+										int i = 0;
 										for (final String value : amd.getValueSet()) {
 											subMenu.add(new JMenuItem(new AbstractAction(value) {
 												private static final long serialVersionUID = 1L;
@@ -112,10 +119,19 @@ public class DateFormatValueCellEditor extends AbstractCellEditor implements Pro
 														type.getInputPort().getPorts().getOwner().getOperator().getParameters().setParameter(attributeParameterType.getKey(), amd.getName());
 												}
 											}));
+											i++;
+											if (i > 21) //don't show too many values: list could become really long.
+												break;
 										}
+										isNotMenuEmpty = true;
+										j++;
+										if (j>13) // don't show to many attributes
+											break;
 									}
 								}
-								menu.show(selectButton, 0, selectButton.getHeight());
+								if (isNotMenuEmpty)
+									menu.show(selectButton, 0, selectButton.getHeight());
+								selectButton.setEnabled(isNotMenuEmpty);
 							}
 						}
 					}

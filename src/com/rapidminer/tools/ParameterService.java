@@ -34,7 +34,6 @@ import java.util.logging.Level;
 
 import com.rapid_i.Launcher;
 import com.rapidminer.RapidMiner;
-import com.rapidminer.Version;
 import com.rapidminer.RapidMiner.ExecutionMode;
 import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.parameter.ParameterType;
@@ -201,7 +200,7 @@ public class ParameterService {
 	/** Returns the configuration file in the user dir .RapidMiner5 and automatically adds 
 	 *  the current version number if it is a rc file. */
 	public static File getUserConfigFile(String name) {
-		return getVersionedUserConfigFile(new VersionNumber(Version.getLongVersion()), name);
+		return getVersionedUserConfigFile(new VersionNumber(RapidMiner.getLongVersion()), name);
 	}
 
 	public static File getVersionedUserConfigFile(VersionNumber versionNumber, String name) {

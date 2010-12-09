@@ -77,4 +77,9 @@ public class AbsoluteValueFilter extends AbstractValueProcessing {
 	protected int[] getFilterValueTypes() {
 		return new int[] { Ontology.NUMERICAL };
 	}
+	
+	@Override
+	public boolean writesIntoExistingData() {
+		return true;
+	}
 }

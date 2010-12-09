@@ -37,8 +37,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.swing.AbstractButton;
 import javax.swing.AbstractListModel;
@@ -52,7 +52,7 @@ import javax.swing.event.HyperlinkListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import com.rapidminer.Version;
+import com.rapidminer.RapidMiner;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
@@ -279,7 +279,7 @@ public class UpdateListPanel extends JPanel {
 					resolveDependencies(desc);
 				}
 			} else if (desc.getPackageTypeName().equals("STAND_ALONE")) {
-				String longVersion = Version.getLongVersion();
+				String longVersion = RapidMiner.getLongVersion();
 				String myVersion = ManagedExtension.normalizeVersion(longVersion);
 				String remoteVersion = ManagedExtension.normalizeVersion(desc.getVersion());
 				if ((myVersion != null) && (remoteVersion.compareTo(myVersion) <= 0)) {

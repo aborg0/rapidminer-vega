@@ -90,4 +90,9 @@ public class LongSparseArrayDataRow extends AbstractSparseArrayDataRow {
             result[i] = this.values[i];
         return result;
     }
+    
+	@Override
+	public int getType() {
+		return DataRowFactory.TYPE_LONG_SPARSE_ARRAY;
+	}
 }

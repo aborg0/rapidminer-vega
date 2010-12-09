@@ -109,6 +109,11 @@ public class ExchangeAttributeRoles extends AbstractDataProcessing {
 		types.add(new ParameterTypeAttribute(PARAMETER_SECOND_ATTRIBUTE, "The name of the first attribute for the attribute role exchange.", getExampleSetInputPort(), false));
 		return types;
 	}
+
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
+	}
 	
 	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {

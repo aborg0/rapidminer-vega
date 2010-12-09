@@ -86,6 +86,10 @@ public class VersionNumber implements Comparable<VersionNumber> {
 		}
 	}
 	
+	public VersionNumber(int majorNumber, int minorNumber) {
+		this(majorNumber, minorNumber, 0, false, 0, false, 0);
+	}
+	
 	public VersionNumber(int majorNumber, int minorNumber, int patchLevel, boolean alpha, int alphaNumber, boolean beta, int betaNumber) {
 		this.majorNumber = majorNumber;
 		this.minorNumber = minorNumber;
@@ -164,6 +168,8 @@ public class VersionNumber implements Comparable<VersionNumber> {
 		}
 	}
 	
+	
+	
 	@Override
 	public String toString() {
 		String alphaBetaString = "";
@@ -172,6 +178,14 @@ public class VersionNumber implements Comparable<VersionNumber> {
 		} else if (beta) {
 			alphaBetaString = "beta" + (betaNumber >= 2 ? betaNumber : "");
 		}
-		return majorNumber + "." + minorNumber + "." + patchLevel +  alphaBetaString; 
+		return majorNumber + "." + minorNumber + "." + "000".substring((patchLevel + "").length()) + patchLevel +  alphaBetaString; 
+	}
+
+	public String getLongVersion() {
+		return toString();
+	}
+
+	public String getShortVersion() {
+		return majorNumber + "." + minorNumber;
 	}
 }

@@ -41,7 +41,9 @@ import com.rapidminer.operator.ports.metadata.GenerateNewMDRule;
 import com.rapidminer.operator.ports.metadata.SetRelation;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
+import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.tools.Tools;
 
 /**
@@ -57,8 +59,18 @@ public abstract class AbstractWeighting extends Operator implements CapabilityPr
 	private OutputPort weightsOutput = getOutputPorts().createPort("weights");
 	private OutputPort exampleSetOutput = getOutputPorts().createPort("example set");
 
+	private static final String[] SORT_DIRECTIONS = new String[] {
+		"ascending",
+		"descending"
+	};
+	
+	public static final int SORT_ASCENDING = 0;
+	public static final int SORT_DESCENDING = 1;
+	
 	/** The parameter name for &quot;Activates the normalization of all weights.&quot; */
 	public static final String PARAMETER_NORMALIZE_WEIGHTS = "normalize_weights";
+	public static final String PARAMETER_SORT_WEIGHTS = "sort_weights";
+	public static final String PARAMETER_SORT_DIRECTION = "sort_direction";
 
 	public AbstractWeighting(OperatorDescription description) {
 		super(description);
@@ -105,6 +117,9 @@ public abstract class AbstractWeighting extends Operator implements CapabilityPr
 		if (getParameterAsBoolean(PARAMETER_NORMALIZE_WEIGHTS)) {
 			weights.normalize();
 		}
+		if (getParameterAsBoolean(PARAMETER_NORMALIZE_WEIGHTS)) {
+			weights.sort((getParameterAsInt(PARAMETER_SORT_DIRECTION) == SORT_ASCENDING)? AttributeWeights.DECREASING: AttributeWeights.INCREASING, AttributeWeights.ORIGINAL_WEIGHTS);
+		}
 		exampleSetOutput.deliver(exampleSet);
 		weightsOutput.deliver(weights);		
 	}
@@ -121,6 +136,10 @@ public abstract class AbstractWeighting extends Operator implements CapabilityPr
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> list = super.getParameterTypes();
 		list.add(new ParameterTypeBoolean(PARAMETER_NORMALIZE_WEIGHTS, "Activates the normalization of all weights.", true, false));
+		list.add(new ParameterTypeBoolean(PARAMETER_SORT_WEIGHTS, "If activated the weights will be returned sorted.", true, false));
+		ParameterType type = new ParameterTypeCategory(PARAMETER_SORT_DIRECTION, "Defines the sorting direction.", SORT_DIRECTIONS, 0);
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_SORT_WEIGHTS, true, true));
+		list.add(type);
 		return list;
 	}
 

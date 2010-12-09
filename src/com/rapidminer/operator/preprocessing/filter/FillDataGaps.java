@@ -276,6 +276,11 @@ public class FillDataGaps extends AbstractExampleSetProcessing {
 	}
 	
 	@Override
+	public boolean writesIntoExistingData() {
+		return false; //creates new table
+	}
+	
+	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), FillDataGaps.class, null);
 	}

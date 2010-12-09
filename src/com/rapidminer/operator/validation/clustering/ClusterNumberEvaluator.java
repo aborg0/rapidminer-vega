@@ -87,14 +87,16 @@ public class ClusterNumberEvaluator extends Operator {
 
         int numItems = 0;
         for (int i = 0; i < model.getNumberOfClusters(); i++)
-            numItems = +model.getCluster(i).getNumberOfExamples();
+            numItems += model.getCluster(i).getNumberOfExamples();
 
         PerformanceVector performance = performanceInput.getDataOrNull();        
 
         if (performance == null)
             performance = new PerformanceVector();
 
-        PerformanceCriterion pc = new EstimatedPerformance("Number of clusters", 1.0 - (((double) model.getNumberOfClusters()) / ((double) numItems)), 1, false);
+        PerformanceCriterion pc = new EstimatedPerformance("Number of clusters",model.getNumberOfClusters(), 1, true);
+        performance.addCriterion(pc);
+        pc = new EstimatedPerformance("Cluster Number Index", 1.0 - (((double) model.getNumberOfClusters()) / ((double) numItems)), numItems, false);
         performance.addCriterion(pc);
 
         clusterModelOutput.deliver(model);

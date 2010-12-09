@@ -321,6 +321,10 @@ public class Example2AttributePivoting extends ExampleSetTransformationOperator 
 	}
 	
 	@Override
+	public boolean writesIntoExistingData() {
+		return false;
+	}
+	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), Example2AttributePivoting.class, null);
 	}

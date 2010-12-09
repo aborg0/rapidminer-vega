@@ -22,23 +22,15 @@
  */
 package com.rapidminer.operator.preprocessing.sampling;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import com.rapidminer.example.Attribute;
-import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Statistics;
 import com.rapidminer.example.Tools;
-import com.rapidminer.example.set.SimpleExampleSet;
-import com.rapidminer.example.table.DataRow;
-import com.rapidminer.example.table.DoubleArrayDataRow;
-import com.rapidminer.example.table.ExampleTable;
-import com.rapidminer.example.table.ListDataRowReader;
-import com.rapidminer.example.table.MemoryExampleTable;
+import com.rapidminer.example.set.Partition;
+import com.rapidminer.example.set.SplittedExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
@@ -104,55 +96,31 @@ public class ModelBasedSampling extends AbstractSamplingOperator {
 		Attribute weightAttr = exampleSet.getAttributes().getWeight();
 		if (weightAttr == null) {
 			weightAttr = Tools.createWeightAttribute(exampleSet);
-			Iterator<Example> reader = exampleSet.iterator();
-			while (reader.hasNext()) {
-				reader.next().setValue(weightAttr, 1.0d);
-			}
 		}
 
 		WeightedPerformanceMeasures wp = new WeightedPerformanceMeasures(exampleSet);
 		WeightedPerformanceMeasures.reweightExamples(exampleSet, wp.getContingencyMatrix(), true);
 
-		// recalc weight att statistics
+		// recalculate weight attribute statistics
 		exampleSet.recalculateAttributeStatistics(exampleSet.getAttributes().getWeight());
-
+		double maxWeight = exampleSet.getStatistics(exampleSet.getAttributes().getWeight(), Statistics.MAXIMUM);
+		
 		// fill new table
 		RandomGenerator randomGenerator = RandomGenerator.getRandomGenerator(this);
 
-		Attribute[] allAttributes = exampleSet.getExampleTable().getAttributes();
-		List<DataRow> dataList = new LinkedList<DataRow>();
-		Iterator<Example> reader = exampleSet.iterator();
-		double maxWeight = exampleSet.getStatistics(exampleSet.getAttributes().getWeight(), Statistics.MAXIMUM);
-		while (reader.hasNext()) {
-			Example example = reader.next();
+		int[] remappingIndices = new int[exampleSet.size()];
+		int i = 0;
+		for (Example example: exampleSet) {
 			if (randomGenerator.nextDouble() > example.getValue(weightAttr) / maxWeight) {
 				example.setValue(weightAttr, 1.0d);
-				double[] values = new double[allAttributes.length];
-				for (int i = 0; i < values.length; i++)
-					values[i] = example.getValue(allAttributes[i]);
-				dataList.add(new DoubleArrayDataRow(values));
+				remappingIndices[i] = 1;
 			}
-			checkForStop();
+			i++;
 		}
-
-		List<Attribute> attributes = Arrays.asList(allAttributes);
-		ExampleTable exampleTable = new MemoryExampleTable(attributes, new ListDataRowReader(dataList.iterator()));
-
-		// regular attributes.
-		List<Attribute> regularAttributes = new LinkedList<Attribute>();
-		for (Attribute attribute : exampleSet.getAttributes()) {
-			regularAttributes.add(attribute);
-		}
-
-		// special attributes
-		ExampleSet result = new SimpleExampleSet(exampleTable, regularAttributes);
-		Iterator<AttributeRole> special = exampleSet.getAttributes().specialAttributes();
-		while (special.hasNext()) {
-			AttributeRole role = special.next();
-			result.getAttributes().setSpecialAttribute(role.getAttribute(), role.getSpecialName());
-		}
-
-		return result;
+		checkForStop();
+		SplittedExampleSet splittedExampleSet = new SplittedExampleSet(exampleSet, new Partition(remappingIndices, 2));
+		splittedExampleSet.selectSingleSubset(1);
+		return splittedExampleSet;
 	}
 
 	@Override

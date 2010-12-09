@@ -43,6 +43,7 @@ import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.io.ExampleSource;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeCategory;
+import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
@@ -61,6 +62,26 @@ public class MaterializeDataInMemory extends AbstractDataProcessing {
 
 	@Override
 	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {		
+		ExampleSet createdSet = materializeExampleSet(exampleSet, getParameterAsInt(ExampleSource.PARAMETER_DATAMANAGEMENT));
+		return createdSet;		
+	}
+
+	@Override
+	public List<ParameterType> getParameterTypes() {
+		List<ParameterType> types = super.getParameterTypes();
+		types.add(new ParameterTypeCategory(ExampleSource.PARAMETER_DATAMANAGEMENT, "Determines, how the data is represented internally.", DataRowFactory.TYPE_NAMES, DataRowFactory.TYPE_DOUBLE_ARRAY, false));
+		return types;
+	}
+	
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), MaterializeDataInMemory.class, null);
+	}
+	
+	/**
+	 * This method will return a completely materialized copy of the example set
+	 */
+	public static ExampleSet materializeExampleSet(ExampleSet exampleSet, int dataManagement) throws UndefinedParameterError {
 		// create new attributes and table
 		List<Attribute> attributes = new ArrayList<Attribute>();
 		Map<Attribute,String> specialAttributes = new HashMap<Attribute, String>();
@@ -84,7 +105,7 @@ public class MaterializeDataInMemory extends AbstractDataProcessing {
 
 		// fill table with data
 		MemoryExampleTable table = new MemoryExampleTable(attributes);
-		DataRowFactory factory = new DataRowFactory(getParameterAsInt(ExampleSource.PARAMETER_DATAMANAGEMENT), '.');
+		DataRowFactory factory = new DataRowFactory(dataManagement, '.');
 		for (Example example : exampleSet) {
 			Iterator<Attribute> i = exampleSet.getAttributes().allAttributes();
 			int attributeCounter = 0;
@@ -106,18 +127,12 @@ public class MaterializeDataInMemory extends AbstractDataProcessing {
 		}
 
 		// create and return result
-		return table.createExampleSet(specialAttributes);		
-	}
-
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		List<ParameterType> types = super.getParameterTypes();
-		types.add(new ParameterTypeCategory(ExampleSource.PARAMETER_DATAMANAGEMENT, "Determines, how the data is represented internally.", DataRowFactory.TYPE_NAMES, DataRowFactory.TYPE_DOUBLE_ARRAY, false));
-		return types;
+		ExampleSet createdSet = table.createExampleSet(specialAttributes);
+		return createdSet;
 	}
 	
 	@Override
-	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
-		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), MaterializeDataInMemory.class, null);
+	public boolean writesIntoExistingData() {
+		return false;
 	}
 }

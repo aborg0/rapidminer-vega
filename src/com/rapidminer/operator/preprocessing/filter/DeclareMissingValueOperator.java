@@ -186,6 +186,11 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 	}
 	
 	@Override
+	public boolean writesIntoExistingData() {
+		return true;
+	}
+	
+	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), DeclareMissingValueOperator.class, null);
 	}

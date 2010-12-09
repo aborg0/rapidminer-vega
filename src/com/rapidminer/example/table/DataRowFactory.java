@@ -80,6 +80,8 @@ public class DataRowFactory {
 
 	public static final int LAST_TYPE_INDEX = 14;
 
+	public static final int TYPE_SPECIAL = -1;
+
 
 	/**
 	 * The type can be one out of 

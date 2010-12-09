@@ -81,4 +81,9 @@ public class ByteArrayDataRow extends DataRow {
             result.append((i == 0 ? "" : ",") + data[i]);
         return result.toString();
     }
+    
+	@Override
+	public int getType() {
+		return DataRowFactory.TYPE_BYTE_ARRAY;
+	}
 }

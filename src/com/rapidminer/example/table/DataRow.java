@@ -56,6 +56,12 @@ public abstract class DataRow implements Serializable {
 	/** Trims the number of columns to the actually needed number. */
 	public abstract void trim();
 	
+	/**
+	 * This returns the type of this particular {@link DataRow} implementation according
+	 * to the list in the {@link DataRowFactory}.
+	 */
+	public abstract int getType();
+	
 	/** Returns a string representation for this data row. */
 	@Override
 	public abstract String toString();

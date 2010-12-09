@@ -73,7 +73,7 @@ public class NewBuildingBlockAction extends ResourceAction {
 							InputSource source = new InputSource(new StringReader(xmlDescription));
 							Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(source);
 							Element element = document.getDocumentElement();
-                            Operator operator = Operator.createFromXML(element, new LinkedList<UnknownParameterInformation>(), null, XMLImporter.CURRENT_VERSION);
+                            Operator operator = Operator.createFromXML(element, actions.getProcess(), new LinkedList<UnknownParameterInformation>(), null, XMLImporter.CURRENT_VERSION);
                             operator.setUserDescription(buildingBlock.getDescription());
 							actions.insert(Collections.singletonList(operator));
 						} catch (Exception ex) {

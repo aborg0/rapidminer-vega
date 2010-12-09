@@ -25,19 +25,22 @@ package com.rapidminer.io.process.rules;
 import java.util.Collection;
 import java.util.LinkedList;
 
+import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.SimpleOperatorChain;
 /**
+ * This parse rule replaces any unnecessary operator chain rule.
  * 
  * @author Sebastian Land
  */
 public class DeleteUnnecessaryOperatorChainRule implements ParseRule {
-
-	public String apply(final Operator operator, final XMLImporter importer) {		
-		if (operator.getClass() == SimpleOperatorChain.class) {
+	private static final VersionNumber APPLIES_UNTIL = new VersionNumber(5, 0, 0, false, 0, false, 0);
+	
+	public String apply(final Operator operator, VersionNumber processVersion, final XMLImporter importer) {		
+		if (operator.getClass() == SimpleOperatorChain.class && (processVersion == null || processVersion.compareTo(APPLIES_UNTIL) <= 0)) {
 			importer.doAfterTreeConstruction(new Runnable() {
 				public void run() {
 					OperatorChain parent = operator.getParent();

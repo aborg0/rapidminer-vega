@@ -22,22 +22,11 @@
  */
 package com.rapidminer.operator.preprocessing.sampling;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
-import com.rapidminer.example.Attribute;
-import com.rapidminer.example.AttributeRole;
-import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
-import com.rapidminer.example.set.SimpleExampleSet;
 import com.rapidminer.example.set.SplittedExampleSet;
-import com.rapidminer.example.table.DataRow;
-import com.rapidminer.example.table.ExampleTable;
-import com.rapidminer.example.table.ListDataRowReader;
-import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ProcessSetupError.Severity;
@@ -128,33 +117,7 @@ public class StratifiedSamplingOperator extends AbstractSamplingOperator {
 		SplittedExampleSet splittedExampleSet = new SplittedExampleSet(exampleSet, getRatio(exampleSet), SplittedExampleSet.STRATIFIED_SAMPLING, getParameterAsBoolean(RandomGenerator.PARAMETER_USE_LOCAL_RANDOM_SEED), getParameterAsInt(RandomGenerator.PARAMETER_LOCAL_RANDOM_SEED));
 		splittedExampleSet.selectSingleSubset(0);
 
-		// fill new table
-		List<DataRow> dataList = new LinkedList<DataRow>();
-		Iterator<Example> reader = splittedExampleSet.iterator();
-		while (reader.hasNext()) {
-			Example example = reader.next();
-			dataList.add(example.getDataRow());
-			checkForStop();
-		}
-
-		List<Attribute> attributes = Arrays.asList(splittedExampleSet.getExampleTable().getAttributes());
-		ExampleTable exampleTable = new MemoryExampleTable(attributes, new ListDataRowReader(dataList.iterator()));
-
-		// regular attributes
-		List<Attribute> regularAttributes = new LinkedList<Attribute>();
-		for (Attribute attribute : exampleSet.getAttributes()) {
-			regularAttributes.add(attribute);
-		}
-
-		// special attributes
-		ExampleSet result = new SimpleExampleSet(exampleTable, regularAttributes);
-		Iterator<AttributeRole> special = exampleSet.getAttributes().specialAttributes();
-		while (special.hasNext()) {
-			AttributeRole role = special.next();
-			result.getAttributes().setSpecialAttribute(role.getAttribute(), role.getSpecialName());
-		}
-
-		return result;
+		return splittedExampleSet;
 	}
 
 	@Override

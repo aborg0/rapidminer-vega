@@ -153,6 +153,11 @@ public abstract class PreprocessingOperator extends AbstractDataProcessing {
 	}
 
 	@Override
+	public boolean writesIntoExistingData() {
+		return !getParameterAsBoolean(PARAMETER_CREATE_VIEW);
+	}
+	
+	@Override
 	public boolean shouldAutoConnect(OutputPort outputPort) {
 		if (outputPort == modelOutput) {
 			return getParameterAsBoolean(PARAMETER_RETURN_PREPROCESSING_MODEL);

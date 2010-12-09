@@ -226,13 +226,13 @@ public class ProfilingViewer extends JPanel implements Dockable, Observer {
 			for (Operator op : listener.getCurrentProcess().getAllOperators()) {
 				gbc.gridx = 0;
 				gbc.gridy = y++;
-				innerPanel.add(new OperatorPanel(op), gbc);
+				innerPanel.add(new OperatorProfilePanel(op), gbc);
 			}
 		} else {
 			for (Operator op : listener.getSelectedOperatorList()) {
 				gbc.gridx = 0;
 				gbc.gridy = y++;
-				innerPanel.add(new OperatorPanel(op), gbc);
+				innerPanel.add(new OperatorProfilePanel(op), gbc);
 			}
 //		RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().
 //			getDisplayedChain().getAllInnerOperators();

@@ -84,4 +84,9 @@ public class DoubleSparseArrayDataRow extends AbstractSparseArrayDataRow {
 	protected double[] getAllValues() {
     	return this.values;
     }
+    
+	@Override
+	public int getType() {
+		return DataRowFactory.TYPE_DOUBLE_SPARSE_ARRAY;
+	}
 }

@@ -181,6 +181,11 @@ public class NonDominatedSorting extends AbstractDataProcessing{
 	}
 	
 	@Override
+	public boolean writesIntoExistingData() {
+		return false;
+	}
+	
+	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), NonDominatedSorting.class, null);
 	}

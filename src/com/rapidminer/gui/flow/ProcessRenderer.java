@@ -591,6 +591,8 @@ public class ProcessRenderer extends JPanel {
 							for (int i = 1; i < newOperators.size(); i++) {
 								Operator newOp = newOperators.get(i);
 								processes[processIndex].addOperator(newOp, firstInsertionIndex + i);
+								
+								// TODO: inserting operators relative to first operator
 							}
 							AutoWireThread.autoWireInBackground(newOperators, firstMustBeWired);
 						} else {

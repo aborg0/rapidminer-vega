@@ -66,19 +66,7 @@ public class AttributeFilter extends AbstractFeatureSelection {
 		super(description);
 
 	}
-
-	@Override
-	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {		 
-		Attributes attributes = exampleSet.getAttributes();
-		Set<Attribute> attributeSubset = attributeSelector.getAttributeSubset(exampleSet, true);
-		Iterator<Attribute> r = attributes.allAttributes();
-		while (r.hasNext()) {
-			Attribute attribute = r.next();
-			if (!attributeSubset.contains(attribute))
-				r.remove();
-		}
-		return exampleSet;
-	}
+	
 
 	@Override
 	protected MetaData modifyMetaData(ExampleSetMetaData metaData) {
@@ -93,6 +81,20 @@ public class AttributeFilter extends AbstractFeatureSelection {
 		}
 		return metaData;
 	}
+
+	@Override
+	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {		 
+		Attributes attributes = exampleSet.getAttributes();
+		Set<Attribute> attributeSubset = attributeSelector.getAttributeSubset(exampleSet, true);
+		Iterator<Attribute> r = attributes.allAttributes();
+		while (r.hasNext()) {
+			Attribute attribute = r.next();
+			if (!attributeSubset.contains(attribute))
+				r.remove();
+		}
+		return exampleSet;
+	}
+
 
 	@Override
 	public List<ParameterType> getParameterTypes() {

@@ -24,6 +24,7 @@ package com.rapidminer.io.process.rules;
 
 import org.w3c.dom.Element;
 
+import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.XMLException;
@@ -37,16 +38,32 @@ import com.rapidminer.tools.XMLException;
  */
 public abstract class AbstractParseRule implements ParseRule {
 
+	private static final String APPLIES_BEFORE_VERSION = "appliesBefore";
+	private static final String APPLIES_AFTER_VERSION = "appliesAfter";
+	private static final String APPLIES_BEFORE_VERSION_DEFAULT = "5.0.000";
+	private static final String APPLIES_AFTER_VERSION_DEFAULT = "1.0.000";
+
 	protected String operatorTypeName;
+	protected VersionNumber appliesBefore;
+	protected VersionNumber appliesAfter;
 
 	public AbstractParseRule(String operatorTypeName, Element element) throws XMLException {
 		this.operatorTypeName = operatorTypeName;
+		String beforeVersion = element.getAttribute(APPLIES_BEFORE_VERSION);
+		String afterVersion = element.getAttribute(APPLIES_AFTER_VERSION);
+		if (beforeVersion.isEmpty())
+			beforeVersion = APPLIES_BEFORE_VERSION_DEFAULT;
+		if (afterVersion.isEmpty())
+			afterVersion = APPLIES_AFTER_VERSION_DEFAULT;
+		this.appliesBefore = new VersionNumber(beforeVersion);
+		this.appliesAfter = new VersionNumber(afterVersion);
 	}
 
 	@Override
-	public String apply(Operator operator, XMLImporter importer) {
+	public String apply(Operator operator, VersionNumber processVersion, XMLImporter importer) {
 		if (operator.getOperatorDescription().getKey().equals(operatorTypeName))
-			return apply(operator, operatorTypeName, importer);
+			if (processVersion == null || processVersion.compareTo(appliesAfter) >= 0 && processVersion.compareTo(appliesBefore) <= 0)
+				return apply(operator, operatorTypeName, importer);
 		return null;
 	}
 

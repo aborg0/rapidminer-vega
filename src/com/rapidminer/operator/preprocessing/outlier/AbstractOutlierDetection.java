@@ -55,4 +55,9 @@ public abstract class AbstractOutlierDetection extends AbstractExampleSetProcess
 	}
 
 	protected abstract Set<String> getOutlierValues();
+	
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
+	}
 }

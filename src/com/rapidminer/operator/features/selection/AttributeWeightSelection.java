@@ -269,5 +269,8 @@ public class AttributeWeightSelection extends AbstractDataProcessing {
 		return types;
 	}
 
-
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
+	}
 }

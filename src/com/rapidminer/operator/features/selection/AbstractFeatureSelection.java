@@ -45,4 +45,9 @@ public abstract class AbstractFeatureSelection extends AbstractFeatureProcessing
 		metaData.attributesAreSubset();
 		return metaData;
 	}
+	
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
+	}
 }

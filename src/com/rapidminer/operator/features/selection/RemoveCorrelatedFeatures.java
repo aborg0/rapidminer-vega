@@ -259,7 +259,7 @@ public class RemoveCorrelatedFeatures extends AbstractFeatureSelection {
 
 		return correlation;
 	}
-
+	
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();

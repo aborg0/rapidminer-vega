@@ -43,7 +43,7 @@ import com.rapidminer.tools.I18N;
  * 
  * @author Marco Boeck
  */
-public class OperatorPanel extends JPanel {
+public class OperatorProfilePanel extends JPanel {
 	
 	private JLabel label_operatorIcon;
 	private JLabel label_operatorName;
@@ -68,7 +68,7 @@ public class OperatorPanel extends JPanel {
 	/**
 	 * Constructor which needs the operator for which the gui component should be constructed.
 	 */
-	public OperatorPanel(Operator operator) {
+	public OperatorProfilePanel(Operator operator) {
 		if (operator == null) {
 			throw new IllegalArgumentException("operator must not be null!");
 		}

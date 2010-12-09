@@ -173,7 +173,9 @@ public class DistributionPlotter extends RangeablePlotterAdapter {
 	 * it's original position to the end, causing a shift of all subsequent attributes to left.
 	 */
 	private int translateToModelColumn(int plotColumn) {
-		return dataTableModelColumnMap.get(dataTable.getColumnName(plotColumn));
+		if (!createFromModel)
+			return dataTableModelColumnMap.get(dataTable.getColumnName(plotColumn));
+		return plotColumn;
 	}
 	
 	@Override
@@ -226,22 +228,30 @@ public class DistributionPlotter extends RangeablePlotterAdapter {
 						plot.setDomainAxis(numberAxis);
 					}
 				}
+
+				
+				plot.getDomainAxis().setLabelFont(LABEL_FONT_BOLD);
+				plot.getDomainAxis().setTickLabelFont(LABEL_FONT);
+				
+				
+				plot.getRangeAxis().setLabelFont(LABEL_FONT_BOLD);
+				plot.getRangeAxis().setTickLabelFont(LABEL_FONT);
+
+				// ranging
+				Range range = getRangeForDimension(plotColumn);
+				if (range != null) 
+					plot.getDomainAxis().setRange(range, true, false);
+
+				range = getRangeForName(RANGE_AXIS_NAME);
+				if (range != null) 
+					plot.getRangeAxis().setRange(range, true, false);
+
 				// rotate labels
 				if (isLabelRotating()) {
 					plot.getDomainAxis().setTickLabelsVisible(true);
 					plot.getDomainAxis().setVerticalTickLabels(true);
 				}
 				
-				// ranging
-				Range range = (createFromModel)? getRangeForName(MODEL_DOMAIN_AXIS_NAME) : getRangeForDimension(plotColumn);
-				if (range != null) 
-					plot.getDomainAxis().setRange(range, true, false);
-				
-				plot.getRangeAxis().setLabelFont(LABEL_FONT_BOLD);
-				plot.getRangeAxis().setTickLabelFont(LABEL_FONT);
-
-				plot.getDomainAxis().setLabelFont(LABEL_FONT_BOLD);
-				plot.getDomainAxis().setTickLabelFont(LABEL_FONT);
 			} else if (commonPlot instanceof CategoryPlot) {
 				CategoryPlot plot = (CategoryPlot)commonPlot;
 				
@@ -254,6 +264,8 @@ public class DistributionPlotter extends RangeablePlotterAdapter {
 				plot.getDomainAxis().setLabelFont(LABEL_FONT_BOLD);
 				plot.getDomainAxis().setTickLabelFont(LABEL_FONT);
 			}
+			
+
 			
 			// legend settings
 			LegendTitle legend = chart.getLegend();
@@ -468,8 +480,8 @@ public class DistributionPlotter extends RangeablePlotterAdapter {
 
 	@Override
 	public void dataTableSet() {
+		this.dataTable = getDataTable();
 		if (! createFromModel) {
-			this.dataTable = getDataTable();
 			updatePlotter();
 		}
 	}

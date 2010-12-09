@@ -28,14 +28,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import javax.swing.Icon;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -49,30 +50,19 @@ import com.rapidminer.RapidMiner;
 import com.rapidminer.datatable.DataTable;
 import com.rapidminer.datatable.SimpleDataTable;
 import com.rapidminer.datatable.SimpleDataTableRow;
-import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.math.AverageVector;
 
-
 /**
- * AttributeWeights holds the information about the weights of attributes of an
- * example set. It is delivered by several feature weighting algorithms or
- * learning schemes. The use of a linked hash map ensures that the added
- * features are stored in the same sequence they were added.
+ * AttributeWeights holds the information about the weights of attributes of an example set. It is delivered by several
+ * feature weighting algorithms or learning schemes. The use of a linked hash map ensures that the added features are
+ * stored in the same sequence they were added.
  * 
  * @author Ingo Mierswa
  */
 public class AttributeWeights extends AverageVector {
 
 	private static final long serialVersionUID = 7000978931118131854L;
-
-	private static final String RESULT_ICON_NAME = "sort_descending.png";
-
-	private static Icon resultIcon = null;
-
-	static {
-		resultIcon = SwingTools.createIcon("16/" + RESULT_ICON_NAME);
-	}
 
 	/** Indicates that the weights should not be sorted at all. */
 	public static final int NO_SORTING = 0;
@@ -129,14 +119,14 @@ public class AttributeWeights extends AverageVector {
 	private int weightType = ORIGINAL_WEIGHTS;
 
 	/** Maps the name of an attribute to the corresponding attribute weight. */
-	private final Map<String, AttributeWeight> weightMap = new LinkedHashMap<String, AttributeWeight>();
+	private Map<String, AttributeWeight> weightMap = new LinkedHashMap<String, AttributeWeight>();
 
 	/** Creates a new empty attribute weights object. */
-	public AttributeWeights() {}
+	public AttributeWeights() {
+	}
 
 	/**
-	 * Creates a new attribute weights object containing a weight of 1 for each
-	 * of the given input attributes.
+	 * Creates a new attribute weights object containing a weight of 1 for each of the given input attributes.
 	 */
 	public AttributeWeights(ExampleSet exampleSet) {
 		for (Attribute attribute : exampleSet.getAttributes())
@@ -174,8 +164,8 @@ public class AttributeWeights extends AverageVector {
 	}
 
 	/**
-	 * Returns the weight for the attribute with the given name. Returns
-	 * Double.NaN if the weight for the queried attribute is not known.
+	 * Returns the weight for the attribute with the given name. Returns Double.NaN if the weight for the queried
+	 * attribute is not known.
 	 */
 	public double getWeight(String name) {
 		AttributeWeight weight = weightMap.get(name);
@@ -217,18 +207,16 @@ public class AttributeWeights extends AverageVector {
 	public void removeAttributeWeight(String attributeName) {
 		this.weightMap.remove(attributeName);
 	}
-	
+
 	/**
-	 * Returns an set of attribute names in this map ordered by their insertion
-	 * time.
+	 * Returns an set of attribute names in this map ordered by their insertion time.
 	 */
 	public Set<String> getAttributeNames() {
 		return weightMap.keySet();
 	}
 
 	/**
-	 * Since this average vector cannot be compared this method always returns
-	 * 0.
+	 * Since this average vector cannot be compared this method always returns 0.
 	 */
 	public int compareTo(Object o) {
 		return 0;
@@ -240,7 +228,7 @@ public class AttributeWeights extends AverageVector {
 		if (!(o instanceof AttributeWeights)) {
 			return false;
 		} else {
-			AttributeWeights other = (AttributeWeights)o;
+			AttributeWeights other = (AttributeWeights) o;
 			return this.weightMap.equals(other.weightMap);
 		}
 	}
@@ -252,9 +240,8 @@ public class AttributeWeights extends AverageVector {
 	}
 
 	/**
-	 * Sorts the given array of attribute names according to their weight,
-	 * the sorting direction (ascending or descending), and with respect
-	 * to the fact if original or absolute weights should be used.
+	 * Sorts the given array of attribute names according to their weight, the sorting direction (ascending or
+	 * descending), and with respect to the fact if original or absolute weights should be used.
 	 * 
 	 * @param direction
 	 *            <code>ASCENDING</code> or <code>DESCENDING</code>
@@ -263,6 +250,23 @@ public class AttributeWeights extends AverageVector {
 	 */
 	public void sortByWeight(String[] attributeNames, int direction, int comparatorType) {
 		Arrays.sort(attributeNames, new WeightComparator(direction, comparatorType));
+	}
+
+	/**
+	 * This will sort the weights either ascending if the boolean flag is true or descending. * @param direction
+	 * <code>ASCENDING</code> or <code>DESCENDING</code>
+	 * 
+	 * @param comparatorType
+	 *            <code>WEIGHT</code> or <code>WEIGHT_ABSOLUTE</code>.
+	 */
+	public void sort(int direction, int comparatorType) {
+		Map<String, AttributeWeight> newWeightMap = new LinkedHashMap<String, AttributeWeight>();
+		ArrayList<String> attributes = new ArrayList<String>(weightMap.keySet());
+		Collections.sort(attributes, new WeightComparator(direction, comparatorType));
+		for (String attributeName: attributes) {
+			newWeightMap.put(attributeName, weightMap.get(attributeName));
+		}
+		weightMap = newWeightMap;
 	}
 
 	/** Saves the attribute weights into an XML file. */
@@ -287,7 +291,7 @@ public class AttributeWeights extends AverageVector {
 			throw e;
 		} finally {
 			if (out != null) {
-				out.close();		
+				out.close();
 			}
 		}
 	}
@@ -313,7 +317,7 @@ public class AttributeWeights extends AverageVector {
 		for (int i = 0; i < weights.getLength(); i++) {
 			Node node = weights.item(i);
 			if (node instanceof Element) {
-				Element weightTag = (Element)node;
+				Element weightTag = (Element) node;
 				String tagName = weightTag.getTagName();
 				if (!tagName.equals("weight"))
 					throw new IOException("Only tags <weight> are allowed, was " + tagName);
@@ -331,9 +335,13 @@ public class AttributeWeights extends AverageVector {
 		return result;
 	}
 
-	public String getExtension() { return "wgt"; }
+	public String getExtension() {
+		return "wgt";
+	}
 
-	public String getFileDescription() { return "attribute weights file"; }
+	public String getFileDescription() {
+		return "attribute weights file";
+	}
 
 	/** Returns a string representation of this object. */
 	@Override
@@ -342,8 +350,7 @@ public class AttributeWeights extends AverageVector {
 	}
 
 	/**
-	 * Returns a deep clone of the attribute weights which provides the same
-	 * sequence of attribute names.
+	 * Returns a deep clone of the attribute weights which provides the same sequence of attribute names.
 	 */
 	@Override
 	public Object clone() {
@@ -361,18 +368,13 @@ public class AttributeWeights extends AverageVector {
 		}
 		Iterator<AttributeWeight> w = weightMap.values().iterator();
 		double diff = weightMax - weightMin;
-		while (w.hasNext()) { 
+		while (w.hasNext()) {
 			AttributeWeight attributeWeight = w.next();
 			double newWeight = 1.0d;
 			if (diff != 0.0d)
 				newWeight = (Math.abs(attributeWeight.getWeight()) - weightMin) / diff;
 			attributeWeight.setWeight(newWeight);
 		}
-	}
-
-	@Override
-	public Icon getResultIcon() {
-		return resultIcon;
 	}
 
 	public DataTable createDataTable() {
@@ -384,7 +386,7 @@ public class AttributeWeights extends AverageVector {
 			double weightValue = attWeight.getWeight();
 			double[] data = new double[] { index, weightValue };
 			dataTable.add(new SimpleDataTableRow(data, attName));
-		}        
+		}
 		return dataTable;
 	}
 }

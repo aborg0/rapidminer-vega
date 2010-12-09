@@ -23,19 +23,23 @@
 package com.rapidminer.operator;
 
 import com.rapidminer.example.ExampleSet;
+import com.rapidminer.example.table.DataRowFactory;
+import com.rapidminer.example.table.DataRowReader;
+import com.rapidminer.example.table.ExampleTable;
+import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.PassThroughRule;
 import com.rapidminer.operator.ports.metadata.SimplePrecondition;
+import com.rapidminer.operator.preprocessing.MaterializeDataInMemory;
 import com.rapidminer.parameter.UndefinedParameterError;
 
-
-/** Abstract superclass of all operators modifying an example set, i.e. accepting
- *  an {@link ExampleSet} as input and delivering an {@link ExampleSet} as output.
- *  The behaviour is delegated from the {@link #doWork()} method to
- *  {@link #apply(ExampleSet)}.
+/**
+ * Abstract superclass of all operators modifying an example set, i.e. accepting an {@link ExampleSet} as input and
+ * delivering an {@link ExampleSet} as output. The behaviour is delegated from the {@link #doWork()} method to
+ * {@link #apply(ExampleSet)}.
  * 
  * @author Simon Fischer
  */
@@ -53,7 +57,7 @@ public abstract class AbstractExampleSetProcessing extends Operator {
 			public MetaData modifyMetaData(MetaData metaData) {
 				if (metaData instanceof ExampleSetMetaData) {
 					try {
-						return AbstractExampleSetProcessing.this.modifyMetaData((ExampleSetMetaData)metaData);
+						return AbstractExampleSetProcessing.this.modifyMetaData((ExampleSetMetaData) metaData);
 					} catch (UndefinedParameterError e) {
 						return metaData;
 					}
@@ -70,24 +74,61 @@ public abstract class AbstractExampleSetProcessing extends Operator {
 		return exampleSetInput;
 	}
 
-	/** Subclasses might override this method to define the meta data transformation performed 
-	 *  by this operator. 
-	 * @throws UndefinedParameterError */
+	/**
+	 * Subclasses might override this method to define the meta data transformation performed by this operator.
+	 * 
+	 * @throws UndefinedParameterError
+	 */
 	protected MetaData modifyMetaData(ExampleSetMetaData metaData) throws UndefinedParameterError {
-		return metaData;		
+		return metaData;
 	}
 
-	/** Subclasses my override this method to define more precisely the meta data expected
-	 *  by this operator. */
+	/**
+	 * Subclasses my override this method to define more precisely the meta data expected by this operator.
+	 */
 	protected ExampleSetMetaData getRequiredMetaData() {
 		return new ExampleSetMetaData();
 	}
 
+	@Override
+	public final void doWork() throws OperatorException {
+		ExampleSet inputExampleSet = exampleSetInput.getData();
+		ExampleSet applySet = null;
+		// check for needed copy of original exampleset
+		if (originalOutput.isConnected() && writesIntoExistingData()) {
+			int type = DataRowFactory.TYPE_DOUBLE_ARRAY;
+			if (inputExampleSet.getExampleTable() instanceof MemoryExampleTable) {
+				DataRowReader dataRowReader = inputExampleSet.getExampleTable().getDataRowReader();
+				if (dataRowReader.hasNext()) {
+					type = dataRowReader.next().getType();
+				}
+			}
+			// check if type is supported to be copied
+			if (type >= 0) {
+				applySet = MaterializeDataInMemory.materializeExampleSet(inputExampleSet, type);
+			}
+		}
+		
+		if (applySet == null)
+			applySet = (ExampleSet) inputExampleSet.clone();
 
-	/** Delegate for the apply method. The given ExampleSet is already a clone of the
-	 *  input example set so that changing this examples set does not affect the original one. 
-	 *  Subclasses should avoid cloning again unnecessarily. */
+		// we apply on the materialized data, because writing can't take place in views anyway. 
+		ExampleSet result = apply(applySet);
+		originalOutput.deliver(inputExampleSet);
+		exampleSetOutput.deliver(result);
+	}
+
+	/**
+	 * Delegate for the apply method. The given ExampleSet is already a clone of the input example set so that changing
+	 * this examples set does not affect the original one. Subclasses should avoid cloning again unnecessarily.
+	 */
 	public abstract ExampleSet apply(ExampleSet exampleSet) throws OperatorException;
+
+	/**
+	 * This method indicates whether the operator will perform a write operation on a cell in an existing column of the example set's {@link ExampleTable}. If yes, the
+	 * original example will be completely copied in memory if the original port is used.
+	 */
+	public abstract boolean writesIntoExistingData();
 
 	@Override
 	public boolean shouldAutoConnect(OutputPort port) {
@@ -97,15 +138,6 @@ public abstract class AbstractExampleSetProcessing extends Operator {
 			return super.shouldAutoConnect(port);
 		}
 	}
-
-	@Override
-	public final void doWork() throws OperatorException {
-		ExampleSet inputExampleSet = exampleSetInput.getData();
-		ExampleSet result = apply((ExampleSet) inputExampleSet.clone());
-		originalOutput.deliver(inputExampleSet);
-		exampleSetOutput.deliver(result);		
-	}
-
 
 	public InputPort getExampleSetInputPort() {
 		return exampleSetInput;
