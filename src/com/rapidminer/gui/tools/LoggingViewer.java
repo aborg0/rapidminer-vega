@@ -198,7 +198,9 @@ public class LoggingViewer extends JPanel implements MouseListener, Dockable {
 
 	private LoggingViewer(JTextPane textArea) {
 		super(new BorderLayout());
-		handler.setLevel(getSpecifiedLogLevelIndex());
+		final Level level = getSpecifiedLogLevelIndex();
+		handler.setLevel(level);
+		LogService.getRoot().setLevel(level);
 		maxRows = 1000;
 		try {
 			String maxRowsString = System.getProperty(MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_ROWLIMIT);
@@ -226,7 +228,7 @@ public class LoggingViewer extends JPanel implements MouseListener, Dockable {
         add(scrollPane, BorderLayout.CENTER);
 	}
 	
-	private Level getSpecifiedLogLevelIndex() {
+	private static Level getSpecifiedLogLevelIndex() {
 		String value = System.getProperty(MainFrame.PROPERTY_RAPIDMINER_GUI_LOG_LEVEL);
 		if (value == null) {
 			return Level.CONFIG;
@@ -241,6 +243,7 @@ public class LoggingViewer extends JPanel implements MouseListener, Dockable {
 	}
 	
 	public void setLevel(Level level) {
+		LogService.getRoot().setLevel(level);
 		handler.setLevel(level);
 		ParameterService.writePropertyIntoMainUserConfigFile(MainFrame.PROPERTY_RAPIDMINER_GUI_LOG_LEVEL, level.getName());
 	}

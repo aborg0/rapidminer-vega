@@ -147,12 +147,8 @@ public class LogService extends WrapperLoggingHandler {
     		handler.setLevel(Level.CONFIG);
     		if (handler instanceof ConsoleHandler) {
     			handler.setFormatter(new LeanFormatter());
-    			//System.out.println("GOTIT");
     		}
     	}
-//    	if (RapidMiner.getExecutionMode() != RapidMiner.ExecutionMode.APPSERVER) {
-//    		addConsole(Level.CONFIG);
-//    	}
     }
         
     /** Returns the global logging. If no logging was otherwise create, this
