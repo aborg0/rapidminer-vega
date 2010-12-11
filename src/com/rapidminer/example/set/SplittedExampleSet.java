@@ -131,7 +131,12 @@ public class SplittedExampleSet extends AbstractExampleSet {
 		if ((label != null) && (label.isNominal()))
 			builder = new StratifiedPartitionBuilder(exampleSet, useLocalRandomSeed, seed);
 		else {
-			exampleSet.getLog().logNote("Example set has no nominal label: using shuffled partition instead of stratified partition!");
+			if (label == null) {
+				exampleSet.getLog().logWarning("Example set has no label attribute: using shuffled sampling instead of stratified sampling!");
+			}
+			if (!label.isNominal()){
+				exampleSet.getLog().logWarning("Example set has no nominal label: using shuffled sampling instead of stratified sampling!");
+			}
 			builder = new ShuffledPartitionBuilder(useLocalRandomSeed, seed);
 		}
 		break;

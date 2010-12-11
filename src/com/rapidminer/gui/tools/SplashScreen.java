@@ -56,8 +56,8 @@ public class SplashScreen extends JPanel {
 
 	private static final int EXTENSION_GAP = 400;
 	private static final float EXTENSION_FADE_TIME = 1000;
-		
-	
+	private static final int MAX_NUMBER_EXTENSION_ICONS = 9;
+
 	private static final long serialVersionUID = -1525644776910410809L;
 
 	private static final Paint MAIN_PAINT = Color.BLACK;
@@ -163,29 +163,33 @@ public class SplashScreen extends JPanel {
 		int size = extensionIcons.size();
 		if (size > 0) {
 			Graphics2D g2d = (Graphics2D) g;
+			g2d.translate(170, 140);
+			g2d.scale(0.5, 0.5);
 			long currentTimeMillis = System.currentTimeMillis();
-			
+
 			int numberToShow = 0;
-			for (Pair<BufferedImage, Long> pair: extensionIcons) {
-				if (currentTimeMillis > pair.getSecond()) 
+			for (Pair<BufferedImage, Long> pair : extensionIcons) {
+				if (currentTimeMillis > pair.getSecond())
 					numberToShow++;
 			}
-			
+
 			// now paint other icons
-			int absolutX = 170;
 			int shiftX = 51;
-			int timesShiftX = 0;
-			for (int i = 0; i < size; i++) {
-				Pair<BufferedImage, Long> pair = extensionIcons.get(i);
-				if (currentTimeMillis > pair.getSecond()) { //
+			for (int i = 0; i < numberToShow; i++) {
+				RescaleOp rop;
+				if (numberToShow > i + MAX_NUMBER_EXTENSION_ICONS) {
+					// then we have to fade out again
+					Pair<BufferedImage, Long> pair = extensionIcons.get(i + MAX_NUMBER_EXTENSION_ICONS);					
 					float min = Math.min((currentTimeMillis - pair.getSecond()) / EXTENSION_FADE_TIME, 1f);
-					RescaleOp rop = new RescaleOp(new float[] {min, min, min, min}, new float[4], null);
-					g2d.drawImage(pair.getFirst(), rop, absolutX + timesShiftX * shiftX, 140);
-					timesShiftX++;
-					timesShiftX = timesShiftX % 5;
+					rop = new RescaleOp(new float[] { 1 - min, 1 - min, 1 - min, 1 - min }, new float[4], null);
 				} else {
-					break;
+					// fade in
+					Pair<BufferedImage, Long> pair = extensionIcons.get(i);
+					float min = Math.min((currentTimeMillis - pair.getSecond()) / EXTENSION_FADE_TIME, 1f);
+					rop = new RescaleOp(new float[] { min, min, min, min }, new float[4], null);
 				}
+
+				g2d.drawImage(extensionIcons.get(i).getFirst(), rop, (i % MAX_NUMBER_EXTENSION_ICONS) * shiftX, 0);
 			}
 
 		}
@@ -250,7 +254,7 @@ public class SplashScreen extends JPanel {
 			if (currentTimeMillis < lastExtensionAdd + EXTENSION_GAP)
 				currentTimeMillis = lastExtensionAdd + EXTENSION_GAP;
 			lastExtensionAdd = currentTimeMillis;
-			
+
 			BufferedImage bufferedImage = new BufferedImage(48, 48, BufferedImage.TYPE_INT_ARGB);
 			Graphics2D graphics = (Graphics2D) bufferedImage.getGraphics();
 			graphics.drawImage(extensionIcon.getImage(), 0, 0, null);

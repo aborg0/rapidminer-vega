@@ -169,7 +169,9 @@ public class Plugin {
 		Tools.addResourceSource(new ResourceSource(this.classLoader));
 		fetchMetaData();
 		
-		RapidMiner.getSplashScreen().addExtension(this);
+		if (!RapidMiner.getExecutionMode().isHeadless()) {
+			RapidMiner.getSplashScreen().addExtension(this);
+		}
 	}
 
 	private PluginClassLoader makeNonDelegatingClassloader() {

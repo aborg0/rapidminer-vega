@@ -46,6 +46,7 @@ import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeDateFormat;
+import com.rapidminer.parameter.ParameterTypeStringCategory;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
@@ -288,7 +289,7 @@ public class Date2Nominal extends AbstractDateDataProcessing {
 		List<ParameterType> types = super.getParameterTypes();
 		ParameterTypeAttribute attributeParamType = new ParameterTypeAttribute(PARAMETER_ATTRIBUTE_NAME, "The attribute which should be parsed.", getExampleSetInputPort(), false, false, Ontology.DATE_TIME);
 		types.add(attributeParamType);
-		ParameterType type = new ParameterTypeDateFormat(attributeParamType, PARAMETER_DATE_FORMAT, "The output format of the date values, for example \"yyyy/MM/dd\".", getExampleSetInputPort(), false);
+		ParameterType type = new ParameterTypeStringCategory(PARAMETER_DATE_FORMAT, "The output format of the date values, for example \"yyyy/MM/dd\".", ParameterTypeDateFormat.PREDEFINED_DATE_FORMATS);
 		types.add(type);
 
 		type = new ParameterTypeCategory(PARAMETER_LOCALE, "The used locale for date texts, for example \"Wed\" (English) in contrast to \"Mi\" (German).", availableLocaleNames, defaultLocale);
