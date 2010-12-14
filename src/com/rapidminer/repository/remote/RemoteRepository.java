@@ -305,7 +305,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		installJDBCConnectionEntries();
 		if (repositoryService == null) {
 			try {
-				RepositoryService_Service serviceService = new RepositoryService_Service(getRepositoryServiceWSDLUrl(), new QName("http://service.web.rapidrepository.com/", "RepositoryService"));
+				RepositoryService_Service serviceService = new RepositoryService_Service(getRepositoryServiceWSDLUrl(), new QName("http://service.web.rapidanalytics.de/", "RepositoryService"));
 				repositoryService = serviceService.getRepositoryServicePort();
 				offline = false;
 			} catch (Exception e) {
@@ -324,7 +324,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		// }
 		if (processService == null) {
 			try {
-				ProcessService_Service serviceService = new ProcessService_Service(getProcessServiceWSDLUrl(), new QName("http://service.web.rapidrepository.com/", "ProcessService"));
+				ProcessService_Service serviceService = new ProcessService_Service(getProcessServiceWSDLUrl(), new QName("http://service.web.rapidanalytics.de/", "ProcessService"));
 				processService = serviceService.getProcessServicePort();
 				offline = false;
 			} catch (Exception e) {

@@ -14,7 +14,7 @@ import javax.xml.bind.annotation.XmlType;
  * <pre>
  * &lt;complexType name="entryResponse">
  *   &lt;complexContent>
- *     &lt;extension base="{http://service.web.rapidrepository.com/}response">
+ *     &lt;extension base="{http://service.web.rapidanalytics.de/}response">
  *       &lt;sequence>
  *         &lt;element name="date" type="{http://www.w3.org/2001/XMLSchema}long"/>
  *         &lt;element name="latestRevision" type="{http://www.w3.org/2001/XMLSchema}int"/>

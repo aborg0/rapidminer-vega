@@ -69,5 +69,15 @@ public interface InputPort extends Port {
 
 	/** Returns a human readable representation of the preconditions. */
 	public String getPreconditionDescription();
+	
+	/**
+	 * This will add the given listener to this port. It is informed whenever the method {@link #receiveMD(MetaData)} is called.
+	 */
+	public void registerMetaDataChangeListener(MetaDataChangeListener listener);
+	
+	/**
+	 * Removes the given listener again.
+	 */
+	public void removeMetaDataChangeListener(MetaDataChangeListener listener);
 
 }

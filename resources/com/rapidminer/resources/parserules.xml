@@ -1403,6 +1403,10 @@
       </replaceRoleParameter>
    </read_arff>
    <read_csv>
+      <replaceParameter appliesSince="1.0.0" appliesBefore="5.1">
+         <oldparameter>use_first_row_as_attribute_names</oldparameter>
+         <newparameter>first_row_as_names</newparameter>
+      </replaceParameter>
       <replaceRoleParameter>
          <condition>
             <parameter_unequals>
@@ -2020,7 +2024,7 @@
    <!-- Operators: X -->
    <!-- Operators: Y -->
 
-   <!-- Generics: These rules are indepentend from operators  -->
+   <!-- Generics: These rules are independent from operators  -->
    <Generics>
       <replaceIOMultiplier />
       <deleteUnnecessaryOperatorChain />

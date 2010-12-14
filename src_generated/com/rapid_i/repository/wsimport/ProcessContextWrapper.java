@@ -20,7 +20,7 @@ import javax.xml.bind.annotation.XmlType;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
  *         &lt;element name="inputRepositoryLocations" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/>
- *         &lt;element name="macros" type="{http://service.web.rapidrepository.com/}macroDefinition" maxOccurs="unbounded" minOccurs="0"/>
+ *         &lt;element name="macros" type="{http://service.web.rapidanalytics.de/}macroDefinition" maxOccurs="unbounded" minOccurs="0"/>
  *         &lt;element name="outputRepositoryLocations" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>

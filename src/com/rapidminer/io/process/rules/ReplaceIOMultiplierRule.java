@@ -22,6 +22,8 @@
  */
 package com.rapidminer.io.process.rules;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Level;
 
 import com.rapidminer.gui.tools.VersionNumber;
@@ -43,7 +45,7 @@ import com.rapidminer.tools.OperatorService;
  * @author Simon Fischer
  * 
  */
-public class ReplaceIOMultiplierRule implements ParseRule {
+public class ReplaceIOMultiplierRule extends AbstractGenericParseRule {
 	private static final VersionNumber APPLIES_UNTIL = new VersionNumber(5, 0, 0, false, 0, false, 0);
 
 	@Override
@@ -108,5 +110,10 @@ public class ReplaceIOMultiplierRule implements ParseRule {
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public List<String> getApplicableOperatorKeys() {
+		return Collections.singletonList("iomultiplier");
 	}
 }

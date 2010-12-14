@@ -17,9 +17,9 @@ import javax.xml.bind.annotation.XmlType;
  * <pre>
  * &lt;complexType name="folderContentsResponse">
  *   &lt;complexContent>
- *     &lt;extension base="{http://service.web.rapidrepository.com/}response">
+ *     &lt;extension base="{http://service.web.rapidanalytics.de/}response">
  *       &lt;sequence>
- *         &lt;element name="entries" type="{http://service.web.rapidrepository.com/}entryResponse" maxOccurs="unbounded" minOccurs="0"/>
+ *         &lt;element name="entries" type="{http://service.web.rapidanalytics.de/}entryResponse" maxOccurs="unbounded" minOccurs="0"/>
  *         &lt;element name="location" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/extension>

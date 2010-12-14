@@ -17,7 +17,7 @@ import javax.xml.ws.WebServiceFeature;
  * Generated source version: 2.1
  * 
  */
-@WebServiceClient(name = "RepositoryService", targetNamespace = "http://service.web.rapidrepository.com/", wsdlLocation = "http://localhost:8080/RAWS/RepositoryService?wsdl")
+@WebServiceClient(name = "RepositoryService", targetNamespace = "http://service.web.rapidanalytics.de/", wsdlLocation = "http://localhost:8080/RAWS/RepositoryService?wsdl")
 public class RepositoryService_Service
     extends Service
 {
@@ -43,7 +43,7 @@ public class RepositoryService_Service
     }
 
     public RepositoryService_Service() {
-        super(REPOSITORYSERVICE_WSDL_LOCATION, new QName("http://service.web.rapidrepository.com/", "RepositoryService"));
+        super(REPOSITORYSERVICE_WSDL_LOCATION, new QName("http://service.web.rapidanalytics.de/", "RepositoryService"));
     }
 
     /**
@@ -53,7 +53,7 @@ public class RepositoryService_Service
      */
     @WebEndpoint(name = "RepositoryServicePort")
     public RepositoryService getRepositoryServicePort() {
-        return super.getPort(new QName("http://service.web.rapidrepository.com/", "RepositoryServicePort"), RepositoryService.class);
+        return super.getPort(new QName("http://service.web.rapidanalytics.de/", "RepositoryServicePort"), RepositoryService.class);
     }
 
     /**
@@ -65,7 +65,7 @@ public class RepositoryService_Service
      */
     @WebEndpoint(name = "RepositoryServicePort")
     public RepositoryService getRepositoryServicePort(WebServiceFeature... features) {
-        return super.getPort(new QName("http://service.web.rapidrepository.com/", "RepositoryServicePort"), RepositoryService.class, features);
+        return super.getPort(new QName("http://service.web.rapidanalytics.de/", "RepositoryServicePort"), RepositoryService.class, features);
     }
 
 }

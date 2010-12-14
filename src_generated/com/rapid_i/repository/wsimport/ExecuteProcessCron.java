@@ -22,7 +22,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *         &lt;element name="cronExpression" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="start" type="{http://www.w3.org/2001/XMLSchema}dateTime" minOccurs="0"/>
  *         &lt;element name="end" type="{http://www.w3.org/2001/XMLSchema}dateTime" minOccurs="0"/>
- *         &lt;element name="processContext" type="{http://service.web.rapidrepository.com/}processContextWrapper" minOccurs="0"/>
+ *         &lt;element name="processContext" type="{http://service.web.rapidanalytics.de/}processContextWrapper" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>

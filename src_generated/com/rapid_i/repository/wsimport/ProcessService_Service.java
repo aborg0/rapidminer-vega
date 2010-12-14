@@ -17,7 +17,7 @@ import javax.xml.ws.WebServiceFeature;
  * Generated source version: 2.1
  * 
  */
-@WebServiceClient(name = "ProcessService", targetNamespace = "http://service.web.rapidrepository.com/", wsdlLocation = "http://localhost:8080/RAWS/ProcessService?wsdl")
+@WebServiceClient(name = "ProcessService", targetNamespace = "http://service.web.rapidanalytics.de/", wsdlLocation = "http://localhost:8080/RAWS/ProcessService?wsdl")
 public class ProcessService_Service
     extends Service
 {
@@ -43,7 +43,7 @@ public class ProcessService_Service
     }
 
     public ProcessService_Service() {
-        super(PROCESSSERVICE_WSDL_LOCATION, new QName("http://service.web.rapidrepository.com/", "ProcessService"));
+        super(PROCESSSERVICE_WSDL_LOCATION, new QName("http://service.web.rapidanalytics.de/", "ProcessService"));
     }
 
     /**
@@ -53,7 +53,7 @@ public class ProcessService_Service
      */
     @WebEndpoint(name = "ProcessServicePort")
     public ProcessService getProcessServicePort() {
-        return super.getPort(new QName("http://service.web.rapidrepository.com/", "ProcessServicePort"), ProcessService.class);
+        return super.getPort(new QName("http://service.web.rapidanalytics.de/", "ProcessServicePort"), ProcessService.class);
     }
 
     /**
@@ -65,7 +65,7 @@ public class ProcessService_Service
      */
     @WebEndpoint(name = "ProcessServicePort")
     public ProcessService getProcessServicePort(WebServiceFeature... features) {
-        return super.getPort(new QName("http://service.web.rapidrepository.com/", "ProcessServicePort"), ProcessService.class, features);
+        return super.getPort(new QName("http://service.web.rapidanalytics.de/", "ProcessServicePort"), ProcessService.class, features);
     }
 
 }

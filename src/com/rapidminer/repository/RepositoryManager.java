@@ -225,7 +225,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 		boolean empty = true;
 		// check if we have at least one repository that is not pre-defined
 		for (Repository repository : repositories) {
-			if (!(repository instanceof ResourceRepository)) {
+			if (!(repository instanceof ResourceRepository) && !(repository instanceof DBRepository)) {
 				empty = false;
 				break;
 			}

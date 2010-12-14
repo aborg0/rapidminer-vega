@@ -25,7 +25,7 @@ package com.rapidminer.parameter;
 import com.rapidminer.operator.ports.InputPort;
 
 /**
- * 
+ * A ParameterType for DateFormats.
  * @author Simon Fischer
  *
  */

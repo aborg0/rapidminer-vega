@@ -43,7 +43,7 @@ import com.rapidminer.tools.XMLException;
 public class ReplaceIOContainerWriter extends AbstractParseRule {
 
 	public ReplaceIOContainerWriter(Element element) throws XMLException {
-		super("IOContainerWriter", element);
+		super("iocontainerwriter", element);
 	}
 
 	@Override

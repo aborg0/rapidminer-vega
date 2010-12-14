@@ -19,7 +19,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="elements" type="{http://service.web.rapidrepository.com/}processStackTraceElement" maxOccurs="unbounded" minOccurs="0"/>
+ *         &lt;element name="elements" type="{http://service.web.rapidanalytics.de/}processStackTraceElement" maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>

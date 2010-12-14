@@ -23,7 +23,9 @@
 package com.rapidminer.io.process.rules;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
 import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.io.process.XMLImporter;
@@ -36,7 +38,7 @@ import com.rapidminer.operator.SimpleOperatorChain;
  * 
  * @author Sebastian Land
  */
-public class DeleteUnnecessaryOperatorChainRule implements ParseRule {
+public class DeleteUnnecessaryOperatorChainRule extends AbstractGenericParseRule {
 	private static final VersionNumber APPLIES_UNTIL = new VersionNumber(5, 0, 0, false, 0, false, 0);
 	
 	public String apply(final Operator operator, VersionNumber processVersion, final XMLImporter importer) {		
@@ -68,4 +70,11 @@ public class DeleteUnnecessaryOperatorChainRule implements ParseRule {
 		}
 		return null;
 	}
+
+	@Override
+	public List<String> getApplicableOperatorKeys() {
+		return Collections.singletonList("subprocess");
+	}
+	
+	
 }

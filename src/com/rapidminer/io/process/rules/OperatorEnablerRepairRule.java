@@ -22,6 +22,9 @@
  */
 package com.rapidminer.io.process.rules;
 
+import java.util.Collections;
+import java.util.List;
+
 import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.operator.ExecutionUnit;
@@ -35,7 +38,7 @@ import com.rapidminer.tools.OperatorService;
  * 
  * @author Sebastian Land
  */
-public class OperatorEnablerRepairRule implements ParseRule {
+public class OperatorEnablerRepairRule extends AbstractGenericParseRule {
 	private static final VersionNumber APPLIES_UNTIL = new VersionNumber(5, 0, 0, false, 0, false, 0);
 	
 	@Override
@@ -86,6 +89,11 @@ public class OperatorEnablerRepairRule implements ParseRule {
 		} else {
 			return null;
 		}
+	}
+
+	@Override
+	public List<String> getApplicableOperatorKeys() {
+		return Collections.singletonList("operatorenabler");
 	}
 
 

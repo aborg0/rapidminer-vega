@@ -25,6 +25,7 @@ package com.rapidminer.io.process;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,6 +43,7 @@ import com.rapidminer.BreakpointListener;
 import com.rapidminer.Process;
 import com.rapidminer.ProcessContext;
 import com.rapidminer.gui.tools.VersionNumber;
+import com.rapidminer.io.process.rules.AbstractGenericParseRule;
 import com.rapidminer.io.process.rules.ChangeParameterValueRule;
 import com.rapidminer.io.process.rules.DeleteAfterAutoWireRule;
 import com.rapidminer.io.process.rules.DeleteUnnecessaryOperatorChainRule;
@@ -110,6 +112,7 @@ public class XMLImporter {
 	public static final Charset PROCESS_FILE_CHARSET = Charset.forName("UTF-8");
 
 	private static List<ParseRule> PARSE_RULES = new LinkedList<ParseRule>();
+	private static HashMap<String, List<ParseRule>> OPERATOR_KEY_RULES_MAP = new HashMap<String, List<ParseRule>>();
 
 	/** Reads the parse rules from parserules.xml */
 	public static void init() {
@@ -162,7 +165,7 @@ public class XMLImporter {
 							}
 						}
 					}
-					LogService.getRoot().fine("Replacement rules are: " + PARSE_RULES);
+					LogService.getRoot().fine("Found " + PARSE_RULES.size() + " rules are.");
 				}
 			} catch (Exception e) {
 				LogService.getRoot().log(Level.SEVERE, "Error reading parse rules from " + rulesResource + ": " + e, e);
@@ -171,39 +174,69 @@ public class XMLImporter {
 	}
 
 	public static ParseRule constructRuleFromElement(String operatorTypeName, Element element) throws XMLException {
+		ParseRule rule = null;
+		AbstractGenericParseRule genericRule = null;
 		if (element.getTagName().equals("replaceParameter")) {
-			return new ReplaceParameterRule(operatorTypeName, element);
+			rule = new ReplaceParameterRule(operatorTypeName, element);
 		} else if (element.getTagName().equals("deleteAfterAutowire")) {
-			return new DeleteAfterAutoWireRule(operatorTypeName, element);
-		} else if (element.getTagName().equals("deleteUnnecessaryOperatorChain")) {
-			return new DeleteUnnecessaryOperatorChainRule();
-		} else if (element.getTagName().equals("replaceIOContainerWriter")) {
-			return new ReplaceIOContainerWriter(element);
-		} else if (element.getTagName().equals("passthroughShortcut")) {
-			return new PassthroughShortcutRule();
-		} else if (element.getTagName().equals("replaceIOMultiplier")) {
-			return new ReplaceIOMultiplierRule();
-		} else if (element.getTagName().equals("repairOperatorEnabler")) {
-			return new OperatorEnablerRepairRule();
+			rule = new DeleteAfterAutoWireRule(operatorTypeName, element);
 		} else if (element.getTagName().equals("setParameter")) {
-			return new SetParameterRule(operatorTypeName, element);
+			rule = new SetParameterRule(operatorTypeName, element);
 		} else if (element.getTagName().equals("replaceParameterValue")) {
-			return new ChangeParameterValueRule(operatorTypeName, element);
+			rule = new ChangeParameterValueRule(operatorTypeName, element);
 		} else if (element.getTagName().equals("replaceOperator")) {
-			return new ReplaceOperatorRule(operatorTypeName, element);
+			rule = new ReplaceOperatorRule(operatorTypeName, element);
 		} else if (element.getTagName().equals("exchangeSubprocesses")) {
-			return new ExchangeSubprocessesRule(operatorTypeName, element);
+			rule = new ExchangeSubprocessesRule(operatorTypeName, element);
 		} else if (element.getTagName().equals("wireSubprocess")) {
-			return new WireAllOperators(operatorTypeName, element);
+			rule = new WireAllOperators(operatorTypeName, element);
 		} else if (element.getTagName().equals("switchListEntries")) {
-			return new SwitchListEntriesRule(operatorTypeName, element);
+			rule = new SwitchListEntriesRule(operatorTypeName, element);
 		} else if (element.getTagName().equals("renamePlotterParameters")) {
-			return new RenamePlotterParametersRule(operatorTypeName, element);
+			rule = new RenamePlotterParametersRule(operatorTypeName, element);
 		} else if (element.getTagName().equals("replaceRoleParameter")) {
-			return new SetRoleByNameRule(operatorTypeName, element);
+			rule = new SetRoleByNameRule(operatorTypeName, element);
+
+			/*
+			 * General rules. Will take care of theirselves.
+			 */
+		} else if (element.getTagName().equals("deleteUnnecessaryOperatorChain")) {
+			genericRule = new DeleteUnnecessaryOperatorChainRule();
+		} else if (element.getTagName().equals("replaceIOContainerWriter")) {
+			rule = new ReplaceIOContainerWriter(element);
+			operatorTypeName = "iocontainerwriter";
+		} else if (element.getTagName().equals("passthroughShortcut")) {
+			genericRule = new PassthroughShortcutRule();
+		} else if (element.getTagName().equals("replaceIOMultiplier")) {
+			genericRule = new ReplaceIOMultiplierRule();
+		} else if (element.getTagName().equals("repairOperatorEnabler")) {
+			genericRule = new OperatorEnablerRepairRule();
 		} else {
 			throw new XMLException("Unknown rule tag: <" + element.getTagName() + ">");
 		}
+
+		if (rule != null) {
+			// registering rules applying to one single operator.
+			List<ParseRule> rules = OPERATOR_KEY_RULES_MAP.get(operatorTypeName);
+			if (rules == null) {
+				rules = new LinkedList<ParseRule>();
+				OPERATOR_KEY_RULES_MAP.put(operatorTypeName, rules);
+			}
+			rules.add(rule);
+		}
+		
+		if (genericRule != null) {
+			for (String applicableOperatorKeys: genericRule.getApplicableOperatorKeys()) {
+				// registering rules applying to one single operator.
+				List<ParseRule> rules = OPERATOR_KEY_RULES_MAP.get(applicableOperatorKeys);
+				if (rules == null) {
+					rules = new LinkedList<ParseRule>();
+					OPERATOR_KEY_RULES_MAP.put(applicableOperatorKeys, rules);
+				}
+				rules.add(genericRule);
+			}
+		}
+		return rule;
 	}
 
 	private final List<Runnable> jobsAfterAutoWire = new LinkedList<Runnable>();
@@ -224,7 +257,6 @@ public class XMLImporter {
 		progressListener = listener;
 	}
 
-	
 	/**
 	 * This constructor will simply ignore the version. It will always use the one of RapidMiner.
 	 */
@@ -246,8 +278,8 @@ public class XMLImporter {
 	public void parse(Document doc, Process process, List<UnknownParameterInformation> unknownParameters) throws XMLException {
 		// find version number
 		VersionNumber processVersion = parseVersion(doc.getDocumentElement());
-		
-		// parse root operator 
+
+		// parse root operator
 		Element rootOperatorElement = getRootOperatorElement(doc);
 		ProcessRootOperator rootOperator = parseRootOperator(rootOperatorElement, processVersion, process, unknownParameters);
 		process.setRootOperator(rootOperator);
@@ -310,7 +342,7 @@ public class XMLImporter {
 			throw new XMLException("Outermost operator must be of type 'Process' (<operator class=\"Process\">)");
 		}
 	}
-	
+
 	private Element getRootOperatorElement(Document document) throws XMLException {
 		Element documentElement = document.getDocumentElement();
 		Element rootOperatorElement = null;
@@ -337,7 +369,7 @@ public class XMLImporter {
 		}
 		return rootOperatorElement;
 	}
-	
+
 	private void parseProcess(Element element, ExecutionUnit executionUnit, VersionNumber processFileVersion, Process process, List<UnknownParameterInformation> unknownParameterInformation) throws XMLException {
 		assert ("process".equals(element.getTagName()));
 
@@ -673,13 +705,17 @@ public class XMLImporter {
 		}
 
 		/**
-		 * Apply all parse rules
+		 * Apply all parse rules that are applicable for this operator.
 		 */
-		for (ParseRule rule : PARSE_RULES) {
-			String msg = rule.apply(operator, processFileVersion, this);
-			if (msg != null) {
-				process.setProcessConverted(true);
-				addMessage(msg);
+		String key = operator.getOperatorDescription().getKey();
+		List<ParseRule> list = OPERATOR_KEY_RULES_MAP.get(key);
+		if (list != null) {
+			for (ParseRule rule : list) {
+				String msg = rule.apply(operator, processFileVersion, this);
+				if (msg != null) {
+					process.setProcessConverted(true);
+					addMessage(msg);
+				}
 			}
 		}
 		return operator;

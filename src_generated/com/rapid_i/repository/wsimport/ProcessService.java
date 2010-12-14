@@ -18,7 +18,7 @@ import javax.xml.ws.ResponseWrapper;
  * Generated source version: 2.1
  * 
  */
-@WebService(name = "ProcessService", targetNamespace = "http://service.web.rapidrepository.com/")
+@WebService(name = "ProcessService", targetNamespace = "http://service.web.rapidanalytics.de/")
 @XmlSeeAlso({
     ObjectFactory.class
 })
@@ -33,8 +33,8 @@ public interface ProcessService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "cancelTrigger", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.CancelTrigger")
-    @ResponseWrapper(localName = "cancelTriggerResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.CancelTriggerResponse")
+    @RequestWrapper(localName = "cancelTrigger", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.CancelTrigger")
+    @ResponseWrapper(localName = "cancelTriggerResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.CancelTriggerResponse")
     public Response cancelTrigger(
         @WebParam(name = "triggerName", targetNamespace = "")
         String triggerName);
@@ -51,8 +51,8 @@ public interface ProcessService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "executeProcessCron", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.ExecuteProcessCron")
-    @ResponseWrapper(localName = "executeProcessCronResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.ExecuteProcessCronResponse")
+    @RequestWrapper(localName = "executeProcessCron", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.ExecuteProcessCron")
+    @ResponseWrapper(localName = "executeProcessCronResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.ExecuteProcessCronResponse")
     public ExecutionResponse executeProcessCron(
         @WebParam(name = "processLocation", targetNamespace = "")
         String processLocation,
@@ -75,8 +75,8 @@ public interface ProcessService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "executeProcessSimple", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.ExecuteProcessSimple")
-    @ResponseWrapper(localName = "executeProcessSimpleResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.ExecuteProcessSimpleResponse")
+    @RequestWrapper(localName = "executeProcessSimple", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.ExecuteProcessSimple")
+    @ResponseWrapper(localName = "executeProcessSimpleResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.ExecuteProcessSimpleResponse")
     public ExecutionResponse executeProcessSimple(
         @WebParam(name = "processLocation", targetNamespace = "")
         String processLocation,
@@ -93,8 +93,8 @@ public interface ProcessService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "getProcessIdsForJobId", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetProcessIdsForJobId")
-    @ResponseWrapper(localName = "getProcessIdsForJobIdResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetProcessIdsForJobIdResponse")
+    @RequestWrapper(localName = "getProcessIdsForJobId", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.GetProcessIdsForJobId")
+    @ResponseWrapper(localName = "getProcessIdsForJobIdResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.GetProcessIdsForJobIdResponse")
     public List<Integer> getProcessIdsForJobId(
         @WebParam(name = "jobId", targetNamespace = "")
         int jobId);
@@ -107,8 +107,8 @@ public interface ProcessService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "getRunningProcesses", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetRunningProcesses")
-    @ResponseWrapper(localName = "getRunningProcessesResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetRunningProcessesResponse")
+    @RequestWrapper(localName = "getRunningProcesses", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.GetRunningProcesses")
+    @ResponseWrapper(localName = "getRunningProcessesResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.GetRunningProcessesResponse")
     public List<Integer> getRunningProcesses(
         @WebParam(name = "since", targetNamespace = "")
         XMLGregorianCalendar since);
@@ -121,8 +121,8 @@ public interface ProcessService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "getRunningProcessesInfo", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetRunningProcessesInfo")
-    @ResponseWrapper(localName = "getRunningProcessesInfoResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetRunningProcessesInfoResponse")
+    @RequestWrapper(localName = "getRunningProcessesInfo", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.GetRunningProcessesInfo")
+    @ResponseWrapper(localName = "getRunningProcessesInfoResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.GetRunningProcessesInfoResponse")
     public ProcessResponse getRunningProcessesInfo(
         @WebParam(name = "scheduledProcessId", targetNamespace = "")
         int scheduledProcessId);
@@ -135,8 +135,8 @@ public interface ProcessService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "stopProcess", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.StopProcess")
-    @ResponseWrapper(localName = "stopProcessResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.StopProcessResponse")
+    @RequestWrapper(localName = "stopProcess", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.StopProcess")
+    @ResponseWrapper(localName = "stopProcessResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.StopProcessResponse")
     public Response stopProcess(
         @WebParam(name = "scheduledProcessId", targetNamespace = "")
         int scheduledProcessId);

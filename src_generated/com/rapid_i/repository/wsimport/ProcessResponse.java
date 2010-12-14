@@ -28,7 +28,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *         &lt;element name="processLocation" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="startTime" type="{http://www.w3.org/2001/XMLSchema}dateTime" minOccurs="0"/>
  *         &lt;element name="state" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="trace" type="{http://service.web.rapidrepository.com/}processStackTrace" minOccurs="0"/>
+ *         &lt;element name="trace" type="{http://service.web.rapidanalytics.de/}processStackTrace" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>

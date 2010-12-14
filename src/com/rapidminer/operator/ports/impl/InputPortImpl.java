@@ -31,6 +31,7 @@ import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.InputPorts;
+import com.rapidminer.operator.ports.MetaDataChangeListener;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.Port;
 import com.rapidminer.operator.ports.Ports;
@@ -40,12 +41,15 @@ import com.rapidminer.operator.ports.metadata.Precondition;
 import com.rapidminer.operator.ports.metadata.SimpleMetaDataError;
 
 /**  
+ *  The default implmentation of an {@link InputPort}
  *  
- * @author Simon Fischer
+ * @author Simon Fischer, Sebastian Land
  *
  */
 public class InputPortImpl extends AbstractPort implements InputPort {
 
+	private final Collection<MetaDataChangeListener> metaDataChangeListeners = new LinkedList<MetaDataChangeListener>();
+	
 	private final Collection<Precondition> preconditions = new LinkedList<Precondition>();
 
 	private MetaData metaData;
@@ -63,6 +67,7 @@ public class InputPortImpl extends AbstractPort implements InputPort {
 		super.clear(clearFlags);		
 		if ((clearFlags & CLEAR_METADATA) > 0) {
 			this.metaData = null;
+			informListenersOfChange(null);
 		}
 	}
 
@@ -75,6 +80,7 @@ public class InputPortImpl extends AbstractPort implements InputPort {
 	public void receiveMD(MetaData metaData) {
 		assert(this.metaData != null);
 		this.metaData = metaData;	
+		informListenersOfChange(metaData);
 	}
 
 	@Override
@@ -157,5 +163,21 @@ public class InputPortImpl extends AbstractPort implements InputPort {
 	@Override
 	public Collection<Precondition> getAllPreconditions() {
 		return Collections.unmodifiableCollection(preconditions);		
+	}
+
+	@Override
+	public void registerMetaDataChangeListener(MetaDataChangeListener listener) {
+		metaDataChangeListeners.add(listener);
+	}
+
+	@Override
+	public void removeMetaDataChangeListener(MetaDataChangeListener listener) {
+		metaDataChangeListeners.remove(listener);
+	}
+	
+	private void informListenersOfChange(MetaData metaData) {
+		for (MetaDataChangeListener listener: metaDataChangeListeners) {
+			listener.informMetaDataChanged(metaData);
+		}
 	}
 }

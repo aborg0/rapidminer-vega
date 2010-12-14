@@ -112,7 +112,7 @@ public class OperatorService {
 	 * Maps operator names of form classname|subclassname to operator
 	 * descriptions.
 	 */
-	private static final Map<String, OperatorDescription> NAMES_TO_DESCRIPTIONS = new HashMap<String, OperatorDescription>();
+	private static final Map<String, OperatorDescription> KEYS_TO_DESCRIPTIONS = new HashMap<String, OperatorDescription>();
 
 	/** Set of all Operator classes registered. */
 	private static final Set<Class<? extends Operator>> REGISTERED_OPERATOR_CLASSES = new HashSet<Class<? extends Operator>>();
@@ -188,7 +188,7 @@ public class OperatorService {
 		Plugin.registerAllPluginOperators();
 
 		LogService.getRoot().config(
-				"Number of registered operator classes: " + REGISTERED_OPERATOR_CLASSES.size() + "; number of registered operator descriptions: " + NAMES_TO_DESCRIPTIONS.size()
+				"Number of registered operator classes: " + REGISTERED_OPERATOR_CLASSES.size() + "; number of registered operator descriptions: " + KEYS_TO_DESCRIPTIONS.size()
 						+ "; number of replacements: " + DEPRECATION_MAP.size());
 	}
 
@@ -407,7 +407,7 @@ public class OperatorService {
 	 */
 	public static void registerOperator(OperatorDescription description) throws OperatorCreationException {
 		// check if this operator was not registered earlier
-		OperatorDescription oldDescription = NAMES_TO_DESCRIPTIONS.get(description.getName());
+		OperatorDescription oldDescription = KEYS_TO_DESCRIPTIONS.get(description.getName());
 		if (oldDescription != null) {
 			LogService.getRoot().warning(
 					"Operator key '" + description.getKey() + "' was already registered for class " + oldDescription.getOperatorClass().getName() + ". Overwriting with "
@@ -415,7 +415,7 @@ public class OperatorService {
 		}
 
 		// register
-		NAMES_TO_DESCRIPTIONS.put(description.getKey(), description);
+		KEYS_TO_DESCRIPTIONS.put(description.getKey(), description);
 		REGISTERED_OPERATOR_CLASSES.add(description.getOperatorClass());
 
 		Operator currentOperator = description.createOperatorInstance();
@@ -530,11 +530,18 @@ public class OperatorService {
 	}
 
 	/**
-	 * Returns a collection of all operator names. A name has the structure
-	 * classname|subclassname.
+	 * Returns a collection of all operator keys. Use {@link #getOperatorKeys()} instead.
 	 */
+	@Deprecated
 	public static Set<String> getOperatorNames() {
-		return NAMES_TO_DESCRIPTIONS.keySet();
+		return KEYS_TO_DESCRIPTIONS.keySet();
+	}
+	
+	/**
+	 * Returns a collection of all operator keys.
+	 */
+	public static Set<String> getOperatorKeys() {
+		return KEYS_TO_DESCRIPTIONS.keySet();
 	}
 
 	/** Returns the group hierarchy of all operators. */
@@ -552,7 +559,7 @@ public class OperatorService {
 	 */
 	public static OperatorDescription[] getOperatorDescriptions(Class clazz) {
 		List<OperatorDescription> result = new LinkedList<OperatorDescription>();
-		for (OperatorDescription current : NAMES_TO_DESCRIPTIONS.values()) {
+		for (OperatorDescription current : KEYS_TO_DESCRIPTIONS.values()) {
 			if (current.getOperatorClass().equals(clazz))
 				result.add(current);
 		}
@@ -562,11 +569,11 @@ public class OperatorService {
 	}
 
 	/**
-	 * Returns the operator description for a given class name from the
-	 * operators.xml file, e.g. &quot;Process&quot; for a ProcessRootOperator.
+	 * Returns the operator description for a given key from the
+	 * operators.xml file, e.g. &quot;read_csv&quot; for the Read CSV operator.
 	 */
-	public static OperatorDescription getOperatorDescription(String completeName) {
-		return NAMES_TO_DESCRIPTIONS.get(completeName);
+	public static OperatorDescription getOperatorDescription(String key) {
+		return KEYS_TO_DESCRIPTIONS.get(key);
 	}
 
 	/**

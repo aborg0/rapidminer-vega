@@ -27,19 +27,23 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Paint;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.RescaleOp;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
@@ -52,11 +56,11 @@ import com.rapidminer.tools.plugin.Plugin;
  * 
  * @author Ingo Mierswa
  */
-public class SplashScreen extends JPanel {
+public class SplashScreen extends JPanel implements ActionListener {
 
 	private static final int EXTENSION_GAP = 400;
 	private static final float EXTENSION_FADE_TIME = 1000;
-	private static final int MAX_NUMBER_EXTENSION_ICONS = 9;
+	private static final int MAX_NUMBER_EXTENSION_ICONS = 7;
 
 	private static final long serialVersionUID = -1525644776910410809L;
 
@@ -90,6 +94,9 @@ public class SplashScreen extends JPanel {
 
 	private boolean infosVisible;
 
+	private Timer animationTimer;
+	private List<Runnable> animationRenderers = new LinkedList<Runnable>();
+	
 	private ArrayList<Pair<BufferedImage, Long>> extensionIcons = new ArrayList<Pair<BufferedImage, Long>>();
 	private long lastExtensionAdd = 0;
 
@@ -118,6 +125,10 @@ public class SplashScreen extends JPanel {
 		else
 			splashScreenFrame.setSize(450, 350);
 		splashScreenFrame.setLocationRelativeTo(null);
+		
+		animationTimer = new Timer(10, this);
+		animationTimer.setRepeats(true);
+		animationTimer.start();
 	}
 
 	private static Properties createDefaultProperties(String productVersion) {
@@ -163,7 +174,7 @@ public class SplashScreen extends JPanel {
 		int size = extensionIcons.size();
 		if (size > 0) {
 			Graphics2D g2d = (Graphics2D) g;
-			g2d.translate(170, 140);
+			g2d.translate(400, 140);
 			g2d.scale(0.5, 0.5);
 			long currentTimeMillis = System.currentTimeMillis();
 
@@ -189,7 +200,7 @@ public class SplashScreen extends JPanel {
 					rop = new RescaleOp(new float[] { min, min, min, min }, new float[4], null);
 				}
 
-				g2d.drawImage(extensionIcons.get(i).getFirst(), rop, (i % MAX_NUMBER_EXTENSION_ICONS) * shiftX, 0);
+				g2d.drawImage(extensionIcons.get(i).getFirst(), rop, - (i % MAX_NUMBER_EXTENSION_ICONS) * shiftX, 0);
 			}
 
 		}
@@ -234,17 +245,14 @@ public class SplashScreen extends JPanel {
 
 	public void setMessage(String message) {
 		this.message = message;
-		repaintLater();
 	}
 
 	public void setProperty(String key, String value) {
 		properties.setProperty(key, value);
-		repaintLater();
 	}
 
 	public void setInfosVisible(boolean b) {
 		this.infosVisible = b;
-		repaintLater();
 	}
 
 	public void addExtension(Plugin plugin) {
@@ -260,35 +268,21 @@ public class SplashScreen extends JPanel {
 			graphics.drawImage(extensionIcon.getImage(), 0, 0, null);
 
 			extensionIcons.add(new Pair<BufferedImage, Long>(bufferedImage, currentTimeMillis));
-
-			if (extensionIcons.size() == 1)
-				new Thread() {
-					@Override
-					public void run() {
-						while (splashScreenFrame != null) {
-							repaint();
-							synchronized (this) {
-								try {
-									wait(10);
-								} catch (InterruptedException e) {
-								}
-							}
-						}
-					};
-				}.start();
 		}
 	}
 
-	private void repaintLater() {
-		if (SwingUtilities.isEventDispatchThread()) {
-			repaint();
-		} else {
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					repaint();
-				}
-			});
-		}
+	public void addAnimationRenderer(Runnable runable) {
+		this.animationRenderers.add(runable);
+	}
+	
+	@Override
+	/**
+	 * This method is used for being repainted for
+	 * splash animation.
+	 */
+	public void actionPerformed(ActionEvent e) {
+		for (Runnable runnable: animationRenderers)
+			runnable.run();
+		repaint();
 	}
 }

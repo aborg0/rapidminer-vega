@@ -22,6 +22,7 @@
  */
 package com.rapidminer.parameter;
 
+import java.util.Collections;
 import java.util.Vector;
 
 import com.rapidminer.operator.ports.InputPort;
@@ -79,12 +80,19 @@ public class ParameterTypeAttribute extends ParameterTypeString {
 
 	public Vector<String> getAttributeNames() {
 		Vector<String> names = new Vector<String>();
+		Vector<String> regularNames = new Vector<String>();
+		
 		if (inPort != null) {
 			if (inPort.getMetaData() instanceof ExampleSetMetaData) {
 				ExampleSetMetaData emd = (ExampleSetMetaData) inPort.getMetaData();
 				for (AttributeMetaData amd : emd.getAllAttributes()) {
-					if (!isFilteredOut(amd) && isOfAllowedType(amd.getValueType()))
-						names.add(amd.getName());
+					if (!isFilteredOut(amd) && isOfAllowedType(amd.getValueType())) {
+						if (amd.isSpecial())
+							names.add(amd.getName());
+						else
+							regularNames.add(amd.getName());
+					}
+						
 				}
 			} else if (inPort.getMetaData() instanceof ModelMetaData) {
 				ModelMetaData mmd = (ModelMetaData) inPort.getMetaData();
@@ -93,12 +101,19 @@ public class ParameterTypeAttribute extends ParameterTypeString {
 					if (emd != null) {
 						for (AttributeMetaData amd : emd.getAllAttributes()) {
 							if (!isFilteredOut(amd) && isOfAllowedType(amd.getValueType()))
-								names.add(amd.getName());
+								if (amd.isSpecial())
+									names.add(amd.getName());
+								else
+									regularNames.add(amd.getName());
 						}
 					}
 				}
 			}
 		}
+		Collections.sort(names);
+		Collections.sort(regularNames);
+		names.addAll(regularNames);
+		
 		return names;
 	}
 

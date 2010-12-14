@@ -39,7 +39,7 @@ public class DBRepository implements Repository {
 
 	private List<Folder> folders = null;
 	private List<RepositoryListener> repositoryListeners = new LinkedList<RepositoryListener>();
-	private String name = "_DB";
+	private String name = "DB";
 	
 	private static final List<DBConnectionToIOObjectConverter> CONVERTERS = new LinkedList<DBConnectionToIOObjectConverter>(); 
 	static {

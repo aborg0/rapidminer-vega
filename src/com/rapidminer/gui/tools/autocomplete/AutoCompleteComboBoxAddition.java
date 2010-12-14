@@ -39,126 +39,142 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 
 /**
  * Addition which allows a JComboBox to auto fills itself if the entered string is prefix of any combo box item.
  * 
- * @author Marco Boeck
- *
+ * @author Marco Boeck, Sebastian Land
+ * 
  */
 public class AutoCompleteComboBoxAddition {
-	
-	/** only set this to true after the first time we gained the focus */
-	private boolean allowAutoFill;
-	
-	/** if set to true, matching will be case sensitive; false otherwise */
-	private boolean caseSensitive;
-	
-	/** the document listener for the combo box editor */
-	private final DocumentListener docListener;
-	
-	/** the JComboBox to which it is attached */
-	private final JComboBox cBox;
-	
-
-	private static final long serialVersionUID = 1L;
-	
-	
-	/**
-	 * Adds an auto completion feature to the given JComboBox. 
-	 * Will set {@link JComboBox#setEditable(boolean)} to true.
-	 * When the user enters one or more characters, it will automatically fill in the first match where
-	 * the characters are a prefix of an item from the {@link ComboBoxModel}.
-	 * As soon as the constructor is called
-	 * @param box the JComboBox which should get the auto completion feature
-	 */
-	public AutoCompleteComboBoxAddition(JComboBox box) {
-		cBox = box;
-		caseSensitive = false;
-		allowAutoFill = false;
-		cBox.setEditable(true);
-		cBox.setEditor(new BasicComboBoxEditor() {
-			
-			@Override
-			public void setItem(Object anObject) {
-				((JTextField)getEditorComponent()).getDocument().removeDocumentListener(docListener);
-				super.setItem(anObject);
-				((JTextField)getEditorComponent()).getDocument().addDocumentListener(docListener);
-		    }
-			
-		});
-		docListener = new DocumentListener() {
-
-			@Override
-			public void insertUpdate(DocumentEvent e) {
-				try {
-					if (!allowAutoFill) {
-						// see #focusGained() down below
-						return;
-					}
-					Vector<String> vectorOfStrings = new Vector<String>();
-					for (int i=0; i<cBox.getModel().getSize(); i++) {
-						vectorOfStrings.add(String.valueOf(cBox.getModel().getElementAt(i)));
-					}
-					String result = checkForMatch(e.getDocument().getText(0, e.getDocument().getLength()), vectorOfStrings, caseSensitive);
-					final String newString = result == null ? e.getDocument().getText(0, e.getDocument().getLength()) : result;
-					final int startSelect = e.getDocument().getLength();
-					final int endSelect = newString.length();
+	private final class AutoCompletionDocumentListener implements DocumentListener {
+		@Override
+		public void insertUpdate(DocumentEvent e) {
+			try {
+				if (!allowAutoFill) {
+					// see #focusGained() down below
+					return;
+				}
+				Vector<String> vectorOfStrings = new Vector<String>();
+				for (int i = 0; i < comboBox.getModel().getSize(); i++) {
+					vectorOfStrings.add(String.valueOf(comboBox.getModel().getElementAt(i)));
+				}
+				Document document = e.getDocument();
+				String documentText = document.getText(0, document.getLength());
+				final String result = checkForMatch(documentText, vectorOfStrings, caseSensitive);
+				final String newString = (result == null) ? documentText : result;
+				final int startSelect = document.getLength();
+				final int endSelect = newString.length();
+				final JTextField editorComponent = (JTextField)  comboBox.getEditor().getEditorComponent();
+				
+				if (startSelect == e.getOffset() + e.getLength()) {
 					SwingUtilities.invokeLater(new Runnable() {
-						
 						@Override
 						public void run() {
-							cBox.getEditor().setItem(newString);
-							((JTextField)cBox.getEditor().getEditorComponent()).setCaretPosition(startSelect);
-							((JTextField)cBox.getEditor().getEditorComponent()).setSelectionStart(startSelect);
-							((JTextField)cBox.getEditor().getEditorComponent()).setSelectionEnd(endSelect);
+							comboBox.setSelectedItem(null);
+							comboBox.setSelectedItem(newString);
+							editorComponent.setSelectionStart(startSelect);
+							editorComponent.setSelectionEnd(endSelect);
+
 						}
 					});
-				} catch (BadLocationException e1) { }
+				}
+			} catch (BadLocationException e1) {
 			}
-			
-			@Override
-			public void removeUpdate(DocumentEvent e) {
-				// not needed, only match on new input
-			}
-			
-			@Override
-			public void changedUpdate(DocumentEvent e) {
-				// never fired for Document
-			}
-			
-		};
-		((JTextField)cBox.getEditor().getEditorComponent()).getDocument().addDocumentListener(docListener);
+		}
+
+		@Override
+		public void removeUpdate(DocumentEvent e) {
+			// not needed, only match on new input
+		}
+
+		@Override
+		public void changedUpdate(DocumentEvent e) {
+			// never fired for Document
+		}
+	}
+
+	private final class AutoCompletenComboBoxEditor extends BasicComboBoxEditor {
+		
+		@Override
+		public void setItem(Object anObject) {
+			((JTextField) getEditorComponent()).getDocument().removeDocumentListener(docListener);
+			super.setItem(anObject);
+			((JTextField) getEditorComponent()).getDocument().addDocumentListener(docListener);
+
+		}
+	}
+
+	/** only set this to true after the first time we gained the focus */
+	private boolean allowAutoFill;
+
+	/** if set to true, matching will be case sensitive; false otherwise */
+	private boolean caseSensitive;
+
+	/** the document listener for the combo box editor */
+	private final DocumentListener docListener;
+
+	/** the JComboBox to which it is attached */
+	private final JComboBox comboBox;
+    private final BasicComboBoxEditor comboBoxEditor;
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * Adds an auto completion feature to the given JComboBox. Will set {@link JComboBox#setEditable(boolean)} to true.
+	 * When the user enters one or more characters, it will automatically fill in the first match where the characters
+	 * are a prefix of an item from the {@link ComboBoxModel}. As soon as the constructor is called
+	 * 
+	 * @param box
+	 *            the JComboBox which should get the auto completion feature
+	 */
+	public AutoCompleteComboBoxAddition(JComboBox box) {
+		comboBox = box;
+
+		caseSensitive = false;
+		allowAutoFill = false;
+		comboBox.setEditable(true);
+		comboBoxEditor = new AutoCompletenComboBoxEditor();
+		comboBox.setEditor(comboBoxEditor);
+		docListener = new AutoCompletionDocumentListener();
+		((JTextField) comboBox.getEditor().getEditorComponent()).getDocument().addDocumentListener(docListener);
 		// workaround for java bug #6433257
-		for (Component c : cBox.getComponents()) {
-			
+		for (Component c : comboBox.getComponents()) {
+
 			c.addFocusListener(new FocusAdapter() {
-				
+
 				@Override
 				public void focusGained(FocusEvent e) {
-					// if we did not prevent this, it would auto fill each time the combo box is re-created after a custom value has been entered,
+					// if we did not prevent this, it would auto fill each time the combo box is re-created after a
+					// custom value has been entered,
 					// therefore overwriting any value which happens to be a prefix of something with the first match.
 					// this happens due to some RapidLookComboBoxEditor mechanics.
 					allowAutoFill = true;
 				}
-				
+
 			});
 		}
 	}
-	
+
 	/**
 	 * Sets the auto-fill feature to case sensitive.
-	 * @param caseSensitive If set to true, matching is case sensitive; false otherwise
+	 * 
+	 * @param caseSensitive
+	 *            If set to true, matching is case sensitive; false otherwise
 	 */
 	public void setCaseSensitive(boolean caseSensitive) {
 		this.caseSensitive = caseSensitive;
 	}
-	
+
 	/**
 	 * Returns the first string which starts with the given String.
-	 * @param givenString the result must start with this string
-	 * @param collectionOfStrings the collection of strings to match against the given string
-	 * @param caseSensitive @see {@link #setCaseSensitive(boolean)}
+	 * 
+	 * @param givenString
+	 *            the result must start with this string
+	 * @param collectionOfStrings
+	 *            the collection of strings to match against the given string
+	 * @param caseSensitive
+	 * @see {@link #setCaseSensitive(boolean)}
 	 * @return the first match or {@code null} if no match is found
 	 */
 	private String checkForMatch(String givenString, Collection<String> collectionOfStrings, boolean caseSensitive) {
@@ -185,5 +201,5 @@ public class AutoCompleteComboBoxAddition {
 		}
 		return returnString;
 	}
-	
+
 }

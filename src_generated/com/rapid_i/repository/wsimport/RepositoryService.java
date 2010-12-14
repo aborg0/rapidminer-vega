@@ -18,7 +18,7 @@ import javax.xml.ws.ResponseWrapper;
  * Generated source version: 2.1
  * 
  */
-@WebService(name = "RepositoryService", targetNamespace = "http://service.web.rapidrepository.com/")
+@WebService(name = "RepositoryService", targetNamespace = "http://service.web.rapidanalytics.de/")
 @XmlSeeAlso({
     ObjectFactory.class
 })
@@ -34,8 +34,8 @@ public interface RepositoryService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "createBlob", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.CreateBlob")
-    @ResponseWrapper(localName = "createBlobResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.CreateBlobResponse")
+    @RequestWrapper(localName = "createBlob", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.CreateBlob")
+    @ResponseWrapper(localName = "createBlobResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.CreateBlobResponse")
     public EntryResponse createBlob(
         @WebParam(name = "parentLocation", targetNamespace = "")
         String parentLocation,
@@ -50,8 +50,8 @@ public interface RepositoryService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "deleteEntry", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.DeleteEntry")
-    @ResponseWrapper(localName = "deleteEntryResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.DeleteEntryResponse")
+    @RequestWrapper(localName = "deleteEntry", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.DeleteEntry")
+    @ResponseWrapper(localName = "deleteEntryResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.DeleteEntryResponse")
     public Response deleteEntry(
         @WebParam(name = "entryLocation", targetNamespace = "")
         String entryLocation);
@@ -64,8 +64,8 @@ public interface RepositoryService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "getAccessRights", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetAccessRights")
-    @ResponseWrapper(localName = "getAccessRightsResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetAccessRightsResponse")
+    @RequestWrapper(localName = "getAccessRights", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.GetAccessRights")
+    @ResponseWrapper(localName = "getAccessRightsResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.GetAccessRightsResponse")
     public List<AccessRights> getAccessRights(
         @WebParam(name = "entryLocation", targetNamespace = "")
         String entryLocation);
@@ -77,8 +77,8 @@ public interface RepositoryService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "getAllGroupNames", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetAllGroupNames")
-    @ResponseWrapper(localName = "getAllGroupNamesResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetAllGroupNamesResponse")
+    @RequestWrapper(localName = "getAllGroupNames", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.GetAllGroupNames")
+    @ResponseWrapper(localName = "getAllGroupNamesResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.GetAllGroupNamesResponse")
     public List<String> getAllGroupNames();
 
     /**
@@ -89,8 +89,8 @@ public interface RepositoryService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "getEntry", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetEntry")
-    @ResponseWrapper(localName = "getEntryResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetEntryResponse")
+    @RequestWrapper(localName = "getEntry", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.GetEntry")
+    @ResponseWrapper(localName = "getEntryResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.GetEntryResponse")
     public EntryResponse getEntry(
         @WebParam(name = "entryLocation", targetNamespace = "")
         String entryLocation);
@@ -103,8 +103,8 @@ public interface RepositoryService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "getFolderContents", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetFolderContents")
-    @ResponseWrapper(localName = "getFolderContentsResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetFolderContentsResponse")
+    @RequestWrapper(localName = "getFolderContents", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.GetFolderContents")
+    @ResponseWrapper(localName = "getFolderContentsResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.GetFolderContentsResponse")
     public FolderContentsResponse getFolderContents(
         @WebParam(name = "folderLocation", targetNamespace = "")
         String folderLocation);
@@ -118,8 +118,8 @@ public interface RepositoryService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "getProcessContents", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetProcessContents")
-    @ResponseWrapper(localName = "getProcessContentsResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.GetProcessContentsResponse")
+    @RequestWrapper(localName = "getProcessContents", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.GetProcessContents")
+    @ResponseWrapper(localName = "getProcessContentsResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.GetProcessContentsResponse")
     public ProcessContentsResponse getProcessContents(
         @WebParam(name = "entryLocation", targetNamespace = "")
         String entryLocation,
@@ -135,8 +135,8 @@ public interface RepositoryService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "makeFolder", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.MakeFolder")
-    @ResponseWrapper(localName = "makeFolderResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.MakeFolderResponse")
+    @RequestWrapper(localName = "makeFolder", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.MakeFolder")
+    @ResponseWrapper(localName = "makeFolderResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.MakeFolderResponse")
     public EntryResponse makeFolder(
         @WebParam(name = "parentLocation", targetNamespace = "")
         String parentLocation,
@@ -152,8 +152,8 @@ public interface RepositoryService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "move", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.Move")
-    @ResponseWrapper(localName = "moveResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.MoveResponse")
+    @RequestWrapper(localName = "move", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.Move")
+    @ResponseWrapper(localName = "moveResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.MoveResponse")
     public EntryResponse move(
         @WebParam(name = "location", targetNamespace = "")
         String location,
@@ -169,8 +169,8 @@ public interface RepositoryService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "rename", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.Rename")
-    @ResponseWrapper(localName = "renameResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.RenameResponse")
+    @RequestWrapper(localName = "rename", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.Rename")
+    @ResponseWrapper(localName = "renameResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.RenameResponse")
     public EntryResponse rename(
         @WebParam(name = "location", targetNamespace = "")
         String location,
@@ -186,8 +186,8 @@ public interface RepositoryService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "setAccessRights", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.SetAccessRights")
-    @ResponseWrapper(localName = "setAccessRightsResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.SetAccessRightsResponse")
+    @RequestWrapper(localName = "setAccessRights", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.SetAccessRights")
+    @ResponseWrapper(localName = "setAccessRightsResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.SetAccessRightsResponse")
     public Response setAccessRights(
         @WebParam(name = "entryLocation", targetNamespace = "")
         String entryLocation,
@@ -202,8 +202,8 @@ public interface RepositoryService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "startNewRevision", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.StartNewRevision")
-    @ResponseWrapper(localName = "startNewRevisionResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.StartNewRevisionResponse")
+    @RequestWrapper(localName = "startNewRevision", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.StartNewRevision")
+    @ResponseWrapper(localName = "startNewRevisionResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.StartNewRevisionResponse")
     public Response startNewRevision(
         @WebParam(name = "processLocation", targetNamespace = "")
         String processLocation);
@@ -218,8 +218,8 @@ public interface RepositoryService {
      */
     @WebMethod
     @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "storeProcess", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.StoreProcess")
-    @ResponseWrapper(localName = "storeProcessResponse", targetNamespace = "http://service.web.rapidrepository.com/", className = "com.rapid_i.repository.wsimport.StoreProcessResponse")
+    @RequestWrapper(localName = "storeProcess", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.StoreProcess")
+    @ResponseWrapper(localName = "storeProcessResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.StoreProcessResponse")
     public Response storeProcess(
         @WebParam(name = "entryLocation", targetNamespace = "")
         String entryLocation,

@@ -22,6 +22,9 @@
  */
 package com.rapidminer.io.process.rules;
 
+import java.util.Collections;
+import java.util.List;
+
 import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.operator.Operator;
@@ -35,7 +38,7 @@ import com.rapidminer.operator.ports.OutputPorts;
  * 
  * @author Sebastian Land
  */
-public class PassthroughShortcutRule implements ParseRule {
+public class PassthroughShortcutRule extends AbstractGenericParseRule {
 	private static final VersionNumber APPLIES_UNTIL = new VersionNumber(5, 0, 0, false, 0, false, 0);
 	
 	@Override
@@ -87,6 +90,11 @@ public class PassthroughShortcutRule implements ParseRule {
 			});
 		}
 		return null;
+	}
+
+	@Override
+	public List<String> getApplicableOperatorKeys() {
+		return Collections.singletonList("subprocess");
 	}
 
 }

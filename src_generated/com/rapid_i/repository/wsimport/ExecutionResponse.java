@@ -16,7 +16,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * <pre>
  * &lt;complexType name="executionResponse">
  *   &lt;complexContent>
- *     &lt;extension base="{http://service.web.rapidrepository.com/}response">
+ *     &lt;extension base="{http://service.web.rapidanalytics.de/}response">
  *       &lt;sequence>
  *         &lt;element name="firstExecution" type="{http://www.w3.org/2001/XMLSchema}dateTime" minOccurs="0"/>
  *         &lt;element name="jobId" type="{http://www.w3.org/2001/XMLSchema}int"/>
