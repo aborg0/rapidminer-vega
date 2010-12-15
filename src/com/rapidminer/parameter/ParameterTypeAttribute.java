@@ -43,7 +43,7 @@ public class ParameterTypeAttribute extends ParameterTypeString {
 
 	private static final long serialVersionUID = -4177652183651031337L;
 
-	private InputPort inPort;
+	private transient InputPort inPort;
 
 	private int[] allowedValueTypes;
 

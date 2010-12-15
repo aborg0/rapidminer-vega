@@ -131,7 +131,7 @@ public class EditableTableHeader extends JTableHeader implements CellEditorListe
 		if (oldEditor != null && oldEditor instanceof TableCellEditor) {
 			(oldEditor).removeCellEditorListener(this);
 		}
-		if (newEditor != null && newEditor instanceof TableCellEditor) {
+		if (newEditor != null) {
 			(newEditor).addCellEditorListener(this);
 		}
 	}

@@ -304,6 +304,11 @@ public class PlotterConfigurationModel implements Cloneable {
 		setPlotter(settings.getPlotterName());
 	}
 	
+	@Override
+	protected Object clone() throws CloneNotSupportedException {
+		return new PlotterConfigurationModel(settings.clone(), settings.getAvailablePlotters(), dataTable);
+	}
+	
 	public void setParameterAsBoolean(String key, boolean value) {
 		String name = PlotterAdapter.transformParameterName(plotter.getPlotterName());
 		if (key.startsWith("_"))

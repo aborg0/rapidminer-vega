@@ -36,8 +36,12 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.AccessController;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivilegedAction;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -105,7 +109,19 @@ public class Plugin {
 	/** The value for the manifest entry RapidMiner-Type which indicates that a jar file is a RapidMiner plugin. */
 	public static final String RAPIDMINER_TYPE_PLUGIN = "RapidMiner_Extension";
 
-	private static final ClassLoader MAJOR_CLASS_LOADER = new AllPluginsClassLoader();
+	private static final ClassLoader MAJOR_CLASS_LOADER;
+
+	static {
+		try {
+			MAJOR_CLASS_LOADER = AccessController.doPrivileged(new PrivilegedExceptionAction<ClassLoader>() {
+				public ClassLoader run() throws Exception {
+					return new AllPluginsClassLoader();
+				}
+			});
+		} catch (PrivilegedActionException e) {
+			throw new RuntimeException("Cannot create major class loader: " + e.getMessage(), e);
+		}
+	}
 
 	/**
 	 * The jar archive of the plugin which must be placed in the <code>lib/plugins</code> subdirectory of RapidMiner.
@@ -135,7 +151,7 @@ public class Plugin {
 
 	/** The plugins and their versions which are needed for this plugin. */
 	private final List<Dependency> pluginDependencies = new LinkedList<Dependency>();
-	
+
 	private String extensionId;
 
 	private String pluginInitClassName;
@@ -168,7 +184,7 @@ public class Plugin {
 		this.classLoader = makeNonDelegatingClassloader();
 		Tools.addResourceSource(new ResourceSource(this.classLoader));
 		fetchMetaData();
-		
+
 		if (!RapidMiner.getExecutionMode().isHeadless()) {
 			RapidMiner.getSplashScreen().addExtension(this);
 		}
@@ -179,7 +195,7 @@ public class Plugin {
 		try {
 			url = this.file.toURI().toURL();
 		} catch (MalformedURLException e) {
-			throw new RuntimeException("Cannot make classloader for plugin: "+e, e);
+			throw new RuntimeException("Cannot make classloader for plugin: " + e, e);
 		}
 		final PluginClassLoader cl = new PluginClassLoader(new URL[] { url });
 		return cl;
@@ -206,7 +222,7 @@ public class Plugin {
 	public String getPluginInitClassName() {
 		return pluginInitClassName;
 	}
-	 
+
 	public String getPluginParseRules() {
 		return pluginParseRules;
 	}
@@ -226,6 +242,7 @@ public class Plugin {
 	public String getPluginGUIDescriptions() {
 		return pluginGUIDescriptions;
 	}
+
 	/**
 	 * Returns the resource identifier of the xml file specifying the operators
 	 */
@@ -259,10 +276,18 @@ public class Plugin {
 	 */
 	public ClassLoader getOriginalClassLoader() {
 		try {
-			//this.archive = new JarFile(this.file);
-			URL url = new URL("file", null, this.file.getAbsolutePath());
-			return new URLClassLoader(new URL[] { url }, Plugin.class.getClassLoader());
+			// this.archive = new JarFile(this.file);
+			final URL url = new URL("file", null, this.file.getAbsolutePath());
+			return AccessController.doPrivileged(new PrivilegedExceptionAction<ClassLoader>() {
+				@Override
+				public ClassLoader run() throws Exception {
+					return new URLClassLoader(new URL[] { url }, Plugin.class.getClassLoader());
+				}
+			});
+
 		} catch (IOException e) {
+			return null;
+		} catch (PrivilegedActionException e) {
 			return null;
 		}
 	}
@@ -290,7 +315,7 @@ public class Plugin {
 		try {
 			java.util.jar.Attributes atts = archive.getManifest().getMainAttributes();
 			name = getValue(atts, "Implementation-Title");
-			
+
 			if (name == null) {
 				name = archive.getName();
 			}
@@ -308,12 +333,11 @@ public class Plugin {
 			pluginResourceOperators = getDescriptorResource("Operator-Descriptor", false, true, atts);
 			pluginParseRules = getDescriptorResource("ParseRule-Descriptor", false, false, atts);
 			pluginGroupDescriptions = getDescriptorResource("Group-Descriptor", false, false, atts);
-			
+
 			pluginErrorDescriptions = getDescriptorResource("Error-Descriptor", false, true, atts);
 			pluginUserErrorDescriptions = getDescriptorResource("UserError-Descriptor", false, true, atts);
 			pluginGUIDescriptions = getDescriptorResource("GUI-Descriptor", false, true, atts);
 
-			
 			necessaryRapidMinerVersion = getValue(atts, "RapidMiner-Version");
 			if (necessaryRapidMinerVersion == null) {
 				necessaryRapidMinerVersion = "0";
@@ -328,7 +352,7 @@ public class Plugin {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private String getValue(java.util.jar.Attributes atts, String key) {
 		String result = atts.getValue(key);
 		if (result == null) {
@@ -341,14 +365,14 @@ public class Plugin {
 				return result;
 			}
 		}
-		
+
 	}
 
 	private String getDescriptorResource(String typeName, boolean mandatory, boolean isBundle, java.util.jar.Attributes atts) throws IOException {
 		String value = getValue(atts, typeName);
 		if (value == null) {
 			if (mandatory) {
-				throw new IOException("Manifest attribute '"+typeName+"' is not defined.");
+				throw new IOException("Manifest attribute '" + typeName + "' is not defined.");
 			} else {
 				return null;
 			}
@@ -360,7 +384,7 @@ public class Plugin {
 			}
 		}
 	}
-	
+
 	private String toResourceBundleIdentifier(String value) {
 		if (value.startsWith("/"))
 			value = value.substring(1);
@@ -378,37 +402,37 @@ public class Plugin {
 			value = value.substring(1);
 		return value;
 	}
-	
+
 	/** Register plugin dependencies. */
-	private void addDependencies(String dependencies) {		
+	private void addDependencies(String dependencies) {
 		pluginDependencies.addAll(Dependency.parse(dependencies));
 	}
 
 	public void registerOperators() {
 		if (disabled) {
-			LogService.getRoot().warning("Plugin "+getName()+" disabled due to previous errors. Not registering operators.");
+			LogService.getRoot().warning("Plugin " + getName() + " disabled due to previous errors. Not registering operators.");
 		}
 		InputStream in = null;
 		// trying normal plugins
 		if (pluginResourceOperators != null) {
 			URL operatorsURL = this.classLoader.getResource(pluginResourceOperators);
 			if (operatorsURL == null) {
-				LogService.getRoot().log(Level.WARNING, "Operator descriptor '"+pluginResourceOperators+"' does not exist in '" + archive.getName() + "'!");
+				LogService.getRoot().log(Level.WARNING, "Operator descriptor '" + pluginResourceOperators + "' does not exist in '" + archive.getName() + "'!");
 				return;
 			} else {
 				// register operators
 				try {
 					in = operatorsURL.openStream();
 				} catch (IOException e) {
-					LogService.getRoot().log(Level.WARNING, "Cannot read operator descriptor '"+operatorsURL+"' from '" + archive.getName() + "'!", e);
+					LogService.getRoot().log(Level.WARNING, "Cannot read operator descriptor '" + operatorsURL + "' from '" + archive.getName() + "'!", e);
 					return;
 				}
 			}
-		} else if (pluginInitClassName != null) {			
-			LogService.getRoot().info("No operator descriptor specified for plugin "+getName()+". Trying plugin initializtation class "+pluginInitClassName+".");
+		} else if (pluginInitClassName != null) {
+			LogService.getRoot().info("No operator descriptor specified for plugin " + getName() + ". Trying plugin initializtation class " + pluginInitClassName + ".");
 			// if no operators.xml found: Try via PluginInit method getOperatorStream()
 			try {
-				// important: here the combined class loader has to be used				
+				// important: here the combined class loader has to be used
 				Class<?> pluginInitator = Class.forName(pluginInitClassName, false, getClassLoader());
 				Method registerOperatorMethod = pluginInitator.getMethod("getOperatorStream", new Class[] { ClassLoader.class });
 				in = (InputStream) registerOperatorMethod.invoke(null, new Object[] { getClassLoader() });
@@ -425,21 +449,29 @@ public class Plugin {
 			Iterator<Dependency> i = pluginDependencies.iterator();
 			while (i.hasNext()) {
 				String pluginName = i.next().getPluginExtensionId();
-				Plugin other = getPluginByExtensionId(pluginName);
+				final Plugin other = getPluginByExtensionId(pluginName);
 
 				// Using classLoader of dependent plugin as parent
-				//TODO: Needs to cope with multiple dependencies: Solve Graph problem of dependencies
-				this.classLoader = new PluginClassLoader(classLoader.getURLs(), other);
+				// TODO: Needs to cope with multiple dependencies: Solve Graph problem of dependencies
+				this.classLoader = AccessController.doPrivileged(new PrivilegedAction<PluginClassLoader>() {
+					@Override
+					public PluginClassLoader run() {
+						return new PluginClassLoader(classLoader.getURLs(), other);
+					}
+				});
 			}
 
 			OperatorService.registerOperators(archive.getName(), in, this.classLoader, this);
 		} else {
-			LogService.getRoot().warning("No operator descriptor defined for: "+getName());
+			LogService.getRoot().warning("No operator descriptor defined for: " + getName());
 		}
 	}
-	
-	/** Register all things delivered with this plugin. 
-	 * @throws PluginException */
+
+	/**
+	 * Register all things delivered with this plugin.
+	 * 
+	 * @throws PluginException
+	 */
 	public void registerDescriptions() throws PluginException {
 		// registering settings for internationalization
 		if (pluginErrorDescriptions != null)
@@ -453,22 +485,22 @@ public class Plugin {
 		if (pluginResourceObjects != null) {
 			URL resource = this.classLoader.getResource(pluginResourceObjects);
 			if (resource != null) {
-				RendererService.init(name, resource, this.classLoader);				
+				RendererService.init(name, resource, this.classLoader);
 			} else {
-				throw new PluginException("Cannot find io object descriptor '"+pluginResourceObjects+"' for plugin "+getName()+".");
+				throw new PluginException("Cannot find io object descriptor '" + pluginResourceObjects + "' for plugin " + getName() + ".");
 			}
 		}
-		
+
 		// registering parse rules
 		if (pluginParseRules != null) {
 			URL resource = this.classLoader.getResource(pluginParseRules);
 			if (resource != null) {
 				XMLImporter.importParseRules(resource, this);
 			} else {
-				throw new PluginException("Cannot find parse rules '"+pluginParseRules+"' for plugin "+getName()+".");
+				throw new PluginException("Cannot find parse rules '" + pluginParseRules + "' for plugin " + getName() + ".");
 			}
 		}
-		
+
 		// registering colors
 		if (pluginGroupDescriptions != null) {
 			ProcessRenderer.registerAdditionalObjectColors(pluginGroupDescriptions, name, classLoader);
@@ -490,8 +522,10 @@ public class Plugin {
 			LogService.getRoot().log(Level.WARNING, "Cannot load plugin building blocks. Skipping...", e1);
 		}
 		if (url != null) {
-			ClassLoader independentLoader = new PluginClassLoader(new URL[] { url });
-			URL bbDefinition = independentLoader.getResource(Tools.RESOURCE_PREFIX + "buildingblocks.txt");
+			// TODO: Check why we have to build an independentLoader? If yes: Use doPriviledged.
+			// ClassLoader independentLoader = new PluginClassLoader(new URL[] { url });
+			// URL bbDefinition = independentLoader.getResource(Tools.RESOURCE_PREFIX + "buildingblocks.txt");
+			URL bbDefinition = classLoader.getResource(Tools.RESOURCE_PREFIX + "buildingblocks.txt");
 			if (bbDefinition != null) {
 				BufferedReader in = null;
 				try {
@@ -536,15 +570,15 @@ public class Plugin {
 			URL url = simpleClassLoader.getResource("META-INF/ABOUT.NFO");
 			if (url != null)
 				about = Tools.readTextFile(new InputStreamReader(url.openStream()));
-		} catch (Exception e) {	
-			LogService.getRoot().log(Level.WARNING, "Error reading ABOUT.NFO for plugin "+getName(), e);
+		} catch (Exception e) {
+			LogService.getRoot().log(Level.WARNING, "Error reading ABOUT.NFO for plugin " + getName(), e);
 		}
 		Image productLogo = null;
 		try {
 			InputStream imageIn = simpleClassLoader.getResourceAsStream("META-INF/icon.png");
 			productLogo = ImageIO.read(imageIn);
 		} catch (Exception e) {
-			LogService.getRoot().log(Level.WARNING, "Error reading icon.png for plugin "+getName(), e);	
+			LogService.getRoot().log(Level.WARNING, "Error reading icon.png for plugin " + getName(), e);
 		}
 		return new AboutBox(owner, name, version, "Vendor: " + ((vendor != null) ? vendor : "unknown"), url, about, true, productLogo);
 	}
@@ -557,7 +591,7 @@ public class Plugin {
 			return;
 		}
 		if (!(pluginDir.exists() && pluginDir.isDirectory())) {
-			LogService.getRoot().config("Plugin directory "+pluginDir+" does not exist.");
+			LogService.getRoot().config("Plugin directory " + pluginDir + " does not exist.");
 		} else {
 			LogService.getRoot().config("Scanning plugins in " + pluginDir + ".");
 			files.addAll(Arrays.asList(pluginDir.listFiles(new FilenameFilter() {
@@ -582,7 +616,7 @@ public class Plugin {
 					if (conflict == null) {
 						allPlugins.add(plugin);
 					} else {
-						LogService.getRoot().warning("Duplicate plugin definition for plugin "+plugin.getExtensionId()+" in "+conflict.file+" and "+file+". Keeping the first.");
+						LogService.getRoot().warning("Duplicate plugin definition for plugin " + plugin.getExtensionId() + " in " + conflict.file + " and " + file + ". Keeping the first.");
 					}
 				} else {
 					if (showWarningForNonPluginJars)
@@ -620,7 +654,7 @@ public class Plugin {
 				try {
 					plugin.registerDescriptions();
 				} catch (Exception e) {
-					LogService.getRoot().log(Level.WARNING, "Error initializing plugin: "+ e, e);
+					LogService.getRoot().log(Level.WARNING, "Error initializing plugin: " + e, e);
 					i.remove();
 					plugin.disabled = true;
 				}
@@ -632,15 +666,14 @@ public class Plugin {
 	 * Registers all operators from the plugins previously found by a call of registerAllPluginDescriptions
 	 */
 	public static void registerAllPluginOperators() {
-		for (Plugin plugin: allPlugins) {
+		for (Plugin plugin : allPlugins) {
 			plugin.registerOperators();
 		}
 	}
 
-	
 	/** Returns a class loader which is able to load all classes (core _and_ all plugins). */
 	public static ClassLoader getMajorClassLoader() {
-		return MAJOR_CLASS_LOADER;		
+		return MAJOR_CLASS_LOADER;
 	}
 
 	/** Returns the collection of all plugins. */
@@ -688,7 +721,7 @@ public class Plugin {
 			plugin.callInitMethod(methodName, arguments, argumentValues, useOriginalJarClassLoader);
 		}
 	}
-	
+
 	private void callInitMethod(String methodName, Class[] arguments, Object[] argumentValues, boolean useOriginalJarClassLoader) {
 		if (pluginInitClassName == null) {
 			return;
@@ -709,12 +742,12 @@ public class Plugin {
 			}
 			initMethod.invoke(null, argumentValues);
 		} catch (Exception e) {
-			LogService.getRoot().log(Level.WARNING, "Plugin initializer "+pluginInitClassName+"." + methodName + " of Plugin " + getName() + " causes an error: " + e.getMessage(), e);
+			LogService.getRoot().log(Level.WARNING, "Plugin initializer " + pluginInitClassName + "." + methodName + " of Plugin " + getName() + " causes an error: " + e.getMessage(), e);
 		}
 	}
 
 	public static void initPluginSplashTexts(SplashScreen splashScreen) {
-		callPluginInitMethods("initSplashTexts", new Class[] {SplashScreen.class}, new Object[] { splashScreen }, false);
+		callPluginInitMethods("initSplashTexts", new Class[] { SplashScreen.class }, new Object[] { splashScreen }, false);
 	}
 
 	public static void initAboutTexts(Properties properties) {
@@ -749,17 +782,17 @@ public class Plugin {
 		// only load managed extensions if execution modes indicates
 		if (RapidMiner.getExecutionMode().isLoadingManagedExtensions())
 			ManagedExtension.init();
-		
+
 		String loadPluginsString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS);
 		boolean loadPlugins = Tools.booleanValue(loadPluginsString, true);
 		if (loadPlugins) {
-			File webstartPluginDir; 
+			File webstartPluginDir;
 			if (RapidMiner.getExecutionMode() == ExecutionMode.WEBSTART) {
 				webstartPluginDir = updateWebstartPluginsCache();
 			} else {
 				webstartPluginDir = null;
 			}
-			
+
 			File pluginDir = null;
 			String pluginDirString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS_LOCATION);
 			if ((pluginDirString != null) && !pluginDirString.isEmpty()) {
@@ -770,7 +803,7 @@ public class Plugin {
 				try {
 					pluginDir = getPluginLocation();
 				} catch (IOException e) {
-					LogService.getRoot().warning("None of the properties "+RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS+" and "+Launcher.PROPERTY_RAPIDMINER_HOME+" is set. No globally installed plugins will be loaded.");			
+					LogService.getRoot().warning("None of the properties " + RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS + " and " + Launcher.PROPERTY_RAPIDMINER_HOME + " is set. No globally installed plugins will be loaded.");
 				}
 			}
 
@@ -781,7 +814,7 @@ public class Plugin {
 				findAndRegisterPlugins(pluginDir, true);
 			}
 			registerPlugins(ManagedExtension.getActivePluginJars(), true);
-			
+
 			registerAllPluginDescriptions();
 			initPlugins();
 		} else {
@@ -798,29 +831,29 @@ public class Plugin {
 			final byte[] md5hash = MessageDigest.getInstance("MD5").digest(homeUrl.getBytes());
 			dirName = Base64.encodeBytes(md5hash);
 		} catch (NoSuchAlgorithmException e) {
-			LogService.getRoot().log(Level.WARNING, "Failed to hash remote url: "+e, e);
+			LogService.getRoot().log(Level.WARNING, "Failed to hash remote url: " + e, e);
 			return null;
-		} 
-		
+		}
+
 		File cacheDir = new File(ManagedExtension.getUserExtensionsDir(), dirName);
 		cacheDir.mkdirs();
 		File readmeFile = new File(cacheDir, "README.txt");
 		try {
-			Tools.writeTextFile(readmeFile, 
+			Tools.writeTextFile(readmeFile,
 					"This directory contains plugins downloaded from RapidAnalytics instance \n" +
-					"  "+homeUrl+".\n" +
-					"These plugins are only used if RapidMiner is started via WebStart from this \n"+
-					"server. You can delete the directory if you no longer need the cached plugins.");
+							"  " + homeUrl + ".\n" +
+							"These plugins are only used if RapidMiner is started via WebStart from this \n" +
+							"server. You can delete the directory if you no longer need the cached plugins.");
 		} catch (IOException e1) {
-			LogService.getRoot().log(Level.WARNING, "Failed to create file "+readmeFile+": "+e1, e1);
+			LogService.getRoot().log(Level.WARNING, "Failed to create file " + readmeFile + ": " + e1, e1);
 		}
-		
-		Document pluginsDoc; 
+
+		Document pluginsDoc;
 		try {
-			URL pluginsListUrl = new URL(homeUrl+"/RAWS/dependencies/resources.xml");
+			URL pluginsListUrl = new URL(homeUrl + "/RAWS/dependencies/resources.xml");
 			pluginsDoc = XMLTools.parse(pluginsListUrl.openStream());
 		} catch (Exception e) {
-			LogService.getRoot().log(Level.WARNING, "Failed to load extensions list from server: "+e, e);
+			LogService.getRoot().log(Level.WARNING, "Failed to load extensions list from server: " + e, e);
 			return null;
 		}
 
@@ -830,18 +863,18 @@ public class Plugin {
 		for (int i = 0; i < pluginElements.getLength(); i++) {
 			Element pluginElem = (Element) pluginElements.item(i);
 			String pluginName = pluginElem.getTextContent();
-			String pluginVersion = pluginElem.getAttribute("version"); 
-			File pluginFile = new File(cacheDir, pluginName+"-"+pluginVersion+".jar");
+			String pluginVersion = pluginElem.getAttribute("version");
+			File pluginFile = new File(cacheDir, pluginName + "-" + pluginVersion + ".jar");
 			cachedFiles.add(pluginFile);
 			if (pluginFile.exists()) {
-				LogService.getRoot().log(Level.CONFIG, "Found extension on server: "+pluginName+". Local cache exists.");		
+				LogService.getRoot().log(Level.CONFIG, "Found extension on server: " + pluginName + ". Local cache exists.");
 			} else {
-				LogService.getRoot().log(Level.CONFIG, "Found extension on server: "+pluginName+". Downloading to local cache.");
+				LogService.getRoot().log(Level.CONFIG, "Found extension on server: " + pluginName + ". Downloading to local cache.");
 				try {
-					URL pluginUrl = new URL(homeUrl+"/RAWS/dependencies/plugins/"+pluginName);
-					Tools.copyStreamSynchronously(pluginUrl.openStream(), new FileOutputStream(pluginFile), true);					
+					URL pluginUrl = new URL(homeUrl + "/RAWS/dependencies/plugins/" + pluginName);
+					Tools.copyStreamSynchronously(pluginUrl.openStream(), new FileOutputStream(pluginFile), true);
 				} catch (Exception e) {
-					LogService.getRoot().log(Level.WARNING, "Failed to download extension from server: "+e, e);
+					LogService.getRoot().log(Level.WARNING, "Failed to download extension from server: " + e, e);
 					errorOccurred = true; // Don't clear unknown files in this case.
 				}
 			}
@@ -853,7 +886,7 @@ public class Plugin {
 					continue;
 				}
 				if (!cachedFiles.contains(file)) {
-					LogService.getRoot().log(Level.CONFIG, "Deleting obsolete file "+file+" from extension cache.");
+					LogService.getRoot().log(Level.CONFIG, "Deleting obsolete file " + file + " from extension cache.");
 					file.delete();
 				}
 			}
@@ -879,11 +912,11 @@ public class Plugin {
 	public JarFile getArchive() {
 		return archive;
 	}
-	
+
 	public File getFile() {
 		return file;
 	}
-	
+
 	public String getExtensionId() {
 		return extensionId;
 	}

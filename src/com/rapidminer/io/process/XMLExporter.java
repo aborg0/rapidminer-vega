@@ -222,7 +222,6 @@ public class XMLExporter {
 		}
 		
 		Collections.reverse(nonNull);
-		i = locations.iterator();
 		for (String loc : nonNull) {
 			Element stringElem = doc.createElement("location");
 			list.appendChild(stringElem);

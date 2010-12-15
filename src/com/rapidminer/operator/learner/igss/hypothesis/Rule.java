@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator.learner.igss.hypothesis;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 
 import com.rapidminer.example.Attribute;
@@ -223,7 +224,7 @@ public class Rule extends Hypothesis {
 	
 	@Override
 	public int hashCode() {
-		return this.literals.hashCode() ^ Integer.valueOf(this.prediction).hashCode();
+		return Arrays.hashCode(this.literals) ^ Integer.valueOf(this.prediction).hashCode();
 	}
 	
 	/** Returns a String representation of the rule. */

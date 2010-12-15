@@ -66,6 +66,10 @@ public class ProcessingStep {
 	
 	@Override
 	public boolean equals(Object obj) {
+		if (obj == null)
+			return false;
+		if (!(obj instanceof ProcessingStep))
+			return false;
 		ProcessingStep other = (ProcessingStep) obj;
 		return operatorName.equals(other.operatorName) && portName.equals(other.portName);
 	}

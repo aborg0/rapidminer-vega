@@ -26,12 +26,12 @@ import com.rapidminer.tools.jdbc.ColumnIdentifier;
 public class DBConnectionEntry implements IOObjectEntry {
 
 	private String tableName;
-	private DBConnectionFolder folder;
+	private DBConnectionConverterFolder folder;
 	private MetaData metaData;
 	private DBConnectionToIOObjectConverter converter;
 	
-	public DBConnectionEntry(DBConnectionFolder dbConnectionFolder, DBConnectionToIOObjectConverter converter, String name, List<ColumnIdentifier> columns) {
-		this.folder = dbConnectionFolder;
+	public DBConnectionEntry(DBConnectionConverterFolder parent, DBConnectionToIOObjectConverter converter, String name, List<ColumnIdentifier> columns) {
+		this.folder = parent;
 		this.converter = converter;
 		this.tableName = name;
 		metaData = converter.convertMetaData(folder.getConnectionEntry(), name, columns);
@@ -54,7 +54,7 @@ public class DBConnectionEntry implements IOObjectEntry {
 
 	@Override
 	public String getName() {	
-		return tableName + "_" +converter.getSuffix();
+		return tableName;
 	}
 
 	@Override

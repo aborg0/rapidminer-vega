@@ -252,7 +252,7 @@ class RepositoryLocationsEditor<T extends Ports> extends JPanel {
 
 	private final JTable table;
 
-	private Observer<Port> portObserver = new Observer<Port>() {
+	private transient Observer<Port> portObserver = new Observer<Port>() {
 		@Override
 		public void update(Observable<Port> observable, Port arg) {
 			adaptModelToPorts();

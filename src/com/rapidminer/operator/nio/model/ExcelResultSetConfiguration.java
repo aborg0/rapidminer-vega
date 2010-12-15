@@ -22,8 +22,7 @@
  */
 package com.rapidminer.operator.nio.model;
 
-import static com.rapidminer.operator.nio.ExcelExampleSource.PARAMETER_EXCEL_FILE;
-import static com.rapidminer.operator.nio.ExcelExampleSource.PARAMETER_SHEET_NUMBER;
+import static com.rapidminer.operator.nio.ExcelExampleSource.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,6 +58,8 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	private Workbook preOpenedWorkbook;
 	private File workbookFile;
 
+	private boolean isEmulatingOldNames;
+	
 	/**
 	 * This constructor must read in all settings from the parameters of the given operator.
 	 * @throws OperatorException 
@@ -78,6 +79,8 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 		if (excelExampleSource.isParameterSet(PARAMETER_EXCEL_FILE)) {
 			this.workbookFile = excelExampleSource.getParameterAsFile(PARAMETER_EXCEL_FILE);
 		}
+		
+		isEmulatingOldNames = excelExampleSource.getCompatibilityLevel().isAtMost(ExcelExampleSource.CHANGE_5_0_11_NAME_SCHEMA);
 	}
 
 	/**
@@ -264,6 +267,13 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 			result.setNumberOfExamples(rowLast - rowOffset + 1);
 		}
 		return result;
+	}
+
+	/**
+	 * This returns whether the old naming style should be kept from prior to 5.1.000 versions.
+	 */
+	public boolean isEmulatingOldNames() {
+		return isEmulatingOldNames;
 	}
 	
 	

@@ -59,26 +59,6 @@ public class ParetoChartItemLabelGenerator extends AbstractCategoryItemLabelGene
     }
 
     /**
-     * Tests this generator for equality with an arbitrary object.
-     *
-     * @param obj  the object (<code>null</code> permitted).
-     *
-     * @return <code>true</code> if this generator is equal to
-     *     <code>obj</code>, and <code>false</code> otherwise.
-     */
-    @Override
-	public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (!(obj instanceof ParetoChartItemLabelGenerator)) {
-            return false;
-        }
-        return super.equals(obj);
-    }
-    
-    
-    /**
      * Generates the label for an item in a dataset.  Note: in the current
      * dataset implementation, each row is a series, and each column contains
      * values for a particular category.

@@ -37,7 +37,7 @@ import com.rapidminer.tools.LogService;
 /**
  * 
  * @author Simon Fischer
- *
+ * 
  */
 public class ToolTipProviderHelper {
 
@@ -52,14 +52,14 @@ public class ToolTipProviderHelper {
 					if (metaData != null) {
 						tip.append("<p>");
 						if (metaData instanceof ExampleSetMetaData) {
-							tip.append(((ExampleSetMetaData)metaData).getShortDescription());
+							tip.append(((ExampleSetMetaData) metaData).getShortDescription());
 						} else {
 							tip.append(metaData.getDescription());
 						}
 						tip.append("</p>");
 					}
 				} catch (RepositoryException e1) {
-					LogService.getRoot().log(Level.WARNING, "Cannot fetch meta data for tool tip: "+e, e);
+					LogService.getRoot().log(Level.WARNING, "Cannot fetch meta data for tool tip: " + e, e);
 					return null;
 				}
 			} else {
@@ -69,16 +69,12 @@ public class ToolTipProviderHelper {
 			}
 			return tip.toString();
 		} else {
-			if (o instanceof Entry) {
-				StringBuilder tip = new StringBuilder();
-				tip.append("<h3>").append((o).getName()).append("</h3><p>").append((o).getDescription()).append("</p>");
-				if (o instanceof BlobEntry) {
-					tip.append("<p><strong>Type:</strong> ").append(((BlobEntry)o).getMimeType()).append("</p>");
-				}
-				return tip.toString();
-			} else {
-				return null;	
+			StringBuilder tip = new StringBuilder();
+			tip.append("<h3>").append((o).getName()).append("</h3><p>").append((o).getDescription()).append("</p>");
+			if (o instanceof BlobEntry) {
+				tip.append("<p><strong>Type:</strong> ").append(((BlobEntry) o).getMimeType()).append("</p>");
 			}
+			return tip.toString();
 		}
 	}
 
@@ -92,11 +88,11 @@ public class ToolTipProviderHelper {
 						return ExampleSetMetaDataTableModel.makeTableForToolTip((ExampleSetMetaData) metaData);
 					}
 				} catch (Exception ex) {
-					LogService.getRoot().log(Level.WARNING, "Error retrieving meta data for "+e.getLocation()+": "+ex, ex);							
+					LogService.getRoot().log(Level.WARNING, "Error retrieving meta data for " + e.getLocation() + ": " + ex, ex);
 				}
 			}
 		}
-		return null;				
+		return null;
 	}
-	
+
 }

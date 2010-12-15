@@ -24,9 +24,9 @@ package com.rapidminer.operator.learner.functions.kernel.gaussianprocess;
 
 import java.util.TreeSet;
 
-import com.rapidminer.operator.learner.functions.kernel.rvm.kernel.Kernel;
-
 import Jama.Matrix;
+
+import com.rapidminer.operator.learner.functions.kernel.rvm.kernel.Kernel;
 
 /**
  * Gaussian Process Regression.
@@ -179,7 +179,7 @@ public class Regression extends GPBase {
 
 		/* s is used in the updates of alpha and C. */
 
-		Matrix s = new Matrix(dMax, 1);
+		Matrix s;
 
 		/*
 		 * Q is the inverse Kernel matrix. It's build up iterativly to prevent a O(d^3) performance hit.
@@ -200,7 +200,7 @@ public class Regression extends GPBase {
 		 * still needed for the upadte of the inverse kernel gram matrix Q.
 		 */
 
-		Matrix e = new Matrix(dMax, 1);
+		Matrix e;
 
 		/* The t+1-th unit vector. */
 
@@ -212,7 +212,7 @@ public class Regression extends GPBase {
 
 		/* Temorary result: C_t * k_t+1 */
 
-		Matrix C_times_k = new Matrix(dMax, 1);
+		Matrix C_times_k;
 
 		/* Used temporarily */
 
@@ -495,7 +495,7 @@ public class Regression extends GPBase {
 		int inputDim = basisVectors[0].length; // Dimension of input vectors
 		int dMax = basisVectors.length; // Maximium number of BVs
 
-		double[] t_row = new double[inputDim];
+		double[] t_row;
 		double t_scalar = 0;
 
 		/* Permutate alpha */

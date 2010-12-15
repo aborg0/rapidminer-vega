@@ -28,6 +28,7 @@ import java.awt.Stroke;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import javax.swing.JComponent;
@@ -418,8 +419,8 @@ public class DistributionPlotter extends RangeablePlotterAdapter {
 				}
 				valueMap.put(valueName, value);
 			}
-			for (String nominalValue : valueMap.keySet()) {
-				dataset.addValue(distribution.getProbability(valueMap.get(nominalValue)), labelName, nominalValue);
+			for (Entry<String, Double> entry : valueMap.entrySet()) {
+				dataset.addValue(distribution.getProbability(entry.getValue()), labelName, entry.getKey());
 			}
 		}
 		return dataset;

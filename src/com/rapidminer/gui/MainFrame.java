@@ -488,7 +488,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		fireProcessUpdated();
 	}
 		
-	private final Observer<Process> processObserver = new Observer<Process>() {
+	private transient final Observer<Process> processObserver = new Observer<Process>() {
 		@Override
 		public void update(Observable<Process> observable, Process arg) {
 //			if (process.getProcessState() == Process.PROCESS_STATE_RUNNING) {
@@ -508,7 +508,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		}
 	};
 
-	private final BreakpointListener breakpointListener = new BreakpointListener() {
+	private transient final BreakpointListener breakpointListener = new BreakpointListener() {
 		public void breakpointReached(Process process, final Operator operator, final IOContainer ioContainer, int location) {			
 			if (process.equals(MainFrame.this.process)) {
 				RUN_ACTION.setState(process.getProcessState());

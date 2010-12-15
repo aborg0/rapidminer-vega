@@ -197,7 +197,7 @@ public class CTokenMarker extends TokenMarker {
 
 	public static KeywordMap getKeywords() {
 		if (cKeywords == null) {
-			cKeywords = new KeywordMap(false);
+			KeywordMap cKeywords = new KeywordMap(false);
 			cKeywords.add("char", Token.KEYWORD3);
 			cKeywords.add("double", Token.KEYWORD3);
 			cKeywords.add("enum", Token.KEYWORD3);
@@ -240,6 +240,8 @@ public class CTokenMarker extends TokenMarker {
 			cKeywords.add("true", Token.LITERAL2);
 			cKeywords.add("false", Token.LITERAL2);
 			cKeywords.add("NULL", Token.LITERAL2);
+			
+			CTokenMarker.cKeywords = cKeywords;
 		}
 		return cKeywords;
 	}

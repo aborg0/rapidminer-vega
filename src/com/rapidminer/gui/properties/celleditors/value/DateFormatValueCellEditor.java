@@ -115,7 +115,7 @@ public class DateFormatValueCellEditor extends AbstractCellEditor implements Pro
 												@Override
 												public void actionPerformed(ActionEvent e) {
 													formatCombo.setSelectedItem(value);
-													if (attributeParameterType != null)
+													if (attributeParameterType != null && type.getInputPort() != null)
 														type.getInputPort().getPorts().getOwner().getOperator().getParameters().setParameter(attributeParameterType.getKey(), amd.getName());
 												}
 											}));

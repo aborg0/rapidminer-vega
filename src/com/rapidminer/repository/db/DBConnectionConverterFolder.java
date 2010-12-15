@@ -1,12 +1,11 @@
 package com.rapidminer.repository.db;
 
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
+import java.util.Map.Entry;
 
 import javax.swing.Action;
 
@@ -20,34 +19,42 @@ import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
-import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
-import com.rapidminer.tools.jdbc.DatabaseHandler;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
-import com.rapidminer.tools.jdbc.connection.FieldConnectionEntry;
 
-/** Represents all tables in a single {@link ConnectionEntry}. This folder will have
- *  one subfolder per {@link DBConnectionToIOObjectConverter} instance that is registered.
+/** Represents all tables in a single {@link ConnectionEntry} converted to {@link IOObject}s
+ *  using a particular {@link DBConnectionToIOObjectConverter}.
  * 
  * @author Simon Fischer
  *
  */
-public class DBConnectionFolder implements Folder {
+public class DBConnectionConverterFolder implements Folder {
 
-	private ConnectionEntry entry;
-	private DBRepository repository;
-
-	private List<Folder> folders;
+	private final ConnectionEntry entry;
+	private final DBConnectionToIOObjectConverter converter;
+	private final DBRepository repository;
+	private final DBConnectionFolder parent;
+	private final Map<String, List<ColumnIdentifier>> allTableMetaData;
 	
-	public DBConnectionFolder(DBRepository dbRepository, FieldConnectionEntry dbConEntry) {
+	private List<DataEntry> entries;	
+	
+	public DBConnectionConverterFolder(DBRepository dbRepository,
+			DBConnectionFolder parent,
+			ConnectionEntry dbConEntry, 
+			DBConnectionToIOObjectConverter converter,
+			Map<String, List<ColumnIdentifier>> allTableMetaData) throws RepositoryException {
 		this.repository = dbRepository;
+		this.parent = parent;
 		this.entry = dbConEntry;
+		this.converter = converter;
+		this.allTableMetaData = allTableMetaData;
+		this.ensureLoaded();
 	}
 
 	@Override
 	public String getName() {
-		return entry.getName();
+		return  converter.getSuffix();
 	}
 
 	@Override
@@ -87,13 +94,13 @@ public class DBConnectionFolder implements Folder {
 
 	@Override
 	public boolean willBlock() {
-		return folders == null;
+		return false;
 	}
 
 	@Override
 	public RepositoryLocation getLocation() {
 		try {
-			return new RepositoryLocation(this.repository.getLocation(), getName());
+			return new RepositoryLocation(this.parent.getLocation(), getName());
 		} catch (MalformedRepositoryLocationException e) {
 			throw new RuntimeException(e);
 		}
@@ -111,26 +118,24 @@ public class DBConnectionFolder implements Folder {
 
 	@Override
 	public List<DataEntry> getDataEntries() throws RepositoryException {
-		return Collections.emptyList();
+		return entries;
 	}
 
 	@Override
 	public List<Folder> getSubfolders() throws RepositoryException {
-		ensureLoaded();
-		return folders;		
+		return Collections.emptyList();
 	}
 
 	@Override
 	public void refresh() throws RepositoryException {
-		folders = null;
+		entries = null;
 		ensureLoaded();
 		repository.fireRefreshed(this);		
 	}
 
 	@Override
 	public boolean containsEntry(String name) throws RepositoryException {
-		ensureLoaded();
-		for (Folder entry : folders) {
+		for (DataEntry entry : entries) {
 			if (entry.getName().equals(name)) {
 				return true;
 			}
@@ -163,25 +168,10 @@ public class DBConnectionFolder implements Folder {
 	}
 
 	private void ensureLoaded() throws RepositoryException {
-		if (folders == null) {
-			folders = new LinkedList<Folder>();
-			DatabaseHandler handler = null;
-			try {
-				handler = DatabaseHandler.getConnectedDatabaseHandler(entry);
-				Map<String, List<ColumnIdentifier>> allTableMetaData = handler.getAllTableMetaData();				
-				for (DBConnectionToIOObjectConverter converter : repository.getConverters()) {
-					folders.add(new DBConnectionConverterFolder(repository, this, entry, converter, allTableMetaData)); 
-				}
-			} catch (SQLException e) {
-				throw new RepositoryException("Failed to load table data: "+e ,e);
-			} finally {
-				if ((handler != null) && (handler.getConnection() != null)) {
-					try {
-						handler.getConnection().close();
-					} catch (SQLException e) {
-						LogService.getRoot().log(Level.WARNING, "Failed to close connection: "+e, e);
-					}
-				}
+		if (entries == null) {
+			entries = new LinkedList<DataEntry>();
+			for (Entry<String, List<ColumnIdentifier>> tableEntry : allTableMetaData.entrySet()) {
+				entries.add(new DBConnectionEntry(this, converter, tableEntry.getKey(), tableEntry.getValue()));
 			}
 		}		
 	}

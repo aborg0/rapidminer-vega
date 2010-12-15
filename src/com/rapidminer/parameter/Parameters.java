@@ -232,7 +232,7 @@ public class Parameters extends AbstractObservable<String> implements Cloneable,
 			return false;
 		} else {
 			Parameters p = (Parameters) o;
-			return p.keyToValueMap.equals(this.keyToTypeMap);
+			return p.keyToValueMap.equals(this.keyToValueMap);
 		}
 	}
 

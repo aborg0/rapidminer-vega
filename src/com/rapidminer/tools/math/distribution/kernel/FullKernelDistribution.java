@@ -159,9 +159,4 @@ public class FullKernelDistribution extends KernelDistribution {
 		// probability here or do not use bounds at all.
 		return probability / weightSum;
 	}
-
-	@Override
-	public String toString() {
-		return null;
-	}
 }

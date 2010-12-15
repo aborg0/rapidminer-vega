@@ -33,8 +33,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Random;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.logging.Level;
 
 import javax.xml.namespace.QName;
@@ -184,12 +184,12 @@ public class UsageStatistics {
 	}
 
 	private String createRandomKey() {
-		String randomKey = "";
+		StringBuilder randomKey = new StringBuilder();
 		Random random = new Random();
 		for (int i = 0; i < 16; i++) {
-			randomKey += (char)('A' + random.nextInt(26));
+			randomKey.append((char)('A' + random.nextInt(26)));
 		}
-		return randomKey;
+		return randomKey.toString();
 	}
 
 	/** Sets all current counters to 0 and sets the last reset date to the current time. */

@@ -32,6 +32,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.swing.Action;
 import javax.swing.JButton;
@@ -67,6 +68,7 @@ import com.rapidminer.operator.nio.model.ParsingError;
 import com.rapidminer.operator.nio.model.WizardState;
 import com.rapidminer.parameter.ParameterTypeDateFormat;
 import com.rapidminer.tools.I18N;
+import com.rapidminer.tools.LogService;
 
 /**
  * This Wizard Step might be used to defined
@@ -83,7 +85,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 			super(action);
 		}
 		@Override
-		public void configurePropertiesFromAction(Action a) {
+		protected void configurePropertiesFromAction(Action a) {
 			super.configurePropertiesFromAction(a);
 		}
 	}
@@ -350,11 +352,12 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		new ProgressThread("loading_data") {
 			@Override
 			public void run() {
+				DataResultSet resultSet = null;
 				try {
 					if (state.getTranslator() != null) {
 						state.getTranslator().close();
 					}
-					DataResultSet resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
+					resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
 					state.getTranslator().clearErrors();
 					final ExampleSet exampleSet = state.readNow(resultSet, limitedPreviewBox.isSelected(), getProgressListener());
 
@@ -368,6 +371,13 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 				} catch (OperatorException e) {
 					ImportWizardUtils.showErrorMessage(state.getDataResultSetFactory().getResourceName(), e.toString(), e);
 				} finally {
+					if (resultSet != null) {
+						try {
+							resultSet.close();
+						} catch (OperatorException e) {
+							LogService.getRoot().log(Level.WARNING, "Failed to close result set: "+e, e);
+						}
+					}
 					getProgressListener().complete();
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
@@ -394,11 +404,12 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 			@Override
 			public void run() {
 				Thread.yield();
+				DataResultSet resultSet = null;
 				try {
 					if (state.getTranslator() != null) {
 						state.getTranslator().close();
 					}				
-					DataResultSet resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
+					resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
 					state.getTranslator().clearErrors();
 					state.getTranslationConfiguration().resetValueTypes();
 					state.getTranslator().guessValueTypes(state.getTranslationConfiguration(), resultSet, state.getNumberOfPreviewRows(), getProgressListener());
@@ -415,6 +426,13 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 				} catch (OperatorException e) {
 					ImportWizardUtils.showErrorMessage(state.getDataResultSetFactory().getResourceName(), e.toString(), e);
 				} finally {
+					if (resultSet != null) {
+						try {
+							resultSet.close();
+						} catch (OperatorException e) {
+							LogService.getRoot().log(Level.WARNING, "Failed to close result set: "+e, e);
+						}
+					}
 					getProgressListener().complete();
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override

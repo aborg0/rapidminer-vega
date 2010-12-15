@@ -43,11 +43,12 @@ public class RemoteBlobEntry extends RemoteDataEntry implements BlobEntry {
 	private String mimeType;
 
 	RemoteBlobEntry(EntryResponse response, RemoteFolder container, RemoteRepository repository) {
-		super(response, container, repository);
+		super(response, container, repository);		
 	}
 	
 	@Override
 	public String getMimeType() {
+		//TODO: This mimetype should be retrieved from somewhere
 		return mimeType;
 	}
 
@@ -69,6 +70,7 @@ public class RemoteBlobEntry extends RemoteDataEntry implements BlobEntry {
 
 	@Override
 	public OutputStream openOutputStream(String mimeType) throws RepositoryException {
+		this.mimeType = mimeType;
 		try {
 			final HttpURLConnection conn = getRepository().getHTTPConnection(getLocation().getPath(), EntryStreamType.BLOB);
 			conn.setDoOutput(true);

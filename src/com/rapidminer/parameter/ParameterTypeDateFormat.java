@@ -33,7 +33,7 @@ public class ParameterTypeDateFormat extends ParameterTypeStringCategory {
 
 	private static final long serialVersionUID = 1L;
 
-	private InputPort inPort;
+	private transient InputPort inPort;
 
 	private ParameterTypeAttribute attributeParameter;
 

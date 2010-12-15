@@ -155,7 +155,7 @@ public class ProfilerData {
 	 * Gets the last execution time of the operator (real time).
 	 * @return the last execution time of operator in ms (real time)
 	 */
-	public double getLastRunTimeReal() {
+	public synchronized double getLastRunTimeReal() {
 		return lastRunTimeReal;
 	}
 	
@@ -173,7 +173,7 @@ public class ProfilerData {
 	 * Gets the last execution time of the operator (cpu time).
 	 * @return the last execution time of operator in ns (cpu time)
 	 */
-	public double getLastRunTimeCpu() {
+	public synchronized double getLastRunTimeCpu() {
 		return lastRunTimeCpu;
 	}
 	

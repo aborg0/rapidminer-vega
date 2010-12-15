@@ -42,7 +42,7 @@ public class JavaScriptTokenMarker extends CTokenMarker {
 
 	public static KeywordMap getKeywords() {
 		if (javaScriptKeywords == null) {
-			javaScriptKeywords = new KeywordMap(false);
+			KeywordMap javaScriptKeywords = new KeywordMap(false);
 			javaScriptKeywords.add("function", Token.KEYWORD3);
 			javaScriptKeywords.add("var", Token.KEYWORD3);
 			javaScriptKeywords.add("else", Token.KEYWORD1);
@@ -60,6 +60,8 @@ public class JavaScriptTokenMarker extends CTokenMarker {
 			javaScriptKeywords.add("false", Token.LABEL);
 			javaScriptKeywords.add("this", Token.LABEL);
 			javaScriptKeywords.add("true", Token.LABEL);
+			
+			JavaScriptTokenMarker.javaScriptKeywords = javaScriptKeywords;
 		}
 		return javaScriptKeywords;
 	}

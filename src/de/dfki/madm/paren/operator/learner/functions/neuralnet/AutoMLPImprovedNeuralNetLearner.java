@@ -224,7 +224,7 @@ public class AutoMLPImprovedNeuralNetLearner extends AbstractLearner {
 			System.out.println("Error computed after running the example set");
 			for(int i=0; i < nensemble ; i++)
 			{
-				old_models[i].error = CalculateError(splittedES, old_models[i]);
+				old_models[i].error = calculateError(splittedES, old_models[i]);
 				System.out.println(" model = " + i + " error = "+ old_models[i].error);
 			}
 			
@@ -368,7 +368,7 @@ public class AutoMLPImprovedNeuralNetLearner extends AbstractLearner {
 		//old model is sorted based on the error.. therefore 0th index will have the least error
 		model = old_models[0];	//autoMlpThread.GetModel(index); 
 		System.out.println("NN = " + 0 + " hidden nodes = " + (old_models[0].getInnerNodes().length - number_of_classes) + " output nodes = " + number_of_classes  
-							+ " learning rate = " + learningRate[0] + " error = " + old_models[0].GetError());
+							+ " learning rate = " + learningRate[0] + " error = " + old_models[0].getError());
 
 /*	--correct code. just for printing the weights - atif.		
 		System.out.println(" weights input to inner nodes. START");
@@ -493,7 +493,7 @@ public class AutoMLPImprovedNeuralNetLearner extends AbstractLearner {
 	    	do
 	    	{
 			    double n = rnormal(Math.log(etaInit),Math.log(r));
-			    result = (double) (Math.exp(n));
+			    result = (Math.exp(n));
 	    	}while(Double.isNaN(result));
 		    return result;
 	    }
@@ -542,18 +542,19 @@ public class AutoMLPImprovedNeuralNetLearner extends AbstractLearner {
 	private void quicksort(AutoMLPImprovedNeuralNetModel []old_nn, double [] lR, int low, int high) {
 		int i = low, j = high;
 		// Get the pivot element from the middle of the list
-		double pivot = old_nn[(low + high) / 2].GetError();
+		// Using shift instead of division to avoid overflow if low or high get large.
+		double pivot = old_nn[(low + high) >>> 1].getError();
 
 		// Divide into two lists
 		while (i <= j) {
 			// If the current value from the left list is smaller or equal then the pivot
 			// element then get the next element from the left list
-			while (i < high && old_nn[i].GetError() < pivot ) {
+			while (i < high && old_nn[i].getError() < pivot ) {
 				i++;
 			}
 			// If the current value from the right list is larger or equal then the pivot
 			// element then get the next element from the right list
-			while (j > low && old_nn[j].GetError() > pivot ) {
+			while (j > low && old_nn[j].getError() > pivot ) {
 				j--;
 			}
 
@@ -599,7 +600,7 @@ public class AutoMLPImprovedNeuralNetLearner extends AbstractLearner {
 		
 	}
 	
-	protected float CalculateError(ExampleSet exampleSet, AutoMLPImprovedNeuralNetModel model)
+	protected float calculateError(ExampleSet exampleSet, AutoMLPImprovedNeuralNetModel model)
 	{
 		Attribute predictedLabel= exampleSet.getAttributes().getLabel();
 		long count =0;
@@ -740,7 +741,7 @@ class AutoMlpThreaded extends Thread
 		double []errors = new double[nensembles];
 		for (int i = 0; i < nensembles; i++)
 		{
-			errors[i] = model[i].GetError();
+			errors[i] = model[i].getError();
 		}
 		return errors;
 	}

@@ -80,7 +80,7 @@ public class DateParseCustom extends PostfixMathCommand {
 			throw new ParseException("Invalid argument type for 'date_parse_custom', first argument must be date string");
 		}
 		String customDate = String.valueOf(customDateObject);
-		Date parsedDate = new Date();
+		Date parsedDate;
 		try {
 			parsedDate = simpleDateFormatter.parse(customDate);
 		} catch(java.text.ParseException e) {

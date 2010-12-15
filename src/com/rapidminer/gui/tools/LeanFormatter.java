@@ -29,18 +29,19 @@ import java.util.logging.Formatter;
 import java.util.logging.LogRecord;
 
 /** 
+ * A simple log formatter for dates. It outputs the format "yyyy-MM-dd HH:mm:ss"
  * 
  * @author Simon Fischer
  *
  */
 public class LeanFormatter extends Formatter {
 
-	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	@Override
 	public String format(LogRecord record) {
 		StringBuilder b = new StringBuilder();
-		b.append(DATE_FORMAT.format(new Date(record.getMillis())));
+		b.append(dateFormat.format(new Date(record.getMillis())));
 		b.append(" ");
 		b.append(record.getLevel().getLocalizedName());
 		b.append(": ");

@@ -36,9 +36,10 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -105,8 +106,8 @@ public class UpdateManager {
 					ManagedExtension extension = ManagedExtension.getOrCreate(desc.getPackageId(), desc.getName(), desc.getLicenseName());
 					String baseVersion = extension.getLatestInstalledVersionBefore(desc.getVersion());
 					incremental &= (baseVersion != null); 
-					URL url = UpdateManager.getUpdateServerURL(urlString +
-							(incremental ? "?baseVersion="+URLEncoder.encode(baseVersion, "UTF-8") : ""));					
+					URL url = UpdateManager.getUpdateServerURI(urlString +
+							(incremental ? "?baseVersion="+URLEncoder.encode(baseVersion, "UTF-8") : "")).toURL();					
 					if (incremental) {
 						LogService.getRoot().info("Updating "+desc.getPackageId()+" incrementally.");
 						updatePluginIncrementally(extension, openStream(url, progressListener, minProgress, maxProgress), baseVersion, desc.getVersion());
@@ -116,14 +117,16 @@ public class UpdateManager {
 					}
 					extension.addAndSelectVersion(desc.getVersion());
 				} else {
-					URL url = UpdateManager.getUpdateServerURL(urlString + 
-							(incremental ? "?baseVersion="+URLEncoder.encode(RapidMiner.getLongVersion(), "UTF-8") : ""));
+					URL url = UpdateManager.getUpdateServerURI(urlString + 
+							(incremental ? "?baseVersion="+URLEncoder.encode(RapidMiner.getLongVersion(), "UTF-8") : "")).toURL();
 					LogService.getRoot().info("Updating RapidMiner core.");					
 					updateRapidMiner(openStream(url, progressListener, minProgress, maxProgress), desc.getVersion());
 				}
 				i++;
 				progressListener.setCompleted(20 + 80*i/downloadList.size());
 			}			
+		} catch (URISyntaxException e) {
+			throw new IOException(e);
 		} finally {
 			progressListener.complete();
 			if (out != null) {
@@ -290,12 +293,12 @@ public class UpdateManager {
 		}
 	}
 	
-	public static URL getUpdateServerURL(String suffix) throws MalformedURLException {
+	public static URI getUpdateServerURI(String suffix) throws URISyntaxException {
 		String property = System.getProperty(PARAMETER_UPDATE_URL);
 		if (property == null) {
-			return new URL(UPDATESERVICE_URL+suffix);
+			return new URI(UPDATESERVICE_URL+suffix);
 		} else {
-			return new URL(property+suffix);
+			return new URI(property+suffix);
 		}
 	}
 		
@@ -304,26 +307,24 @@ public class UpdateManager {
 	}
 	
 	private static UpdateService theService = null;
-	private static URL lastUsedUrl = null;
-	public synchronized static UpdateService getService() throws MalformedURLException {
-		URL url = getUpdateServerURL("/UpdateServiceService?wsdl");
-		if ((theService == null) || ((lastUsedUrl != null) && !lastUsedUrl.equals(url))) {			
-			UpdateServiceService uss = new UpdateServiceService(url, 
+	private static URI lastUsedUri = null;
+	public synchronized static UpdateService getService() throws MalformedURLException, URISyntaxException {
+		URI uri = getUpdateServerURI("/UpdateServiceService?wsdl");
+		if ((theService == null) || ((lastUsedUri != null) && !lastUsedUri.equals(uri))) {			
+			UpdateServiceService uss = new UpdateServiceService(uri.toURL(), 
 					new QName("http://ws.update.deployment.rapid_i.com/", "UpdateServiceService"));
 		    theService = uss.getUpdateServicePort();		    
 		}
-		lastUsedUrl = url;
+		lastUsedUri = uri;
 		return theService;
 	}
 
-	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-	
 	public static void saveLastUpdateCheckDate() {
 		File file = ParameterService.getUserConfigFile("updatecheck.date");
 		PrintWriter out = null;
 		try {
 			out = new PrintWriter(new FileWriter(file));
-			out.println(DATE_FORMAT.format(new Date()));
+			out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
@@ -345,7 +346,7 @@ public class UpdateManager {
 			if (date == null) {
 				return null;
 			} else {
-				return DATE_FORMAT.parse(date);
+				return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date);
 			}
 		} catch (Exception e) {
 			LogService.getRoot().log(Level.WARNING, "Cannot read last date of update check.", e);

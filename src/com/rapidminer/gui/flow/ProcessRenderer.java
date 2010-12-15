@@ -173,7 +173,7 @@ public class ProcessRenderer extends JPanel {
 		}
 	}
 	
-	private final TipProvider tipProvider = new TipProvider() {
+	private final transient TipProvider tipProvider = new TipProvider() {
 		@Override
 		public Object getIdUnder(Point point) {
 			if (connectingPortSource == null) {
@@ -1588,7 +1588,7 @@ public class ProcessRenderer extends JPanel {
 		g.dispose();
 	}
 
-	private final MouseAdapter MOUSE_HANDLER = new MouseAdapter() {	
+	private final transient MouseAdapter MOUSE_HANDLER = new MouseAdapter() {	
 
 		private boolean pressHasSelected = false;
 
@@ -3085,8 +3085,8 @@ public class ProcessRenderer extends JPanel {
 			if (location == null) {
 				continue;
 			}
-			double dx = location.getX() - x;
-			double dy= location.getY() - y;
+			int dx = (int) location.getX() - x;
+			int dy= (int) location.getY() - y;
 			if (dx*dx + dy*dy < 3*PORT_SIZE*PORT_SIZE/2) {
 				if (hoveringPort != port) {
 					hoveringPort = port;						

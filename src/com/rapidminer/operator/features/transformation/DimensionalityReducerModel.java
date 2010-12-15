@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.AttributeRole;
@@ -98,8 +99,8 @@ public class DimensionalityReducerModel extends AbstractModel {
 		ExampleSet resultSet = table.createExampleSet();
 		// set special roles
 		Attributes newAttributes = resultSet.getAttributes();
-		for (String specialAttributeRole: newSpecialAttributes.keySet()) {
-			newAttributes.setSpecialAttribute(newSpecialAttributes.get(specialAttributeRole), specialAttributeRole);
+		for (Entry<String, Attribute> specialEntry: newSpecialAttributes.entrySet()) {
+			newAttributes.setSpecialAttribute(specialEntry.getValue(), specialEntry.getKey());
 		}
 		
 		return resultSet;

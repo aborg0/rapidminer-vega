@@ -50,7 +50,7 @@ public class StandardDBConnectionToIOObjectConverter implements DBConnectionToIO
 	
 	@Override
 	public String getSuffix() {
-		return "example_set";
+		return "Example Sets";
 	}
 
 }

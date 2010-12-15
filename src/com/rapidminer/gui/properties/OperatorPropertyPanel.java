@@ -45,6 +45,8 @@ import javax.swing.JSpinner;
 import javax.swing.JToggleButton;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import com.rapidminer.BreakpointListener;
 import com.rapidminer.Process;
@@ -208,6 +210,22 @@ public class OperatorPropertyPanel extends PropertyPanel implements Dockable, Pr
 		expertModeHintLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		expertModeHintLabel.setHorizontalAlignment(SwingConstants.LEFT);
 		setupComponents();
+		
+		compatibilityLevelSpinner.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				// compatibility level
+				OperatorVersion[] versionChanges = operator.getIncompatibleVersionChanges();
+				if (versionChanges.length != 0) {
+					OperatorVersion latestChange = versionChanges[versionChanges.length - 1];
+					if (latestChange.isAtLeast(operator.getCompatibilityLevel())) {
+						compatibilityLabel.setIcon(WARNING_ICON);				
+					} else {
+						compatibilityLabel.setIcon(SwingTools.createIcon("16/ok.png"));					
+					}
+				}
+			}
+		});
 	}
 	
 	@Override
@@ -274,7 +292,7 @@ public class OperatorPropertyPanel extends PropertyPanel implements Dockable, Pr
 			setupComponents();
 		}
 	}
-
+	
 	@Override
 	public void setSelection(List<Operator> selection) {
 		Operator operator = selection.isEmpty() ? null : selection.get(0);
@@ -287,13 +305,20 @@ public class OperatorPropertyPanel extends PropertyPanel implements Dockable, Pr
 		this.operator = operator;	
 		if (operator != null) {
 			this.operator.getParameters().addObserver(parameterObserver, true);
-			((CompatibilityLevelSpinnerModel)this.compatibilityLevelSpinner.getModel()).setOperator(operator);
-			if (OperatorVersion.getLatestVersion(operator.getOperatorDescription()).equals(operator.getCompatibilityLevel())) {
-				compatibilityLabel.setIcon(SwingTools.createIcon("16/ok.png"));
-			} else {
-				compatibilityLabel.setIcon(WARNING_ICON);				
-			}
 			breakpointButton.setEnabled(true);
+			
+			// compatibility level
+			OperatorVersion[] versionChanges = operator.getIncompatibleVersionChanges();
+			if (versionChanges.length == 0) {
+				// no incompatible versions exist
+				compatibilityLevelSpinner.setVisible(false);
+				compatibilityLabel.setVisible(false);
+			} else {
+				compatibilityLevelSpinner.setVisible(true);
+				compatibilityLabel.setVisible(true);
+				((CompatibilityLevelSpinnerModel)compatibilityLevelSpinner.getModel()).setOperator(operator);
+			}
+			
 		} else {
 			breakpointButton.setEnabled(false);
 		}

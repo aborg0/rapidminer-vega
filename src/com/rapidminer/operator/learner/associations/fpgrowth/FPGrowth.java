@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -188,10 +189,10 @@ public class FPGrowth extends Operator {
 				// building conditional items
 				FrequentItemSet conditionalItems = new FrequentItemSet();
 				Pattern pattern = Pattern.compile(mustContainItems);
-				for (Attribute attribute: itemMapping.keySet()) {
-					Matcher matcher = pattern.matcher(attribute.getName());
+				for (Entry<Attribute, Item> attributeEntry: itemMapping.entrySet()) {
+					Matcher matcher = pattern.matcher(attributeEntry.getKey().getName());
 					if (matcher.matches()) {
-						Item targetItem = itemMapping.get(attribute);
+						Item targetItem = attributeEntry.getValue();
 						conditionalItems.addItem(targetItem, targetItem.getFrequency());
 					}
 				}

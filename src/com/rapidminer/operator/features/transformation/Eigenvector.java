@@ -22,6 +22,8 @@
  */
 package com.rapidminer.operator.features.transformation;
 
+import java.util.Arrays;
+
 /**
  * This class holds information about one eigenvector and eigenvalue.
  *  
@@ -71,6 +73,6 @@ public class Eigenvector implements ComponentVector {
     
     @Override
 	public int hashCode() {
-    	return Double.valueOf(eigenvalue).hashCode() ^ this.eigenvector.hashCode();
+    	return Double.valueOf(eigenvalue).hashCode() ^ Arrays.hashCode(this.eigenvector);
     }
 }

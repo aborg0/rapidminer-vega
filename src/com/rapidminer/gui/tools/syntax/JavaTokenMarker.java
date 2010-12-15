@@ -42,7 +42,7 @@ public class JavaTokenMarker extends CTokenMarker {
 
 	public static KeywordMap getKeywords() {
 		if (javaKeywords == null) {
-			javaKeywords = new KeywordMap(false);
+			KeywordMap javaKeywords = new KeywordMap(false);
 			javaKeywords.add("package", Token.KEYWORD2);
 			javaKeywords.add("import", Token.KEYWORD2);
 			javaKeywords.add("byte", Token.KEYWORD3);
@@ -91,6 +91,8 @@ public class JavaTokenMarker extends CTokenMarker {
 			javaKeywords.add("super", Token.LITERAL2);
 			javaKeywords.add("true", Token.LITERAL2);
 			javaKeywords.add("false", Token.LITERAL2);
+			
+			JavaTokenMarker.javaKeywords = javaKeywords;
 		}
 		return javaKeywords;
 	}

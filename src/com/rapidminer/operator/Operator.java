@@ -2231,8 +2231,9 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		return compatibilityLevel;
 	}
 	
-	/** Returns the versions of an operator <strong>at which its behaviour
-	 *  incompatibly changed</strong> in ascending order. Only the versions in which the new behaviour was introduced
+	/** Returns the versions of an operator <strong>after which its behavior
+	 *  incompatibly changed</strong> in ascending order. 
+	 *  Only the versions after which the new behaviour was introduced
 	 *  are returned. See comment of {@link OperatorVersion} for details. */
 	public OperatorVersion[] getIncompatibleVersionChanges() {
 		return EMPTY_OPERATOR_VERSIONS_ARRAY;

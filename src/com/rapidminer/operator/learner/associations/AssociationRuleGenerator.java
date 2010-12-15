@@ -54,7 +54,8 @@ public class AssociationRuleGenerator extends Operator {
 
 	private InputPort itemSetsInput = getInputPorts().createPort("item sets", FrequentItemSets.class);
 	private OutputPort rulesOutput = getOutputPorts().createPort("rules");
-
+	private OutputPort itemSetsOutput = getOutputPorts().createPort("item sets");
+	
 	public static final String PARAMETER_CRITERION = "criterion";
 
 	public static final String PARAMETER_MIN_CONFIDENCE = "min_confidence";
@@ -84,6 +85,7 @@ public class AssociationRuleGenerator extends Operator {
 	public AssociationRuleGenerator(OperatorDescription description) {
 		super(description);
 		getTransformer().addRule(new GenerateNewMDRule(rulesOutput, AssociationRules.class));
+		getTransformer().addPassThroughRule(itemSetsInput, itemSetsOutput);
 	}
 
 	@Override
@@ -132,6 +134,7 @@ public class AssociationRuleGenerator extends Operator {
 			}
 		}
 		rulesOutput.deliver(rules);
+		itemSetsOutput.deliver(sets);
 	}
 
 	private double getCriterionValue(int totalFrequency, int preconditionFrequency, int conclusionFrequency, int numberOfTransactions, double theta, double laplaceK) throws OperatorException {
@@ -185,7 +188,7 @@ public class AssociationRuleGenerator extends Operator {
 
 	@Override
 	public boolean shouldAutoConnect(OutputPort port) {
-		if (port == itemSetsInput) {
+		if (port == itemSetsOutput) {
 			return getParameterAsBoolean("keep_frequent_item_sets");
 		} else {
 			return super.shouldAutoConnect(port);			

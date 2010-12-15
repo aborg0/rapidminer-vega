@@ -30,7 +30,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -65,28 +65,31 @@ import com.rapidminer.tools.plugin.Dependency;
 /**
  * 
  * @author Simon Fischer
- *
+ * 
  */
 public class UpdateListPanel extends JPanel {
 
 	private final class PackageListModel extends AbstractListModel {
 		private static final long serialVersionUID = 1L;
+
 		@Override
 		public Object getElementAt(int index) {
 			return descriptors.get(index);
 		}
+
 		@Override
 		public int getSize() {
 			return descriptors.size();
 		}
+
 		private void update(PackageDescriptor descr) {
 			int index = descriptors.indexOf(descr);
 			fireContentsChanged(this, index, index);
 		}
 	}
 
-	private final Map<PackageDescriptor,Boolean> selectionMap = new HashMap<PackageDescriptor,Boolean>();
-	private final Map<PackageDescriptor,List<Dependency>> dependencyMap = new HashMap<PackageDescriptor,List<Dependency>>();
+	private final Map<PackageDescriptor, Boolean> selectionMap = new HashMap<PackageDescriptor, Boolean>();
+	private final Map<PackageDescriptor, List<Dependency>> dependencyMap = new HashMap<PackageDescriptor, List<Dependency>>();
 	/** Read the comment of {@link #isPurchased(PackageDescriptor)}. */
 	private final Set<String> purchasedPackages = new HashSet<String>();
 
@@ -98,10 +101,11 @@ public class UpdateListPanel extends JPanel {
 	private final JList updateList;
 	private final JToggleButton installButton = new JToggleButton(new ResourceAction("update.select") {
 		private static final long serialVersionUID = 1L;
+
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			toggleSelection();
-		}		
+		}
 	});
 
 	private final PackageListModel listModel = new PackageListModel();
@@ -174,7 +178,7 @@ public class UpdateListPanel extends JPanel {
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		c.weightx = 1;
 		c.weighty = 0.3;
-		c.insets  = new Insets(0, 0, ButtonDialog.GAP, 0);
+		c.insets = new Insets(0, 0, ButtonDialog.GAP, 0);
 		JScrollPane updateListPane = new ExtendedJScrollPane(updateList);
 		updateListPane.setPreferredSize(new Dimension(400, 300));
 		updateListPane.setBorder(ButtonDialog.createTitledBorder("Available Updates"));
@@ -188,20 +192,20 @@ public class UpdateListPanel extends JPanel {
 
 		c.weighty = 0;
 		add(sizeLabel, c);
-	}	
+	}
 
 	public AbstractButton getInstallButton() {
 		return installButton;
 	}
 
-	private String toString(PackageDescriptor descriptor) {		
+	private String toString(PackageDescriptor descriptor) {
 		StringBuilder b = new StringBuilder("<html>");
-		b.append("<h2>").append(descriptor.getName()+"</h2>");
+		b.append("<h2>").append(descriptor.getName() + "</h2>");
 		Date date = new Date(descriptor.getCreationTime().toGregorianCalendar().getTimeInMillis());
 		b.append("<hr noshade=\"true\"/><strong>").append(descriptor.getVersion()).append(", released ").append(Tools.formatDate(date));
 		b.append(", ").append(Tools.formatBytes(descriptor.getSize())).append("</strong>");
 		if ((descriptor.getDependencies() != null) && !descriptor.getDependencies().isEmpty()) {
-			b.append("<br/>Depends on: "+descriptor.getDependencies());
+			b.append("<br/>Depends on: " + descriptor.getDependencies());
 		}
 		b.append("<p>").append(descriptor.getDescription()).append("</p>");
 		// Before you are shocked, read the comment of isPurchased() :-)
@@ -210,8 +214,9 @@ public class UpdateListPanel extends JPanel {
 				b.append("<p>You have purchased this package. However, you cannot install this extension with this version of RapidMiner. Please upgrade first.</p>");
 			} else {
 				try {
-					b.append("<p><a href="+UpdateManager.getUpdateServerURL("/shop/"+descriptor.getPackageId()).toString()+">Order this extension.</a></p><p>You cannot install this extension with this pre-release of RapidMiner. Please upgrade first.</p>");
-				} catch (MalformedURLException e) { }
+					b.append("<p><a href=" + UpdateManager.getUpdateServerURI("/shop/" + descriptor.getPackageId()).toString() + ">Order this extension.</a></p><p>You cannot install this extension with this pre-release of RapidMiner. Please upgrade first.</p>");
+				} catch (URISyntaxException e) {
+				}
 			}
 		}
 		b.append("</html>");
@@ -223,7 +228,7 @@ public class UpdateListPanel extends JPanel {
 		return (selected != null) && selected.booleanValue();
 	}
 
-	private void updateSize() {		
+	private void updateSize() {
 		int totalSize = getTotalSize();
 		if (totalSize > 0) {
 			sizeLabel.setText("Total download size: " + Tools.formatBytes(totalSize) + " (This may be less, if incremental updates are possible.)");
@@ -244,7 +249,7 @@ public class UpdateListPanel extends JPanel {
 
 	public void startUpdate() {
 		final List<PackageDescriptor> downloadList = new LinkedList<PackageDescriptor>();
-		for (Entry<PackageDescriptor, Boolean>  entry : selectionMap.entrySet()) {
+		for (Entry<PackageDescriptor, Boolean> entry : selectionMap.entrySet()) {
 			if (entry.getValue()) {
 				downloadList.add(entry.getKey());
 			}
@@ -253,7 +258,7 @@ public class UpdateListPanel extends JPanel {
 	}
 
 	private boolean isUpToDate(PackageDescriptor desc) {
-		ManagedExtension ext = ManagedExtension.get(desc.getPackageId());		
+		ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
 		if (ext != null) {
 			String remoteVersion = ManagedExtension.normalizeVersion(desc.getVersion());
 			String myVersion = ManagedExtension.normalizeVersion(ext.getLatestInstalledVersion());
@@ -284,7 +289,7 @@ public class UpdateListPanel extends JPanel {
 				String remoteVersion = ManagedExtension.normalizeVersion(desc.getVersion());
 				if ((myVersion != null) && (remoteVersion.compareTo(myVersion) <= 0)) {
 					select = false;
-				}				
+				}
 			}
 			if (UpdateManager.COMMERCIAL_LICENSE_NAME.equals(desc.getLicenseName()) && !isPurchased(desc)) {
 				select = false;
@@ -304,7 +309,7 @@ public class UpdateListPanel extends JPanel {
 					if (other.getPackageId().equals(dep.getPluginExtensionId())) {
 						Boolean selected = selectionMap.get(other);
 						boolean selectedB = (selected != null) && selected.booleanValue();
-						if (!selectedB && !isUpToDate(other)) {							
+						if (!selectedB && !isUpToDate(other)) {
 							selectionMap.put(other, true);
 							resolveDependencies(other);
 						}
@@ -312,14 +317,14 @@ public class UpdateListPanel extends JPanel {
 					}
 				}
 			}
-		}	
+		}
 	}
 
 	/**
-	 * Currently, this is an unused feature. There are no extensions that can be purchased. 
-	 * Don't be afraid, RapidMiner is, and will always be, open source and free.
-	 * However, future extensions like connectors to SAP or other data sources requiring proprietary
-	 * drivers with expensive license fees may only be available on a commercial basis, for obvious reasons :-)
+	 * Currently, this is an unused feature. There are no extensions that can be purchased. Don't be afraid, RapidMiner
+	 * is, and will always be, open source and free. However, future extensions like connectors to SAP or other data
+	 * sources requiring proprietary drivers with expensive license fees may only be available on a commercial basis,
+	 * for obvious reasons :-)
 	 */
 	public boolean isPurchased(PackageDescriptor desc) {
 		return purchasedPackages.contains(desc.getPackageId());

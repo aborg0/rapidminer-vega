@@ -68,7 +68,7 @@ public class AutoMLPImprovedNeuralNetModel extends PredictionModel {
 	public OutputNode[] outputNodes = new OutputNode[0];
 	double error;
 	
-	public double GetError()
+	public double getError()
 	{
 		return error;
 	}

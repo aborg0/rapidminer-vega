@@ -68,7 +68,7 @@ public class ScatterMatrixPlotter extends PlotterAdapter {
 
 	private JProgressBar progressBar = new JProgressBar();
 	
-	private Thread calculationThread = null;
+	private transient Thread calculationThread = null;
 	
 	private boolean stopUpdates = false;
 	

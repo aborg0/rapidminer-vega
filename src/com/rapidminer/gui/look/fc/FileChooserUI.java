@@ -142,7 +142,7 @@ public class FileChooserUI extends BasicFileChooserUI {
 			
 
 			try {
-				if ((name != null ) || (!"".equals(name))) {
+				if ((name != null ) && (!"".equals(name))) {
 					newFolder = fc.getFileSystemView().createNewFolder(currentDirectory);
 					if (newFolder.renameTo(new File(newFolder.getParentFile(), name))) {
 						newFolder = new File(newFolder.getParentFile(), name);

@@ -62,7 +62,7 @@ public class OperatorResourceConsumptionHandler {
 	
 	static {
 		resourceMap = new HashMap<String, String[]>();
-		InputStream is;
+		InputStream is = null;
 		String resource = "/" + Tools.RESOURCE_PREFIX + OPERATORS_RESOURCE_CONSUMPTION;
 		try {
 			URL url = OperatorResourceConsumptionHandler.class.getResource(resource);
@@ -96,6 +96,12 @@ public class OperatorResourceConsumptionHandler {
 			LOGGER.warning(e.getLocalizedMessage());
 		} catch (IOException e) {
 			LOGGER.warning(e.getLocalizedMessage());
+		} finally {
+			try {
+				if (is != null)
+					is.close();
+			} catch (IOException e) {
+			}
 		}
 	}
 	

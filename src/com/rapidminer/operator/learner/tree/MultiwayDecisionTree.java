@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.GroupedModel;
@@ -88,9 +89,9 @@ public class MultiwayDecisionTree extends AbstractMetaLearner {
 			userbasedDiscretization.setParameter(UserBasedDiscretization.PARAMETER_RETURN_PREPROCESSING_MODEL, "true");
 
 			// iterating over all attributes which have to be transformed
-			for (String currentAttribute : attributePointMap.keySet()) {
+			for (Entry<String, List<Double>> currentAttribute : attributePointMap.entrySet()) {
 				// sorting split points
-				double[] splitPoints = new double[attributePointMap.get(currentAttribute).size()];
+				double[] splitPoints = new double[currentAttribute.getValue().size()];
 				int i = 0;
 				for (Double splitPoint : attributePointMap.get(currentAttribute)) {
 					splitPoints[i] = splitPoint;
@@ -99,7 +100,7 @@ public class MultiwayDecisionTree extends AbstractMetaLearner {
 				Arrays.sort(splitPoints);
 
 				// setting attribute to consider
-				userbasedDiscretization.setParameter(RegexpAttributeFilter.PARAMETER_REGULAR_EXPRESSION, currentAttribute);
+				userbasedDiscretization.setParameter(RegexpAttributeFilter.PARAMETER_REGULAR_EXPRESSION, currentAttribute.getKey());
 
 				// setting borders for splitting
 				List<String[]> borders = new LinkedList<String[]>();

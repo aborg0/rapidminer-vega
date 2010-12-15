@@ -42,7 +42,7 @@ public class CCTokenMarker extends CTokenMarker {
 
 	public static KeywordMap getKeywords() {
 		if (ccKeywords == null) {
-			ccKeywords = new KeywordMap(false);
+			KeywordMap ccKeywords = new KeywordMap(false);
 
 			ccKeywords.add("and", Token.KEYWORD3);
 			ccKeywords.add("and_eq", Token.KEYWORD3);
@@ -121,6 +121,8 @@ public class CCTokenMarker extends CTokenMarker {
 
 			// non ANSI keywords
 			ccKeywords.add("NULL", Token.LITERAL2);
+			
+			CCTokenMarker.ccKeywords = ccKeywords;
 		}
 		return ccKeywords;
 	}

@@ -23,6 +23,7 @@
 package com.rapidminer.example.set;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -179,7 +180,7 @@ public class SortedExampleSet extends AbstractExampleSet {
 
     @Override
 	public int hashCode() {
-        return super.hashCode() ^ this.mapping.hashCode();
+        return super.hashCode() ^ Arrays.hashCode(this.mapping);
     }
     
     /** Returns a {@link SortedExampleReader}. */

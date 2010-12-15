@@ -23,8 +23,8 @@
 package com.rapid_i.deployment.update.client;
 
 import java.awt.event.ActionEvent;
-import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -50,12 +50,12 @@ import com.rapidminer.tools.LogService;
 /**
  * 
  * @author Simon Fischer
- *
+ * 
  */
 public class UpdateDialog extends ButtonDialog {
 
 	protected static final String PACKAGEID_RAPIDMINER = "rapidminer";
-	
+
 	private static final long serialVersionUID = 1L;
 
 	public static final Action UPDATE_ACTION = new ResourceAction("update_manager") {
@@ -63,14 +63,15 @@ public class UpdateDialog extends ButtonDialog {
 		{
 			setCondition(EDIT_IN_PROGRESS, DONT_CARE);
 		}
+
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-			showUpdateDialog();		
-		}		
+			showUpdateDialog();
+		}
 	};
 
 	private final UpdateService service;
-	
+
 	private final UpdateListPanel ulp;
 
 	static {
@@ -78,22 +79,23 @@ public class UpdateDialog extends ButtonDialog {
 			@Override
 			public PasswordAuthentication getAuthentication(URL url) {
 				try {
-					if (url.toString().startsWith(UpdateManager.getUpdateServerURL("").toString())) {	
+					if (url.toString().startsWith(UpdateManager.getUpdateServerURI("").toString())) {
 						return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
 					} else {
 						return null;
 					}
-				} catch (MalformedURLException e) {
+				} catch (URISyntaxException e) {
 					return null;
 				}
 			}
+
 			@Override
 			public String getName() {
 				return "UpdateService authenticator.";
 			}
-		});	
+		});
 	}
-	
+
 	public UpdateDialog(UpdateService service, List<PackageDescriptor> descriptors, String[] preselectedExtensions) {
 		super("update");
 		this.service = service;
@@ -101,8 +103,7 @@ public class UpdateDialog extends ButtonDialog {
 		layoutDefault(ulp, ulp.getInstallButton(), makeOkButton("update.install"), makeCloseButton());
 	}
 
-
-	public static void showUpdateDialog(final String ... preselectedExtensions) {
+	public static void showUpdateDialog(final String... preselectedExtensions) {
 		new ProgressThread("fetching_updates", true) {
 			public void run() {
 				getProgressListener().setTotal(100);
@@ -119,7 +120,7 @@ public class UpdateDialog extends ButtonDialog {
 				}
 				final UpdateService service = serviceTmp;
 				try {
-					getProgressListener().setCompleted(20);					
+					getProgressListener().setCompleted(20);
 
 					final List<PackageDescriptor> descriptors = new LinkedList<PackageDescriptor>();
 
@@ -134,7 +135,7 @@ public class UpdateDialog extends ButtonDialog {
 						}
 					}
 					getProgressListener().setCompleted(30);
-					
+
 					String targetPlatform = "ANY";
 					List<String> extensions = service.getExtensions(PACKAGEID_RAPIDMINER);
 					int i = 0;
@@ -163,13 +164,13 @@ public class UpdateDialog extends ButtonDialog {
 	public void startUpdate(final List<PackageDescriptor> downloadList) {
 		new ProgressThread("installing_updates", true) {
 			@Override
-			public void run() {				
+			public void run() {
 				try {
 					getProgressListener().setTotal(100);
 					getProgressListener().setCompleted(10);
-					
+
 					// Download licenses
-					Map<String,String> licenses = new HashMap<String,String>();
+					Map<String, String> licenses = new HashMap<String, String>();
 					for (PackageDescriptor desc : downloadList) {
 						String license = licenses.get(desc.getLicenseName());
 						if (license == null) {
@@ -177,7 +178,7 @@ public class UpdateDialog extends ButtonDialog {
 							licenses.put(desc.getLicenseName(), license);
 						}
 					}
-					
+
 					// Confirm licenses
 					getProgressListener().setCompleted(20);
 					List<PackageDescriptor> acceptedList = new LinkedList<PackageDescriptor>();
@@ -185,18 +186,18 @@ public class UpdateDialog extends ButtonDialog {
 						if (ConfirmLicenseDialog.confirm(desc, licenses.get(desc.getLicenseName()))) {
 							acceptedList.add(desc);
 						}
-					}	
-					
+					}
+
 					if (!acceptedList.isEmpty()) {
 						UpdateManager um = new UpdateManager(service);
 						um.performUpdates(acceptedList, getProgressListener());
 						getProgressListener().complete();
 						UpdateDialog.this.dispose();
 						// TODO: re-enable
-						//ManagedExtension.checkForLicenseConflicts();
+						// ManagedExtension.checkForLicenseConflicts();
 						if (SwingTools.showConfirmDialog("update.complete_restart", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.YES_OPTION) {
 							RapidMinerGUI.getMainFrame().exit(true);
-						}						
+						}
 					} else {
 						getProgressListener().complete();
 					}
@@ -206,7 +207,7 @@ public class UpdateDialog extends ButtonDialog {
 			}
 		}.start();
 	}
-	
+
 	@Override
 	protected void ok() {
 		ulp.startUpdate();

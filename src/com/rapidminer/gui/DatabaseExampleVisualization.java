@@ -95,7 +95,6 @@ public class DatabaseExampleVisualization implements ObjectVisualizer {
 		if (statement != null) {
 			try {
 				statement.close();
-				statement = null;
 			} catch (SQLException e) {
 				// do nothing
 			}
@@ -103,7 +102,6 @@ public class DatabaseExampleVisualization implements ObjectVisualizer {
 		if (handler != null) {
 			try {
 				handler.disconnect();
-				handler = null;
 			} catch (SQLException e) {
 				// do nothing
 			}

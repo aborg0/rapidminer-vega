@@ -25,7 +25,6 @@ package com.rapidminer.tools.math.distribution.kernel;
 import java.util.TreeSet;
 
 import com.rapidminer.tools.math.distribution.NormalDistribution;
-import com.rapidminer.tools.math.distribution.kernel.NormalKernel;
 
 
 /**
@@ -184,10 +183,4 @@ public class GreedyKernelDistribution extends KernelDistribution {
 		}
 		return probability / totalWeight;
 	}
-
-	@Override
-	public String toString() {
-		return null;
-	}
-
 }

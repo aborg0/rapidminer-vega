@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -204,8 +205,8 @@ public class SimilarityGraphCreator extends GraphCreatorAdaptor {
 			counter++;
 		}
 
-		for (String idString : strengthMap.keySet()) {
-			edgeStrengthMap.put(idString, (strengthMap.get(idString) - minStrength) / (maxStrength - minStrength));
+		for (Entry<String, Double> entry : strengthMap.entrySet()) {
+			edgeStrengthMap.put(entry.getKey(), (entry.getValue() - minStrength) / (maxStrength - minStrength));
 		}
 	}
 

@@ -387,7 +387,6 @@ public class MetaDataDeclarationEditor extends JPanel {
 				}
 				return false;
 			}
-			column--;
 			if (row <= Math.max(Math.max(Math.max(ATTRIBUTE_NAME_ROW, VALUE_TYPE_ROW), IS_SELECTED_ROW), ROLE_ROW)) {
 				return true;
 			}

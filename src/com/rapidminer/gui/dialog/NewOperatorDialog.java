@@ -79,7 +79,7 @@ import com.rapidminer.tools.OperatorService;
  * 
  * @author Ingo Mierswa, Helge Homburg, Tobias Malbrecht
  */
-public class NewOperatorDialog extends ButtonDialog {
+public final class NewOperatorDialog extends ButtonDialog {
 
 	private static final long serialVersionUID = 390653805759799295L;
 

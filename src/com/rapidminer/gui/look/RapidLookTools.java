@@ -342,16 +342,17 @@ public final class RapidLookTools {
 
 	public static void drawGradient(Graphics g, int x1, int y1, int x2, int y2, Color c1, Color c2) {
 		int w = x2 - x1;
-		int h = y2 - y1;
+		//int h = y2 - y1;
 		if (w > 0) {
 			BufferedImage bi = new BufferedImage(w, 1, BufferedImage.TYPE_3BYTE_BGR);
 			Graphics2D g2 = (Graphics2D) bi.getGraphics();
 			g2.setPaint(new GradientPaint(0, 0, c1, w, 0, c2));
 			g2.fillRect(0, 0, w, 1);
 			g.drawImage(bi, x1, 0, w, y2, 0, 0, x2, 1, null);
-		} else if (h > 0) {
-			// do nothing
-		}
+		} 
+//		else if (h > 0) {
+//			// do nothing
+//		}
 	}
 
 	public static Colors getColors() {

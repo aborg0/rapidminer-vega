@@ -22,6 +22,7 @@
  */
 package com.rapidminer.generator;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -412,7 +413,7 @@ public abstract class FeatureGenerator {
 	public int hashCode() {
 		int hashCode = getFunction().hashCode();
 		if (this.arguments != null)
-			hashCode ^= this.arguments.hashCode();
+			hashCode ^= Arrays.hashCode(this.arguments);
 		return hashCode;
 	}
 }

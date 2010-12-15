@@ -175,10 +175,6 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 		});
 	}
 
-	public JPanel getHelpTextBackgroundPanel() {
-		return helpTextBackgroundPanel;
-	}
-
 	private void addToolBar() {
 		ViewToolBar toolBar = new ViewToolBar();
 
@@ -421,8 +417,6 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 	private final DockKey DOCK_KEY = new ResourceDockKey(OPERATOR_HELP_DOCK_KEY);
 
 	private JScrollPane scrollPane;
-
-	private JPanel helpTextBackgroundPanel;
 
 	private ShowHelpTextAction showHelpTextAction;
 

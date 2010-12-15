@@ -101,7 +101,7 @@ public class BallTreeNode<T> implements Serializable {
 	}
 
 	public boolean hasTwoChilds() {
-		return (getLeftChild() != null & getRightChild() != null);
+		return (getLeftChild() != null && getRightChild() != null);
 	}
 
 	/**

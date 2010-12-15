@@ -50,7 +50,7 @@ public class AttributesValueCellEditor extends AbstractCellEditor implements Pro
 
 	private static final long serialVersionUID = -2387465714767785072L;
 
-	private String attributeListString = new String();
+	private String attributeListString = "";
 
 	private final JButton button;
 

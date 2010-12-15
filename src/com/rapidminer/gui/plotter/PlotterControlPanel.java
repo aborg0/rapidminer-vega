@@ -87,7 +87,7 @@ public class PlotterControlPanel extends JPanel implements PlotterChangedListene
 	private List<PlotterSettingsChangedListener> changeListenerElements = new LinkedList<PlotterSettingsChangedListener>();
 
 	
-	private final ItemListener plotterComboListener = new ItemListener() {
+	private transient final ItemListener plotterComboListener = new ItemListener() {
 		@Override
 		public void itemStateChanged(ItemEvent e) {
 			plotterSettings.setPlotter((plotterCombo.getSelectedItem().toString()));	

@@ -142,7 +142,7 @@ public class AbstractChartPanel extends ChartPanel {
 	 * This is a transformation which transforms the components coordinates to screen coordinates. If is null, no
 	 * transformation is needed.
 	 */
-	private CoordinateTransformation coordinateTransformation = new NullCoordinateTransformation();
+	private transient CoordinateTransformation coordinateTransformation = new NullCoordinateTransformation();
 
 	/** Storage for registered (chart) mouse listeners. */
 	private transient EventListenerList chartMouseListeners;
@@ -192,7 +192,7 @@ public class AbstractChartPanel extends ChartPanel {
 	private boolean rangeZoomable = false;
 
 	/** This resolves the names of the axes plotted. The default asks this chart for the axis name**/
-	private AxisNameResolver axisNameResolver = new AxisNameResolver() {
+	private transient AxisNameResolver axisNameResolver = new AxisNameResolver() {
 		
 		@Override
 		public Collection<String> resolveYAxis(int axisIndex) {

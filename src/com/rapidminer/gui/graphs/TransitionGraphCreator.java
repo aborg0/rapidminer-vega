@@ -33,6 +33,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -95,6 +96,24 @@ public class TransitionGraphCreator extends GraphCreatorAdaptor {
 		public int compareTo(SourceId o) {
 			return this.label.compareTo(o.label);
 		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			SourceId other = (SourceId) obj;
+			if (label == null) {
+				if (other.label != null)
+					return false;
+			} else if (!label.equals(other.label))
+				return false;
+			return true;
+		}
+		
 	}
 	
 	private final Factory<String> edgeFactory = new Factory<String>() {
@@ -402,8 +421,8 @@ public class TransitionGraphCreator extends GraphCreatorAdaptor {
             counter++;
         }
         
-        for (String idString : strengthMap.keySet()) {
-            edgeStrengthMap.put(idString, (strengthMap.get(idString) - minStrength) / (maxStrength - minStrength));
+        for (Entry<String, Double> entry : strengthMap.entrySet()) {
+            edgeStrengthMap.put(entry.getKey(), (strengthMap.get(entry.getValue()) - minStrength) / (maxStrength - minStrength));
         }
     }
 

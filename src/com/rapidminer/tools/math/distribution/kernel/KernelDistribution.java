@@ -51,10 +51,4 @@ public abstract class KernelDistribution extends ContinuousDistribution implemen
 	public double getParameterValue(int index) {
 		return Double.NaN;
 	}
-
-	@Override
-	public String toString() {
-		return null;
-	}
-
 }

@@ -36,6 +36,11 @@ public class OperatorStatisticsComparator implements Comparator<OperatorDescript
 	private UsageStatistics.StatisticsScope scope;
 	private OperatorStatisticsValue type;
 	
+	public OperatorStatisticsComparator(UsageStatistics.StatisticsScope scope, OperatorStatisticsValue type) {
+		this.scope = scope;
+		this.type = type;
+	}
+	
 	@Override
 	public int compare(OperatorDescription d1, OperatorDescription d2) {
 		return UsageStatistics.getInstance().getOperatorStatistics(scope, d2).getStatistics(type) -

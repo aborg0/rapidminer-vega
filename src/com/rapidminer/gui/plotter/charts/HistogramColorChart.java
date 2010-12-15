@@ -28,9 +28,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.swing.Icon;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -70,9 +69,7 @@ public class HistogramColorChart extends HistogramChart {
     
     public static final int DEFAULT_BIN_NUMBER = 40;
 
-	protected transient DataTable dataTable;
-
-	private HistogramDataset histogramDataset;
+    private HistogramDataset histogramDataset;
 	
 	private DefaultCategoryDataset categoryDataset = new DefaultCategoryDataset();
 
@@ -86,8 +83,6 @@ public class HistogramColorChart extends HistogramChart {
 	
 	private boolean absolute = false;
 	
-	protected boolean drawLegend = true;
-	
 	public HistogramColorChart(PlotterConfigurationModel settings) {
 		super(settings);
 		
@@ -96,17 +91,6 @@ public class HistogramColorChart extends HistogramChart {
 	public HistogramColorChart(PlotterConfigurationModel settings, DataTable dataTable) {
 		this(settings);
 		setDataTable(dataTable);
-	}
-
-	@Override
-	public void dataTableSet() {
-		this.dataTable = getDataTable();
-		updatePlotter();
-	}
-
-	@Override
-	public Icon getIcon(int index) {
-		return null;
 	}
 
 	@Override
@@ -143,11 +127,6 @@ public class HistogramColorChart extends HistogramChart {
     	return true;
     }
     
-	@Override
-	public void setDrawLegend(boolean drawLegend) {
-		this.drawLegend = drawLegend;
-	}
-	
     @Override
 	public void setAxis(int index, int dimension) {
         if (this.valueColumn != dimension) {
@@ -235,17 +214,18 @@ public class HistogramColorChart extends HistogramChart {
 							value = Math.abs(value);
 						String colorValue = this.dataTable.getValueAsString(row, colorColumn);
 						List<Double> colorList = classMap.get(colorValue);
-						colorList.add(value);
+						if (colorList != null)
+							colorList.add(value);
 					}
 
-					for (String key : classMap.keySet()) {
-						List<Double> valueList = classMap.get(key);
+					for (Entry<String, List<Double>> entry : classMap.entrySet()) {
+						List<Double> valueList = entry.getValue();
 						double[] values = new double[valueList.size()];
 						int index = 0;
 						for (double v : valueList) {
 							values[index++] = v;
 						}
-						histogramDataset.addSeries(key, values, this.binNumber);
+						histogramDataset.addSeries(entry.getKey(), values, this.binNumber);
 					}
 				}
 			}

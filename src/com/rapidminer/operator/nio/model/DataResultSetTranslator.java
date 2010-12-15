@@ -504,7 +504,7 @@ public class DataResultSetTranslator {
 					Double.parseDouble(value);
 					return currentValueType;
 				} catch (NumberFormatException e) {
-					return guessValueType(Ontology.DATE, value, onlyTwoValues, dateFormat, numberFormat);
+					return guessValueType(Ontology.DATE, value, onlyTwoValues, dateFormat, null);
 				}
 			}
 		}

@@ -72,7 +72,7 @@ import com.vlsolutions.swing.docking.Dockable;
  * 
  * @author Ingo Mierswa
  */
-public class WelcomeScreen extends JPanel implements Dockable {
+public final class WelcomeScreen extends JPanel implements Dockable {
 
 	private static Image borderTopImage = null;
 	

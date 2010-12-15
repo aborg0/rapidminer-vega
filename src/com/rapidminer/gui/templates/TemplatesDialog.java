@@ -35,9 +35,9 @@ import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.Vector;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 
 import javax.swing.Action;
@@ -179,9 +179,12 @@ public class TemplatesDialog extends ButtonDialog {
 				LogService.getRoot().warning("Resource /com/rapidminer/resources/templates/Templates cannot be read. UTF-8 not supported.");
 				return;
 			} finally {
-				try {
-					reader.close();
-				} catch (IOException e) {}
+				if (reader != null) {
+					try {
+						reader.close();
+					} catch (IOException e) {
+					}
+				}
 			}
 
 		} else {

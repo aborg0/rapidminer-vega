@@ -22,6 +22,7 @@
  */
 package com.rapidminer.gui.tools;
 
+
 /**
  * Contains information about the different parts of a version number.
  *
@@ -90,6 +91,10 @@ public class VersionNumber implements Comparable<VersionNumber> {
 		this(majorNumber, minorNumber, 0, false, 0, false, 0);
 	}
 	
+	public VersionNumber(int majorNumber, int minorNumber, int patchLevel) {
+		this(majorNumber, minorNumber, patchLevel, false, 0, false, 0);
+	}
+	
 	public VersionNumber(int majorNumber, int minorNumber, int patchLevel, boolean alpha, int alphaNumber, boolean beta, int betaNumber) {
 		this.majorNumber = majorNumber;
 		this.minorNumber = minorNumber;
@@ -125,6 +130,28 @@ public class VersionNumber implements Comparable<VersionNumber> {
 		    Double.valueOf(this.alphaNumber).hashCode() ^
 		    Boolean.valueOf(beta).hashCode() ^
 		    Double.valueOf(this.betaNumber).hashCode();
+	}
+	
+	/**
+	 * Returns if this number is at least as high as the given arguments.
+	 */
+	public boolean isAtLeast(int major, int minor, int buildNumber) {
+		return this.compareTo(new VersionNumber(major, minor, buildNumber)) >= 0;
+	}
+
+	public boolean isAtLeast(VersionNumber other) {
+		return this.compareTo(other) >= 0;
+	}
+
+	/**
+	 * Returns if this number is at most as high as the given arguments.
+	 */
+	public boolean isAtMost(int major, int minor, int buildNumber) {
+		return this.compareTo(new VersionNumber(major, minor, buildNumber)) <= 0;
+	}
+
+	public boolean isAtMost(VersionNumber other) {
+		return this.compareTo(other) <= 0;
 	}
 	
 	public int compareTo(VersionNumber o) {
@@ -187,5 +214,17 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
 	public String getShortVersion() {
 		return majorNumber + "." + minorNumber;
+	}
+	
+	public int getMajorNumber() {
+		return majorNumber;
+	}
+	
+	public int getMinorNumber() {
+		return minorNumber;
+	}
+	
+	public int getPatchLevel() {
+		return patchLevel;
 	}
 }

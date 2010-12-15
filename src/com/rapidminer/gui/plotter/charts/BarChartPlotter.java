@@ -540,7 +540,7 @@ public class BarChartPlotter extends LabelRotatingPlotterAdapter implements Chan
         		legend.setItemFont(LABEL_FONT);
         	}
 
-            if (panel instanceof AbstractChartPanel) {
+            if (panel != null) {
             	panel.setChart(chart);
             } else {
             	panel = new AbstractChartPanel(chart, getWidth(), getHeight() - MARGIN);

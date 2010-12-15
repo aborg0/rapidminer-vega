@@ -22,15 +22,16 @@
  */
 package com.rapidminer.gui.tools;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Paint;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.awt.image.RescaleOp;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -174,6 +175,10 @@ public class SplashScreen extends JPanel implements ActionListener {
 		int size = extensionIcons.size();
 		if (size > 0) {
 			Graphics2D g2d = (Graphics2D) g;
+			
+			g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			
 			g2d.translate(400, 140);
 			g2d.scale(0.5, 0.5);
 			long currentTimeMillis = System.currentTimeMillis();
@@ -187,24 +192,20 @@ public class SplashScreen extends JPanel implements ActionListener {
 			// now paint other icons
 			int shiftX = 51;
 			for (int i = 0; i < numberToShow; i++) {
-				RescaleOp rop;
 				if (numberToShow > i + MAX_NUMBER_EXTENSION_ICONS) {
 					// then we have to fade out again
 					Pair<BufferedImage, Long> pair = extensionIcons.get(i + MAX_NUMBER_EXTENSION_ICONS);					
 					float min = Math.min((currentTimeMillis - pair.getSecond()) / EXTENSION_FADE_TIME, 1f);
-					rop = new RescaleOp(new float[] { 1 - min, 1 - min, 1 - min, 1 - min }, new float[4], null);
+					g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1-min));
 				} else {
 					// fade in
 					Pair<BufferedImage, Long> pair = extensionIcons.get(i);
 					float min = Math.min((currentTimeMillis - pair.getSecond()) / EXTENSION_FADE_TIME, 1f);
-					rop = new RescaleOp(new float[] { min, min, min, min }, new float[4], null);
+					g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, min));
 				}
-
-				g2d.drawImage(extensionIcons.get(i).getFirst(), rop, - (i % MAX_NUMBER_EXTENSION_ICONS) * shiftX, 0);
+				g2d.drawImage(extensionIcons.get(i).getFirst(), null, -(i % MAX_NUMBER_EXTENSION_ICONS) * shiftX, 0);
 			}
-
 		}
-
 	}
 
 	public void drawMain(Graphics2D g) {

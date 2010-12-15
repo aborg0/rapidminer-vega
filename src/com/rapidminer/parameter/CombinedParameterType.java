@@ -24,6 +24,9 @@ package com.rapidminer.parameter;
 
 
 /**
+ * This is an abstract class for all ParameterTypes that are a combination
+ * of several other {@link ParameterType}s.
+ * 
  * @author Sebastian Land
  *
  */
@@ -38,7 +41,8 @@ public abstract class CombinedParameterType extends ParameterType {
 	 */
 	public CombinedParameterType(String key, String description, ParameterType...types) {
 		super(key, description);
-		}
+		this.types = types;
+	}
 
 	public boolean containsType(Class<? extends ParameterType> type) {
 		for (ParameterType member: types)

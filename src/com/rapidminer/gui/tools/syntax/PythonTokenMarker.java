@@ -173,7 +173,7 @@ public class PythonTokenMarker extends TokenMarker {
 
 	public static KeywordMap getKeywords() {
 		if (pyKeywords == null) {
-			pyKeywords = new KeywordMap(false);
+			KeywordMap pyKeywords = new KeywordMap(false);
 			pyKeywords.add("and", Token.KEYWORD3);
 			pyKeywords.add("not", Token.KEYWORD3);
 			pyKeywords.add("or", Token.KEYWORD3);
@@ -202,6 +202,8 @@ public class PythonTokenMarker extends TokenMarker {
 			pyKeywords.add("lambda", Token.KEYWORD2);
 			pyKeywords.add("pass", Token.KEYWORD2);
 			pyKeywords.add("print", Token.KEYWORD2);
+			
+			PythonTokenMarker.pyKeywords = pyKeywords;
 		}
 		return pyKeywords;
 	}

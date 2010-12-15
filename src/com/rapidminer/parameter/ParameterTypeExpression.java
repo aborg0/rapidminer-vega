@@ -37,7 +37,7 @@ public class ParameterTypeExpression extends ParameterTypeString {
 	
 	private static final long serialVersionUID = -1938925853519339382L;
 
-	private InputPort inPort;
+	private transient InputPort inPort;
 
 	public ParameterTypeExpression(final String key, String description, InputPort inPort) {
 		this(key, description, inPort, false);

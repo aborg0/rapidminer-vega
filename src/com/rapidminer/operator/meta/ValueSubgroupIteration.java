@@ -25,6 +25,7 @@ package com.rapidminer.operator.meta;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,11 +45,11 @@ import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.AttributeSetPrecondition;
+import com.rapidminer.operator.ports.metadata.AttributeSetPrecondition.AttributeNameProvider;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetPassThroughRule;
 import com.rapidminer.operator.ports.metadata.SetRelation;
 import com.rapidminer.operator.ports.metadata.SubprocessTransformRule;
-import com.rapidminer.operator.ports.metadata.AttributeSetPrecondition.AttributeNameProvider;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeBoolean;
@@ -215,12 +216,13 @@ public class ValueSubgroupIteration extends OperatorChain {
 		}
 
 		// applying on subgroups defined by attributes
-		for (Attribute attribute : attributeValueOptionsMap.keySet()) {
+		for (Entry<Attribute, Integer> attributeEntry : attributeValueOptionsMap.entrySet()) {
+			Attribute attribute = attributeEntry.getKey();
 			if (!attribute.isNominal()) {
 				continue;
 			}
 			List<String> values = null;
-			switch (attributeValueOptionsMap.get(attribute)) {
+			switch (attributeEntry.getValue()) {
 			case VALUE_OPTION_ALL:
 				values = attribute.getMapping().getValues();
 				break;

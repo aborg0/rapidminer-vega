@@ -500,6 +500,25 @@ public class XMLImporter {
 		if ((versionString != null) && !versionString.isEmpty()) {
 			try {
 				opVersion = new OperatorVersion(versionString);
+
+				/*
+				 * Here we are searching if there has been any change since the last save. If no, 
+				 * we use the latest version to save it again. If yes, use the eariest incompatible
+				 * version.
+				 */
+				OperatorVersion[] incompatibleVersionChanges = operator.getIncompatibleVersionChanges();
+				OperatorVersion nextIncompatibility = null;
+				for (int i = incompatibleVersionChanges.length - 1; i >= 0; i--) {
+					if (opVersion.isAtMost(incompatibleVersionChanges[i]))
+						nextIncompatibility = incompatibleVersionChanges[i];
+					else
+						break;
+				}
+				
+				if (nextIncompatibility == null)
+					opVersion = OperatorVersion.getLatestVersion(opDescr);
+				else
+					opVersion = nextIncompatibility;
 			} catch (IllegalArgumentException e) {
 				addMessage("Failed to parse version string '" + versionString + "' for operator " + operator.getName() + ".");
 				opVersion = new OperatorVersion(5, 0, 0);
@@ -511,7 +530,7 @@ public class XMLImporter {
 		OperatorVersion incompatibleVersions[] = operator.getIncompatibleVersionChanges();
 		if ((incompatibleVersions != null) && (incompatibleVersions.length > 0)) {
 			OperatorVersion latest = incompatibleVersions[incompatibleVersions.length - 1];
-			if (latest.ordinal() > opVersion.ordinal()) {
+			if (latest.compareTo(opVersion) > 0 ){
 				addMessage("Operator '" + operator.getName() + "' was created with version '" + opVersion + "'. The operator's behaviour has changed as of version and can be adapted to the latest version in the parameter panel.");
 			}
 		}

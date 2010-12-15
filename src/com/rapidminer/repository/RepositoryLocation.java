@@ -62,12 +62,6 @@ public class RepositoryLocation {
 	public RepositoryLocation(String repositoryName, String[] pathComponents) throws MalformedRepositoryLocationException {
 		this.repositoryName = repositoryName;
 		this.path = pathComponents;
-		String tmp;
-		tmp  = "" + SEPARATOR + SEPARATOR + repositoryName;
-		for (String component : pathComponents) {
-			checkName(component);
-			tmp += SEPARATOR + component ;						
-		}
 	}
 	
 	/** Appends a child entry to a given parent location. Child can be composed
@@ -98,10 +92,6 @@ public class RepositoryLocation {
 					newComponents.add(component);
 				}
 			}		
-			String tmp = "";
-			for (String component : newComponents) {
-				tmp += SEPARATOR + component;
-			}
 			this.path = newComponents.toArray(new String[newComponents.size()]);
 		}
 	}
@@ -223,19 +213,20 @@ public class RepositoryLocation {
 		while ((i < min) && (this.path[i].equals(relativeToFolder.path[i]))) {
 			i++;
 		}
-		String result = "";
+		StringBuilder result = new StringBuilder();
 		// add one ../ for each excess component in relativeComponent which we have to leave
 		for (int j = i; j < relativeToFolder.path.length; j++) {
-			result += ".." + RepositoryLocation.SEPARATOR;
+			result.append("..");
+			result.append(RepositoryLocation.SEPARATOR);
 		}
 		// add components from each excess absoluteComponent
 		for (int j = i; j < this.path.length; j++) {
-			result += this.path[j];
+			result.append(this.path[j]);
 			if (j < this.path.length-1) {
-				 result += RepositoryLocation.SEPARATOR;
+				 result.append(RepositoryLocation.SEPARATOR);
 			}
 		}		
-		return result;
+		return result.toString();
 	}
 
 	public static boolean isAbsolute(String loc) {

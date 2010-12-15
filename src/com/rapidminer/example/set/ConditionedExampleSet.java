@@ -22,6 +22,7 @@
  */
 package com.rapidminer.example.set;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -125,7 +126,7 @@ public class ConditionedExampleSet extends AbstractExampleSet {
 
     @Override
 	public int hashCode() {
-        return super.hashCode() ^ this.mapping.hashCode();
+    	return super.hashCode() ^ Arrays.hashCode(this.mapping);
     }
         
     private int[] calculateMapping(Condition condition, boolean inverted) {

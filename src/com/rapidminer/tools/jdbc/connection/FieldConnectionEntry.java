@@ -34,8 +34,7 @@ import com.rapidminer.tools.jdbc.DatabaseService;
 import com.rapidminer.tools.jdbc.JDBCProperties;
 
 /**
- * This class is a ConnectionEntry specifying additional fields for storing
- * the host, port and database.
+ * This class is a ConnectionEntry specifying additional fields for storing the host, port and database.
  * 
  * @author Tobias Malbrecht, Sebastian Land
  */
@@ -44,13 +43,13 @@ public class FieldConnectionEntry extends ConnectionEntry {
 	static final String XML_TAG_NAME = "field-entry";
 
 	private String host;
-		
+
 	private String port;
-		
+
 	private String database;
 
 	private boolean dynamic = false;
-	
+
 	public String getPort() {
 		return port;
 	}
@@ -71,7 +70,7 @@ public class FieldConnectionEntry extends ConnectionEntry {
 	public String getUser() {
 		return user;
 	}
-	
+
 	public void setUser(String user) {
 		this.user = user;
 	}
@@ -92,7 +91,7 @@ public class FieldConnectionEntry extends ConnectionEntry {
 	public FieldConnectionEntry() {
 		super();
 	}
-		
+
 	public FieldConnectionEntry(String name, JDBCProperties properties, String host, String port, String database, String user, char[] password) {
 		super(name, properties);
 		this.host = host;
@@ -106,8 +105,8 @@ public class FieldConnectionEntry extends ConnectionEntry {
 	public String getURL() {
 		return createURL(properties, host, port, database);
 	}
-	
-	public static String createURL(JDBCProperties properties, String host, String port, String database) {		
+
+	public static String createURL(JDBCProperties properties, String host, String port, String database) {
 		StringBuffer urlBuffer = new StringBuffer();
 		if (properties != null) {
 			urlBuffer.append(properties.getUrlPrefix());
@@ -130,11 +129,11 @@ public class FieldConnectionEntry extends ConnectionEntry {
 		}
 		return urlBuffer.toString();
 	}
-	
+
 	public String getHost() {
 		return host;
 	}
-	
+
 	@Override
 	public boolean equals(Object object) {
 		if (object instanceof FieldConnectionEntry) {
@@ -145,7 +144,12 @@ public class FieldConnectionEntry extends ConnectionEntry {
 			equals &= port.equals(entry.port);
 			equals &= database.equals(entry.database);
 			equals &= user.equals(entry.user);
-			equals &= password.equals(entry.password);
+			equals &= password.length == entry.password.length;
+			if (equals) {
+				for (int i = 0; i < password.length; i++) {
+					equals &= password[i] == entry.password[i];
+				}
+			}
 			return equals;
 		}
 		return false;
@@ -156,7 +160,7 @@ public class FieldConnectionEntry extends ConnectionEntry {
 		XMLTools.setTagContents(element, "name", name);
 		if (properties != null) {
 			XMLTools.setTagContents(element, "system", properties.getName());
-		}		
+		}
 		String host = this.host;
 		if (replacementForLocalhost != null) {
 			host = host.replace("localhost", replacementForLocalhost);
@@ -164,22 +168,22 @@ public class FieldConnectionEntry extends ConnectionEntry {
 		XMLTools.setTagContents(element, "host", host);
 		XMLTools.setTagContents(element, "port", port);
 		XMLTools.setTagContents(element, "database", database);
-		XMLTools.setTagContents(element, "user", user);		
+		XMLTools.setTagContents(element, "user", user);
 		XMLTools.setTagContents(element, "password", CipherTools.encrypt(new String(password), key));
 		return element;
 	}
-	
+
 	public FieldConnectionEntry(Element element, Key key) throws CipherException {
 		this.name = XMLTools.getTagContents(element, "name");
 		this.host = XMLTools.getTagContents(element, "host");
-		this.port  = XMLTools.getTagContents(element, "port");
+		this.port = XMLTools.getTagContents(element, "port");
 		this.database = XMLTools.getTagContents(element, "database");
-		this.user  = XMLTools.getTagContents(element, "user");
+		this.user = XMLTools.getTagContents(element, "user");
 		this.password = CipherTools.decrypt(XMLTools.getTagContents(element, "password"), key).toCharArray();
 		String system = XMLTools.getTagContents(element, "system");
 		if (system != null) {
 			properties = DatabaseService.getJDBCProperties(system);
-		}		
+		}
 	}
 
 	public void setDynamic(boolean dynamic) {

@@ -30,6 +30,9 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.jar.JarFile;
@@ -64,7 +67,7 @@ import com.rapidminer.tools.jdbc.JDBCProperties;
 /**
  * 
  * @author Simon Fischer
- *
+ * 
  */
 public class ManageDatabaseDriversDialog extends ButtonDialog {
 	private static final long serialVersionUID = 1L;
@@ -72,10 +75,11 @@ public class ManageDatabaseDriversDialog extends ButtonDialog {
 
 	public static final Action SHOW_DIALOG_ACTION = new ResourceAction("manage_database_drivers") {
 		private static final long serialVersionUID = 1L;
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			new ManageDatabaseDriversDialog().setVisible(true);
-		}		
+		}
 	};
 
 	private class DriverPane extends JPanel {
@@ -86,21 +90,23 @@ public class ManageDatabaseDriversDialog extends ButtonDialog {
 		private JTextField portField = new JTextField(20);
 		private JTextField jarFileField = new JTextField(20);
 		private JTextField dbseparatorField = new JTextField(20);
-		private JComboBox classNameCombo = new JComboBox();		
+		private JComboBox classNameCombo = new JComboBox();
+
 		public DriverPane() {
 			setLayout(new GridBagLayout());
 			classNameCombo.setEditable(true);
 
 			JButton fileButton = new JButton(new ResourceAction(true, "manage_database_drivers.jarfile") {
 				private static final long serialVersionUID = 1L;
+
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					File file = SwingTools.chooseFile(DriverPane.this, null, true, "jar", "JDBC driver jar file");					
+					File file = SwingTools.chooseFile(DriverPane.this, null, true, "jar", "JDBC driver jar file");
 					if (file != null) {
 						jarFileField.setText(file.getAbsolutePath());
-						((DefaultComboBoxModel)classNameCombo.getModel()).removeAllElements();
+						((DefaultComboBoxModel) classNameCombo.getModel()).removeAllElements();
 						for (String driver : findDrivers(file)) {
-							((DefaultComboBoxModel)classNameCombo.getModel()).addElement(driver);	
+							((DefaultComboBoxModel) classNameCombo.getModel()).addElement(driver);
 						}
 					}
 				}
@@ -111,33 +117,34 @@ public class ManageDatabaseDriversDialog extends ButtonDialog {
 			add("port", portField, null);
 			add("dbseparator", dbseparatorField, null);
 			add("jarfile", jarFileField, fileButton);
-			add("classname", classNameCombo, null);			
+			add("classname", classNameCombo, null);
 		}
+
 		private void add(String labelKey, JComponent component, JComponent button) {
 			GridBagConstraints c = new GridBagConstraints();
 			c.anchor = GridBagConstraints.FIRST_LINE_START;
 			c.weightx = 0.5;
 			c.weighty = 1;
-			c.fill    = GridBagConstraints.BOTH;
+			c.fill = GridBagConstraints.BOTH;
 			c.gridheight = 1;
-			ResourceLabel label = new ResourceLabel("manage_database_drivers."+labelKey);
+			ResourceLabel label = new ResourceLabel("manage_database_drivers." + labelKey);
 			label.setLabelFor(component);
-			c.gridwidth  = GridBagConstraints.REMAINDER;
+			c.gridwidth = GridBagConstraints.REMAINDER;
 			add(label, c);
 
-			c.insets = new Insets(0,0,5,0);
+			c.insets = new Insets(0, 0, 5, 0);
 			if (button == null) {
-				c.gridwidth  = GridBagConstraints.REMAINDER;
+				c.gridwidth = GridBagConstraints.REMAINDER;
 				add(component, c);
 			} else {
-				c.gridwidth  = GridBagConstraints.RELATIVE;
+				c.gridwidth = GridBagConstraints.RELATIVE;
 				c.weightx = 1;
 				add(component, c);
 
-				c.gridwidth  = GridBagConstraints.REMAINDER;
+				c.gridwidth = GridBagConstraints.REMAINDER;
 				c.weightx = 0;
 				add(button, c);
-			}						
+			}
 		}
 
 		private void setProperties(JDBCProperties props) {
@@ -145,7 +152,7 @@ public class ManageDatabaseDriversDialog extends ButtonDialog {
 				save();
 			}
 			this.properties = props;
-			((DefaultComboBoxModel)classNameCombo.getModel()).removeAllElements();
+			((DefaultComboBoxModel) classNameCombo.getModel()).removeAllElements();
 			if (props == null) {
 				SwingTools.setEnabledRecursive(this, false);
 				nameField.setText("");
@@ -158,26 +165,26 @@ public class ManageDatabaseDriversDialog extends ButtonDialog {
 				nameField.setText(props.getName());
 				urlprefixField.setText(props.getUrlPrefix());
 				portField.setText(props.getDefaultPort());
-				classNameCombo.setSelectedItem(Tools.toString(props.getDriverClasses(),","));
+				classNameCombo.setSelectedItem(Tools.toString(props.getDriverClasses(), ","));
 				jarFileField.setText(props.getDriverJarFile());
 				dbseparatorField.setText(props.getDbNameSeperator());
 				if (props.isUserDefined()) {
 					SwingTools.setEnabledRecursive(this, true);
 				} else {
 					SwingTools.setEnabledRecursive(this, false);
-				}							
+				}
 			}
 			deleteButton.setEnabled((props != null) && props.isUserDefined());
 		}
 
 		private void save() {
-			if ((properties != null) && properties.isUserDefined()){				
+			if ((properties != null) && properties.isUserDefined()) {
 				properties.setName(nameField.getText());
 				properties.setUrlPrefix(urlprefixField.getText());
 				properties.setDefaultPort(portField.getText());
 				properties.setDriverJarFile(jarFileField.getText());
 				properties.setDbNameSeperator(dbseparatorField.getText());
-				final String className = (String)classNameCombo.getSelectedItem();
+				final String className = (String) classNameCombo.getSelectedItem();
 				if (className != null) {
 					properties.setDriverClasses(className);
 				}
@@ -189,11 +196,12 @@ public class ManageDatabaseDriversDialog extends ButtonDialog {
 	private DriverPane driverPane = new DriverPane();
 	private AbstractButton deleteButton = new JButton(new ResourceAction("manage_database_drivers.delete") {
 		private static final long serialVersionUID = 1L;
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			JDBCProperties props = driverPane.properties;
 			if ((props != null) && props.isUserDefined()) {
-				((DefaultListModel)availableDrivers.getModel()).removeElement(props);
+				((DefaultListModel) availableDrivers.getModel()).removeElement(props);
 				DatabaseService.removeJDBCProperties(props);
 			}
 		}
@@ -204,7 +212,7 @@ public class ManageDatabaseDriversDialog extends ButtonDialog {
 		JPanel main = new JPanel(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.ipadx = c.ipady = 5;
-		c.insets = new Insets(5,5,5,5);
+		c.insets = new Insets(5, 5, 5, 5);
 		DefaultListModel model = new DefaultListModel();
 		for (JDBCProperties props : DatabaseService.getJDBCProperties()) {
 			model.addElement(props);
@@ -215,46 +223,46 @@ public class ManageDatabaseDriversDialog extends ButtonDialog {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				final JDBCProperties selected = (JDBCProperties) availableDrivers.getSelectedValue();
-				driverPane.setProperties(selected);				
+				driverPane.setProperties(selected);
 			}
 		});
 
 		c.anchor = GridBagConstraints.FIRST_LINE_START;
 		c.weightx = 0.5;
 		c.weighty = 1;
-		c.fill    = GridBagConstraints.BOTH;
+		c.fill = GridBagConstraints.BOTH;
 		c.gridheight = 1;
-		c.gridwidth  = GridBagConstraints.RELATIVE;
+		c.gridwidth = GridBagConstraints.RELATIVE;
 		main.add(new JScrollPane(availableDrivers), c);
-		c.gridwidth  = GridBagConstraints.REMAINDER;
+		c.gridwidth = GridBagConstraints.REMAINDER;
 		main.add(driverPane, c);
-
 
 		AbstractButton addButton = new JButton(new ResourceAction("manage_database_drivers.add") {
 			private static final long serialVersionUID = 1L;
+
 			@Override
-			public void actionPerformed(ActionEvent e) {				
+			public void actionPerformed(ActionEvent e) {
 				final JDBCProperties newProps = new JDBCProperties(true);
-				((DefaultListModel)availableDrivers.getModel()).addElement(newProps);
+				((DefaultListModel) availableDrivers.getModel()).addElement(newProps);
 				availableDrivers.setSelectedValue(newProps, true);
 				DatabaseService.addJDBCProperties(newProps);
 			}
 		});
 		AbstractButton saveButton = new JButton(new ResourceAction("manage_database_drivers.save") {
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
 					driverPane.save();
 					DatabaseService.saveUserDefinedProperties();
-					needsRestart  = true;
+					needsRestart = true;
 					ManageDatabaseDriversDialog.this.dispose();
 				} catch (XMLException e1) {
 					SwingTools.showSimpleErrorMessage("manage_database_drivers.error_saving", e1, e1.getMessage());
 				}
 			}
 		});
-
 
 		layoutDefault(main, addButton, deleteButton, saveButton,
 				makeCloseButton());
@@ -276,21 +284,26 @@ public class ManageDatabaseDriversDialog extends ButtonDialog {
 		final List<String> driverNames = new LinkedList<String>();
 		new ProgressThread("manage_database_drivers.scan_jar", true) {
 			public void run() {
-				ClassLoader ucl = null;
 				try {
-					//			URL u = new URL("jar:file:" + file.getAbsolutePath() + "!/");
-					//			ucl = new URLClassLoader(new URL[] { u });
-					ucl = new URLClassLoader(new URL[] { file.toURI().toURL() } );
-				} catch (MalformedURLException e) {
-					throw new RuntimeException("Cannot create class loader for file '" + file + "': " + e.getMessage(), e);	
-				}
+					ClassLoader ucl = AccessController.doPrivileged(new PrivilegedExceptionAction<ClassLoader>() {
+						public ClassLoader run() throws Exception {
+							try {
+								return new URLClassLoader(new URL[] { file.toURI().toURL() });
+							} catch (MalformedURLException e) {
+								throw new RuntimeException("Cannot create class loader for file '" + file + "': " + e.getMessage(), e);
+							}
+						};
+					});
 
-				try {
-					JarFile jarFile = new JarFile(file);
+					try {
+						JarFile jarFile = new JarFile(file);
+						Tools.findImplementationsInJar(ucl, jarFile, java.sql.Driver.class, driverNames);
 
-					Tools.findImplementationsInJar(ucl, jarFile, java.sql.Driver.class, driverNames);
-				} catch (Exception e) {
-					LogService.getRoot().log(Level.WARNING, "Cannot scan jar file '" + file + "' for drivers: " + e.getMessage(), e);
+					} catch (Exception e) {
+						LogService.getRoot().log(Level.WARNING, "Cannot scan jar file '" + file + "' for drivers: " + e.getMessage(), e);
+					}
+				} catch (PrivilegedActionException e) {
+					throw new RuntimeException("Cannot create class loader for file '" + file + "': " + e.getMessage(), e);
 				}
 			}
 		}.startAndWait();

@@ -29,15 +29,16 @@ import javax.swing.JComboBox;
 import javax.swing.SwingUtilities;
 
 import com.rapidminer.gui.tools.autocomplete.AutoCompleteComboBoxAddition;
+import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.MetaDataChangeListener;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 
-/** Autocompletion combo box that observes an input port so it can update
- *  itself whenever the meta data changes.
+/**
+ * Autocompletion combo box that observes an input port so it can update itself whenever the meta data changes.
  * 
  * @author Simon Fischer
- *
+ * 
  */
 public class AttributeComboBox extends JComboBox {
 
@@ -45,48 +46,63 @@ public class AttributeComboBox extends JComboBox {
 
 	private static class AttributeComboBoxModel extends DefaultComboBoxModel implements MetaDataChangeListener {
 		private static final long serialVersionUID = 1L;
-		
+
 		private ParameterTypeAttribute attributeType;
 		private Vector<String> attributes = null;
 		private MetaData lastMetaData = null;
-		
+
 		public AttributeComboBoxModel(ParameterTypeAttribute attributeType) {
 			this.attributeType = attributeType;
 		}
-		
+
 		@Override
 		public int getSize() {
-			if(lastMetaData == null && lastMetaData != attributeType.getInputPort().getMetaData()) {
-				attributes = attributeType.getAttributeNames();
-				lastMetaData = attributeType.getInputPort().getMetaData();
-				fireContentsChanged(0, 0, attributes.size());
+			if (attributeType.getInputPort() != null) {
+				if (lastMetaData == null && lastMetaData != attributeType.getInputPort().getMetaData()) {
+					attributes = attributeType.getAttributeNames();
+					lastMetaData = attributeType.getInputPort().getMetaData();
+					if (attributes != null) {
+						fireContentsChanged(0, 0, attributes.size());
+					}
+				}
+				if (attributes != null) {
+					return attributes.size();
+				}
 			}
-			return attributes.size();
+			return 0;
 		}
 
 		@Override
 		public Object getElementAt(int index) {
-			if(lastMetaData == null && lastMetaData != attributeType.getInputPort().getMetaData()) { 
-				attributes = attributeType.getAttributeNames();
-				lastMetaData = attributeType.getInputPort().getMetaData();
-				fireContentsChanged(0, 0, attributes.size());
+			InputPort inputPort = attributeType.getInputPort();
+			if (inputPort != null) {
+				if (lastMetaData == null && lastMetaData != inputPort.getMetaData()) {
+					attributes = attributeType.getAttributeNames();
+					lastMetaData = inputPort.getMetaData();
+					fireContentsChanged(0, 0, attributes.size());
+				}
+				return attributes.get(index);
 			}
-			return attributes.get(index);
+			return null;
 		}
-	
+
 		/**
-		 * This method will cause this model to register as a MetaDataChangeListener on the given input port.
-		 * Attention! Make sure, it will be proper unregistered to avoid a memory leak!
+		 * This method will cause this model to register as a MetaDataChangeListener on the given input port. Attention!
+		 * Make sure, it will be proper unregistered to avoid a memory leak!
 		 */
 		protected void registerListener() {
-			attributeType.getInputPort().registerMetaDataChangeListener(this);
+			InputPort inputPort = attributeType.getInputPort();
+			if (inputPort != null)
+				inputPort.registerMetaDataChangeListener(this);
 		}
-		
+
 		/**
 		 * This method will unregister this model from the InputPort.
 		 */
 		protected void unregisterListener() {
-			attributeType.getInputPort().removeMetaDataChangeListener(this);
+			InputPort inputPort = attributeType.getInputPort();
+			if (inputPort != null)
+				inputPort.removeMetaDataChangeListener(this);
 		}
 
 		@Override
@@ -99,21 +115,22 @@ public class AttributeComboBox extends JComboBox {
 			});
 		}
 	}
+
 	private AttributeComboBoxModel model;
-	
+
 	public AttributeComboBox(ParameterTypeAttribute type) {
 		super(new AttributeComboBoxModel(type));
 		model = (AttributeComboBoxModel) getModel();
 		AutoCompleteComboBoxAddition autoCompleteCBA = new AutoCompleteComboBoxAddition(this);
 		autoCompleteCBA.setCaseSensitive(true);
 	}
-	
+
 	@Override
 	public void addNotify() {
 		super.addNotify();
 		model.registerListener();
 	}
-	
+
 	@Override
 	public void removeNotify() {
 		super.removeNotify();

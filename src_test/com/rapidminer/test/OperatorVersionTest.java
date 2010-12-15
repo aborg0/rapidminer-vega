@@ -1,6 +1,7 @@
 package com.rapidminer.test;
 
 import static junit.framework.Assert.*;
+
 import org.junit.Test;
 
 import com.rapidminer.operator.OperatorVersion;
@@ -52,17 +53,17 @@ public class OperatorVersionTest {
 	@Test
 	public void testComparator1() {
 		OperatorVersion reference = new OperatorVersion("5.1.2");
-		assertTrue(OperatorVersion.COMPARATOR.compare(reference, new OperatorVersion("5.1.0")) > 0);
-		assertTrue(OperatorVersion.COMPARATOR.compare(reference, new OperatorVersion("5.0.3")) > 0);
-		assertTrue(OperatorVersion.COMPARATOR.compare(reference, new OperatorVersion("4.9.0")) > 0);
+		assertTrue(reference.compareTo(new OperatorVersion("5.1.0")) > 0);
+		assertTrue(reference.compareTo(new OperatorVersion("5.0.3")) > 0);
+		assertTrue(reference.compareTo(new OperatorVersion("4.9.0")) > 0);
 	}
 	
 	@Test
 	public void testComparator2() {
 		OperatorVersion reference = new OperatorVersion("5.1.2");
-		assertTrue(OperatorVersion.COMPARATOR.compare(reference, new OperatorVersion("5.1.2")) == 0);
-		assertTrue(OperatorVersion.COMPARATOR.compare(reference, new OperatorVersion("5.1.3")) < 0);
-		assertTrue(OperatorVersion.COMPARATOR.compare(reference, new OperatorVersion("5.2.2")) < 0);
-		assertTrue(OperatorVersion.COMPARATOR.compare(reference, new OperatorVersion("6.0.0")) < 0);
+		assertTrue(reference.compareTo(new OperatorVersion("5.1.2")) == 0);
+		assertTrue(reference.compareTo(new OperatorVersion("5.1.3")) < 0);
+		assertTrue(reference.compareTo(new OperatorVersion("5.2.2")) < 0);
+		assertTrue(reference.compareTo(new OperatorVersion("6.0.0")) < 0);
 	}
 }

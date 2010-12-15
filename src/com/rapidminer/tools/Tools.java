@@ -615,7 +615,7 @@ public class Tools {
 		}
 	}
 
-	/** 
+	/**
 	 * @deprecated Use {@link MailUtilities#sendEmail(String,String,String)} instead
 	 */
 	@Deprecated
@@ -746,10 +746,9 @@ public class Tools {
 			return "null";
 		return StringEscapeUtils.escapeXml(string);
 	}
-	
+
 	/**
-	 * This method will encode the given string by replacing
-	 * all forbidden characters by the appropriate HTML entity.
+	 * This method will encode the given string by replacing all forbidden characters by the appropriate HTML entity.
 	 */
 	public static String escapeHTML(String string) {
 		return StringEscapeUtils.escapeHtml(string);
@@ -819,6 +818,7 @@ public class Tools {
 	 * an escaping character.
 	 */
 	public static String[] quotedSplit(String line, Pattern separatorPattern, char quotingChar, char escapeChar) {
+
 		// determine split positions according to non-escaped quotes
 		int[] quoteSplitIndices = new int[line.length()];
 		char lastChar = '0';
@@ -1121,7 +1121,7 @@ public class Tools {
 			return numberOfBytes + " bytes";
 		}
 	}
-	
+
 	/**
 	 * Copies the contents read from the input stream to the output stream in the current thread. Both streams will be
 	 * closed, even in case of a failure.
@@ -1193,8 +1193,7 @@ public class Tools {
 			System.out.println(t);
 		}
 	}
-	
-	
+
 	/**
 	 * 
 	 * Returns the column name of the the n'th column like excel names it.
@@ -1211,12 +1210,12 @@ public class Tools {
 		final Character[] alphabet = new Character[] { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
 				'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
 
-//		 index -= 1; // adjust so it matches 0-indexed array rather than
+		// index -= 1; // adjust so it matches 0-indexed array rather than
 		// 1-indexed column
 
 		int quotient = index / 26;
 		if (quotient > 0) {
-			return getExcelColumnName(quotient-1) + alphabet[index % 26].toString();
+			return getExcelColumnName(quotient - 1) + alphabet[index % 26].toString();
 		} else {
 			return alphabet[(index) % 26].toString();
 		}
@@ -1259,25 +1258,23 @@ public class Tools {
 		// print warning
 		if (showWarning && !rememberQuotePosition.isEmpty()) {
 
-			String positions = "";
+			StringBuilder positions = new StringBuilder();
 			int j = 1;
 			for (int i = 0; i < rememberQuotePosition.size(); i++) {
 				if (j % 10 == 0) {
-					positions += "\n";
+					positions.append("\n");
 				}
-				positions += rememberQuotePosition.get(i) + ", ";
+				positions.append(rememberQuotePosition.get(i));
+				if (i + 1 < rememberQuotePosition.size())
+					positions.append(", ");
 				j++;
 			}
-			// for (Integer i : rememberQuotePosition){
-			// positions += i+", ";
-			// }
-			positions = positions.substring(0, positions.length() - 2);
 
 			String lineBeginning = line;
 			if (line.length() > 20) {
 				lineBeginning = line.substring(0, 20);
 			}
-			String warning = "While reading the line starting with \n\n\t" + lineBeginning + "   ...\n\n" + ",an unescaped quote character was substituted by an escaped quote at the position(s) " + positions + ". " + "In particular der character '" + Character.toString(lastChar) + "' was replaced by '" + Character.toString(escapeChar)
+			String warning = "While reading the line starting with \n\n\t" + lineBeginning + "   ...\n\n" + ",an unescaped quote character was substituted by an escaped quote at the position(s) " + positions.toString() + ". " + "In particular der character '" + Character.toString(lastChar) + "' was replaced by '" + Character.toString(escapeChar)
 					+ Character.toString(lastChar) + ".";
 
 			LogService.getGlobal().logWarning(warning);
@@ -1394,8 +1391,7 @@ public class Tools {
 
 	/**
 	 * This method will return a byte array containing the raw data from the given url. If any error occurs null will be
-	 * returned.
-	 * Please keep in mind that in order to load the data, the data will be stored in memory twice.
+	 * returned. Please keep in mind that in order to load the data, the data will be stored in memory twice.
 	 */
 	public static byte[] readUrl(URL url) {
 		BufferedInputStream in = null;
@@ -1440,8 +1436,8 @@ public class Tools {
 			}
 		}
 	}
-	
-	/** Prefixes every occurrence*/
+
+	/** Prefixes every occurrence */
 	public static String escape(String source, char escapeChar, char[] specialCharacters) {
 		if (source == null) {
 			return null;
@@ -1465,18 +1461,19 @@ public class Tools {
 	}
 
 	/** Splits the string at every split character unless escaped. */
-	public static List<String> unescape(String source, 
-			char escapeChar, 
+	public static List<String> unescape(String source,
+			char escapeChar,
 			char[] specialCharacters,
 			char splitCharacter) {
 		return unescape(source, escapeChar, specialCharacters, splitCharacter, -1);
 	}
-	
-	/** Splits the string at every split character unless escaped.
-	 *  If the split limit is not -1, at most so many tokens will be returned. No more escaping
-	 *  is performed in the last token! */
-	public static List<String> unescape(String source, 
-			char escapeChar, 
+
+	/**
+	 * Splits the string at every split character unless escaped. If the split limit is not -1, at most so many tokens
+	 * will be returned. No more escaping is performed in the last token!
+	 */
+	public static List<String> unescape(String source,
+			char escapeChar,
 			char[] specialCharacters,
 			char splitCharacter,
 			int splitLimit) {
@@ -1498,7 +1495,7 @@ public class Tools {
 					b.append(c);
 				} else {
 					for (char s : specialCharacters) {
-						if (s==c) {
+						if (s == c) {
 							found = true;
 							b.append(c);
 							break;
@@ -1506,7 +1503,7 @@ public class Tools {
 					}
 				}
 				if (!found) {
-					throw new IllegalArgumentException("String '"+source+"' contains illegal escaped character '"+c+"'.");
+					throw new IllegalArgumentException("String '" + source + "' contains illegal escaped character '" + c + "'.");
 				}
 				// reset to regular mode
 				readEscape = false;
@@ -1518,9 +1515,9 @@ public class Tools {
 				readEscape = false;
 				result.add(b.toString());
 				if (splitLimit != -1) {
-					if (result.size() == splitLimit -1) {
+					if (result.size() == splitLimit - 1) {
 						// Only one left? Add to result and terminate.
-						result.add(source.substring(indexCount+1));
+						result.add(source.substring(indexCount + 1));
 						return result;
 					}
 				}
@@ -1537,15 +1534,11 @@ public class Tools {
 
 	/** In contrast to o1.equals(o2), this method also works with p1==null. */
 	public static boolean equals(Object o1, Object o2) {
-		if ((o1 == null) && (o2 == null)) {
-			return true;
-		} else if ((o1 == null) && (o2 != null)) {
-			return false;
-		} else if ((o1 != null) && (o2 == null)) {
-			return false;
-		} else {
+		if (o1 != null)
 			return o1.equals(o2);
-		}
+		if ((o1 == null) && (o2 == null))
+			return true;
+		return false;
 	}
 
 }

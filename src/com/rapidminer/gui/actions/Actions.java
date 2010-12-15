@@ -359,10 +359,6 @@ public class Actions implements ProcessEditor {
 		if (selectedNode == null) {
 			SwingTools.showVerySimpleErrorMessage("cannot_insert_operator");
 			return;
-		} else if (selectedNode instanceof ExecutionUnit) {
-			for (Operator newOperator : newOperators) {
-				((ExecutionUnit)selectedNode).addOperator(newOperator);
-			}			
 		} else if ((selectedNode instanceof OperatorChain) && (((OperatorChain)selectedNode).getNumberOfSubprocesses() == 1)) {
 			for (Operator newOperator : newOperators) {
 				((OperatorChain)selectedNode).getSubprocess(0).addOperator(newOperator);

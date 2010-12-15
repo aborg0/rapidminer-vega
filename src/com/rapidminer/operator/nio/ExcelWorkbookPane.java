@@ -104,7 +104,6 @@ public class ExcelWorkbookPane extends JPanel {
 
 	private ExtendedJTabbedPane sheetsPane;
 	private ExtendedJTable[] tables;
-	private ExcelWorkbookSelection selectedView;
 
 	public ExcelWorkbookPane(WizardStep wizardStep, ExcelResultSetConfiguration configuration) {
 		super();
@@ -139,7 +138,7 @@ public class ExcelWorkbookPane extends JPanel {
 				try {
 					final Workbook finalWorkbook = configuration.getWorkbook();
 
-					// now add everything to gui 
+					// now add everything to gui
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
@@ -165,8 +164,8 @@ public class ExcelWorkbookPane extends JPanel {
 								}
 								sheetsPane.addTab(sheetNames[sheetIndex], pane);
 							}
-							ExcelWorkbookSelection selection = new ExcelWorkbookSelection(configuration.getSheet(), 
-									configuration.getColumnOffset(), configuration.getRowOffset(), 
+							ExcelWorkbookSelection selection = new ExcelWorkbookSelection(configuration.getSheet(),
+									configuration.getColumnOffset(), configuration.getRowOffset(),
 									configuration.getColumnLast(), configuration.getRowLast());
 
 							setSelection(selection);
@@ -189,40 +188,26 @@ public class ExcelWorkbookPane extends JPanel {
 			sheetsPane.setSelectedIndex(sheetIndex);
 			tables[sheetIndex].clearSelection();
 			tables[sheetIndex].setColumnSelectionInterval(
-					Math.max(selection.getColumnIndexStart(), 0), 
-					Math.min(selection.getColumnIndexEnd(), tables[sheetIndex].getColumnCount()-1));
+					Math.max(selection.getColumnIndexStart(), 0),
+					Math.min(selection.getColumnIndexEnd(), tables[sheetIndex].getColumnCount() - 1));
 			tables[sheetIndex].setRowSelectionInterval(
-					Math.max(selection.getRowIndexStart(), 0), 
-					Math.min(selection.getRowIndexEnd(), tables[sheetIndex].getRowCount()-1));		
+					Math.max(selection.getRowIndexStart(), 0),
+					Math.min(selection.getRowIndexEnd(), tables[sheetIndex].getRowCount() - 1));
 
 		}
 	}
 
 	public ExcelWorkbookSelection getSelection() {
-		if (selectedView == null) {
-			int sheetIndex = sheetsPane.getSelectedIndex();
-			int columnIndexStart = tables[sheetIndex].getSelectedColumn();
-			int rowIndexStart = tables[sheetIndex].getSelectedRow();
-			int columnIndexEnd = columnIndexStart + tables[sheetIndex].getSelectedColumnCount() - 1;
-			int rowIndexEnd = rowIndexStart + tables[sheetIndex].getSelectedRowCount() - 1;
-			if (columnIndexStart == -1) {
-				// then use complete selected table
-				return new ExcelWorkbookSelection(sheetIndex, 0, 0, tables[sheetIndex].getColumnCount() - 1, tables[sheetIndex].getRowCount() - 1);
-			} else {
-				return new ExcelWorkbookSelection(sheetIndex, columnIndexStart, rowIndexStart, columnIndexEnd, rowIndexEnd);
-			}
+		int sheetIndex = sheetsPane.getSelectedIndex();
+		int columnIndexStart = tables[sheetIndex].getSelectedColumn();
+		int rowIndexStart = tables[sheetIndex].getSelectedRow();
+		int columnIndexEnd = columnIndexStart + tables[sheetIndex].getSelectedColumnCount() - 1;
+		int rowIndexEnd = rowIndexStart + tables[sheetIndex].getSelectedRowCount() - 1;
+		if (columnIndexStart == -1) {
+			// then use complete selected table
+			return new ExcelWorkbookSelection(sheetIndex, 0, 0, tables[sheetIndex].getColumnCount() - 1, tables[sheetIndex].getRowCount() - 1);
 		} else {
-			int sheetIndex = selectedView.getSheetIndex();
-			int columnIndexStart = tables[0].getSelectedColumn() + selectedView.getColumnIndexStart();
-			int rowIndexStart = tables[0].getSelectedRow() + selectedView.getRowIndexStart();
-			int columnIndexEnd = columnIndexStart + tables[0].getSelectedColumnCount() - 1 + selectedView.getColumnIndexStart();
-			int rowIndexEnd = rowIndexStart + tables[0].getSelectedRowCount() - 1 + selectedView.getRowIndexStart();
-			if (columnIndexStart == -1) {
-				// then use complete selected table
-				return new ExcelWorkbookSelection(sheetIndex, selectedView.getColumnIndexStart(), selectedView.getRowIndexStart(), selectedView.getColumnIndexEnd(), selectedView.getRowIndexEnd());
-			} else {
-				return new ExcelWorkbookSelection(sheetIndex, columnIndexStart, rowIndexStart, columnIndexEnd, rowIndexEnd);
-			}
+			return new ExcelWorkbookSelection(sheetIndex, columnIndexStart, rowIndexStart, columnIndexEnd, rowIndexEnd);
 		}
 	}
 }

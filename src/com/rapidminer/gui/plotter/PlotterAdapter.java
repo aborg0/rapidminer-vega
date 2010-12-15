@@ -1047,7 +1047,7 @@ public abstract class PlotterAdapter extends JPanel implements Plotter {
 			compareKey = transformParameterName(getPlotterName()) + PARAMETER_PLOT_COLUMNS;
 			if (compareKey.equals(key)) {
 				// searching indices of selected dimensions
-				String[] names = ParameterTypeEnumeration.transformString2Enumeration(value.toString());
+				String[] names = ParameterTypeEnumeration.transformString2Enumeration(value);
 				boolean[] selectedDimensions = new boolean[dataTable.getNumberOfColumns()];
 				for (int i = 0; i < names.length; i++) {
 					String name = names[i].trim();
@@ -1068,7 +1068,7 @@ public abstract class PlotterAdapter extends JPanel implements Plotter {
 			compareKey = transformParameterName(getPlotterName()) + PARAMETER_PLOT_COLUMN;
 			if (compareKey.equals(key)) {
 				if (dataTable != null) {
-					int columnIndex = dataTable.getColumnIndex(value.toString());
+					int columnIndex = dataTable.getColumnIndex(value);
 					if (columnIndex >= 0) {
 						setPlotColumn(columnIndex, true);
 					}
@@ -1083,7 +1083,7 @@ public abstract class PlotterAdapter extends JPanel implements Plotter {
 		if (isSupportingLogScaleForPlotColumns()) {
 			compareKey = transformParameterName(getPlotterName()) + PARAMETER_PLOT_COLUMNS + PARAMETER_SUFFIX_LOG_SCALE;
 			if (compareKey.equals(key)) {
-				setLogScaleForPlotColumns(new Boolean(true).equals(value));
+				setLogScaleForPlotColumns("true".equals(value));
 			}
 		}
 		

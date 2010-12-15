@@ -22,12 +22,7 @@
  */
 package com.rapidminer.operator.nio.model;
 
-import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.ANNOTATION_NAME;
-import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_ANNOTATIONS;
-import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_DATE_FORMAT;
-import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_FIRST_ROW_AS_NAMES;
-import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_LOCALE;
-import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.PARAMETER_META_DATA;
+import static com.rapidminer.operator.nio.model.AbstractDataResultSetReader.*;
 
 import java.text.DateFormat;
 import java.text.NumberFormat;
@@ -49,7 +44,6 @@ import com.rapidminer.example.table.DataRowFactory;
 import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.io.ExampleSource;
-import com.rapidminer.operator.nio.ExcelExampleSource;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MDInteger;
 import com.rapidminer.operator.preprocessing.filter.AbstractDateDataProcessing;
@@ -229,13 +223,6 @@ public class DataResultSetTranslationConfiguration {
 			}
 		}
 		return selectedIndices;
-	}
-
-	/**
-	 * This method returns true if either the names have been user specified or were retrieved from a column
-	 */
-	public boolean hasNames() {
-		return annotationsMap.containsKey(ExcelExampleSource.ANNOTATION_NAME);
 	}
 
 	/**

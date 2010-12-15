@@ -1,16 +1,20 @@
 package com.rapidminer.operator.nio;
 
+import java.util.logging.Level;
+
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.RepositoryLocationSelectionWizardStep;
+import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.nio.model.DataResultSet;
 import com.rapidminer.operator.nio.model.WizardState;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.tools.LogService;
 
 /**
  * 
@@ -43,11 +47,12 @@ public final class StoreDataWizardStep extends RepositoryLocationSelectionWizard
 			new ProgressThread("importing_data", true) {
 				@Override
 				public void run() {
+					DataResultSet resultSet = null;
 					try {
 						if (state.getTranslator() != null) {
 							state.getTranslator().close();
 						}
-						DataResultSet resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
+						resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
 						state.getTranslator().clearErrors();
 						final ExampleSet exampleSet = state.readNow(resultSet, false, getProgressListener());
 						
@@ -60,6 +65,13 @@ public final class StoreDataWizardStep extends RepositoryLocationSelectionWizard
 					} catch (Exception e) {
 						SwingTools.showSimpleErrorMessage("cannot_store_obj_at_location", e, location);
 					} finally {
+						if (resultSet != null) {
+							try {
+								resultSet.close();
+							} catch (OperatorException e) {
+								LogService.getRoot().log(Level.WARNING, "Failed to close result set: "+e, e);
+							}
+						}						
 						getProgressListener().complete();
 					}
 				}

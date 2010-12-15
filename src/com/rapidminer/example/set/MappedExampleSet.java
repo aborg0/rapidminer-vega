@@ -123,7 +123,7 @@ public class MappedExampleSet extends AbstractExampleSet {
 
     @Override
 	public int hashCode() {
-        return super.hashCode() ^ this.mapping.hashCode();
+        return super.hashCode() ^ Arrays.hashCode(this.mapping);
     }
     
     /** Returns a {@link MappedExampleReader}. */

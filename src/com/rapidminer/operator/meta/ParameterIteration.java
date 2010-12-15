@@ -121,13 +121,8 @@ public class ParameterIteration extends ParameterIteratingOperatorChain {
 		((CollectingPortPairExtender)getInnerSinkExtender()).reset();
 		boolean isSynchronized = getParameterAsBoolean(PARAMETER_SYNCHRONIZE);		
 		
-		List<String[]> parameterList = getParameterList(PARAMETER_PARAMETERS);
-		Operator[] operators = new Operator[parameterList.size()];
-		String[] parameters = new String[parameterList.size()];
-		String[][] values = new String[parameterList.size()][];
-		int[] currentIndex = new int[parameterList.size()];
-
 		// check parameter values
+		List<String[]> parameterList = getParameterList(PARAMETER_PARAMETERS);
 		List<ParameterValues> parameterValuesList = parseParameterValues(parameterList);
 		int numberOfCombinations = 1;
         int lastNumberOfValues = -1;
@@ -141,10 +136,10 @@ public class ParameterIteration extends ParameterIteratingOperatorChain {
 		}
 
 		// initialize data structures
-        operators = new Operator[parameterValuesList.size()];
-        parameters = new String[parameterValuesList.size()];
-        values = new String[parameterValuesList.size()][];
-        currentIndex = new int[parameterValuesList.size()];
+		Operator[] operators = new Operator[parameterList.size()];
+		String[] parameters = new String[parameterList.size()];
+		String[][] values = new String[parameterList.size()][];
+		int[] currentIndex = new int[parameterList.size()];
 		
         // get parameter values and fill data structures
         int index = 0;

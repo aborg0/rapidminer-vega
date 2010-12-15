@@ -70,8 +70,8 @@ public class ExcelResultSet implements DataResultSet {
 	private String[] attributeNames;
 
 	/**
-	 * The constructor to build an ExcelResultSet from the given configuration.
-	 * The calling operator might be null. It is only needed for error handling.
+	 * The constructor to build an ExcelResultSet from the given configuration. The calling operator might be null. It
+	 * is only needed for error handling.
 	 */
 	public ExcelResultSet(Operator callingOperator, ExcelResultSetConfiguration configuration) throws OperatorException {
 		this.configuration = configuration;
@@ -95,9 +95,9 @@ public class ExcelResultSet implements DataResultSet {
 			throw new UserError(callingOperator, 953, configuration.getSheet());
 		}
 
-		totalNumberOfColumns = Math.min(configuration.getColumnLast(), sheet.getColumns()-1) - columnOffset + 1;
-		totalNumberOfRows = Math.min(configuration.getRowLast(), sheet.getRows()-1) - rowOffset + 1;
-		
+		totalNumberOfColumns = Math.min(configuration.getColumnLast(), sheet.getColumns() - 1) - columnOffset + 1;
+		totalNumberOfRows = Math.min(configuration.getRowLast(), sheet.getRows() - 1) - rowOffset + 1;
+
 		emptyColumns = new boolean[totalNumberOfColumns];
 		emptyRows = new boolean[totalNumberOfRows];
 
@@ -110,7 +110,7 @@ public class ExcelResultSet implements DataResultSet {
 		for (int r = 0; r < totalNumberOfRows; r++) {
 			for (int c = 0; c < totalNumberOfColumns; c++) {
 				if (emptyRows[r] || emptyColumns[c]) {
-					final Cell cell = sheet.getCell(c+columnOffset, r+rowOffset);
+					final Cell cell = sheet.getCell(c + columnOffset, r + rowOffset);
 					if (cell.getType() != CellType.EMPTY && !"".equals(cell.getContents().trim())) {
 						foundAny = true;
 						emptyRows[r] = false;
@@ -132,9 +132,19 @@ public class ExcelResultSet implements DataResultSet {
 
 		// retrieve or generate attribute names
 		attributeNames = new String[numberOfAttributes];
-		for (int i = 0; i < totalNumberOfColumns; i++) {
-			if (!emptyColumns[i]) {
-				attributeNames[i] = Tools.getExcelColumnName(i);
+		
+		if (!configuration.isEmulatingOldNames()) {
+			for (int i = 0; i < totalNumberOfColumns; i++) {
+				if (!emptyColumns[i]) {
+					attributeNames[i] = Tools.getExcelColumnName(i);
+				}
+			}
+		} else {
+			// emulate old 5.0.x style
+			for (int i = 0; i < totalNumberOfColumns; i++) {
+				if (!emptyColumns[i]) {
+					attributeNames[i] = "attribute_" + i;
+				}
 			}
 		}
 
@@ -182,7 +192,7 @@ public class ExcelResultSet implements DataResultSet {
 	@Override
 	public void next(ProgressListener listener) {
 		currentRow++;
-		while (currentRow < totalNumberOfRows  + rowOffset && emptyRows[currentRow - rowOffset]) {
+		while (currentRow < totalNumberOfRows + rowOffset && emptyRows[currentRow - rowOffset]) {
 			currentRow++;
 		}
 
@@ -194,7 +204,7 @@ public class ExcelResultSet implements DataResultSet {
 		int columnCounter = 0;
 		for (int c = 0; c < totalNumberOfColumns; c++) {
 			if (!emptyColumns[c]) {
-				currentRowCells[columnCounter] = sheet.getCell(c+columnOffset, currentRow);
+				currentRowCells[columnCounter] = sheet.getCell(c + columnOffset, currentRow);
 				columnCounter++;
 			}
 		}
@@ -223,15 +233,15 @@ public class ExcelResultSet implements DataResultSet {
 	@Override
 	public boolean isMissing(int columnIndex) {
 		Cell cell = getCurrentCell(columnIndex);
-		return cell.getType() == CellType.EMPTY || 
-			cell.getType() == CellType.ERROR || 
-			cell.getType() == CellType.FORMULA_ERROR || 
-			cell.getContents() == null ||
-			"".equals(cell.getContents().trim());
+		return cell.getType() == CellType.EMPTY ||
+				cell.getType() == CellType.ERROR ||
+				cell.getType() == CellType.FORMULA_ERROR ||
+				cell.getContents() == null ||
+				"".equals(cell.getContents().trim());
 	}
-	
+
 	private Cell getCurrentCell(int index) {
-		//return currentRowCells[index + columnOffset];
+		// return currentRowCells[index + columnOffset];
 		return currentRowCells[index];
 	}
 
@@ -244,7 +254,7 @@ public class ExcelResultSet implements DataResultSet {
 			return Double.valueOf(value);
 		} else {
 			String valueString = cell.getContents();
-			try {				
+			try {
 				return Double.valueOf(valueString);
 			} catch (NumberFormatException e) {
 				throw new ParseException(new ParsingError(currentRow, columnIndex, ParsingError.ErrorCode.UNPARSEABLE_REAL, valueString));
@@ -262,9 +272,9 @@ public class ExcelResultSet implements DataResultSet {
 			String valueString = cell.getContents();
 			throw new ParseException(new ParsingError(currentRow, columnIndex, ParsingError.ErrorCode.UNPARSEABLE_DATE, valueString));
 		}
-//		// TODO: Why is that???
-//		int offset = TimeZone.getDefault().getOffset(date.getTime());
-//		return new Date(date.getTime() - offset);
+		// // TODO: Why is that???
+		// int offset = TimeZone.getDefault().getOffset(date.getTime());
+		// return new Date(date.getTime() - offset);
 	}
 
 	@Override
@@ -282,7 +292,7 @@ public class ExcelResultSet implements DataResultSet {
 		final CellType type = getCurrentCell(columnIndex).getType();
 		if (type == CellType.EMPTY) {
 			return ValueType.EMPTY;
-		} else if  ((type == CellType.NUMBER) || (type == CellType.NUMBER_FORMULA)) {
+		} else if ((type == CellType.NUMBER) || (type == CellType.NUMBER_FORMULA)) {
 			return ValueType.NUMBER;
 		} else if ((type == CellType.DATE) || (type == CellType.DATE_FORMULA)) {
 			return ValueType.DATE;

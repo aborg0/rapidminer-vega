@@ -95,7 +95,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	private ProcessService processService;
 	private final EventListenerList listeners = new EventListenerList();
 
-	private static final Map<URL, WeakReference<RemoteRepository>> ALL_REPOSITORIES = new HashMap<URL, WeakReference<RemoteRepository>>();
+	private static final Map<URI, WeakReference<RemoteRepository>> ALL_REPOSITORIES = new HashMap<URI, WeakReference<RemoteRepository>>();
 	private static final Object MAP_LOCK = new Object();
 
 	private boolean offline = true;
@@ -106,7 +106,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			@Override
 			public PasswordAuthentication getAuthentication(URL url) {
 				WeakReference<RemoteRepository> reposRef = null;// = ALL_REPOSITORIES.get(url);
-				for (Map.Entry<URL, WeakReference<RemoteRepository>> entry : ALL_REPOSITORIES.entrySet()) {
+				for (Map.Entry<URI, WeakReference<RemoteRepository>> entry : ALL_REPOSITORIES.entrySet()) {
 					if (url.toString().startsWith(entry.getKey().toString()) || url.toString().replace("127\\.0\\.0\\.1", "localhost").startsWith(entry.getKey().toString())) {
 						reposRef = entry.getValue();
 						break;
@@ -148,7 +148,11 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	private static void register(RemoteRepository remoteRepository) {
 		synchronized (MAP_LOCK) {
-			ALL_REPOSITORIES.put(remoteRepository.getBaseUrl(), new WeakReference<RemoteRepository>(remoteRepository));
+			try {
+				ALL_REPOSITORIES.put(remoteRepository.getBaseUrl().toURI(), new WeakReference<RemoteRepository>(remoteRepository));
+			} catch (URISyntaxException e) {
+				LogService.getRoot().log(Level.SEVERE, "Could not add repository URI: " + remoteRepository.getBaseUrl().toExternalForm(), e);
+			}
 		}
 	}
 
@@ -426,7 +430,12 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((getAlias() == null) ? 0 : getAlias().hashCode());
-		result = prime * result + ((getBaseUrl() == null) ? 0 : getBaseUrl().hashCode());
+		int uriModificator = 0;
+		try {
+			uriModificator = (getBaseUrl() == null) ? 0 : getBaseUrl().toURI().hashCode();
+		} catch (URISyntaxException e) {
+		}
+		result = prime * result + uriModificator;
 		result = prime * result + ((getUsername() == null) ? 0 : getUsername().hashCode());
 		return result;
 	}
@@ -448,8 +457,14 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		if (getBaseUrl() == null) {
 			if (other.getBaseUrl() != null)
 				return false;
-		} else if (!getBaseUrl().equals(other.getBaseUrl()))
-			return false;
+		} else
+			try {
+				if (!getBaseUrl().toURI().equals(other.getBaseUrl().toURI()))
+					return false;
+			} catch (URISyntaxException e) {
+				// this cannot happen, since we already had have a valid URL: no possible problem when converting to uri
+				return false;
+			}
 		if (getUsername() == null) {
 			if (other.getUsername() != null)
 				return false;

@@ -28,6 +28,7 @@ import java.util.List;
 
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.io.AbstractReader;
 import com.rapidminer.operator.nio.model.AbstractDataResultSetReader;
 import com.rapidminer.operator.nio.model.DataResultSetFactory;
@@ -55,6 +56,8 @@ import com.rapidminer.parameter.ParameterTypeString;
  * @author Ingo Mierswa, Tobias Malbrecht, Sebastian Loh, Sebastian Land
  */
 public class ExcelExampleSource extends AbstractDataResultSetReader {
+	
+	public static final OperatorVersion CHANGE_5_0_11_NAME_SCHEMA = new OperatorVersion(5, 0, 11);
 	
 	/**
 	 * The parameter name for &quot;The Excel spreadsheet file which should be loaded.&quot;
@@ -118,5 +121,10 @@ public class ExcelExampleSource extends AbstractDataResultSetReader {
 		
 		types.addAll(super.getParameterTypes());
 		return types;
+	}
+	
+	@Override
+	public OperatorVersion[] getIncompatibleVersionChanges() {
+		return new OperatorVersion[] {new OperatorVersion(5,0,4), CHANGE_5_0_11_NAME_SCHEMA};
 	}
 }

@@ -113,7 +113,7 @@ public class ParameterSettingQuickFix extends AbstractQuickFix {
 				dialog.setVisible(true);
  				if (dialog.isOk()) {
 					boolean first = true;
-					String attributeListString = new String();
+					String attributeListString = "";
 					Collection<String> attributeNames = dialog.getSelectedAttributeNames(); 
 					for (String attributeName : attributeNames) {
 						if (!first) {

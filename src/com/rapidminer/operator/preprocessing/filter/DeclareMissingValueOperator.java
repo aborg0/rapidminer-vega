@@ -87,7 +87,7 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 		if (isParameterSet(PARAMETER_MISSING_VALUE_NOMINAL) || isParameterSet(PARAMETER_MISSING_VALUE_NUMERIC)) {
 			ExampleSetMetaData subset = subsetSelector.getMetaDataSubset(metaData, false);
 			if (subset != null) {
-				MDInteger missingValueNumber = new MDInteger();
+				MDInteger missingValueNumber;
 				boolean parameterAttributeTypeExistsInSubset = false;
 				String mode = getParameterAsString(PARAMETER_MODE);
 				for (AttributeMetaData amd : subset.getAllAttributes()) {

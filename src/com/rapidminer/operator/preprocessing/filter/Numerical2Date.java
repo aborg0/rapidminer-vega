@@ -22,7 +22,6 @@
  */
 package com.rapidminer.operator.preprocessing.filter;
 
-import java.util.Calendar;
 import java.util.List;
 
 import com.rapidminer.example.Attribute;
@@ -61,8 +60,6 @@ public class Numerical2Date extends AbstractDateDataProcessing {
 	public static final String PARAMETER_KEEP_OLD_ATTRIBUTE = "keep_old_attribute";
 
 	public static final String PARMETER_TIME_OFFSET = "time_offset";
-
-	Calendar calendar = null;
 
 	public Numerical2Date(OperatorDescription description) {
 		super(description);

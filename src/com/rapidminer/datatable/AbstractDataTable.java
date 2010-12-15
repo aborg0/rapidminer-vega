@@ -58,6 +58,14 @@ public abstract class AbstractDataTable implements DataTable, Tableable {
     private HashSet<String> deselectionSet = new HashSet<String>();
     
 	private int deselectionCount;
+	
+	/**
+	 * This is a constructor that will not set any name. It is used for
+	 * serialization of subclasses.
+	 */
+	public AbstractDataTable() {
+		this("");
+	}
     
     public AbstractDataTable(String name) {
         this.name = name;

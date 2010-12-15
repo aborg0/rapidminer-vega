@@ -29,6 +29,7 @@ import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -99,7 +100,7 @@ public class SurveyPlotter extends PlotterAdapter implements MouseListener {
 		
 		@Override
 		public int hashCode() {
-			return this.data.hashCode();
+			return Arrays.hashCode(data);
 		}
 	}
 	

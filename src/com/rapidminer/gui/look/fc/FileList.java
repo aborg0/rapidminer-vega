@@ -115,8 +115,6 @@ public class FileList extends JPanel implements PropertyChangeListener {
 	private static final ImageIcon BIG_FOLDER_IMAGE = SwingTools.createImage("plaf/unknown_folder_big.png");
 
 	
-	private File selectedFile;
-
 	private final Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
 
 	private final Cursor normalCursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
@@ -408,10 +406,6 @@ public class FileList extends JPanel implements PropertyChangeListener {
 		}
 	}
 
-	public File getFile() {
-		return this.selectedFile;
-	}
-
 	public FileList(FileChooserUI tfcui, JFileChooser fc) {
 		try {
 			this.fc = fc;
@@ -453,6 +447,7 @@ public class FileList extends JPanel implements PropertyChangeListener {
 				setBorder(BorderFactory.createEmptyBorder(2, 2, 1, 2));
 			}
 
+			@Override
 			public void paint(Graphics g) {
 				int h = this.getHeight();
 				int w = this.getWidth();
@@ -619,8 +614,6 @@ public class FileList extends JPanel implements PropertyChangeListener {
 			}
 		}
 
-		files = null;
-
 		if (this.filechooserUI.getView().equals(FileChooserUI.FILECHOOSER_VIEW_DETAILS)) {
 			updateTableData();
 		} else if (this.filechooserUI.getView().equals(FileChooserUI.FILECHOOSER_VIEW_THUMBNAIL)) {
@@ -665,7 +658,6 @@ public class FileList extends JPanel implements PropertyChangeListener {
 				}
 			}
 		}
-		files = null;
 
 		doDefaults();
 
