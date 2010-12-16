@@ -79,10 +79,6 @@ public class ExcelExampleSource extends AbstractDataResultSetReader {
 	 */
 	public static final String PARAMETER_ID_COLUMN = "id_column";
 
-	public static final String PARAMETER_COLUMN_OFFSET = "column_offset";
-
-	public static final String PARAMETER_ROW_OFFSET = "row_offset";
-
 	public static final String PARAMETER_CREATE_LABEL = "create_label";
 
 	public static final String PARAMETER_CREATE_ID = "create_id";
@@ -115,9 +111,7 @@ public class ExcelExampleSource extends AbstractDataResultSetReader {
 		types.add(type);
 		types.add(new ParameterTypeFile(PARAMETER_EXCEL_FILE, "Name of the excel file to read the data from.", "xls", false));
 		types.add(new ParameterTypeInt(PARAMETER_SHEET_NUMBER, "The number of the sheet which should be imported.", 1, Integer.MAX_VALUE, 1, false));
-		types.add(new ParameterTypeInt(PARAMETER_ROW_OFFSET, "The number of rows to skip at top of sheet as they contain no usable data.", 0, 65535, 0, true));
-		types.add(new ParameterTypeInt(PARAMETER_COLUMN_OFFSET, "The number of columns to skip at left side of sheet as they contain no usable data.", 0, 255, 0, true));
-		types.add(new ParameterTypeString(PARAMETER_IMPORTED_CELL_RANGE, "Cells to import, in Excel notation, e.g.B2:D25.", true));
+		types.add(new ParameterTypeString(PARAMETER_IMPORTED_CELL_RANGE, "Cells to import, in Excel notation, e.g. B2:D25 or B2 for an open interval.", false));
 		
 		types.addAll(super.getParameterTypes());
 		return types;

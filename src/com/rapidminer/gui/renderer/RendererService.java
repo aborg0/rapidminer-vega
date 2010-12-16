@@ -294,10 +294,13 @@ public class RendererService {
 	 * if nothing has been registered.
 	 */
 	public static Icon getIcon(Class<? extends IOObject> objectClass) {
+		if (objectClass == null)
+			return ICON_DEFAULT;
 		Icon icon = class2IconMap.get(objectClass);
 		if (icon == null) {
 			for (Entry<Class<? extends IOObject>, Icon> renderableClassEntry: class2IconMap.entrySet()) {
 				if (renderableClassEntry.getKey().isAssignableFrom(objectClass))
+					class2IconMap.put(objectClass, renderableClassEntry.getValue());
 					return renderableClassEntry.getValue();
 			}
 			return ICON_DEFAULT;

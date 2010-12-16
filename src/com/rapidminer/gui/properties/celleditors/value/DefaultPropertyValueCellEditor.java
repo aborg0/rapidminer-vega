@@ -25,8 +25,12 @@ package com.rapidminer.gui.properties.celleditors.value;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JCheckBox;
@@ -112,24 +116,20 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 	public DefaultPropertyValueCellEditor(final ParameterTypeStringCategory type) {
 		//super(new FilterableJComboBox(type.getValues()));
 		super(new JComboBox(type.getValues()));
-		
-		AutoCompleteComboBoxAddition autoCompleteCBA = new AutoCompleteComboBoxAddition((JComboBox) editorComponent);
+
+		final JComboBox comboBox = (JComboBox) editorComponent;
+		AutoCompleteComboBoxAddition autoCompleteCBA = new AutoCompleteComboBoxAddition(comboBox);
 		autoCompleteCBA.setCaseSensitive(false);
 		
-		final JTextComponent textField = (JTextComponent) ((JComboBox) editorComponent).getEditor().getEditorComponent();
-//		textField.addFocusListener(new FocusListener() {
-//			@Override
-//			public void focusGained(FocusEvent e) { 	}
-//			@Override
-//			public void focusLost(FocusEvent e) {
-//				System.out.println("FOCUS LOSTTT");
-//				//fireEditingStopped();
-//			}        	
-//		});
 
+		final JTextComponent textField = (JTextComponent) comboBox.getEditor().getEditorComponent();
+
+		
 		useEditorAsRenderer = true;
-		((JComboBox) editorComponent).removeItemListener(this.delegate);
-		((JComboBox) editorComponent).setEditable(type.isEditable());
+		comboBox.setEditable(type.isEditable());
+		comboBox.removeActionListener(delegate); // removing old listeners to prevent premature action event
+		comboBox.removeItemListener(this.delegate); 
+		
 		this.delegate = new EditorDelegate() {
 
 			private static final long serialVersionUID = -5592150438626222295L;
@@ -138,11 +138,11 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 			public void setValue(Object x) {
 				if (x == null) {
 					super.setValue(null);
-					((JComboBox) editorComponent).setSelectedItem(null);
+					comboBox.setSelectedItem(null);
 				} else {
 					String value = x.toString();
 					super.setValue(value);
-					((JComboBox) editorComponent).setSelectedItem(value);
+					comboBox.setSelectedItem(value);
 					if (value != null) {
 						textField.setText(value.toString());
 					} else {
@@ -154,18 +154,43 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 			@Override
 			public Object getCellEditorValue() {
 				if (type.isEditable()) {
-					//String selected = (String) ((JComboBox) editorComponent).getSelectedItem();
 					String selected = textField.getText();
 					if ((selected != null) && (selected.trim().length() == 0))
 						selected = null;
 					return selected;
 				} else {
-					return ((JComboBox) editorComponent).getSelectedItem();
+					return comboBox.getSelectedItem();
 				}
 			}
+			
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				if (event.getActionCommand().equals("comboBoxEdited"))
+					super.actionPerformed(event);
+			};
 		};
+		comboBox.addActionListener(delegate); // adding new delegate
 		editorComponent.setToolTipText(type.getDescription());
-		((JComboBox) editorComponent).addItemListener(delegate);
+		
+		textField.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				comboBox.actionPerformed(new ActionEvent(comboBox, 12, "comboBoxEdited"));
+				super.focusLost(e);
+			}
+		});
+
+		textField.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					if (!comboBox.isPopupVisible()) {
+						comboBox.actionPerformed(new ActionEvent(comboBox, 12, "comboBoxEdited"));
+						e.consume();
+					}
+				}
+			}
+		});
 	}
 
 	public DefaultPropertyValueCellEditor(final ParameterTypeBoolean type) {

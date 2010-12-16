@@ -121,6 +121,7 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 		}
 		final ExampleSet exampleSet = translator.read(dataResultSet, configuration, false, null);
 		dataResultSet.close();
+		dataResultSetFactory.close();
 		return exampleSet;
 	}
 
@@ -130,6 +131,7 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 		ExampleSetMetaData result = dataResultSetFactory.makeMetaData();		
 		DataResultSetTranslationConfiguration configuration = new DataResultSetTranslationConfiguration(this);
 		configuration.addColumnMetaData(result);
+		dataResultSetFactory.close();
 		return result;
 	}
 
@@ -144,11 +146,20 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 	
 	@Override
 	public List<ParameterType> getParameterTypes() {
-		List<ParameterType> types = super.getParameterTypes();
+		List<ParameterType> types = new LinkedList<ParameterType>();
 
-		types.add(new ParameterTypeBoolean(PARAMETER_FIRST_ROW_AS_NAMES, "Indicates if the first row should be used for the attribute names. If activated no annotations can be used.", true, true));
+		types.add(new ParameterTypeBoolean(PARAMETER_FIRST_ROW_AS_NAMES, "Indicates if the first row should be used for the attribute names. If activated no annotations can be used.", true, false));
 
-		ParameterType type = new ParameterTypeDateFormat(PARAMETER_DATE_FORMAT, "The parse format of the date values, for example \"yyyy/MM/dd\".", false);
+		List<String> annotations = new LinkedList<String>();
+		annotations.add(ANNOTATION_NAME);
+		annotations.addAll(Arrays.asList(Annotations.ALL_KEYS_ATTRIBUTE));
+		ParameterType type = new ParameterTypeList(PARAMETER_ANNOTATIONS, "Maps row numbers to annotation names.", //
+				new ParameterTypeInt("row_number", "Row number which contains an annotation", 0, Integer.MAX_VALUE), //
+				new ParameterTypeCategory("annotation", "Name of the annotation to assign this row.", annotations.toArray(new String[annotations.size()]), 0), true);
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_FIRST_ROW_AS_NAMES, false, false));
+		types.add(type);
+		
+		type = new ParameterTypeDateFormat(PARAMETER_DATE_FORMAT, "The parse format of the date values, for example \"yyyy/MM/dd\".", false);
 		type.setExpert(false);
 		types.add(type);
 
@@ -158,18 +169,9 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 		type = new ParameterTypeCategory(PARAMETER_LOCALE, "The used locale for date texts, for example \"Wed\" (English) in contrast to \"Mi\" (German).", AbstractDateDataProcessing.availableLocaleNames, AbstractDateDataProcessing.defaultLocale);
 		types.add(type);
 
+		types.addAll(super.getParameterTypes());		
 		
-		
-		List<String> annotations = new LinkedList<String>();
-		annotations.add(ANNOTATION_NAME);
-		annotations.addAll(Arrays.asList(Annotations.ALL_KEYS_ATTRIBUTE));
-		type = new ParameterTypeList(PARAMETER_ANNOTATIONS, "Maps row numbers to annotation names.", //
-				new ParameterTypeInt("row_number", "Row number which contains an annotation", 0, Integer.MAX_VALUE), //
-				new ParameterTypeCategory("annotation", "Name of the annotation to assign this row.", annotations.toArray(new String[annotations.size()]), 0), true);
-		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_FIRST_ROW_AS_NAMES, false, false));
-		types.add(type);
 
-		
 		type = new ParameterTypeList(PARAMETER_META_DATA, "The meta data information", //
 				new ParameterTypeInt(PARAMETER_COLUMN_INDEX, "The column index", 0, Integer.MAX_VALUE), //
 				new ParameterTypeTupel(PARAMETER_COLUMN_META_DATA, "The meta data definition of one column", // 
@@ -179,10 +181,10 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 						new ParameterTypeStringCategory(PARAMETER_COLUMN_ROLE, "Indicates the role of an attribute", Attributes.KNOWN_ATTRIBUTE_TYPES, AttributeColumn.REGULAR)), true);
 
 		types.add(type);
-
 		types.add(new ParameterTypeBoolean(PARAMETER_ERROR_TOLERANT, "Values which does not match to the specified value typed are considered as missings.", true, true));
 		
-		types.add(new ParameterTypeCategory(ExampleSource.PARAMETER_DATAMANAGEMENT, "Determines, how the data is represented internally.", DataRowFactory.TYPE_NAMES, DataRowFactory.TYPE_DOUBLE_ARRAY, false));
+		types.add(new ParameterTypeCategory(ExampleSource.PARAMETER_DATAMANAGEMENT, "Determines, how the data is represented internally.", DataRowFactory.TYPE_NAMES, DataRowFactory.TYPE_DOUBLE_ARRAY, true));
+		
 		
 		return types;
 	}

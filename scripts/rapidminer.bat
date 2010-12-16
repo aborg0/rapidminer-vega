@@ -164,7 +164,17 @@ if not "%RAPIDMINER_JDBC_DRIVERS%"=="" set RAPIDMINER_JDBC_DRIVER_PARAMETER=-Dra
 echo Starting RapidMiner from '%RAPIDMINER_HOME%' using classes from '%RAPIDMINER_CLASSPATH%'...
 rem echo The used classpath is '%COMPLETE_CLASSPATH%'...
 
+
+if %NUMBER_OF_PROCESSORS% GEQ 2 goto startMultiCoreMode
 "%JAVA%" -Xms%MAX_JAVA_MEMORY%m -Xmx%MAX_JAVA_MEMORY%m -classpath "%COMPLETE_CLASSPATH%" -Drapidminer.home="%RAPIDMINER_HOME%" -Drapidminer.operators.additional="%RAPIDMINER_OPERATORS_ADDITIONAL%" %RAPIDMINER_JDBC_DRIVER_PARAMETER% com.rapidminer.RapidMinerCommandLine %CMD_LINE_ARGS%
+goto startEnd
+
+:startMultiCoreMode
+SET /A NUMBER_OF_GC_THREADS=%NUMBER_OF_PROCESSORS%-1
+"%JAVA%" -XX:+UseParallelGC -XX:+UseParallelOldGC -XX:ParallelGCThreads=%NUMBER_OF_GC_THREADS% -Xms%MAX_JAVA_MEMORY%m -Xmx%MAX_JAVA_MEMORY%m -classpath "%COMPLETE_CLASSPATH%" -Drapidminer.home="%RAPIDMINER_HOME%" -Drapidminer.operators.additional="%RAPIDMINER_OPERATORS_ADDITIONAL%" %RAPIDMINER_JDBC_DRIVER_PARAMETER% com.rapidminer.RapidMinerCommandLine %CMD_LINE_ARGS%
+:startEnd
+
+"%JAVA%" 
 goto end
 
 

@@ -19,6 +19,7 @@ import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
 
 /**
+ * Entry representing an Database Connection.
  * 
  * @author Simon Fischer
  *
@@ -138,4 +139,8 @@ public class DBConnectionEntry implements IOObjectEntry {
 		throw new RepositoryException("Cannot store items in connection entry.");
 	}
 
+	@Override
+	public Class<? extends IOObject> getObjectClass() {
+		return metaData.getObjectClass();
+	}
 }

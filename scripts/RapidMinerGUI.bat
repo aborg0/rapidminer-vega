@@ -165,8 +165,17 @@ echo Starting RapidMiner from '%RAPIDMINER_HOME%' using classes from '%RAPIDMINE
 rem echo The used classpath is '%COMPLETE_CLASSPATH%'...
 
 :launch
+if %NUMBER_OF_PROCESSORS% GEQ 2 goto startMultiCoreMode
 "%JAVA%" -Xms%MAX_JAVA_MEMORY%m -Xmx%MAX_JAVA_MEMORY%m -classpath "%COMPLETE_CLASSPATH%" -Drapidminer.home="%RAPIDMINER_HOME%" -Drapidminer.operators.additional="%RAPIDMINER_OPERATORS_ADDITIONAL%" %RAPIDMINER_JDBC_DRIVER_PARAMETER% -jar "%RAPIDMINER_HOME%\lib\launcher.jar" %CMD_LINE_ARGS%
-if errorlevel 2 goto start 
+goto startEnd
+
+:startMultiCoreMode
+SET /A NUMBER_OF_GC_THREADS=%NUMBER_OF_PROCESSORS%-1
+"%JAVA%" -XX:+UseParallelGC -XX:+UseParallelOldGC -XX:ParallelGCThreads=%NUMBER_OF_GC_THREADS% -Xms%MAX_JAVA_MEMORY%m -Xmx%MAX_JAVA_MEMORY%m -classpath "%COMPLETE_CLASSPATH%" -Drapidminer.home="%RAPIDMINER_HOME%" -Drapidminer.operators.additional="%RAPIDMINER_OPERATORS_ADDITIONAL%" %RAPIDMINER_JDBC_DRIVER_PARAMETER% -jar "%RAPIDMINER_HOME%\lib\launcher.jar" %CMD_LINE_ARGS%
+:startEnd
+
+
+if errorlevel 2 goto update 
 goto end
 
 

@@ -286,14 +286,11 @@ public class OperatorTree extends JTree implements TreeSelectionListener, TreeEx
 	/** This method will be invoked after a user selection of an operator in the tree. Causes
 	 *  a property table update and an update of the conditional action container. */
 	public void valueChanged(TreeSelectionEvent e) {
-		if (mainFrame != null) {
+		if (mainFrame != null) {			
 			List<Operator> selectedOperators = getSelectedOperators();
-//			System.out.println("Tree has selection: "+selectedOperators);
-//			System.out.println("Event selection:");
-//			for (TreePath path :e.getPaths()) {
-//				System.out.println(path.getLastPathComponent());
-//			}
-			mainFrame.selectOperators(selectedOperators);
+			if ((selectedOperators != null) && !selectedOperators.isEmpty()) {
+				mainFrame.selectOperators(selectedOperators);
+			}
 		}
 	}
 
@@ -302,10 +299,6 @@ public class OperatorTree extends JTree implements TreeSelectionListener, TreeEx
 	public void mouseExited(MouseEvent e) { }
 
 	public void mouseClicked(MouseEvent e) {
-//		TreePath selPath = getPathForLocation(e.getX(), e.getY());
-//		if (selPath != null) {
-//			setSelectionPath(selPath);
-//		}
 		int selRow = getRowForLocation(e.getX(), e.getY());
 		TreePath selPath = getPathForLocation(e.getX(), e.getY());
 		if (selRow != -1) {

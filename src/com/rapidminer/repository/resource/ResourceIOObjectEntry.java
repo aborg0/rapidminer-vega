@@ -121,4 +121,13 @@ public class ResourceIOObjectEntry extends ResourceDataEntry implements IOObject
 	public boolean willBlock() {
 		return metaData == null;
 	}
+
+	@Override
+	public Class<? extends IOObject> getObjectClass() {
+		try {
+			return retrieveMetaData().getObjectClass();
+		} catch (RepositoryException e) {
+			return null;
+		}
+	}
 }

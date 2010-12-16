@@ -485,8 +485,12 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
     		
     		renderer.setDateFormat(getDateFormat(row, col));
     		
-    		renderer.setMaximalTextLength(maximalTextLengths[col]);
-    		renderer.setCutOnFirstLineBreak(cutOnLineBreaks[col]);
+    		if (col < maximalTextLengths.length) {
+    			renderer.setMaximalTextLength(maximalTextLengths[col]);
+    		}
+    		if (col < cutOnLineBreaks.length) {
+    			renderer.setCutOnFirstLineBreak(cutOnLineBreaks[col]);
+    		}
     		return renderer;
     	} else {
     		return super.getCellRenderer(row, col);

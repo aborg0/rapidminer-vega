@@ -26,6 +26,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.regex.Pattern;
 
 import com.rapidminer.tools.Tools;
 
@@ -39,6 +40,7 @@ import com.rapidminer.tools.Tools;
 public class LicensePrepender {
 
 	private char[] license;
+	private Pattern pattern;
 
 	private char[] readFile(File file, String from) throws IOException {
 		StringBuffer contents = new StringBuffer((int) file.length());
@@ -64,17 +66,12 @@ public class LicensePrepender {
 		return contents.toString().toCharArray();
 	}
 
-	private void readLicense(File file, String additionalAdmin) throws IOException {
+	private void readLicense(File file) throws IOException {
 		BufferedReader in = new BufferedReader(new FileReader(file));
 		String line = null;
 		StringBuffer licenseText = new StringBuffer(); 
 		while ((line = in.readLine()) != null) {
 			licenseText.append(line + Tools.getLineSeparator());
-			/*
-			if ((additionalAdmin != null) && (line.toLowerCase().indexOf("administrator") >= 0)) {
-				licenseText.append(" *  " + additionalAdmin + Tools.getLineSeparator());
-			}
-			*/
 		}
 		in.close();
 		this.license = licenseText.toString().toCharArray();
@@ -94,45 +91,45 @@ public class LicensePrepender {
 		System.out.println("ok");
 	}
 
-	private void recurse(File file) {
-		if (file.isDirectory()) {
-			File[] files = file.listFiles();
+	private void recurse(File currentDirectory, String currentPackage) {
+		if (currentDirectory.isDirectory()) {
+			File[] files = currentDirectory.listFiles();
 			for (int i = 0; i < files.length; i++) {
-				recurse(files[i]);
-			}
-		} else {
-			if (file.getName().endsWith(".java")) {
-				try {
-					prependLicense(file);
-				} catch (IOException e) {
-					System.err.println("failed: " + e.getClass().getName() + ": " + e.getMessage());
+				if (files[i].isDirectory()) {
+					recurse(files[i], currentPackage + files[i].getName() + ".");
+				} else {
+					if (files[i].getName().endsWith(".java") && pattern.matcher(currentPackage).matches()) {
+						try {
+							prependLicense(files[i]);
+						} catch (IOException e) {
+							System.err.println("failed: " + e.getClass().getName() + ": " + e.getMessage());
+						}
+					}
 				}
 			}
+		} else {
+			System.err.println("Can only work on directories.");
 		}
-
 	}
 
 	public static void main(String[] argv) throws Exception {
 
 		LicensePrepender lp = new LicensePrepender();
 
-		if ((argv.length < 1) || (argv[0].equals("-help"))) {
-			System.out.println("Usage: java " + lp.getClass().getName() + " licensefile [additional_admin]");
+		if ((argv.length < 2) || (argv[0].equals("-help"))) {
+			System.out.println("Usage: java " + lp.getClass().getName() + " licensefile directory [pattern]");
 			System.exit(1);
 		}
-
-		String additionalAdmin = null;
-		if (argv.length >= 3) {
-			StringBuffer additionalAdminBuffer = new StringBuffer();
-			for (int i = 2; i < argv.length; i++)
-				additionalAdminBuffer.append(argv[i] + " ");
-			additionalAdmin = additionalAdminBuffer.toString();
-		}
 		
-		lp.readLicense(new File(argv[0]), additionalAdmin);
+		lp.readLicense(new File(argv[0]));
 		System.out.println("Prepending license:");
 		System.out.print(lp.license);
 
-		lp.recurse(new File(argv[1]));
+		if (argv.length >= 3) {
+			lp.pattern = Pattern.compile(argv[2]);
+		} else {
+			lp.pattern = Pattern.compile(".*");
+		}
+		lp.recurse(new File(argv[1]), "");
 	}
 }

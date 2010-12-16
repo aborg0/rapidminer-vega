@@ -40,7 +40,6 @@ import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.Repository;
-import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.tools.Tools;
 /**
  * @author Simon Fischer
@@ -102,11 +101,7 @@ public class RepositoryTreeCellRenderer extends DefaultTreeCellRenderer {
 			} else if (entry.getType().equals(IOObjectEntry.TYPE_NAME)) {
 				if (entry instanceof IOObjectEntry) {
 					IOObjectEntry dataEntry = (IOObjectEntry) entry;
-					try {
-						label.setIcon(RendererService.getIcon(dataEntry.retrieveMetaData().getObjectClass()));
-					} catch (RepositoryException e) {
-						label.setIcon(ICON_DATA);
-					}
+					label.setIcon(RendererService.getIcon(dataEntry.getObjectClass()));
 				} else {
 					label.setIcon(ICON_DATA);
 				}

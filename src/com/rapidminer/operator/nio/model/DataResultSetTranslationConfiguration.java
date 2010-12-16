@@ -157,13 +157,18 @@ public class DataResultSetTranslationConfiguration {
 				if (cmd.isSelected()) { // otherwise details don't matter
 					cmd.setRole(metaDataDefintionValues[3].trim());
 					cmd.setUserDefinedAttributeName(metaDataDefintionValues[0].trim());
-					cmd.setAttributeValueType(Integer.parseInt(metaDataDefintionValues[2]));
+
+					int valueType = Ontology.ATTRIBUTE_VALUE_TYPE.mapName(metaDataDefintionValues[2]);
+					// fallback for old processes where attribute value type was saved as index rather than as string
+					if (valueType == -1) {
+						cmd.setAttributeValueType(Integer.parseInt(metaDataDefintionValues[2]));	
+					} else {
+						cmd.setAttributeValueType(valueType);
+					}					
 				}
 			}
 			
 			setFaultTolerant(readerOperator.getParameterAsBoolean(AbstractDataResultSetReader.PARAMETER_ERROR_TOLERANT));
-						
-			//this.setNumberFormat(DecimalFormat.getInstance(locale));
 		}
 	}
 
@@ -186,20 +191,30 @@ public class DataResultSetTranslationConfiguration {
 	/** Sets the parameters in the given operator to describe this configuration. */
 	public void setParameters(AbstractDataResultSetReader operator) {
 		operator.getParameters().setParameter(PARAMETER_DATE_FORMAT, getDatePattern());
+		// meta data
 		List<String[]> metaDataList = new LinkedList<String[]>();
 		int index = 0;
 		for (ColumnMetaData cmd : getColumnMetaData()) {
 			String[] tupel = new String[4];
 			tupel[0] = cmd.getUserDefinedAttributeName();
 			tupel[1] = String.valueOf(cmd.isSelected());
-			tupel[2] = String.valueOf(cmd.getAttributeValueType());
+			tupel[2] = Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(cmd.getAttributeValueType()); 
 			tupel[3] = cmd.getRole();
 			String encodedTupel = ParameterTypeTupel.transformTupel2String(tupel);
 			metaDataList.add(new String[] { String.valueOf(index), encodedTupel} );
 			index++;
 		}
 		operator.getParameters().setParameter(PARAMETER_META_DATA, ParameterTypeList.transformList2String(metaDataList));
+
+		// annotations
+		List<String[]> annotationList = new LinkedList<String[]>();
+		for (Entry<Integer, String> annotation : annotationsMap.entrySet()) {
+			annotationList.add(new String[] { annotation.getKey().toString(), annotation.getValue() });
+		}
+		operator.setParameter(PARAMETER_ANNOTATIONS, ParameterTypeList.transformList2String(annotationList));
+
 		operator.getParameters().setParameter(AbstractDataResultSetReader.PARAMETER_ERROR_TOLERANT, String.valueOf(isFaultTolerant()));
+		operator.getParameters().setParameter(PARAMETER_FIRST_ROW_AS_NAMES, "false");
 	}
 
 	public ColumnMetaData getColumnMetaData(int col) {
@@ -222,7 +237,13 @@ public class DataResultSetTranslationConfiguration {
 				numberOfSelected++;
 			}
 		}
-		return selectedIndices;
+		if (numberOfSelected < selectedIndices.length) {
+			int[] result = new int[numberOfSelected];
+			System.arraycopy(selectedIndices, 0, result, 0, numberOfSelected);
+			return result;
+		} else {
+			return selectedIndices;
+		}
 	}
 
 	/**

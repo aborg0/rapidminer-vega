@@ -58,12 +58,7 @@ public class ExcelImportWizard extends AbstractDataImportWizard {
 //		if (source == null) {
 //			addStep(new StoreDataWizardStep(this, state, (preselectedLocation != null) ? preselectedLocation.getAbsoluteLocation() : null));
 //		}
-		layoutDefault(HUGE);
-	}
-	
-	@Override
-	public void cancel() {
-		super.cancel();
+		layoutDefault(HUGE);		
 	}
 
 	@Override

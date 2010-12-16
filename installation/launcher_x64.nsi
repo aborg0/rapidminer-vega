@@ -49,8 +49,21 @@ after_mem_more:
   Call GetParameters
   Pop $R1
   
-  ; invoking RapidMiner via rapidminer.jar
-  StrCpy $0 '"$R0" -Xmx$1m -Xms$1m -classpath "${CLASSPATH}" -Drapidminer.home=. -Drapidminer.operators.additional="${RAPIDMINER_OPERATORS_ADDITIONAL}" -jar lib/launcher.jar $R1'
+; testing for number of processors for switching to multi threaded GC
+  ReadEnvStr $R2 "NUMBER_OF_PROCESSORS"  
+  IntFmt $0 "0x%08X" $R2
+  IntCmp $0 1 is1 done morethan1
+is1:
+  StrCpy $R2 ''
+  Goto done
+morethan1:
+  IntOp $0 $0 - 1
+  StrCpy $R2 '-XX:+UseParallelGC -XX:+UseParallelOldGC -XX:ParallelGCThreads=$0'
+  Goto done
+done:
+
+  ; invoking RapidMiner via laucher.jar  
+  StrCpy $0 '"$R0" $R2 -Xmx$1m -Xms$1m -classpath "${CLASSPATH}" -Drapidminer.home=. -Drapidminer.operators.additional="${RAPIDMINER_OPERATORS_ADDITIONAL}" -jar lib/launcher.jar $R1'
   
   SetOutPath $EXEDIR
  Relaunch:

@@ -118,7 +118,7 @@ public class ProcessThread extends Thread {// implements ProcessListener {
 						LogService.getRoot().log(Level.SEVERE, e.toString(), e);
 						SwingTools.showVerySimpleErrorMessage("proc_failed_without_obv_reason");
 					} else {
-						SwingTools.showSimpleErrorMessage("process_failed_simple", e, true);
+						SwingTools.showSimpleErrorMessage("process_failed_simple", e, false);
 					}
 				}
 			}

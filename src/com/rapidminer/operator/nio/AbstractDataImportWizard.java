@@ -42,6 +42,13 @@ public abstract class AbstractDataImportWizard extends DataImportWizard {
 		}
 	}
 
+
+	@Override
+	public void cancel() {
+		super.cancel();
+		getState().getDataResultSetFactory().close();
+	}
+	
 	public WizardState getState() {
 		return state;
 	}
@@ -53,9 +60,10 @@ public abstract class AbstractDataImportWizard extends DataImportWizard {
 	@Override
 	public void finish() {
 		super.finish();
-		if (reader != null) {
-			state.getTranslationConfiguration().setParameters(reader );
-			state.getDataResultSetFactory().setParameters(reader );
+		if (reader != null) { // we are configuring an operator
+			state.getTranslationConfiguration().setParameters(reader);
+			state.getDataResultSetFactory().setParameters(reader);
+			getState().getDataResultSetFactory().close();
 		}
 	}
 }

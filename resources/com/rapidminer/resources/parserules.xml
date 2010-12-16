@@ -1459,6 +1459,11 @@
             </parameter_unequals>
          </condition>
       </setParameter>
+      <replaceByCellAddress appliesSince="1.0.0" appliesBefore="5.1">
+         <columnParameter>column_offset</columnParameter>
+         <rowParameter>row_offset</rowParameter>
+         <addressParameter>imported_cell_range</addressParameter>
+      </replaceByCellAddress>
    </read_excel>
    <read_spss>
       <setParameter>

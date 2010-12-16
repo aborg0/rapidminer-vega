@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.lang.ref.WeakReference;
+import java.lang.ref.SoftReference;
 import java.net.HttpURLConnection;
 
 import com.rapid_i.repository.wsimport.EntryResponse;
@@ -46,11 +46,13 @@ import com.rapidminer.tools.ProgressListener;
  */
 public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntry {
 
-	private WeakReference<MetaData> metaData;
+	private SoftReference<MetaData> metaData;
 	private final Object metaDatalLock = new Object();
+	private String ioObjectClassName;
 
 	RemoteIOObjectEntry(EntryResponse response, RemoteFolder container, RemoteRepository repository) {
 		super(response, container, repository);
+		ioObjectClassName = response.getIoObjectClassName();
 	}
 
 	@Override
@@ -105,7 +107,7 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 				}
 				Object result = IOObjectSerializer.getInstance().deserialize(in);
 				if (result instanceof MetaData) {
-					this.metaData = new WeakReference<MetaData>((MetaData) result);
+					this.metaData = new SoftReference<MetaData>((MetaData) result);
 					return (MetaData) result;
 				} else {
 					throw new RepositoryException("Server did not send MetaData, but instance of " + result.getClass());
@@ -190,5 +192,15 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 	@Override
 	public boolean willBlock() {
 		return (metaData == null) || (metaData.get() == null);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Class<? extends IOObject> getObjectClass() {
+		try {
+			return (Class<? extends IOObject>) Class.forName(ioObjectClassName);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 }

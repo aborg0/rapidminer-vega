@@ -214,18 +214,6 @@ public class ExtendedErrorDialog extends ButtonDialog {
 								mainComponent.add(detailedPane, BorderLayout.CENTER);
 								setDefaultSize(MESSAGE_EXTENDED);
 							}
-							// pack();
-							// ExtendedErrorDialog.this.repaint();
-							// detailedPane.invalidate();
-							// mainComponent.invalidate();
-							// detailedPane.revalidate();
-							// detailedPane.repaint();
-							// //ExtendedErrorDialog.this.invalidate();
-							// ExtendedErrorDialog.this.setSize(getDefaultSize(SIZE));
-							// ExtendedErrorDialog.this.setPreferredSize(getDefaultSize(SIZE));
-							// ExtendedErrorDialog.this.setMinimumSize(getDefaultSize(SIZE));
-							// ExtendedErrorDialog.this.pack();
-							// ExtendedErrorDialog.this.repaint();
 							detailsShown = !detailsShown;
 						}
 					});
@@ -244,7 +232,6 @@ public class ExtendedErrorDialog extends ButtonDialog {
 
 		buttons.add(makeCloseButton());
 		return buttons;
-		// add(makeButtonPanel(buttons), BorderLayout.SOUTH);
 	}
 
 	/**
@@ -264,11 +251,18 @@ public class ExtendedErrorDialog extends ButtonDialog {
 	protected String getInfoText() {
 		if (error != null) {
 			StringBuilder infoText = new StringBuilder();
-			infoText.append("<div>");
+			infoText.append("<div><strong>");
 
 			infoText.append(super.getInfoText());
-			infoText.append("</div>");
+			infoText.append("</strong></div>");
 
+			// if already arguments are given, we can expect already a detailed error message
+			if (arguments.length == 0 && error.getMessage() != null && error.getMessage().length() > 0) {
+				infoText.append("<p>");
+				infoText.append(Tools.escapeHTML(error.getMessage()));
+				infoText.append("</p>");
+			}
+			
 			Throwable cause = error.getCause();
 			if (cause != null) {
 				String message = Tools.escapeHTML(cause.getMessage());

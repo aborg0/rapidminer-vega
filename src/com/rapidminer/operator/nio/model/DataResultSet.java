@@ -125,7 +125,9 @@ public interface DataResultSet {
 	public ValueType getNativeValueType(int columnIndex) throws ParseException;
 	
 	/**
-	 * Closes the data source. May tear down a database connection or close a file which is re` from.
+	 * Closes the data source. May tear down a database connection or close a file which is read from.
+	 * The underlying {@link DataResultSetFactory} may choose to keep the connection open for performance
+	 * reasons and must be closed independently.
 	 * 
 	 * @throws OperatorException
 	 */

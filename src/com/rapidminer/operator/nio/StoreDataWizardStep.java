@@ -71,7 +71,8 @@ public final class StoreDataWizardStep extends RepositoryLocationSelectionWizard
 							} catch (OperatorException e) {
 								LogService.getRoot().log(Level.WARNING, "Failed to close result set: "+e, e);
 							}
-						}						
+						}	
+						state.getDataResultSetFactory().close();
 						getProgressListener().complete();
 					}
 				}

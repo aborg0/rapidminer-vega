@@ -68,12 +68,7 @@ CLASSPATH=${RAPIDMINER_CLASSPATH}:${CLASSPATH}
 
 
 update_dir=${RAPIDMINER_HOME}/RUinstall
-    if [ -d "${update_dir}" ]; then
-      echo "Performing update..."
-      cp -af "${update_dir}"/* "${RAPIDMINER_HOME}"
-      rm -rf "${update_dir}"
-    fi
-unset update_dir
+
 
 
 echo "Starting RapidMiner from '${RAPIDMINER_HOME}', using classes from '${RAPIDMINER_CLASSPATH}'..."
@@ -82,6 +77,14 @@ echo "Starting RapidMiner from '${RAPIDMINER_HOME}', using classes from '${RAPID
 LAUNCH=1
 while [ ${LAUNCH} -eq 1 ]
 do
+    # Performing possible update
+    if [ -d "${update_dir}" ]; then
+      echo "Performing update..."
+      cp -rf "${update_dir}"/* "${RAPIDMINER_HOME}"
+      rm -rf "${update_dir}"
+    fi
+
+    # Starting RapidMiner again
 	#rm -f ${RAPIDMINER_HOME}/RELAUNCH
 	LAUNCH=0
 	$JAVA \

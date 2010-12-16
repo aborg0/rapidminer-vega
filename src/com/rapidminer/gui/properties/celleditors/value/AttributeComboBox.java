@@ -37,7 +37,7 @@ import com.rapidminer.parameter.ParameterTypeAttribute;
 /**
  * Autocompletion combo box that observes an input port so it can update itself whenever the meta data changes.
  * 
- * @author Simon Fischer
+ * @author Simon Fischer, Sebastian Land
  * 
  */
 public class AttributeComboBox extends JComboBox {
@@ -48,42 +48,23 @@ public class AttributeComboBox extends JComboBox {
 		private static final long serialVersionUID = 1L;
 
 		private ParameterTypeAttribute attributeType;
-		private Vector<String> attributes = null;
-		private MetaData lastMetaData = null;
+		private Vector<String> attributes = new Vector<String>();
 
 		public AttributeComboBoxModel(ParameterTypeAttribute attributeType) {
 			this.attributeType = attributeType;
+			InputPort inputPort = attributeType.getInputPort();
+			if (inputPort != null && inputPort.getMetaData() != null)
+				informMetaDataChanged(inputPort.getMetaData());
 		}
 
 		@Override
 		public int getSize() {
-			if (attributeType.getInputPort() != null) {
-				if (lastMetaData == null && lastMetaData != attributeType.getInputPort().getMetaData()) {
-					attributes = attributeType.getAttributeNames();
-					lastMetaData = attributeType.getInputPort().getMetaData();
-					if (attributes != null) {
-						fireContentsChanged(0, 0, attributes.size());
-					}
-				}
-				if (attributes != null) {
-					return attributes.size();
-				}
-			}
-			return 0;
+			return attributes.size();
 		}
 
 		@Override
 		public Object getElementAt(int index) {
-			InputPort inputPort = attributeType.getInputPort();
-			if (inputPort != null) {
-				if (lastMetaData == null && lastMetaData != inputPort.getMetaData()) {
-					attributes = attributeType.getAttributeNames();
-					lastMetaData = inputPort.getMetaData();
-					fireContentsChanged(0, 0, attributes.size());
-				}
-				return attributes.get(index);
-			}
-			return null;
+			return attributes.get(index);
 		}
 
 		/**

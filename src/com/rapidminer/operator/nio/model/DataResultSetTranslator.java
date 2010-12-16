@@ -209,6 +209,10 @@ public class DataResultSetTranslator {
 		for (Attribute attribute : attributes) {
 			// if user defined names have been found, rename accordingly
 			final ColumnMetaData cmd = configuration.getColumnMetaData(attributeColumns[attributeIndex]);
+			if (!cmd.isSelected()) {
+				attributeIndex++;
+				continue;
+			}
 			String userDefinedName = cmd.getUserDefinedAttributeName();
 			if (userDefinedName != null)
 				attribute.setName(userDefinedName);

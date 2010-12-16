@@ -98,7 +98,7 @@ public class ButtonDialog extends JDialog {
 	 * I18n-Properties message. The first argument will replace 
 	 * <code>{0}</code>, the second <code>{1}</code> and so on.
 	 */
-	private final Object[] arguments;
+	protected final Object[] arguments;
 
 	private Component centerComponent;
 	

@@ -54,12 +54,25 @@ after_mem_more:
   ; change for your purpose (-jar etc.)
   ;StrCpy $0 '"$R0" -classpath "${CLASSPATH}" ${CLASS}'
   
-  ; invoking RapidMiner via rapidminer.jar
-  StrCpy $0 '"$R0" -Xmx$R9m -Xms$R9m -classpath "${CLASSPATH}" -Drapidminer.home=. -Drapidminer.operators.additional="${RAPIDMINER_OPERATORS_ADDITIONAL}" -jar lib/launcher.jar $R1'
+
+
+; Testing for number of processors
+ReadEnvStr $R2 "NUMBER_OF_PROCESSORS"  
+  IntFmt $0 "0x%08X" $R2
+  IntCmp $0 1 is1 done morethan1
+is1:
+  StrCpy $R2 ''
+  Goto done
+morethan1:
+  IntOp $0 $0 - 1
+  StrCpy $R2 '-XX:+UseParallelGC -XX:+UseParallelOldGC -XX:ParallelGCThreads=$0'
+  Goto done
+done:
  
-  ; invoking RapidMiner via start script
-  ;System::Call 'Kernel32::SetEnvironmentVariableA(t, t) i("MAX_JAVA_MEMORY", "$R9").r0'
-  ;StrCpy $0 'scripts\RapidMinerGUI.bat'
+  
+  ; invoking RapidMiner via launcher.jar  
+  StrCpy $0 '"$R0" $R2 -Xmx$R9m -Xms$R9m -classpath "${CLASSPATH}" -Drapidminer.home=. -Drapidminer.operators.additional="${RAPIDMINER_OPERATORS_ADDITIONAL}" -jar lib/launcher.jar $R1'
+ 
   
   SetOutPath $EXEDIR
  Relaunch:

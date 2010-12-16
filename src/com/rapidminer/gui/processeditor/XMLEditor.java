@@ -146,6 +146,9 @@ public class XMLEditor extends JPanel implements ProcessEditor, Dockable {
 		}
 	}
 
+	public String getXMLFromEditor(){
+		return this.editor.getText();
+	}
 //	public void focusGained(FocusEvent e) {}
 //
 //	public void focusLost(FocusEvent e) {

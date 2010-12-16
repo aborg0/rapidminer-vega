@@ -59,27 +59,24 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	private File workbookFile;
 
 	private boolean isEmulatingOldNames;
-	
+
 	/**
 	 * This constructor must read in all settings from the parameters of the given operator.
-	 * @throws OperatorException 
+	 * 
+	 * @throws OperatorException
 	 */
 	public ExcelResultSetConfiguration(ExcelExampleSource excelExampleSource) throws OperatorException {
 		if (excelExampleSource.isParameterSet(ExcelExampleSource.PARAMETER_IMPORTED_CELL_RANGE)) {
 			parseExcelRange(excelExampleSource.getParameterAsString(ExcelExampleSource.PARAMETER_IMPORTED_CELL_RANGE));
-		} else {
-			if (excelExampleSource.isParameterSet(ExcelExampleSource.PARAMETER_COLUMN_OFFSET))
-				this.columnOffset = excelExampleSource.getParameterAsInt(ExcelExampleSource.PARAMETER_COLUMN_OFFSET);
-			if (excelExampleSource.isParameterSet(ExcelExampleSource.PARAMETER_ROW_OFFSET))
-				this.rowOffset = excelExampleSource.getParameterAsInt(ExcelExampleSource.PARAMETER_ROW_OFFSET);
 		}
+		
 		if (excelExampleSource.isParameterSet(PARAMETER_SHEET_NUMBER)) {
 			this.sheet = excelExampleSource.getParameterAsInt(PARAMETER_SHEET_NUMBER) - 1;
 		}
 		if (excelExampleSource.isParameterSet(PARAMETER_EXCEL_FILE)) {
 			this.workbookFile = excelExampleSource.getParameterAsFile(PARAMETER_EXCEL_FILE);
 		}
-		
+
 		isEmulatingOldNames = excelExampleSource.getCompatibilityLevel().isAtMost(ExcelExampleSource.CHANGE_5_0_11_NAME_SCHEMA);
 	}
 
@@ -109,10 +106,10 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	}
 
 	/**
-	 * This will return a workbook if already delivered with the configuration. This 
-	 * workbook must not be closed!
-	 * @throws IOException 
-	 * @throws BiffException 
+	 * This will return a workbook if already delivered with the configuration. This workbook must not be closed!
+	 * 
+	 * @throws IOException
+	 * @throws BiffException
 	 */
 	public Workbook getWorkbook() throws BiffException, IOException {
 		if (preOpenedWorkbook == null) {
@@ -209,28 +206,32 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 
 	@Override
 	public void setParameters(AbstractDataResultSetReader source) {
-		String range = 
-			Tools.getExcelColumnName(columnOffset) + (rowOffset+1) +
-			":" + 
-			Tools.getExcelColumnName(columnLast) + (rowLast + 1);
+		String range =
+				Tools.getExcelColumnName(columnOffset) + (rowOffset + 1) +
+						":" +
+						Tools.getExcelColumnName(columnLast) + (rowLast + 1);
 		source.setParameter(ExcelExampleSource.PARAMETER_IMPORTED_CELL_RANGE, range);
 		source.setParameter(PARAMETER_SHEET_NUMBER, String.valueOf(sheet + 1));
 		source.setParameter(ExcelExampleSource.PARAMETER_EXCEL_FILE, workbookFile.getAbsolutePath());
 	}
-	
+
 	public void parseExcelRange(String range) throws OperatorException {
 		String[] split = range.split(":", 2);
-		int[] topLeft = parseExcelCell(split[0]);
-		columnOffset = topLeft[0];
-		rowOffset = topLeft[1];
-		if (split.length < 2) {
-			rowLast = Integer.MAX_VALUE;
-			columnLast = Integer.MAX_VALUE;
-		} else {
-			int[] bottomRight = parseExcelCell(split[1]);
-			columnLast = bottomRight[0];
-			rowLast    = bottomRight[1];
-		}		
+		try {
+			int[] topLeft = parseExcelCell(split[0]);
+			columnOffset = topLeft[0];
+			rowOffset = topLeft[1];
+			if (split.length < 2) {
+				rowLast = Integer.MAX_VALUE;
+				columnLast = Integer.MAX_VALUE;
+			} else {
+				int[] bottomRight = parseExcelCell(split[1]);
+				columnLast = bottomRight[0];
+				rowLast = bottomRight[1];
+			}
+		} catch (OperatorException e) {
+			throw new UserError(null, e, 223, range);
+		}
 	}
 
 	private static int[] parseExcelCell(String string) throws OperatorException {
@@ -240,6 +241,8 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 		while (i < string.length() && (Character.isLetter(string.charAt(i)))) {
 			char c = string.charAt(i);
 			c = Character.toUpperCase(c);
+			if (c < 'A' || c > 'Z')
+				throw new UserError(null, 224, string);
 			column *= 26;
 			column += (c - 'A') + 1;
 			i++;
@@ -249,14 +252,14 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 			try {
 				row = Integer.parseInt(columnStr);
 			} catch (NumberFormatException e) {
-				throw new OperatorException("Illegal Excel range format: "+string);
+				throw new UserError(null, 224, string);
 			}
-		}		
-		return new int[] { column - 1, row - 1};
+		}
+		return new int[] { column - 1, row - 1 };
 	}
 
 	@Override
-	public String getResourceName() {		
+	public String getResourceName() {
 		return workbookFile.getAbsolutePath();
 	}
 
@@ -275,6 +278,11 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	public boolean isEmulatingOldNames() {
 		return isEmulatingOldNames;
 	}
-	
-	
+
+	@Override
+	public void close() {
+		if (preOpenedWorkbook != null) {
+			preOpenedWorkbook.close();
+		}
+	}
 }

@@ -205,4 +205,8 @@ public class CSVResultSetConfiguration implements DataResultSetFactory {
 	public List<ParsingError> getErrors() {
 		return errors;
 	}
+
+	@Override
+	public void close() {	
+	}
 }

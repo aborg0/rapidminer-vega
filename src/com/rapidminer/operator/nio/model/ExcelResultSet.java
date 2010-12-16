@@ -65,7 +65,7 @@ public class ExcelResultSet implements DataResultSet {
 
 	private Workbook workbook;
 
-	private ExcelResultSetConfiguration configuration;
+	//private ExcelResultSetConfiguration configuration;
 
 	private String[] attributeNames;
 
@@ -74,13 +74,17 @@ public class ExcelResultSet implements DataResultSet {
 	 * is only needed for error handling.
 	 */
 	public ExcelResultSet(Operator callingOperator, ExcelResultSetConfiguration configuration) throws OperatorException {
-		this.configuration = configuration;
+		//this.configuration = configuration;
 
 		// reading configuration
 		columnOffset = configuration.getColumnOffset();
 		rowOffset = configuration.getRowOffset();
 		currentRow = configuration.getRowOffset() - 1;
-
+		
+		// check range
+		if (columnOffset > configuration.getColumnLast() || rowOffset > configuration.getRowLast())
+			throw new UserError(callingOperator, 223, Tools.getExcelColumnName(columnOffset) + rowOffset + ":" + Tools.getExcelColumnName(configuration.getColumnLast()) + configuration.getRowLast());
+		
 		// load the excelWorkbook if it is not set
 		try {
 			workbook = configuration.getWorkbook();
@@ -98,6 +102,9 @@ public class ExcelResultSet implements DataResultSet {
 		totalNumberOfColumns = Math.min(configuration.getColumnLast(), sheet.getColumns() - 1) - columnOffset + 1;
 		totalNumberOfRows = Math.min(configuration.getRowLast(), sheet.getRows() - 1) - rowOffset + 1;
 
+		if (totalNumberOfColumns < 0 || totalNumberOfRows < 0)
+			throw new UserError(callingOperator, 404);
+		
 		emptyColumns = new boolean[totalNumberOfColumns];
 		emptyRows = new boolean[totalNumberOfRows];
 
@@ -217,7 +224,7 @@ public class ExcelResultSet implements DataResultSet {
 
 	@Override
 	public void close() throws OperatorException {
-		configuration.closeWorkbook();
+		//configuration.closeWorkbook();
 	}
 
 	@Override

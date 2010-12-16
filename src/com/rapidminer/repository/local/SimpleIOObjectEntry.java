@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.lang.ref.WeakReference;
+import java.lang.ref.SoftReference;
 
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Operator;
@@ -54,7 +54,10 @@ import com.rapidminer.tools.ProgressListener;
  */
 public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntry {
 	
-	private WeakReference<MetaData> metaData = null;	
+	private static final String PROPERTY_IOOBJECT_CLASS = "ioobject-class";
+	
+	private SoftReference<MetaData> metaData = null;	
+	private Class<? extends IOObject> dataObjectClass = null;
 	
 	SimpleIOObjectEntry(String name, SimpleFolder containingFolder, LocalRepository repository) {
 		super(name, containingFolder, repository);
@@ -102,7 +105,7 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 			try {
 				objectIn = new RMObjectInputStream(new FileInputStream(metaDataFile));
 				readObject = (MetaData)objectIn.readObject();
-				this.metaData = new WeakReference<MetaData>(readObject);
+				this.metaData = new SoftReference<MetaData>(readObject);
 				if (readObject instanceof ExampleSetMetaData) {
 					for (AttributeMetaData amd : ((ExampleSetMetaData)readObject).getAllAttributes()) {
 						if (amd.isNominal()) {
@@ -172,7 +175,8 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 				l.complete();
 			}
 		}		
-		this.metaData = new WeakReference<MetaData>(md);
+		this.metaData = new SoftReference<MetaData>(md);
+		putProperty(PROPERTY_IOOBJECT_CLASS, data.getClass().getName());
 	}
 
 	@Override
@@ -236,5 +240,34 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 	@Override
 	public boolean willBlock() {
 		return (metaData == null) || (metaData.get() == null);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Class<? extends IOObject> getObjectClass() {
+		if (dataObjectClass == null) {
+			// first try from properties file
+			String className = getProperty(PROPERTY_IOOBJECT_CLASS);
+			if (className != null) {
+				try {
+					dataObjectClass = (Class<? extends IOObject>) Class.forName(className);
+					return dataObjectClass;
+				} catch (ClassNotFoundException e) {
+					return null;
+				}
+			} else {
+				// if not yet defined, retrieve it from meta data and store in properties
+				try {
+					dataObjectClass = retrieveMetaData().getObjectClass();
+					if (dataObjectClass != null) {
+						putProperty(PROPERTY_IOOBJECT_CLASS, dataObjectClass.getName());
+					}
+					return dataObjectClass;
+				} catch (RepositoryException e) {
+					return null;
+				}
+			}
+		}
+		return dataObjectClass;
 	}
 }

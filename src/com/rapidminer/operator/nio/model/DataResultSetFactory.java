@@ -14,6 +14,7 @@ import com.rapidminer.tools.ProgressListener;
  */
 public interface DataResultSetFactory {
 
+	/** Creates a result set. Make sure to call {@link #close()} after using this method. */
 	public DataResultSet makeDataResultSet(Operator operator) throws OperatorException;
 
 	public TableModel makePreviewTableModel(ProgressListener listener) throws OperatorException, ParseException;
@@ -27,4 +28,7 @@ public interface DataResultSetFactory {
 
 	/** Sets the configuration parameters in the given reader operator. */
 	public void setParameters(AbstractDataResultSetReader reader);
+
+	/** Closes all resources associated with this factory. */
+	public void close();
 }

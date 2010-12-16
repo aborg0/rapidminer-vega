@@ -23,6 +23,11 @@
 package com.rapidminer.gui.properties.celleditors.value;
 
 import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
@@ -40,13 +45,18 @@ import com.rapidminer.parameter.ParameterTypeAttribute;
 public class AttributeValueCellEditor extends DefaultCellEditor implements PropertyValueCellEditor {
 
 	private static final long serialVersionUID = -1889899793777695100L;
-	
+
 	public AttributeValueCellEditor(ParameterTypeAttribute type) {
-		super(new AttributeComboBox(type));	
-		((JComboBox) editorComponent).removeItemListener(this.delegate);
-		((JComboBox) editorComponent).setEditable(true);
-		final JTextComponent textField = (JTextComponent) ((JComboBox) editorComponent).getEditor().getEditorComponent();
+		super(new AttributeComboBox(type));
+		final JComboBox comboBox = (JComboBox) editorComponent;
+		final JTextComponent textField = (JTextComponent) comboBox.getEditor().getEditorComponent();
 		
+		
+		comboBox.removeItemListener(this.delegate);
+		comboBox.setEditable(true);
+		comboBox.removeActionListener(delegate); // this is important since we are replacing the original delegate
+		
+
 		this.delegate = new EditorDelegate() {
 			private static final long serialVersionUID = -5592150438626222295L;
 
@@ -54,33 +64,56 @@ public class AttributeValueCellEditor extends DefaultCellEditor implements Prope
 			public void setValue(Object x) {
 				if (x == null) {
 					super.setValue(null);
-					((JComboBox) editorComponent).setSelectedItem(null);
+					comboBox.setSelectedItem(null);
 				} else {
 					String value = x.toString();
 					super.setValue(x);
-					((JComboBox) editorComponent).setSelectedItem(value);
+					comboBox.setSelectedItem(value);
 					if (value != null) {
 						textField.setText(value.toString());
 					} else {
 						textField.setText("");
 					}
 				}
-				
-//				if (!((JComboBox) editorComponent).getEditor().getEditorComponent().hasFocus()) {
-//					((JComboBox) editorComponent).getEditor().setItem(value);
-//				}				
+
 			}
 
 			@Override
 			public Object getCellEditorValue() {
 				String selected = textField.getText();
-//				String selected = (String) ((JComboBox) editorComponent).getSelectedItem();
 				if ((selected != null) && (selected.trim().length() == 0)) {
 					selected = null;
 				}
 				return selected;
 			}
+
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				if (event.getActionCommand().equals("comboBoxEdited"))
+					super.actionPerformed(event);
+			};
 		};
+		comboBox.addActionListener(delegate);
+
+		textField.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				comboBox.actionPerformed(new ActionEvent(comboBox, 12, "comboBoxEdited"));
+				super.focusLost(e);
+			}
+		});
+
+		textField.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					if (!comboBox.isPopupVisible()) {
+						comboBox.actionPerformed(new ActionEvent(comboBox, 12, "comboBoxEdited"));
+						e.consume();
+					}
+				}
+			}
+		});
 	}
 
 	@Override
@@ -100,8 +133,8 @@ public class AttributeValueCellEditor extends DefaultCellEditor implements Prope
 
 	@Override
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-		return getTableCellEditorComponent(table, value, isSelected, row, column);
+		Component editorComponent = getTableCellEditorComponent(table, value, isSelected, row, column);
+		return editorComponent;
 	}
-	
-	
+
 }

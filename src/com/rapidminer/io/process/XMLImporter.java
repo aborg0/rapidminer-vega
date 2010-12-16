@@ -47,6 +47,7 @@ import com.rapidminer.io.process.rules.AbstractGenericParseRule;
 import com.rapidminer.io.process.rules.ChangeParameterValueRule;
 import com.rapidminer.io.process.rules.DeleteAfterAutoWireRule;
 import com.rapidminer.io.process.rules.DeleteUnnecessaryOperatorChainRule;
+import com.rapidminer.io.process.rules.ExcelCellAddressParseRule;
 import com.rapidminer.io.process.rules.ExchangeSubprocessesRule;
 import com.rapidminer.io.process.rules.OperatorEnablerRepairRule;
 import com.rapidminer.io.process.rules.ParseRule;
@@ -196,6 +197,8 @@ public class XMLImporter {
 			rule = new RenamePlotterParametersRule(operatorTypeName, element);
 		} else if (element.getTagName().equals("replaceRoleParameter")) {
 			rule = new SetRoleByNameRule(operatorTypeName, element);
+		} else if (element.getTagName().equals("replaceByCellAddress")) {
+			rule = new ExcelCellAddressParseRule(operatorTypeName, element);
 
 			/*
 			 * General rules. Will take care of theirselves.

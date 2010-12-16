@@ -56,6 +56,7 @@ public class AutoCompleteComboBoxAddition {
 					// see #focusGained() down below
 					return;
 				}
+
 				Vector<String> vectorOfStrings = new Vector<String>();
 				for (int i = 0; i < comboBox.getModel().getSize(); i++) {
 					vectorOfStrings.add(String.valueOf(comboBox.getModel().getElementAt(i)));
@@ -66,17 +67,19 @@ public class AutoCompleteComboBoxAddition {
 				final String newString = (result == null) ? documentText : result;
 				final int startSelect = document.getLength();
 				final int endSelect = newString.length();
-				final JTextField editorComponent = (JTextField)  comboBox.getEditor().getEditorComponent();
-				
+				final JTextField editorComponent = (JTextField) comboBox.getEditor().getEditorComponent();
+
 				if (startSelect == e.getOffset() + e.getLength()) {
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
-							comboBox.setSelectedItem(null);
-							comboBox.setSelectedItem(newString);
+							comboBox.getModel().setSelectedItem(newString);
+							editorComponent.getDocument().removeDocumentListener(docListener);
+							editorComponent.setText(newString);
+							editorComponent.getDocument().addDocumentListener(docListener);
+							editorComponent.setCaretPosition(startSelect);
 							editorComponent.setSelectionStart(startSelect);
 							editorComponent.setSelectionEnd(endSelect);
-
 						}
 					});
 				}
@@ -95,14 +98,13 @@ public class AutoCompleteComboBoxAddition {
 		}
 	}
 
-	private final class AutoCompletenComboBoxEditor extends BasicComboBoxEditor {
-		
+	private final class AutoCompletionComboBoxEditor extends BasicComboBoxEditor {
+
 		@Override
 		public void setItem(Object anObject) {
 			((JTextField) getEditorComponent()).getDocument().removeDocumentListener(docListener);
 			super.setItem(anObject);
 			((JTextField) getEditorComponent()).getDocument().addDocumentListener(docListener);
-
 		}
 	}
 
@@ -117,7 +119,7 @@ public class AutoCompleteComboBoxAddition {
 
 	/** the JComboBox to which it is attached */
 	private final JComboBox comboBox;
-    private final BasicComboBoxEditor comboBoxEditor;
+	private final BasicComboBoxEditor comboBoxEditor;
 	private static final long serialVersionUID = 1L;
 
 	/**
@@ -134,7 +136,7 @@ public class AutoCompleteComboBoxAddition {
 		caseSensitive = false;
 		allowAutoFill = false;
 		comboBox.setEditable(true);
-		comboBoxEditor = new AutoCompletenComboBoxEditor();
+		comboBoxEditor = new AutoCompletionComboBoxEditor();
 		comboBox.setEditor(comboBoxEditor);
 		docListener = new AutoCompletionDocumentListener();
 		((JTextField) comboBox.getEditor().getEditorComponent()).getDocument().addDocumentListener(docListener);
@@ -150,6 +152,11 @@ public class AutoCompleteComboBoxAddition {
 					// therefore overwriting any value which happens to be a prefix of something with the first match.
 					// this happens due to some RapidLookComboBoxEditor mechanics.
 					allowAutoFill = true;
+				}
+
+				@Override
+				public void focusLost(FocusEvent e) {
+					allowAutoFill = false;
 				}
 
 			});
