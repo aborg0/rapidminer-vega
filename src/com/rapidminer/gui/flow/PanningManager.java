@@ -48,7 +48,6 @@ public class PanningManager implements AWTEventListener  {
 	private JComponent target;
 
 	private Point mouseOnScreenPoint;
-	//private MouseEvent lastDragEvent;
 
 	private Timer timer = new Timer(PAN_DELAY, new ActionListener() {
 		@Override
@@ -80,8 +79,6 @@ public class PanningManager implements AWTEventListener  {
 				}
 			} else if (me.getID() == MouseEvent.MOUSE_DRAGGED && me.getComponent() == target) {				
 				mouseOnScreenPoint = me.getLocationOnScreen();
-				//System.out.println("New screen location: "+mouseOnScreenPoint);
-				//lastDragEvent = me;
 			} else if (me.getID() == MouseEvent.MOUSE_PRESSED && me.getComponent() == target) {
 				mouseOnScreenPoint = me.getLocationOnScreen();
 				timer.start();
@@ -96,41 +93,23 @@ public class PanningManager implements AWTEventListener  {
 
 			Rectangle visibleRect = target.getVisibleRect();
 			
-			if (visibleRect.contains(relative)) {
-				//System.out.println(visibleRect + " contains "+relative +  " origin: "+origin + " screen: "+mouseOnScreenPoint);
-			} else {
-				//System.out.println(visibleRect + " not cont "+relative  +  " origin: "+origin+ " screen: "+mouseOnScreenPoint);
+			if (!visibleRect.contains(relative)) {
 				int destX = relative.x;
-				//int redispatchedX = relative.x;
 				if (relative.getX() < visibleRect.getMinX()) {
 					destX = (int)visibleRect.getMinX() - PAN_STEP_SIZE;
-					//redispatchedX = (int)visibleRect.getMinX();
 				}
 				if (relative.getX() > visibleRect.getMaxX()) {
 					destX = (int)visibleRect.getMaxX() + PAN_STEP_SIZE;
-					//redispatchedX = (int)visibleRect.getMaxX();
 				}
 				
 				int destY = relative.y;
-				//int redispatchedY = relative.y;
 				if (relative.getY() < visibleRect.getMinY()) {
 					destY = (int)visibleRect.getMinY() - PAN_STEP_SIZE;
-					//redispatchedY = (int)visibleRect.getMinY();
 				}
 				if (relative.getY() > visibleRect.getMaxY()) {
 					destY = (int)visibleRect.getMaxY() + PAN_STEP_SIZE;
-					//redispatchedY = (int)visibleRect.getMaxY();
 				}
 				
-//				if (lastDragEvent != null) {				
-//					MouseEvent redispatched = new MouseEvent((Component)lastDragEvent.getSource(), lastDragEvent.getID(), lastDragEvent.getWhen(), lastDragEvent.getModifiers(),
-//							//redispatchedX, redispatchedY,
-//							relative.x, relative.y,
-//							lastDragEvent.getClickCount(),
-//							lastDragEvent.isPopupTrigger(),
-//							lastDragEvent.getButton());
-//					//target.dispatchEvent(redispatched);				
-//				}
 				target.scrollRectToVisible(new Rectangle(new Point(destX, destY)));
 			}
 		}		

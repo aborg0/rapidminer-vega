@@ -59,10 +59,7 @@ public class HashTreeLeafNode implements HashTreeNode {
 
 	@Override
 	public void countCoveredCandidates(DataSequence sequence, double t, CountingInformations counting) {
-		//System.out.println(sequence.toString());
 		for (int i = 0; i < candidateIndicesSize; i++) {
-//			System.out.println("  " + Sequence.containsSequence(sequence, counting.allCandidates.get(candidateIndices[i]), counting) + ": "+ counting.allCandidates.get(candidateIndices[i]));
-			
 			counting.candidateCounter[candidateIndices[i]] = DataSequence.containsSequence(sequence, counting.allCandidates.get(candidateIndices[i]), counting);
 		}
 	}

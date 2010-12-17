@@ -77,8 +77,6 @@ public class PlotterConfigurationSettings {
 	 * Please use setParameterValue of PlotterConfigurationModel instead.
 	 */
 	public void setParameterValue(String key, String value) {
-		if (!key.startsWith("_"))
-			System.out.println("Auta!");
 		parameterSettings.put(key, value);
 	}
 	

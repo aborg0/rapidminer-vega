@@ -369,11 +369,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			encoded.append("?format=binmeta");
 		}
 		final HttpURLConnection conn = (HttpURLConnection) new URL(getBaseUrl(), encoded.toString()).openConnection();
-		// final String userColonPass = username+":"+new String(password);
-		// //final String base64 = Base64.encodeBytes(userColonPass.getBytes());
-		// String base64 = new sun.misc.BASE64Encoder().encode(userColonPass.getBytes());
-		// System.out.println(userColonPass+ " -> "+base64);
-		// conn.setRequestProperty("Authorization", "Basic " + base64);
+
 		return conn;
 	}
 

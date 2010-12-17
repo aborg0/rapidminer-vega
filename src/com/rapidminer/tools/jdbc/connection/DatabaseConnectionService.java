@@ -261,26 +261,4 @@ public class DatabaseConnectionService {
     	}
     	return false;
 	}
-	
-//	public static void main(String[] args) throws SQLException {
-//		RapidMiner.setExecutionMode(RapidMiner.ExecutionMode.EMBEDDED_WITHOUT_UI);
-//		DatabaseService.init();
-//		DatabaseConnectionService.init();
-//		System.out.println("#entries = "+DatabaseConnectionService.getConnectionEntries());
-//		for (ConnectionEntry entry : DatabaseConnectionService.getConnectionEntries()) {
-//			DatabaseHandler handler = DatabaseConnectionService.connect(entry);
-//			Connection con = handler.getConnection();
-//			DatabaseMetaData meta = con.getMetaData();
-//			ResultSet typeResult = meta.getTypeInfo();
-//			ResultSetMetaData rsmd = typeResult.getMetaData();
-//			for (int i = 1; i <= rsmd.getColumnCount(); i++) {
-//				System.out.println(rsmd.getColumnName(i));
-//			}
-//			while (typeResult.next()) {
-//				System.out.print("data type: "+typeResult.getString("DATA_TYPE"));
-//				System.out.println("; type name: "+typeResult.getString("TYPE_NAME"));
-//				int type = Types.BIGINT;
-//			}
-//		}
-//	}
 }

@@ -621,7 +621,6 @@ public class DatabaseHandler {
 			} else {
 				int key = generatedKeys.getInt(1);
 				example.setValue(genPrimaryKey, key);
-				// System.out.println(key);
 			}
 		}
 		

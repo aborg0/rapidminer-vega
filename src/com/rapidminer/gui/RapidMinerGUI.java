@@ -549,7 +549,6 @@ public class RapidMinerGUI extends RapidMiner {
 	private static void launch(String[] args) throws Exception {	
 		String openLocation = null;
 		
-//		File file = null;
 		if (args.length > 0) {
 			if (args.length != 1) {
 				System.out.println("java " + RapidMinerGUI.class.getName() + " [processfile]");

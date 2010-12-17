@@ -98,18 +98,6 @@ public class SystemMonitor extends JPanel implements Dockable {
 				SystemMonitor.this.currentlyUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 				SystemMonitor.this.memory[SystemMonitor.this.currentMeasurement] = (long)currentlyUsed;
 				SystemMonitor.this.currentMeasurement = (SystemMonitor.this.currentMeasurement + 1) % SystemMonitor.this.memory.length;
-				// cpu
-				/*
-					java.lang.management.OperatingSystemMXBean os = ManagementFactory.getOperatingSystemMXBean();
-					System.out.println("LA: " + os.getSystemLoadAverage());
-					System.out.println("#Processors: " + os.getAvailableProcessors());
-					if (os instanceof com.sun.management.OperatingSystemMXBean) {
-					    long cpuTime = ((com.sun.management.OperatingSystemMXBean) os).getProcessCpuTime();
-					    System.out.println("CPU time = " + cpuTime);
-					}
-
-					System.out.println();
-				 */
 				SystemMonitor.this.repaint();				
 			}
 		}).start();

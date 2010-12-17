@@ -41,8 +41,6 @@ import com.rapidminer.tools.RandomGenerator;
 import com.rapidminer.tools.Tools;
 
 
-/////////////NOTE::::::::::private and protected has been made public:::::::::::::::::::: atif ////////////////////////////// 
-
 /**
  * The model of the improved neural net.
  * 
@@ -163,14 +161,11 @@ public class AutoMLPImprovedNeuralNetModel extends PredictionModel {
 			if (Double.isInfinite(error) || Double.isNaN(error)) {
 				if (Tools.isLessEqual(learningRate, 0.0d)) // should hardly happen
 				{	
-					System.out.println("\nThe learning rate in the error generated =" + learningRate);
 					throw new RuntimeException("Cannot reset network to a smaller learning rate.");
 				}
 				//these have been commented - after discussion.
 //				learningRate /= 2;
 //				train(exampleSet, hiddenLayers, maxCycles, maxError, learningRate, momentum, decay, shuffle, normalize, randomGenerator, is_old_model, old_model);
-				System.out.println("there has been an error therefore have to half the learning rate = " + learningRate/2 +" but not doing it and no training again");
-				System.out.println("cycle = " +cycle + " exampleSet.Size= " + maxSize + " learning rate = " +learningRate + " number of classes = " +numberOfClasses + " error = "+error);
 
 			}
 		}
@@ -363,7 +358,6 @@ public class AutoMLPImprovedNeuralNetModel extends PredictionModel {
 				}
 			}
 			lastLayerSize = numberOfNodes;
-//			System.out.println("hidden layer initialization:: Number of hidden nodes =" + numberOfNodes);
 		}
 	
 		int firstLayerSize = layerSizes[0];
@@ -394,7 +388,6 @@ public class AutoMLPImprovedNeuralNetModel extends PredictionModel {
 		// create the hidden layers as usual
 		initHiddenLayers(exampleSet, label, hiddenLayerList, randomGenerator);
 		// now initialize the layers according to the previously trained network's hidden layer's weights.
-//		System.out.println("initializing inner node to input layer wts. ");
 		for(int i =0; i < old_model.innerNodes.length && i < innerNodes.length; i++)
 		{
 			InnerNode old_innerNode = old_model.innerNodes[i];
@@ -412,12 +405,10 @@ public class AutoMLPImprovedNeuralNetModel extends PredictionModel {
 				for(int j=0; j<=length; j++)
 				{
 					new_weights[j]=old_weights[j];
-//					System.out.println("new_wt [" +j +"] = "+new_weights[j]);
 				}
 				innerNodes[i].setWeights(new_weights);
 			}
 		}
-//		System.out.println("initializing hidden layer to output layer wts.");
 		for(int i =0; i < old_model.innerNodes.length && i < innerNodes.length; i++)
 		{
 			InnerNode old_innerNode = old_model.innerNodes[i];
@@ -437,7 +428,6 @@ public class AutoMLPImprovedNeuralNetModel extends PredictionModel {
 				for(int j=0; j<=length && j <=length1; j++)
 				{
 					new_weights[j]=old_weights[j];
-//					System.out.println("new_wt [" +j +"] = "+new_weights[j]);
 				}
 				innerNodes[i].setWeights(new_weights);
 			}

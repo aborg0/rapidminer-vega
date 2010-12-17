@@ -277,9 +277,7 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 		}
 		buf.append("</h2>");
 		buf.append("</td></tr></table>");
-		// #"+Integer.toHexString(SwingTools.RAPID_I_ORANGE.getRGB()).substring(0,6)+"
 		buf.append("<hr noshade=\"true\"/><br/>");
-		// System.out.println("<hr color=\"#"+Integer.toHexString(SwingTools.RAPID_I_ORANGE.getRGB()).substring(0,6)+"\"/>");
 		buf.append("<h4>Synopsis</h4>");
 		buf.append("<p>");
 		buf.append(descr.getShortDescription());
@@ -309,16 +307,13 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 					continue;
 				}
 				buf.append("<dt>");
+				
 				if (type.isExpert()) {
 					buf.append("<i>");
 				}
-				// if (type.isOptional()) {
+
 				buf.append(makeParameterHeader(type));
-				// } else {
-				// buf.append("<strong>");
-				// buf.append(makeParameterHeader(type));
-				// buf.append("</strong>");
-				// }
+
 				if (type.isExpert()) {
 					buf.append("</i>");
 				}

@@ -58,7 +58,7 @@ public abstract class AbstractLinkageMethod {
 				for (int y = x + 1; y < matrix.getHeight(); y++) {
 					if (!isDeletedData[y]) {
 						double value = matrix.get(x, y);
-						if (value < minimalDistance) {
+						if (value <= minimalDistance) {
 							minimalX = x;
 							minimalY = y;
 							minimalDistance = value;

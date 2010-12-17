@@ -23,7 +23,7 @@
 package com.rapidminer.operator.clustering.clusterer;
 
 /**
- * This class implements an symetrical matrix for distances, thus saving half the memory
+ * This class implements an symmetrical matrix for distances, thus saving half the memory
  * by saving only the upper right triangle
  * @author Sebastian Land
  */

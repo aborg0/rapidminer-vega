@@ -95,13 +95,7 @@ public class ParameterTupelCellEditor extends AbstractCellEditor implements Prop
 		return panel;
 	}
 
-	//private long lastStopFire = 0;
-	
 	private void constructPanel(String[] values) {
-		if (values == null) {
-			System.out.println("VALUES NULL");
-		}
-		
 		// constructing editors
 		editors = new PropertyValueCellEditor[types.length];
 		for (int i = 0; i < types.length; i++) {
@@ -109,7 +103,6 @@ public class ParameterTupelCellEditor extends AbstractCellEditor implements Prop
 			editors[i].addCellEditorListener(new CellEditorListener() {
 				@Override
 				public void editingCanceled(ChangeEvent e) {
-					System.out.println("Delegating CANCEL " + System.currentTimeMillis());
 					fireEditingCanceled();
 				}
 

@@ -1180,20 +1180,6 @@ public class Tools {
 		return result.toString();
 	}
 
-	// quotedSplit Test:
-	public static void main(String[] args) {
-		String s = "\"C\"S,o\"\", 1968, \"US\"";
-		// s= "\"a,b\"";
-		s = "\"Charles says: \"Some people never go crazy, What truly horrible lives they must live\"\", 1968, \"US\"";
-		System.out.println(s);
-
-		s = escapeQuoteCharsInQuotes(s, Pattern.compile(",\\s*"), '"', '\\', true);
-		String[] out = quotedSplit(s, Pattern.compile(",\\s*"), '"', '\\');
-		for (String t : out) {
-			System.out.println(t);
-		}
-	}
-
 	/**
 	 * 
 	 * Returns the column name of the the n'th column like excel names it.

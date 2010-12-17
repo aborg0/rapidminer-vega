@@ -432,7 +432,6 @@ public class MetaDataDeclarationEditor extends JPanel {
 			}
 			columnIndex--;
 			if (rowIndex == ATTRIBUTE_NAME_ROW) {
-				// System.out.println(reader.getColumnCount());
 				return reader.getAttributeColumn(columnIndex).getName();
 			}
 			if (rowIndex == VALUE_TYPE_ROW) {
@@ -716,27 +715,6 @@ public class MetaDataDeclarationEditor extends JPanel {
 		@Override
 		public boolean isCellEditable(int row, int column) {
 			return false;
-		}
-
-		@Override
-		public void pack() {
-			super.pack();
-			//			
-			// lock = true;
-			// assert previewTable.getColumnCount() == metadataTable.getColumnCount();
-			// for (int i = 0; i < metadataTable.getColumnCount(); i++) {
-			// int columnwidth = this.getColumnModel().getColumn(i).getWidth();
-			// System.out.println(columnwidth);
-			// int oldwidth = metadataTable.getColumnModel().getColumn(i).getPreferredWidth();
-			// if (oldwidth == columnwidth){
-			// continue;
-			// }
-			// metadataTable.getColumnModel().getColumn(i).setPreferredWidth(columnwidth);
-			// }
-			// metadataTable.doLayout();
-			// metadataTable.repaint();
-			//			
-			// lock = false;
 		}
 
 		// fit to column margin and other actions does not work due the

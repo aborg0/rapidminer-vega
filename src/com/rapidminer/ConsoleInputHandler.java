@@ -28,7 +28,6 @@ import java.io.IOException;
  * Reads input from console, e.g. a password in case of database reading.
  * 
  * @author Simon Fischer, Ingo Mierswa
- *          Exp $
  */
 public class ConsoleInputHandler implements InputHandler {
 

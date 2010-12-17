@@ -1139,7 +1139,6 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 
 		int lineCount = 0; // debugging purpose
 		while (set.next() && (limitOfReadLines == -1 || limitOfReadLines > lineCount)) {
-			// System.out.println("Line = "+lineCount);
 			double[] row = generateRow(set, activeAttributes, lineCount);
 
 			// collect the read line
@@ -1665,8 +1664,6 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
 			try {
 				// get former parameters
 				List<String[]> list = getParameterList(PARAMETER_META_DATA);
-				// System.out.println("Attribute count: " + list +
-				// "Atribute index " + index);
 
 				String[] metadata;
 				String tuple;

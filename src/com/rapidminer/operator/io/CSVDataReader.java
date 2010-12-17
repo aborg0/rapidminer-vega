@@ -173,7 +173,6 @@ public class CSVDataReader extends AbstractDataReader {
 
 			@Override
 			public boolean next() {
-//				System.out.println(debugCount++);
 				String line = null;
 				try {
 					do {
