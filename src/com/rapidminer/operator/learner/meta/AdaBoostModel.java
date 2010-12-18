@@ -193,7 +193,8 @@ public class AdaBoostModel extends PredictionModel implements MetaModel {
 	}
 
 	private void evaluateSpecialAttributes(ExampleSet exampleSet, Attribute[] specialAttributes) {
-		Attribute exSetLabel = exampleSet.getAttributes().getLabel();
+		Attribute label = exampleSet.getAttributes().getLabel();
+		Attribute predictedLabel = exampleSet.getAttributes().getPredictedLabel();
 		Iterator<Example> reader = exampleSet.iterator();
 		while (reader.hasNext()) {
 			Example example = reader.next();
@@ -209,7 +210,7 @@ public class AdaBoostModel extends PredictionModel implements MetaModel {
 				}
 			}
 
-			example.setValue(example.getAttributes().getPredictedLabel(), exSetLabel.getMapping().mapString(this.getLabel().getMapping().mapIndex(bestLabel)));
+			example.setValue(predictedLabel, label.getMapping().mapString(this.getLabel().getMapping().mapIndex(bestLabel)));
 
 			for (int n = 0; n < confidences.length; n++) {								
 				confidences[n] = Math.exp(confidences[n] - bestConf);
@@ -228,7 +229,7 @@ public class AdaBoostModel extends PredictionModel implements MetaModel {
 			else {
 				for (int k = 0; k < confidences.length; k++) {
 					confidences[k] /= sum;
-					example.setConfidence(exampleSet.getAttributes().getLabel().getMapping().mapIndex(k), confidences[k]);
+					example.setConfidence(predictedLabel.getMapping().mapIndex(k), confidences[k]);
 				}
 			}
 		}

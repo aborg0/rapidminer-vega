@@ -30,9 +30,9 @@ import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.SimpleProcessSetupError;
 import com.rapidminer.operator.UserError;
-import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.features.selection.AbstractFeatureSelection;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
@@ -90,7 +90,7 @@ public class FeatureRangeRemoval extends AbstractFeatureSelection {
 		if (!warning) {
 			int i = 0;
 			Iterator<AttributeMetaData> iterator = metaData.getAllAttributes().iterator();
-			while (iterator.hasNext() && i <= secondIndex) {
+			while (iterator.hasNext() && i < secondIndex) {
 				AttributeMetaData amd = iterator.next();
 				if (!amd.isSpecial())
 					i++;

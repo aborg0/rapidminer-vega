@@ -98,7 +98,10 @@ public class XMLSerialization {
 	
 	public void addAlias(String name, Class clazz) {
 		if (xStream != null) {
-			xStream.alias(name, clazz);
+			String alias = name.replaceAll("[^a-zA-Z_0-9-]", "_").replaceAll("_+", "-");
+			if (alias.endsWith("-"))
+				alias = alias.substring(0, alias.length() -1);
+			xStream.alias(alias, clazz);
         }
 	}
 	
