@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.tools.math.function.expressions;
+package com.rapidminer.tools.math.function.expressions.text;
 
 import java.util.Stack;
 
@@ -30,30 +30,43 @@ import org.nfunk.jep.function.PostfixMathCommand;
 import com.rapidminer.tools.math.function.UnknownValue;
 
 /**
- * Returns true if the given argument is a missing value; false otherwise.
+ * Calculates the substring of the given string and pushed it on the result stack.
  * 
- * @author Marco Boeck
+ * @author Sebastian Land
  */
-public class Missing extends PostfixMathCommand {
-	
-	public Missing() {
-		numberOfParameters = 1;
+public class Substring extends PostfixMathCommand {
+
+	public Substring() {
+		numberOfParameters = 3;
 	}
-	
-	/**
-	 * Checks for missing value.
-	 */
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		checkStack(stack);
-		
-		Object toTestObject = stack.pop();
-		if (toTestObject instanceof Double) {
-			Double number = (Double)toTestObject;
-			stack.push(number.isNaN());
-		} else {
-			stack.push(toTestObject instanceof UnknownValue);
+		checkStack(stack);// check the stack
+
+		// initialize the result to the first argument
+		Object length = stack.pop();
+		Object start = stack.pop();
+		Object stringObject = stack.pop();
+
+		// checking for unknown value
+		if (stringObject == UnknownValue.UNKNOWN_NOMINAL) {
+			stack.push(UnknownValue.UNKNOWN_NOMINAL);
+			return;
+		}
+
+		if (!(stringObject instanceof String) || !(start instanceof Double) || !(length instanceof Double)) {
+			throw new ParseException(
+					"Invalid argument type, must be (string, number, number)");
+		}
+		int startI = ((Double) start).intValue();
+		int lenI = ((Double) length).intValue();
+		String string = (String) stringObject;
+		try {
+			stack.push(string.substring(startI, startI + lenI));
+		} catch (IndexOutOfBoundsException e) {
+			throw new ParseException("Invalid argument value: Start and length exceed given string: " + string);
 		}
 	}
 }

@@ -23,8 +23,7 @@
 package com.rapidminer.operator.features.weighting;
 
 import static com.rapidminer.operator.features.weighting.AbstractWeighting.PARAMETER_NORMALIZE_WEIGHTS;
-import static com.rapidminer.operator.learner.tree.AbstractTreeLearner.CRITERIA_NAMES;
-import static com.rapidminer.operator.learner.tree.AbstractTreeLearner.CRITERION_GAIN_RATIO;
+import static com.rapidminer.operator.learner.tree.AbstractTreeLearner.*;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -149,7 +148,7 @@ public class ForestBasedWeighting extends Operator {
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
-		ParameterType type = new ParameterTypeStringCategory(PARAMETER_CRITERION, "Specifies the used criterion for weighting attributes.", CRITERIA_NAMES, CRITERIA_NAMES[CRITERION_GAIN_RATIO]);
+		ParameterTypeStringCategory type = new ParameterTypeStringCategory(PARAMETER_CRITERION, "Specifies the used criterion for weighting attributes.", CRITERIA_NAMES, CRITERIA_NAMES[CRITERION_GAIN_RATIO], false);
 		type.setExpert(false);
 		types.add(type);
 		types.add(new ParameterTypeBoolean(PARAMETER_NORMALIZE_WEIGHTS, "Activates the normalization of all weights.", true, false));		

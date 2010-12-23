@@ -130,7 +130,7 @@ public class ExampleFilter extends AbstractDataProcessing {
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
 		
-		ParameterType type = new ParameterTypeStringCategory(PARAMETER_CONDITION_CLASS, "Implementation of the condition.", ConditionedExampleSet.KNOWN_CONDITION_NAMES, ConditionedExampleSet.KNOWN_CONDITION_NAMES[ConditionedExampleSet.CONDITION_ALL]);
+		ParameterType type  = new ParameterTypeStringCategory(PARAMETER_CONDITION_CLASS, "Implementation of the condition.", ConditionedExampleSet.KNOWN_CONDITION_NAMES, ConditionedExampleSet.KNOWN_CONDITION_NAMES[ConditionedExampleSet.CONDITION_ALL], false);
 		type.setExpert(false);
 		types.add(type);
 		

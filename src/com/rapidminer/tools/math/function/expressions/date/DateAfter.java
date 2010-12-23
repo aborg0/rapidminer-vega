@@ -20,8 +20,10 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.tools.math.function.expressions;
+package com.rapidminer.tools.math.function.expressions.date;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Stack;
 
 import org.nfunk.jep.ParseException;
@@ -30,30 +32,41 @@ import org.nfunk.jep.function.PostfixMathCommand;
 import com.rapidminer.tools.math.function.UnknownValue;
 
 /**
- * Returns true if the given argument is a missing value; false otherwise.
+ * Determines if the first Calendar is strictly later than the second Calendar.
  * 
  * @author Marco Boeck
  */
-public class Missing extends PostfixMathCommand {
+public class DateAfter extends PostfixMathCommand {
 	
-	public Missing() {
-		numberOfParameters = 1;
+	public DateAfter() {
+		numberOfParameters = 2;
 	}
 	
 	/**
-	 * Checks for missing value.
+	 * Creates the boolean result.
+	 * True if the first date is strictly later than the second date; false otherwise (includes same date).
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
 		checkStack(stack);
 		
-		Object toTestObject = stack.pop();
-		if (toTestObject instanceof Double) {
-			Double number = (Double)toTestObject;
-			stack.push(number.isNaN());
-		} else {
-			stack.push(toTestObject instanceof UnknownValue);
+		Object calObjectTwo = stack.pop();
+		Object calObjectOne = stack.pop();
+		// check for unknown values
+		if (calObjectTwo == UnknownValue.UNKNOWN_DATE || calObjectOne == UnknownValue.UNKNOWN_DATE) {
+			stack.push(UnknownValue.UNKNOWN_BOOLEAN);
+			return;
 		}
+
+		if (!(calObjectOne instanceof Calendar) || !(calObjectTwo instanceof Calendar)) {
+			throw new ParseException("Invalid argument type for 'date_after', must both be Calendar");
+		}
+		Calendar calOne = (Calendar)calObjectOne;
+		Calendar calTwo = (Calendar)calObjectTwo;
+		Date dateOne = calOne.getTime();
+		Date dateTwo = calTwo.getTime();
+		boolean result = dateOne.after(dateTwo);
+		stack.push(result);
 	}
 }

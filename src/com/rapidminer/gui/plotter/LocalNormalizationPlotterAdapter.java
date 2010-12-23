@@ -58,7 +58,7 @@ public abstract class LocalNormalizationPlotterAdapter extends LabelRotatingPlot
         localNormalizationBox.setToolTipText("Indicates if a local normalization for each dimension should be performed or not.");
 		localNormalizationBox.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-				settings.setParameterAsBoolean(PlotterAdapter.transformParameterName(getPlotterName()) + "_" + PARAMETER_LOCAL_NORMALIZATION, localNormalizationBox.isSelected());
+				settings.setParameterAsBoolean(PARAMETER_LOCAL_NORMALIZATION, localNormalizationBox.isSelected());
 			}
 		});
 

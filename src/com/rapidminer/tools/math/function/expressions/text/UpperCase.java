@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.tools.math.function.expressions;
+package com.rapidminer.tools.math.function.expressions.text;
 
 import java.util.Stack;
 
@@ -30,30 +30,36 @@ import org.nfunk.jep.function.PostfixMathCommand;
 import com.rapidminer.tools.math.function.UnknownValue;
 
 /**
- * Returns true if the given argument is a missing value; false otherwise.
+ * Transforms the given string to upper case characters.
  * 
- * @author Marco Boeck
+ * @author Ingo Mierswa
  */
-public class Missing extends PostfixMathCommand {
-	
-	public Missing() {
+public class UpperCase extends PostfixMathCommand {
+
+	public UpperCase() {
 		numberOfParameters = 1;
 	}
-	
-	/**
-	 * Checks for missing value.
-	 */
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		checkStack(stack);
-		
-		Object toTestObject = stack.pop();
-		if (toTestObject instanceof Double) {
-			Double number = (Double)toTestObject;
-			stack.push(number.isNaN());
-		} else {
-			stack.push(toTestObject instanceof UnknownValue);
+		checkStack(stack);// check the stack
+
+		// initialize the result to the first argument
+		Object textObject = stack.pop();
+
+		// checking for unknown value
+		if (textObject == UnknownValue.UNKNOWN_NOMINAL) {
+			stack.push(UnknownValue.UNKNOWN_NOMINAL);
+			return;
 		}
+
+		if (!(textObject instanceof String)) {
+			throw new ParseException("Invalid argument type, must be (string)");
+		}
+
+		String text = (String) textObject;
+
+		stack.push(text.toUpperCase());
 	}
 }

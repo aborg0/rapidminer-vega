@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.tools.math.function.expressions;
+package com.rapidminer.tools.math.function.expressions.text;
 
 import java.util.Stack;
 
@@ -30,30 +30,38 @@ import org.nfunk.jep.function.PostfixMathCommand;
 import com.rapidminer.tools.math.function.UnknownValue;
 
 /**
- * Returns true if the given argument is a missing value; false otherwise.
+ * Compares the two given texts lexicographically and returns a number smaller than 0 if the first text is smaller, 
+ * a number larger than 0 if the first text is larger, or 0 otherwise.
  * 
- * @author Marco Boeck
+ * @author Ingo Mierswa
  */
-public class Missing extends PostfixMathCommand {
-	
-	public Missing() {
-		numberOfParameters = 1;
+public class Compare extends PostfixMathCommand {
+
+	public Compare() {
+		numberOfParameters = 2;
 	}
 	
-	/**
-	 * Checks for missing value.
-	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		checkStack(stack);
-		
-		Object toTestObject = stack.pop();
-		if (toTestObject instanceof Double) {
-			Double number = (Double)toTestObject;
-			stack.push(number.isNaN());
-		} else {
-			stack.push(toTestObject instanceof UnknownValue);
+		checkStack(stack);// check the stack
+
+		// initialize the result to the first argument
+		Object secondTextObject = stack.pop();
+		Object firstTextObject = stack.pop();
+		// checking for unknown value
+		if (secondTextObject == UnknownValue.UNKNOWN_NOMINAL || firstTextObject == UnknownValue.UNKNOWN_NOMINAL) {
+			stack.push(Double.NaN);
+			return;
 		}
+		
+		if (!(firstTextObject instanceof String) || !(secondTextObject instanceof String)) {
+			throw new ParseException("Invalid argument types, must be (string, string)");
+		}
+		
+		String firstText  = (String) firstTextObject;
+		String secondText = (String) secondTextObject;
+		
+		stack.push(firstText.compareTo(secondText));
 	}
 }

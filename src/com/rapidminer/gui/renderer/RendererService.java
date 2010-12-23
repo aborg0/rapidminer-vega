@@ -61,16 +61,17 @@ import com.rapidminer.tools.Tools;
 public class RendererService {
 
 	private static final Icon ICON_DEFAULT = SwingTools.createIcon("16/data.png");
-	
+
 	private static Set<String> objectNames = new TreeSet<String>();
 
-	/** Maps names of IOObjects to lists of renderers that can render this object. These
-	 *  instances are shared! */
+	/**
+	 * Maps names of IOObjects to lists of renderers that can render this object. These instances are shared!
+	 */
 	private static Map<String, List<Renderer>> objectRenderers = new HashMap<String, List<Renderer>>();
 
 	/** Maps names of IOObjects to lists of renderer classes that can render this object. */
-	private static Map<String, Map<String, Class<? extends Renderer>>> rendererNameToRendererClasses = 
-		new HashMap<String, Map<String, Class<? extends Renderer>>>();
+	private static Map<String, Map<String, Class<? extends Renderer>>> rendererNameToRendererClasses =
+			new HashMap<String, Map<String, Class<? extends Renderer>>>();
 
 	private static Map<String, Class<? extends IOObject>> objectClasses = new HashMap<String, Class<? extends IOObject>>();
 
@@ -80,7 +81,7 @@ public class RendererService {
 	private static Map<Class<?>, String> class2NameMap = new HashMap<Class<?>, String>();
 
 	private static Map<Class<? extends IOObject>, Icon> class2IconMap = new HashMap<Class<? extends IOObject>, Icon>();
-	
+
 	public static void init() {
 		URL url = Tools.getResource("ioobjects.xml");
 		init(url);
@@ -125,7 +126,7 @@ public class RendererService {
 				for (int i = 0; i < ioObjectNodes.getLength(); i++) {
 					Node ioObjectNode = ioObjectNodes.item(i);
 					if (ioObjectNode instanceof Element) {
-						Element ioObjectElement = (Element)ioObjectNode;
+						Element ioObjectElement = (Element) ioObjectNode;
 
 						String name = ioObjectElement.getAttribute("name");
 						String className = ioObjectElement.getAttribute("class");
@@ -134,19 +135,18 @@ public class RendererService {
 							reportableString = ioObjectElement.getAttribute("reportable");
 						}
 						boolean reportable = Tools.booleanValue(reportableString, true);
-						
+
 						String icon = null;
 						if (ioObjectElement.hasAttribute("icon")) {
 							icon = ioObjectElement.getAttribute("icon");
 						}
-						
 
 						NodeList rendererNodes = ioObjectElement.getElementsByTagName("renderer");
 						List<String> renderers = new LinkedList<String>();
 						for (int k = 0; k < rendererNodes.getLength(); k++) {
 							Node rendererNode = rendererNodes.item(k);
 							if (rendererNode instanceof Element) {
-								Element rendererElement = (Element)rendererNode;
+								Element rendererElement = (Element) rendererNode;
 								String rendererName = rendererElement.getTextContent();
 								renderers.add(rendererName);
 							}
@@ -177,23 +177,25 @@ public class RendererService {
 	}
 
 	/**
-	 * This method remains for compatibility reasons. But one should use {@link #registerRenderers(String, String, boolean, String, List, ClassLoader)} in order
-	 * to assign an icon to the ioobject class.
+	 * This method remains for compatibility reasons. But one should use
+	 * {@link #registerRenderers(String, String, boolean, String, List, ClassLoader)} in order to assign an icon to the
+	 * ioobject class.
 	 */
 	@Deprecated
 	public static void registerRenderers(String reportableNames, String className, boolean reportable, List<String> rendererClassNames, ClassLoader classLoader) {
 		registerRenderers(reportableNames, className, reportable, null, rendererClassNames, classLoader);
 	}
+
 	@SuppressWarnings("unchecked")
 	public static void registerRenderers(String reportableNames, String className, boolean reportable, String iconName, List<String> rendererClassNames, ClassLoader classLoader) {
 		objectNames.add(reportableNames);
 
 		try {
-			
+
 			Class<? extends IOObject> clazz = (Class<? extends IOObject>) Class.forName(className, true, classLoader);
 
 			List<Renderer> renderers = new LinkedList<Renderer>();
-			Map<String,Class<? extends Renderer>> rendererClassMap = new HashMap<String,Class<? extends Renderer>>();
+			Map<String, Class<? extends Renderer>> rendererClassMap = new HashMap<String, Class<? extends Renderer>>();
 			for (String rendererClassName : rendererClassNames) {
 				Class<? extends Renderer> rendererClass;
 				try {
@@ -206,7 +208,7 @@ public class RendererService {
 				renderers.add(renderer);
 				rendererClassMap.put(renderer.getName(), rendererClass);
 			}
-			
+
 			rendererNameToRendererClasses.put(reportableNames, rendererClassMap);
 			objectRenderers.put(reportableNames, renderers);
 			objectClasses.put(reportableNames, clazz);
@@ -214,14 +216,14 @@ public class RendererService {
 			if (reportable) {
 				reportableMap.add(reportableNames);
 			}
-			
+
 			// try to create icon
 			if (iconName != null && !iconName.isEmpty()) {
 				ImageIcon icon = SwingTools.createIcon("16/" + iconName);
 				if (icon != null)
 					class2IconMap.put(clazz, icon);
 			}
-			
+
 		} catch (Throwable e) {
 			LogService.getRoot().log(Level.WARNING, "Cannot register renderer: " + e, e);
 		}
@@ -241,13 +243,14 @@ public class RendererService {
 		return result;
 	}
 
-	/** Returns the Reportable name for objects of the given class.
+	/**
+	 * Returns the Reportable name for objects of the given class.
 	 * 
 	 */
 	public static String getName(Class<?> clazz) {
 		String result = class2NameMap.get(clazz);
 		if (result == null) {
-			for (Class<?> renderable: class2NameMap.keySet()) {
+			for (Class<?> renderable : class2NameMap.keySet()) {
 				if (renderable.isAssignableFrom(clazz))
 					return class2NameMap.get(renderable);
 			}
@@ -262,17 +265,17 @@ public class RendererService {
 		return objectClasses.get(name);
 	}
 
-	/** Returns a list of renderers defined for this IOObject name (as returned by 
-	 *  {@link #getName(Class)} for the respective object).
-	 *  It is recommended to use {@link #getRenderers(IOObject)} instead.
-	 *  */
+	/**
+	 * Returns a list of renderers defined for this IOObject name (as returned by {@link #getName(Class)} for the
+	 * respective object). It is recommended to use {@link #getRenderers(IOObject)} instead.
+	 * */
 	public static List<Renderer> getRenderers(String reportableName) {
 		List<Renderer> renderers = objectRenderers.get(reportableName);
 		if (renderers != null)
 			return renderers;
 		return new LinkedList<Renderer>();
 	}
-	
+
 	/** Returns a list of shared (i.e. not thread-safe!) renderers defined for this IOObject. */
 	public static List<Renderer> getRenderers(IOObject ioo) {
 		String reportableName = RendererService.getName(ioo.getClass());
@@ -288,42 +291,46 @@ public class RendererService {
 		}
 		return null;
 	}
-	
+
 	/**
-	 * This returns the icon registered for the given class or a default icon,
-	 * if nothing has been registered.
+	 * This returns the icon registered for the given class or a default icon, if nothing has been registered.
 	 */
 	public static Icon getIcon(Class<? extends IOObject> objectClass) {
 		if (objectClass == null)
 			return ICON_DEFAULT;
 		Icon icon = class2IconMap.get(objectClass);
 		if (icon == null) {
-			for (Entry<Class<? extends IOObject>, Icon> renderableClassEntry: class2IconMap.entrySet()) {
-				if (renderableClassEntry.getKey().isAssignableFrom(objectClass))
+			for (Entry<Class<? extends IOObject>, Icon> renderableClassEntry : class2IconMap.entrySet()) {
+				if (renderableClassEntry.getKey().isAssignableFrom(objectClass)) {
 					class2IconMap.put(objectClass, renderableClassEntry.getValue());
 					return renderableClassEntry.getValue();
+				}
 			}
 			return ICON_DEFAULT;
-		} 
+		}
 		return icon;
 	}
-	/** Creates a new renderer for the given object. 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException */
+
+	/**
+	 * Creates a new renderer for the given object.
+	 * 
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 */
 	public static Renderer createRenderer(IOObject ioobject, String rendererName) {
 		String reportableName = getName(ioobject.getClass());
 		Map<String, Class<? extends Renderer>> rendererClassMap = rendererNameToRendererClasses.get(reportableName);
 		if (rendererClassMap == null) {
-			throw new IllegalArgumentException("Illegal reportable name: "+rendererName);
+			throw new IllegalArgumentException("Illegal reportable name: " + rendererName);
 		}
 		Class<? extends Renderer> rendererClass = rendererClassMap.get(rendererName);
 		if (rendererClass == null) {
-			throw new IllegalArgumentException("Illegal renderer name: "+rendererName);
+			throw new IllegalArgumentException("Illegal renderer name: " + rendererName);
 		}
 		try {
 			return rendererClass.newInstance();
 		} catch (Exception e) {
-			throw new RuntimeException("Failed to create renderer: "+e, e);
-		}		
+			throw new RuntimeException("Failed to create renderer: " + e, e);
+		}
 	}
 }

@@ -56,7 +56,7 @@ public class AttributeFactory {
 
 	/** Creates a simple single attribute depending on the given value type. */
 	public static Attribute createAttribute(String name, int valueType) {
-		String attributeName = (name != null) ? name : createName();
+		String attributeName = (name != null) ? new String(name) : createName();  // we copy the name if the underlying char array value is larger than needed
 		if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.DATE_TIME)) {
 			return new DateAttribute(attributeName, valueType);
 		} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.BINOMINAL)) {

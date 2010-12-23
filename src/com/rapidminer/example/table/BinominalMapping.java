@@ -98,10 +98,10 @@ public class BinominalMapping implements NominalMapping {
 		if (index < 0) {
 			// if string is not found, set it
 			if (firstValue == null) {
-				firstValue = str;
+				firstValue = new String(str);  // we copy the string if the underlying char array value is larger than needed
 				return FIRST_VALUE_INDEX;
 			} else if (secondValue == null) {
-				secondValue = str;
+				secondValue = new String(str);  // we copy the string if the underlying char array value is larger than needed
 				return SECOND_VALUE_INDEX;
 			} else {
 				throw new AttributeTypeException("Cannot map another string for binary attribute: already mapped two strings ("+firstValue+", "+secondValue+"). The third string that was tried to add: <tt>"+str+"</tt>");

@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.tools.math.function.expressions;
+package com.rapidminer.tools.math.function.expressions.text;
 
 import java.util.Stack;
 
@@ -30,30 +30,40 @@ import org.nfunk.jep.function.PostfixMathCommand;
 import com.rapidminer.tools.math.function.UnknownValue;
 
 /**
- * Returns true if the given argument is a missing value; false otherwise.
+ * Calculates the prefix of the given string and pushes it on the result stack. If the 
+ * given string is too short, the complete string will be returned.
  * 
- * @author Marco Boeck
+ * @author Ingo Mierswa
  */
-public class Missing extends PostfixMathCommand {
-	
-	public Missing() {
-		numberOfParameters = 1;
+public class Prefix extends PostfixMathCommand {
+
+	public Prefix() {
+		numberOfParameters = 2;
 	}
 	
-	/**
-	 * Checks for missing value.
-	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		checkStack(stack);
+		checkStack(stack);// check the stack
+
+		// initialize the result to the first argument
+		Object lengthObject = stack.pop();
+		Object textObject = stack.pop();
+		// checking for unknown value
+		if (textObject  == UnknownValue.UNKNOWN_NOMINAL) {
+			stack.push(UnknownValue.UNKNOWN_NOMINAL);
+			return;
+		}
+		if (!(textObject instanceof String) || !(lengthObject instanceof Number)) {
+			throw new ParseException("Invalid argument type, must be (string, number)");
+		}
 		
-		Object toTestObject = stack.pop();
-		if (toTestObject instanceof Double) {
-			Double number = (Double)toTestObject;
-			stack.push(number.isNaN());
-		} else {
-			stack.push(toTestObject instanceof UnknownValue);
+		String text = (String) textObject;
+		int length = Math.min(text.length(), ((Number) lengthObject).intValue());
+		try {
+			stack.push(text.substring(0, length));
+		} catch (IndexOutOfBoundsException e) {
+			stack.push(text);
 		}
 	}
 }

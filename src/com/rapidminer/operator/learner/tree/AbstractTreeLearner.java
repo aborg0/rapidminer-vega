@@ -131,7 +131,7 @@ public abstract class AbstractTreeLearner extends AbstractLearner {
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
-		ParameterType type = new ParameterTypeStringCategory(PARAMETER_CRITERION, "Specifies the used criterion for selecting attributes and numerical splits.", CRITERIA_NAMES, CRITERIA_NAMES[CRITERION_GAIN_RATIO]);
+		ParameterType type = new ParameterTypeStringCategory(PARAMETER_CRITERION, "Specifies the used criterion for selecting attributes and numerical splits.", CRITERIA_NAMES, CRITERIA_NAMES[CRITERION_GAIN_RATIO], false);
 		type.setExpert(false);
 		types.add(type);
 		type = new ParameterTypeInt(PARAMETER_MINIMAL_SIZE_FOR_SPLIT, "The minimal size of a node in order to allow a split.", 1, Integer.MAX_VALUE, 4);

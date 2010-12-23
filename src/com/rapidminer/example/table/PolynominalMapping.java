@@ -108,6 +108,7 @@ public class PolynominalMapping implements NominalMapping {
 		// if string is not yet in the map, add it
 		if (index < 0) {
 			// new string -> insert
+			str = new String(str);  // we copy the name if the underlying char array value is larger than needed
 			indexToSymbolMap.add(str);
 			index = indexToSymbolMap.size() - 1;
 			symbolToIndexMap.put(str, index);

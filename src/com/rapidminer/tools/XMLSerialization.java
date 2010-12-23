@@ -55,11 +55,11 @@ import com.rapidminer.operator.IOContainer;
  */
 public class XMLSerialization {
 
-	private static XMLSerialization singleton;
+	private static ClassLoader classLoader;
 	
 	private com.thoughtworks.xstream.XStream xStream;
     
-	public XMLSerialization(ClassLoader classLoader) {
+	private XMLSerialization(ClassLoader classLoader) {
 		try {
             Class<?> xStreamClass = Class.forName("com.thoughtworks.xstream.XStream");
             Class generalDriverClass = Class.forName("com.thoughtworks.xstream.io.HierarchicalStreamDriver");
@@ -86,6 +86,7 @@ public class XMLSerialization {
 			addAlias("AttributeRole", AttributeRole.class);
 			
 			xStream.setClassLoader(classLoader);
+			
 		} catch (Throwable e) {
 			// TODO: Why are we catching Throwables?
             LogService.getRoot().log(Level.WARNING, "Cannot initialize XML serialization. Probably the libraries 'xstream.jar' and 'xpp.jar' were not provided. XML serialization will not work!", e);
@@ -93,7 +94,7 @@ public class XMLSerialization {
 	}
 	
 	public static void init(ClassLoader classLoader) {
-		singleton = new XMLSerialization(classLoader);
+		XMLSerialization.classLoader = classLoader;
 	}
 	
 	public void addAlias(String name, Class clazz) {
@@ -137,8 +138,12 @@ public class XMLSerialization {
 		}
 	}
 	
-	/** Returns the singleton instance. */
+	/** 
+	 * Returns the singleton instance. 
+	 * We have to return a new instance, since the xStream will remember several mappings and causing a huge
+	 * memory leak.
+	 **/
 	public static XMLSerialization getXMLSerialization() {
-		return singleton;
+		return new XMLSerialization(classLoader);
 	}
 }

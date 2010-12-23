@@ -45,30 +45,30 @@ import com.rapidminer.report.Tableable;
 import com.rapidminer.tools.Tools;
 
 /**
- * This is the abstract renderer superclass for all renderers which
- * should be a table based on a given {@link TableModel}.
+ * This is the abstract renderer superclass for all renderers which should be a table based on a given
+ * {@link TableModel}.
  * 
  * @author Ingo Mierswa
  */
 public abstract class AbstractTableModelTableRenderer extends NonGraphicalRenderer {
 
-	public static final String RENDERER_NAME        = "Table View";
+	public static final String RENDERER_NAME = "Table View";
 
-	public static final String PARAMETER_MIN_ROW    = "min_row";
+	public static final String PARAMETER_MIN_ROW = "min_row";
 
-	public static final String PARAMETER_MAX_ROW    = "max_row";
+	public static final String PARAMETER_MAX_ROW = "max_row";
 
 	public static final String PARAMETER_MIN_COLUMN = "min_column";
 
 	public static final String PARAMETER_MAX_COLUMN = "max_column";
-	
+
 	public static final String PARAMETER_SORT_COLUMN = "sort_column";
 	public static final String PARAMETER_SORT_DECREASING = "sort_decreasing";
 
-/**
- * This is the default base class for all renderers having already a TableModel.
- * This class is used to be wrapped around them in order to have a unified interface for reporting.
- */
+	/**
+	 * This is the default base class for all renderers having already a TableModel. This class is used to be wrapped
+	 * around them in order to have a unified interface for reporting.
+	 */
 	public static class DefaultTableable implements Tableable {
 
 		private TableModel model;
@@ -80,11 +80,11 @@ public abstract class AbstractTableModelTableRenderer extends NonGraphicalRender
 		private int minColumn = 0;
 
 		private int maxColumn = Integer.MAX_VALUE;
-		
-		private boolean enableSorting = false; 
-		
+
+		private boolean enableSorting = false;
+
 		private int sortColumn = 0;
-		
+
 		private Integer[] sortIndices = null;
 
 		public DefaultTableable(final TableModel model, Renderer renderer) {
@@ -133,40 +133,43 @@ public abstract class AbstractTableModelTableRenderer extends NonGraphicalRender
 			} catch (UndefinedParameterError e) {
 				maxColumn = Integer.MAX_VALUE;
 			}
-			
+
 			try {
 				Object sortColumnObj = renderer.getParameter(PARAMETER_SORT_COLUMN);
 				if (sortColumnObj != null) {
-					Object decreasingOrderO = renderer.getParameter(PARAMETER_SORT_DECREASING);
-					final boolean sortDecreasing = decreasingOrderO == null ? false: Boolean.valueOf(decreasingOrderO.toString());
 					sortColumn = Integer.valueOf(sortColumnObj.toString()) - 1;
-					enableSorting = true;
-			
-					sortIndices = new Integer[getRowNumber()];
-					for(int i = 0; i < sortIndices.length; i++)
-						sortIndices[i]=i;
-					
-					Arrays.sort(sortIndices, new Comparator<Integer>() {
-						@SuppressWarnings("unchecked")
-						@Override
-						public int compare(Integer o1, Integer o2) {							
-							Comparable c2 = (Comparable) model.getValueAt(minRow + o1, sortColumn);
-							Comparable c1 = (Comparable)model.getValueAt(minRow + o2, sortColumn);
-							if ((c1 == null) & (c2 == null)) {
-								return 0;
+					if (sortColumn < model.getColumnCount()) {
+						Object decreasingOrderO = renderer.getParameter(PARAMETER_SORT_DECREASING);
+						final boolean sortDecreasing = decreasingOrderO == null ? false : Boolean.valueOf(decreasingOrderO.toString());
+
+						enableSorting = true;
+
+						sortIndices = new Integer[getRowNumber()];
+						for (int i = 0; i < sortIndices.length; i++)
+							sortIndices[i] = i;
+
+						Arrays.sort(sortIndices, new Comparator<Integer>() {
+							@SuppressWarnings("unchecked")
+							@Override
+							public int compare(Integer o1, Integer o2) {
+								Comparable c2 = (Comparable) model.getValueAt(minRow + o1, sortColumn);
+								Comparable c1 = (Comparable) model.getValueAt(minRow + o2, sortColumn);
+								if ((c1 == null) & (c2 == null)) {
+									return 0;
+								}
+								if ((c1 == null) && (c2 != null)) {
+									return -1;
+								}
+								if ((c1 != null) && (c2 == null)) {
+									return +1;
+								}
+								if (sortDecreasing) {
+									return c1.compareTo(c2);
+								} else
+									return c2.compareTo(c1);
 							}
-							if ((c1 == null) && (c2 != null)) {
-								return -1;
-							}
-							if ((c1 != null) && (c2  == null)) {
-								return +1;
-							}
-							if (sortDecreasing) {								
-								return c1.compareTo(c2);
-							} else
-								return c2.compareTo(c1);
-						}
-					});
+						});
+					}
 				} else {
 					enableSorting = false;
 				}
@@ -190,7 +193,7 @@ public abstract class AbstractTableModelTableRenderer extends NonGraphicalRender
 			if (Number.class.isAssignableFrom(model.getColumnClass(column))) {
 				return Tools.formatIntegerIfPossible(Double.valueOf(value));
 			} else {
-				return value;	
+				return value;
 			}
 		}
 
@@ -210,12 +213,19 @@ public abstract class AbstractTableModelTableRenderer extends NonGraphicalRender
 			return maxR - minRow + 1;
 		}
 
-		public void prepareReporting() {}
-		public void finishReporting() {}
+		public void prepareReporting() {
+		}
 
-		public boolean isFirstLineHeader() { return false; }
+		public void finishReporting() {
+		}
 
-		public boolean isFirstColumnHeader() { return false; }
+		public boolean isFirstLineHeader() {
+			return false;
+		}
+
+		public boolean isFirstColumnHeader() {
+			return false;
+		}
 	}
 
 	public String getName() {

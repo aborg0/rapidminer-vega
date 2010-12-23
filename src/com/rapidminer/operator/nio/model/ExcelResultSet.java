@@ -141,14 +141,14 @@ public class ExcelResultSet implements DataResultSet {
 		attributeNames = new String[numberOfAttributes];
 		
 		if (!configuration.isEmulatingOldNames()) {
-			for (int i = 0; i < totalNumberOfColumns; i++) {
+			for (int i = 0; i < numberOfAttributes; i++) {
 				if (!emptyColumns[i]) {
 					attributeNames[i] = Tools.getExcelColumnName(i);
 				}
 			}
 		} else {
 			// emulate old 5.0.x style
-			for (int i = 0; i < totalNumberOfColumns; i++) {
+			for (int i = 0; i < numberOfAttributes; i++) {
 				if (!emptyColumns[i]) {
 					attributeNames[i] = "attribute_" + i;
 				}

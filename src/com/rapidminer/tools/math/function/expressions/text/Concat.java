@@ -20,8 +20,9 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.tools.math.function.expressions;
+package com.rapidminer.tools.math.function.expressions.text;
 
+import java.util.ArrayList;
 import java.util.Stack;
 
 import org.nfunk.jep.ParseException;
@@ -30,30 +31,38 @@ import org.nfunk.jep.function.PostfixMathCommand;
 import com.rapidminer.tools.math.function.UnknownValue;
 
 /**
- * Returns true if the given argument is a missing value; false otherwise.
+ * This command realizes String concatenation.
  * 
- * @author Marco Boeck
+ * @author Sebastian Land
  */
-public class Missing extends PostfixMathCommand {
-	
-	public Missing() {
-		numberOfParameters = 1;
+public class Concat extends PostfixMathCommand {
+	public Concat() {
+		numberOfParameters = -1;
 	}
-	
-	/**
-	 * Checks for missing value.
-	 */
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		checkStack(stack);
-		
-		Object toTestObject = stack.pop();
-		if (toTestObject instanceof Double) {
-			Double number = (Double)toTestObject;
-			stack.push(number.isNaN());
-		} else {
-			stack.push(toTestObject instanceof UnknownValue);
+		checkStack(stack);// check the stack
+
+		// initialize the result to the first argument
+		ArrayList<String> strings = new ArrayList<String>();
+		for (int i = 0; i < curNumberOfParameters; i++) {
+			Object string = stack.pop();
+			if (string == UnknownValue.UNKNOWN_NOMINAL) {
+				// do nothing
+			} else {
+				if (!(string instanceof String)) {
+					throw new ParseException("Invalid argument type, only strings are allowed for 'concat'.");
+				}
+				strings.add((String) string);
+			}
 		}
+
+		StringBuilder builder = new StringBuilder();
+		for (String string: strings) {
+			builder.append(string);
+		}
+		stack.push(builder.toString());
 	}
 }

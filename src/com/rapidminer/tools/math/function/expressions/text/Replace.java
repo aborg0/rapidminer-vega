@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.tools.math.function.expressions;
+package com.rapidminer.tools.math.function.expressions.text;
 
 import java.util.Stack;
 
@@ -30,30 +30,43 @@ import org.nfunk.jep.function.PostfixMathCommand;
 import com.rapidminer.tools.math.function.UnknownValue;
 
 /**
- * Returns true if the given argument is a missing value; false otherwise.
+ * Replaces substrings by matching targetSequence to given string.
  * 
- * @author Marco Boeck
+ * @author Sebastian Land
  */
-public class Missing extends PostfixMathCommand {
-	
-	public Missing() {
-		numberOfParameters = 1;
+public class Replace extends PostfixMathCommand {
+
+	public Replace() {
+		numberOfParameters = 3;
 	}
-	
-	/**
-	 * Checks for missing value.
-	 */
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
-		checkStack(stack);
-		
-		Object toTestObject = stack.pop();
-		if (toTestObject instanceof Double) {
-			Double number = (Double)toTestObject;
-			stack.push(number.isNaN());
-		} else {
-			stack.push(toTestObject instanceof UnknownValue);
+		checkStack(stack);// check the stack
+
+		// initialize the result to the first argument
+		Object byObject = stack.pop();
+		Object whatObject = stack.pop();
+		Object textObject = stack.pop();
+		// checking for unknown value
+		if (textObject == UnknownValue.UNKNOWN_NOMINAL || whatObject == UnknownValue.UNKNOWN_NOMINAL || byObject == UnknownValue.UNKNOWN_NOMINAL) {
+			stack.push(UnknownValue.UNKNOWN_NOMINAL);
+			return;
 		}
+
+		if (!(textObject instanceof String) || !(byObject instanceof String) || !(whatObject instanceof String)) {
+			throw new ParseException(
+					"Invalid argument type, must be (string, string, string)");
+		}
+
+		String by = (String) byObject;
+		String what = (String) whatObject;
+		String text = (String) textObject;
+
+		if (what.length() == 0)
+			throw new ParseException("The target String must contain text");
+
+		stack.push(text.replace(what, by));
 	}
 }

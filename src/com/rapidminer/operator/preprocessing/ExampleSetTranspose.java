@@ -40,7 +40,7 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
-import com.rapidminer.operator.preprocessing.filter.ChangeAttributeType;
+import com.rapidminer.operator.preprocessing.filter.ChangeAttributeRole;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
@@ -54,7 +54,7 @@ import com.rapidminer.tools.OperatorResourceConsumptionHandler;
  * transformed into the id values of a new special Id attribute. Since no 
  * other &quot;special&quot; examples or data rows exist, all other new 
  * attributes will be regular after the transformation. You can use 
- * the {@link ChangeAttributeType} operator in order to change one of
+ * the {@link ChangeAttributeRole} operator in order to change one of
  * these into a special type afterwards.</p>
  * 
  * <p>If all old attribute have the same value type, all new attributes

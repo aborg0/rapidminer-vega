@@ -20,40 +20,33 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.tools.math.function.expressions;
+package com.rapidminer.tools.math.function.expressions.date;
 
+import java.util.GregorianCalendar;
 import java.util.Stack;
 
 import org.nfunk.jep.ParseException;
 import org.nfunk.jep.function.PostfixMathCommand;
 
-import com.rapidminer.tools.math.function.UnknownValue;
-
 /**
- * Returns true if the given argument is a missing value; false otherwise.
+ * Adds the current date as a Calendar.
  * 
  * @author Marco Boeck
  */
-public class Missing extends PostfixMathCommand {
+public class DateCreate extends PostfixMathCommand {
 	
-	public Missing() {
-		numberOfParameters = 1;
+	public DateCreate() {
+		numberOfParameters = 0;
 	}
 	
 	/**
-	 * Checks for missing value.
+	 * Creates the Calendar.
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run(Stack stack) throws ParseException {
 		checkStack(stack);
 		
-		Object toTestObject = stack.pop();
-		if (toTestObject instanceof Double) {
-			Double number = (Double)toTestObject;
-			stack.push(number.isNaN());
-		} else {
-			stack.push(toTestObject instanceof UnknownValue);
-		}
+		stack.push(GregorianCalendar.getInstance());
 	}
 }

@@ -30,9 +30,9 @@ public class RepositoryService_Service
         try {
             URL baseUrl;
             baseUrl = com.rapid_i.repository.wsimport.RepositoryService_Service.class.getResource(".");
-            url = new URL(baseUrl, "http://localhost:8080/RAWS/RepositoryService?wsdl");
+            url = new URL(baseUrl, "http://rapid-i.dyndns.org:8080/RAWS/RepositoryService?wsdl");
         } catch (MalformedURLException e) {
-            logger.warning("Failed to create URL for the wsdl Location: 'http://localhost:8080/RAWS/RepositoryService?wsdl', retrying as a local file");
+            logger.warning("Failed to create URL for the wsdl Location: http://rapid-i.dyndns.org:8080/RAWS/RepositoryService?wsdl', retrying as a local file");
             logger.warning(e.getMessage());
         }
         REPOSITORYSERVICE_WSDL_LOCATION = url;

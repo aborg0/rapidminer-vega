@@ -87,7 +87,7 @@ public class Encoding {
 		String encodingProperty = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_DEFAULT_ENCODING);
 		if (encodingProperty != null)
 			encoding = encodingProperty;
-		types.add(new ParameterTypeStringCategory(PARAMETER_ENCODING, "The encoding used for reading or writing files.", CHARSETS, encoding));
+		types.add(new ParameterTypeStringCategory(PARAMETER_ENCODING, "The encoding used for reading or writing files.", CHARSETS, encoding, false));
 
 		return types;
 	}

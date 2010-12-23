@@ -61,7 +61,7 @@ public class ParameterTypeDateFormat extends ParameterTypeStringCategory {
 	 * This is the constructor for parameter types of operators which transform an example set.
 	 */
 	public ParameterTypeDateFormat(ParameterTypeAttribute attributeParameter, String key, String description, InputPort inPort, boolean expert) {
-		super(key, description, PREDEFINED_DATE_FORMATS, "");
+		super(key, description, PREDEFINED_DATE_FORMATS, "", true);
 		setExpert(expert);
 		this.inPort = inPort;
 		this.attributeParameter = attributeParameter;

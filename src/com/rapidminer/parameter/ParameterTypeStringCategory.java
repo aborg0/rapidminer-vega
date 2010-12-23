@@ -30,7 +30,6 @@ package com.rapidminer.parameter;
  * {@link com.rapidminer.operator.Operator#getParameterAsString(String)}.
  * 
  * @author Ingo Mierswa, Simon Fischer
- *          ingomierswa Exp $
  */
 public class ParameterTypeStringCategory extends ParameterTypeSingle {
 

@@ -20,40 +20,29 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.tools.math.function.expressions;
+package com.rapidminer.tools.math.function;
 
-import java.util.Stack;
-
-import org.nfunk.jep.ParseException;
-import org.nfunk.jep.function.PostfixMathCommand;
-
-import com.rapidminer.tools.math.function.UnknownValue;
+import com.rapidminer.tools.Ontology;
 
 /**
- * Returns true if the given argument is a missing value; false otherwise.
+ * This is an enumeration for possible unknown values. This is used to determin, of which
+ * type an returned unknow actually is.
  * 
- * @author Marco Boeck
+ * @author Sebastian Land
  */
-public class Missing extends PostfixMathCommand {
+public enum UnknownValue {
+	UNKNOWN_NOMINAL(Ontology.NOMINAL),
+	// UNKNOWN_NUMERICAL(Ontology.NUMERICAL),  Numerical Unknowns must be encoded by Double.NaN
+	UNKNOWN_BOOLEAN(Ontology.BINOMINAL),
+	UNKNOWN_DATE(Ontology.DATE_TIME);
 	
-	public Missing() {
-		numberOfParameters = 1;
+	private int valueType;
+	
+	UnknownValue(int valueType) {
+		this.valueType = valueType;
 	}
 	
-	/**
-	 * Checks for missing value.
-	 */
-	@SuppressWarnings("unchecked")
-	@Override
-	public void run(Stack stack) throws ParseException {
-		checkStack(stack);
-		
-		Object toTestObject = stack.pop();
-		if (toTestObject instanceof Double) {
-			Double number = (Double)toTestObject;
-			stack.push(number.isNaN());
-		} else {
-			stack.push(toTestObject instanceof UnknownValue);
-		}
+	public int getValueType() {
+		return valueType;
 	}
 }

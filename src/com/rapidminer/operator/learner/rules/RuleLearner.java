@@ -287,7 +287,7 @@ public class RuleLearner extends AbstractLearner {
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
-		ParameterType type = new ParameterTypeStringCategory(AbstractTreeLearner.PARAMETER_CRITERION, "Specifies the used criterion for selecting attributes and numerical splits.", CRITERIA_NAMES, CRITERIA_NAMES[CRITERION_INFO_GAIN]);
+		ParameterType type = new ParameterTypeStringCategory(AbstractTreeLearner.PARAMETER_CRITERION, "Specifies the used criterion for selecting attributes and numerical splits.", CRITERIA_NAMES, CRITERIA_NAMES[CRITERION_INFO_GAIN], false);
 		type.setExpert(false);
 		types.add(type);
 		type = new ParameterTypeDouble(PARAMETER_SAMPLE_RATIO, "The sample ratio of training data used for growing and pruning.", 0.0d, 1.0d, 0.9d);

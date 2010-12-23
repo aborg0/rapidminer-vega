@@ -25,12 +25,8 @@ package com.rapidminer.gui.properties.celleditors.value;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JCheckBox;
@@ -57,11 +53,9 @@ import com.rapidminer.parameter.ParameterTypePassword;
 import com.rapidminer.parameter.ParameterTypeStringCategory;
 import com.rapidminer.tools.Tools;
 
-
 /**
- * Editor for parameter values string, int, double, category, and boolean. This
- * can be used in all {@link PropertyTable}s to show or editing the properties /
- * parameters. For more special parameter types other solutions exist.
+ * Editor for parameter values string, int, double, category, and boolean. This can be used in all {@link PropertyTable}
+ * s to show or editing the properties / parameters. For more special parameter types other solutions exist.
  * 
  * @see FileValueCellEditor
  * @see ListValueCellEditor
@@ -85,6 +79,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 		((JComboBox) editorComponent).removeItemListener(this.delegate);
 		this.delegate = new EditorDelegate() {
 			private static final long serialVersionUID = -2104662561680969750L;
+
 			@Override
 			public void setValue(Object x) {
 				if (x == null) {
@@ -107,29 +102,101 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 			@Override
 			public Object getCellEditorValue() {
 				return ((JComboBox) editorComponent).getSelectedItem();
-//				return Integer.valueOf(((JComboBox) editorComponent).getSelectedIndex()).toString();
+				// return Integer.valueOf(((JComboBox) editorComponent).getSelectedIndex()).toString();
 			}
 		};
 		((JComboBox) editorComponent).addItemListener(delegate);
 	}
 
+	// public DefaultPropertyValueCellEditor(final ParameterTypeStringCategory type) {
+	// super(new JComboBox(type.getValues()));
+	//
+	// final JComboBox comboBox = (JComboBox) editorComponent;
+	// final JTextComponent textField = (JTextComponent) comboBox.getEditor().getEditorComponent();
+	//
+	//
+	// useEditorAsRenderer = true;
+	// comboBox.setEditable(type.isEditable());
+	// comboBox.removeActionListener(delegate); // removing old listeners to prevent premature action event
+	// comboBox.removeItemListener(this.delegate);
+	//
+	// this.delegate = new EditorDelegate() {
+	//
+	// private static final long serialVersionUID = -5592150438626222295L;
+	//
+	// @Override
+	// public void setValue(Object x) {
+	// if (x == null) {
+	// super.setValue(null);
+	// comboBox.setSelectedItem(null);
+	// } else {
+	// String value = x.toString();
+	// super.setValue(value);
+	// comboBox.setSelectedItem(value);
+	// if (value != null) {
+	// textField.setText(value.toString());
+	// } else {
+	// textField.setText("");
+	// }
+	// }
+	// }
+	//
+	// @Override
+	// public Object getCellEditorValue() {
+	// if (type.isEditable()) {
+	// String selected = textField.getText();
+	// if ((selected != null) && (selected.trim().length() == 0))
+	// selected = null;
+	// return selected;
+	// } else {
+	// return comboBox.getSelectedItem();
+	// }
+	// }
+	//
+	// @Override
+	// public void actionPerformed(ActionEvent event) {
+	// if (event.getActionCommand().equals("comboBoxEdited"))
+	// super.actionPerformed(event);
+	// };
+	// };
+	// comboBox.addActionListener(delegate); // adding new delegate
+	// editorComponent.setToolTipText(type.getDescription());
+	//
+	// textField.addFocusListener(new FocusAdapter() {
+	// @Override
+	// public void focusLost(FocusEvent e) {
+	// comboBox.actionPerformed(new ActionEvent(comboBox, 12, "comboBoxEdited"));
+	// super.focusLost(e);
+	// }
+	// });
+	//
+	// textField.addKeyListener(new KeyAdapter() {
+	// @Override
+	// public void keyPressed(KeyEvent e) {
+	// if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+	// if (!comboBox.isPopupVisible()) {
+	// comboBox.actionPerformed(new ActionEvent(comboBox, 12, "comboBoxEdited"));
+	// e.consume();
+	// }
+	// }
+	// }
+	// });
+	// }
+
 	public DefaultPropertyValueCellEditor(final ParameterTypeStringCategory type) {
-		//super(new FilterableJComboBox(type.getValues()));
+		// super(new FilterableJComboBox(type.getValues()));
 		super(new JComboBox(type.getValues()));
 
-		final JComboBox comboBox = (JComboBox) editorComponent;
-		AutoCompleteComboBoxAddition autoCompleteCBA = new AutoCompleteComboBoxAddition(comboBox);
-		autoCompleteCBA.setCaseSensitive(false);
-		
+		if (type.isEditable()) {
+			AutoCompleteComboBoxAddition autoCompleteCBA = new AutoCompleteComboBoxAddition((JComboBox) editorComponent);
+			autoCompleteCBA.setCaseSensitive(false);
+		}
 
-		final JTextComponent textField = (JTextComponent) comboBox.getEditor().getEditorComponent();
+		final JTextComponent textField = (JTextComponent) ((JComboBox) editorComponent).getEditor().getEditorComponent();
 
-		
 		useEditorAsRenderer = true;
-		comboBox.setEditable(type.isEditable());
-		comboBox.removeActionListener(delegate); // removing old listeners to prevent premature action event
-		comboBox.removeItemListener(this.delegate); 
-		
+		((JComboBox) editorComponent).removeItemListener(this.delegate);
+		((JComboBox) editorComponent).setEditable(type.isEditable());
 		this.delegate = new EditorDelegate() {
 
 			private static final long serialVersionUID = -5592150438626222295L;
@@ -138,11 +205,11 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 			public void setValue(Object x) {
 				if (x == null) {
 					super.setValue(null);
-					comboBox.setSelectedItem(null);
+					((JComboBox) editorComponent).setSelectedItem(null);
 				} else {
 					String value = x.toString();
 					super.setValue(value);
-					comboBox.setSelectedItem(value);
+					((JComboBox) editorComponent).setSelectedItem(value);
 					if (value != null) {
 						textField.setText(value.toString());
 					} else {
@@ -154,43 +221,18 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 			@Override
 			public Object getCellEditorValue() {
 				if (type.isEditable()) {
+					// String selected = (String) ((JComboBox) editorComponent).getSelectedItem();
 					String selected = textField.getText();
 					if ((selected != null) && (selected.trim().length() == 0))
 						selected = null;
 					return selected;
 				} else {
-					return comboBox.getSelectedItem();
+					return ((JComboBox) editorComponent).getSelectedItem();
 				}
 			}
-			
-			@Override
-			public void actionPerformed(ActionEvent event) {
-				if (event.getActionCommand().equals("comboBoxEdited"))
-					super.actionPerformed(event);
-			};
 		};
-		comboBox.addActionListener(delegate); // adding new delegate
 		editorComponent.setToolTipText(type.getDescription());
-		
-		textField.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusLost(FocusEvent e) {
-				comboBox.actionPerformed(new ActionEvent(comboBox, 12, "comboBoxEdited"));
-				super.focusLost(e);
-			}
-		});
-
-		textField.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					if (!comboBox.isPopupVisible()) {
-						comboBox.actionPerformed(new ActionEvent(comboBox, 12, "comboBoxEdited"));
-						e.consume();
-					}
-				}
-			}
-		});
+		((JComboBox) editorComponent).addItemListener(delegate);
 	}
 
 	public DefaultPropertyValueCellEditor(final ParameterTypeBoolean type) {
@@ -199,9 +241,9 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 		((JCheckBox) editorComponent).setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 		((JCheckBox) editorComponent).setText(type.getKey().replace('_', ' '));
 		if (type.isExpert()) {
-			editorComponent.setFont(editorComponent.getFont().deriveFont(Font.ITALIC));	
+			editorComponent.setFont(editorComponent.getFont().deriveFont(Font.ITALIC));
 		}
-		//editorComponent.setBackground(javax.swing.UIManager.getColor("Table.cellBackground"));
+		// editorComponent.setBackground(javax.swing.UIManager.getColor("Table.cellBackground"));
 		this.delegate = new EditorDelegate() {
 
 			private static final long serialVersionUID = 152467444047540403L;
@@ -210,9 +252,9 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 			public void setValue(Object x) {
 				if (x == null) {
 					super.setValue(null);
-					((JCheckBox) editorComponent).setSelected((Boolean)type.getDefaultValue());
+					((JCheckBox) editorComponent).setSelected((Boolean) type.getDefaultValue());
 				} else {
-					Boolean value = Tools.booleanValue(x.toString(), (Boolean)type.getDefaultValue());
+					Boolean value = Tools.booleanValue(x.toString(), (Boolean) type.getDefaultValue());
 					super.setValue(value);
 					((JCheckBox) editorComponent).setSelected(value);
 				}
@@ -220,7 +262,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 
 			@Override
 			public Object getCellEditorValue() {
-				return Boolean.valueOf(Tools.booleanValue(Boolean.valueOf(((JCheckBox) editorComponent).isSelected()).toString(), (Boolean)type.getDefaultValue())).toString();
+				return Boolean.valueOf(Tools.booleanValue(Boolean.valueOf(((JCheckBox) editorComponent).isSelected()).toString(), (Boolean) type.getDefaultValue())).toString();
 			}
 		};
 
@@ -231,14 +273,16 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 		super(new JTextField(TEXT_FIELD_WIDTH));
 		editorComponent.addFocusListener(new FocusListener() {
 			@Override
-			public void focusGained(FocusEvent e) { 	}
+			public void focusGained(FocusEvent e) {
+			}
+
 			@Override
 			public void focusLost(FocusEvent e) {
 				fireEditingStopped();
-			}        	
+			}
 		});
 		((JTextField) editorComponent).setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-		//((JTextField) editorComponent).setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 3));
+		// ((JTextField) editorComponent).setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 3));
 		this.delegate = new EditorDelegate() {
 
 			private static final long serialVersionUID = 152467444047540403L;
@@ -247,7 +291,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 			public void setValue(Object x) {
 				if (x == null) {
 					super.setValue(null);
-					((JTextField) editorComponent).setText(null);	
+					((JTextField) editorComponent).setText(null);
 				} else {
 					super.setValue(x.toString());
 					try {
@@ -255,7 +299,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 							Integer value = Integer.valueOf(x.toString());
 							((JTextField) editorComponent).setText(value.toString());
 						} else {
-							Integer defaultValue = (Integer)type.getDefaultValue();
+							Integer defaultValue = (Integer) type.getDefaultValue();
 							if (defaultValue != null) {
 								((JTextField) editorComponent).setText(type.getDefaultValue().toString());
 							} else {
@@ -269,7 +313,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 							((JTextField) editorComponent).setText(text);
 						} else {
 							// no macro --> set to default
-							Integer defaultValue = (Integer)type.getDefaultValue();
+							Integer defaultValue = (Integer) type.getDefaultValue();
 							if (defaultValue != null) {
 								((JTextField) editorComponent).setText(type.getDefaultValue().toString());
 							} else {
@@ -297,10 +341,10 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 						return text;
 					} else {
 						// no macro --> set to default
-						Integer defaultValue = (Integer)type.getDefaultValue();
+						Integer defaultValue = (Integer) type.getDefaultValue();
 						if (defaultValue != null) {
 							((JTextField) editorComponent).setText(type.getDefaultValue().toString());
-							return type.getDefaultValue(); //.toString();
+							return type.getDefaultValue(); // .toString();
 						} else {
 							((JTextField) editorComponent).setText("");
 							// no default --> return null
@@ -319,11 +363,13 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 		super(new JTextField(TEXT_FIELD_WIDTH));
 		editorComponent.addFocusListener(new FocusListener() {
 			@Override
-			public void focusGained(FocusEvent e) { 	}
+			public void focusGained(FocusEvent e) {
+			}
+
 			@Override
 			public void focusLost(FocusEvent e) {
 				fireEditingStopped();
-			}        	
+			}
 		});
 		((JTextField) editorComponent).setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
 		this.delegate = new EditorDelegate() {
@@ -384,10 +430,10 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 						return text;
 					} else {
 						// no macro --> set to default
-						Double defaultValue = (Double)type.getDefaultValue();
+						Double defaultValue = (Double) type.getDefaultValue();
 						if (defaultValue != null) {
 							((JTextField) editorComponent).setText(type.getDefaultValue().toString());
-							return type.getDefaultValue(); //.toString();
+							return type.getDefaultValue(); // .toString();
 						} else {
 							((JTextField) editorComponent).setText("");
 							// no default --> return null
@@ -406,12 +452,14 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 		super(new JPasswordField());
 		editorComponent.addFocusListener(new FocusListener() {
 			@Override
-			public void focusGained(FocusEvent e) { 	}
+			public void focusGained(FocusEvent e) {
+			}
+
 			@Override
 			public void focusLost(FocusEvent e) {
 				fireEditingStopped();
-			}        	
-		});		
+			}
+		});
 		this.delegate = new EditorDelegate() {
 
 			private static final long serialVersionUID = -2736861014783898296L;
@@ -445,17 +493,18 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 		};
 		useEditorAsRenderer = true;
 	}
-	
-	
+
 	public DefaultPropertyValueCellEditor(final ParameterTypeChar type) {
 		super(new CharTextField());
 		editorComponent.addFocusListener(new FocusListener() {
 			@Override
-			public void focusGained(FocusEvent e) { 	}
+			public void focusGained(FocusEvent e) {
+			}
+
 			@Override
 			public void focusLost(FocusEvent e) {
 				fireEditingStopped();
-			}        	
+			}
 		});
 	}
 
@@ -463,11 +512,13 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 		super(new JTextField(TEXT_FIELD_WIDTH));
 		editorComponent.addFocusListener(new FocusListener() {
 			@Override
-			public void focusGained(FocusEvent e) { 	}
+			public void focusGained(FocusEvent e) {
+			}
+
 			@Override
 			public void focusLost(FocusEvent e) {
 				fireEditingStopped();
-			}        	
+			}
 		});
 		this.delegate = new EditorDelegate() {
 
@@ -487,7 +538,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 				if ((text == null) || (text.length() == 0)) {
 					if (type.getDefaultValue() == null) {
 						return null;
-					} else  {
+					} else {
 						return type.toString(type.getDefaultValue());
 					}
 				}
@@ -502,12 +553,14 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
 		Component c;
 		if (table == null) {
-			c = editorComponent;			
-			delegate.setValue(value);        
-			((JComponent)c).setOpaque(!(c instanceof JCheckBox) && !(c instanceof JComboBox)); // otherwise we have a white border around check boxes
+			c = editorComponent;
+			delegate.setValue(value);
+			((JComponent) c).setOpaque(!(c instanceof JCheckBox) && !(c instanceof JComboBox)); // otherwise we have a
+																								// white border around
+																								// check boxes
 		} else {
 			c = super.getTableCellEditorComponent(table, value, isSelected, row, column);
-		}        		
+		}
 		if (isSelected)
 			c.setBackground(SwingTools.LIGHTEST_BLUE);
 		else
@@ -516,7 +569,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 	}
 
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-		delegate.setValue(value); 
+		delegate.setValue(value);
 		if (isSelected)
 			editorComponent.setBackground(SwingTools.LIGHTEST_BLUE);
 		else
@@ -529,7 +582,8 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 	}
 
 	/** Does nothing. */
-	public void setOperator(Operator operator) {}
+	public void setOperator(Operator operator) {
+	}
 
 	@Override
 	public boolean rendersLabel() {

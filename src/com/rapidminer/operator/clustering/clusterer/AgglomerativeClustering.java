@@ -166,7 +166,7 @@ public class AgglomerativeClustering extends Operator {
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
-		ParameterType type = new ParameterTypeStringCategory(PARAMETER_MODE, "Specifies the cluster mode.", modes, modes[0]);
+		ParameterTypeStringCategory type = new ParameterTypeStringCategory(PARAMETER_MODE, "Specifies the cluster mode.", modes, modes[0], false);
 		type.setExpert(false);
 		types.add(type);
 
