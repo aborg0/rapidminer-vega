@@ -188,7 +188,21 @@ public class Attribute2ExamplePivoting extends ExampleSetTransformationOperator 
 		Vector<Attribute> constantAttributes = new Vector<Attribute>();
 
 		// identify series attributes and check attribute types
-		for (Attribute attribute : exampleSet.getAttributes()) {
+//		for (Attribute attribute : exampleSet.getAttributes()) {
+		
+		Iterator<Attribute> attributes;
+		
+		// TODO: add version check for changing operator behavior here (23.12.2010)
+		if (false){
+			attributes = exampleSet.getAttributes().allAttributes();
+		} else {
+			attributes = exampleSet.getAttributes().iterator();
+		}
+		
+		Attribute attribute;
+		while (attributes.hasNext()){
+			attribute = attributes.next();
+
 			boolean matched = false;
 			for (int i = 0; i < numberOfSeries; i++) {
 				Matcher matcher = seriesPatterns[i].matcher(attribute.getName());
