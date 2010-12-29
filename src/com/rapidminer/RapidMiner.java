@@ -250,6 +250,27 @@ public class RapidMiner {
 	/** The name of the property indicating the preferred globally used time zone. */
 	public static final String PROPERTY_RAPIDMINER_GENERAL_TIME_ZONE = "rapidminer.general.timezone";
 
+	
+	// ---  INIT PROPERTIES  ---
+	
+	public static final String PROPERTY_RAPIDMINER_HTTP_PROXY_SET = "http.proxySet";
+	public static final String PROPERTY_RAPIDMINER_HTTP_PROXY_HOST = "http.proxyHost";
+	public static final String PROPERTY_RAPIDMINER_HTTP_PROXY_PORT = "http.proxyPort";
+	public static final String PROPERTY_RAPIDMINER_HTTP_PROXY_NON_PROXY_HOSTS = "http.nonProxyHosts";
+	public static final String PROPERTY_RAPIDMINER_HTTP_PROXY_USERNAME = "http.proxyUsername";
+	public static final String PROPERTY_RAPIDMINER_HTTP_PROXY_PASSWORD = "http.proxyPassword";
+	
+	public static final String PROPERTY_RAPIDMINER_HTTPS_PROXY_SET = "https.proxySet";
+	public static final String PROPERTY_RAPIDMINER_HTTPS_PROXY_HOST = "https.proxyHost";
+	public static final String PROPERTY_RAPIDMINER_HTTPS_PROXY_PORT = "https.proxyPort";
+	
+	public static final String PROPERTY_RAPIDMINER_FTP_PROXY_SET = "ftp.proxySet";
+	public static final String PROPERTY_RAPIDMINER_FTP_PROXY_HOST = "ftp.proxyHost";
+	public static final String PROPERTY_RAPIDMINER_FTP_PROXY_PORT = "ftp.proxyPort";
+	public static final String PROPERTY_RAPIDMINER_FTP_PROXY_NON_PROXY_HOSTS = "ftp.nonProxyHosts";
+
+	public static final String PROPERTY_RAPIDMINER_SOCKS_PROXY_HOST = "socksProxyHost";
+	public static final String PROPERTY_RAPIDMINER_SOCKS_PROXY_PORT = "socksProxyPort";	
 
 	/**
 	 * A set of some non-gui and operator related system properties (starting with "rapidminer."). Properties
@@ -293,21 +314,24 @@ public class RapidMiner {
 		registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_INIT_PLUGINS, "Initialize pluigins?", true));		
 		registerRapidMinerProperty(new ParameterTypeFile(PROPERTY_RAPIDMINER_INIT_PLUGINS_LOCATION, "Directory to scan for plugin jars.", null, true));
 		
-		registerRapidMinerProperty(new ParameterTypeBoolean("http.proxySet", "Determines whether a proxy is used for HTTP connections.", false));
-		registerRapidMinerProperty(new ParameterTypeString("http.proxyHost", "The proxy host to use for HTTP.", true));
-		registerRapidMinerProperty(new ParameterTypeInt("http.proxyPort", "The proxy port to use for HTTP.", 0, 65535, true));
-		registerRapidMinerProperty(new ParameterTypeBoolean("https.proxySet", "Determines whether a proxy is used for HTTPS connections.", true));
-		registerRapidMinerProperty(new ParameterTypeString("https.proxyHost", "The proxy host to use for HTTPS.", true));
-		registerRapidMinerProperty(new ParameterTypeInt("https.proxyPort", "The proxy port to use for HTTPS.", 0, 65535, true));
-		registerRapidMinerProperty(new ParameterTypeString("http.nonProxyHosts", "List of regular expressions separated by '|' determining hosts to be connected directly bypassing the proxy.", true));
+		registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_HTTP_PROXY_SET, "Determines whether a proxy is used for HTTP connections.", false));
+		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTP_PROXY_HOST, "The proxy host to use for HTTP.", true));
+		registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_HTTP_PROXY_PORT, "The proxy port to use for HTTP.", 0, 65535, true));
+		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTP_PROXY_NON_PROXY_HOSTS, "List of regular expressions separated by '|' determining hosts to be connected directly bypassing the proxy.", true));
+		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTP_PROXY_USERNAME, "The user name for the proxy server in cases where it needs authentication.", true));
+		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTP_PROXY_PASSWORD, "The password for the proxy server in cases where it needs authentication.", true));
 		
-		registerRapidMinerProperty(new ParameterTypeBoolean("ftp.proxySet", "Determines whether a proxy is used for FTPconnections.", false));
-		registerRapidMinerProperty(new ParameterTypeString("ftp.proxyHost", "The proxy host to use for FTP.", true));
-		registerRapidMinerProperty(new ParameterTypeInt("ftp.proxyPort", "The proxy port to use for FTP.", 0, 65535, true));
-		registerRapidMinerProperty(new ParameterTypeString("ftp.nonProxyHosts", "List of regular expressions separated by '|' determining hosts to be connected directly bypassing the proxy.", true));
+		registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_HTTPS_PROXY_SET, "Determines whether a proxy is used for HTTPS connections.", true));
+		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTPS_PROXY_HOST, "The proxy host to use for HTTPS.", true));
+		registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_HTTPS_PROXY_PORT, "The proxy port to use for HTTPS.", 0, 65535, true));
 		
-		registerRapidMinerProperty(new ParameterTypeString("socksProxyHost", "The proxy host to use for SOCKS.", true));
-		registerRapidMinerProperty(new ParameterTypeInt("socksProxyPort", "The proxy port to use for SOCKS.", 0, 65535, true));
+		registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_FTP_PROXY_SET, "Determines whether a proxy is used for FTPconnections.", false));
+		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_FTP_PROXY_HOST, "The proxy host to use for FTP.", true));
+		registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_FTP_PROXY_PORT, "The proxy port to use for FTP.", 0, 65535, true));
+		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_FTP_PROXY_NON_PROXY_HOSTS, "List of regular expressions separated by '|' determining hosts to be connected directly bypassing the proxy.", true));
+		
+		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_SOCKS_PROXY_HOST, "The proxy host to use for SOCKS.", true));
+		registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_SOCKS_PROXY_PORT, "The proxy port to use for SOCKS.", 0, 65535, true));
 	}
 
 	private static InputHandler inputHandler = new ConsoleInputHandler();

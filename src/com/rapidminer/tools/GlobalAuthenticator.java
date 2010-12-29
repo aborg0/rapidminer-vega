@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.rapidminer.RapidMiner;
 import com.rapidminer.gui.tools.PasswordDialog;
 
 /** Global authenticator at which multiple other authenticators can register.
@@ -48,6 +49,19 @@ public class GlobalAuthenticator extends Authenticator {
 		public String getName();
 	}
 	
+    private static class ProxyAuthenticator extends Authenticator {
+        private String username;
+        private String password;
+        public ProxyAuthenticator(String username, String password) {
+            this.username = username;
+            this.password = password;
+        }
+        protected PasswordAuthentication getPasswordAuthentication() {
+            return(new PasswordAuthentication(this.username, this.password.toCharArray()));
+        }
+    }
+
+	
 	static {
 		Authenticator.setDefault(THE_INSTANCE);
 	}
@@ -66,11 +80,30 @@ public class GlobalAuthenticator extends Authenticator {
 				return auth;
 			}
 		}
-		LogService.getRoot().info("Authentication requested for unknown URL: "+url);
-		return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
+		
+		//LogService.getRoot().info("Authentication requested for unknown URL: "+url);
+		//return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
+		
+		if ("http".equals(url.getProtocol())) {
+			if (Tools.booleanValue(System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_HTTP_PROXY_SET), false)) {
+				String username = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_HTTP_PROXY_USERNAME);
+				String password = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_HTTP_PROXY_PASSWORD);
+				if ((username != null) && (username.length() > 0) && (password != null) && (password.length() > 0)) {
+					LogService.getRoot().info("Authentication requested for unknown URL, trying proxy authentication: "+url);
+					return new ProxyAuthenticator(username, password).getPasswordAuthentication();
+				} else {
+					LogService.getRoot().info("Authentication requested for unknown URL: "+url);
+					return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
+				}
+			} else {
+				LogService.getRoot().info("Authentication requested for unknown URL: "+url);
+				return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
+			}
+		} else {
+			LogService.getRoot().info("Authentication requested for unknown URL: "+url);
+			return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
+		}
 	}
 
-	public static void init() {
-		
-	}	
+	public static void init() {}	
 }
