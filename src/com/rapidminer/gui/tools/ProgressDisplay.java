@@ -40,7 +40,9 @@ class ProgressDisplay {
 		@Override
 		public void setCompleted(int completed) {			
 			ProgressDisplay.this.completed = completed;
-			ApplicationFrame.getApplicationFrame().getStatusBar().setProgress(label, ProgressDisplay.this.completed, total);
+			if (ApplicationFrame.getApplicationFrame() != null) {
+				ApplicationFrame.getApplicationFrame().getStatusBar().setProgress(label, ProgressDisplay.this.completed, total);
+			}
 			ProgressThreadDialog.getInstance().refreshDialog();
 		}
 

@@ -1337,7 +1337,7 @@ public class ProcessRenderer extends JPanel {
 		
 		// head gradient
 		Rectangle2D bar = new Rectangle2D.Double(frame.getX(), frame.getY(), headerWidth, headerHeight);
-		Color c0 = new Color(baseColor.getRed() - 25, baseColor.getGreen() - 25, baseColor.getBlue() - 25);
+		Color c0 = new Color(Math.max(baseColor.getRed() - 25, 0), Math.max(baseColor.getGreen() - 25, 0), Math.max(baseColor.getBlue() - 25, 0));
 		Color c1 = baseColor;
 		Rectangle2D[] regions = splitHorizontalBar(bar, 0.0, 0.2, 0.6);
 

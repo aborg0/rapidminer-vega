@@ -27,7 +27,6 @@ import java.awt.Component;
 import com.rapidminer.datatable.SimpleDataTable;
 import com.rapidminer.datatable.SimpleDataTableRow;
 import com.rapidminer.gui.plotter.Plotter;
-import com.rapidminer.gui.plotter.PlotterAdapter;
 import com.rapidminer.gui.plotter.PlotterConfigurationModel;
 import com.rapidminer.gui.plotter.charts.ParallelPlotter2;
 import com.rapidminer.gui.renderer.AbstractRenderer;
@@ -62,7 +61,7 @@ public class ClusterModelCentroidPlotRenderer extends AbstractRenderer {
 		}
 		PlotterConfigurationModel settings = new PlotterConfigurationModel(PlotterConfigurationModel.PARALLEL_PLOT, dataTable);
 		Plotter plotter = settings.getPlotter();
-		settings.setParameterAsString(ParallelPlotter2.PARAMETER_PLOT_COLUMNS + "_" + PlotterAdapter.transformParameterName(plotter.getPlotName()), columnNames[columnNames.length - 1]);
+		settings.setParameterAsString(ParallelPlotter2.PARAMETER_PLOT_COLUMN, columnNames[columnNames.length - 1]);
 		settings.setParameterAsBoolean(ParallelPlotter2.PARAMETER_LOCAL_NORMALIZATION, false);
 		plotter.getPlotter().setSize(width, height);
 		return plotter;

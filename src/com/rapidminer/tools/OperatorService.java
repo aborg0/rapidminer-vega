@@ -294,6 +294,10 @@ public class OperatorService {
 						LogService.getRoot().log(Level.WARNING, "Failed to register operator: "+e, e);
 					} catch (AbstractMethodError e) {
 						LogService.getRoot().log(Level.WARNING, "Failed to register operator: "+e, e);
+					} catch (Error e) {
+						// Yes, this is evil. However, it is the only way we can prevent errors due to
+						// incompatible RapidMiner / extension updates
+						LogService.getRoot().log(Level.SEVERE, "Failed to register operator: "+e, e);
 					}
 				} else if (childElement.getTagName().equals("factory")) {
 					String factoryClassName = childElement.getTextContent();
@@ -313,12 +317,20 @@ public class OperatorService {
 									factory = (GenericOperatorFactory) factoryClass.newInstance();
 								} catch (Exception e) {
 									LogService.getRoot().warning("Cannot instantiate operator factory class '" + factoryClass.getName() + "'!");
+								} catch (Error e) {
+									// Yes, this is evil. However, it is the only way we can prevent errors due to
+									// incompatible RapidMiner / extension updates
+									LogService.getRoot().log(Level.SEVERE, "Failed to register operator: "+e, e);
 								}
 								LogService.getRoot().config("Creating operators from factory " + factoryClassName);
 								try {
 									factory.registerOperators(classLoader, provider);
 								} catch (Exception e) {
 									LogService.getRoot().log(Level.WARNING, "Error registering operators from "+factoryClass.getName()+e, e);
+								} catch (Error e) {
+									// Yes, this is evil. However, it is the only way we can prevent errors due to
+									// incompatible RapidMiner / extension updates
+									LogService.getRoot().log(Level.SEVERE, "Failed to register operator: "+e, e);
 								}
 							} else {
 								LogService.getRoot().warning("Malformed operator descriptor: Only subclasses of GenericOperatorFactory may be defined as class, was '" + factoryClassName + "'!");

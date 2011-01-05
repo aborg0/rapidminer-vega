@@ -47,6 +47,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -253,7 +254,8 @@ public class UpdateManager {
 		// find all names listed in both files.
 		Set<String> allNames = new HashSet<String>();
 		allNames.addAll(diffJar.entryNames());
-		Enumeration<? extends ZipEntry> e = extension.findArchive(fromVersion).entries();
+		JarFile fromJar = extension.findArchive(fromVersion);
+		Enumeration<? extends ZipEntry> e = fromJar.entries();
 		while (e.hasMoreElements()) {
 			ZipEntry entry = e.nextElement();
 			allNames.add(entry.getName());

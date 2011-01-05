@@ -129,8 +129,16 @@ public class ManagedExtension {
 	}
 
 	public JarFile findArchive(String version) throws IOException {
-		File findFile = findFile(version);		
-		return new JarFile(findFile);
+		File findFile = findFile(version);
+		if (findFile == null) {
+			throw new IOException("Failed to find extension jar file (extension "+getName()+", version "+version+").");
+		} else {
+			try {
+				return new JarFile(findFile);
+			} catch (IOException e) {
+				throw new IOException("Failed to open jar file "+findFile+": "+e, e);
+			}
+		}
 	}
 
 	public String getSelectedVersion() {
