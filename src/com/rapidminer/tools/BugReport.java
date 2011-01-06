@@ -25,13 +25,18 @@ package com.rapidminer.tools;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import org.apache.xmlrpc.client.XmlRpcClient;
 
 import com.rapidminer.Process;
 
@@ -40,12 +45,13 @@ import com.rapidminer.Process;
  * A bug report can be send by the user. It should only be used in cases where
  * an exception does not occur due to a user error.
  * 
- * @author Simon Fischer, Ingo Mierswa
+ * @author Simon Fischer, Ingo Mierswa, Marco Boeck
  */
 public class BugReport {
 
 	private static final int BUFFER_SIZE = 1024;
-
+	
+	
 	private static void getProperties(String prefix, StringBuffer string) {
 		string.append(prefix + " properties:" + Tools.getLineSeparator());
 		Enumeration keys = System.getProperties().propertyNames();
@@ -110,6 +116,71 @@ public class BugReport {
 		for (int i = 0; i < attachments.length; i++)
 			writeFile(attachments[i], zipOut);
 		zipOut.close();
+	}
+	
+	/**
+	 * Creates the BugZilla bugreport.
+	 * @param client the logged in BugZilla client
+	 * @param exception the exception which was thrown by the bug
+	 * @param userSummary summary of the bug
+	 * @param userDescription description of the bug
+	 * @param process the currently active process
+	 * @param logMessage the RM log
+	 * @param attachments optional attachements
+	 * @throws Exception
+	 */
+	public static void createBugZillaReport(XmlRpcClient client, Throwable exception, String userSummary, String userDescription, String component, String version, String severity, String platform, String os, Process process, String logMessage, File[] attachments) throws Exception {
+		// create temp files with all the data we need
+		File processFile = File.createTempFile("_process", ".xml");
+		processFile.deleteOnExit();
+		writeFile(processFile, process.getRootOperator().getXML(false));
+		
+		if (process.getProcessLocation() != null) {
+			File rawProcessFile = File.createTempFile(process.getProcessLocation().getShortName(), ".xml");
+			rawProcessFile.deleteOnExit();
+			try {
+				String contents = process.getProcessLocation().getRawXML();
+				writeFile(rawProcessFile, contents);
+			} catch (Throwable t) {
+				writeFile(rawProcessFile, "could not read: " + t);
+			}
+		}
+		
+		File logFile = File.createTempFile("_log", ".txt");
+		logFile.deleteOnExit();
+		writeFile(logFile, logMessage);
+		
+		File stackTraceFile = File.createTempFile("_exception", ".txt");
+		stackTraceFile.deleteOnExit();
+		writeFile(stackTraceFile, getStackTrace(exception));
+		
+		// call BugZilla via xml-rpc
+		XmlRpcClient rpcClient = client;
+
+        Map<String, String> bugMap = new HashMap<String, String>();
+        bugMap.put("product", "RapidMiner");
+        bugMap.put("component", component);
+        bugMap.put("summary", userSummary);
+        bugMap.put("description", userDescription + "\n\n" + getStackTrace(exception));
+        bugMap.put("version", version);
+        bugMap.put("op_sys", os);
+        bugMap.put("platform", platform);
+        bugMap.put("severity", severity);
+        bugMap.put("status", "NEW");
+
+        //TODO: enable & remove syso
+//        Map createResult = (Map)rpcClient.execute("Bug.create", new Object[]{ bugMap });
+//        LogService.getRoot().fine("Bug " + createResult.get("id") + " submitted successfully.");
+        System.out.println("BUG SUBMITTED:");
+        for (String bug : bugMap.keySet()) {
+        	System.out.println(bug + " : " + bugMap.get(bug));
+        }
+	}
+	
+	private static void writeFile(File file, String content) throws IOException {
+		FileWriter writer = new FileWriter(file);
+		writer.write(content);
+		writer.close();
 	}
 
 	private static void writeFile(File file, ZipOutputStream out) throws IOException {

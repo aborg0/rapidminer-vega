@@ -265,7 +265,7 @@ public class SplashScreen extends JPanel implements ActionListener {
 			lastExtensionAdd = currentTimeMillis;
 
 			BufferedImage bufferedImage = new BufferedImage(48, 48, BufferedImage.TYPE_INT_ARGB);
-			Graphics2D graphics = (Graphics2D) bufferedImage.getGraphics();
+			Graphics2D graphics = bufferedImage.createGraphics();
 			graphics.drawImage(extensionIcon.getImage(), 0, 0, null);
 
 			extensionIcons.add(new Pair<BufferedImage, Long>(bufferedImage, currentTimeMillis));

@@ -39,6 +39,7 @@ import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.example.table.NominalMapping;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.SimpleProcessSetupError;
 import com.rapidminer.operator.UserError;
@@ -58,24 +59,20 @@ import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
-
 /**
- * This operator converts an example set by dividing examples
- * which consist of multiple observations (at different times)
- * into multiple examples, where each example covers on point
- * in time. An index attribute is added, which contains denotes
- * the actual point in time the example belongs to after the
- * transformation. The parameter <code>keep_missings</code> specifies
- * whether examples should be kept, even if if exhibits missing
- * values for all series at a certain point in time.
- * The parameter create_nominal_index is only applicable if only
- * one time series per example exists. Instead of using a numeric
- * index, then the names of the attributes representing the single
- * time points are used as index attribute.
+ * This operator converts an example set by dividing examples which consist of multiple observations (at different
+ * times) into multiple examples, where each example covers on point in time. An index attribute is added, which
+ * contains denotes the actual point in time the example belongs to after the transformation. The parameter
+ * <code>keep_missings</code> specifies whether examples should be kept, even if if exhibits missing values for all
+ * series at a certain point in time. The parameter create_nominal_index is only applicable if only one time series per
+ * example exists. Instead of using a numeric index, then the names of the attributes representing the single time
+ * points are used as index attribute.
  * 
  * @author Tobias Malbrecht
  */
 public class Attribute2ExamplePivoting extends ExampleSetTransformationOperator {
+
+	private static final OperatorVersion CHANGE_INCLUDED_SPECIAL = new OperatorVersion(5, 1, 1);
 
 	public static final String PARAMETER_ATTRIBUTE_NAME_REGEX = "attributes";
 
@@ -88,7 +85,7 @@ public class Attribute2ExamplePivoting extends ExampleSetTransformationOperator 
 	public static final String PARAMETER_CREATE_NOMINAL_INDEX = "create_nominal_index";
 
 	public Attribute2ExamplePivoting(OperatorDescription description) {
-		super(description);		
+		super(description);
 
 		getExampleSetInputPort().addPrecondition(new ExampleSetPrecondition(getExampleSetInputPort()));
 	}
@@ -124,7 +121,7 @@ public class Attribute2ExamplePivoting extends ExampleSetTransformationOperator 
 		}
 
 		// identify series attributes and check attribute types
-		for (AttributeMetaData attribute: metaData.getAllAttributes()) {
+		for (AttributeMetaData attribute : metaData.getAllAttributes()) {
 			if (!attribute.isSpecial()) {
 				boolean matched = false;
 				for (int i = 0; i < numberOfSeries; i++) {
@@ -143,17 +140,17 @@ public class Attribute2ExamplePivoting extends ExampleSetTransformationOperator 
 		}
 
 		// index attribute
-		if (!createNominalIndex) 
+		if (!createNominalIndex)
 			emd.addAttribute(new AttributeMetaData(getParameterAsString(PARAMETER_INDEX_ATTRIBUTE), Ontology.INTEGER));
 		else
 			emd.addAttribute(new AttributeMetaData(getParameterAsString(PARAMETER_INDEX_ATTRIBUTE), Ontology.POLYNOMINAL));
 
 		// series attributes
-		for (int i = 0; i < numberOfSeries; i++) {        	
+		for (int i = 0; i < numberOfSeries; i++) {
 			emd.addAttribute(new AttributeMetaData(seriesNames[i], attributeTypes[i]));
 		}
 
-		for (AttributeMetaData amd: emd.getAllAttributes())
+		for (AttributeMetaData amd : emd.getAllAttributes())
 			amd.getNumberOfMissingValues().increaseByUnknownAmount();
 
 		return emd;
@@ -167,7 +164,7 @@ public class Attribute2ExamplePivoting extends ExampleSetTransformationOperator 
 		boolean createNominalIndex = getParameterAsBoolean(PARAMETER_CREATE_NOMINAL_INDEX);
 		// checking if nominal index should be created and only one series must be treated
 		if (numberOfSeries > 1 && createNominalIndex)
-			throw new UserError(this, 207, new Object[] {"true", PARAMETER_CREATE_NOMINAL_INDEX, "More than one series listed in attribute names"});
+			throw new UserError(this, 207, new Object[] { "true", PARAMETER_CREATE_NOMINAL_INDEX, "More than one series listed in attribute names" });
 
 		String[] seriesNames = new String[numberOfSeries];
 		Pattern[] seriesPatterns = new Pattern[numberOfSeries];
@@ -188,19 +185,19 @@ public class Attribute2ExamplePivoting extends ExampleSetTransformationOperator 
 		Vector<Attribute> constantAttributes = new Vector<Attribute>();
 
 		// identify series attributes and check attribute types
-//		for (Attribute attribute : exampleSet.getAttributes()) {
-		
 		Iterator<Attribute> attributes;
-		
-		// TODO: add version check for changing operator behavior here (23.12.2010)
-		if (false){
-			attributes = exampleSet.getAttributes().allAttributes();
-		} else {
+
+		/*
+		 * COMPATIBILITY: depending on the operator version we change the behavior
+		 */
+		if (getCompatibilityLevel().isAtMost(CHANGE_INCLUDED_SPECIAL)) {
 			attributes = exampleSet.getAttributes().iterator();
+		} else {
+			attributes = exampleSet.getAttributes().allAttributes();
 		}
-		
+
 		Attribute attribute;
-		while (attributes.hasNext()){
+		while (attributes.hasNext()) {
 			attribute = attributes.next();
 
 			boolean matched = false;
@@ -235,7 +232,7 @@ public class Attribute2ExamplePivoting extends ExampleSetTransformationOperator 
 			seriesLength = seriesAttributes.get(0).size();
 			for (int i = 0; i < numberOfSeries - 1; i++) {
 				seriesLength = seriesAttributes.get(i).size();
-				if (seriesLength != seriesAttributes.get(i+1).size()) {
+				if (seriesLength != seriesAttributes.get(i + 1).size()) {
 					throw new OperatorException("series must have the same length: no conversion is performed");
 				}
 			}
@@ -251,9 +248,9 @@ public class Attribute2ExamplePivoting extends ExampleSetTransformationOperator 
 		newAttributes.add(indexAttribute);
 
 		// series attributes
-		for (int i = 0; i < numberOfSeries; i++) {        	
+		for (int i = 0; i < numberOfSeries; i++) {
 			if (attributeTypes[i] == Ontology.ATTRIBUTE_VALUE) {
-				logError("Cannot create pivot attribute "+seriesNames[i]+ ": No matching attributes found.");
+				logError("Cannot create pivot attribute " + seriesNames[i] + ": No matching attributes found.");
 			} else {
 				Attribute seriesAttribute = AttributeFactory.createAttribute(seriesNames[i], attributeTypes[i]);
 				newAttributes.add(seriesAttribute);
@@ -277,7 +274,7 @@ public class Attribute2ExamplePivoting extends ExampleSetTransformationOperator 
 				}
 
 				// set index attribute value
-				if(! createNominalIndex)
+				if (!createNominalIndex)
 					data[data.length - numberOfSeries - 1] = l;
 				else {
 					data[data.length - numberOfSeries - 1] = indexAttribute.getMapping().mapString(seriesAttributes.get(0).get(k).getName());
@@ -308,7 +305,6 @@ public class Attribute2ExamplePivoting extends ExampleSetTransformationOperator 
 			}
 		}
 
-
 		// create and deliver example set
 		ExampleSet result = table.createExampleSet();
 		result.recalculateAllAttributeStatistics();
@@ -318,7 +314,7 @@ public class Attribute2ExamplePivoting extends ExampleSetTransformationOperator 
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
-		ParameterType type = new ParameterTypeList(PARAMETER_SERIES, "Maps a number of source attributes onto result attributes.", 
+		ParameterType type = new ParameterTypeList(PARAMETER_SERIES, "Maps a number of source attributes onto result attributes.",
 				new ParameterTypeString("attribute_name", "Specifies the name of the resulting attribute"),
 				new ParameterTypeRegexp(PARAMETER_ATTRIBUTE_NAME_REGEX, "Attributes that forms series.", false));
 		type.setExpert(false);
@@ -332,14 +328,19 @@ public class Attribute2ExamplePivoting extends ExampleSetTransformationOperator 
 		types.add(type);
 		return types;
 	}
-	
+
 	@Override
 	public boolean writesIntoExistingData() {
 		return false;
 	}
-	
+
 	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), Attribute2ExamplePivoting.class, null);
+	}
+
+	@Override
+	public OperatorVersion[] getIncompatibleVersionChanges() {
+		return new OperatorVersion[] { CHANGE_INCLUDED_SPECIAL };
 	}
 }

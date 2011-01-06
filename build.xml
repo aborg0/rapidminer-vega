@@ -4,6 +4,7 @@
 	<property name="src" location="src" />
 	<property name="src_generated" location="src_generated" />
 	<property name="src_launcher" location="src_launcher" />
+	<property name="src_test" location="src_test" />
 
 	<property name="lib" location="lib" />
 	<property name="pluginslib" location="lib/plugins" />
@@ -126,7 +127,7 @@
 		<property name="lock.isBuilt" value="true" />
 	</target>
 
-	<target name="createJar" depends="build" description="Generate the lib/rapidminer.jar file">
+	<target name="createJar" depends="build, version.updateFiles" description="Generate the lib/rapidminer.jar file">
 		<echo message="Creating jar..." />
 		<pathconvert pathsep=" " property="manifest.classpath" refid="rm.classpath" dirsep="/">
 			<map from="${lib}/" to="" />
@@ -191,7 +192,7 @@
 				<include name="src/**/*" />
 				<include name="src_generated/**/*" />
 				<include name="src_launcher/**/*" />
-				<exclude name="src/*.java" />
+				<include name="src_test/**/*" />
 				<exclude name="src/**/*.cache" />
 			</fileset>
 			<fileset dir="${release.includes}">
@@ -552,6 +553,7 @@
 	</target>
 	<target name="version.updateFiles">
 		<!-- Installer version-->
+		<mkdir dir="installation"/>
 		<echo file="installation/version.nsi">
             !define SHORT_VERSION ${rapidminer.shortversion}
             !define LONG_VERSION ${rapidminer.longversion}.0

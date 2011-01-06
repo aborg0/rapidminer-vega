@@ -2183,6 +2183,10 @@
                   <class>com.rapidminer.operator.postprocessing.ThresholdApplier</class>
                   <replaces>ThresholdApplier</replaces>
                </operator>
+               <operator>
+                  <key>select_recall</key>
+                  <class>com.rapidminer.operator.postprocessing.RecallChooser</class>
+               </operator>               
             </group>
             <group key="confidences">
                <operator>

@@ -8223,5 +8223,17 @@ Thomas Breuel, Faisal Shafait. The Learning Workshop, Cliff Lodge, Snowbird, Uta
       </help>
       <key>auto_mlp</key>
    </operator>
+        <operator>
+      <name>Select Recall</name>
+      <synopsis>This operator searches the threshold that would cause the recall to rise or fall to the given level.</synopsis>
+      <help> 
+      The given example set must contain a label and a compatible predicted label attribute together with all confidence attributes. Since Recall supports only 
+      one or two classes, this operator will only work on data sets with one or two label values at most. The label value that should be treated positive, can be 
+      defined in the operator.
+      This operator will sort the given example set according to the confidence attribute of the positive label and searches the confidence threhsold, that would
+      cause the desired recall. Of course this will affect the precision.
+      </help>
+      <key>select_recall</key>
+   </operator>
      
 </operatorHelp>
