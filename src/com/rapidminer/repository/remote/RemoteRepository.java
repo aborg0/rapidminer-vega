@@ -156,6 +156,16 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		}
 	}
 
+	public URL getRepositoryServiceBaseUrl() {
+		try {
+			return new URL(getBaseUrl(), "RAWS/");
+		} catch (MalformedURLException e) {
+			// cannot happen
+			LogService.getRoot().log(Level.WARNING, "Cannot create Web service url: " + e, e);
+			return null;
+		}
+	}
+	
 	private URL getRepositoryServiceWSDLUrl() {
 		try {
 			return new URL(getBaseUrl(), "RAWS/RepositoryService?wsdl");

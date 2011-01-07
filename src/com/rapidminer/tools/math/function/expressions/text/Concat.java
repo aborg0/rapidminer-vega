@@ -60,8 +60,8 @@ public class Concat extends PostfixMathCommand {
 		}
 
 		StringBuilder builder = new StringBuilder();
-		for (String string: strings) {
-			builder.append(string);
+		for (int i = strings.size() - 1; i >= 0; i--) {
+			builder.append(strings.get(i));
 		}
 		stack.push(builder.toString());
 	}
