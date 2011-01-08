@@ -75,7 +75,7 @@ public class UpdateDialog extends ButtonDialog {
 	private final UpdateListPanel ulp;
 
 	static {
-		GlobalAuthenticator.register(new GlobalAuthenticator.URLAuthenticator() {
+		GlobalAuthenticator.registerServerAuthenticator(new GlobalAuthenticator.URLAuthenticator() {
 			@Override
 			public PasswordAuthentication getAuthentication(URL url) {
 				try {

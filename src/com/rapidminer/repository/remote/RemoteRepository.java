@@ -102,7 +102,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	private boolean isHome;
 
 	static {
-		GlobalAuthenticator.register(new GlobalAuthenticator.URLAuthenticator() {
+		GlobalAuthenticator.registerServerAuthenticator(new GlobalAuthenticator.URLAuthenticator() {
 			@Override
 			public PasswordAuthentication getAuthentication(URL url) {
 				WeakReference<RemoteRepository> reposRef = null;// = ALL_REPOSITORIES.get(url);

@@ -127,42 +127,70 @@ public class BugReport {
 	 * @param process the currently active process
 	 * @param logMessage the RM log
 	 * @param attachments optional attachements
+	 * @param attachProcess if the process xml should be attached
+	 * @param sendSystemProps if the system properties should be included
 	 * @throws Exception
 	 */
-	public static void createBugZillaReport(XmlRpcClient client, Throwable exception, String userSummary, String userDescription, String component, String version, String severity, String platform, String os, Process process, String logMessage, File[] attachments) throws Exception {
+	public static void createBugZillaReport(XmlRpcClient client, Throwable exception, String userSummary, String userDescription, String component, String version, String severity, String platform, String os, Process process, String logMessage, File[] attachments, boolean attachProcess, boolean sendSystemProps) throws Exception {
 		// create temp files with all the data we need
-		File processFile = File.createTempFile("_process", ".xml");
-		processFile.deleteOnExit();
-		writeFile(processFile, process.getRootOperator().getXML(false));
+//		File processFile = File.createTempFile("_process", ".xml");
+//		processFile.deleteOnExit();
+//		writeFile(processFile, process.getRootOperator().getXML(false));
+		String xmlProcess = "";
 		
 		if (process.getProcessLocation() != null) {
-			File rawProcessFile = File.createTempFile(process.getProcessLocation().getShortName(), ".xml");
-			rawProcessFile.deleteOnExit();
+//			File rawProcessFile = File.createTempFile(process.getProcessLocation().getShortName(), ".xml");
+//			rawProcessFile.deleteOnExit();
 			try {
-				String contents = process.getProcessLocation().getRawXML();
-				writeFile(rawProcessFile, contents);
+				xmlProcess = process.getProcessLocation().getRawXML();
+//				writeFile(rawProcessFile, xmlProcess);
 			} catch (Throwable t) {
-				writeFile(rawProcessFile, "could not read: " + t);
+				xmlProcess = "could not read: " + t;
+//				writeFile(rawProcessFile, "could not read: " + t);
 			}
 		}
 		
-		File logFile = File.createTempFile("_log", ".txt");
-		logFile.deleteOnExit();
-		writeFile(logFile, logMessage);
+//		File logFile = File.createTempFile("_log", ".txt");
+//		logFile.deleteOnExit();
+//		writeFile(logFile, logMessage);
 		
-		File stackTraceFile = File.createTempFile("_exception", ".txt");
-		stackTraceFile.deleteOnExit();
-		writeFile(stackTraceFile, getStackTrace(exception));
+//		File stackTraceFile = File.createTempFile("_exception", ".txt");
+//		stackTraceFile.deleteOnExit();
+//		writeFile(stackTraceFile, getStackTrace(exception));
+		
+		//TODO: remove once BugZilla version is upgraded to 4.x, add attachement handling
+		userDescription = userDescription + Tools.getLineSeparator() + Tools.getLineSeparator() + getStackTrace(exception);
+		if (attachProcess) {
+			userDescription = userDescription + 
+			Tools.getLineSeparator() + Tools.getLineSeparator() +
+			"Process:" + 
+			Tools.getLineSeparator() + 
+			"------------" + 
+			Tools.getLineSeparator() + Tools.getLineSeparator() +
+			xmlProcess;
+		}
+		if (sendSystemProps) {
+			userDescription = userDescription + 
+			Tools.getLineSeparator() + Tools.getLineSeparator() +
+			"System Properties:" + 
+			"------------" + 
+			Tools.getLineSeparator() + Tools.getLineSeparator() +
+			getProperties();
+		}
 		
 		// call BugZilla via xml-rpc
 		XmlRpcClient rpcClient = client;
 
         Map<String, String> bugMap = new HashMap<String, String>();
-        bugMap.put("product", "RapidMiner");
+        //TODO: change to RapidMiner
+//        bugMap.put("product", "RapidMiner");
+        bugMap.put("product", "Test Product");
         bugMap.put("component", component);
         bugMap.put("summary", userSummary);
-        bugMap.put("description", userDescription + "\n\n" + getStackTrace(exception));
-        bugMap.put("version", version);
+        bugMap.put("description", userDescription);
+        //TODO: change to version
+//        bugMap.put("version", version);
+        bugMap.put("version", "1.0");
         bugMap.put("op_sys", os);
         bugMap.put("platform", platform);
         bugMap.put("severity", severity);

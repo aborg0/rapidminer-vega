@@ -74,7 +74,11 @@ public class PasswordDialog extends ButtonDialog {
 	private JCheckBox rememberBox = new JCheckBox(new ResourceActionAdapter("authentication.remember"));
 	
 	private PasswordDialog(PasswordAuthentication preset, String url) {
-		super("authentication", url);
+		this("authentication", preset, url);
+	}
+	
+	private PasswordDialog(String i18nKey, PasswordAuthentication preset, String url) {
+		super(i18nKey, url);
 		setModal(true);
 		if (preset != null) {
 			usernameField.setText(preset.getUserName());			
@@ -130,7 +134,7 @@ public class PasswordDialog extends ButtonDialog {
 			authentication = new PasswordAuthentication(authentication.getUserName(), null);
 			CACHE.put(forUrl, authentication);
 		} 
-		PasswordDialog pd = new PasswordDialog(authentication, forUrl);
+		final PasswordDialog pd = new PasswordDialog(authentication, forUrl);
 		pd.setVisible(true);
 		if (pd.wasConfirmed()) {
 			PasswordAuthentication result = pd.makeAuthentication();

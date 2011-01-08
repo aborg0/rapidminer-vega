@@ -31,7 +31,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -194,35 +193,6 @@ public class OperatorDocLoader {
 	}
 
 	/**
-	 * Checks the network connection.
-	 * 
-	 * @return <tt>true</tt> If the host is connected to network; <br>
-	 *         <tt>false</tt> If the host is not connected to network.
-	 */
-	public static boolean hostHasNetworkConnection() {
-		URL url = null;
-		try {
-			url = new URL(HOST_NAME);
-		} catch (MalformedURLException e) {
-			logger.severe(e.getMessage());
-		}
-		if (url != null) {
-			try {
-				URLConnection urlConnection = url.openConnection();
-				urlConnection.connect();
-				InputStream is = urlConnection.getInputStream();
-				if (is != null) {
-					is.close();
-					return true;
-				}
-			} catch (IOException e) {
-				logger.severe(e.getMessage());
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * 
 	 * @param operatorWikiName
 	 * @param opDesc
@@ -243,10 +213,9 @@ public class OperatorDocLoader {
 			try {
 				document = documentBuilder.parse(url.openStream());
 			} catch (IOException e) {
-				// TODO: Replace Unicode, replace language!!!
-				logger.severe("Folgende URL (parseDocumentForOperator()) konnte nicht ge�ffnet werden: " + e.getMessage());
+				logger.severe("Could not open " + url.toExternalForm() + ": " + e.getMessage());
 			} catch (SAXException e) {
-				logger.severe("Folgende SAXParseException (parseDocumentForOperator()) ist aufgetreten: " + e.getMessage());
+				logger.severe("Could not parse operator documentation: " + e.getMessage());
 			}
 
 			int i = 0;

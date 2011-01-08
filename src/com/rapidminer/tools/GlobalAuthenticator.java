@@ -31,79 +31,125 @@ import java.util.List;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.gui.tools.PasswordDialog;
 
-/** Global authenticator at which multiple other authenticators can register.
- *  Authentication requests will be delegated subsequently until an authenticator
- *  is found.
+/**
+ * Global authenticator at which multiple other authenticators can register. Authentication requests will be delegated
+ * subsequently until an authenticator is found.
  * 
  * @author Simon Fischer
- *
+ * 
  */
 public class GlobalAuthenticator extends Authenticator {
 
-	private final List<URLAuthenticator> registeredAuthenticators = new LinkedList<URLAuthenticator>();
-	
+	private final List<URLAuthenticator> serverAuthenticators = new LinkedList<URLAuthenticator>();
+	private final List<URLAuthenticator> proxyAuthenticators = new LinkedList<URLAuthenticator>();
+
 	private static final GlobalAuthenticator THE_INSTANCE = new GlobalAuthenticator();
-	
+
 	public interface URLAuthenticator {
+		/**
+		 * This method returns the PasswordAuthentification if this Authenticator is 
+		 * registered for the given URL. Otherwise null can be returned.
+		 */
 		public PasswordAuthentication getAuthentication(URL url);
+
 		public String getName();
 	}
-	
-    private static class ProxyAuthenticator extends Authenticator {
-        private String username;
-        private String password;
-        public ProxyAuthenticator(String username, String password) {
-            this.username = username;
-            this.password = password;
-        }
-        protected PasswordAuthentication getPasswordAuthentication() {
-            return(new PasswordAuthentication(this.username, this.password.toCharArray()));
-        }
-    }
 
-	
+	private static class ProxyAuthenticator implements URLAuthenticator {
+		private String protocol;
+		
+		public ProxyAuthenticator(String protocol) {
+			this.protocol = protocol;
+		}
+		
+		@Override
+		public PasswordAuthentication getAuthentication(URL url) {
+			if (url.getProtocol().equals(protocol)) {
+				String username = RapidMiner.getRapidMinerPropertyValue(protocol + ".proxyUsername");
+				String password = RapidMiner.getRapidMinerPropertyValue(protocol + ".proxyPassword");
+				if (username == null || username.isEmpty() || password == null) {  //empty passwords possibly valid!
+					PasswordAuthentication passwordAuthentication = PasswordDialog.getPasswordAuthentication("proxy for " + url.toString(), true, false);
+					if (passwordAuthentication == null) {
+						return null;
+					}
+					ParameterService.writePropertyIntoMainUserConfigFile(protocol + ".proxyUsername", passwordAuthentication.getUserName());
+					ParameterService.writePropertyIntoMainUserConfigFile(protocol + ".proxyPassword", new String(passwordAuthentication.getPassword()));
+					
+					return passwordAuthentication;
+				}
+				return new PasswordAuthentication(username, password.toCharArray());
+			} 
+			return null;
+		}
+
+		@Override
+		public String getName() {
+			return "Proxy Authenticator";
+		}
+	}
+
 	static {
 		Authenticator.setDefault(THE_INSTANCE);
+		registerProxyAuthenticator(new ProxyAuthenticator("http"));
+		registerProxyAuthenticator(new ProxyAuthenticator("https"));
+		registerProxyAuthenticator(new ProxyAuthenticator("ftp"));
+		registerProxyAuthenticator(new ProxyAuthenticator("socks"));
 	}
+
 	
+	@Deprecated
+	/**
+	 * This method is deprecated use registerServerAuthenticator instead. 
+	 */
 	public synchronized static void register(URLAuthenticator authenticator) {
-		THE_INSTANCE.registeredAuthenticators.add(authenticator);
+		registerServerAuthenticator(authenticator);
 	}
-	
+	/**
+	 * This method adds another Authenticator to the GlobalAuthenticator that will be enqueued in the list of
+	 * Authenticators that are tried for URLs that need authentification.
+	 */
+	public synchronized static void registerServerAuthenticator(URLAuthenticator authenticator) {
+		THE_INSTANCE.serverAuthenticators.add(authenticator);
+	}
+
+	/**
+	 * This method adds another Authenticator to the GlobalAuthenticator that will be enqueued in the list of
+	 * Authenticators that are tried for Proxy requests for authentification.
+	 */
+	public synchronized static void registerProxyAuthenticator(URLAuthenticator authenticator) {
+		THE_INSTANCE.proxyAuthenticators.add(authenticator);
+	}
+
 	@Override
 	protected synchronized PasswordAuthentication getPasswordAuthentication() {
 		URL url = getRequestingURL();
-		LogService.getRoot().info("Authentication requested for: "+url+". Trying these authenticators: "+registeredAuthenticators+".");
-		for (URLAuthenticator a : registeredAuthenticators) {
-			PasswordAuthentication auth =  a.getAuthentication(url);
-			if (auth != null) {
-				return auth;
-			}
-		}
-		
-		//LogService.getRoot().info("Authentication requested for unknown URL: "+url);
-		//return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
-		
-		if ("http".equals(url.getProtocol())) {
-			if (Tools.booleanValue(System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_HTTP_PROXY_SET), false)) {
-				String username = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_HTTP_PROXY_USERNAME);
-				String password = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_HTTP_PROXY_PASSWORD);
-				if ((username != null) && (username.length() > 0) && (password != null) && (password.length() > 0)) {
-					LogService.getRoot().info("Authentication requested for unknown URL, trying proxy authentication: "+url);
-					return new ProxyAuthenticator(username, password).getPasswordAuthentication();
-				} else {
-					LogService.getRoot().info("Authentication requested for unknown URL: "+url);
-					return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
+		switch (getRequestorType()) {
+		case PROXY:
+			LogService.getRoot().info("Authentication requested for proxy of: " + url + ". Trying these authenticators: " + proxyAuthenticators + ".");
+			for (URLAuthenticator a : proxyAuthenticators) {
+				PasswordAuthentication auth = a.getAuthentication(url);
+				if (auth != null) {
+					return auth;
 				}
-			} else {
-				LogService.getRoot().info("Authentication requested for unknown URL: "+url);
-				return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
 			}
-		} else {
-			LogService.getRoot().info("Authentication requested for unknown URL: "+url);
+			// this should not be happen
 			return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
+		case SERVER:
+			LogService.getRoot().info("Authentication requested for: " + url + ". Trying these authenticators: " + serverAuthenticators + ".");
+			for (URLAuthenticator a : serverAuthenticators) {
+				PasswordAuthentication auth = a.getAuthentication(url);
+				if (auth != null) {
+					return auth;
+				}
+			}
 		}
+		
+		return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
 	}
 
-	public static void init() {}	
+	/**
+	 * This method is called to cause the loading of the class and the execution of static blocks.
+	 */
+	public static void init() {
+	}
 }

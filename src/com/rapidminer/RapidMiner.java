@@ -50,6 +50,7 @@ import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.ParameterTypePassword;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.tools.GlobalAuthenticator;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.OperatorService;
@@ -263,10 +264,15 @@ public class RapidMiner {
 	public static final String PROPERTY_RAPIDMINER_HTTPS_PROXY_SET = "https.proxySet";
 	public static final String PROPERTY_RAPIDMINER_HTTPS_PROXY_HOST = "https.proxyHost";
 	public static final String PROPERTY_RAPIDMINER_HTTPS_PROXY_PORT = "https.proxyPort";
+	public static final String PROPERTY_RAPIDMINER_HTTPS_PROXY_USERNAME = "https.proxyUsername";
+	public static final String PROPERTY_RAPIDMINER_HTTPS_PROXY_PASSWORD = "https.proxyPassword";
+
 	
 	public static final String PROPERTY_RAPIDMINER_FTP_PROXY_SET = "ftp.proxySet";
 	public static final String PROPERTY_RAPIDMINER_FTP_PROXY_HOST = "ftp.proxyHost";
 	public static final String PROPERTY_RAPIDMINER_FTP_PROXY_PORT = "ftp.proxyPort";
+	public static final String PROPERTY_RAPIDMINER_FTP_PROXY_USERNAME = "ftp.proxyUsername";
+	public static final String PROPERTY_RAPIDMINER_FTP_PROXY_PASSWORD = "ftp.proxyPassword";
 	public static final String PROPERTY_RAPIDMINER_FTP_PROXY_NON_PROXY_HOSTS = "ftp.nonProxyHosts";
 
 	public static final String PROPERTY_RAPIDMINER_SOCKS_PROXY_HOST = "socksProxyHost";
@@ -317,18 +323,25 @@ public class RapidMiner {
 		registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_HTTP_PROXY_SET, "Determines whether a proxy is used for HTTP connections.", false));
 		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTP_PROXY_HOST, "The proxy host to use for HTTP.", true));
 		registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_HTTP_PROXY_PORT, "The proxy port to use for HTTP.", 0, 65535, true));
+		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTP_PROXY_USERNAME, "The user name for the http proxy server in cases where it needs authentication.", true));
+		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTP_PROXY_PASSWORD, "The password for the http proxy server in cases where it needs authentication.", true));
+
 		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTP_PROXY_NON_PROXY_HOSTS, "List of regular expressions separated by '|' determining hosts to be connected directly bypassing the proxy.", true));
-		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTP_PROXY_USERNAME, "The user name for the proxy server in cases where it needs authentication.", true));
-		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTP_PROXY_PASSWORD, "The password for the proxy server in cases where it needs authentication.", true));
 		
 		registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_HTTPS_PROXY_SET, "Determines whether a proxy is used for HTTPS connections.", true));
 		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTPS_PROXY_HOST, "The proxy host to use for HTTPS.", true));
 		registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_HTTPS_PROXY_PORT, "The proxy port to use for HTTPS.", 0, 65535, true));
+		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTPS_PROXY_USERNAME, "The user name for the https proxy server in cases where it needs authentication.", true));
+		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTPS_PROXY_PASSWORD, "The password for the https proxy server in cases where it needs authentication.", true));
+
 		
 		registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_FTP_PROXY_SET, "Determines whether a proxy is used for FTPconnections.", false));
 		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_FTP_PROXY_HOST, "The proxy host to use for FTP.", true));
 		registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_FTP_PROXY_PORT, "The proxy port to use for FTP.", 0, 65535, true));
 		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_FTP_PROXY_NON_PROXY_HOSTS, "List of regular expressions separated by '|' determining hosts to be connected directly bypassing the proxy.", true));
+		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_FTP_PROXY_USERNAME, "The user name for the ftp proxy server in cases where it needs authentication.", true));
+		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_FTP_PROXY_PASSWORD, "The password for the ftp proxy server in cases where it needs authentication.", true));
+
 		
 		registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_SOCKS_PROXY_HOST, "The proxy host to use for SOCKS.", true));
 		registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_SOCKS_PROXY_PORT, "The proxy port to use for SOCKS.", 0, 65535, true));
@@ -424,6 +437,10 @@ public class RapidMiner {
 		RapidMiner.splashMessage("init_parameter_service");
 		ParameterService.init();
 
+		// initializing networking tools
+		GlobalAuthenticator.init();
+		
+		// registering operators
 		RapidMiner.splashMessage("register_plugins");
 		Plugin.initAll();
 		Plugin.initPluginSplashTexts(RapidMiner.splashScreen);

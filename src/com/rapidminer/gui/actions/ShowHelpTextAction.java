@@ -2,7 +2,6 @@ package com.rapidminer.gui.actions;
 
 import java.awt.event.ActionEvent;
 
-import com.rapidminer.gui.OperatorDocLoader;
 import com.rapidminer.gui.OperatorDocViewer;
 
 public class ShowHelpTextAction extends ToggleAction {
@@ -13,38 +12,11 @@ public class ShowHelpTextAction extends ToggleAction {
 	public ShowHelpTextAction(OperatorDocViewer operatorDocViewer) {
 		super(true, "rapid_doc_bot_importer_offline");
 		this.operatorDocViewer = operatorDocViewer;
-		this.showNewHelptextFirstTime();
+		setSelected(true);
 	}
-
 
 	@Override
 	public void actionToggled(ActionEvent e) {
-		this.changeToolTip();
-		this.showHelpText();
-	}
-	
-	private void showNewHelptextFirstTime() {
-		if (OperatorDocLoader.hostHasNetworkConnection()) {
-			setSelected(true);
-		}
 		this.operatorDocViewer.refresh();
-//		
-//			RapidDocBotImporter.showNewHelptext(true, true, this.operatorDocViewer, null);
-//		} else {
-//			RapidDocBotImporter.showNewHelptext(false, false, this.operatorDocViewer, null);
-//		}
 	}
-
-	private void showHelpText() {
-		this.operatorDocViewer.refresh();
-//		if (isSelected()) {
-//			RapidDocBotImporter.showNewHelptext(true, true, this.operatorDocViewer, null);
-//		} else {
-//			RapidDocBotImporter.showNewHelptext(false, false, this.operatorDocViewer, null);
-//		}
-	}
-
-	private void changeToolTip() {
-	}
-
 }
