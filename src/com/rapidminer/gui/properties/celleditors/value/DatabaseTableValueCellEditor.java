@@ -87,7 +87,7 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 									handler = DatabaseHandler.getConnectedDatabaseHandler(entry);
 								} catch (SQLException e1) {
 									LogService.getRoot().log(Level.WARNING, "Failed to fetch database tables: "+e1, e1);									
-									SwingTools.showVerySimpleErrorMessage("Retrieval of table names failed");
+									SwingTools.showSimpleErrorMessage("failed_to_fetch_database_tables", e1, entry.getName(), e1.getMessage());
 									return;
 								}
 
@@ -101,7 +101,7 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 										getProgressListener().setCompleted(90);
 									} catch (SQLException e) {
 										LogService.getRoot().log(Level.WARNING, "Failed to fetch database tables: "+e, e);
-										SwingTools.showVerySimpleErrorMessage("Retrieval of table names failed.");
+										SwingTools.showSimpleErrorMessage("failed_to_fetch_database_tables", e, entry.getName(), e.getMessage());
 										return;
 									}
 									try {

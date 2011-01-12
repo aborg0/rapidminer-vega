@@ -41,14 +41,18 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
+import org.apache.xmlrpc.client.XmlRpcClient;
 
 import com.rapidminer.NoBugError;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.RapidMinerGUI;
-import com.rapidminer.gui.dialog.BugAssistant;
+import com.rapidminer.gui.dialog.BugZillaAssistant;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
+import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.LinkButton;
@@ -56,13 +60,14 @@ import com.rapidminer.operator.UserError;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.XMLException;
+import com.rapidminer.tools.XmlRpcHandler;
 
 /**
  * The error message dialog. Several buttons are provided in addition to the error message. Details about the exception
  * can be shown and an edit button can jump to the source code if an editor was defined in the properties / settings. In
  * case of a non-expected error (i.e. all non-user errors) a button for sending a bug report is also provided.
  * 
- * @author Ingo Mierswa, Simon Fischer, Tobias Malbrecht
+ * @author Ingo Mierswa, Simon Fischer, Tobias Malbrecht, Marco Boeck
  */
 public class ExtendedErrorDialog extends ButtonDialog {
 
@@ -225,7 +230,39 @@ public class ExtendedErrorDialog extends ButtonDialog {
 				private static final long serialVersionUID = 1L;
 
 				public void actionPerformed(ActionEvent e) {
-					new BugAssistant(error).setVisible(true);
+					new ProgressThread("connect_to_bugzilla", false) {
+						@Override
+						public void run() {
+							final BugZillaAssistant bugAst;
+							getProgressListener().setTotal(100);
+							getProgressListener().setCompleted(10);
+							char[] pw = new char[] { '!', 'z', '4', '8', '#', 'H', 'c', '2', '$', '%', 'm', ')', '9', '+', '*', '*' };
+							String email = "bugs@rapid-i.com";
+							try {
+								XmlRpcClient rpcClient = XmlRpcHandler.login(XmlRpcHandler.BUGZILLA_URL, email, pw);
+								getProgressListener().setCompleted(20);
+								bugAst = new BugZillaAssistant(this, error, rpcClient);
+							} catch (Exception e) {
+								SwingTools.showVerySimpleErrorMessage("bugreport_xmlrpc_init_error");
+								return;
+							} finally {
+								for (int i=0; i<pw.length; i++) {
+									pw[i] = 0;
+								}
+								getProgressListener().complete();
+							}
+							if (!isCancelled()) {
+								SwingUtilities.invokeLater(new Runnable() {
+									@Override
+									public void run() {
+										bugAst.setVisible(true);
+									}
+								});
+							} else {
+								bugAst.dispose();
+							}
+						}								
+					}.start();
 				}
 			}));
 		}

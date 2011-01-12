@@ -80,7 +80,11 @@ public class XmlRpcHandler {
         loginMap.put("rememberlogin", "true");
         
         Map resultMap = (Map)rpcClient.execute("User.login", new Object[]{ loginMap });
-        LogService.getRoot().config("Logged into BugZilla at '" + serverURL + "' as user '" + resultMap.get("id") + "'.");
+        LogService.getRoot().fine("Logged into BugZilla at '" + serverURL + "' as user '" + resultMap.get("id") + "'.");
+        
+        for (int i=0; i<password.length; i++) {
+        	password[i] = 0;
+		}
         
         return rpcClient;
 	}

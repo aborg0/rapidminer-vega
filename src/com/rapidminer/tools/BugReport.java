@@ -39,6 +39,7 @@ import java.util.zip.ZipOutputStream;
 import org.apache.xmlrpc.client.XmlRpcClient;
 
 import com.rapidminer.Process;
+import com.rapidminer.gui.RapidMinerGUI;
 
 
 /**
@@ -66,7 +67,7 @@ public class BugReport {
 	public static String getProperties() {
 		StringBuffer string = new StringBuffer();
 		string.append("System properties:" + Tools.getLineSeparator());
-		string.append("------------------" + Tools.getLineSeparator() + Tools.getLineSeparator());
+		string.append("------------" + Tools.getLineSeparator() + Tools.getLineSeparator());
 		getProperties("os", string);
 		getProperties("java", string);
 		getProperties("rapidminer", string);
@@ -131,24 +132,24 @@ public class BugReport {
 	 * @param sendSystemProps if the system properties should be included
 	 * @throws Exception
 	 */
-	public static void createBugZillaReport(XmlRpcClient client, Throwable exception, String userSummary, String userDescription, String component, String version, String severity, String platform, String os, Process process, String logMessage, File[] attachments, boolean attachProcess, boolean sendSystemProps) throws Exception {
+	public static void createBugZillaReport(XmlRpcClient client, Throwable exception, String userSummary, 
+			String completeDescription, String component, String version, String severity, String platform, 
+			String os, Process process, String logMessage, File[] attachments, boolean attachProcess, boolean attachSystemProps) throws Exception {
 		// create temp files with all the data we need
+		//TODO: activate again when BugZilla 4.x is used, handle attachement files
 //		File processFile = File.createTempFile("_process", ".xml");
 //		processFile.deleteOnExit();
 //		writeFile(processFile, process.getRootOperator().getXML(false));
-		String xmlProcess = "";
-		
-		if (process.getProcessLocation() != null) {
-//			File rawProcessFile = File.createTempFile(process.getProcessLocation().getShortName(), ".xml");
-//			rawProcessFile.deleteOnExit();
-			try {
-				xmlProcess = process.getProcessLocation().getRawXML();
-//				writeFile(rawProcessFile, xmlProcess);
-			} catch (Throwable t) {
-				xmlProcess = "could not read: " + t;
-//				writeFile(rawProcessFile, "could not read: " + t);
-			}
-		}
+//		String xmlProcess;
+//		if (RapidMinerGUI.getMainFrame().getProcess().getProcessLocation() != null) {
+//			try {
+//				xmlProcess = RapidMinerGUI.getMainFrame().getProcess().getProcessLocation().getRawXML();
+//			} catch (Throwable t) {
+//				xmlProcess = "could not read: " + t;
+//			}
+//		} else {
+//			xmlProcess = "no process available";
+//		}
 		
 //		File logFile = File.createTempFile("_log", ".txt");
 //		logFile.deleteOnExit();
@@ -158,51 +159,58 @@ public class BugReport {
 //		stackTraceFile.deleteOnExit();
 //		writeFile(stackTraceFile, getStackTrace(exception));
 		
-		//TODO: remove once BugZilla version is upgraded to 4.x, add attachement handling
-		userDescription = userDescription + Tools.getLineSeparator() + Tools.getLineSeparator() + getStackTrace(exception);
-		if (attachProcess) {
-			userDescription = userDescription + 
-			Tools.getLineSeparator() + Tools.getLineSeparator() +
-			"Process:" + 
-			Tools.getLineSeparator() + 
-			"------------" + 
-			Tools.getLineSeparator() + Tools.getLineSeparator() +
-			xmlProcess;
-		}
-		if (sendSystemProps) {
-			userDescription = userDescription + 
-			Tools.getLineSeparator() + Tools.getLineSeparator() +
-			"System Properties:" + 
-			"------------" + 
-			Tools.getLineSeparator() + Tools.getLineSeparator() +
-			getProperties();
-		}
-		
 		// call BugZilla via xml-rpc
 		XmlRpcClient rpcClient = client;
 
         Map<String, String> bugMap = new HashMap<String, String>();
-        //TODO: change to RapidMiner
-//        bugMap.put("product", "RapidMiner");
-        bugMap.put("product", "Test Product");
+        bugMap.put("product", "RapidMiner");
         bugMap.put("component", component);
         bugMap.put("summary", userSummary);
-        bugMap.put("description", userDescription);
-        //TODO: change to version
-//        bugMap.put("version", version);
-        bugMap.put("version", "1.0");
+        bugMap.put("description",  completeDescription);
+        bugMap.put("version", version);
         bugMap.put("op_sys", os);
         bugMap.put("platform", platform);
         bugMap.put("severity", severity);
         bugMap.put("status", "NEW");
 
-        //TODO: enable & remove syso
-//        Map createResult = (Map)rpcClient.execute("Bug.create", new Object[]{ bugMap });
-//        LogService.getRoot().fine("Bug " + createResult.get("id") + " submitted successfully.");
-        System.out.println("BUG SUBMITTED:");
-        for (String bug : bugMap.keySet()) {
-        	System.out.println(bug + " : " + bugMap.get(bug));
-        }
+        Map createResult = (Map)rpcClient.execute("Bug.create", new Object[]{ bugMap });
+        LogService.getRoot().fine("Bug submitted successfully. Bug ID: " + createResult.get("id"));
+	}
+	
+	public static String createCompleteBugDescription(String userDescription, Throwable exception, boolean attachProcess, boolean attachSystemProps) {
+		StringBuffer buffer = new StringBuffer();
+		buffer.append(userDescription);
+		buffer.append(Tools.getLineSeparator());
+		buffer.append(Tools.getLineSeparator());
+		buffer.append(getStackTrace(exception));
+		
+		if (attachProcess) {
+			buffer.append(Tools.getLineSeparator());
+			buffer.append(Tools.getLineSeparator());
+			buffer.append("Process:");
+			buffer.append(Tools.getLineSeparator());
+			buffer.append("------------");
+			buffer.append(Tools.getLineSeparator());
+			buffer.append(Tools.getLineSeparator());
+			String xmlProcess;
+			if (RapidMinerGUI.getMainFrame().getProcess().getProcessLocation() != null) {
+				try {
+					xmlProcess = RapidMinerGUI.getMainFrame().getProcess().getProcessLocation().getRawXML();
+				} catch (Throwable t) {
+					xmlProcess = "could not read: " + t;
+				}
+			} else {
+				xmlProcess = "no process available";
+			}
+			buffer.append(xmlProcess);
+		}
+		if (attachSystemProps) {
+			buffer.append(Tools.getLineSeparator());
+			buffer.append(Tools.getLineSeparator());
+			buffer.append(getProperties());
+		}
+		
+		return buffer.toString();
 	}
 	
 	private static void writeFile(File file, String content) throws IOException {

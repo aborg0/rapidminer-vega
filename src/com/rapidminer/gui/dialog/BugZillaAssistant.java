@@ -28,13 +28,10 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
@@ -48,10 +45,8 @@ import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
@@ -85,6 +80,47 @@ import com.rapidminer.tools.XmlRpcHandler;
  */
 public class BugZillaAssistant extends ButtonDialog {
 	
+	/**
+	 * Class to create the dialog which shows the complete bugreport.
+	 */
+	private class BugReportViewerDialog extends ButtonDialog {
+		
+		private static final long serialVersionUID = -6701934505993719826L;
+		
+		private JTextArea propArea;
+		private JScrollPane scrollPanePropArea;
+		
+		
+		public BugReportViewerDialog() {
+			super("send_bugreport_info", true);
+			
+			final JPanel panel = new JPanel();
+			panel.setLayout(new GridBagLayout());
+			Collection<AbstractButton> buttons = new LinkedList<AbstractButton>();
+
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.gridx = 0;
+			gbc.gridy = 0;
+			gbc.weightx = 1;
+			gbc.weighty = 1;
+			gbc.insets = new Insets(GAP*2, GAP, GAP*2, GAP);
+			gbc.fill = GridBagConstraints.BOTH;
+			propArea = new JTextArea();
+			propArea.setEditable(false);
+			scrollPanePropArea = new JScrollPane(propArea);
+			panel.add(scrollPanePropArea, gbc);
+			
+			buttons.add(makeCloseButton());
+			layoutDefault(panel, LARGE, buttons);
+		}
+		
+		public void setInfoText(String text) {
+			propArea.setText(text);
+			propArea.setSelectionStart(0);
+			propArea.setSelectionEnd(0);
+		}
+	}
+	
 	private XmlRpcClient rpcClient = null;
 	
 	private final String descriptionText = I18N.getMessage(I18N.getGUIBundle(), getKey() + ".description.text");
@@ -94,8 +130,6 @@ public class BugZillaAssistant extends ButtonDialog {
 	private final JList attachments = new JList(new DefaultListModel());
 	
 	private JButton submitButton;
-	
-	private int returnVal;
 	
 	private static final long serialVersionUID = 8379605320787188372L;
 	
@@ -112,8 +146,7 @@ public class BugZillaAssistant extends ButtonDialog {
 		// components
 		Map<String, String> valQueryMap = new HashMap<String, String>();
 		valQueryMap.put("field", "component");
-		//TODO: change to 2
-		valQueryMap.put("product_id", "4");
+		valQueryMap.put("product_id", "2");
 		Map resultMap = (Map)rpcClient.execute("Bug.legal_values", new Object[]{ valQueryMap });
 		compVals = (Object[])resultMap.get("values");
 		thread.getProgressListener().setCompleted(50);
@@ -304,28 +337,37 @@ public class BugZillaAssistant extends ButtonDialog {
 
 		
 		c.gridx = 0;
+		c.gridy = 0;
 		c.insets = new Insets(GAP, 0, 0, GAP);
 		c.weighty = 0;
+		c.weightx = 0;
+		c.anchor = GridBagConstraints.WEST;
+		c.fill = GridBagConstraints.HORIZONTAL;
 		final JCheckBox addProcessCheckBox = new JCheckBox();
 		addProcessCheckBox.setText(I18N.getMessage(I18N.getGUIBundle(), getKey() + ".add_process_xml.label"));
 		addProcessCheckBox.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), getKey() + ".add_process_xml.tip"));
-		addProcessCheckBox.setSelected(false);
+		addProcessCheckBox.setSelected(true);
 		addProcessCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+		addProcessCheckBox.setMinimumSize(addProcessCheckBox.getPreferredSize());
 		mailPanel.add(addProcessCheckBox, c);
 		
 		c.gridx = 1;
-		c.insets = new Insets(GAP, 0, 0, GAP);
-		c.weighty = 0;
 		final JCheckBox addSysPropsCheckBox = new JCheckBox();
 		addSysPropsCheckBox.setText(I18N.getMessage(I18N.getGUIBundle(), getKey() + ".add_system_props.label"));
 		addSysPropsCheckBox.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), getKey() + ".add_system_props.tip"));
-		addSysPropsCheckBox.setSelected(false);
+		addSysPropsCheckBox.setSelected(true);
 		addSysPropsCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+		addSysPropsCheckBox.setMinimumSize(addSysPropsCheckBox.getPreferredSize());
 		mailPanel.add(addSysPropsCheckBox, c);
 		
+		c.gridx = 2;
+		c.weightx = 1;
+		mailPanel.add(new JLabel(), c);
+		
 		c.weightx = 0.9;
-		c.gridwidth = GridBagConstraints.RELATIVE;
+		c.gridwidth = 3;
 		c.fill = GridBagConstraints.BOTH;
+		c.gridx = 0;
 		c.gridy = 1;
 		mailPanel.add(new JLabel(I18N.getMessage(I18N.getGUIBundle(), getKey() + ".summary.label") + ":"), c);
 		
@@ -391,6 +433,19 @@ public class BugZillaAssistant extends ButtonDialog {
 //				}				
 //			}
 //		}));
+		JButton infoButton = new JButton(new ResourceAction("send_bugreport.info") {
+			private static final long serialVersionUID = 2135052418891516027L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				BugReportViewerDialog dialog = new BugReportViewerDialog();
+				dialog.setInfoText(BugReport.createCompleteBugDescription(descriptionField.getText().trim(), exception, addProcessCheckBox.isSelected(), addSysPropsCheckBox.isSelected()));
+				dialog.setVisible(true);
+			}
+			
+		});
+		buttons.add(infoButton);
+		
 		submitButton = new JButton(new ResourceAction("send_bugreport.submit") {
 			private static final long serialVersionUID = -4559762951458936715L;
 
@@ -402,12 +457,6 @@ public class BugZillaAssistant extends ButtonDialog {
 				String summary = summaryField.getText().trim();
 				String description = descriptionField.getText().trim();
 				String version = RapidMiner.getShortVersion();
-				if (version.equals("5.1")) {
-					//TODO: change to 5.1 once that version becomes available in BugZilla
-					version = "5.0 (Vega)";
-				} else {
-					version = "5.0 (Vega)";
-				}
 				if ( !useAnonymousLogin.isSelected()) {
 					if (email.length() == 0) {
 						SwingTools.showVerySimpleErrorMessage("enter_email");
@@ -449,92 +498,9 @@ public class BugZillaAssistant extends ButtonDialog {
 						attachments[i] = (File) model.getElementAt(i);
 					}
 					XmlRpcClient client = XmlRpcHandler.login(XmlRpcHandler.BUGZILLA_URL, email, pw);
-//					int returnVal = SwingTools.showConfirmDialog("send_bugreport.show_properties", JOptionPane.YES_NO_CANCEL_OPTION, BugReport.getProperties().replaceAll(Tools.getLineSeparator(), "<br>"));
-					//TODO: change to "see everything submitted" button
-					final JDialog confirmDialog = new JDialog(RapidMinerGUI.getMainFrame(), true);
-					confirmDialog.setLayout(new GridBagLayout());
-					confirmDialog.setTitle(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + getKey() + ".show_system_properties.title"));
-					confirmDialog.addWindowListener(new WindowAdapter() {
-
-						@Override
-						public void windowClosing(WindowEvent e) {
-							returnVal = JOptionPane.CANCEL_OPTION;
-						}
-
-					});
-					GridBagConstraints gbc = new GridBagConstraints();
-					gbc.gridx = 0;
-					gbc.gridy = 0;
-					gbc.weightx = 1;
-					gbc.weighty = 0;
-					gbc.gridwidth = 3;
-					gbc.insets = new Insets(GAP*2, GAP, GAP*2, GAP);
-					gbc.fill = GridBagConstraints.BOTH;
-					confirmDialog.add(new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + getKey() + ".show_system_properties.label")), gbc);
 					
-					gbc.gridy = 1;
-					gbc.weighty = 1;
-					JTextArea propArea = new JTextArea(BugReport.getProperties());
-					propArea.setEditable(false);
-					JScrollPane scrollPanePropArea = new JScrollPane(propArea);
-					scrollPanePropArea.setMinimumSize(new Dimension(300, 300));
-					scrollPanePropArea.setPreferredSize(new Dimension(300, 300));
-					confirmDialog.add(scrollPanePropArea, gbc);
-					
-					gbc.gridx = 0;
-					gbc.gridy = 2;
-					gbc.gridwidth = 1;
-					gbc.fill = GridBagConstraints.NONE;
-					gbc.anchor = GridBagConstraints.EAST;
-					JButton yes_button = new JButton("Yes");
-					yes_button.setPreferredSize(new Dimension(100, 25));
-					yes_button.addActionListener(new ActionListener() {
-						
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							returnVal = JOptionPane.YES_OPTION;
-							confirmDialog.dispose();
-						}
-					});
-					confirmDialog.add(yes_button, gbc);
-					
-					gbc.gridx = 1;
-					gbc.gridy = 2;
-					gbc.gridwidth = 1;
-					gbc.anchor = GridBagConstraints.CENTER;
-					JButton no_button = new JButton("No");
-					no_button.setPreferredSize(new Dimension(100, 25));
-					no_button.addActionListener(new ActionListener() {
-						
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							returnVal = JOptionPane.NO_OPTION;
-							confirmDialog.dispose();
-						}
-					});
-					confirmDialog.add(no_button, gbc);
-					
-					gbc.gridx = 2;
-					gbc.gridy = 2;
-					gbc.gridwidth = 1;
-					gbc.anchor = GridBagConstraints.WEST;
-					JButton cancel_button = new JButton("Cancel");
-					cancel_button.setPreferredSize(new Dimension(100, 25));
-					cancel_button.addActionListener(new ActionListener() {
-						
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							returnVal = JOptionPane.CANCEL_OPTION;
-							confirmDialog.dispose();
-						}
-					});
-					confirmDialog.add(cancel_button, gbc);
-					confirmDialog.setModal(true);
-					confirmDialog.pack();
-					confirmDialog.setLocationRelativeTo(null);
-					confirmDialog.setVisible(true);
-					
-					BugReport.createBugZillaReport(client, exception, summaryField.getText(), descriptionField.getText().trim(), 
+					BugReport.createBugZillaReport(client, exception, summaryField.getText().trim(), 
+							BugReport.createCompleteBugDescription(descriptionField.getText().trim(), exception, addProcessCheckBox.isSelected(), addSysPropsCheckBox.isSelected()), 
 							String.valueOf(compBox.getSelectedItem()), version, String.valueOf(severityBox.getSelectedItem()),
 							String.valueOf(platformBox.getSelectedItem()), String.valueOf(osBox.getSelectedItem()), RapidMinerGUI.getMainFrame().getProcess(),
 							RapidMinerGUI.getMainFrame().getMessageViewer().getLogMessage(), attachments, addProcessCheckBox.isSelected(), addSysPropsCheckBox.isSelected());
