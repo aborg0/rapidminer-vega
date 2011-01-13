@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import java.util.Iterator;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.rapidminer.example.Attribute;
@@ -69,7 +68,7 @@ public class DatabaseWriteTest {
 	private static final DatabaseRef DB_SQL_SERVER = new DatabaseRef("jdbc:jtds:sqlserver://192.168.1.8:1433/rapidanalytics", "rapidrepository", "rapidrepository", null);// "net.sourceforge.jtds.jdbc.Driver");
 	private static final DatabaseRef DB_MY_SQL = new DatabaseRef("jdbc:mysql://192.168.1.7:3306/test", "rapidi", "rapidi", null); // "com.mysql.jdbc.Driver");
 	private static final DatabaseRef DB_ORACLE = new DatabaseRef("jdbc:oracle:thin:@192.168.1.8:1521", "rapidi", "rapidi", "oracle.jdbc.driver.OracleDriver");
-	private static final DatabaseRef DB_INGRES = new DatabaseRef("jdbc:sqlserver://192.168.1.8", "rapidi", "rapidi", null);
+	private static final DatabaseRef DB_INGRES = new DatabaseRef("jdbc:ingres://192.168.1.7:28047/demodb", "ingres", "vw2010", null);
 	
 	@Before
 	public void setUp() throws Exception {
@@ -93,7 +92,6 @@ public class DatabaseWriteTest {
 		testCreateTable(DB_ORACLE);
 	}
 
-	@Ignore
 	@Test
 	public void testCreateTableIngres() throws SQLException, OperatorException, ClassNotFoundException, OperatorCreationException {
 		testCreateTable(DB_INGRES);

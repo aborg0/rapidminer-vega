@@ -116,8 +116,8 @@ public class GPLearner extends AbstractKernelBasedLearner {
 		if (lc == com.rapidminer.operator.OperatorCapability.NUMERICAL_ATTRIBUTES)
 			return true;
 
-		if (lc == com.rapidminer.operator.OperatorCapability.BINOMINAL_LABEL)
-			return true;
+//		if (lc == com.rapidminer.operator.OperatorCapability.BINOMINAL_LABEL)
+//			return true;
 
 		if (lc == com.rapidminer.operator.OperatorCapability.NUMERICAL_LABEL)
 			return true;

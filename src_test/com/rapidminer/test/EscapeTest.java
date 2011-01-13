@@ -10,7 +10,6 @@ import org.junit.Test;
 
 import com.rapidminer.parameter.ParameterTypeEnumeration;
 import com.rapidminer.parameter.ParameterTypeTupel;
-import com.rapidminer.parameter.Parameters;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.container.Pair;
 
@@ -49,25 +48,29 @@ public class EscapeTest {
 	
 	@Test
 	public void testParameterTypeTuple() {
-		assertArrayEquals(new String[] { "fi"+Parameters.PAIR_SEPARATOR+"rst", "sec"+Parameters.PAIR_SEPARATOR+"ond" }, ParameterTypeTupel.transformString2Tupel("fi\\"+Parameters.PAIR_SEPARATOR+"rst"+Parameters.PAIR_SEPARATOR+"sec\\"+Parameters.PAIR_SEPARATOR+"ond"));
+		//final char internalSeparator = Parameters.PAIR_SEPARATOR;
+		final char internalSeparator = '.';
+		assertArrayEquals(new String[] { "fi"+internalSeparator+"rst", "sec"+internalSeparator+"ond" }, ParameterTypeTupel.transformString2Tupel("fi\\"+internalSeparator+"rst"+internalSeparator+"sec\\"+internalSeparator+"ond"));
 		
-		assertEquals("fi\\"+Parameters.PAIR_SEPARATOR+"rst"+Parameters.PAIR_SEPARATOR+"sec\\"+Parameters.PAIR_SEPARATOR+"ond", ParameterTypeTupel.transformTupel2String("fi"+Parameters.PAIR_SEPARATOR+"rst", "sec"+Parameters.PAIR_SEPARATOR+"ond"));
-		assertEquals("fi\\"+Parameters.PAIR_SEPARATOR+"rst"+Parameters.PAIR_SEPARATOR+"sec\\"+Parameters.PAIR_SEPARATOR+"ond", ParameterTypeTupel.transformTupel2String(new String[] { "fi"+Parameters.PAIR_SEPARATOR+"rst", "sec"+Parameters.PAIR_SEPARATOR+"ond" }));
-		assertEquals("fi\\"+Parameters.PAIR_SEPARATOR+"rst"+Parameters.PAIR_SEPARATOR+"sec\\"+Parameters.PAIR_SEPARATOR+"ond", ParameterTypeTupel.transformTupel2String(new Pair<String,String>("fi"+Parameters.PAIR_SEPARATOR+"rst", "sec"+Parameters.PAIR_SEPARATOR+"ond")));
+		assertEquals("fi\\"+internalSeparator+"rst"+internalSeparator+"sec\\"+internalSeparator+"ond", ParameterTypeTupel.transformTupel2String("fi"+internalSeparator+"rst", "sec"+internalSeparator+"ond"));
+		assertEquals("fi\\"+internalSeparator+"rst"+internalSeparator+"sec\\"+internalSeparator+"ond", ParameterTypeTupel.transformTupel2String(new String[] { "fi"+internalSeparator+"rst", "sec"+internalSeparator+"ond" }));
+		assertEquals("fi\\"+internalSeparator+"rst"+internalSeparator+"sec\\"+internalSeparator+"ond", ParameterTypeTupel.transformTupel2String(new Pair<String,String>("fi"+internalSeparator+"rst", "sec"+internalSeparator+"ond")));
 	}
 	
 	@Test
 	public void testParameterTypeEnumeration() {
+		//final char internalRecordSeparator = Parameters.RECORD_SEPARATOR;
+		final char internalRecordSeparator = ',';
 		assertArrayEquals(
 				new String[] { 
-						"fi"+Parameters.RECORD_SEPARATOR+"rst",
-						"sec"+Parameters.RECORD_SEPARATOR+"ond",
-						"third"+Parameters.RECORD_SEPARATOR+"" }, 
-				ParameterTypeEnumeration.transformString2Enumeration("fi\\"+Parameters.RECORD_SEPARATOR+"rst"+Parameters.RECORD_SEPARATOR+"sec\\"+Parameters.RECORD_SEPARATOR+"ond"+Parameters.RECORD_SEPARATOR+"third\\"+Parameters.RECORD_SEPARATOR+""));
+						"fi"+internalRecordSeparator+"rst",
+						"sec"+internalRecordSeparator+"ond",
+						"third"+internalRecordSeparator+"" }, 
+				ParameterTypeEnumeration.transformString2Enumeration("fi\\"+internalRecordSeparator+"rst"+internalRecordSeparator+"sec\\"+internalRecordSeparator+"ond"+internalRecordSeparator+"third\\"+internalRecordSeparator+""));
 		List<String> enumeration = new LinkedList<String>();
-		enumeration.add("fi"+Parameters.RECORD_SEPARATOR+"rst");
-		enumeration.add("sec"+Parameters.RECORD_SEPARATOR+"ond");
-		enumeration.add("third"+Parameters.RECORD_SEPARATOR+"");
-		assertEquals("fi\\"+Parameters.RECORD_SEPARATOR+"rst"+Parameters.RECORD_SEPARATOR+"sec\\"+Parameters.RECORD_SEPARATOR+"ond"+Parameters.RECORD_SEPARATOR+"third\\"+Parameters.RECORD_SEPARATOR+"", ParameterTypeEnumeration.transformEnumeration2String(enumeration));
+		enumeration.add("fi"+internalRecordSeparator+"rst");
+		enumeration.add("sec"+internalRecordSeparator+"ond");
+		enumeration.add("third"+internalRecordSeparator+"");
+		assertEquals("fi\\"+internalRecordSeparator+"rst"+internalRecordSeparator+"sec\\"+internalRecordSeparator+"ond"+internalRecordSeparator+"third\\"+internalRecordSeparator+"", ParameterTypeEnumeration.transformEnumeration2String(enumeration));
 	}
 }
