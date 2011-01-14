@@ -161,7 +161,7 @@ public class AutoMLPImprovedNeuralNetLearner extends AbstractLearner {
 		 * (int current : indices) { exampleIndices[index++] = current; } }
 		 */
 
-		int number_of_classes = exampleSet.getAttributes().getLabel().getMapping().size();
+		//int number_of_classes = exampleSet.getAttributes().getLabel().getMapping().size();
 
 		SplittedExampleSet splittedES = new SplittedExampleSet(exampleSet, cv_split, 1 /*
 																						 * samplingType = 1 for

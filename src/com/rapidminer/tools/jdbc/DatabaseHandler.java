@@ -173,7 +173,7 @@ public class DatabaseHandler {
 
 	public static final String PARAMETER_PREPARE_STATEMENT = "prepare_statement";
 
-	private static final String[] SQL_TYPES = { "VARCHAR", "INTEGER", "REAL" };
+	private static final String[] SQL_TYPES = { "VARCHAR", "INTEGER", "REAL", "LONG" };
     
 //	private static class DHIdentifier {
 //		private String url;
@@ -1057,6 +1057,12 @@ public class DatabaseHandler {
 				} else if ("REAL".equals(sqlType)) {
 					try {
 						prepared.setDouble(i+1, Double.parseDouble(replacementValue));
+					} catch (NumberFormatException e) {
+						throw new UserError(parameterHandler, 158, replacementValue, sqlType);
+					}
+				} else if ("LONG".equals(sqlType)) {
+					try {
+						prepared.setLong(i+1, Long.parseLong(replacementValue));
 					} catch (NumberFormatException e) {
 						throw new UserError(parameterHandler, 158, replacementValue, sqlType);
 					}
