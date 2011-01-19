@@ -97,8 +97,13 @@ public abstract class AbstractExampleSetJoin extends Operator {
 
     public AbstractExampleSetJoin(OperatorDescription description) {
         super(description);
-        leftInput.addPrecondition(new ExampleSetPrecondition(leftInput, Ontology.ATTRIBUTE_VALUE, Attributes.ID_NAME));
-        rightInput.addPrecondition(new ExampleSetPrecondition(rightInput, Ontology.ATTRIBUTE_VALUE, Attributes.ID_NAME));
+        if (isIdNeeded()) {
+        	leftInput.addPrecondition(new ExampleSetPrecondition(leftInput, Ontology.ATTRIBUTE_VALUE, Attributes.ID_NAME));
+        	rightInput.addPrecondition(new ExampleSetPrecondition(rightInput, Ontology.ATTRIBUTE_VALUE, Attributes.ID_NAME));
+        } else {
+        	leftInput.addPrecondition(new ExampleSetPrecondition(leftInput));
+        	rightInput.addPrecondition(new ExampleSetPrecondition(rightInput));
+        }
         getTransformer().addRule(new ExampleSetUnionRule(rightInput, leftInput, joinOutput, "_from_ES2") {
         	 @Override
         	 protected String getPrefix() {
