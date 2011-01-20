@@ -1346,7 +1346,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		return selectedOperators.isEmpty() ? null : selectedOperators.get(0);
 	}
 	
-	void addProcessEditor(ProcessEditor p) {
+	public void addProcessEditor(ProcessEditor p) {
 		processEditors.add(ProcessEditor.class, p);
 	}
 	
