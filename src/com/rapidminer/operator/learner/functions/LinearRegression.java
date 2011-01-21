@@ -163,7 +163,7 @@ public class LinearRegression extends AbstractLearner {
 		}
 
 		double labelMean = exampleSet.getStatistics(workingLabel, Statistics.AVERAGE_WEIGHTED);
-		double classStandardDeviation = Math.sqrt(exampleSet.getStatistics(workingLabel, Statistics.VARIANCE_WEIGHTED));
+		double labelStandardDeviation = Math.sqrt(exampleSet.getStatistics(workingLabel, Statistics.VARIANCE_WEIGHTED));
 
 		int numberOfExamples = exampleSet.size();
 		double[] coefficients;
@@ -171,7 +171,7 @@ public class LinearRegression extends AbstractLearner {
 		// perform a regression and remove colinear attributes
 		do {
 			coefficients = performRegression(exampleSet, attributeSelection, means, labelMean, ridge);
-		} while (removeColinearAttributes && deselectAttributeWithHighestCoefficient(attributeSelection, coefficients, standardDeviations, classStandardDeviation, minStandardizedCoefficient));
+		} while (removeColinearAttributes && deselectAttributeWithHighestCoefficient(attributeSelection, coefficients, standardDeviations, labelStandardDeviation, minStandardizedCoefficient));
 
 		// determine the current number of attributes + 1
 		int currentlySelectedAttributes = 1;
@@ -225,7 +225,7 @@ public class LinearRegression extends AbstractLearner {
 				int coefficientIndex = 0;
 				for (int i = 0; i < attributeSelection.length; i++) {
 					if (attributeSelection[i]) {
-						double standardizedCoefficient = Math.abs(coefficients[coefficientIndex] * standardDeviations[i] / classStandardDeviation);
+						double standardizedCoefficient = Math.abs(coefficients[coefficientIndex] * standardDeviations[i] / labelStandardDeviation);
 						if ((coefficientIndex == 0) || (standardizedCoefficient < minStadardizedCoefficient)) {
 							minStadardizedCoefficient = standardizedCoefficient;
 							attribute2Deselect = i;
@@ -273,7 +273,7 @@ public class LinearRegression extends AbstractLearner {
 		for (int i = 0; i < attributeSelection.length; i++) {
 			if (attributeSelection[i]) {
 				standardErrors[index] = Math.sqrt(currentError) / (standardDeviations[i] * (exampleSet.size() - coefficients.length));
-				standardizedCoefficients[index] = coefficients[index] * standardDeviations[i] / classStandardDeviation;
+				standardizedCoefficients[index] = coefficients[index] * standardDeviations[i] / labelStandardDeviation;
 				tStatistics[index] = coefficients[index] / standardErrors[index];
 				double probability = fdistribution.getProbabilityForValue(tStatistics[index] * tStatistics[index]);
 				pValues[index] = probability < 0 ? 1.0d : 1.0d - probability;

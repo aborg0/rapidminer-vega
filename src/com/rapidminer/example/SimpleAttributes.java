@@ -27,8 +27,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 
 /**
  * A very basic and simple implementation of the {@link com.rapidminer.example.Attributes} 
@@ -36,7 +36,7 @@ import java.util.Map.Entry;
  * and simply delivers the same {@link com.rapidminer.example.AttributeRoleIterator}
  * which might skip either regular or special attributes.
  *  
- * @author Ingo Mierswa
+ * @author Ingo Mierswa, Sebastian Land
  */
 public class SimpleAttributes extends AbstractAttributes {
     
@@ -218,5 +218,20 @@ public class SimpleAttributes extends AbstractAttributes {
 			}
 			return null;
 		}
+	}
+	
+	@Override
+	public int size() {
+		return nameToAttributeRoleMap.size() - specialNameToAttributeRoleMap.size();
+	}
+	
+	@Override
+	public int allSize() {
+		return nameToAttributeRoleMap.size();
+	}
+	
+	@Override
+	public int specialSize() {
+		return specialNameToAttributeRoleMap.size();
 	}
 }

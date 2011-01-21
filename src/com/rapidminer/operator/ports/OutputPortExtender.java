@@ -58,7 +58,7 @@ public class OutputPortExtender extends SinglePortExtender<OutputPort> {
 		}
 	}
 
-	public void deliver(List<IOObject> inputs) {
+	public void deliver(List<? extends IOObject> inputs) {
 		int i = 0;
 		for (OutputPort port : getManagedPorts()) {
 			if (port.isConnected()) {

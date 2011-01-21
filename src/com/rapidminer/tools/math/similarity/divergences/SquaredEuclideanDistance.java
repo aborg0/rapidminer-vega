@@ -38,12 +38,19 @@ public class SquaredEuclideanDistance extends BregmanDivergence{
 
 	@Override
 	public double calculateDistance(double[] value1, double[] value2) {
-		double result = 0;
-		for (int i = 0; i < value1.length ; i++) {
-			double diff = value1[i] - value2[i];
-			result += diff * diff;
+		double sum = 0.0;
+		int counter = 0;
+		for (int i = 0; i < value1.length; i++) {
+			if ((!Double.isNaN(value1[i])) && (!Double.isNaN(value2[i]))) {
+				double diff = value1[i] - value2[i];
+				sum += diff * diff;
+				counter++;
+			}
 		}
-		return result;
+		if (counter > 0)
+			return sum;
+		else
+			return Double.NaN;
 	}
 
 	@Override

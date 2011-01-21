@@ -130,6 +130,7 @@ public class KMedoids extends RMAbstractClusterer implements CapabilityProvider 
 		double minimalIntraClusterDistance = Double.POSITIVE_INFINITY;
 		CentroidClusterModel bestModel = null;
 		int[] bestAssignments = null;
+		double[] values = new double[attributes.size()];
 		for (int iter = 0; iter < maxRuns; iter++) {
 			checkForStop();
 
@@ -137,7 +138,7 @@ public class KMedoids extends RMAbstractClusterer implements CapabilityProvider 
 			// init centroids
 			int i = 0;
 			for (Integer index : generator.nextIntSetWithRange(0, exampleSet.size(), k)) {
-				model.assignExample(i, getAsDoubleArray(exampleSet.getExample(index), attributes));
+				model.assignExample(i, getAsDoubleArray(exampleSet.getExample(index), attributes, values));
 				i++;
 			}
 			model.finishAssign();
@@ -150,7 +151,7 @@ public class KMedoids extends RMAbstractClusterer implements CapabilityProvider 
 				// assign examples to new centroids
 				i = 0;
 				for (Example example : exampleSet) {
-					double[] exampleValues = getAsDoubleArray(example, attributes);
+					double[] exampleValues = getAsDoubleArray(example, attributes, values);
 					double nearestDistance = measure.calculateDistance(model.getCentroidCoordinates(0), exampleValues);
 					int nearestIndex = 0;
 					for (int centroidIndex = 1; centroidIndex < k; centroidIndex++) {
@@ -170,12 +171,12 @@ public class KMedoids extends RMAbstractClusterer implements CapabilityProvider 
 					for (Example medoid : exampleSet) {
 						// calculate intra cluster distance if this example is used as medoid
 						double distanceSum = 0;
-						double[] medoidValues = getAsDoubleArray(medoid, attributes);
+						double[] medoidValues = getAsDoubleArray(medoid, attributes, values);
 						int j = 0;
 						for (Example example : exampleSet) {
 							// add only if in current cluster
 							if (centroidAssignments[j] == clusterIndex)
-								distanceSum += measure.calculateDistance(getAsDoubleArray(example, attributes), medoidValues);
+								distanceSum += measure.calculateDistance(getAsDoubleArray(example, attributes, values), medoidValues);
 							j++;
 						}
 						if (distanceSum < bestDistanceSum) {
@@ -193,7 +194,7 @@ public class KMedoids extends RMAbstractClusterer implements CapabilityProvider 
 			double distanceSum = 0;
 			i = 0;
 			for (Example example : exampleSet) {
-				double distance = measure.calculateDistance(model.getCentroidCoordinates(centroidAssignments[i]), getAsDoubleArray(example, attributes));
+				double distance = measure.calculateDistance(model.getCentroidCoordinates(centroidAssignments[i]), getAsDoubleArray(example, attributes, values));
 				distanceSum += distance * distance;
 				i++;
 			}
@@ -218,8 +219,7 @@ public class KMedoids extends RMAbstractClusterer implements CapabilityProvider 
 		return bestModel;
 	}
 
-	private double[] getAsDoubleArray(Example example, Attributes attributes) {
-		double[] values = new double[attributes.size()];
+	private double[] getAsDoubleArray(Example example, Attributes attributes, double[] values) {
 		int i = 0;
 		for (Attribute attribute : attributes) {
 			values[i] = example.getValue(attribute);

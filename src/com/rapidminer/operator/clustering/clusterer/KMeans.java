@@ -44,7 +44,7 @@ import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.RandomGenerator;
 import com.rapidminer.tools.math.similarity.DistanceMeasure;
-import com.rapidminer.tools.math.similarity.numerical.EuclideanDistance;
+import com.rapidminer.tools.math.similarity.divergences.SquaredEuclideanDistance;
 
 /**
  * This operator represents an implementation of k-means. This operator will create a cluster attribute if not present
@@ -77,7 +77,7 @@ public class KMeans extends RMAbstractClusterer implements CapabilityProvider {
 		int k = getParameterAsInt(PARAMETER_K);
 		int maxOptimizationSteps = getParameterAsInt(PARAMETER_MAX_OPTIMIZATION_STEPS);
 		int maxRuns = getParameterAsInt(PARAMETER_MAX_RUNS);
-		DistanceMeasure measure = new EuclideanDistance();
+		DistanceMeasure measure = new SquaredEuclideanDistance();
 		measure.init(exampleSet);
 
 		// checking and creating ids if necessary
@@ -99,13 +99,15 @@ public class KMeans extends RMAbstractClusterer implements CapabilityProvider {
 		double minimalIntraClusterDistance = Double.POSITIVE_INFINITY;
 		CentroidClusterModel bestModel = null;
 		int[] bestAssignments = null;
+		double[] values = new double[attributes.size()];
+		
 		for (int iter = 0; iter < maxRuns; iter++) {
 			checkForStop();
 			CentroidClusterModel model = new CentroidClusterModel(exampleSet, k, attributeNames, measure, getParameterAsBoolean(RMAbstractClusterer.PARAMETER_ADD_AS_LABEL), getParameterAsBoolean(RMAbstractClusterer.PARAMETER_REMOVE_UNLABELED));
 			// init centroids by assigning one single, unique example!
 			int i = 0;
 			for (Integer index : generator.nextIntSetWithRange(0, exampleSet.size(), k)) {
-				model.assignExample(i, getAsDoubleArray(exampleSet.getExample(index), attributes));
+				model.assignExample(i, getAsDoubleArray(exampleSet.getExample(index), attributes, values));
 				i++;
 			}
 			model.finishAssign();
@@ -117,7 +119,7 @@ public class KMeans extends RMAbstractClusterer implements CapabilityProvider {
 				// assign examles to new centroids
 				i = 0;
 				for (Example example : exampleSet) {
-					double[] exampleValues = getAsDoubleArray(example, attributes);
+					double[] exampleValues = getAsDoubleArray(example, attributes, values);
 					double nearestDistance = measure.calculateDistance(model.getCentroidCoordinates(0), exampleValues);
 					int nearestIndex = 0;
 					for (int centroidIndex = 1; centroidIndex < k; centroidIndex++) {
@@ -139,7 +141,7 @@ public class KMeans extends RMAbstractClusterer implements CapabilityProvider {
 			double distanceSum = 0;
 			i = 0;
 			for (Example example : exampleSet) {
-				double distance = measure.calculateDistance(model.getCentroidCoordinates(centroidAssignments[i]), getAsDoubleArray(example, attributes));
+				double distance = measure.calculateDistance(model.getCentroidCoordinates(centroidAssignments[i]), getAsDoubleArray(example, attributes, values));
 				distanceSum += distance * distance;
 				i++;
 			}
@@ -165,8 +167,7 @@ public class KMeans extends RMAbstractClusterer implements CapabilityProvider {
 		return bestModel;
 	}
 
-	private double[] getAsDoubleArray(Example example, Attributes attributes) {
-		double[] values = new double[attributes.size()];
+	private double[] getAsDoubleArray(Example example, Attributes attributes, double[] values) {
 		int i = 0;
 		for (Attribute attribute : attributes) {
 			values[i] = example.getValue(attribute);

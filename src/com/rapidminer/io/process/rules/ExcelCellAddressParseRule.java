@@ -33,8 +33,7 @@ import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.XMLException;
 
 /**
- * A simple parse rule that will transform two given parameters into one
- * excel range stored into a third operator.
+ * A simple parse rule that will transform two given parameters into one excel range stored into a third operator.
  * 
  * @author Sebastian Land
  */
@@ -43,8 +42,7 @@ public class ExcelCellAddressParseRule extends AbstractConditionedParseRule {
 	private String parameterColumn;
 	private String parameterRow;
 	private String parameterAddress;
-	
-	
+
 	public ExcelCellAddressParseRule(String operatorTypeName, Element element) throws XMLException {
 		super(operatorTypeName, element);
 		assert (element.getTagName().equals("replaceByCellAddress"));
@@ -62,16 +60,16 @@ public class ExcelCellAddressParseRule extends AbstractConditionedParseRule {
 				}
 			}
 		}
-		
+
 	}
 
 	@Override
 	protected String conditionedApply(Operator operator, String operatorTypeName, XMLImporter importer) {
-		
+
 		try {
 			int column = operator.getParameterAsInt(parameterRow);
 			int row = operator.getParameterAsInt(parameterColumn);
-			operator.setParameter(parameterAddress, Tools.getExcelColumnName(column) + row);
+			operator.setParameter(parameterAddress, Tools.getExcelColumnName(column) + (row + 1));
 			return "Replaced column and row offset by cell address parameter in <var>\"" + operator.getName() + "\"</var>.";
 		} catch (UndefinedParameterError e) {
 			return null;
