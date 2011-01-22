@@ -101,8 +101,8 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.ProcessRootOperator;
-import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.ResultObject;
+import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.io.RepositorySource;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.InputPorts;
@@ -123,7 +123,6 @@ import com.rapidminer.repository.gui.RepositoryLocationChooser;
 import com.rapidminer.tools.ClassColorMap;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParentResolvingMap;
-import com.rapidminer.tools.StringColorMap;
 
 /** 
  * This class renders a process graph. It also stores all data about visualization
@@ -140,12 +139,10 @@ public class ProcessRenderer extends JPanel {
 	}
 	private static Orientation ORIENTATION = Orientation.X_AXIS;
 
-	private static ParentResolvingMap<String,Color> GROUP_TO_COLOR_MAP = new StringColorMap();
 	private static ParentResolvingMap<Class,Color> IO_CLASS_TO_COLOR_MAP = new ClassColorMap();
 
 	static {
 		try {
-			GROUP_TO_COLOR_MAP.parseProperties("com/rapidminer/resources/groups.properties", "group.", ".color", OperatorDescription.class.getClassLoader());
 			IO_CLASS_TO_COLOR_MAP.parseProperties("com/rapidminer/resources/groups.properties", "io.", ".color", OperatorDescription.class.getClassLoader());
 		} catch (IOException e) {
 			LogService.getRoot().warning("Cannot load operator group colors.");
@@ -156,11 +153,7 @@ public class ProcessRenderer extends JPanel {
 	 * This method adds the colors of the given property file to the global group colors
 	 */
 	public static void registerAdditionalGroupColors(String groupProperties, String pluginName, ClassLoader classLoader) {
-		try {
-			GROUP_TO_COLOR_MAP.parseProperties(groupProperties, "group.", ".color", classLoader);
-		} catch (IOException e) {
-			LogService.getRoot().warning("Cannot load operator group colors for plugin " + pluginName + ".");
-		}
+		SwingTools.registerAdditionalGroupColors(groupProperties, pluginName, classLoader);
 	}
 	/**
 	 * This method adds the colors of the given property file to the io object colors
@@ -1327,7 +1320,7 @@ public class ProcessRenderer extends JPanel {
 		}
 
 		// Frame head
-		Color baseColor = GROUP_TO_COLOR_MAP.get(operator.getOperatorDescription().getGroup());
+		Color baseColor = SwingTools.getOperatorColor(operator);
 		if (!operator.isEnabled() || !this.isEnabled()) {
 			baseColor = Color.LIGHT_GRAY;
 		}

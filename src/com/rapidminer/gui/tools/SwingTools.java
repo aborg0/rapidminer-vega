@@ -28,6 +28,7 @@ import java.awt.Container;
 import java.awt.GradientPaint;
 import java.awt.Image;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Collections;
@@ -71,11 +72,15 @@ import com.rapidminer.gui.tools.syntax.SyntaxStyle;
 import com.rapidminer.gui.tools.syntax.SyntaxUtilities;
 import com.rapidminer.gui.tools.syntax.TextAreaDefaults;
 import com.rapidminer.gui.tools.syntax.Token;
+import com.rapidminer.operator.Operator;
+import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.ports.Port;
 import com.rapidminer.operator.ports.Ports;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
+import com.rapidminer.tools.ParentResolvingMap;
+import com.rapidminer.tools.StringColorMap;
 import com.rapidminer.tools.Tools;
 
 
@@ -165,9 +170,16 @@ public class SwingTools {
 	private static FrameIconProvider frameIconProvider;
 
 	private static final String DEFAULT_FRAME_ICON_BASE_NAME = "rapidminer_frame_icon_";
+	
+	private static ParentResolvingMap<String,Color> GROUP_TO_COLOR_MAP = new StringColorMap();
 
 	static {
 		setupFrameIcons(DEFAULT_FRAME_ICON_BASE_NAME);
+		try {
+			GROUP_TO_COLOR_MAP.parseProperties("com/rapidminer/resources/groups.properties", "group.", ".color", OperatorDescription.class.getClassLoader());
+		} catch (IOException e) {
+			LogService.getRoot().warning("Cannot load operator group colors.");
+		}		
 	}
 
 	public static void setFrameIconProvider(FrameIconProvider _frameIconProvider) {
@@ -1014,5 +1026,20 @@ public class SwingTools {
 		setEnabledRecursive(mainFrame.getXMLEditor(), enabled);
 		
 		mainFrame.getActions().enableActions();
+	}
+	
+	public static Color getOperatorColor(Operator operator) {
+		return GROUP_TO_COLOR_MAP.get(operator.getOperatorDescription().getGroup());
+	}
+	
+	/**
+	 * This method adds the colors of the given property file to the global group colors
+	 */
+	public static void registerAdditionalGroupColors(String groupProperties, String pluginName, ClassLoader classLoader) {
+		try {
+			GROUP_TO_COLOR_MAP.parseProperties(groupProperties, "group.", ".color", classLoader);
+		} catch (IOException e) {
+			LogService.getRoot().warning("Cannot load operator group colors for plugin " + pluginName + ".");
+		}
 	}
 }
