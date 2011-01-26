@@ -14,7 +14,7 @@ class com.rapidminer.operator.learner.bayes.NaiveBayes;318;1;1;0;0;0;0;0;0;0
 class com.rapidminer.operator.learner.lazy.KNNLearner;215;1;1;0;0;0;0;0;0;0
 
 
-class com.rapidminer.operator.learner.functions.LinearRegression;13;2.65;1;0;0;0;0;0;0;0
+class com.rapidminer.operator.learner.functions.linear.LinearRegression;13;2.65;1;0;0;0;0;0;0;0
 class com.rapidminer.operator.learner.functions.VectorLinearRegression;968747;1;1;2;0;0;0;0;0;0
 
 

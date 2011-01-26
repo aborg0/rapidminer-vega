@@ -71,8 +71,7 @@ import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
 /**
- * This Wizard Step might be used to defined
- * the meta data of each attribute.
+ * This Wizard Step might be used to defined the meta data of each attribute.
  * 
  * @author Sebastian Land, Simon Fischer
  */
@@ -81,43 +80,64 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	/** Publicly exposes the method {@link #configurePropertiesFromAction(Action)} public. */
 	private class ReconfigurableButton extends JButton {
 		private static final long serialVersionUID = 1L;
+
 		private ReconfigurableButton(Action action) {
 			super(action);
 		}
+
 		@Override
 		protected void configurePropertiesFromAction(Action a) {
 			super.configurePropertiesFromAction(a);
 		}
 	}
+
 	private Action reloadAction = new ResourceAction("wizard.validate_value_types") {
 		private static final long serialVersionUID = 1L;
-		@Override public void actionPerformed(ActionEvent e) { toggleReload(); }		
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			toggleReload();
+		}
 	};
 	private Action cancelReloadAction = new ResourceAction("wizard.abort_validate_value_types") {
 		private static final long serialVersionUID = 1L;
-		@Override public void actionPerformed(ActionEvent e) { toggleReload(); }		
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			toggleReload();
+		}
 	};
 	private ReconfigurableButton reloadButton = new ReconfigurableButton(reloadAction);
 
 	private Action guessValueTypes = new ResourceAction("wizard.guess_value_types") {
 		private static final long serialVersionUID = 1L;
-		@Override public void actionPerformed(ActionEvent e) { toggleGuessValueTypes(); }		
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			toggleGuessValueTypes();
+		}
 	};
 	private Action cancelGuessValueTypes = new ResourceAction("wizard.abort_guess_value_types") {
 		private static final long serialVersionUID = 1L;
-		@Override public void actionPerformed(ActionEvent e) { toggleGuessValueTypes(); }		
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			toggleGuessValueTypes();
+		}
 	};
 	private ReconfigurableButton guessButton = new ReconfigurableButton(guessValueTypes);
 
 	private JCheckBox errorsAsMissingBox = new JCheckBox(new ResourceAction("wizard.error_tolerant") {
 		private static final long serialVersionUID = 1L;
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			state.getTranslationConfiguration().setFaultTolerant(errorsAsMissingBox.isSelected());
-		}		
+		}
 	});
 	private JCheckBox filterErrorsBox = new JCheckBox(new ResourceAction("wizard.show_error_rows") {
 		private static final long serialVersionUID = 1L;
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			if (filteredModel != null) {
@@ -129,7 +149,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	private JComboBox dateFormatField = new JComboBox(ParameterTypeDateFormat.PREDEFINED_DATE_FORMATS);
 
 	private JCheckBox limitedPreviewBox = new JCheckBox(I18N.getMessage(I18N.getGUIBundle(), "gui.action.importwizard.limited_preview.label", ImportWizardUtils.getPreviewLength()));
-	
+
 	private WizardState state;
 
 	private JPanel panel = new JPanel(new BorderLayout());
@@ -140,29 +160,29 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	private JLabel errorLabel = new JLabel();
 
 	public MetaDataDeclarationWizardStep(WizardState state) {
-		super("importwizard.metadata");		
+		super("importwizard.metadata");
 		limitedPreviewBox.setSelected(true);
-		
+
 		this.state = state;
 		dateFormatField.setEditable(true);
 		dateFormatField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				MetaDataDeclarationWizardStep.this.state.getTranslationConfiguration().setDatePattern((String)dateFormatField.getSelectedItem());
+				MetaDataDeclarationWizardStep.this.state.getTranslationConfiguration().setDatePattern((String) dateFormatField.getSelectedItem());
 			}
 		});
-		
+
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		buttonPanel.add(reloadButton);
 		buttonPanel.add(guessButton);
 		buttonPanel.add(limitedPreviewBox);
-		
+
 		JLabel label = new ResourceLabel("date_format");
 		label.setLabelFor(dateFormatField);
 		buttonPanel.add(label);
 		buttonPanel.add(dateFormatField);
 		panel.add(buttonPanel, BorderLayout.NORTH);
-		
+
 		JPanel errorPanel = new JPanel(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
@@ -176,13 +196,12 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		errorPanel.add(errorLabel, c);
 
 		c.weightx = 0;
-		c.gridwidth = GridBagConstraints.RELATIVE;		
+		c.gridwidth = GridBagConstraints.RELATIVE;
 		errorPanel.add(errorsAsMissingBox, c);
 		c.weightx = 0;
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		errorPanel.add(filterErrorsBox, c);
-		
-		
+
 		final JTable errorTable = new JTable(errorTableModel);
 		errorTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			@Override
@@ -199,7 +218,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 						int col = error.getColumn();
 						previewTable.setRowSelectionInterval(row, row);
 						previewTable.setColumnSelectionInterval(col, col);
-					}					
+					}
 				}
 			}
 		});
@@ -208,7 +227,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		c.weighty = 1;
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		errorPanel.add(errorScrollPane, c);
-		
+
 		panel.add(errorPanel, BorderLayout.SOUTH);
 
 		final JLabel dummy = new JLabel("-");
@@ -222,7 +241,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	protected boolean performEnteringAction(WizardStepDirection direction) {
 		dateFormatField.setSelectedItem(state.getTranslationConfiguration().getDatePattern());
 		errorsAsMissingBox.setSelected(state.getTranslationConfiguration().isFaultTolerant());
-		
+
 		new ProgressThread("loading_data") {
 			@Override
 			public void run() {
@@ -233,11 +252,11 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 					ImportWizardUtils.showErrorMessage(state.getDataResultSetFactory().getResourceName(), e1.toString(), e1);
 					return;
 				}
-				
+
 				try {
 					TableModel dataPreview = state.getDataResultSetFactory().makePreviewTableModel(getProgressListener());
-					// Copy name annotations to name		
-					int nameIndex = state.getTranslationConfiguration().getNameRow();		
+					// Copy name annotations to name
+					int nameIndex = state.getTranslationConfiguration().getNameRow();
 					if (nameIndex != -1) {
 						for (int i = 0; i < dataPreview.getColumnCount(); i++) {
 							state.getTranslationConfiguration().getColumnMetaData(i).setUserDefinedAttributeName((String) dataPreview.getValueAt(nameIndex, i));
@@ -249,14 +268,14 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 				}
 				guessValueTypes();
 			}
-			
+
 		}.start();
 		return true;
 	}
 
 	private void updateErrors() {
 		final int size = state.getTranslator().getErrors().size();
-		errorLabel.setText(size+" errors.");
+		errorLabel.setText(size + " errors.");
 		if (size == 0) {
 			errorLabel.setIcon(SwingTools.createIcon("16/ok.png"));
 		} else {
@@ -316,7 +335,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 			}
 		});
 		tableScrollPane.setViewportView(previewTable);
-	}	
+	}
 
 	@Override
 	protected boolean performLeavingAction(WizardStepDirection direction) {
@@ -328,7 +347,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 			} catch (OperatorException e) {
 				ImportWizardUtils.showErrorMessage(state.getDataResultSetFactory().getResourceName(), e.toString(), e);
 			}
-		} 
+		}
 		return true;
 	}
 
@@ -375,7 +394,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 						try {
 							resultSet.close();
 						} catch (OperatorException e) {
-							LogService.getRoot().log(Level.WARNING, "Failed to close result set: "+e, e);
+							LogService.getRoot().log(Level.WARNING, "Failed to close result set: " + e, e);
 						}
 					}
 					getProgressListener().complete();
@@ -385,10 +404,10 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 							reloadButton.configurePropertiesFromAction(reloadAction);
 							reloadButton.setEnabled(true);
 							isReloading = false;
-						}						
+						}
 					});
 				}
-			}			
+			}
 		}.start();
 	}
 
@@ -408,7 +427,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 				try {
 					if (state.getTranslator() != null) {
 						state.getTranslator().close();
-					}				
+					}
 					resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
 					state.getTranslator().clearErrors();
 					state.getTranslationConfiguration().resetValueTypes();
@@ -418,7 +437,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 						SwingUtilities.invokeLater(new Runnable() {
 							@Override
 							public void run() {
-								updateTableModel(exampleSet);		
+								updateTableModel(exampleSet);
 								updateErrors();
 							}
 						});
@@ -430,7 +449,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 						try {
 							resultSet.close();
 						} catch (OperatorException e) {
-							LogService.getRoot().log(Level.WARNING, "Failed to close result set: "+e, e);
+							LogService.getRoot().log(Level.WARNING, "Failed to close result set: " + e, e);
 						}
 					}
 					getProgressListener().complete();
@@ -440,10 +459,10 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 							guessButton.configurePropertiesFromAction(guessValueTypes);
 							guessButton.setEnabled(true);
 							isGuessing = false;
-						}						
+						}
 					});
 				}
-			}			
+			}
 		}.start();
 	}
 
@@ -462,7 +481,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		if (isGuessing) {
 			guessValueTypes();
 		} else {
-			cancelGuessing();				
+			cancelGuessing();
 		}
 	}
 
@@ -471,7 +490,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		if (isReloading) {
 			reload();
 		} else {
-			cancelReload();				
+			cancelReload();
 		}
 	}
 

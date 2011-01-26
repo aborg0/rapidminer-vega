@@ -1691,7 +1691,7 @@
             <group key="function_fitting">
                <operator>
                   <key>linear_regression</key>
-                  <class>com.rapidminer.operator.learner.functions.LinearRegression</class>
+                  <class>com.rapidminer.operator.learner.functions.linear.LinearRegression</class>
                   <replaces>LinearRegression</replaces>
                </operator>
                <operator>

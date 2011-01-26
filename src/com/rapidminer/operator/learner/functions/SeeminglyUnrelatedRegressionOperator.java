@@ -22,13 +22,7 @@
  */
 package com.rapidminer.operator.learner.functions;
 
-import static com.rapidminer.operator.learner.functions.LinearRegression.FEATURE_SELECTION_METHODS;
-import static com.rapidminer.operator.learner.functions.LinearRegression.M5_PRIME;
-import static com.rapidminer.operator.learner.functions.LinearRegression.PARAMETER_ELIMINATE_COLINEAR_FEATURES;
-import static com.rapidminer.operator.learner.functions.LinearRegression.PARAMETER_FEATURE_SELECTION;
-import static com.rapidminer.operator.learner.functions.LinearRegression.PARAMETER_MIN_STANDARDIZED_COEFFICIENT;
-import static com.rapidminer.operator.learner.functions.LinearRegression.PARAMETER_RIDGE;
-import static com.rapidminer.operator.learner.functions.LinearRegression.PARAMETER_USE_BIAS;
+import static com.rapidminer.operator.learner.functions.linear.LinearRegression.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -48,6 +42,8 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ProcessStoppedException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.learner.AbstractLearner;
+import com.rapidminer.operator.learner.functions.linear.LinearRegression;
+import com.rapidminer.operator.learner.functions.linear.LinearRegressionModel;
 import com.rapidminer.operator.ports.InputPortExtender;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;

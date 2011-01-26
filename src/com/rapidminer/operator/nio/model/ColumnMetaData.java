@@ -1,5 +1,6 @@
 package com.rapidminer.operator.nio.model;
 
+import com.rapidminer.example.Attributes;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 
 
@@ -69,8 +70,11 @@ public class ColumnMetaData {
 	}
 
 	public AttributeMetaData getAttributeMetaData() {
-		AttributeMetaData result = new AttributeMetaData(getUserDefinedAttributeName(), getAttributeValueType(), getRole());
-		return result;
+		String roleId = getRole();
+		if (!Attributes.ATTRIBUTE_NAME.equals(roleId))
+			return new AttributeMetaData(getUserDefinedAttributeName(), getAttributeValueType(), roleId);
+		else
+			return new AttributeMetaData(getUserDefinedAttributeName(), getAttributeValueType());
 	}
 
 	/** Returns whether the user specified a name different from the default. */

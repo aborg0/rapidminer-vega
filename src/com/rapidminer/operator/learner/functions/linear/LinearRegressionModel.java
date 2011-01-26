@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.operator.learner.functions;
+package com.rapidminer.operator.learner.functions.linear;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;

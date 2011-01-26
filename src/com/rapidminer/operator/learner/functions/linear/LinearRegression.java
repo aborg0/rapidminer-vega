@@ -20,10 +20,13 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.operator.learner.functions;
+package com.rapidminer.operator.learner.functions.linear;
 
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import Jama.Matrix;
 
@@ -37,22 +40,29 @@ import com.rapidminer.operator.Model;
 import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.learner.AbstractLearner;
 import com.rapidminer.operator.learner.PredictionModel;
+import com.rapidminer.operator.learner.functions.linear.LinearRegressionMethod.LinearRegressionResult;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.parameter.conditions.BooleanParameterCondition;
+import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.math.FDistribution;
 
 /**
  * <p>
- * This operator calculates a linear regression model. It uses the Akaike criterion for model selection.
+ * This operator calculates a linear regression model. It supports several different mechanisms for model selection: -
+ * M5Prime using Akaike criterion for model selection. - A greedy implementation - A T-Test based selection - No
+ * selection. Further selections can be added using the static method
+ * 
  * </p>
  * 
  * @author Ingo Mierswa
@@ -82,6 +92,15 @@ public class LinearRegression extends AbstractLearner {
 	/** Attribute selection methods */
 	public static final String[] FEATURE_SELECTION_METHODS = { "none", "M5 prime", "greedy" };
 
+	public static final Map<String, Class<? extends LinearRegressionMethod>> SELECTION_METHODS = new LinkedHashMap<String, Class<? extends LinearRegressionMethod>>();
+
+	static {
+		SELECTION_METHODS.put("none", PlainLinearRegressionMethod.class);
+		SELECTION_METHODS.put("M5 prime", M5PLinearRegressionMethod.class);
+		SELECTION_METHODS.put("greedy", GreedyLinearRegressionMethod.class);
+		SELECTION_METHODS.put("T-Test", TTestLinearRegressionMethod.class);
+	}
+
 	/** Attribute selection method: No attribute selection */
 	public static final int NO_SELECTION = 0;
 
@@ -100,6 +119,7 @@ public class LinearRegression extends AbstractLearner {
 	}
 
 	public Model learn(ExampleSet exampleSet) throws OperatorException {
+		// initializing data and parameter values.
 		Attribute label = exampleSet.getAttributes().getLabel();
 		Attribute workingLabel = label;
 		boolean cleanUpLabel = false;
@@ -111,6 +131,7 @@ public class LinearRegression extends AbstractLearner {
 		double ridge = getParameterAsDouble(PARAMETER_RIDGE);
 		double minStandardizedCoefficient = getParameterAsDouble(PARAMETER_MIN_STANDARDIZED_COEFFICIENT);
 
+		// prepare for classification by translating into 0-1 coding.
 		if (label.isNominal()) {
 			if (label.getMapping().size() == 2) {
 				firstClassName = label.getMapping().getNegativeString();
@@ -135,28 +156,29 @@ public class LinearRegression extends AbstractLearner {
 			}
 		}
 
-		// start with all attributes
+		// search all attributes and keep numerical
 		int numberOfAttributes = exampleSet.getAttributes().size();
-		boolean[] attributeSelection = new boolean[numberOfAttributes];
+		boolean[] isUsedAttribute = new boolean[numberOfAttributes];
 		int counter = 0;
 		String[] attributeNames = new String[numberOfAttributes];
 		for (Attribute attribute : exampleSet.getAttributes()) {
-			attributeSelection[counter] = attribute.isNumerical();
+			isUsedAttribute[counter] = attribute.isNumerical();
 			attributeNames[counter] = attribute.getName();
 			counter++;
 		}
 
+		
 		// compute and store statistics and turn off attributes with std. dev. = 0
 		exampleSet.recalculateAllAttributeStatistics();
 		double[] means = new double[numberOfAttributes];
 		double[] standardDeviations = new double[numberOfAttributes];
 		counter = 0;
 		for (Attribute attribute : exampleSet.getAttributes()) {
-			if (attributeSelection[counter]) {
+			if (isUsedAttribute[counter]) {
 				means[counter] = exampleSet.getStatistics(attribute, Statistics.AVERAGE_WEIGHTED);
 				standardDeviations[counter] = Math.sqrt(exampleSet.getStatistics(attribute, Statistics.VARIANCE_WEIGHTED));
 				if (standardDeviations[counter] == 0) {
-					attributeSelection[counter] = false;
+					isUsedAttribute[counter] = false;
 				}
 			}
 			counter++;
@@ -166,115 +188,61 @@ public class LinearRegression extends AbstractLearner {
 		double labelStandardDeviation = Math.sqrt(exampleSet.getStatistics(workingLabel, Statistics.VARIANCE_WEIGHTED));
 
 		int numberOfExamples = exampleSet.size();
-		double[] coefficients;
-
-		// perform a regression and remove colinear attributes
-		do {
-			coefficients = performRegression(exampleSet, attributeSelection, means, labelMean, ridge);
-		} while (removeColinearAttributes && deselectAttributeWithHighestCoefficient(attributeSelection, coefficients, standardDeviations, labelStandardDeviation, minStandardizedCoefficient));
-
-		// determine the current number of attributes + 1
-		int currentlySelectedAttributes = 1;
-		for (int i = 0; i < attributeSelection.length; i++) {
-			if (attributeSelection[i]) {
-				currentlySelectedAttributes++;
+		
+		// determine the number of used attributes + 1
+		int numberOfUsedAttributes = 1;
+		for (int i = 0; i < isUsedAttribute.length; i++) {
+			if (isUsedAttribute[i]) {
+				numberOfUsedAttributes++;
 			}
 		}
+		
+		// perform a full regression and remove colinear attributes
+		double[] coefficientsOnFullData;
+		// TODO: Is this really sane?
+		do {
+			coefficientsOnFullData = performRegression(exampleSet, isUsedAttribute, means, labelMean, ridge);
+		} while (removeColinearAttributes && deselectAttributeWithHighestCoefficient(isUsedAttribute, coefficientsOnFullData, standardDeviations, labelStandardDeviation, minStandardizedCoefficient));
 
-		double error = getSquaredError(exampleSet, attributeSelection, coefficients, useBias);
-		double akaike = (numberOfExamples - currentlySelectedAttributes) + 2 * currentlySelectedAttributes;
+		// calculate error on full data
+		double errorOnFullData = getSquaredError(exampleSet, isUsedAttribute, coefficientsOnFullData, useBias);
 
-		boolean improved;
-		int currentNumberOfAttributes = currentlySelectedAttributes;
-		double currentError = Double.NaN;
-		switch (getParameterAsInt(PARAMETER_FEATURE_SELECTION)) {
-		case GREEDY:
-			do {
-				boolean[] currentlySelected = attributeSelection.clone();
-				improved = false;
-				currentNumberOfAttributes--;
-				for (int i = 0; i < attributeSelection.length; i++) {
-					if (currentlySelected[i]) {
-						// calculate the akaike value without this attribute
-						currentlySelected[i] = false;
-						double[] currentCoeffs = performRegression(exampleSet, currentlySelected, means, labelMean, ridge);
-						currentError = getSquaredError(exampleSet, currentlySelected, currentCoeffs, useBias);
-						double currentAkaike = currentError / error * (numberOfExamples - currentlySelectedAttributes) + 2 * currentNumberOfAttributes;
-
-						// if the value is improved compared to the current best
-						if (currentAkaike < akaike) {
-							improved = true;
-							akaike = currentAkaike;
-							System.arraycopy(currentlySelected, 0, attributeSelection, 0, attributeSelection.length);
-							coefficients = currentCoeffs;
-						}
-						currentlySelected[i] = true;
-					}
-				}
-			} while (improved);
-			break;
-		case M5_PRIME:
-			// attribute removal as in M5 prime
-			do {
-				improved = false;
-				currentNumberOfAttributes--;
-
-				// find the attribute with the smallest standardized coefficient
-				double minStadardizedCoefficient = 0;
-				int attribute2Deselect = -1;
-				int coefficientIndex = 0;
-				for (int i = 0; i < attributeSelection.length; i++) {
-					if (attributeSelection[i]) {
-						double standardizedCoefficient = Math.abs(coefficients[coefficientIndex] * standardDeviations[i] / labelStandardDeviation);
-						if ((coefficientIndex == 0) || (standardizedCoefficient < minStadardizedCoefficient)) {
-							minStadardizedCoefficient = standardizedCoefficient;
-							attribute2Deselect = i;
-						}
-						coefficientIndex++;
-					}
-				}
-
-				// check if removing this attribute improves Akaike
-				if (attribute2Deselect >= 0) {
-					attributeSelection[attribute2Deselect] = false;
-					double[] currentCoefficients = performRegression(exampleSet, attributeSelection, means, labelMean, ridge);
-					currentError = getSquaredError(exampleSet, attributeSelection, currentCoefficients, useBias);
-					double currentAkaike = currentError / error * (numberOfExamples - currentlySelectedAttributes) + 2 * currentNumberOfAttributes;
-
-					if (currentAkaike < akaike) {
-						improved = true;
-						akaike = currentAkaike;
-						coefficients = currentCoefficients;
-					} else {
-						attributeSelection[attribute2Deselect] = true;
-					}
-				}
-			} while (improved);
-			break;
-		case NO_SELECTION:
-			currentError = error;
-			break;
+		// apply attribute selection method
+		String selectedMethod = getParameterAsString(PARAMETER_FEATURE_SELECTION);
+		Class<? extends LinearRegressionMethod> methodClass = SELECTION_METHODS.get(selectedMethod);
+		if (methodClass == null) {
+			throw new UserError(this, 101);
 		}
-
-		// clean up?
+		LinearRegressionMethod method;
+		try {
+			method = methodClass.newInstance();
+		} catch (InstantiationException e) {
+			throw new UserError(this, 101);
+		} catch (IllegalAccessException e) {
+			throw new UserError(this, 101);
+		}
+		LinearRegressionResult result = method.applyMethod(this, useBias, ridge, exampleSet, isUsedAttribute, numberOfExamples, numberOfUsedAttributes, means, labelMean, standardDeviations, labelStandardDeviation, coefficientsOnFullData, errorOnFullData);
+		
+		// clean up eventually if was classification
 		if (cleanUpLabel) {
 			exampleSet.getAttributes().remove(workingLabel);
 			exampleSet.getExampleTable().removeAttribute(workingLabel);
 			exampleSet.getAttributes().setLabel(label);
 		}
 
-		FDistribution fdistribution = new FDistribution(1, exampleSet.size() - coefficients.length);
-		int length = coefficients.length;
+		// calculating statistics of the resulting model
+		FDistribution fdistribution = new FDistribution(1, exampleSet.size() - result.coefficients.length);
+		int length = result.coefficients.length;
 		double[] standardErrors = new double[length - 1];
 		double[] standardizedCoefficients = new double[length - 1];
 		double[] tStatistics = new double[length - 1];
 		double[] pValues = new double[length - 1];
 		int index = 0;
-		for (int i = 0; i < attributeSelection.length; i++) {
-			if (attributeSelection[i]) {
-				standardErrors[index] = Math.sqrt(currentError) / (standardDeviations[i] * (exampleSet.size() - coefficients.length));
-				standardizedCoefficients[index] = coefficients[index] * standardDeviations[i] / labelStandardDeviation;
-				tStatistics[index] = coefficients[index] / standardErrors[index];
+		for (int i = 0; i < result.isUsedAttribute.length; i++) {
+			if (result.isUsedAttribute[i]) {
+				standardErrors[index] = Math.sqrt(result.error) / (standardDeviations[i] * (numberOfExamples - result.coefficients.length));
+				standardizedCoefficients[index] = result.coefficients[index] * standardDeviations[i] / labelStandardDeviation;
+				tStatistics[index] = result.coefficients[index] / standardErrors[index];
 				double probability = fdistribution.getProbabilityForValue(tStatistics[index] * tStatistics[index]);
 				pValues[index] = probability < 0 ? 1.0d : 1.0d - probability;
 				index++;
@@ -286,8 +254,8 @@ public class LinearRegression extends AbstractLearner {
 			AttributeWeights weights = new AttributeWeights(exampleSet);
 			int selectedAttributes = 0;
 			for (int i = 0; i < attributeNames.length; i++) {
-				if (attributeSelection[i]) {
-					weights.setWeight(attributeNames[i], coefficients[selectedAttributes]);
+				if (isUsedAttribute[i]) {
+					weights.setWeight(attributeNames[i], coefficientsOnFullData[selectedAttributes]);
 					selectedAttributes++;
 				} else {
 					weights.setWeight(attributeNames[i], 0);
@@ -296,8 +264,10 @@ public class LinearRegression extends AbstractLearner {
 			weightOutput.deliver(weights);
 		}
 
-		return new LinearRegressionModel(exampleSet, attributeSelection, coefficients, standardErrors, standardizedCoefficients, tStatistics, pValues, useBias, firstClassName, secondClassName);
+		return new LinearRegressionModel(exampleSet, result.isUsedAttribute, result.coefficients, standardErrors, standardizedCoefficients, tStatistics, pValues, useBias, firstClassName, secondClassName);
 	}
+
+
 
 	/**
 	 * This method removes the attribute with the highest standardized coefficient greater than the minimum coefficient
@@ -326,7 +296,7 @@ public class LinearRegression extends AbstractLearner {
 	}
 
 	/** Calculates the squared error of a regression model on the training data. */
-	private double getSquaredError(ExampleSet exampleSet, boolean[] selectedAttributes, double[] coefficients, boolean useIntercept) {
+	double getSquaredError(ExampleSet exampleSet, boolean[] selectedAttributes, double[] coefficients, boolean useIntercept) {
 		double error = 0;
 		Iterator<Example> i = exampleSet.iterator();
 		while (i.hasNext()) {
@@ -359,7 +329,7 @@ public class LinearRegression extends AbstractLearner {
 	/**
 	 * Calculate a linear regression only from the selected attributes. The method returns the calculated coefficients.
 	 */
-	private double[] performRegression(ExampleSet exampleSet, boolean[] selectedAttributes, double[] means, double labelMean, double ridge) throws UndefinedParameterError {
+	double[] performRegression(ExampleSet exampleSet, boolean[] selectedAttributes, double[] means, double labelMean, double ridge) throws UndefinedParameterError {
 		int currentlySelectedAttributes = 0;
 		for (int i = 0; i < selectedAttributes.length; i++) {
 			if (selectedAttributes[i]) {
@@ -435,14 +405,34 @@ public class LinearRegression extends AbstractLearner {
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
-		types.add(new ParameterTypeCategory(PARAMETER_FEATURE_SELECTION, "The feature selection method used during regression.", FEATURE_SELECTION_METHODS, M5_PRIME));
+		String[] availableSelectionMethods = SELECTION_METHODS.keySet().toArray(new String[0]);
+		types.add(new ParameterTypeCategory(PARAMETER_FEATURE_SELECTION, "The feature selection method used during regression.", availableSelectionMethods, M5_PRIME));
+
+		// adding parameter of methods
+		int i = 0;
+		for (Entry<String, Class<? extends LinearRegressionMethod>> entry: SELECTION_METHODS.entrySet()) {
+			try {
+				LinearRegressionMethod method = entry.getValue().newInstance();
+				for (ParameterType methodType: method.getParameterTypes()) {
+					types.add(methodType);
+					methodType.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_FEATURE_SELECTION, availableSelectionMethods, true, i));
+				}
+			} catch (InstantiationException e) { // can't do anything about this
+			} catch (IllegalAccessException e) {
+			}
+			i++;
+		}
+		
 		types.add(new ParameterTypeBoolean(PARAMETER_ELIMINATE_COLINEAR_FEATURES, "Indicates if the algorithm should try to delete colinear features during the regression.", true));
+		ParameterType type = new ParameterTypeDouble(PARAMETER_MIN_STANDARDIZED_COEFFICIENT, "The minimum standardized coefficient for the removal of colinear feature elimination.", 0.0d, Double.POSITIVE_INFINITY, 1.5d);
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_ELIMINATE_COLINEAR_FEATURES, true, true));
+		types.add(type);
+
 		types.add(new ParameterTypeBoolean(PARAMETER_USE_BIAS, "Indicates if an intercept value should be calculated.", true));
-		types.add(new ParameterTypeDouble(PARAMETER_MIN_STANDARDIZED_COEFFICIENT, "The minimum standardized coefficient for the removal of colinear feature elimination.", 0.0d, Double.POSITIVE_INFINITY, 1.5d));
-		types.add(new ParameterTypeDouble(PARAMETER_RIDGE, "The ridge parameter used during ridge regression.", 0.0d, Double.POSITIVE_INFINITY, 1.0E-8));
+		types.add(new ParameterTypeDouble(PARAMETER_RIDGE, "The ridge parameter used for ridge regression. A value of zero switches to ordinary least squares estimate.", 0.0d, Double.POSITIVE_INFINITY, 1.0E-8));
 		return types;
 	}
-	
+
 	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getExampleSetInputPort(), LinearRegression.class, null);

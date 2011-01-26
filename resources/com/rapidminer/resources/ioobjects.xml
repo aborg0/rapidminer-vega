@@ -327,7 +327,7 @@
         
     <ioobject
         name="Linear Regression Model"
-        class="com.rapidminer.operator.learner.functions.LinearRegressionModel"
+        class="com.rapidminer.operator.learner.functions.linear.LinearRegressionModel"
         reportable="true"
         icon="lightbulb.png">
         <renderer>com.rapidminer.gui.renderer.models.LinearRegressionModelTableRenderer</renderer>

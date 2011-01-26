@@ -27,7 +27,7 @@ import javax.swing.table.TableModel;
 
 import com.rapidminer.gui.renderer.AbstractTableModelTableRenderer;
 import com.rapidminer.operator.IOContainer;
-import com.rapidminer.operator.learner.functions.LinearRegressionModel;
+import com.rapidminer.operator.learner.functions.linear.LinearRegressionModel;
 
 /**
  * Renderer for the linear regression model.
