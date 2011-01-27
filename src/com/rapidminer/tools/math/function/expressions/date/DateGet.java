@@ -43,7 +43,7 @@ import com.rapidminer.tools.math.function.UnknownValue;
 public class DateGet extends PostfixMathCommand {
 	
 	public DateGet() {
-		numberOfParameters = 2;
+		numberOfParameters = -1;
 	}
 	
 	/**
@@ -57,7 +57,7 @@ public class DateGet extends PostfixMathCommand {
 		Locale locale = Locale.getDefault();
 		TimeZone zone = TimeZone.getDefault();
 		
-		if (curNumberOfParameters == 5) {
+		if (curNumberOfParameters == 4) {
 			Object timezoneObject = stack.pop();
 			if (!(timezoneObject instanceof String)) {
 				throw new ParseException("Invalid argument type for 'date_get', fourth argument must be (String) for TimeZone (e.g. America/Los_Angeles)");
@@ -69,7 +69,7 @@ public class DateGet extends PostfixMathCommand {
 				throw new ParseException("Invalid argument type for 'date_get', third argument must be (String) for locale (e.g. \"en\")");
 			}
 			locale = new Locale(String.valueOf(localeObject));
-		} else if (curNumberOfParameters != 3) {
+		} else if (curNumberOfParameters != 2) {
 			throw new ParseException("Invalid number of arguments for 'date_get', must be 2 or 4.");
 		}
 		Object unitConstantObject = stack.pop();

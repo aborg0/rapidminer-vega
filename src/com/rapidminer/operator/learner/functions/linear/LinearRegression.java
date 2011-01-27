@@ -44,6 +44,7 @@ import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.learner.AbstractLearner;
 import com.rapidminer.operator.learner.PredictionModel;
+import com.rapidminer.operator.learner.functions.LinearRegressionModel;
 import com.rapidminer.operator.learner.functions.linear.LinearRegressionMethod.LinearRegressionResult;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.parameter.ParameterType;
@@ -88,9 +89,6 @@ public class LinearRegression extends AbstractLearner {
 
 	/** The parameter name for &quot;The ridge parameter used during ridge regression.&quot; */
 	public static final String PARAMETER_RIDGE = "ridge";
-
-	/** Attribute selection methods */
-	public static final String[] FEATURE_SELECTION_METHODS = { "none", "M5 prime", "greedy" };
 
 	public static final Map<String, Class<? extends LinearRegressionMethod>> SELECTION_METHODS = new LinkedHashMap<String, Class<? extends LinearRegressionMethod>>();
 

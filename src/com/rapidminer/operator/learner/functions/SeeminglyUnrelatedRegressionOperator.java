@@ -27,6 +27,7 @@ import static com.rapidminer.operator.learner.functions.linear.LinearRegression.
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import Jama.Matrix;
 
@@ -43,13 +44,15 @@ import com.rapidminer.operator.ProcessStoppedException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.learner.AbstractLearner;
 import com.rapidminer.operator.learner.functions.linear.LinearRegression;
-import com.rapidminer.operator.learner.functions.linear.LinearRegressionModel;
+import com.rapidminer.operator.learner.functions.linear.LinearRegressionMethod;
 import com.rapidminer.operator.ports.InputPortExtender;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.parameter.conditions.BooleanParameterCondition;
+import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.container.Pair;
 import com.rapidminer.tools.math.matrix.CovarianceMatrix;
@@ -87,16 +90,16 @@ public class SeeminglyUnrelatedRegressionOperator extends AbstractLearner {
 
 		Attributes mainAttributes = mainSet.getAttributes();
 		int exampleSetIndex = 1;
-		for (ExampleSet testSet: dataSets) {
+		for (ExampleSet testSet : dataSets) {
 			Attributes attributes = testSet.getAttributes();
-			for (Attribute attribute: attributes) {
+			for (Attribute attribute : attributes) {
 				if (mainAttributes.get(attribute.getName()) == null) {
 					throw new UserError(this, 952, attribute.getName(), exampleSetIndex + "");
 				}
 			}
 			exampleSetIndex++;
 		}
-		
+
 		// first perform linear regression on each dataSet
 		ArrayList<ExampleSet> residualSets = new ArrayList<ExampleSet>(dataSets.size());
 		ArrayList<Pair<Attribute, Attribute>> labelPredictionAttributes = new ArrayList<Pair<Attribute, Attribute>>(dataSets.size());
@@ -147,8 +150,7 @@ public class SeeminglyUnrelatedRegressionOperator extends AbstractLearner {
 				wMatrixInverse.setMatrix(i * numberOfExamples, (i + 1) * numberOfExamples - 1, j * numberOfExamples, (j + 1) * numberOfExamples - 1, partlyResult);
 			}
 		}
-		
-		
+
 		checkForStop();
 		wMatrixInverse = wMatrixInverse.times(1d / numberOfExamples);
 		wMatrixInverse = wMatrixInverse.inverse();
@@ -231,12 +233,37 @@ public class SeeminglyUnrelatedRegressionOperator extends AbstractLearner {
 	}
 
 	@Override
+	/**
+	 * This is a copy of the linear regression parameters, because we can't just copy them because of the dependencies
+	 */
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
-		types.add(new ParameterTypeCategory(PARAMETER_FEATURE_SELECTION, "The feature selection method used during regression.", FEATURE_SELECTION_METHODS, M5_PRIME));
+
+		String[] availableSelectionMethods = SELECTION_METHODS.keySet().toArray(new String[0]);
+		types.add(new ParameterTypeCategory(PARAMETER_FEATURE_SELECTION, "The feature selection method used during regression.", availableSelectionMethods, M5_PRIME));
+
+		// adding parameter of methods
+		int i = 0;
+		for (Entry<String, Class<? extends LinearRegressionMethod>> entry : SELECTION_METHODS.entrySet()) {
+			try {
+				LinearRegressionMethod method = entry.getValue().newInstance();
+				for (ParameterType methodType : method.getParameterTypes()) {
+					types.add(methodType);
+					methodType.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_FEATURE_SELECTION, availableSelectionMethods, true, i));
+				}
+			} catch (InstantiationException e) { // can't do anything about this
+			} catch (IllegalAccessException e) {
+			}
+			i++;
+		}
+
 		types.add(new ParameterTypeBoolean(PARAMETER_ELIMINATE_COLINEAR_FEATURES, "Indicates if the algorithm should try to delete colinear features during the regression.", true));
-		types.add(new ParameterTypeDouble(PARAMETER_MIN_STANDARDIZED_COEFFICIENT, "The minimum standardized coefficient for the removal of colinear feature elimination.", 0.0d, Double.POSITIVE_INFINITY, 1.5d));
-		types.add(new ParameterTypeDouble(PARAMETER_RIDGE, "The ridge parameter used during ridge regression.", 0.0d, Double.POSITIVE_INFINITY, 1.0E-8));
+		ParameterType type = new ParameterTypeDouble(PARAMETER_MIN_STANDARDIZED_COEFFICIENT, "The minimum standardized coefficient for the removal of colinear feature elimination.", 0.0d, Double.POSITIVE_INFINITY, 1.5d);
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_ELIMINATE_COLINEAR_FEATURES, true, true));
+		types.add(type);
+
+		types.add(new ParameterTypeBoolean(PARAMETER_USE_BIAS, "Indicates if an intercept value should be calculated.", true));
+		types.add(new ParameterTypeDouble(PARAMETER_RIDGE, "The ridge parameter used for ridge regression. A value of zero switches to ordinary least squares estimate.", 0.0d, Double.POSITIVE_INFINITY, 1.0E-8));
 		return types;
 	}
 }

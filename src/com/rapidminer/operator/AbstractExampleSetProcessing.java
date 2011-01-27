@@ -127,8 +127,13 @@ public abstract class AbstractExampleSetProcessing extends Operator {
 	/**
 	 * This method indicates whether the operator will perform a write operation on a cell in an existing column of the example set's {@link ExampleTable}. If yes, the
 	 * original example will be completely copied in memory if the original port is used.
+	 * 
+	 * <strong>Note: </strong> Subclasses must implement this method. The safe implementation would be to 
+	 * return true, however, for backwards compatibility, the default implementation returns false.
 	 */
-	public abstract boolean writesIntoExistingData();
+	public boolean writesIntoExistingData() {
+		return false;
+	}
 
 	@Override
 	public boolean shouldAutoConnect(OutputPort port) {
