@@ -1325,6 +1325,10 @@
                   <replaces>Normalization</replaces>
                </operator>
                <operator>
+                  <key>denormalize</key>
+                  <class>com.rapidminer.operator.preprocessing.normalization.DenormalizationOperator</class>
+               </operator>
+               <operator>
                   <key>scale_by_weights</key>
                   <class>com.rapidminer.operator.features.AttributeWeightsApplier</class>
                   <replaces>AttributeWeightsApplier</replaces>
@@ -1413,6 +1417,10 @@
                <key>fill_data_gaps</key>
                <class>com.rapidminer.operator.preprocessing.filter.FillDataGaps</class>
                <replaces>FillDataGaps</replaces>
+            </operator>
+            <operator>
+               <key>remove_unused_values</key>
+               <class>com.rapidminer.operator.preprocessing.RemoveUnusedNominalValuesOperator</class>
             </operator>
             <group key="outlier_detection">
                <operator>

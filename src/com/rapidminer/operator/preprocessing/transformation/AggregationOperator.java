@@ -23,6 +23,7 @@
 package com.rapidminer.operator.preprocessing.transformation;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -72,423 +73,504 @@ import com.rapidminer.tools.container.ValueSet;
 import com.rapidminer.tools.math.function.aggregation.AbstractAggregationFunction;
 import com.rapidminer.tools.math.function.aggregation.AggregationFunction;
 
-
 /**
- * <p>This operator creates a new example set from the input example set
- * showing the results of arbitrary aggregation functions (as SUM, COUNT
- * etc. known from SQL). Before the values of different rows are aggregated
- * into a new row the rows might be grouped by the values of a multiple
- * attributes (similar to the group-by clause known from SQL). In this case
- * a new line will be created for each group.</p>
+ * <p>
+ * This operator creates a new example set from the input example set showing the results of arbitrary aggregation functions (as SUM, COUNT
+ * etc. known from SQL). Before the values of different rows are aggregated into a new row the rows might be grouped by the values of a
+ * multiple attributes (similar to the group-by clause known from SQL). In this case a new line will be created for each group.
+ * </p>
  * 
- * <p>Please note that the known HAVING clause from SQL can be simulated
- * by an additional {@link ExampleFilter} operator following this one.</p>
+ * <p>
+ * Please note that the known HAVING clause from SQL can be simulated by an additional {@link ExampleFilter} operator following this one.
+ * </p>
  * 
  * @author Tobias Malbrecht, Ingo Mierswa, Sebastian Land
  */
 public class AggregationOperator extends AbstractDataProcessing {
 
-	public static final String PARAMETER_AGGREGATION_ATTRIBUTES = "aggregation_attributes";
+    private class AggregationAttribute {
+        Attribute attribute;
+        String functionName;
+        int resultType;
+    }
 
-	public static final String PARAMETER_AGGREGATION_FUNCTIONS = "aggregation_functions";
+    public static final String PARAMETER_USE_DEFAULT_AGGREGATION = "use_default_aggregation";
+    public static final String PARAMETER_DEFAULT_AGGREGATION_FUNCTION = "default_aggregation_function";
+    public static final String PARAMETER_AGGREGATION_ATTRIBUTES = "aggregation_attributes";
 
-	public static final String PARAMETER_GROUP_BY_ATTRIBUTES = "group_by_attributes";
+    public static final String PARAMETER_AGGREGATION_FUNCTIONS = "aggregation_functions";
 
-	public static final String PARAMETER_ONLY_DISTINCT = "only_distinct";
+    public static final String PARAMETER_GROUP_BY_ATTRIBUTES = "group_by_attributes";
 
-	public static final String PARAMETER_IGNORE_MISSINGS = "ignore_missings";
+    public static final String PARAMETER_ONLY_DISTINCT = "only_distinct";
 
-	public static final String GENERIC_GROUP_NAME = "group";
+    public static final String PARAMETER_IGNORE_MISSINGS = "ignore_missings";
 
-	public static final String GENERIC_ALL_NAME = "all";
+    public static final String GENERIC_GROUP_NAME = "group";
 
-	public static final String PARAMETER_ALL_COMBINATIONS = "count_all_combinations";
+    public static final String GENERIC_ALL_NAME = "all";
 
-	public AggregationOperator(OperatorDescription desc) {
-		super(desc);
-	}
+    public static final String PARAMETER_ALL_COMBINATIONS = "count_all_combinations";
 
-	@Override
-	protected MetaData modifyMetaData(ExampleSetMetaData metaData) throws UndefinedParameterError {
-		String attributeRegex = getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES);
-		if (attributeRegex != null) {
-			Pattern pattern = Pattern.compile(attributeRegex);
+    private final AttributeSubsetSelector attributeSelector = new AttributeSubsetSelector(this, getExampleSetInputPort());
 
-			Iterator<AttributeMetaData> iterator = metaData.getAllAttributes().iterator();
-			while (iterator.hasNext()) {
-				AttributeMetaData amd = iterator.next();
-				if (!pattern.matcher(amd.getName()).matches()) {
-					iterator.remove();
-				}
-			}
-		} else {
-			metaData.removeAllAttributes();
-			AttributeMetaData allGroup = new AttributeMetaData(GENERIC_GROUP_NAME, Ontology.NOMINAL);
-			Set<String> values = new TreeSet<String>();
-			values.add(GENERIC_ALL_NAME);
-			allGroup.setValueSet(values, SetRelation.EQUAL);
-			metaData.addAttribute(allGroup);
-			metaData.setNumberOfExamples(new MDInteger(1));
-		}
+    public AggregationOperator(OperatorDescription desc) {
+        super(desc);
+    }
 
-		List<String[]> parameterList = this.getParameterList(PARAMETER_AGGREGATION_ATTRIBUTES);
-		for (String[] function : parameterList) {
-			metaData.addAttribute(new AttributeMetaData(function[1]+"("+function[0]+")", Ontology.REAL));
-		}
-		if (attributeRegex != null) {
-			metaData.getNumberOfExamples().reduceByUnknownAmount();
-		}
-		return metaData;
-	}
+    @Override
+    protected MetaData modifyMetaData(ExampleSetMetaData metaData) throws UndefinedParameterError {
+        ExampleSetMetaData resultMD = metaData.clone();
+        resultMD.clear();
 
-	@Override
-	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {         
-		exampleSet = (ExampleSet) exampleSet.clone();
-		boolean onlyDistinctValues = getParameterAsBoolean(PARAMETER_ONLY_DISTINCT);
-		boolean ignoreMissings = getParameterAsBoolean(PARAMETER_IGNORE_MISSINGS);
+        String attributeRegex = getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES);
+        if (attributeRegex != null) {
+            Pattern pattern = Pattern.compile(attributeRegex);
 
-		List<String[]> parameterList = this.getParameterList(PARAMETER_AGGREGATION_ATTRIBUTES);
-		int aggregations = parameterList.size();
-		Attribute[] aggregationAttributes = new Attribute[aggregations];
-		String[] aggregationFunctionNames = new String[aggregations];
-		int[] resultTypes = new int[aggregations];
-//		boolean[] nominalResults = new boolean[aggregations];
-		int parameterListIndex = 0;
-		for (String[] valuePair : parameterList) {
-			String attributeName = valuePair[0];
-			String aggregationFunctionName = valuePair[1];
-			Attribute attribute = exampleSet.getAttributes().get(attributeName);
-			if (attribute == null) {
-				throw new UserError(this, 111, attributeName);
-			}
-			aggregationAttributes[parameterListIndex] = attribute;
-			aggregationFunctionNames[parameterListIndex] = aggregationFunctionName;
-//			nominalResults[parameterListIndex] = attribute.isNominal() && aggregationFunctionName.equals(AbstractAggregationFunction.KNOWN_AGGREGATION_FUNCTION_NAMES[AbstractAggregationFunction.MODE]);
-			if (aggregationFunctionName.equals(AbstractAggregationFunction.KNOWN_AGGREGATION_FUNCTION_NAMES[AbstractAggregationFunction.COUNT])) {
-				resultTypes[parameterListIndex] = Ontology.NUMERICAL;
-			} else {
-				if (attribute.isNumerical()) {
-					resultTypes[parameterListIndex] = Ontology.NUMERICAL;
-				} else if (attribute.isNominal()) {
-					resultTypes[parameterListIndex] = Ontology.NOMINAL;
-				} else {
-					resultTypes[parameterListIndex] = attribute.getValueType();
-				}
-			}
-			parameterListIndex++;
-		}
+            Iterator<AttributeMetaData> iterator = metaData.getAllAttributes().iterator();
+            while (iterator.hasNext()) {
+                AttributeMetaData amd = iterator.next();
+                if (pattern.matcher(amd.getName()).matches()) {
+                    resultMD.addAttribute(amd);
+                }
+            }
+            resultMD.getNumberOfExamples().reduceByUnknownAmount();
+        } else {
+            AttributeMetaData allGroup = new AttributeMetaData(GENERIC_GROUP_NAME, Ontology.NOMINAL);
+            Set<String> values = new TreeSet<String>();
+            values.add(GENERIC_ALL_NAME);
+            allGroup.setValueSet(values, SetRelation.EQUAL);
+            resultMD.addAttribute(allGroup);
+            resultMD.setNumberOfExamples(new MDInteger(1));
+        }
 
-		Attribute weightAttribute = exampleSet.getAttributes().getWeight();
-		MemoryExampleTable resultTable = null;
-		boolean allCombinations = getParameterAsBoolean(PARAMETER_ALL_COMBINATIONS);
-		
-		if (isParameterSet(PARAMETER_GROUP_BY_ATTRIBUTES)) {
-			String groupByAttributesRegex = getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES);
-			
-			// make attributes nominal
-			try {
-				NumericToNominal toNominalOperator = OperatorService.createOperator(NumericToPolynominal.class);
-				toNominalOperator.setParameter(AttributeSubsetSelector.PARAMETER_FILTER_TYPE, AttributeSubsetSelector.CONDITION_REGULAR_EXPRESSION + "");
-				toNominalOperator.setParameter(RegexpAttributeFilter.PARAMETER_REGULAR_EXPRESSION, groupByAttributesRegex);
-				toNominalOperator.setParameter(AttributeSubsetSelector.PARAMETER_INCLUDE_SPECIAL_ATTRIBUTES, "true");
-				exampleSet = toNominalOperator.apply(exampleSet);
-			} catch (OperatorCreationException e) {
-				// might work if attributes already nominal. Otherwise UserError will be thrown.
-			}
-			
-			Attribute[] groupByAttributes = getAttributesArrayFromRegex(exampleSet.getAttributes(), groupByAttributesRegex);
+        if (getParameterAsBoolean(PARAMETER_USE_DEFAULT_AGGREGATION)) {
+            String defaultFunction = getParameterAsString(PARAMETER_DEFAULT_AGGREGATION_FUNCTION);
+            ExampleSetMetaData metaDataSubset = attributeSelector.getMetaDataSubset(metaData, false);
+            for (AttributeMetaData amd : metaDataSubset.getAllAttributes()) {
+                resultMD.addAttribute(new AttributeMetaData(defaultFunction + "(" + amd.getName() + ")", getResultType(defaultFunction, amd)));
+            }
+        }
+        List<String[]> parameterList = this.getParameterList(PARAMETER_AGGREGATION_ATTRIBUTES);
+        for (String[] function : parameterList) {
+            AttributeMetaData amd = metaData.getAttributeByName(function[0]);
+            if (amd != null)
+                resultMD.addAttribute(new AttributeMetaData(function[1] + "(" + function[0] + ")", getResultType(function[1], amd)));
+        }
+        return resultMD;
+    }
 
-			if (groupByAttributes.length == 0) {
-				throw new UserError(this, 111, groupByAttributesRegex);
-			}
+    /**
+     * Returns the result type of an aggregation of a given attribute with given functio nname
+     */
+    private int getResultType(String functionName, AttributeMetaData attribute) {
+        if (functionName.equals(AbstractAggregationFunction.KNOWN_AGGREGATION_FUNCTION_NAMES[AbstractAggregationFunction.COUNT])) {
+            return Ontology.NUMERICAL;
+        } else {
+            if (attribute.isNumerical()) {
+                return Ontology.NUMERICAL;
+            } else if (attribute.isNominal()) {
+                return Ontology.NOMINAL;
+            } else {
+                return attribute.getValueType();
+            }
+        }
+    }
 
-			int[] mappingSizes = new int[groupByAttributes.length];
-			for (int i = 0; i < groupByAttributes.length; i++) {
-				if (groupByAttributes[i].isNumerical()) {
-					throw new UserError(this, 103, new Object[] { groupByAttributesRegex, "grouping by attribute." });        			
-				}
-				mappingSizes[i] = groupByAttributes[i].getMapping().size();
-			}
 
-			// create aggregation functions
-			MultidimensionalArraySet<AggregationFunction[]> functionSet = new MultidimensionalArraySet<AggregationFunction[]>(mappingSizes);
+    @Override
+    public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
+        exampleSet = (ExampleSet) exampleSet.clone();
+        boolean onlyDistinctValues = getParameterAsBoolean(PARAMETER_ONLY_DISTINCT);
+        boolean ignoreMissings = getParameterAsBoolean(PARAMETER_IGNORE_MISSINGS);
 
-			if (onlyDistinctValues && !allCombinations) {
+        ArrayList<AggregationAttribute> aggregationAttributes = new ArrayList<AggregationOperator.AggregationAttribute>();
 
-				// initialize distinct value sets
-				MultidimensionalArraySet<ValueSet[]> distinctValueSet = new MultidimensionalArraySet<ValueSet[]>(mappingSizes);
+        // first store all default attributes if defined
+        if (getParameterAsBoolean(PARAMETER_USE_DEFAULT_AGGREGATION)) {
+            Set<Attribute> attributeSubset = attributeSelector.getAttributeSubset(exampleSet, false);
+            String defaultFunctionName = getParameterAsString(PARAMETER_DEFAULT_AGGREGATION_FUNCTION);
+            for (Attribute attribute : attributeSubset) {
+                AggregationAttribute currentAggregationAttribute = new AggregationAttribute();
+                currentAggregationAttribute.attribute = attribute;
+                currentAggregationAttribute.functionName = defaultFunctionName;
+                currentAggregationAttribute.resultType = getResultType(defaultFunctionName, attribute);
 
-				// extract distinct values
-				for (Example example : exampleSet) {
-					int[] indices = new int[groupByAttributes.length];
-					for (int i = 0; i < groupByAttributes.length; i++) {
-						indices[i] = (int) example.getValue(groupByAttributes[i]);
-					}
+                aggregationAttributes.add(currentAggregationAttribute);
+            }
+        }
 
-					ValueSet[] distinctValues = distinctValueSet.get(indices);
-					if (distinctValues == null) {
-						distinctValues = new ValueSet[aggregations];
-						for (int j = 0; j < aggregations; j++) {
-							distinctValues[j] = new ValueSet();
-						}
-						distinctValueSet.set(indices, distinctValues);        				
-					}
-					
-					double weight = weightAttribute != null ? example.getWeight() : 1.0d;
-					for (int i = 0; i < aggregations; i++) {
-						distinctValues[i].add(example.getValue(aggregationAttributes[i]), weight);
-					}
-				}
+        // second read specific attributes and override if already part of default attributes
+        List<String[]> parameterList = this.getParameterList(PARAMETER_AGGREGATION_ATTRIBUTES);
+        for (String[] valuePair : parameterList) {
+            AggregationAttribute currentAggregationAttribute = new AggregationAttribute();
 
-				// compute aggregation function values
-				for (int i = 0; i < functionSet.size(); i++) {
-					ValueSet[] distinctValues = distinctValueSet.get(i);
-					if (distinctValues != null) {
-						AggregationFunction[] functions = new AggregationFunction[aggregations];
-						for (int j = 0; j < aggregations; j++) {
-							functions[j] = getAggregationFunction(aggregationFunctionNames[j], ignoreMissings, aggregationAttributes[j]);
-						}
-						functionSet.set(i, functions);
-						for (int j = 0; j < aggregations; j++) {
-							for (Double value : distinctValues[j]) {
-								functions[j].update(value);
-							}
-						}
-					}
-				}
-			} else {
-				if (allCombinations) {
-					registerAllCombinations(groupByAttributes, functionSet, aggregationFunctionNames, ignoreMissings, aggregationAttributes);
-				}
-				
-				// compute aggregation function values
-				for (Example example : exampleSet) {
-					int[] indices = new int[groupByAttributes.length];
-					for (int i = 0; i < groupByAttributes.length; i++) {
-						indices[i] = (int) example.getValue(groupByAttributes[i]);
-					}
-					double weight = weightAttribute != null ? example.getWeight() : 1.0d;
-					AggregationFunction[] functions = functionSet.get(indices);
-					if (functions == null) {
-						functions = new AggregationFunction[aggregations]; 
-						for (int j = 0; j < aggregations; j++) {
-							functions[j] = getAggregationFunction(aggregationFunctionNames[j], ignoreMissings, aggregationAttributes[j]);
-						}
-						functionSet.set(indices, functions);
-					}
-					for (int i = 0; i < aggregations; i++) {
-						functions[i].update(example.getValue(aggregationAttributes[i]), weight);
-					}
-				}
-			}
+            // attribute
+            String attributeName = valuePair[0];
+            Attribute attribute = exampleSet.getAttributes().get(attributeName);
+            if (attribute == null) {
+                throw new UserError(this, 111, attributeName);
+            }
+            currentAggregationAttribute.attribute = attribute;
 
-			// create grouped data table
-			List<Attribute> resultAttributes = new LinkedList<Attribute>();
-			Attribute[] resultGroupAttributes = new Attribute[groupByAttributes.length];
-			for (int i = 0; i < groupByAttributes.length; i++) {
-				Attribute resultGroupAttribute = AttributeFactory.createAttribute(groupByAttributes[i].getName(), Ontology.NOMINAL);
-				for (int j = 0; j < groupByAttributes[i].getMapping().size(); j++) {
-					resultGroupAttribute.getMapping().mapString(groupByAttributes[i].getMapping().mapIndex(j));
-				}
-				resultAttributes.add(resultGroupAttribute);
-				resultGroupAttributes[i] = resultGroupAttribute;
-			}
-			for (int i = 0; i < aggregations; i++) {
-//				if (nominalResults[i]) {
-//					resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" + aggregationAttributes[i].getName() + ")", Ontology.NOMINAL));
-//				} else {
-//					resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" + aggregationAttributes[i].getName() + ")", Ontology.REAL));        			
-//				}
-				resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" + aggregationAttributes[i].getName() + ")", resultTypes[i]));
-			}
-			resultTable = new MemoryExampleTable(resultAttributes);
+            // functionname and resulttype
+            currentAggregationAttribute.functionName = valuePair[1];
+            currentAggregationAttribute.resultType = getResultType(currentAggregationAttribute.functionName, attribute);
 
-			// fill data table
-			for (int i = 0; i < functionSet.size(); i++) {
-				double data[] = new double[groupByAttributes.length + aggregations];
-				int[] indices = functionSet.getIndices(i);
-				for (int j = 0; j < groupByAttributes.length; j++) {
-					data[j] = indices[j];
-				}
-				AggregationFunction[] functions = functionSet.get(i);
-				if (functions != null) {
-					for (int j = 0; j < aggregations; j++) {
-//						data[groupByAttributes.length + j] = nominalResults[j] ? resultTable.getAttribute(groupByAttributes.length + j).getMapping().mapString(aggregationAttributes[j].getMapping().mapIndex((int) functions[j].getValue())) : functions[j].getValue();
-						if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(resultTypes[j], Ontology.NOMINAL)) {
-							data[groupByAttributes.length + j] = resultTable.getAttribute(groupByAttributes.length + j).getMapping().mapString(aggregationAttributes[j].getMapping().mapIndex((int) functions[j].getValue()));
-						} else {
-							data[groupByAttributes.length + j] = functions[j].getValue();
-						}
-					}
-					resultTable.addDataRow(new DoubleArrayDataRow(data));
-				}
-			}
-		} else {
-			AggregationFunction[] functions = new AggregationFunction[aggregations]; 
-			for (int i = 0; i < aggregations; i++) {
-				functions[i] = getAggregationFunction(aggregationFunctionNames[i], ignoreMissings, aggregationAttributes[i]);
-			}
+            aggregationAttributes.add(currentAggregationAttribute);
+        }
+        AggregationAttribute[] aggregations = aggregationAttributes.toArray(new AggregationAttribute[aggregationAttributes.size()]);
+        int numberOfAggregations = aggregationAttributes.size();
 
-			if (onlyDistinctValues) {
+        Attribute weightAttribute = exampleSet.getAttributes().getWeight();
+        MemoryExampleTable resultTable = null;
+        boolean allCombinations = getParameterAsBoolean(PARAMETER_ALL_COMBINATIONS);
 
-				// initialize distinct value sets
-				ValueSet[] distinctValues = new ValueSet[aggregations];
-				for (int i = 0; i < aggregations; i++) {
-					distinctValues[i] = new ValueSet();
-				}
-				for (Example example : exampleSet) {
-					double weight = weightAttribute != null ? example.getWeight() : 1.0d;
-					for (int i = 0; i < distinctValues.length; i++) {
-						distinctValues[i].add(example.getValue(aggregationAttributes[i]), weight);            			
-					}
-				}
+        if (isParameterSet(PARAMETER_GROUP_BY_ATTRIBUTES)) {
+            String groupByAttributesRegex = getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES);
 
-				// compute aggregation function values
-				for (int i = 0; i < distinctValues.length; i++) {
-					for (Double value : distinctValues[i]) {
-						functions[i].update(value);
-					}
-				}
-			} else {
+            // make attributes nominal
+            try {
+                NumericToNominal toNominalOperator = OperatorService.createOperator(NumericToPolynominal.class);
+                toNominalOperator.setParameter(AttributeSubsetSelector.PARAMETER_FILTER_TYPE, AttributeSubsetSelector.CONDITION_REGULAR_EXPRESSION + "");
+                toNominalOperator.setParameter(RegexpAttributeFilter.PARAMETER_REGULAR_EXPRESSION, groupByAttributesRegex);
+                toNominalOperator.setParameter(AttributeSubsetSelector.PARAMETER_INCLUDE_SPECIAL_ATTRIBUTES, "true");
+                exampleSet = toNominalOperator.apply(exampleSet);
+            } catch (OperatorCreationException e) {
+                // might work if attributes already nominal. Otherwise UserError will be thrown.
+            }
 
-				// compute aggregation function values
-				for (Example example : exampleSet) {
-					double weight = weightAttribute != null ? example.getWeight() : 1.0d;
-					for (int i = 0; i < functions.length; i++) {
-						functions[i].update(example.getValue(aggregationAttributes[i]), weight);            			
-					}
-				}
-			}
+            Attribute[] groupByAttributes = getAttributesArrayFromRegex(exampleSet.getAttributes(), groupByAttributesRegex);
 
-			// create data table
-			List<Attribute> resultAttributes = new LinkedList<Attribute>();
-			Attribute resultGroupAttribute = AttributeFactory.createAttribute(GENERIC_GROUP_NAME, Ontology.NOMINAL); 
-			resultAttributes.add(resultGroupAttribute);
-			for (int i = 0; i < aggregations; i++) {
-//				if (nominalResults[i]) {
-//					resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" + aggregationAttributes[i].getName() + ")", Ontology.NOMINAL));
-//				} else {
-//					resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" + aggregationAttributes[i].getName() + ")", Ontology.REAL));
-//				}
-				resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" + aggregationAttributes[i].getName() + ")", resultTypes[i]));
+            if (groupByAttributes.length == 0) {
+                throw new UserError(this, 111, groupByAttributesRegex);
+            }
 
-			}
-			for (Attribute attribute : resultAttributes) {
-				attribute.setConstruction(attribute.getName());
-			}
-			resultTable = new MemoryExampleTable(resultAttributes);
+            int[] mappingSizes = new int[groupByAttributes.length];
+            for (int i = 0; i < groupByAttributes.length; i++) {
+                if (groupByAttributes[i].isNumerical()) {
+                    throw new UserError(this, 103, new Object[] { groupByAttributesRegex, "grouping by attribute." });
+                }
+                mappingSizes[i] = groupByAttributes[i].getMapping().size();
+            }
 
-			// fill data table
-			double[] data = new double[aggregations + 1];
-			data[0] = resultGroupAttribute.getMapping().mapString(GENERIC_ALL_NAME);
-			for (int i = 0; i < aggregations; i++) {
-//				data[i + 1] = nominalResults[i] ? resultTable.getAttribute(i + 1).getMapping().mapString(aggregationAttributes[i].getMapping().mapIndex((int) functions[i].getValue())) : functions[i].getValue();
-				if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(resultTypes[i], Ontology.NOMINAL)) {
-					data[i + 1] = resultTable.getAttribute(i + 1).getMapping().mapString(aggregationAttributes[i].getMapping().mapIndex((int) functions[i].getValue()));
-				} else {
-					data[i + 1] = functions[i].getValue();
-				}
+            // create aggregation functions
+            MultidimensionalArraySet<AggregationFunction[]> functionSet = new MultidimensionalArraySet<AggregationFunction[]>(mappingSizes);
 
-			}
-			resultTable.addDataRow(new DoubleArrayDataRow(data));
-		}
+            if (onlyDistinctValues && !allCombinations) {
 
-		ExampleSet resultSet = resultTable.createExampleSet();
-		return resultSet;
-	}
+                // initialize distinct value sets
+                MultidimensionalArraySet<ValueSet[]> distinctValueSet = new MultidimensionalArraySet<ValueSet[]>(mappingSizes);
 
-	/**
-	 * This method will register for each index of the group by attributes' mapping the corresponding aggregation functions
-	 * @throws UserError 
-	 */
-	private void registerAllCombinations(Attribute[] groupByAttributes, MultidimensionalArraySet<AggregationFunction[]> functionSet, String[] aggregationFunctionNames, boolean ignoreMissings, Attribute[] aggregationAttributes) throws UserError {
-		registerAllCombinationsRecursion(groupByAttributes, functionSet, aggregationFunctionNames, ignoreMissings, aggregationAttributes, new int[groupByAttributes.length], 0);
-	}
-	
-	/**
-	 * The recursivly called method.
-	 * @throws UserError 
-	 */
-	private void registerAllCombinationsRecursion(Attribute[] groupByAttributes, MultidimensionalArraySet<AggregationFunction[]> functionSet, String[] aggregationFunctionNames, boolean ignoreMissings, Attribute[] aggregationAttributes, int[] indices, int depth) throws UserError {
-		if (depth == indices.length) {
-			AggregationFunction[] functions = new AggregationFunction[aggregationFunctionNames.length]; 
-			for (int j = 0; j < aggregationFunctionNames.length; j++) {
-				functions[j] = getAggregationFunction(aggregationFunctionNames[j], ignoreMissings, aggregationAttributes[j]);
-			}
-			functionSet.set(indices, functions);
-		} else {
-			NominalMapping mapping = groupByAttributes[depth].getMapping();
-			for (String value: mapping.getValues()) {
-				indices[depth] = mapping.getIndex(value);
-				registerAllCombinationsRecursion(groupByAttributes, functionSet, aggregationFunctionNames, ignoreMissings, aggregationAttributes, indices, depth + 1);
-			}
-		}
-	}
-	private AggregationFunction getAggregationFunction(String functionName, boolean ignoreMissings, Attribute attribute) throws UserError {
-		AggregationFunction function;
-		try {
-			function = AbstractAggregationFunction.createAggregationFunction(functionName, ignoreMissings);
-		} catch (InstantiationException e) {
-			throw new UserError(this, 904, functionName, e.getMessage());
-		} catch (IllegalAccessException e) {
-			throw new UserError(this, 904, functionName, e.getMessage());
-		} catch (ClassNotFoundException e) {
-			throw new UserError(this, 904, functionName, e.getMessage());
-		} catch (NoSuchMethodException e) {
-			throw new UserError(this, 904, functionName, e.getMessage());
-		} catch (InvocationTargetException e) {
-			throw new UserError(this, 904, functionName, e.getMessage());
-		}
-		if (!function.supportsAttribute(attribute)) {
-			throw new UserError(this, 136, attribute.getName());
-		}
-		return function;
-	}
+                // extract distinct values
+                for (Example example : exampleSet) {
+                    int[] indices = new int[groupByAttributes.length];
+                    for (int i = 0; i < groupByAttributes.length; i++) {
+                        indices[i] = (int) example.getValue(groupByAttributes[i]);
+                    }
 
-	private Attribute[] getAttributesArrayFromRegex(Attributes attributes, String regex) throws OperatorException {
-		Pattern pattern = null;
-		try {
-			pattern = Pattern.compile(regex);
-		} catch (PatternSyntaxException e) {
-			throw new UserError(this, 206, regex, e.getMessage());
-		}
-		List<Attribute> attributeList = new LinkedList<Attribute>();
-		Iterator<Attribute> i = attributes.allAttributes();
-		while (i.hasNext()) {
-			Attribute attribute = i.next();
-			Matcher matcher = pattern.matcher(attribute.getName());
-			if (matcher.matches()) {
-				attributeList.add(attribute);
-			}
-		}
+                    ValueSet[] distinctValues = distinctValueSet.get(indices);
+                    if (distinctValues == null) {
+                        distinctValues = new ValueSet[numberOfAggregations];
+                        for (int j = 0; j < numberOfAggregations; j++) {
+                            distinctValues[j] = new ValueSet();
+                        }
+                        distinctValueSet.set(indices, distinctValues);
+                    }
 
-		Attribute[] attributesArray = new Attribute[attributeList.size()];
-		attributesArray = attributeList.toArray(attributesArray);
-		return attributesArray;
-	}
-	
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		List<ParameterType> types = super.getParameterTypes();
-		types.add(new ParameterTypeList(PARAMETER_AGGREGATION_ATTRIBUTES, "The attributes which should be aggregated.",
-				new ParameterTypeAttribute("aggregation_attribute", "Specifies the attribute which is aggregated.", getExampleSetInputPort()),
-				new ParameterTypeStringCategory(PARAMETER_AGGREGATION_FUNCTIONS, "The type of the used aggregation function.", AbstractAggregationFunction.KNOWN_AGGREGATION_FUNCTION_NAMES, AbstractAggregationFunction.KNOWN_AGGREGATION_FUNCTION_NAMES[0]), false));
-		types.add(new ParameterTypeAttributes(PARAMETER_GROUP_BY_ATTRIBUTES, "Performs a grouping by the values of the attributes whose names match the given regular expression.", getExampleSetInputPort(), true, false));
-		types.add(new ParameterTypeBoolean(PARAMETER_ALL_COMBINATIONS, "Indicates that all possible combinations of the values of the group by attributes are counted, even if they don't occur. Please handle with care, since the number might be enormous.", false));
-		ParameterTypeBoolean type = new ParameterTypeBoolean(PARAMETER_ONLY_DISTINCT, "Indicates if only rows with distinct values for the aggregation attribute should be used for the calculation of the aggregation function.", false);
-		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_ALL_COMBINATIONS, false, false));
-		types.add(type);
-		types.add(new ParameterTypeBoolean(PARAMETER_IGNORE_MISSINGS, "Indicates if missings should be ignored and aggregation should be based only on existing values or not. In the latter case the aggregated value will be missing in the presence of missing values.", true));        
-		return types;
-	}
-	
-	@Override
-	public boolean writesIntoExistingData() {
-		return false;
-	}
-	
-	@Override
-	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
-		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), AggregationOperator.class, null);
-	}
+                    double weight = weightAttribute != null ? example.getWeight() : 1.0d;
+                    for (int i = 0; i < numberOfAggregations; i++) {
+                        distinctValues[i].add(example.getValue(aggregations[i].attribute), weight);
+                    }
+                }
+
+                // compute aggregation function values
+                for (int i = 0; i < functionSet.size(); i++) {
+                    ValueSet[] distinctValues = distinctValueSet.get(i);
+                    if (distinctValues != null) {
+                        AggregationFunction[] functions = new AggregationFunction[numberOfAggregations];
+                        for (int j = 0; j < numberOfAggregations; j++) {
+                            functions[j] = getAggregationFunction(aggregations[j].functionName, ignoreMissings, aggregations[j].attribute);
+                        }
+                        functionSet.set(i, functions);
+                        for (int j = 0; j < numberOfAggregations; j++) {
+                            for (Double value : distinctValues[j]) {
+                                functions[j].update(value);
+                            }
+                        }
+                    }
+                }
+            } else {
+                if (allCombinations) {
+                    registerAllCombinations(groupByAttributes, functionSet, ignoreMissings, aggregations);
+                }
+
+                // compute aggregation function values
+                for (Example example : exampleSet) {
+                    int[] indices = new int[groupByAttributes.length];
+                    for (int i = 0; i < groupByAttributes.length; i++) {
+                        indices[i] = (int) example.getValue(groupByAttributes[i]);
+                    }
+                    double weight = weightAttribute != null ? example.getWeight() : 1.0d;
+                    AggregationFunction[] functions = functionSet.get(indices);
+                    if (functions == null) {
+                        functions = new AggregationFunction[numberOfAggregations];
+                        for (int j = 0; j < numberOfAggregations; j++) {
+                            functions[j] = getAggregationFunction(aggregations[j].functionName, ignoreMissings, aggregations[j].attribute);
+                        }
+                        functionSet.set(indices, functions);
+                    }
+                    for (int i = 0; i < numberOfAggregations; i++) {
+                        functions[i].update(example.getValue(aggregations[i].attribute), weight);
+                    }
+                }
+            }
+
+            // create grouped data table
+            List<Attribute> resultAttributes = new LinkedList<Attribute>();
+            Attribute[] resultGroupAttributes = new Attribute[groupByAttributes.length];
+            for (int i = 0; i < groupByAttributes.length; i++) {
+                Attribute resultGroupAttribute = AttributeFactory.createAttribute(groupByAttributes[i].getName(), Ontology.NOMINAL);
+                for (int j = 0; j < groupByAttributes[i].getMapping().size(); j++) {
+                    resultGroupAttribute.getMapping().mapString(groupByAttributes[i].getMapping().mapIndex(j));
+                }
+                resultAttributes.add(resultGroupAttribute);
+                resultGroupAttributes[i] = resultGroupAttribute;
+            }
+            for (int i = 0; i < numberOfAggregations; i++) {
+                // if (nominalResults[i]) {
+                // resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" +
+                // aggregationAttributes[i].getName() + ")", Ontology.NOMINAL));
+                // } else {
+                // resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" +
+                // aggregationAttributes[i].getName() + ")", Ontology.REAL));
+                // }
+                resultAttributes.add(AttributeFactory.createAttribute(aggregations[i].functionName + "(" + aggregations[i].attribute.getName() + ")", aggregations[i].resultType));
+            }
+            resultTable = new MemoryExampleTable(resultAttributes);
+
+            // fill data table
+            for (int i = 0; i < functionSet.size(); i++) {
+                double data[] = new double[groupByAttributes.length + numberOfAggregations];
+                int[] indices = functionSet.getIndices(i);
+                for (int j = 0; j < groupByAttributes.length; j++) {
+                    data[j] = indices[j];
+                }
+                AggregationFunction[] functions = functionSet.get(i);
+                if (functions != null) {
+                    for (int j = 0; j < numberOfAggregations; j++) {
+                        // data[groupByAttributes.length + j] = nominalResults[j] ? resultTable.getAttribute(groupByAttributes.length +
+                        // j).getMapping().mapString(aggregationAttributes[j].getMapping().mapIndex((int) functions[j].getValue())) :
+                        // functions[j].getValue();
+                        if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(aggregations[j].resultType, Ontology.NOMINAL)) {
+                            data[groupByAttributes.length + j] = resultTable.getAttribute(groupByAttributes.length + j).getMapping().mapString(aggregations[j].attribute.getMapping().mapIndex((int) functions[j].getValue()));
+                        } else {
+                            data[groupByAttributes.length + j] = functions[j].getValue();
+                        }
+                    }
+                    resultTable.addDataRow(new DoubleArrayDataRow(data));
+                }
+            }
+        } else {
+            AggregationFunction[] functions = new AggregationFunction[numberOfAggregations];
+            for (int i = 0; i < numberOfAggregations; i++) {
+                functions[i] = getAggregationFunction(aggregations[i].functionName, ignoreMissings, aggregations[i].attribute);
+            }
+
+            if (onlyDistinctValues) {
+
+                // initialize distinct value sets
+                ValueSet[] distinctValues = new ValueSet[numberOfAggregations];
+                for (int i = 0; i < numberOfAggregations; i++) {
+                    distinctValues[i] = new ValueSet();
+                }
+                for (Example example : exampleSet) {
+                    double weight = weightAttribute != null ? example.getWeight() : 1.0d;
+                    for (int i = 0; i < distinctValues.length; i++) {
+                        distinctValues[i].add(example.getValue(aggregations[i].attribute), weight);
+                    }
+                }
+
+                // compute aggregation function values
+                for (int i = 0; i < distinctValues.length; i++) {
+                    for (Double value : distinctValues[i]) {
+                        functions[i].update(value);
+                    }
+                }
+            } else {
+
+                // compute aggregation function values
+                for (Example example : exampleSet) {
+                    double weight = weightAttribute != null ? example.getWeight() : 1.0d;
+                    for (int i = 0; i < functions.length; i++) {
+                        functions[i].update(example.getValue(aggregations[i].attribute), weight);
+                    }
+                }
+            }
+
+            // create data table
+            List<Attribute> resultAttributes = new LinkedList<Attribute>();
+            Attribute resultGroupAttribute = AttributeFactory.createAttribute(GENERIC_GROUP_NAME, Ontology.NOMINAL);
+            resultAttributes.add(resultGroupAttribute);
+            for (int i = 0; i < numberOfAggregations; i++) {
+                // if (nominalResults[i]) {
+                // resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" +
+                // aggregationAttributes[i].getName() + ")", Ontology.NOMINAL));
+                // } else {
+                // resultAttributes.add(AttributeFactory.createAttribute(aggregationFunctionNames[i] + "(" +
+                // aggregationAttributes[i].getName() + ")", Ontology.REAL));
+                // }
+                resultAttributes.add(AttributeFactory.createAttribute(aggregations[i].functionName + "(" + aggregations[i].attribute.getName() + ")", aggregations[i].resultType));
+
+            }
+            for (Attribute attribute : resultAttributes) {
+                attribute.setConstruction(attribute.getName());
+            }
+            resultTable = new MemoryExampleTable(resultAttributes);
+
+            // fill data table
+            double[] data = new double[numberOfAggregations + 1];
+            data[0] = resultGroupAttribute.getMapping().mapString(GENERIC_ALL_NAME);
+            for (int i = 0; i < numberOfAggregations; i++) {
+                // data[i + 1] = nominalResults[i] ? resultTable.getAttribute(i +
+                // 1).getMapping().mapString(aggregationAttributes[i].getMapping().mapIndex((int) functions[i].getValue())) :
+                // functions[i].getValue();
+                if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(aggregations[i].resultType, Ontology.NOMINAL)) {
+                    data[i + 1] = resultTable.getAttribute(i + 1).getMapping().mapString(aggregations[i].attribute.getMapping().mapIndex((int) functions[i].getValue()));
+                } else {
+                    data[i + 1] = functions[i].getValue();
+                }
+
+            }
+            resultTable.addDataRow(new DoubleArrayDataRow(data));
+        }
+
+        ExampleSet resultSet = resultTable.createExampleSet();
+        return resultSet;
+    }
+
+    /**
+     * Returns the result type of an aggregation of a given attribute with given functio nname
+     */
+    private int getResultType(String functionName, Attribute attribute) {
+        if (functionName.equals(AbstractAggregationFunction.KNOWN_AGGREGATION_FUNCTION_NAMES[AbstractAggregationFunction.COUNT])) {
+            return Ontology.NUMERICAL;
+        } else {
+            if (attribute.isNumerical()) {
+                return Ontology.NUMERICAL;
+            } else if (attribute.isNominal()) {
+                return Ontology.NOMINAL;
+            } else {
+                return attribute.getValueType();
+            }
+        }
+    }
+
+    /**
+     * This method will register for each index of the group by attributes' mapping the corresponding aggregation functions
+     * 
+     * @throws UserError
+     */
+    private void registerAllCombinations(Attribute[] groupByAttributes, MultidimensionalArraySet<AggregationFunction[]> functionSet, boolean ignoreMissings, AggregationAttribute[] aggregationAttributes) throws UserError {
+        registerAllCombinationsRecursion(groupByAttributes, functionSet, ignoreMissings, aggregationAttributes, new int[groupByAttributes.length], 0);
+    }
+
+    /**
+     * The recursively called method.
+     * 
+     * @throws UserError
+     */
+    private void registerAllCombinationsRecursion(Attribute[] groupByAttributes, MultidimensionalArraySet<AggregationFunction[]> functionSet, boolean ignoreMissings, AggregationAttribute[] aggregationAttributes, int[] indices, int depth) throws UserError {
+        if (depth == indices.length) {
+            AggregationFunction[] functions = new AggregationFunction[aggregationAttributes.length];
+            for (int j = 0; j < aggregationAttributes.length; j++) {
+                functions[j] = getAggregationFunction(aggregationAttributes[j].functionName, ignoreMissings, aggregationAttributes[j].attribute);
+            }
+            functionSet.set(indices, functions);
+        } else {
+            NominalMapping mapping = groupByAttributes[depth].getMapping();
+            for (String value : mapping.getValues()) {
+                indices[depth] = mapping.getIndex(value);
+                registerAllCombinationsRecursion(groupByAttributes, functionSet, ignoreMissings, aggregationAttributes, indices, depth + 1);
+            }
+        }
+    }
+
+    private AggregationFunction getAggregationFunction(String functionName, boolean ignoreMissings, Attribute attribute) throws UserError {
+        AggregationFunction function;
+        try {
+            function = AbstractAggregationFunction.createAggregationFunction(functionName, ignoreMissings);
+        } catch (InstantiationException e) {
+            throw new UserError(this, 904, functionName, e.getMessage());
+        } catch (IllegalAccessException e) {
+            throw new UserError(this, 904, functionName, e.getMessage());
+        } catch (ClassNotFoundException e) {
+            throw new UserError(this, 904, functionName, e.getMessage());
+        } catch (NoSuchMethodException e) {
+            throw new UserError(this, 904, functionName, e.getMessage());
+        } catch (InvocationTargetException e) {
+            throw new UserError(this, 904, functionName, e.getMessage());
+        }
+        if (!function.supportsAttribute(attribute)) {
+            throw new UserError(this, 136, attribute.getName());
+        }
+        return function;
+    }
+
+    private Attribute[] getAttributesArrayFromRegex(Attributes attributes, String regex) throws OperatorException {
+        Pattern pattern = null;
+        try {
+            pattern = Pattern.compile(regex);
+        } catch (PatternSyntaxException e) {
+            throw new UserError(this, 206, regex, e.getMessage());
+        }
+        List<Attribute> attributeList = new LinkedList<Attribute>();
+        Iterator<Attribute> i = attributes.allAttributes();
+        while (i.hasNext()) {
+            Attribute attribute = i.next();
+            Matcher matcher = pattern.matcher(attribute.getName());
+            if (matcher.matches()) {
+                attributeList.add(attribute);
+            }
+        }
+
+        Attribute[] attributesArray = new Attribute[attributeList.size()];
+        attributesArray = attributeList.toArray(attributesArray);
+        return attributesArray;
+    }
+
+    @Override
+    public List<ParameterType> getParameterTypes() {
+        List<ParameterType> types = super.getParameterTypes();
+
+        types.add(new ParameterTypeBoolean(PARAMETER_USE_DEFAULT_AGGREGATION, "If checked you can select a default aggregation function for a subset of the attributes.", false, false));
+        List<ParameterType> parameterTypes = attributeSelector.getParameterTypes();
+        for (ParameterType type : parameterTypes) {
+            type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_DEFAULT_AGGREGATION, false, true));
+            types.add(type);
+        }
+        ParameterType type = new ParameterTypeStringCategory(PARAMETER_DEFAULT_AGGREGATION_FUNCTION, "The type of the used aggregation function for all default attributes.", AbstractAggregationFunction.KNOWN_AGGREGATION_FUNCTION_NAMES, AbstractAggregationFunction.KNOWN_AGGREGATION_FUNCTION_NAMES[0]);
+        type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_DEFAULT_AGGREGATION, false, true));
+        type.setExpert(false);
+        types.add(type);
+
+        types.add(new ParameterTypeList(PARAMETER_AGGREGATION_ATTRIBUTES, "The attributes which should be aggregated.", new ParameterTypeAttribute("aggregation_attribute", "Specifies the attribute which is aggregated.", getExampleSetInputPort()), new ParameterTypeStringCategory(PARAMETER_AGGREGATION_FUNCTIONS, "The type of the used aggregation function.", AbstractAggregationFunction.KNOWN_AGGREGATION_FUNCTION_NAMES, AbstractAggregationFunction.KNOWN_AGGREGATION_FUNCTION_NAMES[0]), false));
+        types.add(new ParameterTypeAttributes(PARAMETER_GROUP_BY_ATTRIBUTES, "Performs a grouping by the values of the attributes whose names match the given regular expression.", getExampleSetInputPort(), true, false));
+        types.add(new ParameterTypeBoolean(PARAMETER_ALL_COMBINATIONS, "Indicates that all possible combinations of the values of the group by attributes are counted, even if they don't occur. Please handle with care, since the number might be enormous.", false));
+        type = new ParameterTypeBoolean(PARAMETER_ONLY_DISTINCT, "Indicates if only rows with distinct values for the aggregation attribute should be used for the calculation of the aggregation function.", false);
+        type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_ALL_COMBINATIONS, false, false));
+        types.add(type);
+        types.add(new ParameterTypeBoolean(PARAMETER_IGNORE_MISSINGS, "Indicates if missings should be ignored and aggregation should be based only on existing values or not. In the latter case the aggregated value will be missing in the presence of missing values.", true));
+        return types;
+    }
+
+    @Override
+    public boolean writesIntoExistingData() {
+        return false;
+    }
+
+    @Override
+    public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+        return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), AggregationOperator.class, null);
+    }
 }

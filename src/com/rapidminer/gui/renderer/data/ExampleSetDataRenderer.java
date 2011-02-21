@@ -51,38 +51,37 @@ import com.rapidminer.parameter.UndefinedParameterError;
  */
 public class ExampleSetDataRenderer extends AbstractDataTableTableRenderer {
 
-	public static final String RENDERER_NAME = "Data View";
-	
-	private AttributeSubsetSelector subsetSelector = null;
-	
-	@Override
-	public String getName() {
-		return RENDERER_NAME;
-	}
+    public static final String RENDERER_NAME = "Data View";
 
-	@Override
-	public Component getVisualizationComponent(Object renderable, IOContainer ioContainer) {
-		ExampleSet exampleSet = (ExampleSet)renderable;
-		return new DataViewer(exampleSet, true);
-	}
+    private AttributeSubsetSelector subsetSelector = null;
+
+    @Override
+    public String getName() {
+        return RENDERER_NAME;
+    }
+
+    @Override
+    public Component getVisualizationComponent(Object renderable, IOContainer ioContainer) {
+        ExampleSet exampleSet = (ExampleSet)renderable;
+        return new DataViewer(exampleSet, true);
+    }
 
     /** This method is used to create a {@link DataTable} from this example set. The default implementation
-     *  returns an instance of {@link DataTableExampleSetAdapter}. The given IOContainer is used to check if 
-     *  there are compatible attribute weights which would used as column weights of the returned table. 
+     *  returns an instance of {@link DataTableExampleSetAdapter}. The given IOContainer is used to check if
+     *  there are compatible attribute weights which would used as column weights of the returned table.
      *  Subclasses might want to override this method in order to allow for other data tables. */
     @Override
-	public DataTable getDataTable(Object renderable, IOContainer container, boolean isRendering) {
-    	ExampleSet exampleSet = (ExampleSet)renderable;
-        
-    	if (isRendering) {
-	    	try {
-				exampleSet = subsetSelector.getSubset(exampleSet, false);
-			} catch (UndefinedParameterError e1) {
-			} catch (UserError e1) {
-			}
-    	}
-			
-		AttributeWeights weights = null;
+    public DataTable getDataTable(Object renderable, IOContainer container, boolean isRendering) {
+        ExampleSet exampleSet = (ExampleSet)renderable;
+
+
+        try {
+            exampleSet = subsetSelector.getSubset(exampleSet, false);
+        } catch (UndefinedParameterError e1) {
+        } catch (UserError e1) {
+        }
+
+        AttributeWeights weights = null;
         if (container != null) {
             try {
                 weights = container.get(AttributeWeights.class);
@@ -97,28 +96,28 @@ public class ExampleSetDataRenderer extends AbstractDataTableTableRenderer {
         }
         return  new DataTableExampleSetAdapter(exampleSet, weights);
     }
-    
+
     @Override
     public List<ParameterType> getParameterTypes(InputPort inputPort) {
-    	List<ParameterType> types = new LinkedList<ParameterType>();
+        List<ParameterType> types = new LinkedList<ParameterType>();
 
-		subsetSelector = new AttributeSubsetSelector(this, inputPort);
-		types.addAll(subsetSelector.getParameterTypes());	
-    	
-		int max_row = Integer.MAX_VALUE;
-		if (inputPort != null) {
-			MetaData metaData = inputPort.getMetaData();
-			if (metaData != null) {
-				if (metaData instanceof ExampleSetMetaData) {
-					ExampleSetMetaData emd = (ExampleSetMetaData) metaData;
-					if (emd.getNumberOfExamples().isKnown())
-						max_row = emd.getNumberOfExamples().getNumber();
-				}
-			}
-		}
-    	types.add(new ParameterTypeInt(PARAMETER_MIN_ROW, "Indicates the first row number which should be rendered.", 1, Integer.MAX_VALUE, 1, false));
-		types.add(new ParameterTypeInt(PARAMETER_MAX_ROW, "Indicates the last row number which should be rendered.", 1, Integer.MAX_VALUE, max_row, false));
-		
-    	return types;
+        subsetSelector = new AttributeSubsetSelector(this, inputPort);
+        types.addAll(subsetSelector.getParameterTypes());
+
+        int maxRow = Integer.MAX_VALUE;
+        if (inputPort != null) {
+            MetaData metaData = inputPort.getMetaData();
+            if (metaData != null) {
+                if (metaData instanceof ExampleSetMetaData) {
+                    ExampleSetMetaData emd = (ExampleSetMetaData) metaData;
+                    if (emd.getNumberOfExamples().isKnown())
+                        maxRow = emd.getNumberOfExamples().getNumber();
+                }
+            }
+        }
+        types.add(new ParameterTypeInt(PARAMETER_MIN_ROW, "Indicates the first row number which should be rendered.", 1, Integer.MAX_VALUE, 1, false));
+        types.add(new ParameterTypeInt(PARAMETER_MAX_ROW, "Indicates the last row number which should be rendered.", 1, Integer.MAX_VALUE, maxRow, false));
+
+        return types;
     }
 }

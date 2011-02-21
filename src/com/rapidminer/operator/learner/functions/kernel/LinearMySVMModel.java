@@ -34,65 +34,66 @@ import com.rapidminer.operator.learner.functions.kernel.jmysvm.kernel.Kernel;
 
 
 /**
- * The abstract superclass for the SVM models by Stefan Rueping.
+ * An optimized implementation for Linear MySVM Models that only store the coefficients
+ * to save memory and apply these weights directly without kernel transformations.
  * 
- * @author Ingo Mierswa
+ * @author Tobias Malbrecht
  */
 public class LinearMySVMModel extends PredictionModel {
 
-	private static final long serialVersionUID = 2812901947459843681L;
+    private static final long serialVersionUID = 2812901947459843681L;
 
-	private Map<Integer, MeanVariance> meanVariances;
-	
-	private double bias;
-	
-	private double[] weights = null;
-	
-	public LinearMySVMModel(ExampleSet exampleSet, com.rapidminer.operator.learner.functions.kernel.jmysvm.examples.SVMExamples model, Kernel kernel, int kernelType) {
-		super(exampleSet);
-		this.meanVariances = model.getMeanVariances();
-		this.bias = model.get_b();
-		this.weights = new double[model.get_dim()];
-		for (int i = 0; i < model.count_examples(); i++) {
-			double[] x = model.get_example(i).toDense(model.get_dim());
-			double alpha = model.get_alpha(i);
-			double y = model.get_y(i);
-			if (y != 0.0d) {
-				alpha /= y;
-			}
-			for (int j = 0; j < weights.length; j++) {
-				weights[j] += y * alpha * x[j];
-			}
-		}
-	}
+    private Map<Integer, MeanVariance> meanVariances;
 
-	@Override
-	public ExampleSet performPrediction(ExampleSet exampleSet, Attribute predictedLabelAttribute) throws OperatorException {
-		for (Example example : exampleSet) {
-			double prediction = bias;
-			int a = 0;
-			for (Attribute attribute : exampleSet.getAttributes()) {
-				double value = example.getValue(attribute);
-				MeanVariance meanVariance = meanVariances.get(a);
-				if (meanVariance != null) {
-					if (meanVariance.getVariance() == 0.0d)
-						value = 0.0d;
-					else
-						value = (value - meanVariance.getMean()) / Math.sqrt(meanVariance.getVariance());
-					}
-				prediction += weights[a] * value;
-				a++;
-			}
-			if (predictedLabelAttribute.isNominal()) {
-				int index = prediction > 0 ? predictedLabelAttribute.getMapping().getPositiveIndex() : predictedLabelAttribute.getMapping().getNegativeIndex();
-				example.setValue(predictedLabelAttribute, index);
-				// set confidence to numerical prediction, such that can be scaled later
-				example.setConfidence(predictedLabelAttribute.getMapping().getPositiveString(), 1.0d / (1.0d + java.lang.Math.exp(-prediction)));
-				example.setConfidence(predictedLabelAttribute.getMapping().getNegativeString(), 1.0d / (1.0d + java.lang.Math.exp(prediction)));
-			} else {
-				example.setValue(predictedLabelAttribute, prediction);
-			}
-		}
-		return exampleSet;
-	}
+    private double bias;
+
+    private double[] weights = null;
+
+    public LinearMySVMModel(ExampleSet exampleSet, com.rapidminer.operator.learner.functions.kernel.jmysvm.examples.SVMExamples model, Kernel kernel, int kernelType) {
+        super(exampleSet);
+        this.meanVariances = model.getMeanVariances();
+        this.bias = model.get_b();
+        this.weights = new double[model.get_dim()];
+        for (int i = 0; i < model.count_examples(); i++) {
+            double[] x = model.get_example(i).toDense(model.get_dim());
+            double alpha = model.get_alpha(i);
+            double y = model.get_y(i);
+            if (y != 0.0d) {
+                alpha /= y;
+            }
+            for (int j = 0; j < weights.length; j++) {
+                weights[j] += y * alpha * x[j];
+            }
+        }
+    }
+
+    @Override
+    public ExampleSet performPrediction(ExampleSet exampleSet, Attribute predictedLabelAttribute) throws OperatorException {
+        for (Example example : exampleSet) {
+            double prediction = bias;
+            int a = 0;
+            for (Attribute attribute : exampleSet.getAttributes()) {
+                double value = example.getValue(attribute);
+                MeanVariance meanVariance = meanVariances.get(a);
+                if (meanVariance != null) {
+                    if (meanVariance.getVariance() == 0.0d)
+                        value = 0.0d;
+                    else
+                        value = (value - meanVariance.getMean()) / Math.sqrt(meanVariance.getVariance());
+                }
+                prediction += weights[a] * value;
+                a++;
+            }
+            if (predictedLabelAttribute.isNominal()) {
+                int index = prediction > 0 ? predictedLabelAttribute.getMapping().getPositiveIndex() : predictedLabelAttribute.getMapping().getNegativeIndex();
+                example.setValue(predictedLabelAttribute, index);
+                // set confidence to numerical prediction, such that can be scaled later
+                example.setConfidence(predictedLabelAttribute.getMapping().getPositiveString(), 1.0d / (1.0d + java.lang.Math.exp(-prediction)));
+                example.setConfidence(predictedLabelAttribute.getMapping().getNegativeString(), 1.0d / (1.0d + java.lang.Math.exp(prediction)));
+            } else {
+                example.setValue(predictedLabelAttribute, prediction);
+            }
+        }
+        return exampleSet;
+    }
 }

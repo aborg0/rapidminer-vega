@@ -413,7 +413,7 @@ public class XMLImporter {
 			String fromOp = connectionElement.getAttribute("from_op");
 			Operator from = executionUnit.getOperatorByName(fromOp);
 			if (from == null) {
-				addMessage("<em class=\"error\">Unkown operator " + fromOp + " referenced in <code>from_op</code>.</em>");
+				addMessage("<em class=\"error\">Unknown operator " + fromOp + " referenced in <code>from_op</code>.</em>");
 				return;
 			}
 			outputPorts = from.getOutputPorts();
@@ -432,7 +432,7 @@ public class XMLImporter {
 			String toOp = connectionElement.getAttribute("to_op");
 			Operator to = executionUnit.getOperatorByName(toOp);
 			if (to == null) {
-				addMessage("<em class=\"error\">Unkown operator " + toOp + " referenced in <code>to_op</code>.</em>");
+				addMessage("<em class=\"error\">Unknown operator " + toOp + " referenced in <code>to_op</code>.</em>");
 				return;
 			}
 			inputPorts = to.getInputPorts();

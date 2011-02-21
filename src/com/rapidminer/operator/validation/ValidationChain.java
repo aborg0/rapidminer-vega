@@ -64,265 +64,270 @@ import com.rapidminer.tools.math.AverageVector;
  */
 public abstract class ValidationChain extends OperatorChain {
 
-	/** The parameter name for &quot;Indicates if a model of the complete data set should be additionally build after estimation.&quot; */
-	public static final String PARAMETER_CREATE_COMPLETE_MODEL = "create_complete_model";
+    /** The parameter name for &quot;Indicates if a model of the complete data set should be additionally build after estimation.&quot; */
+    public static final String PARAMETER_CREATE_COMPLETE_MODEL = "create_complete_model";
 
-	// input
-	private final InputPort trainingSetInput = getInputPorts().createPort("training", ExampleSet.class);	
+    // input
+    private final InputPort trainingSetInput = getInputPorts().createPort("training", ExampleSet.class);
 
-	// training
-	private final OutputPort trainingProcessExampleSetOutput = getSubprocess(0).getInnerSources().createPort("training");
-	private final InputPort trainingProcessModelInput = getSubprocess(0).getInnerSinks().createPort("model", Model.class);
+    // training
+    protected final OutputPort trainingProcessExampleSetOutput = getSubprocess(0).getInnerSources().createPort("training");
+    private final InputPort trainingProcessModelInput = getSubprocess(0).getInnerSinks().createPort("model", Model.class);
 
-	// training -> testing
-	private final PortPairExtender throughExtender = new PortPairExtender("through", getSubprocess(0).getInnerSinks(), getSubprocess(1).getInnerSources());
+    // training -> testing
+    private final PortPairExtender throughExtender = new PortPairExtender("through", getSubprocess(0).getInnerSinks(), getSubprocess(1).getInnerSources());
 
-	// testing
-	private final OutputPort applyProcessModelOutput = getSubprocess(1).getInnerSources().createPort("model");
-	private final OutputPort applyProcessExampleSetOutput = getSubprocess(1).getInnerSources().createPort("test set");		
-	private final PortPairExtender applyProcessPerformancePortExtender = new PortPairExtender("averagable", getSubprocess(1).getInnerSinks(), getOutputPorts(), new MetaData(AverageVector.class));
+    // testing
+    private final OutputPort applyProcessModelOutput = getSubprocess(1).getInnerSources().createPort("model");
+    private final OutputPort applyProcessExampleSetOutput = getSubprocess(1).getInnerSources().createPort("test set");
+    private final PortPairExtender applyProcessPerformancePortExtender = new PortPairExtender("averagable", getSubprocess(1).getInnerSinks(), getOutputPorts(), new MetaData(AverageVector.class));
 
-	// output
-	private final OutputPort modelOutput = getOutputPorts().createPort("model");
-	private final OutputPort exampleSetOutput = getOutputPorts().createPort("training");
+    // output
+    private final OutputPort modelOutput = getOutputPorts().createPort("model");
+    private final OutputPort exampleSetOutput = getOutputPorts().createPort("training");
 
-	private double lastMainPerformance = Double.NaN;
-	private double lastMainVariance = Double.NaN;
-	private double lastMainDeviation = Double.NaN;
+    private double lastMainPerformance = Double.NaN;
+    private double lastMainVariance = Double.NaN;
+    private double lastMainDeviation = Double.NaN;
 
-	private double lastFirstPerformance = Double.NaN;
-	private double lastSecondPerformance = Double.NaN;
-	private double lastThirdPerformance = Double.NaN;
+    private double lastFirstPerformance = Double.NaN;
+    private double lastSecondPerformance = Double.NaN;
+    private double lastThirdPerformance = Double.NaN;
 
-	public ValidationChain(OperatorDescription description) {
-		super(description, "Training", "Testing");		
-		throughExtender.start();		
+    public ValidationChain(OperatorDescription description) {
+        super(description, "Training", "Testing");
+        throughExtender.start();
 
-		applyProcessPerformancePortExtender.ensureMinimumNumberOfPorts(1);
+        applyProcessPerformancePortExtender.ensureMinimumNumberOfPorts(1);
 
-		InputPort inputPort = applyProcessPerformancePortExtender.getManagedPairs().iterator().next().getInputPort();
-		inputPort.addPrecondition(new SimplePrecondition(inputPort, new MetaData(PerformanceVector.class)));		
-		applyProcessPerformancePortExtender.start();
+        InputPort inputPort = applyProcessPerformancePortExtender.getManagedPairs().iterator().next().getInputPort();
+        inputPort.addPrecondition(new SimplePrecondition(inputPort, new MetaData(PerformanceVector.class)));
+        applyProcessPerformancePortExtender.start();
 
-		getTransformer().addRule(new ExampleSetPassThroughRule(trainingSetInput, trainingProcessExampleSetOutput, SetRelation.EQUAL) {
-			@Override
-			public ExampleSetMetaData modifyExampleSet(ExampleSetMetaData metaData) throws UndefinedParameterError {
-				try {
-					metaData.setNumberOfExamples(getTrainingSetSize(metaData.getNumberOfExamples()));
-				} catch (UndefinedParameterError e) {
-				}
-				return super.modifyExampleSet(metaData);
-			}
-		});		
-		getTransformer().addRule(new ExampleSetPassThroughRule(trainingSetInput, applyProcessExampleSetOutput, SetRelation.EQUAL) {
-			@Override
-			public ExampleSetMetaData modifyExampleSet(ExampleSetMetaData metaData) throws UndefinedParameterError {
-				try {
-					metaData.setNumberOfExamples(getTestSetSize(metaData.getNumberOfExamples()));
-				} catch (UndefinedParameterError e) {
-				}
-				return super.modifyExampleSet(metaData);
-			}
-		});
-		getTransformer().addRule(new SubprocessTransformRule(getSubprocess(0)));
-		getTransformer().addRule(new PassThroughRule(trainingProcessModelInput, applyProcessModelOutput, false));
-		getTransformer().addRule(new PassThroughRule(trainingProcessModelInput, modelOutput, false));
-		getTransformer().addRule(throughExtender.makePassThroughRule());
-		getTransformer().addRule(new SubprocessTransformRule(getSubprocess(1)));		
-		getTransformer().addRule(applyProcessPerformancePortExtender.makePassThroughRule());
-		getTransformer().addPassThroughRule(trainingSetInput, exampleSetOutput);
+        getTransformer().addRule(new ExampleSetPassThroughRule(trainingSetInput, trainingProcessExampleSetOutput, SetRelation.EQUAL) {
+            @Override
+            public ExampleSetMetaData modifyExampleSet(ExampleSetMetaData metaData) throws UndefinedParameterError {
+                try {
+                    metaData.setNumberOfExamples(getTrainingSetSize(metaData.getNumberOfExamples()));
+                } catch (UndefinedParameterError e) {
+                }
+                return super.modifyExampleSet(metaData);
+            }
+        });
+        getTransformer().addRule(new ExampleSetPassThroughRule(trainingSetInput, applyProcessExampleSetOutput, SetRelation.EQUAL) {
+            @Override
+            public ExampleSetMetaData modifyExampleSet(ExampleSetMetaData metaData) throws UndefinedParameterError {
+                try {
+                    metaData.setNumberOfExamples(getTestSetSize(metaData.getNumberOfExamples()));
+                } catch (UndefinedParameterError e) {
+                }
+                return super.modifyExampleSet(metaData);
+            }
+        });
+        getTransformer().addRule(new SubprocessTransformRule(getSubprocess(0)));
+        getTransformer().addRule(new PassThroughRule(trainingProcessModelInput, applyProcessModelOutput, false));
+        getTransformer().addRule(new PassThroughRule(trainingProcessModelInput, modelOutput, false));
+        getTransformer().addRule(throughExtender.makePassThroughRule());
+        getTransformer().addRule(new SubprocessTransformRule(getSubprocess(1)));
+        getTransformer().addRule(applyProcessPerformancePortExtender.makePassThroughRule());
+        getTransformer().addPassThroughRule(trainingSetInput, exampleSetOutput);
 
-		addValue(new ValueDouble("performance", "The last performance average (main criterion).") {
-			@Override
-			public double getDoubleValue() {
-				return lastMainPerformance;
-			}
-		});
-		addValue(new ValueDouble("variance", "The variance of the last performance (main criterion).") {
-			@Override
-			public double getDoubleValue() {
-				return lastMainVariance;
-			}
-		});
-		addValue(new ValueDouble("deviation", "The standard deviation of the last performance (main criterion).") {
-			@Override
-			public double getDoubleValue() {
-				return lastMainDeviation;
-			}
-		});
+        addValue(new ValueDouble("performance", "The last performance average (main criterion).") {
+            @Override
+            public double getDoubleValue() {
+                return lastMainPerformance;
+            }
+        });
+        addValue(new ValueDouble("variance", "The variance of the last performance (main criterion).") {
+            @Override
+            public double getDoubleValue() {
+                return lastMainVariance;
+            }
+        });
+        addValue(new ValueDouble("deviation", "The standard deviation of the last performance (main criterion).") {
+            @Override
+            public double getDoubleValue() {
+                return lastMainDeviation;
+            }
+        });
 
-		addValue(new ValueDouble("performance1", "The last performance average (first criterion).") {
-			@Override
-			public double getDoubleValue() {
-				return ValidationChain.this.lastFirstPerformance;
-			}
-		});
-		addValue(new ValueDouble("performance2", "The last performance average (second criterion).") {
-			@Override
-			public double getDoubleValue() {
-				return ValidationChain.this.lastSecondPerformance;
-			}
-		});
-		addValue(new ValueDouble("performance3", "The last performance average (third criterion).") {
-			@Override
-			public double getDoubleValue() {
-				return ValidationChain.this.lastThirdPerformance;
-			}
-		});
-	}
+        addValue(new ValueDouble("performance1", "The last performance average (first criterion).") {
+            @Override
+            public double getDoubleValue() {
+                return ValidationChain.this.lastFirstPerformance;
+            }
+        });
+        addValue(new ValueDouble("performance2", "The last performance average (second criterion).") {
+            @Override
+            public double getDoubleValue() {
+                return ValidationChain.this.lastSecondPerformance;
+            }
+        });
+        addValue(new ValueDouble("performance3", "The last performance average (third criterion).") {
+            @Override
+            public double getDoubleValue() {
+                return ValidationChain.this.lastThirdPerformance;
+            }
+        });
+    }
 
-	protected abstract MDInteger getTrainingSetSize(MDInteger originalSize) throws UndefinedParameterError;
-	protected abstract MDInteger getTestSetSize(MDInteger originalSize) throws UndefinedParameterError;
+    protected abstract MDInteger getTrainingSetSize(MDInteger originalSize) throws UndefinedParameterError;
+    protected abstract MDInteger getTestSetSize(MDInteger originalSize) throws UndefinedParameterError;
 
-	@Override
-	public boolean shouldAutoConnect(OutputPort outputPort) {
-		if (outputPort == modelOutput) {
-			return getParameterAsBoolean(PARAMETER_CREATE_COMPLETE_MODEL);
-		} else if (outputPort == exampleSetOutput) {
-			return getParameterAsBoolean("keep_example_set");			
-		} else {
-			return super.shouldAutoConnect(outputPort);
-		}
-	}
+    @Override
+    public boolean shouldAutoConnect(OutputPort outputPort) {
+        if (outputPort == modelOutput) {
+            return getParameterAsBoolean(PARAMETER_CREATE_COMPLETE_MODEL);
+        } else if (outputPort == exampleSetOutput) {
+            return getParameterAsBoolean("keep_example_set");
+        } else {
+            return super.shouldAutoConnect(outputPort);
+        }
+    }
 
-	/**
-	 * This is the main method of the validation chain and must be implemented
-	 * to estimate a performance of inner operators on the given example set.
-	 * The implementation can make use of the provided helper methods in this
-	 * class.
-	 */
-	public abstract void estimatePerformance(ExampleSet inputSet) throws OperatorException;
+    /**
+     * This is the main method of the validation chain and must be implemented
+     * to estimate a performance of inner operators on the given example set.
+     * The implementation can make use of the provided helper methods in this
+     * class.
+     */
+    public abstract void estimatePerformance(ExampleSet inputSet) throws OperatorException;
 
-	/**
-	 * Returns the first subprocess (or operator chain), i.e.
-	 * the learning operator (chain).
-	 * @throws OperatorException 
-	 */
-	protected void executeLearner() throws OperatorException {
-		getSubprocess(0).execute();
-	}
+    /**
+     * Returns the first subprocess (or operator chain), i.e.
+     * the learning operator (chain).
+     * @throws OperatorException
+     */
+    protected void executeLearner() throws OperatorException {
+        getSubprocess(0).execute();
+    }
 
-	/**
-	 * Returns the second encapsulated inner operator (or operator chain), i.e.
-	 * the application and evaluation operator (chain)
-	 * @throws OperatorException 
-	 */
-	protected void executeEvaluator() throws OperatorException {
-		getSubprocess(1).execute();
-	}
+    /**
+     * Returns the second encapsulated inner operator (or operator chain), i.e.
+     * the application and evaluation operator (chain)
+     * @throws OperatorException
+     */
+    protected void executeEvaluator() throws OperatorException {
+        getSubprocess(1).execute();
+    }
 
-	/** Can be used by subclasses to set the performance of the example set. */
-	private final void setResult(PerformanceVector pv) {
-		this.lastMainPerformance   = Double.NaN;
-		this.lastMainVariance      = Double.NaN;
-		this.lastMainDeviation     = Double.NaN;
-		this.lastFirstPerformance  = Double.NaN;
-		this.lastSecondPerformance = Double.NaN;
-		this.lastThirdPerformance  = Double.NaN;
+    /** Can be used by subclasses to set the performance of the example set. */
+    private final void setResult(PerformanceVector pv) {
+        this.lastMainPerformance   = Double.NaN;
+        this.lastMainVariance      = Double.NaN;
+        this.lastMainDeviation     = Double.NaN;
+        this.lastFirstPerformance  = Double.NaN;
+        this.lastSecondPerformance = Double.NaN;
+        this.lastThirdPerformance  = Double.NaN;
 
-		if (pv != null) {
-			// main result
-			PerformanceCriterion mainCriterion = pv.getMainCriterion();
-			if ((mainCriterion == null) && (pv.size() > 0)) { // use first if no main criterion was defined
-				mainCriterion = pv.getCriterion(0);
-			}
-			if (mainCriterion != null) {
-				this.lastMainPerformance = mainCriterion.getAverage();
-				this.lastMainVariance    = mainCriterion.getVariance();
-				this.lastMainDeviation   = mainCriterion.getStandardDeviation();
-			}
+        if (pv != null) {
+            // main result
+            PerformanceCriterion mainCriterion = pv.getMainCriterion();
+            if ((mainCriterion == null) && (pv.size() > 0)) { // use first if no main criterion was defined
+                mainCriterion = pv.getCriterion(0);
+            }
+            if (mainCriterion != null) {
+                this.lastMainPerformance = mainCriterion.getAverage();
+                this.lastMainVariance    = mainCriterion.getVariance();
+                this.lastMainDeviation   = mainCriterion.getStandardDeviation();
+            }
 
-			if (pv.size() >= 1) {
-				PerformanceCriterion criterion = pv.getCriterion(0);
-				if (criterion != null) {
-					this.lastFirstPerformance = criterion.getAverage();
-				}
-			}
+            if (pv.size() >= 1) {
+                PerformanceCriterion criterion = pv.getCriterion(0);
+                if (criterion != null) {
+                    this.lastFirstPerformance = criterion.getAverage();
+                }
+            }
 
-			if (pv.size() >= 2) {
-				PerformanceCriterion criterion = pv.getCriterion(1);
-				if (criterion != null) {
-					this.lastSecondPerformance = criterion.getAverage();
-				}
-			}
+            if (pv.size() >= 2) {
+                PerformanceCriterion criterion = pv.getCriterion(1);
+                if (criterion != null) {
+                    this.lastSecondPerformance = criterion.getAverage();
+                }
+            }
 
-			if (pv.size() >= 3) {
-				PerformanceCriterion criterion = pv.getCriterion(2);
-				if (criterion != null) {
-					this.lastThirdPerformance = criterion.getAverage();
-				}
-			}
-		}
-	}
+            if (pv.size() >= 3) {
+                PerformanceCriterion criterion = pv.getCriterion(2);
+                if (criterion != null) {
+                    this.lastThirdPerformance = criterion.getAverage();
+                }
+            }
+        }
+    }
 
-	@Override
-	public void doWork() throws OperatorException {
-		ExampleSet eSet = trainingSetInput.getData();
-		estimatePerformance(eSet);
-		
-		// Generate complete model, if desired
-		if (modelOutput.isConnected()) {
-			learn(eSet);			
-			modelOutput.deliver(trainingProcessModelInput.getData());
-		}
-		exampleSetOutput.deliver(eSet);
+    @Override
+    public void doWork() throws OperatorException {
+        ExampleSet eSet = trainingSetInput.getData();
+        estimatePerformance(eSet);
 
-		// set last result for plotting purposes. This is an average value and
-		// actually not the last performance value!
-		boolean success = false;
-		for (IOObject result : applyProcessPerformancePortExtender.getOutputData()) {
-			if (result instanceof PerformanceVector) {
-				setResult((PerformanceVector)result);
-				success = true;
-				break;
-			}
-		}
-		if (!success) {
-			getLogger().warning("No performance vector found among averagable results. Performance will not be loggable.");
-		}		
-	}
+        // Generate complete model, if desired
+        if (modelOutput.isConnected()) {
+            learnFinalModel(eSet);
+            modelOutput.deliver(trainingProcessModelInput.getData());
+        }
+        exampleSetOutput.deliver(eSet);
 
-	/** Applies the learner (= first encapsulated inner operator). */
-	protected final void learn(ExampleSet trainingSet) throws OperatorException {
-		trainingProcessExampleSetOutput.deliver(trainingSet);
-		executeLearner();		
-	}	
+        // set last result for plotting purposes. This is an average value and
+        // actually not the last performance value!
+        boolean success = false;
+        for (IOObject result : applyProcessPerformancePortExtender.getOutputData()) {
+            if (result instanceof PerformanceVector) {
+                setResult((PerformanceVector)result);
+                success = true;
+                break;
+            }
+        }
+        if (!success) {
+            getLogger().warning("No performance vector found among averagable results. Performance will not be loggable.");
+        }
+    }
 
-	/**
-	 * Applies the applier and evaluator (= second subprocess).
-	 * In order to reuse possibly created predicted label attributes, we do the
-	 * following: We compare the predicted label of <code>testSet</code>
-	 * before and after applying the inner operator. If it changed, the
-	 * predicted label is removed again. No outer operator could ever see it.
-	 * The same applies for the confidence attributes in case of classification
-	 * learning.
-	 */
-	protected final void evaluate(ExampleSet testSet) throws OperatorException {
-		Attribute predictedBefore = testSet.getAttributes().getPredictedLabel();
+    /** Applies the learner (= first encapsulated inner operator). for building the final model.*/
+    protected void learnFinalModel(ExampleSet trainingSet) throws OperatorException {
+        learn(trainingSet);
+    }
 
-		applyProcessExampleSetOutput.deliver(testSet);
-		applyProcessModelOutput.deliver(trainingProcessModelInput.getData());
-		throughExtender.passDataThrough();
-		
-		executeEvaluator();
+    /** Applies the learner (= first encapsulated inner operator). */
+    protected final void learn(ExampleSet trainingSet) throws OperatorException {
+        trainingProcessExampleSetOutput.deliver(trainingSet);
+        executeLearner();
+    }
 
-		Tools.buildAverages(applyProcessPerformancePortExtender);
+    /**
+     * Applies the applier and evaluator (= second subprocess).
+     * In order to reuse possibly created predicted label attributes, we do the
+     * following: We compare the predicted label of <code>testSet</code>
+     * before and after applying the inner operator. If it changed, the
+     * predicted label is removed again. No outer operator could ever see it.
+     * The same applies for the confidence attributes in case of classification
+     * learning.
+     */
+    protected final void evaluate(ExampleSet testSet) throws OperatorException {
+        Attribute predictedBefore = testSet.getAttributes().getPredictedLabel();
 
-		Attribute predictedAfter = testSet.getAttributes().getPredictedLabel();		
-		// remove predicted label and confidence attributes if there is a new prediction which is not equal to an old one
-		if ((predictedAfter != null) && ((predictedBefore == null) || 
-				(predictedBefore.getTableIndex() != predictedAfter.getTableIndex()))) {
-			PredictionModel.removePredictedLabel(testSet);
-		}
-	}
+        applyProcessExampleSetOutput.deliver(testSet);
+        applyProcessModelOutput.deliver(trainingProcessModelInput.getData());
+        throughExtender.passDataThrough();
 
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		List<ParameterType> types = super.getParameterTypes();
-		ParameterType type = new ParameterTypeBoolean(PARAMETER_CREATE_COMPLETE_MODEL, "Indicates if a model of the complete data set should be additionally build after estimation.", false);
-		type.setDeprecated();
-		type.setExpert(false);
-		types.add(type);
-		return types;
-	}
+        executeEvaluator();
+
+        Tools.buildAverages(applyProcessPerformancePortExtender);
+
+        Attribute predictedAfter = testSet.getAttributes().getPredictedLabel();
+        // remove predicted label and confidence attributes if there is a new prediction which is not equal to an old one
+        if ((predictedAfter != null) && ((predictedBefore == null) ||
+                (predictedBefore.getTableIndex() != predictedAfter.getTableIndex()))) {
+            PredictionModel.removePredictedLabel(testSet);
+        }
+    }
+
+    @Override
+    public List<ParameterType> getParameterTypes() {
+        List<ParameterType> types = super.getParameterTypes();
+        ParameterType type = new ParameterTypeBoolean(PARAMETER_CREATE_COMPLETE_MODEL, "Indicates if a model of the complete data set should be additionally build after estimation.", false);
+        type.setDeprecated();
+        type.setExpert(false);
+        types.add(type);
+        return types;
+    }
 }

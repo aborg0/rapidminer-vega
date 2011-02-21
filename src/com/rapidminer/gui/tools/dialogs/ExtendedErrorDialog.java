@@ -71,316 +71,320 @@ import com.rapidminer.tools.XmlRpcHandler;
  */
 public class ExtendedErrorDialog extends ButtonDialog {
 
-	private static final long serialVersionUID = -8136329951869702133L;
+    private static final long serialVersionUID = -8136329951869702133L;
 
-	private static final int SIZE = ButtonDialog.DEFAULT_SIZE;
+    private static final int SIZE = ButtonDialog.DEFAULT_SIZE;
 
-	private final JButton editButton = new JButton("Edit");
+    private final JButton editButton = new JButton("Edit");
 
-	private Throwable error;
+    private Throwable error;
 
-	private final JComponent mainComponent = new JPanel(new BorderLayout());
+    private final JComponent mainComponent = new JPanel(new BorderLayout());
 
-	/**
-	 * Creates a dialog with the internationalized I18n-message from the given key and a panel for detailed stack trace.
-	 * 
-	 * @param key
-	 *            the I18n-key which will be used to display the internationalized message
-	 * @param error
-	 *            the exception associated to this message
-	 * @param arguments
-	 *            additional arguments for the internationalized message, which replace <code>{0}</code>,
-	 *            <code>{1}</code>, etcpp.
-	 */
-	public ExtendedErrorDialog(String key, Throwable error, Object... arguments) {
-		this(key, error, false, arguments);
-	}
+    /**
+     * Creates a dialog with the internationalized I18n-message from the given key and a panel for detailed stack trace.
+     * 
+     * @param key
+     *            the I18n-key which will be used to display the internationalized message
+     * @param error
+     *            the exception associated to this message
+     * @param arguments
+     *            additional arguments for the internationalized message, which replace <code>{0}</code>,
+     *            <code>{1}</code>, etcpp.
+     */
+    public ExtendedErrorDialog(String key, Throwable error, Object... arguments) {
+        this(key, error, false, arguments);
+    }
 
-	/**
-	 * Creates a dialog with the internationalized I18n-message from the given key and a panel for detailed stack trace.
-	 * 
-	 * @param key
-	 *            the I18n-key which will be used to display the internationalized message
-	 * @param error
-	 *            the exception associated to this message
-	 * @param displayExceptionMessage
-	 *            indicates if the exception message can be shown using the details button.
-	 * @param arguments
-	 *            additional arguments for the internationalized message, which replace <code>{0}</code>,
-	 *            <code>{1}</code>, etcpp.
-	 */
-	public ExtendedErrorDialog(String key, Throwable error, boolean displayExceptionMessage, Object... arguments) {
-		super("error." + key, true, arguments);
-		this.error = error;
+    /**
+     * Creates a dialog with the internationalized I18n-message from the given key and a panel for detailed stack trace.
+     * 
+     * @param key
+     *            the I18n-key which will be used to display the internationalized message
+     * @param error
+     *            the exception associated to this message
+     * @param displayExceptionMessage
+     *            indicates if the exception message can be shown using the details button.
+     * @param arguments
+     *            additional arguments for the internationalized message, which replace <code>{0}</code>,
+     *            <code>{1}</code>, etcpp.
+     */
+    public ExtendedErrorDialog(String key, Throwable error, boolean displayExceptionMessage, Object... arguments) {
+        super("error." + key, true, arguments);
+        this.error = error;
 
-		boolean hasError = (error != null);
-		JComponent detailedPane = hasError ? createDetailPanel(error) : null;
+        boolean hasError = (error != null);
+        JComponent detailedPane = hasError ? createDetailPanel(error) : null;
 
-		if ((error != null) && (error instanceof UserError) && (((UserError) error).getOperator() != null)) {
-			final String opName = ((UserError) error).getOperator().getName();
-			mainComponent.add(new LinkButton(new ResourceAction("show_offending_operator", opName) {
-				private static final long serialVersionUID = 1L;
+        if ((error != null) && (error instanceof UserError) && (((UserError) error).getOperator() != null)) {
+            final String opName = ((UserError) error).getOperator().getName();
+            mainComponent.add(new LinkButton(new ResourceAction("show_offending_operator", opName) {
+                private static final long serialVersionUID = 1L;
 
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					MainFrame mainFrame = RapidMinerGUI.getMainFrame();
-					mainFrame.selectOperator(mainFrame.getProcess().getOperator(opName));
-				}
-			}), BorderLayout.NORTH);
-		}
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    MainFrame mainFrame = RapidMinerGUI.getMainFrame();
+                    mainFrame.selectOperator(mainFrame.getProcess().getOperator(opName));
+                }
+            }), BorderLayout.NORTH);
+        }
 
-		layoutDefault(mainComponent, SIZE, getButtons(hasError && displayExceptionMessage, isBugReportException(error), detailedPane, error));
-		pack();
-	}
+        layoutDefault(mainComponent, SIZE, getButtons(hasError && displayExceptionMessage, isBugReportException(error), detailedPane, error));
+        pack();
+    }
 
-	/**
-	 * Creates a dialog with the internationalized I18n-message from the given key.
-	 * 
-	 * @param key
-	 *            the I18n-key which will be used to display the internationalized message
-	 * @param errorMessage
-	 *            the error message associated to this message
-	 * @param arguments
-	 *            additional arguments for the internationalized message, which replace <code>{0}</code>,
-	 *            <code>{1}</code>, etcpp.
-	 */
-	public ExtendedErrorDialog(String key, String errorMessage, Object... arguments) {
-		super("error." + key, true, arguments);
+    /**
+     * Creates a dialog with the internationalized I18n-message from the given key.
+     * 
+     * @param key
+     *            the I18n-key which will be used to display the internationalized message
+     * @param errorMessage
+     *            the error message associated to this message
+     * @param arguments
+     *            additional arguments for the internationalized message, which replace <code>{0}</code>,
+     *            <code>{1}</code>, etcpp.
+     */
+    public ExtendedErrorDialog(String key, String errorMessage, Object... arguments) {
+        super("error." + key, true, arguments);
 
-		boolean hasError = (errorMessage != null) && !errorMessage.isEmpty();
-		JScrollPane detailedPane = hasError ? createDetailPanel(errorMessage) : null;
+        boolean hasError = (errorMessage != null) && !errorMessage.isEmpty();
+        JScrollPane detailedPane = hasError ? createDetailPanel(errorMessage) : null;
 
-		layoutDefault(mainComponent, SIZE, getButtons(hasError, false, detailedPane, null));
-	}
+        layoutDefault(mainComponent, SIZE, getButtons(hasError, false, detailedPane, null));
+    }
 
-	@Override
-	protected Icon getInfoIcon() {
-		return SwingTools.createIcon("48/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.icon"));
-	}
+    @Override
+    protected Icon getInfoIcon() {
+        return SwingTools.createIcon("48/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.icon"));
+    }
 
-	/**
-	 * Creates a Panel for the error details and attaches the exception to it, but doesn't add the Panel to the dialog.
-	 * 
-	 * @param error
-	 * @return
-	 */
-	private JComponent createDetailPanel(Throwable error) {
-		StackTraceList stl = new StackTraceList(error);
-		JScrollPane detailPane = new ExtendedJScrollPane(stl);
-		detailPane.setPreferredSize(new Dimension(getWidth(), 200));
-		return detailPane;
-	}
+    /**
+     * Creates a Panel for the error details and attaches the exception to it, but doesn't add the Panel to the dialog.
+     * 
+     * @param error
+     * @return
+     */
+    private JComponent createDetailPanel(Throwable error) {
+        StackTraceList stl = new StackTraceList(error);
+        JScrollPane detailPane = new ExtendedJScrollPane(stl);
+        detailPane.setPreferredSize(new Dimension(getWidth(), 200));
+        return detailPane;
+    }
 
-	/**
-	 * Creates a Panel for the error details and attaches the error message to it, but doesn't add the Panel to the
-	 * dialog.
-	 * 
-	 * @param error
-	 * @return
-	 */
-	private JScrollPane createDetailPanel(String errorMessage) {
+    /**
+     * Creates a Panel for the error details and attaches the error message to it, but doesn't add the Panel to the
+     * dialog.
+     * 
+     * @param squaredError
+     * @return
+     */
+    private JScrollPane createDetailPanel(String errorMessage) {
 
-		JTextArea textArea = new JTextArea(errorMessage);
-		textArea.setLineWrap(true);
-		textArea.setEditable(false);
-		JScrollPane detailPane = new ExtendedJScrollPane(textArea);
-		detailPane.setPreferredSize(new Dimension(getWidth(), 200));
-		return detailPane;
-	}
+        JTextArea textArea = new JTextArea(errorMessage);
+        textArea.setLineWrap(true);
+        textArea.setEditable(false);
+        JScrollPane detailPane = new ExtendedJScrollPane(textArea);
+        detailPane.setPreferredSize(new Dimension(getWidth(), 200));
+        return detailPane;
+    }
 
-	/**
-	 * Adds all necessary buttons to the dialog.
-	 * 
-	 * @param hasError
-	 * @param isBug
-	 * @param detailedPane
-	 *            the Panel which will be shown, if the user clicks on the 'Show Details' Button
-	 * @param error
-	 *            The error occurred
-	 * @return
-	 */
-	private Collection<AbstractButton> getButtons(boolean hasError, boolean isBug, final JComponent detailedPane, final Throwable error) {
-		Collection<AbstractButton> buttons = new LinkedList<AbstractButton>();
-		if (hasError) {
-			buttons.add(new JToggleButton(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.show_details.label"), SwingTools.createIcon("24/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.show_details.icon"))) {
-				private static final long serialVersionUID = 8889251336231161227L;
+    /**
+     * Adds all necessary buttons to the dialog.
+     * 
+     * @param hasError
+     * @param isBug
+     * @param detailedPane
+     *            the Panel which will be shown, if the user clicks on the 'Show Details' Button
+     * @param error
+     *            The error occurred
+     * @return
+     */
+    private Collection<AbstractButton> getButtons(boolean hasError, boolean isBug, final JComponent detailedPane, final Throwable error) {
+        Collection<AbstractButton> buttons = new LinkedList<AbstractButton>();
+        if (hasError) {
+            final JToggleButton showDetailsButton = new JToggleButton(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.show_details.label"), SwingTools.createIcon("24/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.show_details.icon")));
+            showDetailsButton.setSelected(false);
+            showDetailsButton.addActionListener(new ActionListener() {
+                private boolean detailsShown = false;
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (detailsShown) {
+                        int width2 = ExtendedErrorDialog.this.getWidth();
+                        mainComponent.remove(detailedPane);
 
-				private boolean detailsShown = false;
+                        ExtendedErrorDialog.this.setPreferredSize(new Dimension(width2, ExtendedErrorDialog.this.getHeight() - 150));
+                        pack();
+                    } else {
+                        int width2 = ExtendedErrorDialog.this.getWidth();
+                        mainComponent.add(detailedPane, BorderLayout.CENTER);
 
-				{
-					setSelected(false);
-					addActionListener(new ActionListener() {
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							if (detailsShown) {
-								mainComponent.remove(detailedPane);
-								setDefaultSize(MESSAGE);
-							} else {
-								mainComponent.add(detailedPane, BorderLayout.CENTER);
-								setDefaultSize(MESSAGE_EXTENDED);
-							}
-							detailsShown = !detailsShown;
-						}
-					});
-				}
-			});
-		}
-		if (isBug) {
-			buttons.add(new JButton(new ResourceAction("send_bugreport") {
-				private static final long serialVersionUID = 1L;
+                        ExtendedErrorDialog.this.setPreferredSize(new Dimension(width2, ExtendedErrorDialog.this.getHeight() + 150));
+                        pack();
+                    }
+                    detailsShown = !detailsShown;
+                }
+            });
+            buttons.add(showDetailsButton);
 
-				public void actionPerformed(ActionEvent e) {
-					new ProgressThread("connect_to_bugzilla", false) {
-						@Override
-						public void run() {
-							final BugZillaAssistant bugAst;
-							getProgressListener().setTotal(100);
-							getProgressListener().setCompleted(10);
-							char[] pw = new char[] { '!', 'z', '4', '8', '#', 'H', 'c', '2', '$', '%', 'm', ')', '9', '+', '*', '*' };
-							String email = "bugs@rapid-i.com";
-							try {
-								XmlRpcClient rpcClient = XmlRpcHandler.login(XmlRpcHandler.BUGZILLA_URL, email, pw);
-								getProgressListener().setCompleted(20);
-								bugAst = new BugZillaAssistant(this, error, rpcClient);
-							} catch (Exception e) {
-								SwingTools.showVerySimpleErrorMessage("bugreport_xmlrpc_init_error");
-								return;
-							} finally {
-								for (int i=0; i<pw.length; i++) {
-									pw[i] = 0;
-								}
-								getProgressListener().complete();
-							}
-							if (!isCancelled()) {
-								SwingUtilities.invokeLater(new Runnable() {
-									@Override
-									public void run() {
-										bugAst.setVisible(true);
-									}
-								});
-							} else {
-								bugAst.dispose();
-							}
-						}								
-					}.start();
-				}
-			}));
-		}
+        }
+        if (isBug) {
+            buttons.add(new JButton(new ResourceAction("send_bugreport") {
+                private static final long serialVersionUID = 1L;
 
-		buttons.add(makeCloseButton());
-		return buttons;
-	}
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    new ProgressThread("connect_to_bugzilla", false) {
+                        @Override
+                        public void run() {
+                            final BugZillaAssistant bugAst;
+                            getProgressListener().setTotal(100);
+                            getProgressListener().setCompleted(10);
+                            char[] pw = new char[] { '!', 'z', '4', '8', '#', 'H', 'c', '2', '$', '%', 'm', ')', '9', '+', '*', '*' };
+                            String email = "bugs@rapid-i.com";
+                            try {
+                                XmlRpcClient rpcClient = XmlRpcHandler.login(XmlRpcHandler.BUGZILLA_URL, email, pw);
+                                getProgressListener().setCompleted(20);
+                                bugAst = new BugZillaAssistant(this, error, rpcClient);
+                            } catch (Exception e) {
+                                SwingTools.showVerySimpleErrorMessage("bugreport_xmlrpc_init_error");
+                                return;
+                            } finally {
+                                for (int i=0; i<pw.length; i++) {
+                                    pw[i] = 0;
+                                }
+                                getProgressListener().complete();
+                            }
+                            if (!isCancelled()) {
+                                SwingUtilities.invokeLater(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        bugAst.setVisible(true);
+                                    }
+                                });
+                            } else {
+                                bugAst.dispose();
+                            }
+                        }
+                    }.start();
+                }
+            }));
+        }
 
-	/**
-	 * Returns <code>true</code> if this is a "real" bug, <code>false</code> otherwise.
-	 * 
-	 * @param t
-	 * @return
-	 */
-	private boolean isBugReportException(Throwable t) {
-		return !(t instanceof NoBugError || t instanceof XMLException);
-	}
+        buttons.add(makeCloseButton());
+        return buttons;
+    }
 
-	/**
-	 * Overrides the {@link ButtonDialog} method to add the exception message to the internationalized message
-	 */
-	@Override
-	protected String getInfoText() {
-		if (error != null) {
-			StringBuilder infoText = new StringBuilder();
-			infoText.append("<div><strong>");
+    /**
+     * Returns <code>true</code> if this is a "real" bug, <code>false</code> otherwise.
+     * 
+     * @param t
+     * @return
+     */
+    private boolean isBugReportException(Throwable t) {
+        return !(t instanceof NoBugError || t instanceof XMLException);
+    }
 
-			infoText.append(super.getInfoText());
-			infoText.append("</strong></div>");
+    /**
+     * Overrides the {@link ButtonDialog} method to add the exception message to the internationalized message
+     */
+    @Override
+    protected String getInfoText() {
+        if (error != null) {
+            StringBuilder infoText = new StringBuilder();
+            infoText.append("<div><strong>");
 
-			// if already arguments are given, we can expect already a detailed error message
-			if (arguments.length == 0 && error.getMessage() != null && error.getMessage().length() > 0) {
-				infoText.append("<p>");
-				infoText.append(Tools.escapeHTML(error.getMessage()));
-				infoText.append("</p>");
-			}
-			
-			Throwable cause = error.getCause();
-			if (cause != null) {
-				String message = Tools.escapeHTML(cause.getMessage());
-				if (message == null) {
-					message = cause.toString();
-				}
+            infoText.append(super.getInfoText());
+            infoText.append("</strong></div>");
 
-				if (!"null".equals(message)) {
-					infoText.append("<p><strong>Reason: </strong>");
-					infoText.append(message);
-					infoText.append("</p>");
-				}
-			}
-			return infoText.toString();
-		} else {
-			return super.getInfoText();
-		}
+            // if already arguments are given, we can expect already a detailed error message
+            if (arguments.length == 0 && error.getMessage() != null && error.getMessage().length() > 0) {
+                infoText.append("<p>");
+                infoText.append(Tools.escapeHTML(error.getMessage()));
+                infoText.append("</p>");
+            }
 
-	}
+            Throwable cause = error.getCause();
+            if (cause != null) {
+                String message = Tools.escapeHTML(cause.getMessage());
+                if (message == null) {
+                    message = cause.toString();
+                }
 
-	private static class FormattedStackTraceElement {
+                if (!"null".equals(message)) {
+                    infoText.append("<p><strong>Reason: </strong>");
+                    infoText.append(message);
+                    infoText.append("</p>");
+                }
+            }
+            return infoText.toString();
+        } else {
+            return super.getInfoText();
+        }
 
-		private final StackTraceElement ste;
+    }
 
-		private FormattedStackTraceElement(StackTraceElement ste) {
-			this.ste = ste;
-		}
+    private static class FormattedStackTraceElement {
 
-		@Override
-		public String toString() {
-			return "  " + ste;
-		}
-	}
+        private final StackTraceElement ste;
 
-	private class StackTraceList extends JList {
+        private FormattedStackTraceElement(StackTraceElement ste) {
+            this.ste = ste;
+        }
 
-		private static final long serialVersionUID = -2482220036723949144L;
+        @Override
+        public String toString() {
+            return "  " + ste;
+        }
+    }
 
-		public StackTraceList(Throwable t) {
-			super(new DefaultListModel());
-			setFont(getFont().deriveFont(Font.PLAIN));
-			setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-			appendAllStackTraces(t);
-			addListSelectionListener(new ListSelectionListener() {
+    private class StackTraceList extends JList {
 
-				public void valueChanged(ListSelectionEvent e) {
-					if (getSelectedIndex() >= 0) {
-						if (!(getSelectedValue() instanceof FormattedStackTraceElement)) {
-							editButton.setEnabled(false);
-						} else {
-							editButton.setEnabled(true);
-						}
-					} else {
-						editButton.setEnabled(true);
-					}
-				}
-			});
-		}
+        private static final long serialVersionUID = -2482220036723949144L;
 
-		private DefaultListModel model() {
-			return (DefaultListModel) getModel();
-		}
+        public StackTraceList(Throwable t) {
+            super(new DefaultListModel());
+            setFont(getFont().deriveFont(Font.PLAIN));
+            setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+            appendAllStackTraces(t);
+            addListSelectionListener(new ListSelectionListener() {
 
-		private void appendAllStackTraces(Throwable throwable) {
-			while (throwable != null) {
-				appendStackTrace(throwable);
-				throwable = throwable.getCause();
-				if (throwable != null) {
-					model().addElement("");
-					model().addElement("Cause");
-				}
-			}
-		}
+                @Override
+                public void valueChanged(ListSelectionEvent e) {
+                    if (getSelectedIndex() >= 0) {
+                        if (!(getSelectedValue() instanceof FormattedStackTraceElement)) {
+                            editButton.setEnabled(false);
+                        } else {
+                            editButton.setEnabled(true);
+                        }
+                    } else {
+                        editButton.setEnabled(true);
+                    }
+                }
+            });
+        }
 
-		private void appendStackTrace(Throwable throwable) {
-			model().addElement("Exception: " + throwable.getClass().getName());
-			model().addElement("Message: " + throwable.getMessage());
-			model().addElement("Stack trace:" + Tools.getLineSeparator());
-			for (int i = 0; i < throwable.getStackTrace().length; i++) {
-				model().addElement(new FormattedStackTraceElement(throwable.getStackTrace()[i]));
-			}
-		}
-	}
+        private DefaultListModel model() {
+            return (DefaultListModel) getModel();
+        }
+
+        private void appendAllStackTraces(Throwable throwable) {
+            while (throwable != null) {
+                appendStackTrace(throwable);
+                throwable = throwable.getCause();
+                if (throwable != null) {
+                    model().addElement("");
+                    model().addElement("Cause");
+                }
+            }
+        }
+
+        private void appendStackTrace(Throwable throwable) {
+            model().addElement("Exception: " + throwable.getClass().getName());
+            model().addElement("Message: " + throwable.getMessage());
+            model().addElement("Stack trace:" + Tools.getLineSeparator());
+            for (int i = 0; i < throwable.getStackTrace().length; i++) {
+                model().addElement(new FormattedStackTraceElement(throwable.getStackTrace()[i]));
+            }
+        }
+    }
 }

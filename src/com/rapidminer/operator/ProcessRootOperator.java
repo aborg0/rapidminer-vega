@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -206,6 +207,14 @@ public final class ProcessRootOperator extends OperatorChain {
 		listenerList.remove(l);
 	}
 
+	private List<ProcessListener> getListenerListCopy() {
+		if (listenerList.isEmpty()) {
+			return Collections.emptyList();
+		} else {
+			return new LinkedList<ProcessListener>(listenerList);
+		}
+	}
+	
 	/**
 	 * Called at the beginning of the process. Notifies all listeners and the
 	 * children operators (super method).
@@ -213,7 +222,7 @@ public final class ProcessRootOperator extends OperatorChain {
 	@Override
 	public void processStarts() throws OperatorException {
 		super.processStarts();
-		Iterator i = listenerList.iterator();
+		Iterator i = getListenerListCopy().iterator();
 		while (i.hasNext()) {
 			((ProcessListener) i.next()).processStarts(this.process);
 		}

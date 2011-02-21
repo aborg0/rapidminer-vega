@@ -28,10 +28,8 @@
 	<classpathentry kind="lib" path="lib/jung-graph-impl.jar"/>
 	<classpathentry kind="lib" path="lib/jung-visualization.jar"/>
 	<classpathentry kind="lib" path="lib/blas.jar"/>
-	<classpathentry kind="lib" path="lib/encog.jar"/>
 	<classpathentry kind="lib" path="lib/mail.jar"/>
 	<classpathentry kind="lib" path="lib/glazedlists.jar"/>
-	<classpathentry kind="lib" path="lib/groovy-all.jar"/>
 	<classpathentry kind="lib" path="lib/microba.jar"/>
 	<classpathentry kind="lib" path="lib/rome.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jdom.jar"/>
@@ -64,7 +62,10 @@
 	<classpathentry kind="lib" path="lib/commons-httpclient-3.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-codec-1.4.jar"/>
+	<classpathentry kind="lib" path="lib/encog.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-lang-2.4.jar"/>
+	<classpathentry kind="lib" path="lib/groovy-all-1.7.7.jar"/>
+	<classpathentry kind="lib" path="lib/ivy-2.2.0.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

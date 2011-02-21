@@ -48,80 +48,83 @@ import com.rapidminer.parameter.UndefinedParameterError;
  */
 public class AttributesValueCellEditor extends AbstractCellEditor implements PropertyValueCellEditor {
 
-	private static final long serialVersionUID = -2387465714767785072L;
+    private static final long serialVersionUID = -2387465714767785072L;
 
-	private String attributeListString = "";
+    private String attributeListString = "";
 
-	private final JButton button;
+    private final JButton button;
 
-	private Operator operator;
+    private Operator operator;
 
-	public AttributesValueCellEditor(final ParameterTypeAttributes type) {
-		this.button = new JButton(new ResourceAction(true, "attributes") {
-			private static final long serialVersionUID = -4890375754223285831L;
+    public AttributesValueCellEditor(final ParameterTypeAttributes type) {
+        this.button = new JButton(new ResourceAction(true, "attributes") {
+            private static final long serialVersionUID = -4890375754223285831L;
 
-			public void actionPerformed(ActionEvent e) {
-				LinkedList<String> preSelectedAttributeNames = new LinkedList<String>();
-				String combinedNames = null;
-				try {
-					combinedNames = operator.getParameter(type.getKey());
-				} catch (UndefinedParameterError er) {
-				}
-				if (combinedNames != null) {
-					for (String attributeName : combinedNames.split("\\|")) {
-						preSelectedAttributeNames.add(attributeName);
-					}
-				}
-				AttributesPropertyDialog dialog = new AttributesPropertyDialog(type, preSelectedAttributeNames);
-				dialog.setVisible(true);
-				if (dialog.isOk()) {
-					StringBuilder builder = new StringBuilder();
-					boolean first = true;
-					Collection<String> attributeNames = dialog.getSelectedAttributeNames(); 
-					for (String attributeName : attributeNames) {
-						if (!first) {
-							builder.append("|");
-						}
-						builder.append(attributeName);
-						first = false;
-					}
-					attributeListString = builder.toString();
-					fireEditingStopped();
-				} else {
-					fireEditingCanceled();
-				}
-			}
-		});
-		button.setMargin(new Insets(0, 0, 0, 0));
-	}
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                LinkedList<String> preSelectedAttributeNames = new LinkedList<String>();
+                String combinedNames = null;
+                try {
+                    if (operator != null)
+                        combinedNames = operator.getParameter(type.getKey());
+                } catch (UndefinedParameterError er) {
+                }
+                if (combinedNames != null) {
+                    for (String attributeName : combinedNames.split("\\|")) {
+                        preSelectedAttributeNames.add(attributeName);
+                    }
+                }
+                AttributesPropertyDialog dialog = new AttributesPropertyDialog(type, preSelectedAttributeNames);
+                dialog.setVisible(true);
+                if (dialog.isOk()) {
+                    StringBuilder builder = new StringBuilder();
+                    boolean first = true;
+                    Collection<String> attributeNames = dialog.getSelectedAttributeNames();
+                    for (String attributeName : attributeNames) {
+                        if (!first) {
+                            builder.append("|");
+                        }
+                        builder.append(attributeName);
+                        first = false;
+                    }
+                    attributeListString = builder.toString();
+                    fireEditingStopped();
+                } else {
+                    fireEditingCanceled();
+                }
+            }
+        });
+        button.setMargin(new Insets(0, 0, 0, 0));
+    }
 
-	@Override
-	public Object getCellEditorValue() {
-		return attributeListString;
-	}
+    @Override
+    public Object getCellEditorValue() {
+        return attributeListString;
+    }
 
-	@Override
-	public void setOperator(Operator operator) {
-		this.operator = operator;
-	}
-	
-	@Override
-	public boolean rendersLabel() {
-		return false;
-	}
+    @Override
+    public void setOperator(Operator operator) {
+        this.operator = operator;
+    }
 
-	@Override
-	public boolean useEditorAsRenderer() {
-		return false;
-	}
+    @Override
+    public boolean rendersLabel() {
+        return false;
+    }
 
-	@Override
-	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-		return button;
-	}
+    @Override
+    public boolean useEditorAsRenderer() {
+        return false;
+    }
 
-	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-		return button;
-	}
+    @Override
+    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+        return button;
+    }
+
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        return button;
+    }
 
 }

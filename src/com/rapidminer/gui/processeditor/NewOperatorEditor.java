@@ -85,8 +85,7 @@ public class NewOperatorEditor extends JPanel implements TreeSelectionListener, 
                 descriptions.add(i.next());
             }
             Collections.sort(descriptions);
-        }
-        //this.operatorList.setOperatorDescriptions(descriptions);        
+        }        
     }
 
     public static final String NEW_OPERATOR_DOCK_KEY = "new_operator";

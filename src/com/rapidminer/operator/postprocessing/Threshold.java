@@ -33,45 +33,59 @@ import com.rapidminer.tools.Tools;
  */
 public class Threshold extends ResultObjectAdapter {
 
-	private static final long serialVersionUID = -5929425242781926136L;
+    private static final long serialVersionUID = -5929425242781926136L;
 
-	/** The threshold. */
-	private double threshold;
+    /** The threshold. */
+    private double threshold;
 
-	/** The first class. */
-	private String zeroClass;
+    /** The first class. */
+    private String zeroClass;
 
-	/** The second class. */
-	private String oneClass;
+    /** The second class. */
+    private String oneClass;
 
-	public Threshold(double threshold, String zeroClass, String oneClass) {
-		this.threshold = threshold;
-		this.zeroClass = zeroClass;
-		this.oneClass = oneClass;
-	}
+    public Threshold(double threshold, String zeroClass, String oneClass) {
+        this.threshold = threshold;
+        this.zeroClass = zeroClass;
+        this.oneClass = oneClass;
+    }
 
-	public double getThreshold() {
-		return this.threshold;
-	}
+    public double getThreshold() {
+        return this.threshold;
+    }
 
-	public String getZeroClass() {
-		return zeroClass;
-	}
+    public String getZeroClass() {
+        return zeroClass;
+    }
 
-	public String getOneClass() {
-		return oneClass;
-	}
-    
+    public String getOneClass() {
+        return oneClass;
+    }
+
     public String getExtension() {
         return "thr";
     }
-    
+
     public String getFileDescription() {
         return "threshold file";
     }
-    
-	@Override
-	public String toString() {
-		return "Threshold: " + threshold + Tools.getLineSeparator() + "first class: " + zeroClass + Tools.getLineSeparator() + "second class: " + oneClass;
-	}
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Threshold: ");
+        builder.append(threshold);
+        builder.append(Tools.getLineSeparator());
+        builder.append("first class: ");
+        builder.append(zeroClass);
+        builder.append(Tools.getLineSeparator());
+        builder.append("second class: ");
+        builder.append(oneClass);
+
+        builder.append(Tools.getLineSeparator());
+        builder.append("if confidence(" + oneClass + ") > " + threshold + " then " + oneClass);
+        builder.append(Tools.getLineSeparator());
+        builder.append("else " + zeroClass);
+        return builder.toString();
+    }
 }

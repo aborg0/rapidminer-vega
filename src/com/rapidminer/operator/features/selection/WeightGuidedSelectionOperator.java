@@ -60,111 +60,111 @@ import com.rapidminer.parameter.conditions.BooleanParameterCondition;
  */
 public class WeightGuidedSelectionOperator extends FeatureOperator {
 
-	/** The parameter name for &quot;Stop after n generations without improvement of the performance (-1: stops if the number of features is reached).&quot; */
-	public static final String PARAMETER_GENERATIONS_WITHOUT_IMPROVAL = "generations_without_improval";
+    /** The parameter name for &quot;Stop after n generations without improvement of the performance (-1: stops if the number of features is reached).&quot; */
+    public static final String PARAMETER_GENERATIONS_WITHOUT_IMPROVAL = "generations_without_improval";
 
-	/** The parameter name for &quot;Indicates that the absolute values of the input weights should be used to determine the feature adding order.&quot; */
-	public static final String PARAMETER_USE_ABSOLUTE_WEIGHTS = "use_absolute_weights";
+    /** The parameter name for &quot;Indicates that the absolute values of the input weights should be used to determine the feature adding order.&quot; */
+    public static final String PARAMETER_USE_ABSOLUTE_WEIGHTS = "use_absolute_weights";
 
-	public static final String PARAMETER_USE_EARLY_STOPPING = "use_early_stopping";
+    public static final String PARAMETER_USE_EARLY_STOPPING = "use_early_stopping";
 
-	private int generationsWOImp;
+    private int generationsWOImp;
 
-	private int maxGenerations;
+    private int maxGenerations;
 
-	private int maxWeightIndex = -1;
+    private int maxWeightIndex = -1;
 
-	private InputPort attributeWeightsInput = getInputPorts().createPort("attribute weights in", AttributeWeights.class);
+    private InputPort attributeWeightsInput = getInputPorts().createPort("attribute weights in", AttributeWeights.class);
 
-	public WeightGuidedSelectionOperator(OperatorDescription description) {
-		super(description);
-	}
+    public WeightGuidedSelectionOperator(OperatorDescription description) {
+        super(description);
+    }
 
-	@Override
-	protected ExampleSetMetaData modifyInnerOutputExampleSet(ExampleSetMetaData metaData) {
-		metaData.attributesAreSubset();
-		return metaData;
-	}
+    @Override
+    protected ExampleSetMetaData modifyInnerOutputExampleSet(ExampleSetMetaData metaData) {
+        metaData.attributesAreSubset();
+        return metaData;
+    }
 
-	@Override
-	protected ExampleSetMetaData modifyOutputExampleSet(ExampleSetMetaData metaData) {
-		metaData.attributesAreSubset();
-		return metaData;
-	}
+    @Override
+    protected ExampleSetMetaData modifyOutputExampleSet(ExampleSetMetaData metaData) {
+        metaData.attributesAreSubset();
+        return metaData;
+    }
 
-	/**
-	 * Returns an example set containing only the feature with the biggest
-	 * weight.
-	 */
-	@Override
-	public Population createInitialPopulation(ExampleSet es) throws UndefinedParameterError {
-		this.generationsWOImp = getParameterAsInt(PARAMETER_GENERATIONS_WITHOUT_IMPROVAL);
-		this.maxGenerations = es.getAttributes().size();
-		Population initP = new Population();
-		double[] weights = new double[es.getAttributes().size()];
-		if (maxWeightIndex >= 0)
-			weights[maxWeightIndex] = 1.0d;
-		else
-			weights[0] = 1.0d;
-		initP.add(new Individual(weights));
-		return initP;
-	}
+    /**
+     * Returns an example set containing only the feature with the biggest
+     * weight.
+     */
+    @Override
+    public Population createInitialPopulation(ExampleSet es) throws UndefinedParameterError {
+        this.generationsWOImp = getParameterAsInt(PARAMETER_GENERATIONS_WITHOUT_IMPROVAL);
+        this.maxGenerations = es.getAttributes().size();
+        Population initP = new Population();
+        double[] weights = new double[es.getAttributes().size()];
+        if (maxWeightIndex >= 0)
+            weights[maxWeightIndex] = 1.0d;
+        else
+            weights[0] = 1.0d;
+        initP.add(new Individual(weights));
+        return initP;
+    }
 
-	/** The operators add the feature with the next highest weight. */
-	@Override
-	public List<PopulationOperator> getPreEvaluationPopulationOperators(ExampleSet input) throws OperatorException {
-		List<PopulationOperator> preOp = new LinkedList<PopulationOperator>();
+    /** The operators add the feature with the next highest weight. */
+    @Override
+    public List<PopulationOperator> getPreEvaluationPopulationOperators(ExampleSet input) throws OperatorException {
+        List<PopulationOperator> preOp = new LinkedList<PopulationOperator>();
 
-		String[] attributeNames = Tools.getRegularAttributeNames(input);
-		AttributeWeights attributeWeights = attributeWeightsInput.getData();
-		attributeWeights.sortByWeight(attributeNames, AttributeWeights.INCREASING, getParameterAsBoolean(PARAMETER_USE_ABSOLUTE_WEIGHTS) ? AttributeWeights.ABSOLUTE_WEIGHTS : AttributeWeights.ORIGINAL_WEIGHTS);
+        String[] attributeNames = Tools.getRegularAttributeNames(input);
+        AttributeWeights attributeWeights = attributeWeightsInput.getData();
+        attributeWeights.sortByWeight(attributeNames, AttributeWeights.DECREASING, getParameterAsBoolean(PARAMETER_USE_ABSOLUTE_WEIGHTS) ? AttributeWeights.ABSOLUTE_WEIGHTS : AttributeWeights.ORIGINAL_WEIGHTS);
 
-		int[] attributeIndices = new int[input.getAttributes().size()];
-		int counter = 0;
-		for (String name : attributeNames) {
-			int index = 0;
-			for (Attribute attribute : input.getAttributes()) {
-				if (attribute.getName().equals(name)) {
-					attributeIndices[counter] = index;
-					break;
-				}
-				index++;
-			}
-			counter++;
-		}
+        int[] attributeIndices = new int[input.getAttributes().size()];
+        int counter = 0;
+        for (String name : attributeNames) {
+            int index = 0;
+            for (Attribute attribute : input.getAttributes()) {
+                if (attribute.getName().equals(name)) {
+                    attributeIndices[counter] = index;
+                    break;
+                }
+                index++;
+            }
+            counter++;
+        }
 
-		this.maxWeightIndex = attributeIndices[0];
+        this.maxWeightIndex = attributeIndices[0];
 
-		preOp.add(new IterativeFeatureAdding(attributeIndices, 1));
-		return preOp;
-	}
+        preOp.add(new IterativeFeatureAdding(attributeIndices, 1));
+        return preOp;
+    }
 
-	/** Returns an empty list. */
-	@Override
-	public List<PopulationOperator> getPostEvaluationPopulationOperators(ExampleSet input) throws OperatorException {
-		return new LinkedList<PopulationOperator>();
-	}
+    /** Returns an empty list. */
+    @Override
+    public List<PopulationOperator> getPostEvaluationPopulationOperators(ExampleSet input) throws OperatorException {
+        return new LinkedList<PopulationOperator>();
+    }
 
-	/**
-	 * Returns true if the best individual is not better than the last
-	 * generation's best individual.
-	 */
-	@Override
-	public boolean solutionGoodEnough(Population pop) throws OperatorException {
-		return pop.empty() || ((generationsWOImp > 0) && (pop.getGenerationsWithoutImproval() >= generationsWOImp)) || (pop.getGeneration() >= maxGenerations);
-	}
+    /**
+     * Returns true if the best individual is not better than the last
+     * generation's best individual.
+     */
+    @Override
+    public boolean solutionGoodEnough(Population pop) throws OperatorException {
+        return pop.empty() || ((generationsWOImp > 0) && (pop.getGenerationsWithoutImproval() >= generationsWOImp)) || (pop.getGeneration() >= maxGenerations);
+    }
 
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		List<ParameterType> types = new LinkedList<ParameterType>();
-		types.add(new ParameterTypeBoolean(PARAMETER_USE_EARLY_STOPPING, "Enables early stopping. If unchecked, always the maximum number of generations is performed.", false));
-		ParameterType type = (new ParameterTypeInt(PARAMETER_GENERATIONS_WITHOUT_IMPROVAL, "Stop criterion: Stop after n generations without improval of the performance.", 1, Integer.MAX_VALUE, 2));
-		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_EARLY_STOPPING, true, true));
-		types.add(type);
+    @Override
+    public List<ParameterType> getParameterTypes() {
+        List<ParameterType> types = new LinkedList<ParameterType>();
+        types.add(new ParameterTypeBoolean(PARAMETER_USE_EARLY_STOPPING, "Enables early stopping. If unchecked, always the maximum number of generations is performed.", false));
+        ParameterType type = (new ParameterTypeInt(PARAMETER_GENERATIONS_WITHOUT_IMPROVAL, "Stop criterion: Stop after n generations without improval of the performance.", 1, Integer.MAX_VALUE, 2));
+        type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_EARLY_STOPPING, true, true));
+        types.add(type);
 
-		types.add(new ParameterTypeBoolean(PARAMETER_USE_ABSOLUTE_WEIGHTS, "Indicates that the absolute values of the input weights should be used to determine the feature adding order.", true));
+        types.add(new ParameterTypeBoolean(PARAMETER_USE_ABSOLUTE_WEIGHTS, "Indicates that the absolute values of the input weights should be used to determine the feature adding order.", true));
 
-		types.addAll(super.getParameterTypes());
-		return types;
-	}
+        types.addAll(super.getParameterTypes());
+        return types;
+    }
 }

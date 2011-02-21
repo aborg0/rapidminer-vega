@@ -36,34 +36,37 @@ import com.rapidminer.tools.math.function.UnknownValue;
  */
 public class CharAt extends PostfixMathCommand {
 
-	public CharAt() {
-		numberOfParameters = 2;
-	}
+    public CharAt() {
+        numberOfParameters = 2;
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public void run(Stack stack) throws ParseException {
-		checkStack(stack);// check the stack
+    @SuppressWarnings("unchecked")
+    @Override
+    public void run(Stack stack) throws ParseException {
+        checkStack(stack);// check the stack
 
-		// initialize the result to the first argument
-		Object positionObject = stack.pop();
-		Object textObject = stack.pop();
+        // initialize the result to the first argument
+        Object positionObject = stack.pop();
+        Object textObject = stack.pop();
 
-		// checking for unknown value
-		if (textObject == UnknownValue.UNKNOWN_NOMINAL) {
-			stack.push(UnknownValue.UNKNOWN_NOMINAL);
-			return;
-		}
-		if (!(textObject instanceof String)) {
-			throw new ParseException("Invalid argument type, must be (string, number)");
-		}
-		if (!(positionObject instanceof Number)) {
-			throw new ParseException("Invalid argument type, must be (string, number)");
-		}
+        // checking for unknown value
+        if (textObject == UnknownValue.UNKNOWN_NOMINAL) {
+            stack.push(UnknownValue.UNKNOWN_NOMINAL);
+            return;
+        }
+        if (!(textObject instanceof String)) {
+            throw new ParseException("Invalid argument type, must be (string, number)");
+        }
+        if (!(positionObject instanceof Number)) {
+            throw new ParseException("Invalid argument type, must be (string, number)");
+        }
 
-		String text = (String) textObject;
-		int position = ((Number) positionObject).intValue();
+        String text = (String) textObject;
+        int position = ((Number) positionObject).intValue();
 
-		stack.push(text.charAt(position));
-	}
+        if (position < 0 || position >= text.length())
+            stack.push(UnknownValue.UNKNOWN_NOMINAL);
+        else
+            stack.push(text.charAt(position));
+    }
 }

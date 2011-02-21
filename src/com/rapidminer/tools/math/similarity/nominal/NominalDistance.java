@@ -22,47 +22,61 @@
  */
 package com.rapidminer.tools.math.similarity.nominal;
 
+import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.tools.math.similarity.DistanceMeasure;
 
 /**
  * A distance measure for nominal values accounting a value of one if two values are unequal.
- *  
+ * 
  * @author Sebastian Land, Michael Wurst
  */
 public class NominalDistance extends DistanceMeasure {
 
-	private static final long serialVersionUID = -1239573851325335924L;
+    private static final long serialVersionUID = -1239573851325335924L;
 
-	@Override
-	public double calculateDistance(double[] value1, double[] value2) {
-		double sum = 0.0;
-		int counter = 0;
-		for (int i = 0; i < value1.length; i++) {
-			if ((!Double.isNaN(value1[i])) && (!Double.isNaN(value2[i]))) {
-				if (value1[i] != value2[i])
-					sum = sum + 1.0;
-				counter++;
-			}
-		}
-		if (counter > 0)
-			return sum;
-		else
-			return Double.NaN;
-	}
+    private boolean[] useAttribute;
 
-	@Override
-	public double calculateSimilarity(double[] value1, double[] value2) {
-		return -calculateDistance(value1, value2);
-	}
+    @Override
+    public double calculateDistance(double[] value1, double[] value2) {
+        double sum = 0.0;
+        int counter = 0;
 
-	// doing nothing
-	@Override
-	public void init(ExampleSet exampleSet) {}
+        for (int i = 0; i < value1.length; i++) {
+            if (useAttribute == null || useAttribute[i]) {
+                if ((!Double.isNaN(value1[i])) && (!Double.isNaN(value2[i]))) {
+                    if (value1[i] != value2[i])
+                        sum = sum + 1.0;
+                    counter++;
+                }
+            }
+        }
 
+        if (counter > 0)
+            return sum;
+        else
+            return Double.NaN;
+    }
 
-	@Override
-	public String toString() {
-		return "Nominal distance";
-	}
+    @Override
+    public double calculateSimilarity(double[] value1, double[] value2) {
+        return -calculateDistance(value1, value2);
+    }
+
+    // checking for example set and valid attributes
+    @Override
+    public void init(ExampleSet exampleSet) {
+        this.useAttribute = new boolean[exampleSet.getAttributes().size()];
+        int i = 0;
+        for (Attribute attribute : exampleSet.getAttributes()) {
+            if (attribute.isNominal())
+                useAttribute[i] = true;
+            i++;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "Nominal distance";
+    }
 }

@@ -7,7 +7,7 @@
  *  based on "RapidMiner"
  *  Copyright (C) 2001-2010 by Rapid-I and the contributors
  *  - original author: Ingo Mierswa
- *  - modified by Atif Syed Mehdi (01/09/2010)
+ *  - modified by Syed Atif Mehdi (01/09/2010)
  *  
  *  This is free software: you can redistribute it and/or modify 
  *  it under the terms of the GNU Affero General Public License as published by 
@@ -31,7 +31,7 @@ import de.dfki.madm.paren.operator.learner.functions.neuralnet.AutoMLPImprovedNe
 
 /**
  * 
- * @author Sebastian Land, modified by Atif Syed Mehdi (01/09/2010)
+ * @author Sebastian Land, modified by Syed Atif Mehdi (01/09/2010)
  */
 
 public class AutoMLPImprovedNeuralNetModelRenderer extends AbstractRenderer {

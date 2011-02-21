@@ -7,7 +7,7 @@
  *  based on "RapidMiner"
  *  Copyright (C) 2001-2010 by Rapid-I and the contributors
  *  - original author: Ingo Mierswa
- *  - modified by Atif Syed Mehdi (01/09/2010)
+ *  - modified by Syed Atif Mehdi (01/09/2010)
  *  
  *  This is free software: you can redistribute it and/or modify 
  *  it under the terms of the GNU Affero General Public License as published by 
@@ -48,7 +48,7 @@ import com.rapidminer.tools.Tools;
  * Visualizes the improved neural net. The nodes can be selected by clicking. The next tool tip will then 
  * show the input weights for the selected node.
  * 
- * @author Ingo Mierswa, modified by Atif Syed Mehdi (01/09/2010)
+ * @author Ingo Mierswa, modified by Syed Atif Mehdi (01/09/2010)
  */
 //modified by atif
 public class AutoMLPImprovedNeuralNetVisualizer extends JPanel implements MouseListener, Renderable {

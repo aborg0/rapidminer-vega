@@ -38,6 +38,7 @@ import com.rapidminer.Process;
  * @author Ingo Mierswa
  */
 public class LinearRegression {
+	
 	private static Logger logger = Logger.getLogger(Process.class.getName());
 	
 	/** Performs a weighted linear ridge regression. */

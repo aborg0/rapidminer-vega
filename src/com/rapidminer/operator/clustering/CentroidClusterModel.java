@@ -113,9 +113,11 @@ public class CentroidClusterModel extends ClusterModel {
 		return dimensionNames.toArray(new String[0]);
 	}
 
-	@Override
-	public HeaderExampleSet getTrainingHeader() {
-		return super.getTrainingHeader();
+	/**
+	 * Returns the List of all defined centroids.
+	 */
+	public List<Centroid> getCentroids() {
+		return centroids;
 	}
 	
 	public double[] getCentroidCoordinates(int i) {

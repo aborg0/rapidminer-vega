@@ -32,101 +32,103 @@ import com.rapidminer.operator.learner.functions.LinearRegressionModel;
 /**
  * Renderer for the linear regression model.
  * 
- * @author Simon Fischer
+ * @author Simon Fischer, Ingo Mierswa
  */
 public class LinearRegressionModelTableRenderer extends AbstractTableModelTableRenderer {
 
-	private static class LinearRegressionModelTableModel extends AbstractTableModel {
+    private static class LinearRegressionModelTableModel extends AbstractTableModel {
 
-		private static final long serialVersionUID = -2112928170124291591L;
+        private static final long serialVersionUID = -2112928170124291591L;
 
-		private final LinearRegressionModel model;
-		
-		public LinearRegressionModelTableModel(LinearRegressionModel model) {
-			this.model = model;
-		}
+        private final LinearRegressionModel model;
 
-		@Override
-		public int getColumnCount() {
-			return 6;
-		}
-		
-		@Override
-		public Class<?> getColumnClass(int columnIndex) {
-			switch (columnIndex) {
-			case 0:
-				return String.class;
-			default:
-				return Double.class;
-			}
-		}
-		
-		@Override
-		public String getColumnName(int columnIndex) {
-			switch (columnIndex) {
-			case 0:
-				return "Attribute";
-			case 1:
-				return "Coefficient";
-			case 2:
-				return "Std. Error";
-			case 3:
-				return "Std. Coefficient";
-			case 4:
-				return "t-Stat";
-			case 5:
-				return "Significance";
-			}
-			return null;
-		}
+        public LinearRegressionModelTableModel(LinearRegressionModel model) {
+            this.model = model;
+        }
 
-		@Override
-		public int getRowCount() {
-			return model.getCoefficients().length - (model.usesIntercept() ? 0 : 1);
-		}
+        @Override
+        public int getColumnCount() {
+            return 8;
+        }
 
-		@Override
-		public Object getValueAt(int rowIndex, int columnIndex) {
-			switch (columnIndex) {
-			case 0:
-				if (model.usesIntercept() && rowIndex == model.getCoefficients().length - 1) {
-					return "(Intercept)";
-				} else {
-					return model.getSelectedAttributeNames()[rowIndex];
-				}
-			case 1:
-				return model.getCoefficients()[rowIndex];
-			case 2:
-				if (model.usesIntercept() && rowIndex == model.getCoefficients().length - 1) {
-					return 0;
-				} else {
-					return model.getStandardErrors()[rowIndex];
-				}
-			case 3:
-				if (model.usesIntercept() && rowIndex == model.getCoefficients().length - 1) {
-					return 0;
-				} else {
-					return model.getStandardizedCoefficients()[rowIndex];
-				}
-			case 4:
-				if (model.usesIntercept() && rowIndex == model.getCoefficients().length - 1) {
-					return 0;
-				} else {
-					return model.getTStats()[rowIndex];
-				}
-			case 5:
-				if (model.usesIntercept() && rowIndex == model.getCoefficients().length - 1) {
-					return 0;
-				} else {
-					return model.getProbabilities()[rowIndex];
-				}
-			}
-			return null;
-		}
-	}
+        @Override
+        public Class<?> getColumnClass(int columnIndex) {
+            switch (columnIndex) {
+            case 0:
+                return String.class;
+            default:
+                return Double.class;
+            }
+        }
 
-	@Override
-	public TableModel getTableModel(Object renderable, IOContainer ioContainer, boolean isReporting) {
-		return new LinearRegressionModelTableModel((LinearRegressionModel) renderable);
-	}
+        @Override
+        public String getColumnName(int columnIndex) {
+            switch (columnIndex) {
+            case 0:
+                return "Attribute";
+            case 1:
+                return "Coefficient";
+            case 2:
+                return "Std. Error";
+            case 3:
+                return "Std. Coefficient";
+            case 4:
+                return "Tolerance";
+            case 5:
+                return "t-Stat";
+            case 6:
+                return "p-Value";
+            case 7:
+                return "Code";
+            }
+            return null;
+        }
+
+        @Override
+        public int getRowCount() {
+            return model.getCoefficients().length - (model.usesIntercept() ? 0 : 1);
+        }
+
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            switch (columnIndex) {
+            case 0:
+                if (model.usesIntercept() && rowIndex == model.getCoefficients().length - 1) {
+                    return "(Intercept)";
+                } else {
+                    return model.getSelectedAttributeNames()[rowIndex];
+                }
+            case 1:
+                return model.getCoefficients()[rowIndex];
+            case 2:
+                return model.getStandardErrors()[rowIndex];
+            case 3:
+                return model.getStandardizedCoefficients()[rowIndex];
+            case 4:
+                return model.getTolerances()[rowIndex];
+            case 5:
+                return model.getTStats()[rowIndex];
+            case 6:
+                return model.getProbabilities()[rowIndex];
+            case 7:
+                double prob = model.getProbabilities()[rowIndex];
+                if (prob < 0.001)
+                    return "****";
+                else if (prob < 0.01)
+                    return "***";
+                else if (prob < 0.05)
+                    return "**";
+                else if (prob < 0.1)
+                    return "*";
+                else
+                    return "";
+            }
+            return null;
+        }
+    }
+
+    @Override
+    public TableModel getTableModel(Object renderable, IOContainer ioContainer, boolean isReporting) {
+        return new LinearRegressionModelTableModel((LinearRegressionModel) renderable);
+    }
 }

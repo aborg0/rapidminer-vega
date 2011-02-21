@@ -52,125 +52,139 @@ import com.rapidminer.parameter.ParameterTypeValue.OperatorValueSelection;
  */
 public class OperatorValueValueCellEditor extends AbstractCellEditor implements PropertyValueCellEditor {
 
-	private static final long serialVersionUID = 2332956173516489926L;
+    private static final long serialVersionUID = 2332956173516489926L;
 
-	private JPanel panel = new JPanel();
+    private JPanel panel = new JPanel();
 
-	private JComboBox operatorCombo;
+    private JComboBox operatorCombo;
 
-	private JComboBox typeCombo = new JComboBox(new String[] { "value", "parameter" });
+    private JComboBox typeCombo = new JComboBox(new String[] { "value", "parameter" });
 
-	private JComboBox valueCombo = new JComboBox();
+    private JComboBox valueCombo = new JComboBox();
 
-	private transient Process process;
+    private transient Process process;
 
-	public OperatorValueValueCellEditor(ParameterTypeValue type) {
-	}
+    private ParameterTypeValue type;
 
-	public void setOperator(Operator operator) {
-		this.process = operator.getProcess();
-		operatorCombo = createOperatorCombo();
-		typeCombo.addItemListener(new ItemListener() {
+    public OperatorValueValueCellEditor(ParameterTypeValue type) {
+        this.type = type;
+    }
 
-			public void itemStateChanged(ItemEvent e) {
-				fillValueCombo();
-				fireEditingStopped();
-			}
-		});
-		valueCombo.addItemListener(new ItemListener() {
+    @Override
+    public void setOperator(Operator operator) {
+        this.process = operator.getProcess();
+        operatorCombo = createOperatorCombo();
+        typeCombo.addItemListener(new ItemListener() {
 
-			public void itemStateChanged(ItemEvent e) {
-				fireEditingStopped();
-			}
-		});
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                fillValueCombo();
+                fireEditingStopped();
+            }
+        });
+        valueCombo.addItemListener(new ItemListener() {
 
-		fillValueCombo();
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                fireEditingStopped();
+            }
+        });
 
-		panel.setLayout(new GridLayout(1, 3));
+        fillValueCombo();
 
-		panel.add(operatorCombo);
-		panel.add(typeCombo);
-		panel.add(valueCombo);
-	}
+        panel.setLayout(new GridLayout(1, 3));
 
-	private JComboBox createOperatorCombo() {
-		Vector<String> allOps = new Vector<String>(process.getAllOperatorNames());
-		Collections.sort(allOps);
-		JComboBox combo = new JComboBox(allOps);
-		combo.addItemListener(new ItemListener() {
+        panel.add(operatorCombo);
+        panel.add(typeCombo);
+        panel.add(valueCombo);
 
-			public void itemStateChanged(ItemEvent e) {
-				fillValueCombo();
-				fireEditingStopped();
-			}
-		});
-		return combo;
-	}
+        type.setDefaultValue(getCellEditorValue());
+    }
 
-	private void fillValueCombo() {
-		valueCombo.removeAllItems();
-		Operator operator = process.getOperator((String) operatorCombo.getSelectedItem());
-		switch (typeCombo.getSelectedIndex()) {
-		case 0:
-			Iterator i = operator.getValues().iterator();
-			while (i.hasNext()) {
-				valueCombo.addItem(((Value) i.next()).getKey());
-			}
-			if (valueCombo.getItemCount() == 0)
-				valueCombo.addItem("no values");
-			break;
-		case 1:
-			i = operator.getParameters().getParameterTypes().iterator();
-			while (i.hasNext()) {
-				valueCombo.addItem(((ParameterType) i.next()).getKey());
-			}
-			if (valueCombo.getItemCount() == 0)
-				valueCombo.addItem("no params");
-			break;
-		}
-		valueCombo.setSelectedIndex(0);
-	}
+    private JComboBox createOperatorCombo() {
+        Vector<String> allOps = new Vector<String>(process.getAllOperatorNames());
+        Collections.sort(allOps);
+        JComboBox combo = new JComboBox(allOps);
+        combo.addItemListener(new ItemListener() {
 
-	public Object getCellEditorValue() {
-		OperatorValueSelection selection = new OperatorValueSelection((String) operatorCombo.getSelectedItem(), (typeCombo.getSelectedIndex() == 0), (String) valueCombo.getSelectedItem());
-		return ParameterTypeValue.transformOperatorValueSelection2String(selection);
-	}
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                fillValueCombo();
+                fireEditingStopped();
+            }
+        });
+        return combo;
+    }
 
-	public void setValue(String valueName) {
-		if (valueName != null) {
-			OperatorValueSelection selection = ParameterTypeValue.transformString2OperatorValueSelection(valueName);
-			if (selection != null) {
-				operatorCombo.setSelectedItem(selection.getOperator());
-				typeCombo.setSelectedIndex(selection.isValue() ? 0 : 1);
-				valueCombo.setSelectedItem(selection.isValue() ? selection.getValueName() : selection.getParameterName());
-			} else {
-				operatorCombo.setSelectedIndex(0);
-				typeCombo.setSelectedIndex(0);
-				valueCombo.setSelectedIndex(0);
-			}
-		} else {
-			operatorCombo.setSelectedIndex(0);
-			typeCombo.setSelectedIndex(0);
-			valueCombo.setSelectedIndex(0);
-		}
-	}
+    private void fillValueCombo() {
+        valueCombo.removeAllItems();
+        Operator operator = process.getOperator((String) operatorCombo.getSelectedItem());
+        switch (typeCombo.getSelectedIndex()) {
+        case 0:
+            Iterator i = operator.getValues().iterator();
+            while (i.hasNext()) {
+                valueCombo.addItem(((Value) i.next()).getKey());
+            }
+            if (valueCombo.getItemCount() == 0)
+                valueCombo.addItem("no values");
+            break;
+        case 1:
+            i = operator.getParameters().getParameterTypes().iterator();
+            while (i.hasNext()) {
+                valueCombo.addItem(((ParameterType) i.next()).getKey());
+            }
+            if (valueCombo.getItemCount() == 0)
+                valueCombo.addItem("no params");
+            break;
+        }
+        valueCombo.setSelectedIndex(0);
+    }
 
-	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int col) {
-		setValue((String) value);
-		return panel;
-	}
+    @Override
+    public Object getCellEditorValue() {
+        OperatorValueSelection selection = new OperatorValueSelection((String) operatorCombo.getSelectedItem(), (typeCombo.getSelectedIndex() == 0), (String) valueCombo.getSelectedItem());
+        return ParameterTypeValue.transformOperatorValueSelection2String(selection);
+    }
 
-	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-		return getTableCellEditorComponent(table, value, isSelected, row, column);
-	}
+    public void setValue(String valueName) {
+        if (valueName != null) {
+            OperatorValueSelection selection = ParameterTypeValue.transformString2OperatorValueSelection(valueName);
+            if (selection != null) {
+                operatorCombo.setSelectedItem(selection.getOperator());
+                typeCombo.setSelectedIndex(selection.isValue() ? 0 : 1);
+                valueCombo.setSelectedItem(selection.isValue() ? selection.getValueName() : selection.getParameterName());
+            } else {
+                operatorCombo.setSelectedIndex(0);
+                typeCombo.setSelectedIndex(0);
+                valueCombo.setSelectedIndex(0);
+            }
+        } else {
+            operatorCombo.setSelectedIndex(0);
+            typeCombo.setSelectedIndex(0);
+            valueCombo.setSelectedIndex(0);
+        }
+        fireEditingStopped();
+    }
 
-	public boolean useEditorAsRenderer() {
-		return true;
-	}
+    @Override
+    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int col) {
+        setValue((String) value);
+        return panel;
+    }
 
-	@Override
-	public boolean rendersLabel() {
-		return false;
-	}
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        return getTableCellEditorComponent(table, value, isSelected, row, column);
+    }
+
+    @Override
+    public boolean useEditorAsRenderer() {
+        return true;
+    }
+
+    @Override
+    public boolean rendersLabel() {
+        return false;
+    }
 
 }

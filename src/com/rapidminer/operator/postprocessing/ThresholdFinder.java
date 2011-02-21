@@ -27,6 +27,7 @@ import java.util.List;
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
+import com.rapidminer.example.table.NominalMapping;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
@@ -37,11 +38,12 @@ import com.rapidminer.operator.ports.metadata.ExampleSetPrecondition;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeDouble;
+import com.rapidminer.parameter.ParameterTypeString;
+import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.math.ROCBias;
 import com.rapidminer.tools.math.ROCData;
 import com.rapidminer.tools.math.ROCDataGenerator;
-
 
 /**
  * This operator finds the best threshold for crisp classifying based on user
@@ -51,68 +53,102 @@ import com.rapidminer.tools.math.ROCDataGenerator;
  */
 public class ThresholdFinder extends Operator {
 
-	// The parameters of this operator:
-	private static final String PARAMETER_MISCLASSIFICATION_COSTS_FIRST = "misclassification_costs_first";
+    public static final String PARAMETER_DEFINE_LABELS = "define_labels";
 
-	private static final String PARAMETER_MISCLASSIFICATION_COSTS_SECOND = "misclassification_costs_second";
+    public static final String PARAMETER_FIRST_LABEL = "first_label";
+    public static final String PARAMETER_SECOND_LABEL = "second_label";
 
-	private static final String PARAMETER_SHOW_ROC_PLOT = "show_roc_plot";
+    public static final String PARAMETER_MISCLASSIFICATION_COSTS_FIRST = "misclassification_costs_first";
 
-	private static final String PARAMETER_USE_EXAMPLE_WEIGHTS = "use_example_weights";
+    public static final String PARAMETER_MISCLASSIFICATION_COSTS_SECOND = "misclassification_costs_second";
 
-	private InputPort exampleSetInput = getInputPorts().createPort("example set", ExampleSet.class);
-	private OutputPort exampleSetOutput = getOutputPorts().createPort("example set");
-	private OutputPort thresholdOutput = getOutputPorts().createPort("threshold");
+    public static final String PARAMETER_SHOW_ROC_PLOT = "show_roc_plot";
 
-	public ThresholdFinder(OperatorDescription description) {
-		super(description);
+    public static final String PARAMETER_USE_EXAMPLE_WEIGHTS = "use_example_weights";
 
-		exampleSetInput.addPrecondition(new ExampleSetPrecondition(exampleSetInput, Ontology.VALUE_TYPE, Attributes.LABEL_NAME, Attributes.PREDICTION_NAME, Attributes.CONFIDENCE_NAME));
-		getTransformer().addPassThroughRule(exampleSetInput, exampleSetOutput);
-		getTransformer().addGenerationRule(thresholdOutput, Threshold.class);
-	}
+    private InputPort exampleSetInput = getInputPorts().createPort("example set", ExampleSet.class);
+    private OutputPort exampleSetOutput = getOutputPorts().createPort("example set");
+    private OutputPort thresholdOutput = getOutputPorts().createPort("threshold");
 
-	@Override
-	public void doWork() throws OperatorException {
-		// sanity checks
-		ExampleSet exampleSet = exampleSetInput.getData();
+    public ThresholdFinder(OperatorDescription description) {
+        super(description);
 
-		// checking preconditions
-		Attribute label = exampleSet.getAttributes().getLabel();
-		exampleSet.recalculateAttributeStatistics(label);
-		if (label == null)
-			throw new UserError(this, 105);
-		if (!label.isNominal())
-			throw new UserError(this, 101, label, "threshold finding");
-		if (label.getMapping().size() != 2)
-			throw new UserError(this, 118, new Object[] { label, Integer.valueOf(label.getMapping().getValues().size()), Integer.valueOf(2) });
-		if (exampleSet.getAttributes().getPredictedLabel() == null) {
-			throw new UserError(this, 107);
-		}
+        exampleSetInput.addPrecondition(new ExampleSetPrecondition(exampleSetInput, Ontology.VALUE_TYPE, Attributes.LABEL_NAME, Attributes.PREDICTION_NAME, Attributes.CONFIDENCE_NAME));
+        getTransformer().addPassThroughRule(exampleSetInput, exampleSetOutput);
+        getTransformer().addGenerationRule(thresholdOutput, Threshold.class);
+    }
+
+    @Override
+    public void doWork() throws OperatorException {
+        // sanity checks
+        ExampleSet exampleSet = exampleSetInput.getData();
+
+        // checking preconditions
+        Attribute label = exampleSet.getAttributes().getLabel();
+        exampleSet.recalculateAttributeStatistics(label);
+        if (label == null)
+            throw new UserError(this, 105);
+        if (!label.isNominal())
+            throw new UserError(this, 101, label, "threshold finding");
+        NominalMapping mapping = label.getMapping();
+        if (mapping.size() != 2)
+            throw new UserError(this, 118, new Object[] { label, Integer.valueOf(mapping.getValues().size()), Integer.valueOf(2) });
+        if (exampleSet.getAttributes().getPredictedLabel() == null) {
+            throw new UserError(this, 107);
+        }
+        boolean useExplictLabels = getParameterAsBoolean(PARAMETER_DEFINE_LABELS);
 
 
-		// create ROC data
-		ROCDataGenerator rocDataGenerator = new ROCDataGenerator(getParameterAsDouble(PARAMETER_MISCLASSIFICATION_COSTS_SECOND), getParameterAsDouble(PARAMETER_MISCLASSIFICATION_COSTS_FIRST));
-		ROCData rocData = rocDataGenerator.createROCData(exampleSet, getParameterAsBoolean(PARAMETER_USE_EXAMPLE_WEIGHTS),
-				ROCBias.getROCBiasParameter(this));
+        double secondCost = getParameterAsDouble(PARAMETER_MISCLASSIFICATION_COSTS_SECOND);
+        double firstCost = getParameterAsDouble(PARAMETER_MISCLASSIFICATION_COSTS_FIRST);
+        if (useExplictLabels) {
+            String firstLabel = getParameterAsString(PARAMETER_FIRST_LABEL);
+            String secondLabel = getParameterAsString(PARAMETER_SECOND_LABEL);
 
-		// create plotter
-		if (getParameterAsBoolean(PARAMETER_SHOW_ROC_PLOT))
-			rocDataGenerator.createROCPlotDialog(rocData, true, true);
+            if (mapping.getIndex(firstLabel) == -1)
+                throw new UserError(this, 143, firstLabel, label.getName());
+            if (mapping.getIndex(secondLabel) == -1)
+                throw new UserError(this, 143, secondLabel, label.getName());
 
-		// create and return output
-		exampleSetOutput.deliver(exampleSet);
-		thresholdOutput.deliver(new Threshold(rocDataGenerator.getBestThreshold(), label.getMapping().getNegativeString(), label.getMapping().getPositiveString()));
-	}
+            // if explicit order differs from order in data: internally swap costs.
+            if (mapping.getIndex(firstLabel) > mapping.getIndex(secondLabel)) {
+                double temp = firstCost;
+                firstCost = secondCost;
+                secondCost = temp;
+            }
+        }
 
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		List<ParameterType> list = super.getParameterTypes();
-		list.add(new ParameterTypeDouble(PARAMETER_MISCLASSIFICATION_COSTS_FIRST, "The costs assigned when an example of the first class is classified as one of the second.", 0, Double.POSITIVE_INFINITY, 1, false)); 
-		list.add(new ParameterTypeDouble(PARAMETER_MISCLASSIFICATION_COSTS_SECOND, "The costs assigned when an example of the second class is classified as one of the first.", 0, Double.POSITIVE_INFINITY, 1, false)); 
-		list.add(new ParameterTypeBoolean(PARAMETER_SHOW_ROC_PLOT, "Display a plot of the ROC curve.", false)); 
-		list.add(new ParameterTypeBoolean(PARAMETER_USE_EXAMPLE_WEIGHTS, "Indicates if example weights should be used.", true));
-		list.add(ROCBias.makeParameterType());
-		return list;
-	}
+
+        // create ROC data
+        ROCDataGenerator rocDataGenerator = new ROCDataGenerator(firstCost, secondCost);
+        ROCData rocData = rocDataGenerator.createROCData(exampleSet, getParameterAsBoolean(PARAMETER_USE_EXAMPLE_WEIGHTS), ROCBias.getROCBiasParameter(this));
+
+        // create plotter
+        if (getParameterAsBoolean(PARAMETER_SHOW_ROC_PLOT))
+            rocDataGenerator.createROCPlotDialog(rocData, true, true);
+
+        // create and return output
+        exampleSetOutput.deliver(exampleSet);
+        thresholdOutput.deliver(new Threshold(rocDataGenerator.getBestThreshold(), mapping.getNegativeString(), mapping.getPositiveString()));
+    }
+
+    @Override
+    public List<ParameterType> getParameterTypes() {
+        List<ParameterType> list = super.getParameterTypes();
+        list.add(new ParameterTypeBoolean(PARAMETER_DEFINE_LABELS, "If checked, you can define explicitly which is the first and the second label.", false));
+        ParameterTypeString type = new ParameterTypeString(PARAMETER_FIRST_LABEL, "The first label.");
+        type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_DEFINE_LABELS, true, true));
+        list.add(type);
+        type = new ParameterTypeString(PARAMETER_SECOND_LABEL, "The second label.");
+        type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_DEFINE_LABELS, true, true));
+        list.add(type);
+
+
+        list.add(new ParameterTypeDouble(PARAMETER_MISCLASSIFICATION_COSTS_FIRST, "The costs assigned when an example of the first class is classified as one of the second.", 0, Double.POSITIVE_INFINITY, 1, false));
+        list.add(new ParameterTypeDouble(PARAMETER_MISCLASSIFICATION_COSTS_SECOND, "The costs assigned when an example of the second class is classified as one of the first.", 0, Double.POSITIVE_INFINITY, 1, false));
+        list.add(new ParameterTypeBoolean(PARAMETER_SHOW_ROC_PLOT, "Display a plot of the ROC curve.", false));
+        list.add(new ParameterTypeBoolean(PARAMETER_USE_EXAMPLE_WEIGHTS, "Indicates if example weights should be used.", true));
+        list.add(ROCBias.makeParameterType());
+        return list;
+    }
 }

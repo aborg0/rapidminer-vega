@@ -314,6 +314,15 @@
         without a graphical user interface) or as services in order to protocol the process progress.</help>
     </operator>
     <operator>
+        <name>Remove Unused Values</name>
+        <key>remove_unused_values</key>
+        <synopsis>This operator will remove each nominal value that is not assigned to any example.</synopsis>
+        <help>This operator will remove each nominal value that is not assigned to any example. For reproducing this step during application time, you can apply the returned preprocessing model. If unknown nominal values will occur during application time, they will be set to missing. Please keep that in mind.
+        &lt;br/&gt;
+        Additionally you can select if the kept nominal values should be sorted alphabetically. This can be used for plotting purpose. 
+        </help>
+    </operator>
+    <operator>
         <name>Delay</name>
         <key>delay</key>
         <synopsis>Delays process execution.</synopsis>
@@ -1388,6 +1397,15 @@
             proportion of the total sum of the respective attribute.</help>
     <key>normalize</key>
   </operator>
+    <operator>
+        <name>De-Normalize</name>
+        <synopsis>This operator will return an Normalization Model that inverts a given
+        Normalization Model. 
+        </synopsis>
+        <help>With help of this operator any Normalization method can be reversed.</help>
+    <key>denormalize</key>
+  </operator>
+
     <operator>
         <name>Rename</name>
         <synopsis>This operator can be used to rename an attribute.</synopsis>
@@ -3239,6 +3257,16 @@
             tasks.</help>
     <key>support_vector_machine</key>
     <shortName>SVM</shortName>
+  </operator>
+   <operator>
+        <name>Support Vector Machine (Linear)</name>
+        <synopsis>This operator provides a linear Support Vector Machine based upon the JMySVM.</synopsis>
+        <help>This learner uses the Java implementation of the support vector
+            machine &lt;em&gt;mySVM&lt;/em&gt; by Stefan R&amp;uuml;ping. It is restricted to
+            the dot (linear) kernel, but outputs a high performance model that only contains the 
+            linear coefficient for faster model application.</help>
+    <key>support_vector_machine_linear</key>
+    <shortName>SVM (Linear)</shortName>
   </operator>
     <operator>
         <name>Generate Copy</name>

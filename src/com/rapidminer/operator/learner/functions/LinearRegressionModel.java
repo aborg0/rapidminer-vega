@@ -50,6 +50,8 @@ public class LinearRegressionModel extends PredictionModel {
 	
 	private double[] standardErrors;
 	
+	private double[] tolerances;
+	
 	private double[] standardizedCoefficients;
 	
 	private double[] tStatistics;
@@ -62,7 +64,7 @@ public class LinearRegressionModel extends PredictionModel {
 	
 	private String secondClassName = null;
 	
-	public LinearRegressionModel(ExampleSet exampleSet, boolean[] selectedAttributes, double[] coefficients, double[] standardErrors, double[] standardizedCoefficients, double[] tStatistics, double[] pValues, boolean useIntercept, String firstClassName, String secondClassName) {
+	public LinearRegressionModel(ExampleSet exampleSet, boolean[] selectedAttributes, double[] coefficients, double[] standardErrors, double[] standardizedCoefficients, double[] tolerances, double[] tStatistics, double[] pValues, boolean useIntercept, String firstClassName, String secondClassName) {
 		super(exampleSet);
 		this.attributeNames = com.rapidminer.example.Tools.getRegularAttributeNames(exampleSet);
 		this.attributeConstructions = com.rapidminer.example.Tools.getRegularAttributeConstructions(exampleSet);
@@ -70,6 +72,7 @@ public class LinearRegressionModel extends PredictionModel {
 		this.coefficients = coefficients;
 		this.standardErrors = standardErrors;
 		this.standardizedCoefficients = standardizedCoefficients;
+		this.tolerances = tolerances;
 		this.tStatistics = tStatistics;
 		this.pValues = pValues;
 		this.useIntercept = useIntercept;
@@ -195,6 +198,10 @@ public class LinearRegressionModel extends PredictionModel {
 	
 	public double[] getStandardizedCoefficients() {
 		return standardizedCoefficients;
+	}
+	
+	public double[] getTolerances() {
+		return tolerances;
 	}
 	
 	public double[] getStandardErrors() {

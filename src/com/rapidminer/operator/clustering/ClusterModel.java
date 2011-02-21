@@ -108,7 +108,24 @@ public class ClusterModel extends AbstractModel implements ClusterModelInterface
 	public int getNumberOfClusters() {
 		return clusters.size();
 	}
+	
+	/**
+	 * This method returns whether this cluster model should add the assignment 
+	 * as a label.
+	 */
+	public boolean isAddingLabel() {
+		return isAddingAsLabel;
+	}
 
+	/**
+	 * This method returns whether examples which can't be assigned should be removed from
+	 * the resulting example set.
+	 * @return
+	 */
+	public boolean isRemovingUnknownAssignments() {
+		return isRemovingUnknown;
+	}
+	
 	public void setClusterAssignments(int[] clusterId, ExampleSet exampleSet) {
 		Attribute id = exampleSet.getAttributes().getId();
 		if (id.isNominal()) {

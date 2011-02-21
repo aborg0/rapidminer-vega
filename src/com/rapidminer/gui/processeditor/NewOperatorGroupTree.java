@@ -347,6 +347,7 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
 		}, operatorGroupTree);
 	}
 
+	@Override
 	public void valueChanged(String value) {
 		TreePath[] selectionPaths = operatorGroupTree.getSelectionPaths();
 

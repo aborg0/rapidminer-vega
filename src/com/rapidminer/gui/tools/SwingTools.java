@@ -1032,6 +1032,10 @@ public class SwingTools {
 		return GROUP_TO_COLOR_MAP.get(operator.getOperatorDescription().getGroup());
 	}
 	
+	public static Color getOperatorColor(String operatorGroup) {
+		return GROUP_TO_COLOR_MAP.get(operatorGroup);
+	}
+	
 	/**
 	 * This method adds the colors of the given property file to the global group colors
 	 */

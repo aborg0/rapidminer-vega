@@ -52,7 +52,7 @@ import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.tools.io.Encoding;
 
 /** Writes an example set to a file using a special, user defined format.
- *  
+ * 
  * Using the parameter 'special_format', the user can specify the exact
  * format. The $ sign has a special meaning and introduces a command (the
  * following character) Additional arguments to this command may be supplied
@@ -106,101 +106,109 @@ import com.rapidminer.tools.io.Encoding;
  */
 public class SpecialFormatExampleSetWriter extends AppendingExampleSetWriter {
 
-	/** The parameter name for &quot;Format string to use for output.&quot; */
-	public static final String PARAMETER_SPECIAL_FORMAT = "special_format";
+    public static final String PARAMETER_ADD_NEW_LINE = "add_line_separator";
 
-	/** The parameter name for &quot;File to save the example set to.&quot; */
-	public static final String PARAMETER_EXAMPLE_SET_FILE = "example_set_file";
+    /** The parameter name for &quot;Format string to use for output.&quot; */
+    public static final String PARAMETER_SPECIAL_FORMAT = "special_format";
 
-	/** The parameter name for &quot;The number of fraction digits in the output file (-1: all possible digits).&quot; */
-	public static final String PARAMETER_FRACTION_DIGITS = "fraction_digits";
+    /** The parameter name for &quot;File to save the example set to.&quot; */
+    public static final String PARAMETER_EXAMPLE_SET_FILE = "example_set_file";
 
-	/** Indicates if nominal values should be quoted with double quotes. Quotes inside of nominal values will be escaped by a backslash. */
-	public static final String PARAMETER_QUOTE_NOMINAL_VALUES = "quote_nominal_values";
+    /** The parameter name for &quot;The number of fraction digits in the output file (-1: all possible digits).&quot; */
+    public static final String PARAMETER_FRACTION_DIGITS = "fraction_digits";
 
-	/** The parameter name for &quot;Indicates if the data file content should be zipped.&quot; */
-	public static final String PARAMETER_ZIPPED = "zipped";
+    /** Indicates if nominal values should be quoted with double quotes. Quotes inside of nominal values will be escaped by a backslash. */
+    public static final String PARAMETER_QUOTE_NOMINAL_VALUES = "quote_nominal_values";
 
-	/** The parameter name for &quot;Indicates if an existing table should be overwritten.&quot; */
-	public static final String PARAMETER_OVERWRITE_MODE = "overwrite_mode";
-	
-	public SpecialFormatExampleSetWriter(OperatorDescription description) {
-		super(description);
-	}
+    /** The parameter name for &quot;Indicates if the data file content should be zipped.&quot; */
+    public static final String PARAMETER_ZIPPED = "zipped";
 
-	@Override
-	public ExampleSet write(ExampleSet ioobject) throws OperatorException {
-		boolean zipped = getParameterAsBoolean(PARAMETER_ZIPPED);
-		File dataFile = getParameterAsFile(PARAMETER_EXAMPLE_SET_FILE, true);
-		if (zipped) {
-			dataFile = new File(dataFile.getAbsolutePath() + ".gz");
-		}
-		boolean quoteNominal = getParameterAsBoolean(PARAMETER_QUOTE_NOMINAL_VALUES);
-		int fractionDigits = getParameterAsInt(PARAMETER_FRACTION_DIGITS);
-		if (fractionDigits < 0)
-			fractionDigits = NumericalAttribute.UNLIMITED_NUMBER_OF_DIGITS;
+    /** The parameter name for &quot;Indicates if an existing table should be overwritten.&quot; */
+    public static final String PARAMETER_OVERWRITE_MODE = "overwrite_mode";
 
-		Charset encoding = Encoding.getEncoding(this);
-				
-		writeSpecialFormat(ioobject, dataFile, fractionDigits, quoteNominal, zipped, shouldAppend(dataFile), encoding); 
-		return ioobject;
-	}
-	
-	@Override
-	protected boolean supportsEncoding() {
-		return true;
-	}
+    public SpecialFormatExampleSetWriter(OperatorDescription description) {
+        super(description);
+    }
 
-	private void writeSpecialFormat(ExampleSet exampleSet, File dataFile, int fractionDigits, boolean quoteNominal, boolean zipped, boolean append, Charset encoding) throws OperatorException {
-		String format = getParameterAsString(PARAMETER_SPECIAL_FORMAT);
-		if (format == null)
-			throw new UserError(this, 201, new Object[] { "special_format", "format", "special_format" });
-		ExampleFormatter formatter;
-		try {
-			formatter = ExampleFormatter.compile(format, exampleSet, fractionDigits, quoteNominal);
-		} catch (FormatterException e) {
-			throw new UserError(this, 901, format, e.getMessage());
-		}
+    @Override
+    public ExampleSet write(ExampleSet ioobject) throws OperatorException {
+        boolean zipped = getParameterAsBoolean(PARAMETER_ZIPPED);
+        File dataFile = getParameterAsFile(PARAMETER_EXAMPLE_SET_FILE, true);
+        if (zipped) {
+            dataFile = new File(dataFile.getAbsolutePath() + ".gz");
+        }
+        boolean quoteNominal = getParameterAsBoolean(PARAMETER_QUOTE_NOMINAL_VALUES);
+        int fractionDigits = getParameterAsInt(PARAMETER_FRACTION_DIGITS);
+        if (fractionDigits < 0)
+            fractionDigits = NumericalAttribute.UNLIMITED_NUMBER_OF_DIGITS;
 
-		OutputStream out = null;
-		PrintWriter writer = null;
-		try {
-			if (zipped) {
-				out = new GZIPOutputStream(new FileOutputStream(dataFile, append));
-			} else {
-				out = new FileOutputStream(dataFile, append);
-			}
+        Charset encoding = Encoding.getEncoding(this);
 
-			writer = new PrintWriter(new OutputStreamWriter(out, encoding));
-			Iterator<Example> reader = exampleSet.iterator();
-			while (reader.hasNext())
-				writer.println(formatter.format(reader.next()));
-		} catch (IOException e) {
-			throw new UserError(this, 303, dataFile, e.getMessage());
-		} finally {
-			if (writer != null) {
-				writer.close();		
-			}
-			if (out != null) {
-				try {
-					out.close();
-				} catch (IOException e) {
-					getLogger().log(Level.WARNING, "Cannot close stream to file " + dataFile, e);
-				}
-			}
-		}
-	}
+        writeSpecialFormat(ioobject, dataFile, fractionDigits, getParameterAsBoolean(PARAMETER_ADD_NEW_LINE), quoteNominal, zipped, shouldAppend(dataFile), encoding);
+        return ioobject;
+    }
 
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		List<ParameterType> types = new LinkedList<ParameterType>();
-		types.add(new ParameterTypeFile(PARAMETER_EXAMPLE_SET_FILE, "File to save the example set to.", "dat", false));
-		types.add(new ParameterTypeString(PARAMETER_SPECIAL_FORMAT, "Format string to use for output.", false));
-		types.add(new ParameterTypeInt(PARAMETER_FRACTION_DIGITS, "The number of fraction digits in the output file (-1: all possible digits).", -1, Integer.MAX_VALUE, -1));
-		types.add(new ParameterTypeBoolean(PARAMETER_QUOTE_NOMINAL_VALUES, "Indicates if nominal values should be quoted with double quotes.", true));
-		types.add(new ParameterTypeBoolean(PARAMETER_ZIPPED, "Indicates if the data file content should be zipped.", false));
-		types.add(new ParameterTypeCategory(PARAMETER_OVERWRITE_MODE, "Indicates if an existing table should be overwritten or if data should be appended.", OVERWRITE_MODES, OVERWRITE_MODE_OVERWRITE_FIRST));
-		types.addAll(super.getParameterTypes());
-		return types;
-	}
+    @Override
+    protected boolean supportsEncoding() {
+        return true;
+    }
+
+    private void writeSpecialFormat(ExampleSet exampleSet, File dataFile, int fractionDigits, boolean automaticLineBreak, boolean quoteNominal, boolean zipped, boolean append, Charset encoding) throws OperatorException {
+        String format = getParameterAsString(PARAMETER_SPECIAL_FORMAT);
+        if (format == null)
+            throw new UserError(this, 201, new Object[] { "special_format", "format", "special_format" });
+        ExampleFormatter formatter;
+        try {
+            formatter = ExampleFormatter.compile(format, exampleSet, fractionDigits, quoteNominal);
+        } catch (FormatterException e) {
+            throw new UserError(this, 901, format, e.getMessage());
+        }
+
+        OutputStream out = null;
+        PrintWriter writer = null;
+        try {
+            if (zipped) {
+                out = new GZIPOutputStream(new FileOutputStream(dataFile, append));
+            } else {
+                out = new FileOutputStream(dataFile, append);
+            }
+
+            writer = new PrintWriter(new OutputStreamWriter(out, encoding));
+            Iterator<Example> reader = exampleSet.iterator();
+            while (reader.hasNext()) {
+                if (automaticLineBreak)
+                    writer.println(formatter.format(reader.next()));
+                else
+                    writer.print(formatter.format(reader.next()));
+            }
+        } catch (IOException e) {
+            throw new UserError(this, 303, dataFile, e.getMessage());
+        } finally {
+            if (writer != null) {
+                writer.flush();
+                writer.close();
+            }
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    getLogger().log(Level.WARNING, "Cannot close stream to file " + dataFile, e);
+                }
+            }
+        }
+    }
+
+    @Override
+    public List<ParameterType> getParameterTypes() {
+        List<ParameterType> types = new LinkedList<ParameterType>();
+        types.add(new ParameterTypeFile(PARAMETER_EXAMPLE_SET_FILE, "File to save the example set to.", "dat", false));
+        types.add(new ParameterTypeString(PARAMETER_SPECIAL_FORMAT, "Format string to use for output.", false));
+        types.add(new ParameterTypeInt(PARAMETER_FRACTION_DIGITS, "The number of fraction digits in the output file (-1: all possible digits).", -1, Integer.MAX_VALUE, -1));
+        types.add(new ParameterTypeBoolean(PARAMETER_ADD_NEW_LINE, "If checked, each example is followed by a line break automatically", true));
+        types.add(new ParameterTypeBoolean(PARAMETER_QUOTE_NOMINAL_VALUES, "Indicates if nominal values should be quoted with double quotes.", true));
+        types.add(new ParameterTypeBoolean(PARAMETER_ZIPPED, "Indicates if the data file content should be zipped.", false));
+        types.add(new ParameterTypeCategory(PARAMETER_OVERWRITE_MODE, "Indicates if an existing table should be overwritten or if data should be appended.", OVERWRITE_MODES, OVERWRITE_MODE_OVERWRITE_FIRST));
+        types.addAll(super.getParameterTypes());
+        return types;
+    }
 }

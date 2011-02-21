@@ -36,127 +36,132 @@ import com.rapidminer.tools.math.distribution.NormalDistribution;
  */
 public class FullKernelDistribution extends KernelDistribution {
 
-	public static final long serialVersionUID = -3205432422815818L;
+    public static final long serialVersionUID = -3205432422815818L;
 
-	private boolean heuristicBandwidthSelection;
-	
-	private double bandwidth = DEFAULT_BANDWIDTH;
-	
-	private boolean recentlyUpdated;
-	
-	private HashMap<Double, Double> valueWeightMap;
-	
-	private double weightSum; 
+    private boolean heuristicBandwidthSelection;
 
-	private double minValue;
-	
-	private double maxValue;
-	
-	private static final double STANDARD_NORMAL_LOWER_BOUND = NormalDistribution.getLowerBound(0, 1);
-	
-	private static final double STANDARD_NORMAL_UPPER_BOUND = NormalDistribution.getUpperBound(0, 1);
-	
-	public FullKernelDistribution() {
-		super();
-		valueWeightMap = new HashMap<Double, Double>();
-		weightSum = 0;
-		minValue = Double.POSITIVE_INFINITY;
-		maxValue = Double.NEGATIVE_INFINITY;
-		heuristicBandwidthSelection = true;
-		recentlyUpdated = false;
-	}
-	
-	public FullKernelDistribution(double bandwidth) {
-		super();
-		this.bandwidth = bandwidth;
-		valueWeightMap = new HashMap<Double, Double>();
-		weightSum = 0;
-		minValue = Double.POSITIVE_INFINITY;
-		maxValue = Double.NEGATIVE_INFINITY;
-		heuristicBandwidthSelection = false;
-		recentlyUpdated = false;
-	}
-	
-	public void update(double value, double weight) {
-		if (!Double.isNaN(value) && !Double.isNaN(weight)) {
-			Double totalValueWeight = valueWeightMap.get(value);
-			if (totalValueWeight != null) {
-				totalValueWeight += weight;
-			} else {
-				totalValueWeight = new Double(weight);
-			}
-			valueWeightMap.put(value, totalValueWeight);
-			weightSum += weight;
-			if (value < minValue) {
-				minValue = value;
-			}
-			if (value > maxValue) {
-				maxValue = value;
-			}
-			recentlyUpdated = true;
-		}
-	}
-	
-	public void update(double value) {
-		update(value, 1.0d);
-	}
-	
-	@Override
-	public String getAttributeName() {
-		return null;
-	}
+    private double bandwidth = DEFAULT_BANDWIDTH;
 
-	@Override
-	public int getNumberOfParameters() {
-		return 0;
-	}
+    private boolean recentlyUpdated;
 
-	@Override
-	public String getParameterName(int index) {
-		return null;
-	}
+    private HashMap<Double, Double> valueWeightMap;
 
-	@Override
-	public double getParameterValue(int index) {
-		return Double.NaN;
-	}
+    private double weightSum;
 
-	private void updateBandwidth() {
-		if (heuristicBandwidthSelection && recentlyUpdated) {
-			bandwidth = (maxValue - minValue) / Math.sqrt(weightSum);
-			recentlyUpdated = false;
-		}
-	}
-	
-	@Override
-	public double getUpperBound() {
-		updateBandwidth();
-		return NormalDistribution.getUpperBound(maxValue, bandwidth);
-	}
-	
-	@Override
-	public double getLowerBound() {
-		updateBandwidth();
-		return NormalDistribution.getLowerBound(minValue, bandwidth);
-	}
-	
-	public double getTotalWeight() {
-		return weightSum;
-	}
-	
-	@Override
-	public double getProbability(double value) {
-		updateBandwidth();
-		double probability = 0;
-		for (Map.Entry<Double, Double> entry : valueWeightMap.entrySet()) {
-			double scaledValue = (value - entry.getKey().doubleValue()) / bandwidth;
-			if (scaledValue < STANDARD_NORMAL_LOWER_BOUND || scaledValue > STANDARD_NORMAL_UPPER_BOUND) {
-				continue;
-			}
-			probability += NormalDistribution.getProbability(0, 1, scaledValue) * entry.getValue().doubleValue() / bandwidth;
-		}
-		//TODO: If here probability is 0, the product of probabilities will be 0, too. Needs to add minimal 
-		// probability here or do not use bounds at all.
-		return probability / weightSum;
-	}
+    private double minValue;
+
+    private double maxValue;
+
+    private static final double STANDARD_NORMAL_LOWER_BOUND = NormalDistribution.getLowerBound(0, 1);
+
+    private static final double STANDARD_NORMAL_UPPER_BOUND = NormalDistribution.getUpperBound(0, 1);
+
+    public FullKernelDistribution() {
+        super();
+        valueWeightMap = new HashMap<Double, Double>();
+        weightSum = 0;
+        minValue = Double.POSITIVE_INFINITY;
+        maxValue = Double.NEGATIVE_INFINITY;
+        heuristicBandwidthSelection = true;
+        recentlyUpdated = false;
+    }
+
+    public FullKernelDistribution(double bandwidth) {
+        super();
+        this.bandwidth = bandwidth;
+        valueWeightMap = new HashMap<Double, Double>();
+        weightSum = 0;
+        minValue = Double.POSITIVE_INFINITY;
+        maxValue = Double.NEGATIVE_INFINITY;
+        heuristicBandwidthSelection = false;
+        recentlyUpdated = false;
+    }
+
+    @Override
+    public void update(double value, double weight) {
+        if (!Double.isNaN(value) && !Double.isNaN(weight)) {
+            Double totalValueWeight = valueWeightMap.get(value);
+            if (totalValueWeight != null) {
+                totalValueWeight += weight;
+            } else {
+                totalValueWeight = new Double(weight);
+            }
+            valueWeightMap.put(value, totalValueWeight);
+            weightSum += weight;
+            if (value < minValue) {
+                minValue = value;
+            }
+            if (value > maxValue) {
+                maxValue = value;
+            }
+            recentlyUpdated = true;
+        }
+    }
+
+    @Override
+    public void update(double value) {
+        update(value, 1.0d);
+    }
+
+    @Override
+    public String getAttributeName() {
+        return null;
+    }
+
+    @Override
+    public int getNumberOfParameters() {
+        return 0;
+    }
+
+    @Override
+    public String getParameterName(int index) {
+        return null;
+    }
+
+    @Override
+    public double getParameterValue(int index) {
+        return Double.NaN;
+    }
+
+    private void updateBandwidth() {
+        if (heuristicBandwidthSelection && recentlyUpdated) {
+            bandwidth = (maxValue - minValue) / Math.sqrt(weightSum);
+            recentlyUpdated = false;
+        }
+    }
+
+    @Override
+    public double getUpperBound() {
+        updateBandwidth();
+        return NormalDistribution.getUpperBound(maxValue, bandwidth);
+    }
+
+    @Override
+    public double getLowerBound() {
+        updateBandwidth();
+        return NormalDistribution.getLowerBound(minValue, bandwidth);
+    }
+
+    @Override
+    public double getTotalWeight() {
+        return weightSum;
+    }
+
+    @Override
+    public double getProbability(double value) {
+        updateBandwidth();
+        double probability = 0;
+        for (Map.Entry<Double, Double> entry : valueWeightMap.entrySet()) {
+            double scaledValue = (value - entry.getKey().doubleValue()) / bandwidth;
+            if (scaledValue < STANDARD_NORMAL_LOWER_BOUND || scaledValue > STANDARD_NORMAL_UPPER_BOUND) {
+                continue;
+            }
+            probability += NormalDistribution.getProbability(0, 1, scaledValue) * entry.getValue().doubleValue();
+        }
+        probability /= bandwidth;
+        if (probability == 0) {
+            return Double.MIN_VALUE;
+        }
+        return probability / weightSum;
+    }
 }

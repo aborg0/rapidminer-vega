@@ -37,6 +37,7 @@ import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.example.table.DoubleArrayDataRow;
 import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.tools.ObjectVisualizerService;
 import com.rapidminer.tools.Ontology;
 
@@ -50,211 +51,235 @@ import com.rapidminer.tools.Ontology;
  */
 public class DataTableExampleSetAdapter extends AbstractDataTable {
 
-	private static final int DEFAULT_MAX_SIZE_FOR_SHUFFLED_SAMPLING = 100000;
+    private static final int DEFAULT_MAX_SIZE_FOR_SHUFFLED_SAMPLING = 100000;
 
-	private ExampleSet exampleSet;
+    private ExampleSet exampleSet;
 
-	private List<Attribute> allAttributes = new ArrayList<Attribute>();
+    private List<Attribute> allAttributes = new ArrayList<Attribute>();
 
-	private int numberOfRegularAttributes = 0;
+    private int numberOfRegularAttributes = 0;
 
-	private AttributeWeights weights = null;
+    private AttributeWeights weights = null;
 
-	private Attribute idAttribute;
+    private Attribute idAttribute;
 
 
-	public DataTableExampleSetAdapter(ExampleSet exampleSet, AttributeWeights weights) {
-		super("Data Table");
-		this.exampleSet = exampleSet;
-		this.weights = weights;
+    public DataTableExampleSetAdapter(ExampleSet exampleSet, AttributeWeights weights) {
+        super("Data Table");
+        this.exampleSet = exampleSet;
+        this.weights = weights;
 
-		for (Attribute attribute : exampleSet.getAttributes()) {
-			allAttributes.add(attribute);
-		}
+        for (Attribute attribute : exampleSet.getAttributes()) {
+            allAttributes.add(attribute);
+        }
 
-		this.idAttribute = exampleSet.getAttributes().getId();
-		Iterator<AttributeRole> s = exampleSet.getAttributes().specialAttributes();
-		while (s.hasNext()) {
-			Attribute specialAttribute = s.next().getAttribute();
-			if ((idAttribute == null) || (!idAttribute.getName().equals(specialAttribute.getName()))) {
-				allAttributes.add(specialAttribute);
-			}
-		}
+        this.idAttribute = exampleSet.getAttributes().getId();
+        Iterator<AttributeRole> s = exampleSet.getAttributes().specialAttributes();
+        while (s.hasNext()) {
+            Attribute specialAttribute = s.next().getAttribute();
+            if ((idAttribute == null) || (!idAttribute.getName().equals(specialAttribute.getName()))) {
+                allAttributes.add(specialAttribute);
+            }
+        }
 
-		this.numberOfRegularAttributes = exampleSet.getAttributes().size();
-		
-		// TODO: Find another solution for this hack
-		registerVisualizerForMe(exampleSet);
-	}
+        this.numberOfRegularAttributes = exampleSet.getAttributes().size();
 
-	public DataTableExampleSetAdapter(DataTableExampleSetAdapter dataTableExampleSetAdapter) {
-		super(dataTableExampleSetAdapter.getName());
-		this.exampleSet = dataTableExampleSetAdapter.exampleSet; // shallow clone
-		this.allAttributes = dataTableExampleSetAdapter.allAttributes; // shallow clone
-		this.numberOfRegularAttributes = dataTableExampleSetAdapter.numberOfRegularAttributes;
-		this.weights = dataTableExampleSetAdapter.weights; // shallow clone
-		this.idAttribute = dataTableExampleSetAdapter.idAttribute; // shallow clone
+        // TODO: Find another solution for this hack
+        registerVisualizerForMe(exampleSet);
+    }
 
-		// TODO: Find another solution for this hack
-		registerVisualizerForMe(dataTableExampleSetAdapter);
-	}
+    public DataTableExampleSetAdapter(DataTableExampleSetAdapter dataTableExampleSetAdapter) {
+        super(dataTableExampleSetAdapter.getName());
+        this.exampleSet = dataTableExampleSetAdapter.exampleSet; // shallow clone
+        this.allAttributes = dataTableExampleSetAdapter.allAttributes; // shallow clone
+        this.numberOfRegularAttributes = dataTableExampleSetAdapter.numberOfRegularAttributes;
+        this.weights = dataTableExampleSetAdapter.weights; // shallow clone
+        this.idAttribute = dataTableExampleSetAdapter.idAttribute; // shallow clone
 
-	
-	
-	public int getNumberOfSpecialColumns() {
-		return allAttributes.size() - numberOfRegularAttributes;
-	}
+        // TODO: Find another solution for this hack
+        registerVisualizerForMe(dataTableExampleSetAdapter);
+    }
 
-	public boolean isSpecial(int index) {
-		return index >= numberOfRegularAttributes;
-	}
 
-	public boolean isNominal(int index) {
-		return Ontology.ATTRIBUTE_VALUE_TYPE.isA(allAttributes.get(index).getValueType(), Ontology.NOMINAL);
-	}
 
-	public boolean isDate(int index) {
-		return Ontology.ATTRIBUTE_VALUE_TYPE.isA(allAttributes.get(index).getValueType(), Ontology.DATE);
-	}
+    @Override
+    public int getNumberOfSpecialColumns() {
+        return allAttributes.size() - numberOfRegularAttributes;
+    }
 
-	public boolean isTime(int index) {
-		return Ontology.ATTRIBUTE_VALUE_TYPE.isA(allAttributes.get(index).getValueType(), Ontology.TIME);
-	}
+    @Override
+    public boolean isSpecial(int index) {
+        return index >= numberOfRegularAttributes;
+    }
 
-	public boolean isDateTime(int index) {
-		return Ontology.ATTRIBUTE_VALUE_TYPE.isA(allAttributes.get(index).getValueType(), Ontology.DATE_TIME);
-	}
+    @Override
+    public boolean isNominal(int index) {
+        return Ontology.ATTRIBUTE_VALUE_TYPE.isA(allAttributes.get(index).getValueType(), Ontology.NOMINAL);
+    }
 
-	public boolean isNumerical(int index) {
-		return Ontology.ATTRIBUTE_VALUE_TYPE.isA(allAttributes.get(index).getValueType(), Ontology.NUMERICAL);
-	}
+    @Override
+    public boolean isDate(int index) {
+        return Ontology.ATTRIBUTE_VALUE_TYPE.isA(allAttributes.get(index).getValueType(), Ontology.DATE);
+    }
 
-	public String mapIndex(int column, int value) {
-		return allAttributes.get(column).getMapping().mapIndex(value);
-	}
+    @Override
+    public boolean isTime(int index) {
+        return Ontology.ATTRIBUTE_VALUE_TYPE.isA(allAttributes.get(index).getValueType(), Ontology.TIME);
+    }
 
-	public int mapString(int column, String value) {
-		return allAttributes.get(column).getMapping().mapString(value);
-	}
+    @Override
+    public boolean isDateTime(int index) {
+        return Ontology.ATTRIBUTE_VALUE_TYPE.isA(allAttributes.get(index).getValueType(), Ontology.DATE_TIME);
+    }
 
-	public int getNumberOfValues(int column) {
-		return allAttributes.get(column).getMapping().size();
-	}
+    @Override
+    public boolean isNumerical(int index) {
+        return Ontology.ATTRIBUTE_VALUE_TYPE.isA(allAttributes.get(index).getValueType(), Ontology.NUMERICAL);
+    }
 
-	public String getColumnName(int i) {
-		return allAttributes.get(i).getName();
-	}
+    @Override
+    public String mapIndex(int column, int value) {
+        return allAttributes.get(column).getMapping().mapIndex(value);
+    }
 
-	public int getColumnIndex(String name) {
-		for (int i = 0; i < allAttributes.size(); i++)
-			if (allAttributes.get(i).getName().equals(name))
-				return i;
-		return -1;
-	}
+    @Override
+    public int mapString(int column, String value) {
+        return allAttributes.get(column).getMapping().mapString(value);
+    }
 
-	public boolean isSupportingColumnWeights() {
-		return weights != null;
-	}
+    @Override
+    public int getNumberOfValues(int column) {
+        return allAttributes.get(column).getMapping().size();
+    }
 
-	public double getColumnWeight(int column) {
-		if (weights == null)
-			return Double.NaN;
-		else
-			return weights.getWeight(getColumnName(column));
-	}
+    @Override
+    public String getColumnName(int i) {
+        return allAttributes.get(i).getName();
+    }
 
-	public int getNumberOfColumns() {
-		return this.allAttributes.size();
-	}
+    @Override
+    public int getColumnIndex(String name) {
+        for (int i = 0; i < allAttributes.size(); i++)
+            if (allAttributes.get(i).getName().equals(name))
+                return i;
+        return -1;
+    }
 
-	public void add(DataTableRow row) {
-		throw new RuntimeException("DataTableExampleSetAdapter: adding new rows is not supported!");		
-	}
+    @Override
+    public boolean isSupportingColumnWeights() {
+        return weights != null;
+    }
 
-	public DataTableRow getRow(int index) {
-		return new Example2DataTableRowWrapper(exampleSet.getExample(index), allAttributes, idAttribute);
-	}
+    @Override
+    public double getColumnWeight(int column) {
+        if (weights == null)
+            return Double.NaN;
+        else
+            return weights.getWeight(getColumnName(column));
+    }
 
-	public Iterator<DataTableRow> iterator() {
-		return new Example2DataTableRowIterator(exampleSet.iterator(), allAttributes, idAttribute);
-	}
+    @Override
+    public int getNumberOfColumns() {
+        return this.allAttributes.size();
+    }
 
-	public int getNumberOfRows() {
-		return this.exampleSet.size();
-	}
+    @Override
+    public void add(DataTableRow row) {
+        throw new RuntimeException("DataTableExampleSetAdapter: adding new rows is not supported!");
+    }
 
-	public DataTable sample(int newSize) {
-		DataTableExampleSetAdapter result = new DataTableExampleSetAdapter(this);
+    @Override
+    public DataTableRow getRow(int index) {
+        return new Example2DataTableRowWrapper(exampleSet.getExample(index), allAttributes, idAttribute);
+    }
 
-		double ratio = (double)newSize / (double)getNumberOfRows();
+    @Override
+    public Iterator<DataTableRow> iterator() {
+        return new Example2DataTableRowIterator(exampleSet.iterator(), allAttributes, idAttribute);
+    }
 
-		int maxNumberBeforeSampling = DEFAULT_MAX_SIZE_FOR_SHUFFLED_SAMPLING;
-		String maxString = System.getProperty(RapidMinerGUI.PROPERTY_RAPIDMINER_GUI_MAX_STATISTICS_ROWS);
-		if (maxString != null) {
-			try {
-				maxNumberBeforeSampling = Integer.parseInt(maxString);
-			} catch (NumberFormatException e) {
-				// do nothing
-			}
-		}
+    @Override
+    public int getNumberOfRows() {
+        return this.exampleSet.size();
+    }
 
-		ExampleSet exampleSet = null;
-		if (getNumberOfRows() < maxNumberBeforeSampling) {
-			exampleSet = new SplittedExampleSet(this.exampleSet, ratio, SplittedExampleSet.SHUFFLED_SAMPLING, false, 0);
-			((SplittedExampleSet)exampleSet).selectSingleSubset(0);
-		} else {
-			exampleSet = Tools.getLinearSubsetCopy(this.exampleSet, newSize, 0);
-		}
+    @Override
+    public DataTable sample(int newSize) {
+        DataTableExampleSetAdapter result = new DataTableExampleSetAdapter(this);
 
-		result.exampleSet = exampleSet;
-		return result;
-	}
+        double ratio = (double)newSize / (double)getNumberOfRows();
 
-	public static ExampleSet createExampleSetFromDataTable(DataTable table) {
-		List<Attribute> attributes = new ArrayList<Attribute>();
+        int maxNumberBeforeSampling = DEFAULT_MAX_SIZE_FOR_SHUFFLED_SAMPLING;
+        String maxString = System.getProperty(RapidMinerGUI.PROPERTY_RAPIDMINER_GUI_MAX_STATISTICS_ROWS);
+        if (maxString != null) {
+            try {
+                maxNumberBeforeSampling = Integer.parseInt(maxString);
+            } catch (NumberFormatException e) {
+                // do nothing
+            }
+        }
 
-		for (int i = 0; i < table.getNumberOfColumns(); i++) {
-			if (table.isDate(i)) {
-				Attribute attribute = AttributeFactory.createAttribute(table.getColumnName(i), Ontology.DATE);
-				attributes.add(attribute);
-			} else if (table.isTime(i)) {
-				Attribute attribute = AttributeFactory.createAttribute(table.getColumnName(i), Ontology.TIME);
-				attributes.add(attribute);
-			} else if (table.isDateTime(i)) {
-				Attribute attribute = AttributeFactory.createAttribute(table.getColumnName(i), Ontology.DATE_TIME);
-				attributes.add(attribute);
-			} else if (table.isNominal(i)) {
-				Attribute attribute = AttributeFactory.createAttribute(table.getColumnName(i), Ontology.NOMINAL);
-				attributes.add(attribute);
-			} else {
-				Attribute attribute = AttributeFactory.createAttribute(table.getColumnName(i), Ontology.REAL);
-				attributes.add(attribute);    			
-			}
-		}
+        ExampleSet exampleSet = null;
+        if (getNumberOfRows() < maxNumberBeforeSampling) {
+            try {
+                exampleSet = new SplittedExampleSet(this.exampleSet, ratio, SplittedExampleSet.SHUFFLED_SAMPLING, false, 0);
+            } catch (UserError e) {
+                // this exception is only thrown for Stratified Sampling
+            }
+            ((SplittedExampleSet)exampleSet).selectSingleSubset(0);
+        } else {
+            exampleSet = Tools.getLinearSubsetCopy(this.exampleSet, newSize, 0);
+        }
 
-		MemoryExampleTable exampleTable = new MemoryExampleTable(attributes);
+        result.exampleSet = exampleSet;
+        return result;
+    }
 
-		for (int i = 0; i < table.getNumberOfRows(); i++) {
-			DataTableRow row = table.getRow(i);
-			double[] values = new double[attributes.size()];
-			for (int a = 0; a < values.length; a++) {
-				Attribute attribute = attributes.get(a);
-				if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
-					values[a] = row.getValue(a);
-				} else if (attribute.isNominal()) {
-					values[a] = attribute.getMapping().mapString(table.getValueAsString(row, a));
-				} else {
-					values[a] = row.getValue(a);
-				}
-			}
-			exampleTable.addDataRow(new DoubleArrayDataRow(values));
-		}
+    public static ExampleSet createExampleSetFromDataTable(DataTable table) {
+        List<Attribute> attributes = new ArrayList<Attribute>();
 
-		return exampleTable.createExampleSet();
-	}
-	
-	private void registerVisualizerForMe(Object father) {
-		ObjectVisualizer visualizer = ObjectVisualizerService.getVisualizerForObject(father);
-		ObjectVisualizerService.addObjectVisualizer(this, visualizer);
-	}
+        for (int i = 0; i < table.getNumberOfColumns(); i++) {
+            if (table.isDate(i)) {
+                Attribute attribute = AttributeFactory.createAttribute(table.getColumnName(i), Ontology.DATE);
+                attributes.add(attribute);
+            } else if (table.isTime(i)) {
+                Attribute attribute = AttributeFactory.createAttribute(table.getColumnName(i), Ontology.TIME);
+                attributes.add(attribute);
+            } else if (table.isDateTime(i)) {
+                Attribute attribute = AttributeFactory.createAttribute(table.getColumnName(i), Ontology.DATE_TIME);
+                attributes.add(attribute);
+            } else if (table.isNominal(i)) {
+                Attribute attribute = AttributeFactory.createAttribute(table.getColumnName(i), Ontology.NOMINAL);
+                attributes.add(attribute);
+            } else {
+                Attribute attribute = AttributeFactory.createAttribute(table.getColumnName(i), Ontology.REAL);
+                attributes.add(attribute);
+            }
+        }
+
+        MemoryExampleTable exampleTable = new MemoryExampleTable(attributes);
+
+        for (int i = 0; i < table.getNumberOfRows(); i++) {
+            DataTableRow row = table.getRow(i);
+            double[] values = new double[attributes.size()];
+            for (int a = 0; a < values.length; a++) {
+                Attribute attribute = attributes.get(a);
+                if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
+                    values[a] = row.getValue(a);
+                } else if (attribute.isNominal()) {
+                    values[a] = attribute.getMapping().mapString(table.getValueAsString(row, a));
+                } else {
+                    values[a] = row.getValue(a);
+                }
+            }
+            exampleTable.addDataRow(new DoubleArrayDataRow(values));
+        }
+
+        return exampleTable.createExampleSet();
+    }
+
+    private void registerVisualizerForMe(Object father) {
+        ObjectVisualizer visualizer = ObjectVisualizerService.getVisualizerForObject(father);
+        ObjectVisualizerService.addObjectVisualizer(this, visualizer);
+    }
 }

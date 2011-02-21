@@ -39,53 +39,57 @@ import com.rapidminer.parameter.ParameterType;
  */
 public class DecisionStumpLearner extends AbstractTreeLearner {
 
-	public DecisionStumpLearner(OperatorDescription description) {
-		super(description);
-	}
+    public DecisionStumpLearner(OperatorDescription description) {
+        super(description);
+    }
 
-	@Override
-	public Pruner getPruner() throws OperatorException {
-		return null;
-	}
+    @Override
+    public Pruner getPruner() throws OperatorException {
+        return null;
+    }
 
-	@Override
-	public List<Terminator> getTerminationCriteria(ExampleSet exampleSet) {
-		List<Terminator> result = new LinkedList<Terminator>();
-		result.add(new SingleLabelTermination());
-		result.add(new NoAttributeLeftTermination());
-		result.add(new EmptyTermination());
-		result.add(new MaxDepthTermination(2));
-		return result;
-	}
+    @Override
+    public List<Terminator> getTerminationCriteria(ExampleSet exampleSet) {
+        List<Terminator> result = new LinkedList<Terminator>();
+        result.add(new SingleLabelTermination());
+        result.add(new NoAttributeLeftTermination());
+        result.add(new EmptyTermination());
+        result.add(new MaxDepthTermination(2));
+        return result;
+    }
 
-	public boolean supportsCapability(OperatorCapability capability) {
-		switch (capability) {
-		case BINOMINAL_ATTRIBUTES:
-		case POLYNOMINAL_ATTRIBUTES:
-		case NUMERICAL_ATTRIBUTES:
-		case POLYNOMINAL_LABEL:
-		case BINOMINAL_LABEL:
-		case WEIGHTED_EXAMPLES:
-		case MISSING_VALUES:
-			return true;
-		default:
-			return false;
-		}
-	}
+    @Override
+    public boolean supportsCapability(OperatorCapability capability) {
+        switch (capability) {
+        case BINOMINAL_ATTRIBUTES:
+        case POLYNOMINAL_ATTRIBUTES:
+        case NUMERICAL_ATTRIBUTES:
+        case POLYNOMINAL_LABEL:
+        case BINOMINAL_LABEL:
+        case WEIGHTED_EXAMPLES:
+        case MISSING_VALUES:
+            return true;
+        default:
+            return false;
+        }
+    }
 
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		List<ParameterType> types = super.getParameterTypes();
-		for (ParameterType type : types) {
-			if (type.getKey().equals(PARAMETER_MINIMAL_LEAF_SIZE)) {
-				type.setDefaultValue(Integer.valueOf(1));
-			}
-		}
-		return types;
-	}
+    @Override
+    public List<ParameterType> getParameterTypes() {
+        List<ParameterType> types = new LinkedList<ParameterType>();
+        for (ParameterType type : super.getParameterTypes()) {
+            if (type.getKey().equals(PARAMETER_MINIMAL_LEAF_SIZE)) {
+                type.setDefaultValue(Integer.valueOf(1));
+            }
 
-	@Override
-	protected TreeBuilder getTreeBuilder(ExampleSet exampleSet) throws OperatorException {
-		return new TreeBuilder(createCriterion(getParameterAsDouble(PARAMETER_MINIMAL_GAIN)), getTerminationCriteria(exampleSet), getPruner(), getSplitPreprocessing(), new DecisionTreeLeafCreator(), true, 0, getParameterAsInt(PARAMETER_MINIMAL_SIZE_FOR_SPLIT), getParameterAsInt(PARAMETER_MINIMAL_LEAF_SIZE));
-	}
+            if (!type.getKey().equals(PARAMETER_MINIMAL_GAIN) && !type.getKey().equals(PARAMETER_MINIMAL_SIZE_FOR_SPLIT))
+                types.add(type);
+        }
+        return types;
+    }
+
+    @Override
+    protected TreeBuilder getTreeBuilder(ExampleSet exampleSet) throws OperatorException {
+        return new TreeBuilder(createCriterion(0.0), getTerminationCriteria(exampleSet), getPruner(), getSplitPreprocessing(), new DecisionTreeLeafCreator(), true, 0, 0, getParameterAsInt(PARAMETER_MINIMAL_LEAF_SIZE));
+    }
 }

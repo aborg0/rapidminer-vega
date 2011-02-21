@@ -65,9 +65,9 @@ public class ParameterValue extends PostfixMathCommand {
 		try {
 			stack.push(process.getOperator(operatorName).getParameter(parameterName));
 		} catch (UndefinedParameterError e) {
-			throw new ParseException("Unkown parameter as argument for 'parameterValue'.");
+			throw new ParseException("Unknown parameter as argument for 'parameterValue'.");
 		} catch (NullPointerException e) {
-			throw new ParseException("Unkown operator as argument for 'parameterValue'.");
+			throw new ParseException("Unknown operator as argument for 'parameterValue'.");
 		}
 		
 	}

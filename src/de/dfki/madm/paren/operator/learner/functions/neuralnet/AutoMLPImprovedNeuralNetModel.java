@@ -7,7 +7,7 @@
  *  based on "RapidMiner"
  *  Copyright (C) 2001-2010 by Rapid-I and the contributors
  *  - original author: Ingo Mierswa
- *  - modified by Atif Syed Mehdi (01/09/2010)
+ *  - modified by Syed Atif Mehdi (01/09/2010)
  *  
  *  This is free software: you can redistribute it and/or modify 
  *  it under the terms of the GNU Affero General Public License as published by 
@@ -44,7 +44,7 @@ import com.rapidminer.tools.Tools;
 /**
  * The model of the improved neural net.
  * 
- * @author Ingo Mierswa, modified by Atif Syed Mehdi (01/09/2010)
+ * @author Ingo Mierswa, modified by Syed Atif Mehdi (01/09/2010)
  */
 
 public class AutoMLPImprovedNeuralNetModel extends PredictionModel {
@@ -163,10 +163,6 @@ public class AutoMLPImprovedNeuralNetModel extends PredictionModel {
 				{	
 					throw new RuntimeException("Cannot reset network to a smaller learning rate.");
 				}
-				//these have been commented - after discussion.
-//				learningRate /= 2;
-//				train(exampleSet, hiddenLayers, maxCycles, maxError, learningRate, momentum, decay, shuffle, normalize, randomGenerator, is_old_model, old_model);
-
 			}
 		}
 	}
@@ -345,7 +341,6 @@ public class AutoMLPImprovedNeuralNetModel extends PredictionModel {
 
 		int lastLayerSize = 0;
 		for (int layerIndex = 0; layerIndex < layerNames.length; layerIndex++) {
-			//String layerName = layerNames[layerIndex];
 			int numberOfNodes = layerSizes[layerIndex];
 			for (int nodeIndex = 0; nodeIndex < numberOfNodes; nodeIndex++) {
 				InnerNode innerNode = new InnerNode("Node " + (nodeIndex + 1), layerIndex, randomGenerator, SIGMOID_FUNCTION);

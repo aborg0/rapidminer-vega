@@ -43,101 +43,102 @@ import com.rapidminer.tools.container.Pair;
 /**
  * Returns a more appropriate result icon. This model allows preprocessing
  * Operators to be applied through a view without changing the underlying data.
- * Since ModelApplier dont know the models, because they are wrapped within a 
+ * Since ModelApplier dont know the models, because they are wrapped within a
  * container model, its necessary to ask for the parameter PARAMETER_CREATE_VIEW.
  * This must be setted by the modelapplier, and should be the default behavior.
  * 
  * @author Ingo Mierswa, Sebastian Land
  */
 public abstract class PreprocessingModel extends AbstractModel implements ViewModel {
+    private static final long serialVersionUID = -2603663450216521777L;
 
-	private static final long serialVersionUID = -2603663450216521777L;
+    private HashMap<String, Object> parameterMap = new HashMap<String, Object>();
 
-	private HashMap<String, Object> parameterMap = new HashMap<String, Object>();
+    protected PreprocessingModel(ExampleSet exampleSet) {
+        super(exampleSet);
+    }
 
-	protected PreprocessingModel(ExampleSet exampleSet) {
-		super(exampleSet);
-	}
+    /**
+     * Applies the model by changing the underlying data
+     */
+    public abstract ExampleSet applyOnData(ExampleSet exampleSet) throws OperatorException;
 
-	/**
-	 * Applies the model by changing the underlying data
-	 */
-	public abstract ExampleSet applyOnData(ExampleSet exampleSet) throws OperatorException;
-
-	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
-		// adapting example set to contain only attributes, which were present during learning time and
-		// remove roles if necessary
-		ExampleSet nonSpecialRemapped = new RemappedExampleSet( (isSupportingAttributeRoles()) ? exampleSet: new NonSpecialAttributesExampleSet(exampleSet), getTrainingHeader(), false);
-		LinkedList<AttributeRole> unusedList = new LinkedList<AttributeRole>();
-		Iterator<AttributeRole> iterator = exampleSet.getAttributes().allAttributeRoles();
-		while (iterator.hasNext()) {
-			AttributeRole role = iterator.next();
-			if (nonSpecialRemapped.getAttributes().get(role.getAttribute().getName()) == null) {
-				unusedList.add(role);
-			}
-		}
+    @Override
+    public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
+        // adapting example set to contain only attributes, which were present during learning time and
+        // remove roles if necessary
+        ExampleSet nonSpecialRemapped = new RemappedExampleSet( (isSupportingAttributeRoles()) ? exampleSet: new NonSpecialAttributesExampleSet(exampleSet), getTrainingHeader(), false);
+        LinkedList<AttributeRole> unusedList = new LinkedList<AttributeRole>();
+        Iterator<AttributeRole> iterator = exampleSet.getAttributes().allAttributeRoles();
+        while (iterator.hasNext()) {
+            AttributeRole role = iterator.next();
+            if (nonSpecialRemapped.getAttributes().get(role.getAttribute().getName()) == null) {
+                unusedList.add(role);
+            }
+        }
 
 
-		// applying by creating view or changing data
-		boolean createView = false;
-		if (parameterMap.containsKey(PreprocessingOperator.PARAMETER_CREATE_VIEW)) {
-			Boolean booleanObject = ((Boolean)parameterMap.get(PreprocessingOperator.PARAMETER_CREATE_VIEW)); 
-			createView = false;
-			if (booleanObject != null)
-				createView = booleanObject.booleanValue();
-		}
+        // applying by creating view or changing data
+        boolean createView = false;
+        if (parameterMap.containsKey(PreprocessingOperator.PARAMETER_CREATE_VIEW)) {
+            Boolean booleanObject = ((Boolean)parameterMap.get(PreprocessingOperator.PARAMETER_CREATE_VIEW));
+            createView = false;
+            if (booleanObject != null)
+                createView = booleanObject.booleanValue();
+        }
 
-		ExampleSet result;
-		if (createView) {
-			// creating only view
-			result = new ModelViewExampleSet(nonSpecialRemapped, this);
-		} else {
-			result = applyOnData(nonSpecialRemapped);
-		}
+        ExampleSet result;
+        if (createView) {
+            // creating only view
+            result = new ModelViewExampleSet(nonSpecialRemapped, this);
+        } else {
+            result = applyOnData(nonSpecialRemapped);
+        }
 
-		// restoring roles if possible
-		Iterator<Attribute> attributeIterator = result.getAttributes().allAttributes();
-		List<Pair<Attribute, String>> roleList = new LinkedList<Pair<Attribute, String>>();
-		Attributes inputAttributes = exampleSet.getAttributes();
-		while (attributeIterator.hasNext()) {
-			Attribute resultAttribute = attributeIterator.next();
-			AttributeRole role = inputAttributes.getRole(resultAttribute.getName());
-			if (role != null && role.isSpecial())
-				roleList.add(new Pair<Attribute, String>(resultAttribute, role.getSpecialName()));  // since underlying connection is changed
-		}
-		for (Pair<Attribute, String> rolePair: roleList)
-			result.getAttributes().setSpecialAttribute(rolePair.getFirst(), rolePair.getSecond());
+        // restoring roles if possible
+        Iterator<Attribute> attributeIterator = result.getAttributes().allAttributes();
+        List<Pair<Attribute, String>> roleList = new LinkedList<Pair<Attribute, String>>();
+        Attributes inputAttributes = exampleSet.getAttributes();
+        while (attributeIterator.hasNext()) {
+            Attribute resultAttribute = attributeIterator.next();
+            AttributeRole role = inputAttributes.getRole(resultAttribute.getName());
+            if (role != null && role.isSpecial())
+                roleList.add(new Pair<Attribute, String>(resultAttribute, role.getSpecialName()));  // since underlying connection is changed
+        }
+        for (Pair<Attribute, String> rolePair: roleList)
+            result.getAttributes().setSpecialAttribute(rolePair.getFirst(), rolePair.getSecond());
 
-		// adding unused 
-		Attributes resultAttributes = result.getAttributes();
-		for(AttributeRole role: unusedList) {
-			resultAttributes.add(role);
-		}
-		return result;
-	}
+        // adding unused
+        Attributes resultAttributes = result.getAttributes();
+        for(AttributeRole role: unusedList) {
+            resultAttributes.add(role);
+        }
+        return result;
+    }
 
-	@Override
-	public String toResultString() {
-		StringBuilder builder = new StringBuilder();
-		Attributes trainAttributes = getTrainingHeader().getAttributes();
-		builder.append("Model covering " + trainAttributes.size() + " attributes:" + Tools.getLineSeparator());
-		for (Attribute attribute: trainAttributes) {
-			builder.append(" - " + attribute.getName() + Tools.getLineSeparator());
-		}
-		return builder.toString();
-	}
+    @Override
+    public String toResultString() {
+        StringBuilder builder = new StringBuilder();
+        Attributes trainAttributes = getTrainingHeader().getAttributes();
+        builder.append(getName()+ Tools.getLineSeparators(2));
+        builder.append("Model covering " + trainAttributes.size() + " attributes:" + Tools.getLineSeparator());
+        for (Attribute attribute: trainAttributes) {
+            builder.append(" - " + attribute.getName() + Tools.getLineSeparator());
+        }
+        return builder.toString();
+    }
 
-	@Override
-	public void setParameter(String key, Object value) {
-		parameterMap.put(key, value);
-	}
+    @Override
+    public void setParameter(String key, Object value) {
+        parameterMap.put(key, value);
+    }
 
-	/**
-	 * Subclasses which need to have the attribute roles must return true. Otherwise
-	 * all selected attributes are converted into regular and afterwards given their old
-	 * roles. 
-	 */
-	public boolean isSupportingAttributeRoles() {
-		return false;
-	}
+    /**
+     * Subclasses which need to have the attribute roles must return true. Otherwise
+     * all selected attributes are converted into regular and afterwards given their old
+     * roles.
+     */
+    public boolean isSupportingAttributeRoles() {
+        return false;
+    }
 }

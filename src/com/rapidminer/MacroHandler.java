@@ -35,70 +35,66 @@ import java.util.Map;
  */
 public class MacroHandler {
 
-	// TODO: remove experiment macros later
-	private static final String[] PREDEFINED_MACROS = {
-		"experiment_name",
-		"experiment_file",
-		"experiment_path",
-		"process_name",
-		"process_file",
-		"process_path"
-	};
-	
-	// TODO: remove experiment constants later
-	private static final int EXPERIMENT_NAME = 0;
-	private static final int EXPERIMENT_FILE = 1;
-	private static final int EXPERIMENT_PATH = 2;
-	private static final int PROCESS_NAME = 3;
-	private static final int PROCESS_FILE = 4;
-	private static final int PROCESS_PATH = 5;
-	
-	private final Process process;
-	
-	private final Map<String, String> macroMap = new HashMap<String, String>();
-	
-	public MacroHandler(Process process) {
-		this.process = process;
-	}
-	
-	public void clear() {
-		this.macroMap.clear();
-	}
-	
-	public Iterator<String> getDefinedMacroNames() {
-		return macroMap.keySet().iterator();
-	}
-	
-	public void addMacro(String macro, String value) {
-		this.macroMap.put(macro, value);
-	}
+    // TODO: remove experiment macros later
+    private static final String[] PREDEFINED_MACROS = { "experiment_name", "experiment_file", "experiment_path", "process_name", "process_file", "process_path" };
 
-	public void removeMacro(String macro) {
-		this.macroMap.remove(macro);
-	}
+    // TODO: remove experiment constants later
+    private static final int EXPERIMENT_NAME = 0;
+    private static final int EXPERIMENT_FILE = 1;
+    private static final int EXPERIMENT_PATH = 2;
+    private static final int PROCESS_NAME = 3;
+    private static final int PROCESS_FILE = 4;
+    private static final int PROCESS_PATH = 5;
 
-	public String getMacro(String macro) {
-		for (int i = 0; i < PREDEFINED_MACROS.length; i++) {
-			if (PREDEFINED_MACROS[i].equals(macro)) {
-				switch (i) {
-				case EXPERIMENT_NAME:
-				case PROCESS_NAME:
-					String fileName = process.getProcessLocation().getShortName();
-					return fileName.substring(0, fileName.lastIndexOf("."));
-				case EXPERIMENT_FILE:
-				case PROCESS_FILE:
-					return process.getProcessLocation().getShortName();
-				case EXPERIMENT_PATH:
-				case PROCESS_PATH:
-					return process.getProcessLocation().toString();
-				}
-			}
-		}
-		return this.macroMap.get(macro);
-	}
-	
-	@Override
-	public String toString() {
-		return this.macroMap.toString();
-	}
+    private final Process process;
+
+    private final Map<String, String> macroMap = new HashMap<String, String>();
+
+    public MacroHandler(Process process) {
+        this.process = process;
+    }
+
+    public void clear() {
+        this.macroMap.clear();
+    }
+
+    public Iterator<String> getDefinedMacroNames() {
+        return macroMap.keySet().iterator();
+    }
+
+    public void addMacro(String macro, String value) {
+        this.macroMap.put(macro, value);
+    }
+
+    public void removeMacro(String macro) {
+        this.macroMap.remove(macro);
+    }
+
+    public String getMacro(String macro) {
+        for (int i = 0; i < PREDEFINED_MACROS.length; i++) {
+            if (PREDEFINED_MACROS[i].equals(macro)) {
+                switch (i) {
+                case EXPERIMENT_NAME:
+                case PROCESS_NAME:
+                    ProcessLocation processLocation = process.getProcessLocation();
+                    if (processLocation instanceof FileProcessLocation) {
+                        return processLocation.getShortName().substring(0, processLocation.getShortName().lastIndexOf("."));
+                    }
+                    return processLocation.getShortName();
+                case EXPERIMENT_FILE:
+                case PROCESS_FILE:
+                    return process.getProcessLocation().getShortName();
+                case EXPERIMENT_PATH:
+                case PROCESS_PATH:
+                    return process.getProcessLocation().toString();
+                }
+            }
+        }
+        return this.macroMap.get(macro);
+    }
+
+    @Override
+    public String toString() {
+        return this.macroMap.toString();
+    }
 }

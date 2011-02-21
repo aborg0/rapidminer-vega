@@ -111,7 +111,7 @@ public class SeeminglyUnrelatedRegressionOperator extends AbstractLearner {
 			LinearRegression regression = OperatorService.createOperator(LinearRegression.class);
 			regression.setParameter(PARAMETER_ELIMINATE_COLINEAR_FEATURES, getParameterAsString(PARAMETER_ELIMINATE_COLINEAR_FEATURES));
 			regression.setParameter(PARAMETER_FEATURE_SELECTION, getParameterAsString(PARAMETER_FEATURE_SELECTION));
-			regression.setParameter(PARAMETER_MIN_STANDARDIZED_COEFFICIENT, getParameterAsString(PARAMETER_MIN_STANDARDIZED_COEFFICIENT));
+			regression.setParameter(PARAMETER_MIN_TOLERANCE, getParameterAsString(PARAMETER_MIN_TOLERANCE));
 			regression.setParameter(PARAMETER_RIDGE, getParameterAsString(PARAMETER_RIDGE));
 			regression.setParameter(PARAMETER_USE_BIAS, "true");
 
@@ -258,7 +258,7 @@ public class SeeminglyUnrelatedRegressionOperator extends AbstractLearner {
 		}
 
 		types.add(new ParameterTypeBoolean(PARAMETER_ELIMINATE_COLINEAR_FEATURES, "Indicates if the algorithm should try to delete colinear features during the regression.", true));
-		ParameterType type = new ParameterTypeDouble(PARAMETER_MIN_STANDARDIZED_COEFFICIENT, "The minimum standardized coefficient for the removal of colinear feature elimination.", 0.0d, Double.POSITIVE_INFINITY, 1.5d);
+		ParameterType type = new ParameterTypeDouble(PARAMETER_MIN_TOLERANCE, "The minimum tolerance for the removal of colinear features.", 0.0d, 1.0d, 0.05d);
 		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_ELIMINATE_COLINEAR_FEATURES, true, true));
 		types.add(type);
 
