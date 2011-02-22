@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2010 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2011 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -39,105 +39,107 @@ import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.tools.container.Tupel;
 /**
  * This operator compares a number of FrequentItemSet sets and removes every
- * not unique FrequentItemSet. 
+ * not unique FrequentItemSet.
  * 
  * @author Sebastian Land
  */
 public class FrequentItemSetUnificator extends Operator {
 
-	private static class FrequencyIgnoringSetComparator implements Comparator<FrequentItemSet> {
-		public int compare(FrequentItemSet o1, FrequentItemSet o2) {
-			// compare size
-			Collection<Item> items = o1.getItems();
-			Collection<Item> hisItems = o2.getItems();
-			if (items.size() < hisItems.size()) {
-				return -1;
-			} else if (items.size() > hisItems.size()) {
-				return 1;
-			} else {
-				// compare items
-				Iterator<Item> iterator = hisItems.iterator();
-				for (Item myCurrentItem : items) {
-					int relation = myCurrentItem.toString().compareTo(iterator.next().toString());
-					if (relation != 0) {
-						return relation;
-					}
-				}
-				// equal sets
-				return 0;
-			}
-		}
+    private static class FrequencyIgnoringSetComparator implements Comparator<FrequentItemSet> {
+        @Override
+        public int compare(FrequentItemSet o1, FrequentItemSet o2) {
+            // compare size
+            Collection<Item> items = o1.getItems();
+            Collection<Item> hisItems = o2.getItems();
+            if (items.size() < hisItems.size()) {
+                return -1;
+            } else if (items.size() > hisItems.size()) {
+                return 1;
+            } else {
+                // compare items
+                Iterator<Item> iterator = hisItems.iterator();
+                for (Item myCurrentItem : items) {
+                    int relation = myCurrentItem.toString().compareTo(iterator.next().toString());
+                    if (relation != 0) {
+                        return relation;
+                    }
+                }
+                // equal sets
+                return 0;
+            }
+        }
 
-	}
+    }
 
-	private class TupelComparator implements Comparator<Tupel<FrequentItemSet, Iterator<FrequentItemSet>>> {
+    private static class TupelComparator implements Comparator<Tupel<FrequentItemSet, Iterator<FrequentItemSet>>> {
 
-		public int compare(Tupel<FrequentItemSet, Iterator<FrequentItemSet>> o1, Tupel<FrequentItemSet, Iterator<FrequentItemSet>> o2) {
-			FrequencyIgnoringSetComparator comparator = new FrequencyIgnoringSetComparator();
-			return comparator.compare(o1.getFirst(), o2.getFirst());
-		}
+        @Override
+        public int compare(Tupel<FrequentItemSet, Iterator<FrequentItemSet>> o1, Tupel<FrequentItemSet, Iterator<FrequentItemSet>> o2) {
+            FrequencyIgnoringSetComparator comparator = new FrequencyIgnoringSetComparator();
+            return comparator.compare(o1.getFirst(), o2.getFirst());
+        }
 
-	}
+    }
 
-	private PortPairExtender portExtender = new PortPairExtender("frequent item sets", getInputPorts(), getOutputPorts(), new MetaData(FrequentItemSets.class));
+    private PortPairExtender portExtender = new PortPairExtender("frequent item sets", getInputPorts(), getOutputPorts(), new MetaData(FrequentItemSets.class));
 
-	public FrequentItemSetUnificator(OperatorDescription description) {
-		super(description);
+    public FrequentItemSetUnificator(OperatorDescription description) {
+        super(description);
 
-		portExtender.ensureMinimumNumberOfPorts(2);
-		getTransformer().addRule(portExtender.makePassThroughRule());
-		portExtender.start();
+        portExtender.ensureMinimumNumberOfPorts(2);
+        getTransformer().addRule(portExtender.makePassThroughRule());
+        portExtender.start();
 
-	}
+    }
 
-	@Override
-	public void doWork() throws OperatorException {		
-		List<FrequentItemSets> sets = portExtender.getData();
-		for (FrequentItemSets set: sets) {
-			set.sortSets(new FrequencyIgnoringSetComparator());
-			sets.add(set);
-		}
+    @Override
+    public void doWork() throws OperatorException {
+        List<FrequentItemSets> sets = portExtender.getData();
+        for (FrequentItemSets set: sets) {
+            set.sortSets(new FrequencyIgnoringSetComparator());
+            sets.add(set);
+        }
 
-		ArrayList<Tupel<FrequentItemSet, Iterator<FrequentItemSet>>> iteratorTupels = new ArrayList<Tupel<FrequentItemSet, Iterator<FrequentItemSet>>>(2);
-		for (FrequentItemSets classSets: sets) {
-			Iterator<FrequentItemSet> iterator = classSets.iterator();
-			iteratorTupels.add(new Tupel<FrequentItemSet, Iterator<FrequentItemSet>>(iterator.next(), iterator));
-		}
-		// running through iterators
-		while(haveNext(iteratorTupels)) {
-			// filling set to test if all frequent item sets are equal
-			Set<FrequentItemSet> currentSets = new TreeSet<FrequentItemSet>(new FrequencyIgnoringSetComparator());
-			for (Tupel<FrequentItemSet, Iterator<FrequentItemSet>> tupel: iteratorTupels) {
-				currentSets.add(tupel.getFirst());
-			}
-			if (currentSets.size() == 1) {
-				// not unique: deletion
-				ArrayList<Tupel<FrequentItemSet, Iterator<FrequentItemSet>>> newTupels = new ArrayList<Tupel<FrequentItemSet, Iterator<FrequentItemSet>>>(2);
-				for (Tupel<FrequentItemSet, Iterator<FrequentItemSet>> tupel: iteratorTupels) {
-					Iterator<FrequentItemSet> currentIterator = tupel.getSecond();
-					currentIterator.remove();
-					if (currentIterator.hasNext())
-						newTupels.add(new Tupel<FrequentItemSet, Iterator<FrequentItemSet>>(currentIterator.next(), currentIterator));
-				}
-				iteratorTupels = newTupels;
-			} else {
-				// unique: no deletion but forward smallest iterator
-				Collections.sort(iteratorTupels, new TupelComparator());
-				Iterator<FrequentItemSet> currentIterator = iteratorTupels.get(0).getSecond();
-				if (currentIterator.hasNext())
-					iteratorTupels.add(new Tupel<FrequentItemSet, Iterator<FrequentItemSet>>(currentIterator.next(), currentIterator));
-				iteratorTupels.remove(0);
-			}
-		}
+        ArrayList<Tupel<FrequentItemSet, Iterator<FrequentItemSet>>> iteratorTupels = new ArrayList<Tupel<FrequentItemSet, Iterator<FrequentItemSet>>>(2);
+        for (FrequentItemSets classSets: sets) {
+            Iterator<FrequentItemSet> iterator = classSets.iterator();
+            iteratorTupels.add(new Tupel<FrequentItemSet, Iterator<FrequentItemSet>>(iterator.next(), iterator));
+        }
+        // running through iterators
+        while(haveNext(iteratorTupels)) {
+            // filling set to test if all frequent item sets are equal
+            Set<FrequentItemSet> currentSets = new TreeSet<FrequentItemSet>(new FrequencyIgnoringSetComparator());
+            for (Tupel<FrequentItemSet, Iterator<FrequentItemSet>> tupel: iteratorTupels) {
+                currentSets.add(tupel.getFirst());
+            }
+            if (currentSets.size() == 1) {
+                // not unique: deletion
+                ArrayList<Tupel<FrequentItemSet, Iterator<FrequentItemSet>>> newTupels = new ArrayList<Tupel<FrequentItemSet, Iterator<FrequentItemSet>>>(2);
+                for (Tupel<FrequentItemSet, Iterator<FrequentItemSet>> tupel: iteratorTupels) {
+                    Iterator<FrequentItemSet> currentIterator = tupel.getSecond();
+                    currentIterator.remove();
+                    if (currentIterator.hasNext())
+                        newTupels.add(new Tupel<FrequentItemSet, Iterator<FrequentItemSet>>(currentIterator.next(), currentIterator));
+                }
+                iteratorTupels = newTupels;
+            } else {
+                // unique: no deletion but forward smallest iterator
+                Collections.sort(iteratorTupels, new TupelComparator());
+                Iterator<FrequentItemSet> currentIterator = iteratorTupels.get(0).getSecond();
+                if (currentIterator.hasNext())
+                    iteratorTupels.add(new Tupel<FrequentItemSet, Iterator<FrequentItemSet>>(currentIterator.next(), currentIterator));
+                iteratorTupels.remove(0);
+            }
+        }
 
-		portExtender.deliver(sets);
-	}
+        portExtender.deliver(sets);
+    }
 
-	private boolean haveNext(ArrayList<Tupel<FrequentItemSet, Iterator<FrequentItemSet>>> iterators) {
-		boolean hasNext = iterators.size() > 0;
-		for (Tupel<FrequentItemSet, Iterator<FrequentItemSet>> iterator: iterators) {
-			hasNext = hasNext || iterator.getSecond().hasNext();
-		}
-		return hasNext;
-	}
+    private boolean haveNext(ArrayList<Tupel<FrequentItemSet, Iterator<FrequentItemSet>>> iterators) {
+        boolean hasNext = iterators.size() > 0;
+        for (Tupel<FrequentItemSet, Iterator<FrequentItemSet>> iterator: iterators) {
+            hasNext = hasNext || iterator.getSecond().hasNext();
+        }
+        return hasNext;
+    }
 }

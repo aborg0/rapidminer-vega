@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2010 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2011 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -43,117 +43,117 @@ import com.rapidminer.tools.LogService;
  */
 public class ParameterTypeConfiguration extends ParameterType {
 
-	private static final long serialVersionUID = -3512071671355815277L;
+    private static final long serialVersionUID = -3512071671355815277L;
 
-	public static final String PARAMETER_DEFAULT_CONFIGURATION_NAME = "configure_operator";
-	
-	private Class<? extends ConfigurationWizardCreator> wizardCreatorClass;
-    
+    public static final String PARAMETER_DEFAULT_CONFIGURATION_NAME = "configure_operator";
+
+    private Class<? extends ConfigurationWizardCreator> wizardCreatorClass;
+
     private transient ConfigurationListener wizardListener;
-    
+
     private Map<String, String> parameters = null;
-    
+
     public Object[] wizardConstructionArguments;
-    
+
     public ParameterTypeConfiguration(Class<? extends ConfigurationWizardCreator> wizardCreatorClass, ConfigurationListener wizardListener) {
-    	this(wizardCreatorClass, null, wizardListener);
+        this(wizardCreatorClass, null, wizardListener);
     }
 
     public ParameterTypeConfiguration(Class<? extends ConfigurationWizardCreator> wizardCreatorClass, Map<String, String> parameters, ConfigurationListener wizardListener) {
-    	this(wizardCreatorClass, parameters, wizardListener, null);
+        this(wizardCreatorClass, parameters, wizardListener, null);
 
     }
-    
+
     public ParameterTypeConfiguration(Class<? extends ConfigurationWizardCreator> wizardCreatorClass, Map<String, String> parameters, ConfigurationListener wizardListener, Object[] constructorArguments) {
-    	super(PARAMETER_DEFAULT_CONFIGURATION_NAME, "Configure this operator by means of a Wizard.");
+        super(PARAMETER_DEFAULT_CONFIGURATION_NAME, "Configure this operator by means of a Wizard.");
         this.wizardCreatorClass = wizardCreatorClass;
         this.parameters = parameters;
         this.wizardListener = wizardListener;
         this.wizardConstructionArguments = constructorArguments;
     }
-    
+
     /** Returns a new instance of the wizard creator. If anything does not work this method will return null. */
     public ConfigurationWizardCreator getWizardCreator() {
-    	ConfigurationWizardCreator creator = null;
-    	try {
-    		if (wizardConstructionArguments == null) {
-	    		creator = wizardCreatorClass.newInstance();
-    		} else {
-    			// if arguments were given: Use appropriate constructor
-    			Class[] classes = new Class[wizardConstructionArguments.length];
-    			for (int i = 0; i < classes.length; i++) {
-    				classes[i] = wizardConstructionArguments[i].getClass();
-    			}
-    			try {
-					for (Constructor<?> constructor: wizardCreatorClass.getConstructors()) {
-						boolean fits = true;
-						for (int i = 0; i < classes.length; i++) {
-							Class<?>[] constructorParameter = constructor.getParameterTypes();
-							if (i >= constructorParameter.length || !constructorParameter[i].isAssignableFrom(classes[i])) {
-								fits = false;
-								break;
-							}
-						}
-						if (fits) {
-							creator = (ConfigurationWizardCreator) constructor.newInstance(wizardConstructionArguments);
-							break;
-						}
-					}
-				} catch (SecurityException e) {
-					creator = wizardCreatorClass.newInstance();
-				} catch (IllegalArgumentException e) {
-					creator = wizardCreatorClass.newInstance();
-				} catch (InvocationTargetException e) {
-					creator = wizardCreatorClass.newInstance();
-				}
-    		}
-	    	creator.setParameters(parameters);
-    	} catch (InstantiationException e) {
-    		LogService.getGlobal().log("Problem during creation of wizard: " + e.getMessage(), LogService.WARNING);
-    	} catch (IllegalAccessException e) {
+        ConfigurationWizardCreator creator = null;
+        try {
+            if (wizardConstructionArguments == null) {
+                creator = wizardCreatorClass.newInstance();
+            } else {
+                // if arguments were given: Use appropriate constructor
+                Class[] classes = new Class[wizardConstructionArguments.length];
+                for (int i = 0; i < classes.length; i++) {
+                    classes[i] = wizardConstructionArguments[i].getClass();
+                }
+                try {
+                    for (Constructor<?> constructor: wizardCreatorClass.getConstructors()) {
+                        boolean fits = true;
+                        for (int i = 0; i < classes.length; i++) {
+                            Class<?>[] constructorParameter = constructor.getParameterTypes();
+                            if (i >= constructorParameter.length || !constructorParameter[i].isAssignableFrom(classes[i])) {
+                                fits = false;
+                                break;
+                            }
+                        }
+                        if (fits) {
+                            creator = (ConfigurationWizardCreator) constructor.newInstance(wizardConstructionArguments);
+                            break;
+                        }
+                    }
+                } catch (SecurityException e) {
+                    creator = wizardCreatorClass.newInstance();
+                } catch (IllegalArgumentException e) {
+                    creator = wizardCreatorClass.newInstance();
+                } catch (InvocationTargetException e) {
+                    creator = wizardCreatorClass.newInstance();
+                }
+            }
+            creator.setParameters(parameters);  //this is ensured to be non null
+        } catch (InstantiationException e) {
             LogService.getGlobal().log("Problem during creation of wizard: " + e.getMessage(), LogService.WARNING);
-    	}
-    	return creator;
+        } catch (IllegalAccessException e) {
+            LogService.getGlobal().log("Problem during creation of wizard: " + e.getMessage(), LogService.WARNING);
+        }
+        return creator;
     }
-    
+
     public ConfigurationListener getWizardListener() {
         return wizardListener;
     }
-    
+
     /** Returns null. */
     @Override
-	public Object getDefaultValue() {
+    public Object getDefaultValue() {
         return null;
     }
-    
+
     /** Does nothing. */
     @Override
-	public void setDefaultValue(Object value) {}
-    
+    public void setDefaultValue(Object value) {}
+
     @Override
-	public String getRange() {
+    public String getRange() {
         return null;
     }
 
     /** Returns an empty string since this parameter cannot be used in XML description but is only used for
      *  GUI purposes. */
     @Override
-	public String getXML(String indent, String key, String value, boolean hideDefault) {
+    public String getXML(String indent, String key, String value, boolean hideDefault) {
         return "";
     }
-    
+
     @Override
-	public boolean isNumerical() {
+    public boolean isNumerical() {
         return false;
     }
 
-	@Override
-	public Element getXML(String key, String value, boolean hideDefault, Document doc) {
-		return null;
-	}
+    @Override
+    public Element getXML(String key, String value, boolean hideDefault, Document doc) {
+        return null;
+    }
 
-	@Override
-	public String substituteMacros(String parameterValue, MacroHandler mh) {
-		return parameterValue;
-	}
+    @Override
+    public String substituteMacros(String parameterValue, MacroHandler mh) {
+        return parameterValue;
+    }
 }

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2010 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2011 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -61,311 +61,314 @@ import com.rapidminer.tools.Tools;
  */
 public class PCAModel extends AbstractEigenvectorModel implements ComponentWeightsCreatable {
 
-	private static final long serialVersionUID = 5424591594470376525L;
+    private static final long serialVersionUID = 5424591594470376525L;
 
-	private List<Eigenvector> eigenVectors;
+    private List<Eigenvector> eigenVectors;
 
-	private double[] means;
+    private double[] means;
 
-	private String[] attributeNames;
+    private String[] attributeNames;
 
-	private boolean manualNumber;
+    private boolean manualNumber;
 
-	private int numberOfComponents = -1;
+    private int numberOfComponents = -1;
 
-	private double varianceThreshold;
+    private double varianceThreshold;
 
-	// -----------------------------------
+    // -----------------------------------
 
-	private double[] variances;
+    private double[] variances;
 
-	private double[] cumulativeVariance;
+    private double[] cumulativeVariance;
 
-	private boolean keepAttributes = false;
+    private boolean keepAttributes = false;
 
-	public PCAModel(ExampleSet eSet, double[] eigenvalues, double[][] eigenvectors) {
-		super(eSet);
+    public PCAModel(ExampleSet eSet, double[] eigenvalues, double[][] eigenvectors) {
+        super(eSet);
 
-		this.keepAttributes = false;
-		this.attributeNames = new String[eSet.getAttributes().size()];
-		this.means = new double[eSet.getAttributes().size()];
-		int counter = 0;
-		for (Attribute attribute : eSet.getAttributes()) {
-			attributeNames[counter] = attribute.getName();
-			means[counter] = eSet.getStatistics(attribute, Statistics.AVERAGE);
-			counter++;
-		}
-		this.eigenVectors = new ArrayList<Eigenvector>(eigenvalues.length);
-		for (int i = 0; i < eigenvalues.length; i++) {
-			double[] currentEigenVector = new double[eSet.getAttributes().size()];
-			for (int j = 0; j < currentEigenVector.length; j++) {
-				currentEigenVector[j] = eigenvectors[j][i];
-			}
-			this.eigenVectors.add(new Eigenvector(currentEigenVector, eigenvalues[i]));
-		}
+        this.keepAttributes = false;
+        this.attributeNames = new String[eSet.getAttributes().size()];
+        this.means = new double[eSet.getAttributes().size()];
+        int counter = 0;
+        for (Attribute attribute : eSet.getAttributes()) {
+            attributeNames[counter] = attribute.getName();
+            means[counter] = eSet.getStatistics(attribute, Statistics.AVERAGE);
+            counter++;
+        }
+        this.eigenVectors = new ArrayList<Eigenvector>(eigenvalues.length);
+        for (int i = 0; i < eigenvalues.length; i++) {
+            double[] currentEigenVector = new double[eSet.getAttributes().size()];
+            for (int j = 0; j < currentEigenVector.length; j++) {
+                currentEigenVector[j] = eigenvectors[j][i];
+            }
+            this.eigenVectors.add(new Eigenvector(currentEigenVector, eigenvalues[i]));
+        }
 
-		// order the eigenvectors by the eigenvalues        
-		Collections.sort(this.eigenVectors);
+        // order the eigenvectors by the eigenvalues
+        Collections.sort(this.eigenVectors);
 
-		calculateCumulativeVariance();
-	}
+        calculateCumulativeVariance();
+    }
 
-	public String[] getAttributeNames() {
-		return attributeNames;
-	}
+    public String[] getAttributeNames() {
+        return attributeNames;
+    }
 
-	public double[] getMeans() {
-		return means;
-	}
+    public double[] getMeans() {
+        return means;
+    }
 
-	public double getMean(int index) {
-		return means[index];
-	}
+    public double getMean(int index) {
+        return means[index];
+    }
 
-	public double getVariance(int index) {
-		return this.variances[index];
-	}
+    public double getVariance(int index) {
+        return this.variances[index];
+    }
 
-	public double getCumulativeVariance(int index) {
-		return this.cumulativeVariance[index];
-	}
+    public double getCumulativeVariance(int index) {
+        return this.cumulativeVariance[index];
+    }
 
-	public double getEigenvalue(int index) {
-		return this.eigenVectors.get(index).getEigenvalue();
-	}
+    public double getEigenvalue(int index) {
+        return this.eigenVectors.get(index).getEigenvalue();
+    }
 
-	public double[] getEigenvector(int index) {
-		return this.eigenVectors.get(index).getEigenvector();
-	}
+    public double[] getEigenvector(int index) {
+        return this.eigenVectors.get(index).getEigenvector();
+    }
 
-	public double getVarianceThreshold() {
-		return this.varianceThreshold;
-	}
+    public double getVarianceThreshold() {
+        return this.varianceThreshold;
+    }
 
-	public int getMaximumNumberOfComponents() {
-		return attributeNames.length;
-	}
+    public int getMaximumNumberOfComponents() {
+        return attributeNames.length;
+    }
 
-	public int getNumberOfComponents() {
-		return numberOfComponents;
-	}
+    public int getNumberOfComponents() {
+        return numberOfComponents;
+    }
 
-	public void setVarianceThreshold(double threshold) {
-		this.manualNumber = false;
-		this.varianceThreshold = threshold;
-		this.numberOfComponents = -1;
-	}
+    public void setVarianceThreshold(double threshold) {
+        this.manualNumber = false;
+        this.varianceThreshold = threshold;
+        this.numberOfComponents = -1;
+    }
 
-	public void setNumberOfComponents(int numberOfComponents) {
-		this.varianceThreshold = 0.95;
-		this.manualNumber = true;
-		this.numberOfComponents = numberOfComponents;
-	}
+    public void setNumberOfComponents(int numberOfComponents) {
+        this.varianceThreshold = 0.95;
+        this.manualNumber = true;
+        this.numberOfComponents = numberOfComponents;
+    }
 
-	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
-		exampleSet.recalculateAllAttributeStatistics();
+    @Override
+    public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
+        exampleSet.recalculateAllAttributeStatistics();
 
-		if (attributeNames.length != exampleSet.getAttributes().size()) {
-			throw new UserError(null, 133, numberOfComponents, exampleSet.getAttributes().size());
-		}
+        if (attributeNames.length != exampleSet.getAttributes().size()) {
+            throw new UserError(null, 133, numberOfComponents, exampleSet.getAttributes().size());
+        }
 
-		// 1) prepare data
-		double[][] data = new double[exampleSet.size()][exampleSet.getAttributes().size()];
-		Iterator<Example> reader = exampleSet.iterator();
-		for (int sample = 0; sample < exampleSet.size(); sample++) {
-			Example example = reader.next();
-			int d = 0;
-			for (Attribute attribute : example.getAttributes()) {
-				data[sample][d] = example.getValue(attribute) - means[d];
-				d++;
-			}
-		}
+        // 1) prepare data
+        double[][] data = new double[exampleSet.size()][exampleSet.getAttributes().size()];
+        Iterator<Example> reader = exampleSet.iterator();
+        for (int sample = 0; sample < exampleSet.size(); sample++) {
+            Example example = reader.next();
+            int d = 0;
+            for (Attribute attribute : example.getAttributes()) {
+                data[sample][d] = example.getValue(attribute) - means[d];
+                d++;
+            }
+        }
 
-		// 2) Derive the new DataSet
-		Matrix dataMatrix = new Matrix(data);
-		double[][] values = new double[this.eigenVectors.size()][attributeNames.length];
-		int counter = 0;
-		for (Eigenvector ev : this.eigenVectors) {
-			values[counter++] = ev.getEigenvector();
-		}
-		Matrix eigenvectorMatrix = new Matrix(values).transpose();
-		Matrix finaldataMatrix = dataMatrix.times(eigenvectorMatrix);
+        // 2) Derive the new DataSet
+        Matrix dataMatrix = new Matrix(data);
+        double[][] values = new double[this.eigenVectors.size()][attributeNames.length];
+        int counter = 0;
+        for (Eigenvector ev : this.eigenVectors) {
+            values[counter++] = ev.getEigenvector();
+        }
+        Matrix eigenvectorMatrix = new Matrix(values).transpose();
+        Matrix finaldataMatrix = dataMatrix.times(eigenvectorMatrix);
 
-		int components = -1;
-		if (manualNumber) {
-			components = numberOfComponents;
-		} else {
-			if (varianceThreshold == 0.0d) {
-				components = -1;
-			} else {
-				components = 0;
-				while (cumulativeVariance[components] < varianceThreshold) {
-					components++;
-				}
-				components++;
-				if (components == eigenVectors.size()) {
-					components--;
-				}
-			}
-		}
+        int components = -1;
+        if (manualNumber) {
+            components = numberOfComponents;
+        } else {
+            if (varianceThreshold == 0.0d) {
+                components = -1;
+            } else {
+                components = 0;
+                while (cumulativeVariance[components] < varianceThreshold) {
+                    components++;
+                }
+                components++;
+                if (components == eigenVectors.size()) {
+                    components--;
+                }
+            }
+        }
 
-		if (components == -1) {
-			// keep all components
-			components = exampleSet.getAttributes().size();
-		}
+        if (components == -1) {
+            // keep all components
+            components = exampleSet.getAttributes().size();
+        }
 
-		log("Number of components: " + components);
-		finaldataMatrix = new Matrix(finaldataMatrix.getArray(), exampleSet.size(), components);
-		double[][] finaldata = finaldataMatrix.getArray();
+        log("Number of components: " + components);
+        finaldataMatrix = new Matrix(finaldataMatrix.getArray(), exampleSet.size(), components);
+        double[][] finaldata = finaldataMatrix.getArray();
 
-		if (!keepAttributes) {
-			exampleSet.getAttributes().clearRegular();
-		}
+        if (!keepAttributes) {
+            exampleSet.getAttributes().clearRegular();
+        }
 
-		log("Adding new the derived features...");
-		Attribute[] pcatts = new Attribute[components];
-		for (int i = 0; i < components; i++) {
-			pcatts[i] = AttributeFactory.createAttribute("pc_" + (i + 1), Ontology.REAL);
-			exampleSet.getExampleTable().addAttribute(pcatts[i]);
-			exampleSet.getAttributes().addRegular(pcatts[i]);
-		}
+        log("Adding new the derived features...");
+        Attribute[] pcatts = new Attribute[components];
+        for (int i = 0; i < components; i++) {
+            pcatts[i] = AttributeFactory.createAttribute("pc_" + (i + 1), Ontology.REAL);
+            exampleSet.getExampleTable().addAttribute(pcatts[i]);
+            exampleSet.getAttributes().addRegular(pcatts[i]);
+        }
 
-		reader = exampleSet.iterator();
-		for (int sample = 0; sample < exampleSet.size(); sample++) {
-			Example example = reader.next();
-			for (int d = 0; d < components; d++) {
-				example.setValue(pcatts[d], finaldata[sample][d]);
-			}
+        reader = exampleSet.iterator();
+        for (int sample = 0; sample < exampleSet.size(); sample++) {
+            Example example = reader.next();
+            for (int d = 0; d < components; d++) {
+                example.setValue(pcatts[d], finaldata[sample][d]);
+            }
 
-		}
+        }
 
-		return exampleSet;
-	}
+        return exampleSet;
+    }
 
-	/** Calculates the cumulative variance. */
-	private void calculateCumulativeVariance() {
-		double sumvariance = 0.0d;
-		for (Eigenvector ev : this.eigenVectors) {
-			sumvariance += ev.getEigenvalue();
-		}
-		this.variances = new double[this.eigenVectors.size()];
-		this.cumulativeVariance = new double[variances.length];
-		double cumulative = 0.0d;
-		int counter = 0;
-		for (Eigenvector ev : this.eigenVectors) {
-			double proportion = ev.getEigenvalue() / sumvariance;
-			this.variances[counter] = proportion;
-			cumulative += proportion;
-			this.cumulativeVariance[counter] = cumulative;
-			counter++;
-		}
-	}
+    /** Calculates the cumulative variance. */
+    private void calculateCumulativeVariance() {
+        double sumvariance = 0.0d;
+        for (Eigenvector ev : this.eigenVectors) {
+            sumvariance += ev.getEigenvalue();
+        }
+        this.variances = new double[this.eigenVectors.size()];
+        this.cumulativeVariance = new double[variances.length];
+        double cumulative = 0.0d;
+        int counter = 0;
+        for (Eigenvector ev : this.eigenVectors) {
+            double proportion = ev.getEigenvalue() / sumvariance;
+            this.variances[counter] = proportion;
+            cumulative += proportion;
+            this.cumulativeVariance[counter] = cumulative;
+            counter++;
+        }
+    }
 
-	@Override
-	public void setParameter(String name, Object object) throws OperatorException {
-		if (name.equals("variance_threshold")) {
-			String value = (String) object;
+    @Override
+    public void setParameter(String name, Object object) throws OperatorException {
+        if (name.equals("variance_threshold")) {
+            String value = (String) object;
 
-			try {
-				this.setVarianceThreshold(Double.parseDouble(value));
-			} catch (NumberFormatException error) {
-				super.setParameter(name, value);
-			}
+            try {
+                this.setVarianceThreshold(Double.parseDouble(value));
+            } catch (NumberFormatException error) {
+                super.setParameter(name, value);
+            }
 
-		} else if (name.equals("number_of_components")) {
-			String value = (String) object;
+        } else if (name.equals("number_of_components")) {
+            String value = (String) object;
 
-			try {
-				this.setNumberOfComponents(Integer.parseInt(value));
-			} catch (NumberFormatException error) {
-				super.setParameter(name, value);
-			}
+            try {
+                this.setNumberOfComponents(Integer.parseInt(value));
+            } catch (NumberFormatException error) {
+                super.setParameter(name, value);
+            }
 
-		} else if (name.equals("keep_attributes")) {
-			String value = (String) object;
-			keepAttributes = false;
-			if (value.equals("true")) {
-				keepAttributes = true;
-			}
-		} else {
-			super.setParameter(name, object);
-		}
-	}
+        } else if (name.equals("keep_attributes")) {
+            String value = (String) object;
+            keepAttributes = false;
+            if (value.equals("true")) {
+                keepAttributes = true;
+            }
+        } else {
+            super.setParameter(name, object);
+        }
+    }
 
-	public AttributeWeights getWeightsOfComponent(int component) throws OperatorException {
-		if (component < 1) {
-			component = 1;
-		}
-		if (component > attributeNames.length) {
-			logWarning("Creating weights of component " + attributeNames.length + "!");
-			component = attributeNames.length;
-		}
-		AttributeWeights weights = new AttributeWeights();
+    @Override
+    public AttributeWeights getWeightsOfComponent(int component) throws OperatorException {
+        if (component < 1) {
+            component = 1;
+        }
+        if (component > attributeNames.length) {
+            logWarning("Creating weights of component " + attributeNames.length + "!");
+            component = attributeNames.length;
+        }
+        AttributeWeights weights = new AttributeWeights();
 
-		for (int i = 0; i < attributeNames.length; i++) {
-			weights.setWeight(attributeNames[i], eigenVectors.get(component - 1).getEigenvector()[i]);
-		}
+        double[] eigenvector = eigenVectors.get(component - 1).getEigenvector();
+        for (int i = 0; i < attributeNames.length; i++) {
+            weights.setWeight(attributeNames[i], eigenvector[i]);
+        }
 
-		return weights;
-	}
+        return weights;
+    }
 
-	@Override
-	public String toResultString() {
-		StringBuilder result = new StringBuilder(Tools.getLineSeparator() + "Principal Components:" + Tools.getLineSeparator());
-		if (manualNumber) {
-			result.append("Number of Components: " + numberOfComponents + Tools.getLineSeparator());
-		} else {
-			result.append("Variance Threshold: " + varianceThreshold + Tools.getLineSeparator());
-		}
-		for (int i = 0; i < eigenVectors.size(); i++) {
-			result.append("PC " + (i+1) + ": ");
-			for (int j = 0; j < attributeNames.length; j++) {
-				double value = eigenVectors.get(i).getEigenvector()[j];
-				if (value > 0)
-					result.append(" + ");
-				else
-					result.append(" - ");
-				result.append(Tools.formatNumber(Math.abs(value)) + " * " + attributeNames[j]);
-			}
-			result.append(Tools.getLineSeparator());
-		}
-		return result.toString();
-	}
+    @Override
+    public String toResultString() {
+        StringBuilder result = new StringBuilder(Tools.getLineSeparator() + "Principal Components:" + Tools.getLineSeparator());
+        if (manualNumber) {
+            result.append("Number of Components: " + numberOfComponents + Tools.getLineSeparator());
+        } else {
+            result.append("Variance Threshold: " + varianceThreshold + Tools.getLineSeparator());
+        }
+        for (int i = 0; i < eigenVectors.size(); i++) {
+            result.append("PC " + (i+1) + ": ");
+            for (int j = 0; j < attributeNames.length; j++) {
+                double value = eigenVectors.get(i).getEigenvector()[j];
+                if (value > 0)
+                    result.append(" + ");
+                else
+                    result.append(" - ");
+                result.append(Tools.formatNumber(Math.abs(value)) + " * " + attributeNames[j]);
+            }
+            result.append(Tools.getLineSeparator());
+        }
+        return result.toString();
+    }
 
-	@Override
-	public String toString() {
-		StringBuilder result = new StringBuilder(Tools.getLineSeparator() + "Principal Components:" + Tools.getLineSeparator());
-		if (manualNumber) {
-			result.append("Number of Components: " + numberOfComponents + Tools.getLineSeparator());
-		} else {
-			result.append("Variance Threshold: " + varianceThreshold + Tools.getLineSeparator());
-		}
-		return result.toString();
-	}
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder(Tools.getLineSeparator() + "Principal Components:" + Tools.getLineSeparator());
+        if (manualNumber) {
+            result.append("Number of Components: " + numberOfComponents + Tools.getLineSeparator());
+        } else {
+            result.append("Variance Threshold: " + varianceThreshold + Tools.getLineSeparator());
+        }
+        return result.toString();
+    }
 
-	@Override
-	public double[] getCumulativeVariance() {
-		double[] cumulativeVariance = new double[attributeNames.length];
-		double varianceSum = 0.0d;
-		int i = 0;
-		for (Eigenvector wv : eigenVectors) {
-			varianceSum += wv.getEigenvalue();
-			cumulativeVariance[i++] = varianceSum;
-		}
-		return cumulativeVariance;
-	}
+    @Override
+    public double[] getCumulativeVariance() {
+        double[] cumulativeVariance = new double[attributeNames.length];
+        double varianceSum = 0.0d;
+        int i = 0;
+        for (Eigenvector wv : eigenVectors) {
+            varianceSum += wv.getEigenvalue();
+            cumulativeVariance[i++] = varianceSum;
+        }
+        return cumulativeVariance;
+    }
 
-	@Override
-	public EigenvalueTableModel getEigenvalueTableModel() {
-		double varianceSum = 0.0d;
-		for (Eigenvector wv : eigenVectors) {
-			varianceSum += wv.getEigenvalue();
-		}
-		return new EigenvalueTableModel(eigenVectors, cumulativeVariance, varianceSum);
-	}
+    @Override
+    public EigenvalueTableModel getEigenvalueTableModel() {
+        double varianceSum = 0.0d;
+        for (Eigenvector wv : eigenVectors) {
+            varianceSum += wv.getEigenvalue();
+        }
+        return new EigenvalueTableModel(eigenVectors, cumulativeVariance, varianceSum);
+    }
 
-	@Override
-	public EigenvectorTableModel getEigenvectorTableModel() {
-		return new EigenvectorTableModel(eigenVectors, attributeNames, attributeNames.length);
-	}
+    @Override
+    public EigenvectorTableModel getEigenvectorTableModel() {
+        return new EigenvectorTableModel(eigenVectors, attributeNames, attributeNames.length);
+    }
 }

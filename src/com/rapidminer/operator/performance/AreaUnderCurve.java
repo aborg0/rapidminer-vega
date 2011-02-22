@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2010 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2011 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator.performance;
 
+import java.io.ObjectStreamException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -41,130 +42,134 @@ import com.rapidminer.tools.math.ROCDataGenerator;
  */
 public class AreaUnderCurve extends MeasuredPerformance {
 
-	private static final long serialVersionUID = 6877715214974493828L;
+    private static final long serialVersionUID = 6877715214974493828L;
 
-	public static class Optimistic extends AreaUnderCurve {
-		private static final long serialVersionUID = 1L;
-		public Optimistic() {
-			super(ROCBias.OPTIMISTIC);
-		}
-	}
+    public static class Optimistic extends AreaUnderCurve {
+        private static final long serialVersionUID = 1L;
+        public Optimistic() {
+            super(ROCBias.OPTIMISTIC);
+        }
+    }
 
-	public static class Pessimistic extends AreaUnderCurve {
-		private static final long serialVersionUID = 1L;
-		public Pessimistic() {
-			super(ROCBias.PESSIMISTIC);
-		}
-	}
+    public static class Pessimistic extends AreaUnderCurve {
+        private static final long serialVersionUID = 1L;
+        public Pessimistic() {
+            super(ROCBias.PESSIMISTIC);
+        }
+    }
 
-	public static class Neutral extends AreaUnderCurve {
-		private static final long serialVersionUID = 1L;
-		public Neutral() {
-			super(ROCBias.NEUTRAL);
-		}
-	}
+    public static class Neutral extends AreaUnderCurve {
+        private static final long serialVersionUID = 1L;
+        public Neutral() {
+            super(ROCBias.NEUTRAL);
+        }
+    }
 
-	/** The value of the AUC. */
-	private double auc = Double.NaN;
+    /** The value of the AUC. */
+    private double auc = Double.NaN;
 
-	/** The data generator for this ROC curve. */
-	private transient ROCDataGenerator rocDataGenerator = new ROCDataGenerator(1.0d, 1.0d);
+    /** The data generator for this ROC curve. */
+    private transient ROCDataGenerator rocDataGenerator = new ROCDataGenerator(1.0d, 1.0d);
 
-	/** The data for the ROC curve. */
-	private LinkedList<ROCData> rocData = new LinkedList<ROCData>();
+    /** The data for the ROC curve. */
+    private LinkedList<ROCData> rocData = new LinkedList<ROCData>();
 
-	/** A counter for average building. */
-	private int counter = 1;
+    /** A counter for average building. */
+    private int counter = 1;
 
-	/** The positive class name. */
-	private String positiveClass;
+    /** The positive class name. */
+    private String positiveClass;
 
-	private ROCBias method;
-	
-	/** Clone constructor. */
-	public AreaUnderCurve() {
-		method = ROCBias.OPTIMISTIC;
-	}
-	
-	public AreaUnderCurve(ROCBias method) {
-		this.method = method;
-	}
-	
-	public AreaUnderCurve(AreaUnderCurve aucObject) {
-		super(aucObject);
-		this.auc = aucObject.auc;
-		this.counter = aucObject.counter;
-		this.positiveClass = aucObject.positiveClass;
-		this.method = aucObject.method;
-	}
+    private ROCBias method;
 
-	/** Calculates the AUC. */
-	@Override
-	public void startCounting(ExampleSet exampleSet, boolean useExampleWeights) throws OperatorException {
-		super.startCounting(exampleSet, useExampleWeights);
-		// create ROC data
-		this.rocData.add(rocDataGenerator.createROCData(exampleSet, useExampleWeights, method));
-		this.auc = rocDataGenerator.calculateAUC(this.rocData.getLast());
-		this.positiveClass = exampleSet.getAttributes().getPredictedLabel().getMapping().getPositiveString();
-	}
+    /** Clone constructor. */
+    public AreaUnderCurve() {
+        method = ROCBias.OPTIMISTIC;
+    }
 
-	/** Does nothing. Everything is done in {@link #startCounting(ExampleSet, boolean)}. */
-	@Override
-	public void countExample(Example example) {}
+    public AreaUnderCurve(ROCBias method) {
+        this.method = method;
+    }
 
-	@Override
-	public double getExampleCount() {
-		return 1.0d;
-	}
+    public AreaUnderCurve(AreaUnderCurve aucObject) {
+        super(aucObject);
+        this.auc = aucObject.auc;
+        this.counter = aucObject.counter;
+        this.positiveClass = aucObject.positiveClass;
+        this.method = aucObject.method;
+    }
 
-	@Override
-	public double getMikroVariance() {
-		return Double.NaN;
-	}
+    /** Calculates the AUC. */
+    @Override
+    public void startCounting(ExampleSet exampleSet, boolean useExampleWeights) throws OperatorException {
+        super.startCounting(exampleSet, useExampleWeights);
+        // create ROC data
+        this.rocData.add(rocDataGenerator.createROCData(exampleSet, useExampleWeights, method));
+        this.auc = rocDataGenerator.calculateAUC(this.rocData.getLast());
+        this.positiveClass = exampleSet.getAttributes().getPredictedLabel().getMapping().getPositiveString();
+    }
 
-	@Override
-	public double getMikroAverage() {
-		return auc / counter;
-	}
+    /** Does nothing. Everything is done in {@link #startCounting(ExampleSet, boolean)}. */
+    @Override
+    public void countExample(Example example) {}
 
-	/** Returns the fitness. */
-	@Override
-	public double getFitness() {
-		return getAverage();
-	}
+    @Override
+    public double getExampleCount() {
+        return 1.0d;
+    }
 
-	@Override
-	public String getName() {
-		if (method == ROCBias.NEUTRAL) {
-			return "AUC";			
-		} else {
-			return "AUC ("+method.toString().toLowerCase()+")";
-		}
-	}
+    @Override
+    public double getMikroVariance() {
+        return Double.NaN;
+    }
 
-	@Override
-	public String getDescription() {
-		return "The area under a ROC curve. Given example weights are also considered. Please note that the second class is considered to be positive.";
-	}
+    @Override
+    public double getMikroAverage() {
+        return auc / counter;
+    }
 
-	@Override
-	public void buildSingleAverage(Averagable performance) {
-		AreaUnderCurve other = (AreaUnderCurve) performance;
-		this.counter += other.counter;
-		this.auc += other.auc;
-		this.rocData.addAll(other.rocData);
-	}
+    /** Returns the fitness. */
+    @Override
+    public double getFitness() {
+        return getAverage();
+    }
 
-	@Override
-	public String toString() {
-		return super.toString() + " (positive class: " + positiveClass + ")";
-	}
+    @Override
+    public String getName() {
+        if (method == ROCBias.NEUTRAL) {
+            return "AUC";
+        } else {
+            return "AUC ("+method.toString().toLowerCase()+")";
+        }
+    }
 
-	public List<ROCData> getRocData() {
-		return rocData;
-	}
+    @Override
+    public String getDescription() {
+        return "The area under a ROC curve. Given example weights are also considered. Please note that the second class is considered to be positive.";
+    }
 
-	public ROCDataGenerator getRocDataGenerator() {
-		return rocDataGenerator;
-	}
+    @Override
+    public void buildSingleAverage(Averagable performance) {
+        AreaUnderCurve other = (AreaUnderCurve) performance;
+        this.counter += other.counter;
+        this.auc += other.auc;
+        this.rocData.addAll(other.rocData);
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + " (positive class: " + positiveClass + ")";
+    }
+
+    public List<ROCData> getRocData() {
+        return rocData;
+    }
+
+    public ROCDataGenerator getRocDataGenerator() {
+        return rocDataGenerator;
+    }
+
+    public void readResolve() throws ObjectStreamException {
+        rocDataGenerator = new ROCDataGenerator(1.0d, 1.0d);
+    }
 }

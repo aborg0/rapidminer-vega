@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2010 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2011 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -22,6 +22,8 @@
  */
 package com.rapidminer.operator.nio;
 
+import java.io.File;
+
 import com.rapidminer.gui.wizards.ConfigurationListener;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.nio.model.AbstractDataResultSetReader;
@@ -40,39 +42,58 @@ import com.rapidminer.repository.RepositoryLocation;
  */
 public class CSVImportWizard extends AbstractDataImportWizard {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public CSVImportWizard() throws OperatorException {
-		this(null, null, null);
-	}
-	
-	public CSVImportWizard(CSVExampleSource source, ConfigurationListener listener, RepositoryLocation preselectedLocation) throws OperatorException {
-		super(source, preselectedLocation, "data_import_wizard");
-		
-		// adding steps		
-		addStep(new CSVFileSelectionWizardStep(this, (CSVResultSetConfiguration) getState().getDataResultSetFactory()));
-		addStep(new CSVSyntaxConfigurationWizardStep(this, (CSVResultSetConfiguration) getState().getDataResultSetFactory()));
-		addCommonSteps();
-//		addStep(new AnnotationDeclarationWizardStep(state));
-//		addStep(new MetaDataDeclarationWizardStep(state));
-//		if (source == null) {
-//			addStep(new StoreDataWizardStep(this, state, (preselectedLocation != null) ? preselectedLocation.getAbsoluteLocation() : null));
-//		}
+    public CSVImportWizard() throws OperatorException {
+        this(null, null, null);
+    }
 
-		layoutDefault(HUGE);
-	}
-	
-	@Override
-	public void cancel() {
-		super.cancel();
-	}
+    /**
+     * Using this constructor you can skip the file selection step if already known.
+     * @param file
+     * @throws OperatorException
+     */
+    public CSVImportWizard(File file, RepositoryLocation preselectedLocation) throws OperatorException {
+        super(null, preselectedLocation, "data_import_wizard");
 
-	@Override
-	protected DataResultSetFactory makeFactory(AbstractDataResultSetReader source) throws OperatorException {
-		if (source != null) {
-			return new CSVResultSetConfiguration((CSVExampleSource) source);
-		} else {
-			return new CSVResultSetConfiguration();
-		}
-	}
+        // setting available info
+        CSVResultSetConfiguration config = (CSVResultSetConfiguration) getState().getDataResultSetFactory();
+        config.setCsvFile(file.getAbsolutePath());
+
+        // adding steps
+        addStep(new CSVSyntaxConfigurationWizardStep(this, (CSVResultSetConfiguration) getState().getDataResultSetFactory()));
+        addCommonSteps();
+
+        layoutDefault(HUGE);
+    }
+
+    public CSVImportWizard(CSVExampleSource source, ConfigurationListener listener, RepositoryLocation preselectedLocation) throws OperatorException {
+        super(source, preselectedLocation, "data_import_wizard");
+
+        // adding steps
+        addStep(new CSVFileSelectionWizardStep(this, (CSVResultSetConfiguration) getState().getDataResultSetFactory()));
+        addStep(new CSVSyntaxConfigurationWizardStep(this, (CSVResultSetConfiguration) getState().getDataResultSetFactory()));
+        addCommonSteps();
+        // addStep(new AnnotationDeclarationWizardStep(state));
+        // addStep(new MetaDataDeclarationWizardStep(state));
+        // if (source == null) {
+        // addStep(new StoreDataWizardStep(this, state, (preselectedLocation != null) ? preselectedLocation.getAbsoluteLocation() : null));
+        // }
+
+        layoutDefault(HUGE);
+    }
+
+    @Override
+    public void cancel() {
+        super.cancel();
+    }
+
+    @Override
+    protected DataResultSetFactory makeFactory(AbstractDataResultSetReader source) throws OperatorException {
+        if (source != null) {
+            return new CSVResultSetConfiguration((CSVExampleSource) source);
+        } else {
+            return new CSVResultSetConfiguration();
+        }
+    }
 }

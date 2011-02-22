@@ -1,3 +1,25 @@
+/*
+ *  RapidMiner
+ *
+ *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *
+ *  Complete list of developers available at our web site:
+ *
+ *       http://rapid-i.com
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program.  If not, see http://www.gnu.org/licenses/.
+ */
 package com.rapidminer.operator.io;
 
 import java.io.BufferedReader;
@@ -55,269 +77,270 @@ import com.rapidminer.tools.jdbc.connection.ConnectionProvider;
  */
 public class DatabaseDataReader extends AbstractExampleSource implements ConnectionProvider {
 
-	/** System property to decide whether meta data should be fetched from DB for database queries. */
-	public static final String PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES = "rapidminer.gui.evaluate_meta_data_for_sql_queries";
+    /** System property to decide whether meta data should be fetched from DB for database queries. */
+    public static final String PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES = "rapidminer.gui.evaluate_meta_data_for_sql_queries";
 
-	public DatabaseDataReader(OperatorDescription description) {
-		super(description);
-	}
+    public DatabaseDataReader(OperatorDescription description) {
+        super(description);
+    }
 
-	private DatabaseHandler databaseHandler;
+    private DatabaseHandler databaseHandler;
 
-	@Override
-	public ExampleSet read() throws OperatorException {
-		try {
-			ExampleSet result = super.read();
-			return result;
-		} finally {
-			if ((databaseHandler != null) && (databaseHandler.getConnection() != null)) {
-				try {
-					databaseHandler.getConnection().close();
-				} catch (SQLException e) {
-					getLogger().log(Level.WARNING, "Error closing database connection: " + e, e);
-				}
-			}
-		}
-	}
+    @Override
+    public ExampleSet read() throws OperatorException {
+        try {
+            ExampleSet result = super.read();
+            return result;
+        } finally {
+            if ((databaseHandler != null) && (databaseHandler.getConnection() != null)) {
+                try {
+                    databaseHandler.getConnection().close();
+                } catch (SQLException e) {
+                    getLogger().log(Level.WARNING, "Error closing database connection: " + e, e);
+                }
+            }
+        }
+    }
 
-	protected ResultSet getResultSet() throws OperatorException {
-		try {
-			DatabaseHandler databaseHandler = DatabaseHandler.getConnectedDatabaseHandler(this);
-			String query = getQuery(databaseHandler.getStatementCreator());
-			if (query == null) {
-				throw new UserError(this, 202, new Object[] { "query", "query_file", "table_name" });
-			}
-			return databaseHandler.executeStatement(query, true, this, getLogger());
-		} catch (SQLException sqle) {
-			throw new UserError(this, sqle, 304, sqle.getMessage());
-		}
-	}
+    protected ResultSet getResultSet() throws OperatorException {
+        try {
+            DatabaseHandler databaseHandler = DatabaseHandler.getConnectedDatabaseHandler(this);
+            String query = getQuery(databaseHandler.getStatementCreator());
+            if (query == null) {
+                throw new UserError(this, 202, new Object[] { "query", "query_file", "table_name" });
+            }
+            return databaseHandler.executeStatement(query, true, this, getLogger());
+        } catch (SQLException sqle) {
+            throw new UserError(this, sqle, 304, sqle.getMessage());
+        }
+    }
 
-	@Override
-	public ExampleSet createExampleSet() throws OperatorException {
-		ResultSet resultSet = getResultSet();
-		MemoryExampleTable table;
-		try {
-			List<Attribute> attributes = getAttributes(resultSet);
-			table = createExampleTable(resultSet, attributes);
-		} catch (SQLException e) {
-			throw new UserError(this, e, 304, e.getMessage());
-		} finally {
-			try {
-				resultSet.close();
-			} catch (SQLException e) {
-				getLogger().log(Level.WARNING, "DB error closing result set: " + e, e);
-			}
-		}
-		return table.createExampleSet();
-	}
+    @Override
+    public ExampleSet createExampleSet() throws OperatorException {
+        ResultSet resultSet = getResultSet();
+        MemoryExampleTable table;
+        try {
+            List<Attribute> attributes = getAttributes(resultSet);
+            table = createExampleTable(resultSet, attributes);
+        } catch (SQLException e) {
+            throw new UserError(this, e, 304, e.getMessage());
+        } finally {
+            try {
+                resultSet.close();
+            } catch (SQLException e) {
+                getLogger().log(Level.WARNING, "DB error closing result set: " + e, e);
+            }
+        }
+        return table.createExampleSet();
+    }
 
-	@Override
-	public MetaData getGeneratedMetaData() throws OperatorException {
-		ExampleSetMetaData metaData = new ExampleSetMetaData();
-		try {
-			DatabaseHandler databaseHandler = DatabaseHandler.getConnectedDatabaseHandler(this);
-			switch (getParameterAsInt(DatabaseHandler.PARAMETER_DEFINE_QUERY)) {
-			case DatabaseHandler.QUERY_TABLE:
-				List<ColumnIdentifier> columns = databaseHandler.getAllColumnNames(getParameterAsString(DatabaseHandler.PARAMETER_TABLE_NAME), databaseHandler.getConnection().getMetaData());
-				for (ColumnIdentifier column : columns) {
-					metaData.addAttribute(new AttributeMetaData(column.getColumnName(),
-							DatabaseHandler.getRapidMinerTypeIndex(column.getSqlType())));
-				}
-				break;
-			case DatabaseHandler.QUERY_QUERY:
-			case DatabaseHandler.QUERY_FILE:
-			default:
-				if (!"false".equals(System.getProperty(PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES))) {
-					String query = getQuery(databaseHandler.getStatementCreator());
-					PreparedStatement prepared = databaseHandler.getConnection().prepareStatement(query);
-					// query = "SELECT * FROM (" + query + ") dummy WHERE 1=0";
-					// ResultSet resultSet = databaseHandler.executeStatement(query, true, this, getLogger());
-					List<Attribute> attributes = getAttributes(prepared.getMetaData());
-					for (Attribute att : attributes) {
-						metaData.addAttribute(new AttributeMetaData(att));
-					}
-				}
-				break;
-			}
-		} catch (SQLException e) {
-			LogService.getRoot().log(Level.WARNING, "Failed to fetch meta data: " + e, e);
-		} finally {
-			try {
-				if ((databaseHandler != null) && (databaseHandler.getConnection() != null)) {
-					databaseHandler.disconnect();
-				}
-			} catch (SQLException e) {
-				getLogger().log(Level.WARNING, "DB error closing connection: " + e, e);
-			}
-		}
-		return metaData;
-	}
+    @Override
+    public MetaData getGeneratedMetaData() throws OperatorException {
+        ExampleSetMetaData metaData = new ExampleSetMetaData();
+        try {
+            DatabaseHandler databaseHandler = DatabaseHandler.getConnectedDatabaseHandler(this);
+            switch (getParameterAsInt(DatabaseHandler.PARAMETER_DEFINE_QUERY)) {
+            case DatabaseHandler.QUERY_TABLE:
+                List<ColumnIdentifier> columns = databaseHandler.getAllColumnNames(getParameterAsString(DatabaseHandler.PARAMETER_TABLE_NAME), databaseHandler.getConnection().getMetaData());
+                for (ColumnIdentifier column : columns) {
+                    metaData.addAttribute(new AttributeMetaData(column.getColumnName(),
+                            DatabaseHandler.getRapidMinerTypeIndex(column.getSqlType())));
+                }
+                break;
+            case DatabaseHandler.QUERY_QUERY:
+            case DatabaseHandler.QUERY_FILE:
+            default:
+                if (!"false".equals(System.getProperty(PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES))) {
+                    String query = getQuery(databaseHandler.getStatementCreator());
+                    PreparedStatement prepared = databaseHandler.getConnection().prepareStatement(query);
+                    // query = "SELECT * FROM (" + query + ") dummy WHERE 1=0";
+                    // ResultSet resultSet = databaseHandler.executeStatement(query, true, this, getLogger());
+                    List<Attribute> attributes = getAttributes(prepared.getMetaData());
+                    for (Attribute att : attributes) {
+                        metaData.addAttribute(new AttributeMetaData(att));
+                    }
+                    prepared.close();
+                }
+                break;
+            }
+        } catch (SQLException e) {
+            LogService.getRoot().log(Level.WARNING, "Failed to fetch meta data: " + e, e);
+        } finally {
+            try {
+                if ((databaseHandler != null) && (databaseHandler.getConnection() != null)) {
+                    databaseHandler.disconnect();
+                }
+            } catch (SQLException e) {
+                getLogger().log(Level.WARNING, "DB error closing connection: " + e, e);
+            }
+        }
+        return metaData;
+    }
 
-	private MemoryExampleTable createExampleTable(ResultSet resultSet, List<Attribute> attributes) throws SQLException, OperatorException {
-		ResultSetMetaData metaData = resultSet.getMetaData();
-		Attribute[] attributeArray = attributes.toArray(new Attribute[attributes.size()]);
-		MemoryExampleTable table = new MemoryExampleTable(attributes);
-		DataRowFactory factory = new DataRowFactory(getParameterAsInt(ExampleSource.PARAMETER_DATAMANAGEMENT), '.');
-		while (resultSet.next()) {
-			DataRow dataRow = factory.create(attributeArray.length);
-			// double[] data = new double[attributeArray.length];
-			for (int i = 1; i <= metaData.getColumnCount(); i++) {
-				Attribute attribute = attributeArray[i - 1];
-				int valueType = attribute.getValueType();
-				double value;
-				if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.DATE_TIME)) {
-					Timestamp timestamp = resultSet.getTimestamp(i);
-					if (resultSet.wasNull()) {
-						value = Double.NaN;
-					} else {
-						value = timestamp.getTime();
-					}
-				} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.NUMERICAL)) {
-					value = resultSet.getDouble(i);
-					if (resultSet.wasNull()) {
-						value = Double.NaN;
-					}
-				} else {
-					if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.NOMINAL)) {
-						String valueString;
-						if (metaData.getColumnType(i) == Types.CLOB) {
-							Clob clob = resultSet.getClob(i);
-							if (clob != null) {
-								BufferedReader in = null;
-								try {
-									in = new BufferedReader(clob.getCharacterStream());
-									String line = null;
-									try {
-										StringBuffer buffer = new StringBuffer();
-										while ((line = in.readLine()) != null) {
-											buffer.append(line + "\n");
-										}
-										valueString = buffer.toString();
-									} catch (IOException e) {
-										throw new OperatorException("Database error occurred: " + e, e);
-									}
-								} finally {
-									try {
-										in.close();
-									} catch (IOException e) {
-									}
-								}
-							} else {
-								valueString = null;
-							}
-						} else {
-							valueString = resultSet.getString(i);
-						}
-						if (resultSet.wasNull() || (valueString == null)) {
-							value = Double.NaN;
-						} else {
-							value = attribute.getMapping().mapString(valueString);
-						}
-					} else {
-						getLogger().warning("Unknown column type: " + attribute);
-						value = Double.NaN;
-					}
-				}
-				dataRow.set(attribute, value);
-				// data[i-1] = value;
-			}
-			table.addDataRow(dataRow); // new DoubleArrayDataRow(data));
-		}
-		return table;
-	}
+    private MemoryExampleTable createExampleTable(ResultSet resultSet, List<Attribute> attributes) throws SQLException, OperatorException {
+        ResultSetMetaData metaData = resultSet.getMetaData();
+        Attribute[] attributeArray = attributes.toArray(new Attribute[attributes.size()]);
+        MemoryExampleTable table = new MemoryExampleTable(attributes);
+        DataRowFactory factory = new DataRowFactory(getParameterAsInt(ExampleSource.PARAMETER_DATAMANAGEMENT), '.');
+        while (resultSet.next()) {
+            DataRow dataRow = factory.create(attributeArray.length);
+            // double[] data = new double[attributeArray.length];
+            for (int i = 1; i <= metaData.getColumnCount(); i++) {
+                Attribute attribute = attributeArray[i - 1];
+                int valueType = attribute.getValueType();
+                double value;
+                if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.DATE_TIME)) {
+                    Timestamp timestamp = resultSet.getTimestamp(i);
+                    if (resultSet.wasNull()) {
+                        value = Double.NaN;
+                    } else {
+                        value = timestamp.getTime();
+                    }
+                } else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.NUMERICAL)) {
+                    value = resultSet.getDouble(i);
+                    if (resultSet.wasNull()) {
+                        value = Double.NaN;
+                    }
+                } else {
+                    if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.NOMINAL)) {
+                        String valueString;
+                        if (metaData.getColumnType(i) == Types.CLOB) {
+                            Clob clob = resultSet.getClob(i);
+                            if (clob != null) {
+                                BufferedReader in = null;
+                                try {
+                                    in = new BufferedReader(clob.getCharacterStream());
+                                    String line = null;
+                                    try {
+                                        StringBuffer buffer = new StringBuffer();
+                                        while ((line = in.readLine()) != null) {
+                                            buffer.append(line + "\n");
+                                        }
+                                        valueString = buffer.toString();
+                                    } catch (IOException e) {
+                                        throw new OperatorException("Database error occurred: " + e, e);
+                                    }
+                                } finally {
+                                    try {
+                                        in.close();
+                                    } catch (IOException e) {
+                                    }
+                                }
+                            } else {
+                                valueString = null;
+                            }
+                        } else {
+                            valueString = resultSet.getString(i);
+                        }
+                        if (resultSet.wasNull() || (valueString == null)) {
+                            value = Double.NaN;
+                        } else {
+                            value = attribute.getMapping().mapString(valueString);
+                        }
+                    } else {
+                        getLogger().warning("Unknown column type: " + attribute);
+                        value = Double.NaN;
+                    }
+                }
+                dataRow.set(attribute, value);
+                // data[i-1] = value;
+            }
+            table.addDataRow(dataRow); // new DoubleArrayDataRow(data));
+        }
+        return table;
+    }
 
-	private List<Attribute> getAttributes(ResultSet resultSet) throws SQLException {
-		ResultSetMetaData metaData = resultSet.getMetaData();
-		return getAttributes(metaData);
-	}
+    private List<Attribute> getAttributes(ResultSet resultSet) throws SQLException {
+        ResultSetMetaData metaData = resultSet.getMetaData();
+        return getAttributes(metaData);
+    }
 
-	private List<Attribute> getAttributes(ResultSetMetaData metaData) throws SQLException {
-		List<Attribute> result = new LinkedList<Attribute>();
-		// A map mapping original column names to a counter specifying how often
-		// they were chosen
-		Map<String, Integer> duplicateNameMap = new HashMap<String, Integer>();
+    private List<Attribute> getAttributes(ResultSetMetaData metaData) throws SQLException {
+        List<Attribute> result = new LinkedList<Attribute>();
+        // A map mapping original column names to a counter specifying how often
+        // they were chosen
+        Map<String, Integer> duplicateNameMap = new HashMap<String, Integer>();
 
-		for (int columnIndex = 1; columnIndex <= metaData.getColumnCount(); columnIndex++) {
-			String columnName = metaData.getColumnLabel(columnIndex);
-			Integer duplicateCount = duplicateNameMap.get(columnName);
-			if (duplicateCount != null) {
-				columnName = columnName + "_" + duplicateCount;
-				Integer incremented = new Integer(duplicateCount.intValue() + 1);
-				duplicateNameMap.put(columnName, incremented);
-			} else {
-				duplicateNameMap.put(columnName, new Integer(1));
-			}
-			int attributeType = DatabaseHandler.getRapidMinerTypeIndex(metaData.getColumnType(columnIndex));
-			final Attribute attribute = AttributeFactory.createAttribute(columnName, attributeType);
-			attribute.getAnnotations().setAnnotation("sql_type", metaData.getColumnTypeName(columnIndex));
-			result.add(attribute);
-		}
-		return result;
-	}
+        for (int columnIndex = 1; columnIndex <= metaData.getColumnCount(); columnIndex++) {
+            String columnName = metaData.getColumnLabel(columnIndex);
+            Integer duplicateCount = duplicateNameMap.get(columnName);
+            if (duplicateCount != null) {
+                columnName = columnName + "_" + duplicateCount;
+                Integer incremented = new Integer(duplicateCount.intValue() + 1);
+                duplicateNameMap.put(columnName, incremented);
+            } else {
+                duplicateNameMap.put(columnName, new Integer(1));
+            }
+            int attributeType = DatabaseHandler.getRapidMinerTypeIndex(metaData.getColumnType(columnIndex));
+            final Attribute attribute = AttributeFactory.createAttribute(columnName, attributeType);
+            attribute.getAnnotations().setAnnotation("sql_type", metaData.getColumnTypeName(columnIndex));
+            result.add(attribute);
+        }
+        return result;
+    }
 
-	private String getQuery(StatementCreator sc) throws OperatorException {
-		switch (getParameterAsInt(DatabaseHandler.PARAMETER_DEFINE_QUERY)) {
-		case DatabaseHandler.QUERY_QUERY: {
-			String query = getParameterAsString(DatabaseHandler.PARAMETER_QUERY);
-			if (query != null) {
-				query = query.trim();
-			}
-			return query;
-		}
-		case DatabaseHandler.QUERY_FILE: {
-			File queryFile = getParameterAsFile(DatabaseHandler.PARAMETER_QUERY_FILE);
-			if (queryFile != null) {
-				String query = null;
-				try {
-					query = Tools.readTextFile(queryFile);
-				} catch (IOException ioe) {
-					throw new UserError(this, ioe, 302, new Object[] { queryFile, ioe.getMessage() });
-				}
-				if ((query == null) || (query.trim().length() == 0)) {
-					throw new UserError(this, 205, queryFile);
-				}
-				return query;
-			}
-		}
-		case DatabaseHandler.QUERY_TABLE:
-			final String tableName = getParameterAsString(DatabaseHandler.PARAMETER_TABLE_NAME);
-			return "SELECT * FROM " + sc.makeIdentifier(tableName);
-		}
-		return null;
-	}
+    private String getQuery(StatementCreator sc) throws OperatorException {
+        switch (getParameterAsInt(DatabaseHandler.PARAMETER_DEFINE_QUERY)) {
+        case DatabaseHandler.QUERY_QUERY: {
+            String query = getParameterAsString(DatabaseHandler.PARAMETER_QUERY);
+            if (query != null) {
+                query = query.trim();
+            }
+            return query;
+        }
+        case DatabaseHandler.QUERY_FILE: {
+            File queryFile = getParameterAsFile(DatabaseHandler.PARAMETER_QUERY_FILE);
+            if (queryFile != null) {
+                String query = null;
+                try {
+                    query = Tools.readTextFile(queryFile);
+                } catch (IOException ioe) {
+                    throw new UserError(this, ioe, 302, new Object[] { queryFile, ioe.getMessage() });
+                }
+                if ((query == null) || (query.trim().length() == 0)) {
+                    throw new UserError(this, 205, queryFile);
+                }
+                return query;
+            }
+        }
+        case DatabaseHandler.QUERY_TABLE:
+            final String tableName = getParameterAsString(DatabaseHandler.PARAMETER_TABLE_NAME);
+            return "SELECT * FROM " + sc.makeIdentifier(tableName);
+        }
+        return null;
+    }
 
-	@Override
-	public ConnectionEntry getConnectionEntry() {
-		return DatabaseHandler.getConnectionEntry(this);
-	}
+    @Override
+    public ConnectionEntry getConnectionEntry() {
+        return DatabaseHandler.getConnectionEntry(this);
+    }
 
-	@Override
-	protected void addAnnotations(ExampleSet result) {
-		try {
-			if (databaseHandler != null) {
-				result.getAnnotations().setAnnotation(Annotations.KEY_SOURCE,
-						getQuery(databaseHandler.getStatementCreator()));
-			}
-		} catch (OperatorException e) {
-		}
-	}
+    @Override
+    protected void addAnnotations(ExampleSet result) {
+        try {
+            if (databaseHandler != null) {
+                result.getAnnotations().setAnnotation(Annotations.KEY_SOURCE,
+                        getQuery(databaseHandler.getStatementCreator()));
+            }
+        } catch (OperatorException e) {
+        }
+    }
 
-	@Override
-	protected boolean isMetaDataCacheable() {
-		return true;
-	}
+    @Override
+    protected boolean isMetaDataCacheable() {
+        return true;
+    }
 
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		List<ParameterType> list = super.getParameterTypes();
-		list.addAll(DatabaseHandler.getConnectionParameterTypes(this));
-		list.addAll(DatabaseHandler.getQueryParameterTypes(this, false));
-		list.addAll(DatabaseHandler.getStatementPreparationParamterTypes(this));
+    @Override
+    public List<ParameterType> getParameterTypes() {
+        List<ParameterType> list = super.getParameterTypes();
+        list.addAll(DatabaseHandler.getConnectionParameterTypes(this));
+        list.addAll(DatabaseHandler.getQueryParameterTypes(this, false));
+        list.addAll(DatabaseHandler.getStatementPreparationParamterTypes(this));
 
-		list.add(new ParameterTypeCategory(ExampleSource.PARAMETER_DATAMANAGEMENT, "Determines, how the data is represented internally.", DataRowFactory.TYPE_NAMES, DataRowFactory.TYPE_DOUBLE_ARRAY, false));
-		return list;
-	}
+        list.add(new ParameterTypeCategory(ExampleSource.PARAMETER_DATAMANAGEMENT, "Determines, how the data is represented internally.", DataRowFactory.TYPE_NAMES, DataRowFactory.TYPE_DOUBLE_ARRAY, false));
+        return list;
+    }
 
 }
 // /*

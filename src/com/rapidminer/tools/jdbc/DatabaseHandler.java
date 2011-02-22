@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2010 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2011 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -1062,21 +1062,25 @@ public class DatabaseHandler {
                     try {
                         prepared.setDouble(i+1, Double.parseDouble(replacementValue));
                     } catch (NumberFormatException e) {
+                        prepared.close();
                         throw new UserError(parameterHandler, 158, replacementValue, sqlType);
                     }
                 } else if ("LONG".equals(sqlType)) {
                     try {
                         prepared.setLong(i+1, Long.parseLong(replacementValue));
                     } catch (NumberFormatException e) {
+                        prepared.close();
                         throw new UserError(parameterHandler, 158, replacementValue, sqlType);
                     }
                 } else if ("INTEGER".equals(sqlType)) {
                     try {
                         prepared.setInt(i+1, Integer.parseInt(replacementValue));
                     } catch (NumberFormatException e) {
+                        prepared.close();
                         throw new UserError(parameterHandler, 158, replacementValue, sqlType);
                     }
                 } else {
+                    prepared.close();
                     throw new OperatorException("Illegal data type: "+sqlType);
                 }
             }

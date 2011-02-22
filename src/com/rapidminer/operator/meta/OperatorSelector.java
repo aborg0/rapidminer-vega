@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2010 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2011 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -40,95 +40,98 @@ import com.rapidminer.parameter.ParameterTypeInt;
 
 /** This operator can be used to employ a single inner operator or operator chain.
  *  Which operator should be used can be defined by the parameter &quot;select_which&quot;.
- *  Together with one of the parameter optimizing or iterating operators this operator 
- *  can be used to dynamically change the process setup which might be useful in order to 
+ *  Together with one of the parameter optimizing or iterating operators this operator
+ *  can be used to dynamically change the process setup which might be useful in order to
  *  test different layouts, e.g. the gain by using different preprocessing steps or chains
- *  or the quality of a certain learner.  
+ *  or the quality of a certain learner.
  *
  * @author Ingo Mierswa
  */
 public class OperatorSelector extends OperatorChain {
 
-	/** The parameter name for &quot;Indicates if the operator which inner operator should be used&quot;. */
-	public static final String PARAMETER_SELECT_WHICH = "select_which";
-	
-	private final MultiOutputPortPairExtender inputExtender = new MultiOutputPortPairExtender("input", getInputPorts(), new OutputPorts[] { getSubprocess(0).getInnerSources(), getSubprocess(1).getInnerSources() }); 
-	private final MultiInputPortPairExtender outputExtender = new MultiInputPortPairExtender("output", getOutputPorts(), new InputPorts[] { getSubprocess(0).getInnerSinks(), getSubprocess(1).getInnerSinks() });
-	
+    /** The parameter name for &quot;Indicates if the operator which inner operator should be used&quot;. */
+    public static final String PARAMETER_SELECT_WHICH = "select_which";
+
+    private final MultiOutputPortPairExtender inputExtender = new MultiOutputPortPairExtender("input", getInputPorts(), new OutputPorts[] { getSubprocess(0).getInnerSources(), getSubprocess(1).getInnerSources() });
+    private final MultiInputPortPairExtender outputExtender = new MultiInputPortPairExtender("output", getOutputPorts(), new InputPorts[] { getSubprocess(0).getInnerSinks(), getSubprocess(1).getInnerSinks() });
+
     public OperatorSelector(OperatorDescription description) {
         super(description, "Selection 1", "Selection 2");
         inputExtender.start();
         outputExtender.start();
         getTransformer().addRule(inputExtender.makePassThroughRule());
         getTransformer().addRule(new MDTransformationRule() {
-			@Override
-			public void transformMD() {				
-				int operatorIndex = -1;
-				try {
-					operatorIndex = getParameterAsInt(PARAMETER_SELECT_WHICH) - 1;
-				} catch (Exception e) {	}
-				for (int i = 0; i < getNumberOfSubprocesses(); i++) {
-					if (i != operatorIndex) { // skip selected and transform last, so it overrides everything
-						getSubprocess(i).transformMetaData();
-					}
-				}
-				if ((operatorIndex >= 0) && (operatorIndex < getNumberOfSubprocesses())) {
-					getSubprocess(operatorIndex).transformMetaData();
-				}
-			}
+            @Override
+            public void transformMD() {
+                int operatorIndex = -1;
+                try {
+                    operatorIndex = getParameterAsInt(PARAMETER_SELECT_WHICH) - 1;
+                    for (int i = 0; i < getNumberOfSubprocesses(); i++) {
+                        if (i != operatorIndex) { // skip selected and transform last, so it overrides everything
+                            getSubprocess(i).transformMetaData();
+                        }
+                    }
+                    if ((operatorIndex >= 0) && (operatorIndex < getNumberOfSubprocesses())) {
+                        getSubprocess(operatorIndex).transformMetaData();
+                    }
+                } catch (Exception e) {
+
+                }
+
+            }
         });
         getTransformer().addRule(outputExtender.makePassThroughRule());
     }
-    
+
     @Override
     public boolean areSubprocessesExtendable() {
-    	return true;
+        return true;
     }
-    
+
     @Override
     protected ExecutionUnit createSubprocess(int index) {
-		return new ExecutionUnit(this, "Selection");
-	}
-    
-    @Override
-	public ExecutionUnit addSubprocess(int index) {
-		ExecutionUnit newProcess = super.addSubprocess(index);
-		inputExtender.addMultiPorts(newProcess.getInnerSources(), index);
-		outputExtender.addMultiPorts(newProcess.getInnerSinks(), index);
-		normalizeSubprocessNames();
-		return newProcess;
-	}
-
-	@Override
-	public ExecutionUnit removeSubprocess(int index) {
-		ExecutionUnit oldProcess = super.removeSubprocess(index);
-		inputExtender.removeMultiPorts(index);
-		outputExtender.removeMultiPorts(index);
-		normalizeSubprocessNames();
-		return oldProcess;
-	}
-
-    private void normalizeSubprocessNames() {
-    	for (int i = 0; i < getNumberOfSubprocesses(); i++) {
-    		getSubprocess(i).setName("Selection " + (i+1));
-    	}
-	}
-
-    
-    @Override
-	public void doWork() throws OperatorException {
-    	int operatorIndex = getParameterAsInt(PARAMETER_SELECT_WHICH);
-    	if ((operatorIndex < 1) || (operatorIndex > getNumberOfSubprocesses())) {
-    		throw new UserError(this, 207, new Object[] { operatorIndex, PARAMETER_SELECT_WHICH, "must be between 1 and the number of inner operators."} );
-    	}
-    	
-    	inputExtender.passDataThrough();
-    	getSubprocess(operatorIndex - 1).execute();    
-    	outputExtender.passDataThrough(operatorIndex - 1);
+        return new ExecutionUnit(this, "Selection");
     }
 
     @Override
-	public List<ParameterType> getParameterTypes() {
+    public ExecutionUnit addSubprocess(int index) {
+        ExecutionUnit newProcess = super.addSubprocess(index);
+        inputExtender.addMultiPorts(newProcess.getInnerSources(), index);
+        outputExtender.addMultiPorts(newProcess.getInnerSinks(), index);
+        normalizeSubprocessNames();
+        return newProcess;
+    }
+
+    @Override
+    public ExecutionUnit removeSubprocess(int index) {
+        ExecutionUnit oldProcess = super.removeSubprocess(index);
+        inputExtender.removeMultiPorts(index);
+        outputExtender.removeMultiPorts(index);
+        normalizeSubprocessNames();
+        return oldProcess;
+    }
+
+    private void normalizeSubprocessNames() {
+        for (int i = 0; i < getNumberOfSubprocesses(); i++) {
+            getSubprocess(i).setName("Selection " + (i+1));
+        }
+    }
+
+
+    @Override
+    public void doWork() throws OperatorException {
+        int operatorIndex = getParameterAsInt(PARAMETER_SELECT_WHICH);
+        if ((operatorIndex < 1) || (operatorIndex > getNumberOfSubprocesses())) {
+            throw new UserError(this, 207, new Object[] { operatorIndex, PARAMETER_SELECT_WHICH, "must be between 1 and the number of inner operators."} );
+        }
+
+        inputExtender.passDataThrough();
+        getSubprocess(operatorIndex - 1).execute();
+        outputExtender.passDataThrough(operatorIndex - 1);
+    }
+
+    @Override
+    public List<ParameterType> getParameterTypes() {
         List<ParameterType> types = super.getParameterTypes();
         ParameterType type = new ParameterTypeInt(PARAMETER_SELECT_WHICH, "Indicates which inner operator should be currently employed by this operator on the input objects.", 1, Integer.MAX_VALUE, 1);
         type.setExpert(false);

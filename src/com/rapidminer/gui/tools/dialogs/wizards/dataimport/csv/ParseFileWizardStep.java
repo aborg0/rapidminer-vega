@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2010 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2011 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -58,336 +58,333 @@ import com.rapidminer.tools.io.Encoding;
  */
 public abstract class ParseFileWizardStep extends WizardStep {
 
-	@SuppressWarnings("unused") // for now
-	private CSVDataReader reader;
+    private final JCheckBox trimLinesBox = new JCheckBox("Trim Lines", true);
 
-	private final JCheckBox trimLinesBox = new JCheckBox("Trim Lines", true);
+    private final JComboBox encodingComboBox = new JComboBox(Encoding.CHARSETS);
+    {
+        String encoding = RapidMiner.SYSTEM_ENCODING_NAME;
+        String encodingProperty = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_DEFAULT_ENCODING);
+        if (encodingProperty != null) {
+            encoding = encodingProperty;
+        }
+        encodingComboBox.setSelectedItem(encoding);
+        encodingComboBox.setPreferredSize(new Dimension(encodingComboBox.getPreferredSize().width, 25));
+        encodingComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                settingsChanged();
+            }
+        });
+    }
 
-	private final JComboBox encodingComboBox = new JComboBox(Encoding.CHARSETS);
-	{
-		String encoding = RapidMiner.SYSTEM_ENCODING_NAME;
-		String encodingProperty = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_DEFAULT_ENCODING);
-		if (encodingProperty != null) {
-			encoding = encodingProperty;
-		}
-		encodingComboBox.setSelectedItem(encoding);
-		encodingComboBox.setPreferredSize(new Dimension(encodingComboBox.getPreferredSize().width, 25));
-		encodingComboBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				settingsChanged();
-			}
-		});
-	}
+    private final JCheckBox skipCommentsBox = new JCheckBox("Skip Comments", true); // just temp preselection, real value is defined in the constructor
 
-	private final JCheckBox skipCommentsBox = new JCheckBox("Skip Comments", true); // just temp preselection, real value is defined in the constructor
+    private final JCheckBox useFirstRowAsColumnNamesBox = new JCheckBox("Use First Row as Column Names",true);  // just temp preselection, real value is defined in the constructor
 
-	private final JCheckBox useFirstRowAsColumnNamesBox = new JCheckBox("Use First Row as Column Names",true);  // just temp preselection, real value is defined in the constructor
+    private final JCheckBox useQuotesBox = new JCheckBox("Use Quotes",true); // just temp preselection, real value is defined in the constructor
 
-	private final JCheckBox useQuotesBox = new JCheckBox("Use Quotes",true); // just temp preselection, real value is defined in the constructor 
+    private final JTextField commentCharacterTextField = new JTextField(LineParser.DEFAULT_COMMENT_CHARACTER_STRING);
 
-	private final JTextField commentCharacterTextField = new JTextField(LineParser.DEFAULT_COMMENT_CHARACTER_STRING);
+    private final CharTextField quoteCharacterTextField = new CharTextField(LineParser.DEFAULT_QUOTE_CHARACTER);
 
-	private final CharTextField quoteCharacterTextField = new CharTextField(LineParser.DEFAULT_QUOTE_CHARACTER);
-	
-	private final JLabel escapeCharacterLabel =  new JLabel("Escape Character for Seperator:");
-	
-	private final CharTextField escapeCharacterTextField = new CharTextField(LineParser.DEFAULT_QUOTE_ESCAPE_CHARACTER);
+    private final JLabel escapeCharacterLabel =  new JLabel("Escape Character for Seperator:");
 
-	private final JRadioButton commaButton = new JRadioButton("Comma \",\" ");
+    private final CharTextField escapeCharacterTextField = new CharTextField(LineParser.DEFAULT_QUOTE_ESCAPE_CHARACTER);
 
-	private final JRadioButton semicolonButton = new JRadioButton("Semicolon \";\"");
+    private final JRadioButton commaButton = new JRadioButton("Comma \",\" ");
 
-	private final JRadioButton tabButton = new JRadioButton("Tab");
+    private final JRadioButton semicolonButton = new JRadioButton("Semicolon \";\"");
 
-	private final JRadioButton spaceButton = new JRadioButton("Space");
+    private final JRadioButton tabButton = new JRadioButton("Tab");
 
-	private final JRadioButton regexButton = new JRadioButton("Regular Expression");
+    private final JRadioButton spaceButton = new JRadioButton("Space");
 
-	private final JTextField regexTextField = new JTextField(LineParser.DEFAULT_SPLIT_EXPRESSION);
+    private final JRadioButton regexButton = new JRadioButton("Regular Expression");
 
-	private final MetaDataDeclarationEditor editor;
-	// private final DataEditor editor;
+    private final JTextField regexTextField = new JTextField(LineParser.DEFAULT_SPLIT_EXPRESSION);
 
-	{
-		trimLinesBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				settingsChanged();
-			}
-		});
-		skipCommentsBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				commentCharacterTextField.setEnabled(skipCommentsBox.isSelected());
-				settingsChanged();
-			}
-		});
+    private final MetaDataDeclarationEditor editor;
+    // private final DataEditor editor;
 
-		commentCharacterTextField.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
+    {
+        trimLinesBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                settingsChanged();
+            }
+        });
+        skipCommentsBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                commentCharacterTextField.setEnabled(skipCommentsBox.isSelected());
+                settingsChanged();
+            }
+        });
 
-			@Override
-			public void keyReleased(KeyEvent e) {
-				settingsChanged();
-			}
+        commentCharacterTextField.addKeyListener(new KeyListener() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+            }
 
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-		});
-		useFirstRowAsColumnNamesBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				settingsChanged();
-			}
-		});
-		useQuotesBox.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				quoteCharacterTextField.setEnabled(useQuotesBox.isSelected());
-				escapeCharacterTextField.setEnabled(useQuotesBox.isSelected());
-				settingsChanged();
-			}
-		});
+            @Override
+            public void keyReleased(KeyEvent e) {
+                settingsChanged();
+            }
 
-		quoteCharacterTextField.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+        });
+        useFirstRowAsColumnNamesBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                settingsChanged();
+            }
+        });
+        useQuotesBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                quoteCharacterTextField.setEnabled(useQuotesBox.isSelected());
+                escapeCharacterTextField.setEnabled(useQuotesBox.isSelected());
+                settingsChanged();
+            }
+        });
 
-			@Override
-			public void keyReleased(KeyEvent e) {
-				settingsChanged();
-			}
+        quoteCharacterTextField.addKeyListener(new KeyListener() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+            }
 
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-		});
-		
-		escapeCharacterTextField.addKeyListener(new KeyListener() {
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-			@Override
-			public void keyReleased(KeyEvent e) {
-				settingsChanged();
-			}
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-		});
-		regexButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				regexTextField.setEnabled(regexButton.isSelected());
-				settingsChanged();
-			}
-		});
-		
-		ButtonGroup buttonGroup = new ButtonGroup();
-		buttonGroup.add(commaButton);
-		buttonGroup.add(semicolonButton);
-		buttonGroup.add(spaceButton);
-		buttonGroup.add(tabButton);
-		buttonGroup.add(regexButton);
-		
-		
-		ActionListener listener = new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				settingsChanged();
-			}
-		};
-		commaButton.addActionListener(listener);
-		semicolonButton.addActionListener(listener);
-		spaceButton.addActionListener(listener);
-		tabButton.addActionListener(listener);
-		regexButton.addActionListener(listener);
-		regexTextField.addKeyListener(new KeyListener() {
-			private Timer timer = new Timer(2000, new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					timer.stop();
-					settingsChanged();
-				}
-			});
-			
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
+            @Override
+            public void keyReleased(KeyEvent e) {
+                settingsChanged();
+            }
 
-			@Override
-			public void keyReleased(KeyEvent e) {
-				timer.stop();
-				timer.start();
-//				settingsChanged();
-			}
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+        });
 
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-		});
-	}
+        escapeCharacterTextField.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+            @Override
+            public void keyReleased(KeyEvent e) {
+                settingsChanged();
+            }
+            @Override
+            public void keyPressed(KeyEvent e) {
+            }
+        });
+        regexButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                regexTextField.setEnabled(regexButton.isSelected());
+                settingsChanged();
+            }
+        });
 
-	public ParseFileWizardStep(String i18nKey, CSVDataReader reader) {
-		super(i18nKey);
-		this.reader = reader;
-		this.editor = new MetaDataDeclarationEditor(reader, false);
-		
-		
-		skipCommentsBox.setSelected(reader.getParameterAsBoolean(CSVDataReader.PARAMETER_SKIP_COMMENTS));
+        ButtonGroup buttonGroup = new ButtonGroup();
+        buttonGroup.add(commaButton);
+        buttonGroup.add(semicolonButton);
+        buttonGroup.add(spaceButton);
+        buttonGroup.add(tabButton);
+        buttonGroup.add(regexButton);
 
-	    useFirstRowAsColumnNamesBox.setSelected(reader.getParameterAsBoolean(CSVDataReader.PARAMETER_USE_FIRST_ROW_AS_ATTRIBUTE_NAMES));
 
-		useQuotesBox.setSelected(reader.getParameterAsBoolean(CSVDataReader.PARAMETER_USE_QUOTES));
-		
-		
-		String sep = LineParser.DEFAULT_SPLIT_EXPRESSION;
-		regexButton.setSelected(true);
-		try {
-			sep = reader.getParameter(CSVDataReader.PARAMETER_COLUMN_SEPARATORS);
-		} catch (UndefinedParameterError e1) {
-			e1.printStackTrace();
-		}
-		if (sep.equals(LineParser.SPLIT_BY_COMMA_EXPRESSION)){
-			commaButton.setSelected(true);
-		}
-		if (sep.equals(LineParser.SPLIT_BY_SEMICOLON_EXPRESSION)){
-			semicolonButton.setSelected(true);
-		}
-		if (sep.equals(LineParser.SPLIT_BY_TAB_EXPRESSION)){
-			tabButton.setSelected(true);
-		}
-		if (sep.equals(LineParser.SPLIT_BY_SPACE_EXPRESSION)){
-			spaceButton.setSelected(true);
-		}
-	}
+        ActionListener listener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                settingsChanged();
+            }
+        };
+        commaButton.addActionListener(listener);
+        semicolonButton.addActionListener(listener);
+        spaceButton.addActionListener(listener);
+        tabButton.addActionListener(listener);
+        regexButton.addActionListener(listener);
+        regexTextField.addKeyListener(new KeyListener() {
+            private Timer timer = new Timer(2000, new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    timer.stop();
+                    settingsChanged();
+                }
+            });
 
-	protected Charset getEncoding() {
-		return Encoding.getEncoding((String) encodingComboBox.getSelectedItem());
-	}
+            @Override
+            public void keyPressed(KeyEvent e) {
+            }
 
-	protected boolean trimLines() {
-		return trimLinesBox.isSelected();
-	}
+            @Override
+            public void keyReleased(KeyEvent e) {
+                timer.stop();
+                timer.start();
+                //				settingsChanged();
+            }
 
-	protected boolean skipComments() {
-		return skipCommentsBox.isSelected();
-	}
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+        });
+    }
 
-	protected String getCommentCharacters() {
-		return commentCharacterTextField.getText();
-	}
-	
+    public ParseFileWizardStep(String i18nKey, CSVDataReader reader) {
+        super(i18nKey);
+        this.editor = new MetaDataDeclarationEditor(reader, false);
 
-	protected boolean useQuotes() {
-		return useQuotesBox.isSelected();
-	}
 
-	protected char getQuotesCharacter() {
-		return quoteCharacterTextField.getCharacter();
-	}
-	
-	protected char getEscapeCharacter() {
-		return escapeCharacterTextField.getCharacter();
-	}
+        skipCommentsBox.setSelected(reader.getParameterAsBoolean(CSVDataReader.PARAMETER_SKIP_COMMENTS));
 
-	protected String getSplitExpression() {
-		String splitExpression = null;
-		if (regexButton.isSelected()) {
-			splitExpression = regexTextField.getText();
-			if ("".equals(splitExpression)) {
-				splitExpression = null;
-			} else {
-				try {
-					Pattern.compile(splitExpression);
-				} catch (PatternSyntaxException pse) {
-					splitExpression = null;
-				}
-			}
-		} else if (commaButton.isSelected()) {
-			splitExpression = LineParser.SPLIT_BY_COMMA_EXPRESSION;
-		} else if (semicolonButton.isSelected()) {
-			splitExpression = LineParser.SPLIT_BY_SEMICOLON_EXPRESSION;
-		} else if (tabButton.isSelected()) {
-			splitExpression = LineParser.SPLIT_BY_TAB_EXPRESSION;
-		} else if (spaceButton.isSelected()) {
-			splitExpression = LineParser.SPLIT_BY_SPACE_EXPRESSION;
-		}
-		return splitExpression;
-	}
+        useFirstRowAsColumnNamesBox.setSelected(reader.getParameterAsBoolean(CSVDataReader.PARAMETER_USE_FIRST_ROW_AS_ATTRIBUTE_NAMES));
 
-	protected abstract void settingsChanged();
+        useQuotesBox.setSelected(reader.getParameterAsBoolean(CSVDataReader.PARAMETER_USE_QUOTES));
 
-	protected void setData(List<Object[]> data) {
-		// TODO meta data actually not needed here
-		// editor.setData(reader.getGeneratedMetaData(), data);
-		editor.setData(data);
-	}
 
-	protected boolean getUseFirstRowAsColumnNames() {
-		return useFirstRowAsColumnNamesBox.isSelected();
-	}
+        String sep = LineParser.DEFAULT_SPLIT_EXPRESSION;
+        regexButton.setSelected(true);
+        try {
+            sep = reader.getParameter(CSVDataReader.PARAMETER_COLUMN_SEPARATORS);
+        } catch (UndefinedParameterError e1) {
+            e1.printStackTrace();
+        }
+        if (sep.equals(LineParser.SPLIT_BY_COMMA_EXPRESSION)){
+            commaButton.setSelected(true);
+        }
+        if (sep.equals(LineParser.SPLIT_BY_SEMICOLON_EXPRESSION)){
+            semicolonButton.setSelected(true);
+        }
+        if (sep.equals(LineParser.SPLIT_BY_TAB_EXPRESSION)){
+            tabButton.setSelected(true);
+        }
+        if (sep.equals(LineParser.SPLIT_BY_SPACE_EXPRESSION)){
+            spaceButton.setSelected(true);
+        }
+    }
 
-	@Override
-	protected JComponent getComponent() {
-		JPanel optionPanel = new JPanel(ButtonDialog.createGridLayout(4, 1));
-		optionPanel.add(new JPanel(ButtonDialog.createGridLayout(1, 2)) {
-			private static final long serialVersionUID = -1726235838693547187L;
-			{
-				add(new JLabel("File Encoding"));
-				add(encodingComboBox);
-			}
-		});
-		optionPanel.add(new JPanel(ButtonDialog.createGridLayout(1, 1)) {
-			private static final long serialVersionUID = -1726235838693547187L;
-			{
-				add(trimLinesBox);
-			}
-		});
-		optionPanel.add(new JPanel(ButtonDialog.createGridLayout(1, 2)) {
-			private static final long serialVersionUID = -1726235838693547187L;
-			{
-				add(skipCommentsBox);
-				add(commentCharacterTextField);
-			}
-		});
-		optionPanel.add(new JPanel(ButtonDialog.createGridLayout(1, 1)) {
-			private static final long serialVersionUID = -1726235838693547187L;
-			{
-				add(useFirstRowAsColumnNamesBox);
-			}
-		});
-		optionPanel.setBorder(ButtonDialog.createTitledBorder("File Reading"));
+    protected Charset getEncoding() {
+        return Encoding.getEncoding((String) encodingComboBox.getSelectedItem());
+    }
 
-		JPanel separationPanel = new JPanel(ButtonDialog.createGridLayout(5, 2));
-		separationPanel.add(commaButton);
-		separationPanel.add(spaceButton);
-		separationPanel.add(semicolonButton);
-		separationPanel.add(tabButton);
-		separationPanel.add(regexButton);
-		separationPanel.add(regexTextField);
-		separationPanel.add(escapeCharacterLabel);
-		separationPanel.add(escapeCharacterTextField);
-		separationPanel.add(useQuotesBox);
-		separationPanel.add(quoteCharacterTextField);
+    protected boolean trimLines() {
+        return trimLinesBox.isSelected();
+    }
 
-		separationPanel.setBorder(ButtonDialog.createTitledBorder("Column Separation"));
+    protected boolean skipComments() {
+        return skipCommentsBox.isSelected();
+    }
 
-		JPanel parsingPanel = new JPanel(ButtonDialog.createGridLayout(1, 2));
-		parsingPanel.add(optionPanel);
-		parsingPanel.add(separationPanel);
+    protected String getCommentCharacters() {
+        return commentCharacterTextField.getText();
+    }
 
-		editor.setBorder(null);
-		// ExtendedJScrollPane tablePane = new ExtendedJScrollPane(editor);
-		// tablePane.setBorder(ButtonDialog.createBorder());
 
-		JPanel panel = new JPanel(new BorderLayout(0, ButtonDialog.GAP));
-		panel.add(parsingPanel, BorderLayout.NORTH);
-		panel.add(editor, BorderLayout.CENTER);
-		return panel;
-	}
+    protected boolean useQuotes() {
+        return useQuotesBox.isSelected();
+    }
+
+    protected char getQuotesCharacter() {
+        return quoteCharacterTextField.getCharacter();
+    }
+
+    protected char getEscapeCharacter() {
+        return escapeCharacterTextField.getCharacter();
+    }
+
+    protected String getSplitExpression() {
+        String splitExpression = null;
+        if (regexButton.isSelected()) {
+            splitExpression = regexTextField.getText();
+            if ("".equals(splitExpression)) {
+                splitExpression = null;
+            } else {
+                try {
+                    Pattern.compile(splitExpression);
+                } catch (PatternSyntaxException pse) {
+                    splitExpression = null;
+                }
+            }
+        } else if (commaButton.isSelected()) {
+            splitExpression = LineParser.SPLIT_BY_COMMA_EXPRESSION;
+        } else if (semicolonButton.isSelected()) {
+            splitExpression = LineParser.SPLIT_BY_SEMICOLON_EXPRESSION;
+        } else if (tabButton.isSelected()) {
+            splitExpression = LineParser.SPLIT_BY_TAB_EXPRESSION;
+        } else if (spaceButton.isSelected()) {
+            splitExpression = LineParser.SPLIT_BY_SPACE_EXPRESSION;
+        }
+        return splitExpression;
+    }
+
+    protected abstract void settingsChanged();
+
+    protected void setData(List<Object[]> data) {
+        // TODO meta data actually not needed here
+        // editor.setData(reader.getGeneratedMetaData(), data);
+        editor.setData(data);
+    }
+
+    protected boolean getUseFirstRowAsColumnNames() {
+        return useFirstRowAsColumnNamesBox.isSelected();
+    }
+
+    @Override
+    protected JComponent getComponent() {
+        JPanel optionPanel = new JPanel(ButtonDialog.createGridLayout(4, 1));
+        optionPanel.add(new JPanel(ButtonDialog.createGridLayout(1, 2)) {
+            private static final long serialVersionUID = -1726235838693547187L;
+            {
+                add(new JLabel("File Encoding"));
+                add(encodingComboBox);
+            }
+        });
+        optionPanel.add(new JPanel(ButtonDialog.createGridLayout(1, 1)) {
+            private static final long serialVersionUID = -1726235838693547187L;
+            {
+                add(trimLinesBox);
+            }
+        });
+        optionPanel.add(new JPanel(ButtonDialog.createGridLayout(1, 2)) {
+            private static final long serialVersionUID = -1726235838693547187L;
+            {
+                add(skipCommentsBox);
+                add(commentCharacterTextField);
+            }
+        });
+        optionPanel.add(new JPanel(ButtonDialog.createGridLayout(1, 1)) {
+            private static final long serialVersionUID = -1726235838693547187L;
+            {
+                add(useFirstRowAsColumnNamesBox);
+            }
+        });
+        optionPanel.setBorder(ButtonDialog.createTitledBorder("File Reading"));
+
+        JPanel separationPanel = new JPanel(ButtonDialog.createGridLayout(5, 2));
+        separationPanel.add(commaButton);
+        separationPanel.add(spaceButton);
+        separationPanel.add(semicolonButton);
+        separationPanel.add(tabButton);
+        separationPanel.add(regexButton);
+        separationPanel.add(regexTextField);
+        separationPanel.add(escapeCharacterLabel);
+        separationPanel.add(escapeCharacterTextField);
+        separationPanel.add(useQuotesBox);
+        separationPanel.add(quoteCharacterTextField);
+
+        separationPanel.setBorder(ButtonDialog.createTitledBorder("Column Separation"));
+
+        JPanel parsingPanel = new JPanel(ButtonDialog.createGridLayout(1, 2));
+        parsingPanel.add(optionPanel);
+        parsingPanel.add(separationPanel);
+
+        editor.setBorder(null);
+        // ExtendedJScrollPane tablePane = new ExtendedJScrollPane(editor);
+        // tablePane.setBorder(ButtonDialog.createBorder());
+
+        JPanel panel = new JPanel(new BorderLayout(0, ButtonDialog.GAP));
+        panel.add(parsingPanel, BorderLayout.NORTH);
+        panel.add(editor, BorderLayout.CENTER);
+        return panel;
+    }
 }

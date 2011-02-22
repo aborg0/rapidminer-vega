@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2010 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2011 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -53,190 +53,189 @@ import com.rapidminer.tools.RMUrlHandler;
  */
 public class MetaData implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	/** A list of ports that have generated or modified this meta data. */
-	private transient LinkedList<OutputPort> generationHistory = new LinkedList<OutputPort>();
+    /** A list of ports that have generated or modified this meta data. */
+    private transient LinkedList<OutputPort> generationHistory = new LinkedList<OutputPort>();
 
-	/** Maps keys (MD_KEY_...) to values. */
-	private final Map<String,Object> keyValueMap = new HashMap<String,Object>();
+    /** Maps keys (MD_KEY_...) to values. */
+    private final Map<String,Object> keyValueMap = new HashMap<String,Object>();
 
-	private Class<? extends IOObject> dataClass;
+    private Class<? extends IOObject> dataClass;
 
-	private Annotations annotations = new Annotations();
-	
-	public MetaData() {
-		this(IOObject.class);
-	}
+    private Annotations annotations = new Annotations();
 
-	/** Restores an empty history. 
-	 * @throws ClassNotFoundException 
-	 * @throws IOException */
-	//private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-	private Object readResolve() throws ObjectStreamException {
-		//in.defaultReadObject();	
-		if (generationHistory == null) {
-			generationHistory = new LinkedList<OutputPort>();
-		}
-		if (annotations == null) {
-			annotations = new Annotations();
-		}
-		return this;
-	}
+    public MetaData() {
+        this(IOObject.class);
+    }
 
-	public MetaData(Class<? extends IOObject> dataClass) {
-		this(dataClass, Collections.<String,Object>emptyMap());
-	}
+    /** Restores an empty history.
+     * @throws ClassNotFoundException
+     * @throws IOException */
+    public Object readResolve() throws ObjectStreamException {
+        //in.defaultReadObject();
+        if (generationHistory == null) {
+            generationHistory = new LinkedList<OutputPort>();
+        }
+        if (annotations == null) {
+            annotations = new Annotations();
+        }
+        return this;
+    }
 
-	public MetaData(Class<? extends IOObject> dataClass, String key, Object value) {
-		this(dataClass, Collections.singletonMap(key, value));
-	}
+    public MetaData(Class<? extends IOObject> dataClass) {
+        this(dataClass, Collections.<String,Object>emptyMap());
+    }
 
-	public MetaData(Class<? extends IOObject> dataClass, Map<String,Object> keyValueMap) {	
-		this.dataClass = dataClass;
-		this.keyValueMap.putAll(keyValueMap);
-	}
+    public MetaData(Class<? extends IOObject> dataClass, String key, Object value) {
+        this(dataClass, Collections.singletonMap(key, value));
+    }
 
-	public void addToHistory(OutputPort generator) {
-		this.generationHistory.addFirst(generator);
-	}
+    public MetaData(Class<? extends IOObject> dataClass, Map<String,Object> keyValueMap) {
+        this.dataClass = dataClass;
+        this.keyValueMap.putAll(keyValueMap);
+    }
 
-	public List<OutputPort> getGenerationHistory() {
-		return Collections.unmodifiableList(generationHistory);
-	}
+    public void addToHistory(OutputPort generator) {
+        this.generationHistory.addFirst(generator);
+    }
 
-	public String getGenerationHistoryAsHTML() {
-		boolean first = true;
-		StringBuilder b = new StringBuilder();
-		if (generationHistory != null) {
-		for (OutputPort port : generationHistory) {
-			if (!first) {
-				b.append(" &#8592; ");
-			}
-			b.append("<a href=\""+RMUrlHandler.URL_PREFIX+"operator/");
-			b.append(port.getPorts().getOwner().getOperator().getName());
-			b.append("\">");
-			b.append(port.getSpec());
-			b.append("</a>");
-			first = false;
-		}
-		}
-		return b.toString();
-	}
+    public List<OutputPort> getGenerationHistory() {
+        return Collections.unmodifiableList(generationHistory);
+    }
 
-	public Class<? extends IOObject> getObjectClass() {
-		return dataClass;
-	}
+    public String getGenerationHistoryAsHTML() {
+        boolean first = true;
+        StringBuilder b = new StringBuilder();
+        if (generationHistory != null) {
+            for (OutputPort port : generationHistory) {
+                if (!first) {
+                    b.append(" &#8592; ");
+                }
+                b.append("<a href=\""+RMUrlHandler.URL_PREFIX+"operator/");
+                b.append(port.getPorts().getOwner().getOperator().getName());
+                b.append("\">");
+                b.append(port.getSpec());
+                b.append("</a>");
+                first = false;
+            }
+        }
+        return b.toString();
+    }
 
-	public Object getMetaData(String key) {
-		return keyValueMap.get(key);
-	}
+    public Class<? extends IOObject> getObjectClass() {
+        return dataClass;
+    }
 
-	public Object putMetaData(String key, Object value) {
-		return keyValueMap.put(key, value);
-	}
+    public Object getMetaData(String key) {
+        return keyValueMap.get(key);
+    }
 
-	@Override
-	public MetaData clone() {
-		MetaData clone;
-		try {
-			clone = this.getClass().newInstance();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-			throw new RuntimeException("Cannot clone " + this, e);			
-		} catch (IllegalAccessException e) {
-			throw new RuntimeException("Cannot clone " + this, e);			
-		}
-		if (generationHistory == null)
-			clone.generationHistory = new LinkedList<OutputPort>();
-		else
-			clone.generationHistory = new LinkedList<OutputPort>(this.generationHistory);
-		clone.dataClass = this.getObjectClass();
-		clone.keyValueMap.putAll(this.keyValueMap);
-		if (this.annotations != null) {
-			clone.annotations.putAll(this.annotations);
-		}
-		return clone;
-	}
+    public Object putMetaData(String key, Object value) {
+        return keyValueMap.put(key, value);
+    }
+
+    @Override
+    public MetaData clone() {
+        MetaData clone;
+        try {
+            clone = this.getClass().newInstance();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Cannot clone " + this, e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Cannot clone " + this, e);
+        }
+        if (generationHistory == null)
+            clone.generationHistory = new LinkedList<OutputPort>();
+        else
+            clone.generationHistory = new LinkedList<OutputPort>(this.generationHistory);
+        clone.dataClass = this.getObjectClass();
+        clone.keyValueMap.putAll(this.keyValueMap);
+        if (this.annotations != null) {
+            clone.annotations.putAll(this.annotations);
+        }
+        return clone;
+    }
 
 
-	@Override
-	public String toString() {
-		return getObjectClass().getSimpleName() + (keyValueMap.isEmpty() ? "" : (" hints: " + keyValueMap.toString()));
-	}
+    @Override
+    public String toString() {
+        return getObjectClass().getSimpleName() + (keyValueMap.isEmpty() ? "" : (" hints: " + keyValueMap.toString()));
+    }
 
-	public String getDescription() {
-		String name = RendererService.getName(dataClass);
-		if (name == null)
-			name = dataClass.getSimpleName();
-		StringBuilder desc = new StringBuilder(name);
-		if (!keyValueMap.isEmpty()) {
-			desc.append("; ");
-			desc.append(keyValueMap);
-		}
-		if ((annotations != null) && !annotations.isEmpty()) {
-			desc.append("<ul>");
-			for (String key: annotations.getKeys()) {
-				desc.append("<li><em>").append(key).append(":</em> ").append(annotations.get(key));
-			}
-			desc.append("</ul>");
-		}
-		return desc.toString();		
-	}
+    public String getDescription() {
+        String name = RendererService.getName(dataClass);
+        if (name == null)
+            name = dataClass.getSimpleName();
+        StringBuilder desc = new StringBuilder(name);
+        if (!keyValueMap.isEmpty()) {
+            desc.append("; ");
+            desc.append(keyValueMap);
+        }
+        if ((annotations != null) && !annotations.isEmpty()) {
+            desc.append("<ul>");
+            for (String key: annotations.getKeys()) {
+                desc.append("<li><em>").append(key).append(":</em> ").append(annotations.get(key));
+            }
+            desc.append("</ul>");
+        }
+        return desc.toString();
+    }
 
-	/** Returns true if isData is compatible with this meta data, where <code>this</code> 
-	 *  represents desired meta data and isData represents meta data that was actually delivered.*/
-	public boolean isCompatible(MetaData isData, CompatibilityLevel level) {
-		return getErrorsForInput(null, isData, level).isEmpty();
-	}
+    /** Returns true if isData is compatible with this meta data, where <code>this</code>
+     *  represents desired meta data and isData represents meta data that was actually delivered.*/
+    public boolean isCompatible(MetaData isData, CompatibilityLevel level) {
+        return getErrorsForInput(null, isData, level).isEmpty();
+    }
 
-	/** Returns a (possibly empty) list of errors specifying in what regard <code>isData</code>
-	 *  differs from <code>this</code> meta data specification. 
-	 * 
-	 * @param inputPort required for generating errors
-	 * @param isData the data received by the port	 
-	 */
-	public Collection<MetaDataError> getErrorsForInput(InputPort inputPort, MetaData isData, CompatibilityLevel level) {
-		if (!this.dataClass.isAssignableFrom(isData.dataClass)) {			
-			return Collections.<MetaDataError>singletonList(new InputMissingMetaDataError(inputPort, this.getObjectClass(), isData.getObjectClass()));			
-		}
-		Collection<MetaDataError> errors = new LinkedList<MetaDataError>();
-		if (level == CompatibilityLevel.VERSION_5) {
-			for (Map.Entry<String, Object> entry : this.keyValueMap.entrySet()) {
-				Object isValue = isData.keyValueMap.get(entry.getKey()); 
-				if (!entry.getValue().equals(isValue)) {				
-					errors.add(new SimpleMetaDataError(Severity.ERROR, inputPort, "general_property_mismatch", new Object[] { entry.getKey(), entry.getValue() }));
-				}
-			}
-		}
-		return errors;		
-	}
+    /** Returns a (possibly empty) list of errors specifying in what regard <code>isData</code>
+     *  differs from <code>this</code> meta data specification.
+     * 
+     * @param inputPort required for generating errors
+     * @param isData the data received by the port
+     */
+    public Collection<MetaDataError> getErrorsForInput(InputPort inputPort, MetaData isData, CompatibilityLevel level) {
+        if (!this.dataClass.isAssignableFrom(isData.dataClass)) {
+            return Collections.<MetaDataError>singletonList(new InputMissingMetaDataError(inputPort, this.getObjectClass(), isData.getObjectClass()));
+        }
+        Collection<MetaDataError> errors = new LinkedList<MetaDataError>();
+        if (level == CompatibilityLevel.VERSION_5) {
+            for (Map.Entry<String, Object> entry : this.keyValueMap.entrySet()) {
+                Object isValue = isData.keyValueMap.get(entry.getKey());
+                if (!entry.getValue().equals(isValue)) {
+                    errors.add(new SimpleMetaDataError(Severity.ERROR, inputPort, "general_property_mismatch", new Object[] { entry.getKey(), entry.getValue() }));
+                }
+            }
+        }
+        return errors;
+    }
 
-	/**
-	 * This will return the meta data description of the given IOObject.
-	 * If the shortened flag is true, the meta data will be incomplete to 
-	 * avoid to generate too much data if this is supported by the actual meta data implementation.
-	 */
-	public static MetaData forIOObject(IOObject ioo, boolean shortened) {
-		MetaData result;
-		if (ioo instanceof ExampleSet) {
-			result = new ExampleSetMetaData((ExampleSet)ioo, shortened);
-		} else {
-			result = new MetaData(ioo.getClass());
-		}
-		result.annotations = new Annotations(ioo.getAnnotations());
-		return result;	
-	}
-	
-	public static MetaData forIOObject(IOObject ioo) {
-		return forIOObject(ioo, false);
-	}
+    /**
+     * This will return the meta data description of the given IOObject.
+     * If the shortened flag is true, the meta data will be incomplete to
+     * avoid to generate too much data if this is supported by the actual meta data implementation.
+     */
+    public static MetaData forIOObject(IOObject ioo, boolean shortened) {
+        MetaData result;
+        if (ioo instanceof ExampleSet) {
+            result = new ExampleSetMetaData((ExampleSet)ioo, shortened);
+        } else {
+            result = new MetaData(ioo.getClass());
+        }
+        result.annotations = new Annotations(ioo.getAnnotations());
+        return result;
+    }
 
-	public Annotations getAnnotations() {
-		return annotations;
-	}
-	
-	public void setAnnotations(Annotations annotations) {
-		this.annotations = annotations;		
-	}
+    public static MetaData forIOObject(IOObject ioo) {
+        return forIOObject(ioo, false);
+    }
+
+    public Annotations getAnnotations() {
+        return annotations;
+    }
+
+    public void setAnnotations(Annotations annotations) {
+        this.annotations = annotations;
+    }
 }

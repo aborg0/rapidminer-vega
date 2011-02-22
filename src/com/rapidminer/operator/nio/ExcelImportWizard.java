@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2010 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2011 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -22,6 +22,8 @@
  */
 package com.rapidminer.operator.nio;
 
+import java.io.File;
+
 import com.rapidminer.gui.wizards.ConfigurationListener;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.nio.model.AbstractDataResultSetReader;
@@ -40,33 +42,44 @@ import com.rapidminer.repository.RepositoryLocation;
  */
 public class ExcelImportWizard extends AbstractDataImportWizard {
 
-	private static final long serialVersionUID = 1L;
-	
-	public ExcelImportWizard() throws OperatorException {
-		this(null, null, null);
-	}
-	
-	public ExcelImportWizard(ExcelExampleSource source, ConfigurationListener listener, RepositoryLocation preselectedLocation) throws OperatorException {
-		super(source, preselectedLocation, "data_import_wizard");
-		
-		// adding steps		
-		addStep(new ExcelFileSelectionWizardStep(this, (ExcelResultSetConfiguration) getState().getDataResultSetFactory()));
-		addStep(new ExcelSheetSelectionWizardStep((ExcelResultSetConfiguration) getState().getDataResultSetFactory()));
-		addCommonSteps();
-//		addStep(new AnnotationDeclarationWizardStep(state));
-//		addStep(new MetaDataDeclarationWizardStep(state));
-//		if (source == null) {
-//			addStep(new StoreDataWizardStep(this, state, (preselectedLocation != null) ? preselectedLocation.getAbsoluteLocation() : null));
-//		}
-		layoutDefault(HUGE);		
-	}
+    private static final long serialVersionUID = 1L;
 
-	@Override
-	protected DataResultSetFactory makeFactory(AbstractDataResultSetReader reader) throws OperatorException {
-		if (reader != null) {
-			return new ExcelResultSetConfiguration((ExcelExampleSource) reader);
-		} else {
-			return new ExcelResultSetConfiguration();
-		}
-	}
+    public ExcelImportWizard() throws OperatorException {
+        this(null, null, null);
+    }
+
+    public ExcelImportWizard(File file, RepositoryLocation preselectedLocation) throws OperatorException {
+        super(null, preselectedLocation, "data_import_wizard");
+
+        // adding steps
+        ExcelResultSetConfiguration excelConfig = (ExcelResultSetConfiguration) getState().getDataResultSetFactory();
+        excelConfig.setWorkbookFile(file);
+
+        ExcelSheetSelectionWizardStep wizardStep = new ExcelSheetSelectionWizardStep(excelConfig);
+        wizardStep.performEnteringAction(WizardStepDirection.FORWARD);
+        addStep(wizardStep);
+        addCommonSteps();
+
+        layoutDefault(HUGE);
+    }
+
+    public ExcelImportWizard(ExcelExampleSource source, ConfigurationListener listener, RepositoryLocation preselectedLocation) throws OperatorException {
+        super(source, preselectedLocation, "data_import_wizard");
+
+        // adding steps
+        addStep(new ExcelFileSelectionWizardStep(this, (ExcelResultSetConfiguration) getState().getDataResultSetFactory()));
+        addStep(new ExcelSheetSelectionWizardStep((ExcelResultSetConfiguration) getState().getDataResultSetFactory()));
+        addCommonSteps();
+
+        layoutDefault(HUGE);
+    }
+
+    @Override
+    protected DataResultSetFactory makeFactory(AbstractDataResultSetReader reader) throws OperatorException {
+        if (reader != null) {
+            return new ExcelResultSetConfiguration((ExcelExampleSource) reader);
+        } else {
+            return new ExcelResultSetConfiguration();
+        }
+    }
 }

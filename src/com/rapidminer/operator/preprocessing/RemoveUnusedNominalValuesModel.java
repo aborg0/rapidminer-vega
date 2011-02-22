@@ -50,16 +50,13 @@ public class RemoveUnusedNominalValuesModel extends PreprocessingModel {
     public static class MappingTranslation {
         NominalMapping originalMapping;
         NominalMapping newMapping;
-        boolean isPolynominal;
 
         public MappingTranslation(NominalMapping originalMapping) {
             this.originalMapping = originalMapping;
             if (originalMapping instanceof PolynominalMapping) {
                 this.newMapping = new PolynominalMapping();
-                this.isPolynominal = true;
             } else {
                 this.newMapping = new BinominalMapping();
-                this.isPolynominal = false;
             }
         }
     }

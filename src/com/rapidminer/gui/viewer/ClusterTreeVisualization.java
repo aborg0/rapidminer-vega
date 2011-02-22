@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2010 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2011 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -49,141 +49,144 @@ import com.rapidminer.tools.ObjectVisualizerService;
  */
 public class ClusterTreeVisualization extends JTree implements TreeSelectionListener, Renderable {
 
-	private static final long serialVersionUID = 3994390578811027103L;
+    private static final long serialVersionUID = 3994390578811027103L;
 
-	private Object clusterModel;
-	
-	private static class ClusterTreeLeaf {
+    private Object clusterModel;
 
-		private final String title;
+    private static class ClusterTreeLeaf {
 
-		private final Object id;
+        private final String title;
 
-		public ClusterTreeLeaf(String title, Object id) {
-			this.title = title;
-			this.id = id;
-		}
+        private final Object id;
 
-		@Override
-		public String toString() {
-			return title;
-		}
+        public ClusterTreeLeaf(String title, Object id) {
+            this.title = title;
+            this.id = id;
+        }
 
-		/** Returns the id. */
-		public Object getId() {
-			return id;
-		}
+        @Override
+        public String toString() {
+            return title;
+        }
 
-//		/** Returns the title. */
-//		public String getTitle() {
-//			return title;
-//		}
-	}
-	
-	public ClusterTreeVisualization(HierarchicalClusterModel cm) {
-		DefaultTreeModel model = new DefaultTreeModel(generateTreeModel(cm.getRootNode()));
-		setModel(model);
-		addTreeSelectionListener(this);
-		this.clusterModel = cm;
-	}
+        /** Returns the id. */
+        public Object getId() {
+            return id;
+        }
 
-	public ClusterTreeVisualization(ClusterModel cm) {
-		DefaultTreeModel model = new DefaultTreeModel(generateFlatModel(cm));
-		setModel(model);
-		addTreeSelectionListener(this);
-		this.clusterModel = cm;
-	}
-
-	private DefaultMutableTreeNode generateFlatModel(ClusterModel cm) {
-		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("root");
-		rootNode.setAllowsChildren(true);
-		for (int i = 0; i < cm.getNumberOfClusters(); i++) {
-			Cluster cl = cm.getCluster(i);
-			DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(cl);
-			newNode.setAllowsChildren(true);
-			rootNode.add(newNode);
-			for (Object exampleId: cl.getExampleIds()) {
-				if (exampleId instanceof String)
-					newNode.add(createLeaf(exampleId));
-				else
-					newNode.add(createLeaf(exampleId));
-			}
-		}
-		return rootNode;
-	}
-
-
-	private DefaultMutableTreeNode generateTreeModel(HierarchicalClusterNode cl) {
-		DefaultMutableTreeNode result = new DefaultMutableTreeNode(cl);
-		result.setAllowsChildren(true);
-
-		// Add sub clusters
-		for (HierarchicalClusterNode subNode: cl.getSubNodes()) {
-			result.add(generateTreeModel(subNode));
-		}
-
-		// Add objects
-		for (Object exampleId: cl.getExampleIdsInSubtree()) {
-			result.add(createLeaf(exampleId));
-		}
-		return result;
-	}
-
-	private MutableTreeNode createLeaf(Object id) {
-		ObjectVisualizer viz = ObjectVisualizerService.getVisualizerForObject(clusterModel);
-		String title = viz.getTitle(id);
-		if (title == null) {
-			if (id instanceof String)
-				title = (String) id;
-			else
-				title = ((Integer) id).toString();
-		}
-		DefaultMutableTreeNode newLeaf = new DefaultMutableTreeNode(new ClusterTreeLeaf(title, id));
-		newLeaf.setAllowsChildren(false);
-		return newLeaf;
-	}
-
-	public void valueChanged(TreeSelectionEvent e) {
-		TreePath[] paths = getSelectionPaths();
-		// If only one item has been selected, then change the text in the
-		// description area
-		if (paths == null)
-			return;
-		if (paths.length == 1) {
-			DefaultMutableTreeNode node = (DefaultMutableTreeNode) paths[0].getLastPathComponent();
-			if (!node.getAllowsChildren()) {
-				ClusterTreeLeaf leaf = (ClusterTreeLeaf) node.getUserObject();
-				ObjectVisualizer viz = ObjectVisualizerService.getVisualizerForObject(clusterModel);
-				viz.startVisualization(leaf.getId());
-			}
-		}
-	}
-	
-	/** Expands the complete tree. */
-	public void expandAll() {
-		int row = 0;
-		while (row < getRowCount()) {
-			expandRow(row);
-			row++;
-		}
-	}
-	
-    public void prepareRendering() {
-    	expandAll();
+        //		/** Returns the title. */
+        //		public String getTitle() {
+        //			return title;
+        //		}
     }
-    
+
+    public ClusterTreeVisualization(HierarchicalClusterModel cm) {
+        DefaultTreeModel model = new DefaultTreeModel(generateTreeModel(cm.getRootNode()));
+        setModel(model);
+        addTreeSelectionListener(this);
+        this.clusterModel = cm;
+    }
+
+    public ClusterTreeVisualization(ClusterModel cm) {
+        DefaultTreeModel model = new DefaultTreeModel(generateFlatModel(cm));
+        setModel(model);
+        addTreeSelectionListener(this);
+        this.clusterModel = cm;
+    }
+
+    private DefaultMutableTreeNode generateFlatModel(ClusterModel cm) {
+        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("root");
+        rootNode.setAllowsChildren(true);
+        for (int i = 0; i < cm.getNumberOfClusters(); i++) {
+            Cluster cl = cm.getCluster(i);
+            DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(cl);
+            newNode.setAllowsChildren(true);
+            rootNode.add(newNode);
+            for (Object exampleId: cl.getExampleIds()) {
+                newNode.add(createLeaf(exampleId));
+            }
+        }
+        return rootNode;
+    }
+
+
+    private DefaultMutableTreeNode generateTreeModel(HierarchicalClusterNode cl) {
+        DefaultMutableTreeNode result = new DefaultMutableTreeNode(cl);
+        result.setAllowsChildren(true);
+
+        // Add sub clusters
+        for (HierarchicalClusterNode subNode: cl.getSubNodes()) {
+            result.add(generateTreeModel(subNode));
+        }
+
+        // Add objects
+        for (Object exampleId: cl.getExampleIdsInSubtree()) {
+            result.add(createLeaf(exampleId));
+        }
+        return result;
+    }
+
+    private MutableTreeNode createLeaf(Object id) {
+        ObjectVisualizer viz = ObjectVisualizerService.getVisualizerForObject(clusterModel);
+        String title = viz.getTitle(id);
+        if (title == null) {
+            if (id instanceof String)
+                title = (String) id;
+            else
+                title = ((Integer) id).toString();
+        }
+        DefaultMutableTreeNode newLeaf = new DefaultMutableTreeNode(new ClusterTreeLeaf(title, id));
+        newLeaf.setAllowsChildren(false);
+        return newLeaf;
+    }
+
+    @Override
+    public void valueChanged(TreeSelectionEvent e) {
+        TreePath[] paths = getSelectionPaths();
+        // If only one item has been selected, then change the text in the
+        // description area
+        if (paths == null)
+            return;
+        if (paths.length == 1) {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) paths[0].getLastPathComponent();
+            if (!node.getAllowsChildren()) {
+                ClusterTreeLeaf leaf = (ClusterTreeLeaf) node.getUserObject();
+                ObjectVisualizer viz = ObjectVisualizerService.getVisualizerForObject(clusterModel);
+                viz.startVisualization(leaf.getId());
+            }
+        }
+    }
+
+    /** Expands the complete tree. */
+    public void expandAll() {
+        int row = 0;
+        while (row < getRowCount()) {
+            expandRow(row);
+            row++;
+        }
+    }
+
+    @Override
+    public void prepareRendering() {
+        expandAll();
+    }
+
+    @Override
     public void finishRendering() {}
-    
-	public int getRenderHeight(int preferredHeight) {
-		return Math.max(getPreferredSize().height, preferredHeight);
-	}
 
-	public int getRenderWidth(int preferredWidth) {
-		return Math.max(getPreferredSize().width, preferredWidth);
-	}
+    @Override
+    public int getRenderHeight(int preferredHeight) {
+        return Math.max(getPreferredSize().height, preferredHeight);
+    }
 
-	public void render(Graphics graphics, int width, int height) {
-		setSize(width, height);
-		paint(graphics);
-	}
+    @Override
+    public int getRenderWidth(int preferredWidth) {
+        return Math.max(getPreferredSize().width, preferredWidth);
+    }
+
+    @Override
+    public void render(Graphics graphics, int width, int height) {
+        setSize(width, height);
+        paint(graphics);
+    }
 }

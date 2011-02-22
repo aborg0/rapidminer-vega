@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2010 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2011 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -62,118 +62,120 @@ import com.rapidminer.tools.container.Pair;
  */
 public class MultiwayDecisionTree extends AbstractMetaLearner {
 
-	/**
-	 * @param description
-	 */
-	public MultiwayDecisionTree(OperatorDescription description) {
-		super(description);
+    /**
+     * @param description
+     */
+    public MultiwayDecisionTree(OperatorDescription description) {
+        super(description);
 
-	}
+    }
 
-	public Model learn(ExampleSet exampleSet) throws OperatorException {
-		GroupedModel groupedModel = new GroupedModel();
+    @Override
+    public Model learn(ExampleSet exampleSet) throws OperatorException {
+        GroupedModel groupedModel = new GroupedModel();
 
-		// applying inner learner in order to get tree model
-		TreeModel model = (TreeModel) applyInnerLearner(exampleSet);
+        // applying inner learner in order to get tree model
+        TreeModel model = (TreeModel) applyInnerLearner(exampleSet);
 
-		// searching numerical split point inside this tree model
-		Map<String, List<Double>> attributePointMap = new HashMap<String, List<Double>>();
-		addNodeSplitPoints(model.getRoot(), attributePointMap);
+        // searching numerical split point inside this tree model
+        Map<String, List<Double>> attributePointMap = new HashMap<String, List<Double>>();
+        addNodeSplitPoints(model.getRoot(), attributePointMap);
 
-		try {
-			// operator construction
-			PreprocessingOperator userbasedDiscretization = OperatorService.createOperator(UserBasedDiscretization.class);
+        try {
+            // operator construction
+            PreprocessingOperator userbasedDiscretization = OperatorService.createOperator(UserBasedDiscretization.class);
 
-			// setting common parameters
-			userbasedDiscretization.setParameter(AttributeSubsetSelector.PARAMETER_FILTER_TYPE, AttributeSubsetSelector.CONDITION_REGULAR_EXPRESSION + "");
-			userbasedDiscretization.setParameter(UserBasedDiscretization.PARAMETER_RETURN_PREPROCESSING_MODEL, "true");
+            // setting common parameters
+            userbasedDiscretization.setParameter(AttributeSubsetSelector.PARAMETER_FILTER_TYPE, AttributeSubsetSelector.CONDITION_REGULAR_EXPRESSION + "");
+            userbasedDiscretization.setParameter(UserBasedDiscretization.PARAMETER_RETURN_PREPROCESSING_MODEL, "true");
 
-			// iterating over all attributes which have to be transformed
-			for (Entry<String, List<Double>> currentAttribute : attributePointMap.entrySet()) {
-				// sorting split points
-				double[] splitPoints = new double[currentAttribute.getValue().size()];
-				int i = 0;
-				for (Double splitPoint : attributePointMap.get(currentAttribute)) {
-					splitPoints[i] = splitPoint;
-					i++;
-				}
-				Arrays.sort(splitPoints);
+            // iterating over all attributes which have to be transformed
+            for (Entry<String, List<Double>> currentEntry : attributePointMap.entrySet()) {
+                // sorting split points
+                double[] splitPoints = new double[currentEntry.getValue().size()];
+                int i = 0;
+                String currentAttributeName = currentEntry.getKey();
+                for (Double splitPoint : attributePointMap.get(currentAttributeName)) {
+                    splitPoints[i] = splitPoint;
+                    i++;
+                }
+                Arrays.sort(splitPoints);
 
-				// setting attribute to consider
-				userbasedDiscretization.setParameter(RegexpAttributeFilter.PARAMETER_REGULAR_EXPRESSION, currentAttribute.getKey());
+                // setting attribute to consider
+                userbasedDiscretization.setParameter(RegexpAttributeFilter.PARAMETER_REGULAR_EXPRESSION, currentAttributeName);
 
-				// setting borders for splitting
-				List<String[]> borders = new LinkedList<String[]>();
-				double lowerBorder = Double.NEGATIVE_INFINITY;
-				for (i = 0; i < splitPoints.length; i++) {
-					String[] pointSpecifier = new String[] { currentAttribute + " in " + Tools.formatNumber(lowerBorder, 2) + " to " + Tools.formatNumber(splitPoints[i], 2), splitPoints[i] + "" };
-					lowerBorder = splitPoints[i];
-					borders.add(pointSpecifier);
-				}
-				String[] pointSpecifier = new String[] { currentAttribute + " in " + Tools.formatNumber(lowerBorder, 2) + " to " + Tools.formatNumber(Double.POSITIVE_INFINITY, 2), "Infinity" };
-				borders.add(pointSpecifier);
+                // setting borders for splitting
+                List<String[]> borders = new LinkedList<String[]>();
+                double lowerBorder = Double.NEGATIVE_INFINITY;
+                for (i = 0; i < splitPoints.length; i++) {
+                    String[] pointSpecifier = new String[] { currentEntry + " in " + Tools.formatNumber(lowerBorder, 2) + " to " + Tools.formatNumber(splitPoints[i], 2), splitPoints[i] + "" };
+                    lowerBorder = splitPoints[i];
+                    borders.add(pointSpecifier);
+                }
+                String[] pointSpecifier = new String[] { currentEntry + " in " + Tools.formatNumber(lowerBorder, 2) + " to " + Tools.formatNumber(Double.POSITIVE_INFINITY, 2), "Infinity" };
+                borders.add(pointSpecifier);
 
-				userbasedDiscretization.setParameter(UserBasedDiscretization.PARAMETER_RANGE_NAMES, ParameterTypeList.transformList2String(borders));
+                userbasedDiscretization.setParameter(UserBasedDiscretization.PARAMETER_RANGE_NAMES, ParameterTypeList.transformList2String(borders));
 
-				// executing operators
+                // executing operators
 
-				Pair<ExampleSet, Model> result = userbasedDiscretization.doWorkModel(exampleSet);
-				exampleSet = result.getFirst();
-				groupedModel.addModel(result.getSecond());
-			}
+                Pair<ExampleSet, Model> result = userbasedDiscretization.doWorkModel(exampleSet);
+                exampleSet = result.getFirst();
+                groupedModel.addModel(result.getSecond());
+            }
 
-			// now apply inner operator on transformed exampleset
-			groupedModel.addModel(applyInnerLearner(exampleSet));
-			return groupedModel;
-		} catch (OperatorCreationException e) {
-			throw new UserError(this, 904, "operators", e.getMessage());
-		}
-	}
+            // now apply inner operator on transformed exampleset
+            groupedModel.addModel(applyInnerLearner(exampleSet));
+            return groupedModel;
+        } catch (OperatorCreationException e) {
+            throw new UserError(this, 904, "operators", e.getMessage());
+        }
+    }
 
-	/**
-	 * This method recursively adds splitting points from all numerical split conditions.
-	 */
-	private void addNodeSplitPoints(Tree root, Map<String, List<Double>> attributePointMap) {
-		// add split point of this node
-		if (!root.isLeaf()) {
-			SplitCondition condition = root.childIterator().next().getCondition();
-			if (condition instanceof GreaterSplitCondition) {
-				addSplit(condition.getAttributeName(), ((GreaterSplitCondition) condition).getValue(), attributePointMap);
-			} else if (condition instanceof LessEqualsSplitCondition) {
-				addSplit(condition.getAttributeName(), ((LessEqualsSplitCondition) condition).getValue(), attributePointMap);
-			}
-		}
+    /**
+     * This method recursively adds splitting points from all numerical split conditions.
+     */
+    private void addNodeSplitPoints(Tree root, Map<String, List<Double>> attributePointMap) {
+        // add split point of this node
+        if (!root.isLeaf()) {
+            SplitCondition condition = root.childIterator().next().getCondition();
+            if (condition instanceof GreaterSplitCondition) {
+                addSplit(condition.getAttributeName(), ((GreaterSplitCondition) condition).getValue(), attributePointMap);
+            } else if (condition instanceof LessEqualsSplitCondition) {
+                addSplit(condition.getAttributeName(), ((LessEqualsSplitCondition) condition).getValue(), attributePointMap);
+            }
+        }
 
-		// recursive descent
-		Iterator<Edge> iterator = root.childIterator();
-		while (iterator.hasNext()) {
-			addNodeSplitPoints(iterator.next().getChild(), attributePointMap);
-		}
-	}
+        // recursive descent
+        Iterator<Edge> iterator = root.childIterator();
+        while (iterator.hasNext()) {
+            addNodeSplitPoints(iterator.next().getChild(), attributePointMap);
+        }
+    }
 
-	private void addSplit(String attributeName, double value, Map<String, List<Double>> attributePointMap) {
-		List<Double> valueList = attributePointMap.get(attributeName);
-		if (valueList == null) {
-			valueList = new LinkedList<Double>();
-			attributePointMap.put(attributeName, valueList);
-		}
-		valueList.add(value);
-	}
+    private void addSplit(String attributeName, double value, Map<String, List<Double>> attributePointMap) {
+        List<Double> valueList = attributePointMap.get(attributeName);
+        if (valueList == null) {
+            valueList = new LinkedList<Double>();
+            attributePointMap.put(attributeName, valueList);
+        }
+        valueList.add(value);
+    }
 
-	@Override
-	public boolean supportsCapability(OperatorCapability capability) {
-		switch (capability) {
-		case BINOMINAL_ATTRIBUTES:
-		case POLYNOMINAL_ATTRIBUTES:
-		case NUMERICAL_ATTRIBUTES:
-		case POLYNOMINAL_LABEL:
-		case BINOMINAL_LABEL:
-		case WEIGHTED_EXAMPLES:
-		case MISSING_VALUES:
-			return true;
-		default:
-			return false;
-		}
-	}
+    @Override
+    public boolean supportsCapability(OperatorCapability capability) {
+        switch (capability) {
+        case BINOMINAL_ATTRIBUTES:
+        case POLYNOMINAL_ATTRIBUTES:
+        case NUMERICAL_ATTRIBUTES:
+        case POLYNOMINAL_LABEL:
+        case BINOMINAL_LABEL:
+        case WEIGHTED_EXAMPLES:
+        case MISSING_VALUES:
+            return true;
+        default:
+            return false;
+        }
+    }
 
 }

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2010 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2011 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -58,7 +58,6 @@ import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.RandomGenerator;
 
-
 /**
  * The operator MissingValueImpution imputes missing values by learning models
  * for each attribute (except the label) and applying those models to the data
@@ -89,7 +88,10 @@ public class MissingValueImputation extends OperatorChain {
     /** The parameter name for &quot;Impute missing values immediately after having learned the corresponding concept and iterate.&quot; */
     public static final String PARAMETER_ITERATE = "iterate";
 
-    /** The parameter name for &quot;Learn concepts to impute missing values only on the basis of complete cases (should be used in case learning approach can not handle missing values).&quot; */
+    /**
+     * The parameter name for &quot;Learn concepts to impute missing values only on the basis of complete cases (should be used in case
+     * learning approach can not handle missing values).&quot;
+     */
     public static final String PARAMETER_LEARN_ON_COMPLETE_CASES = "learn_on_complete_cases";
 
     /** Chronological imputation order. */
@@ -128,29 +130,29 @@ public class MissingValueImputation extends OperatorChain {
             public ExampleSetMetaData modifyExampleSet(ExampleSetMetaData metaData) {
 
                 ExampleSetMetaData selectedSubset = attributeSelector.getMetaDataSubset(metaData, false);
-                if (selectedSubset != null) {
-                    Iterator<AttributeMetaData> iterator = selectedSubset.getAllAttributes().iterator();
-                    // removing specials
-                    while (iterator.hasNext()) {
-                        if (iterator.next().isSpecial()) {
-                            iterator.remove();
-                        }
+                Iterator<AttributeMetaData> iterator = selectedSubset.getAllAttributes().iterator();
+                // removing specials
+                while (iterator.hasNext()) {
+                    if (iterator.next().isSpecial()) {
+                        iterator.remove();
                     }
-                    // setting missing values to null if according parameter is set
-                    if (getParameterAsBoolean(PARAMETER_LEARN_ON_COMPLETE_CASES))
-                        for (AttributeMetaData attribute: selectedSubset.getAllAttributes()) {
-                            attribute.setNumberOfMissingValues(new MDInteger(0));
-                        }
-
-                    /** setting one of the regular attributes to label under the assumption that all attributes
-                     * are from the same type. TODO: Set type to highest common type in ontology of all subset
-                     * attributes.
-                     */
-                    iterator = selectedSubset.getAllAttributes().iterator();
-                    if (iterator.hasNext())
-                        iterator.next().setRole(Attributes.LABEL_NAME);
                 }
-                return (selectedSubset == null) ? metaData : selectedSubset;
+                // setting missing values to null if according parameter is set
+                if (getParameterAsBoolean(PARAMETER_LEARN_ON_COMPLETE_CASES))
+                    for (AttributeMetaData attribute : selectedSubset.getAllAttributes()) {
+                        attribute.setNumberOfMissingValues(new MDInteger(0));
+                    }
+
+                /**
+                 * setting one of the regular attributes to label under the assumption that all attributes
+                 * are from the same type. TODO: Set type to highest common type in ontology of all subset
+                 * attributes.
+                 */
+                iterator = selectedSubset.getAllAttributes().iterator();
+                if (iterator.hasNext())
+                    iterator.next().setRole(Attributes.LABEL_NAME);
+
+                return selectedSubset;
             }
         });
         getTransformer().addRule(new SubprocessTransformRule(getSubprocess(0)));
@@ -159,7 +161,7 @@ public class MissingValueImputation extends OperatorChain {
             public ExampleSetMetaData modifyExampleSet(ExampleSetMetaData metaData) {
                 ExampleSetMetaData subset = attributeSelector.getMetaDataSubset(metaData, false);
                 if (subset != null) {
-                    for (AttributeMetaData attribute: subset.getAllAttributes()) {
+                    for (AttributeMetaData attribute : subset.getAllAttributes()) {
                         metaData.getAttributeByName(attribute.getName()).setNumberOfMissingValues(new MDInteger(0));
                     }
                 }
@@ -167,8 +169,6 @@ public class MissingValueImputation extends OperatorChain {
             }
         });
     }
-
-
 
     @Override
     public void doWork() throws OperatorException {
@@ -330,7 +330,7 @@ public class MissingValueImputation extends OperatorChain {
 
         String[] attributeNames = new String[weights.size()];
         weights.getAttributeNames().toArray(attributeNames);
-        int sortingOrder = (ascending ? AttributeWeights.INCREASING: AttributeWeights.DECREASING);
+        int sortingOrder = (ascending ? AttributeWeights.INCREASING : AttributeWeights.DECREASING);
         weights.sortByWeight(attributeNames, sortingOrder, AttributeWeights.ABSOLUTE_WEIGHTS);
         for (int i = 0; i < attributeNames.length; i++) {
             sortedAttributes[i] = exampleSet.getAttributes().get(attributeNames[i]);

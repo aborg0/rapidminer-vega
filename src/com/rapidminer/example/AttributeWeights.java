@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2010 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2011 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,9 +79,7 @@ public class AttributeWeights extends AverageVector {
     public static final int ABSOLUTE_WEIGHTS = 1;
 
     /** This comparator sorts the names of attributes according to their weights. */
-    private class WeightComparator implements Comparator<String>, Serializable {
-
-        private static final long serialVersionUID = 5013281668316451984L;
+    private class WeightComparator implements Comparator<String> {
 
         /** Indicates if absolute weights should be used for sorting. */
         private final int comparatorWeightType;
@@ -136,6 +133,7 @@ public class AttributeWeights extends AverageVector {
 
     /** Clone constructor. */
     private AttributeWeights(AttributeWeights weights) {
+        super();
         Iterator i = weights.getAttributeNames().iterator();
         while (i.hasNext()) {
             String name = (String) i.next();

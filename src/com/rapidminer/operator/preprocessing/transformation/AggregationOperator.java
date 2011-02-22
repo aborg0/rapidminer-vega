@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2010 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2011 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -88,7 +88,7 @@ import com.rapidminer.tools.math.function.aggregation.AggregationFunction;
  */
 public class AggregationOperator extends AbstractDataProcessing {
 
-    private class AggregationAttribute {
+    private static class AggregationAttribute {
         Attribute attribute;
         String functionName;
         int resultType;
