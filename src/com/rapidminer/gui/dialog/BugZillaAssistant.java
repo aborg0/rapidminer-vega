@@ -454,12 +454,12 @@ public class BugZillaAssistant extends ButtonDialog {
 
                 // check fields
                 String email = loginName.getText().trim();
-                char[] pw = loginPassword.getPassword();
+                char[] pawo = loginPassword.getPassword();
                 String summary = summaryField.getText().trim();
                 String description = descriptionField.getText().trim();
                 String version = RapidMiner.getShortVersion();
                 if ( !useAnonymousLogin.isSelected()) {
-                    if (email.length() == 0) {
+                    if (email.length() <= 0) {
                         SwingTools.showVerySimpleErrorMessage("enter_email");
                         return;
                     }
@@ -468,7 +468,7 @@ public class BugZillaAssistant extends ButtonDialog {
                         return;
                     }
                     boolean noPW = true;
-                    for (char c : pw) {
+                    for (char c : pawo) {
                         if (c != ' ') {
                             noPW = false;
                             break;
@@ -480,13 +480,13 @@ public class BugZillaAssistant extends ButtonDialog {
                     }
                 } else {
                     email = "bugs@rapid-i.com";
-                    pw = new char[] { '!', 'z', '4', '8', '#', 'H', 'c', '2', '$', '%', 'm', ')', '9', '+', '*', '*' };
+                    pawo = new char[] { '!', 'z', '4', '8', '#', 'H', 'c', '2', '$', '%', 'm', ')', '9', '+', '*', '*' };
                 }
-                if (summary.length() == 0) {
+                if (summary.length() <= 0) {
                     SwingTools.showVerySimpleErrorMessage("enter_summary");
                     return;
                 }
-                if (description.length() == 0 || description.equals(descriptionText)) {
+                if (description.length() <= 0 || description.equals(descriptionText)) {
                     SwingTools.showVerySimpleErrorMessage("enter_description");
                     return;
                 }
@@ -498,13 +498,14 @@ public class BugZillaAssistant extends ButtonDialog {
                     for (int i = 0; i < attachments.length; i++) {
                         attachments[i] = (File) model.getElementAt(i);
                     }
-                    XmlRpcClient client = XmlRpcHandler.login(XmlRpcHandler.BUGZILLA_URL, email, pw);
+                    XmlRpcClient client = XmlRpcHandler.login(XmlRpcHandler.BUGZILLA_URL, email, pawo);
 
                     BugReport.createBugZillaReport(client, exception, summaryField.getText().trim(),
                             BugReport.createCompleteBugDescription(descriptionField.getText().trim(), exception, addProcessCheckBox.isSelected(), addSysPropsCheckBox.isSelected()),
                             String.valueOf(compBox.getSelectedItem()), version, String.valueOf(severityBox.getSelectedItem()),
                             String.valueOf(platformBox.getSelectedItem()), String.valueOf(osBox.getSelectedItem()), RapidMinerGUI.getMainFrame().getProcess(),
                             RapidMinerGUI.getMainFrame().getMessageViewer().getLogMessage(), attachments, addProcessCheckBox.isSelected(), addSysPropsCheckBox.isSelected());
+                    SwingTools.showMessageDialog("bugreport_successful");
                     dispose();
                 } catch(XmlRpcException e1) {
                     SwingTools.showVerySimpleErrorMessage("bugreport_xmlrpc_error", e1.getLocalizedMessage());
@@ -512,8 +513,8 @@ public class BugZillaAssistant extends ButtonDialog {
                     LogService.getRoot().warning(e2.getLocalizedMessage());
                     SwingTools.showVerySimpleErrorMessage("bugreport_creation_failed");
                 } finally {
-                    for (int i=0; i<pw.length; i++) {
-                        pw[i] = 0;
+                    for (int i=0; i<pawo.length; i++) {
+                        pawo[i] = 0;
                     }
                     submitButton.setEnabled(true);
                 }

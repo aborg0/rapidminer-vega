@@ -38,7 +38,9 @@ import java.util.zip.ZipOutputStream;
 import org.apache.xmlrpc.client.XmlRpcClient;
 
 import com.rapidminer.Process;
+import com.rapidminer.RapidMiner;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.tools.plugin.Plugin;
 
 
 /**
@@ -181,6 +183,7 @@ public class BugReport {
         buffer.append(userDescription);
         buffer.append(Tools.getLineSeparator());
         buffer.append(Tools.getLineSeparator());
+        buffer.append(Tools.getLineSeparator());
         buffer.append(getStackTrace(exception));
 
         if (attachProcess) {
@@ -203,10 +206,24 @@ public class BugReport {
             }
             buffer.append(xmlProcess);
         }
+        
         if (attachSystemProps) {
             buffer.append(Tools.getLineSeparator());
             buffer.append(Tools.getLineSeparator());
+            buffer.append(Tools.getLineSeparator());
             buffer.append(getProperties());
+        }
+        
+        buffer.append(Tools.getLineSeparator());
+        buffer.append(Tools.getLineSeparator());
+        buffer.append("RapidMiner: ");
+        buffer.append(RapidMiner.getVersion());
+        buffer.append(Tools.getLineSeparator());
+        for (Plugin plugin : Plugin.getAllPlugins()) {
+        	buffer.append(plugin.getName());
+        	buffer.append(": ");
+        	buffer.append(plugin.getVersion());
+        	buffer.append(Tools.getLineSeparator());
         }
 
         return buffer.toString();
