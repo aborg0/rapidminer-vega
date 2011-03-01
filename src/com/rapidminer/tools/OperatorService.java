@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,77 +41,74 @@ import java.util.logging.Level;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.rapidminer.RapidMiner;
+import com.rapidminer.gui.renderer.RendererService;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorDescription;
-import com.rapidminer.operator.performance.AbstractPerformanceEvaluator;
-import com.rapidminer.operator.performance.PerformanceCriterion;
 import com.rapidminer.operator.ports.Port;
 import com.rapidminer.operator.ports.Ports;
 import com.rapidminer.operator.tools.OperatorCreationHook;
 import com.rapidminer.tools.documentation.OperatorDocBundle;
 import com.rapidminer.tools.plugin.Plugin;
+import com.sun.corba.se.spi.orb.OperationFactory;
 
 /**
- * <p>
- * This class reads the description of the RapidMiner operators. These
- * descriptions are entries in a XML File like:
- * </p>
- * <br>
- * <code>
- *    &lt;operators&gt;<br>
- *    &nbsp;&nbsp;&lt;operator<br>
- *    &nbsp;&nbsp;&nbsp;&nbsp;name="OperatorName" <br>
- *    &nbsp;&nbsp;&nbsp;&nbsp;class="java.path.OperatorClass" <br>
- *    &nbsp;&nbsp;&nbsp;&nbsp;description="OperatorDescription" <br>
- *    &nbsp;&nbsp;&nbsp;&nbsp;deprecation="OperatorDeprecationInfo" <br>
- *    &nbsp;&nbsp;&nbsp;&nbsp;group="OperatorGroup" <br>
- *    &nbsp;&nbsp;&nbsp;&nbsp;icon="OperatorIcon" <br>
- *    /&gt;<br>
- *  </code><br>
+ * This class maintains all registered operators in the current context.
+ * There exists a listener concept that will alert all listeners, if new operators are added
+ * or removed.
+ * 
+ * It provides convenience methods for creating new {@link Operator}s. See the description of
+ * the {@link #createOperator(Class)} method. Please mind that {@link Operator}s that are
+ * built from an {@link OperationFactory} cannot be constructed with this method. Please use {@link #createOperator(String)} method instead,
+ * that can be passed the {@link Operator}'s key.
+ * 
  * 
  * <p>
- * The values (and the whole tag) for deprecation and icon might be omitted. If
- * no deprecation info was specified, the operator is simply not deprecated. If
- * no icon is specified, RapidMiner just uses the icon of the parent group.
+ * This class also reads the xml definitions of the RapidMiner Core and Extension operators. These descriptions are entries in a XML file
+ * like OperatorsCore.xml.
  * </p>
  * 
- * <p>
- * NOTE: This class should be used to create operators and is therefore an
- * operator factory.
- * </p>
- * 
- * <p>
- * NOTE: As of RM 5.0, the description attribute is deprecated. It is replaced
- * by the corresponding elements of {@link OperatorDocBundle}.
- * </p>
- * 
- * @author Ingo Mierswa, Simon Fischer
+ * @author Ingo Mierswa, Simon Fischer, Sebastian Land
  */
 public class OperatorService {
 
-    // static final String DEFAULT_OPERATOR_DOC_RESOURCE =
-    // "com.rapidminer.resources.i18n.OperatorDoc";
-    // private static final String OPERATORS_XML = "operators.xml";
+    /**
+     * The interface for all Listener to the {@link OperatorService}.
+     * 
+     * @author Sebastian Land
+     */
+    public static interface OperatorServiceListener {
+        /**
+         * This will be called if an operator is registered.
+         * 
+         * ATTENTION!!!
+         * You must ensure that bundle might be null!
+         * */
+        public void operatorRegistered(OperatorDescription description, OperatorDocBundle bundle);
+
+        /**
+         * This method will be called if an operator is removed.
+         */
+        public void operatorUnregistered(OperatorDescription description);
+    }
 
     public static final String RAPID_MINER_CORE_PREFIX = "RapidMiner Core";
     public static final String RAPID_MINER_CORE_NAMESPACE = "core";
-    // static final String DEFAULT_OPERATOR_DOC_RESOURCE =
-    // "com.rapidminer.resources.i18n.renamedOperatorDoc";
+
     private static final String OPERATORS_XML = "OperatorsCore.xml";
 
+    private static final LinkedList<WeakReference<OperatorServiceListener>> listeners = new LinkedList<WeakReference<OperatorServiceListener>>();
+    private static final List<OperatorCreationHook> operatorCreationHooks = new LinkedList<OperatorCreationHook>();
     /**
-     * Maps operator names of form classname|subclassname to operator
-     * descriptions.
+     * Maps operator keys as defined in the OperatorsCore.xml to operator descriptions.
      */
     private static final Map<String, OperatorDescription> KEYS_TO_DESCRIPTIONS = new HashMap<String, OperatorDescription>();
 
@@ -123,23 +121,7 @@ public class OperatorService {
     /** Maps deprecated operator names to new names. */
     private static final Map<String, String> DEPRECATION_MAP = new HashMap<String, String>();
 
-    // private static Map<String,String> operatorHelpMap = new
-    // HashMap<String,String>();
-    // public static final OperatorDocBundle OPERATOR_HELP_BUNDLE =
-    // (OperatorDocBundle)OperatorDocBundle.loadDefault();
-
-    /** Returns the main operator description file (XML). */
-    private static URL getMainOperators() {
-        String resource;
-        String operatorsXML = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_OPERATORS);
-        if (operatorsXML != null) {
-            resource = operatorsXML;
-            LogService.getRoot().config("Main operator descriptor overrideen by system property. Using " + operatorsXML + ".");
-        } else {
-            resource = "/" + Tools.RESOURCE_PREFIX + OPERATORS_XML;
-        }
-        return OperatorService.class.getResource(resource);
-    }
+    private static final GroupTreeRoot groupTreeRoot = new GroupTreeRoot();
 
     public static void init() {
         URL mainOperators = getMainOperators();
@@ -153,10 +135,7 @@ public class OperatorService {
         String additionalOperators = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_OPERATORS_ADDITIONAL);
         if ((additionalOperators != null) && !additionalOperators.isEmpty()) {
             if (!RapidMiner.getExecutionMode().canAccessFilesystem()) {
-                LogService.getRoot()
-                .config(
-                        "Execution mode " + RapidMiner.getExecutionMode() + " does not permit accessing the file system. Ignoring additional operator description files '"
-                        + additionalOperators + "'.");
+                LogService.getRoot().config("Execution mode " + RapidMiner.getExecutionMode() + " does not permit accessing the file system. Ignoring additional operator description files '" + additionalOperators + "'.");
             } else {
                 LogService.getRoot().info("Loading additional operators specified by RapidMiner.PROPERTY_RAPIDMINER_OPERATORS_ADDITIONAL (" + additionalOperators + ")");
                 String[] additionalOperatorFileNames = additionalOperators.split(File.pathSeparator);
@@ -187,9 +166,7 @@ public class OperatorService {
         // loading operators from plugins
         Plugin.registerAllPluginOperators();
 
-        LogService.getRoot().config(
-                "Number of registered operator classes: " + REGISTERED_OPERATOR_CLASSES.size() + "; number of registered operator descriptions: " + KEYS_TO_DESCRIPTIONS.size()
-                + "; number of replacements: " + DEPRECATION_MAP.size());
+        LogService.getRoot().config("Number of registered operator classes: " + REGISTERED_OPERATOR_CLASSES.size() + "; number of registered operator descriptions: " + KEYS_TO_DESCRIPTIONS.size() + "; number of replacements: " + DEPRECATION_MAP.size());
     }
 
     public static void registerOperators(URL operatorsXML, ClassLoader classLoader, Plugin plugin) {
@@ -227,8 +204,8 @@ public class OperatorService {
             version = document.getDocumentElement().getAttribute("version");
             if (version.equals("5.0")) {
                 parseOperators(document, classLoader, provider);
-            } else {
-                parseOperatorsPre5(document, classLoader, provider);
+                // } else {
+                // parseOperatorsPre5(document, classLoader, provider);
             }
         } catch (Exception e) {
             LogService.getRoot().log(Level.SEVERE, "Cannot read operator description file '" + name + "': no valid XML: " + e.getMessage(), e);
@@ -252,7 +229,7 @@ public class OperatorService {
             bundle = OperatorDocBundle.load(classLoader, docBundle);
         }
 
-        parseOperators(GroupTree.ROOT, document.getDocumentElement(), classLoader, provider, bundle);
+        parseOperators(groupTreeRoot, document.getDocumentElement(), classLoader, provider, bundle);
     }
 
     private static void parseOperators(GroupTree currentGroup, Element groupElement, ClassLoader classLoader, Plugin provider, OperatorDocBundle bundle) throws XMLException, OperatorCreationException {
@@ -279,8 +256,8 @@ public class OperatorService {
                     parseOperators(newTree, childElement, classLoader, provider, bundle);
                 } else if (childElement.getTagName().equals("operator")) {
                     try {
-                        OperatorDescription desc = new OperatorDescription(currentGroup, childElement, classLoader, provider, bundle);
-                        registerOperator(desc);
+                        OperatorDescription desc = new OperatorDescription(currentGroup.getFullyQualifiedKey(), childElement, classLoader, provider, bundle);
+                        registerOperator(desc, bundle);
                         if (desc.getReplacedKeys() != null) {
                             for (String replaces : desc.getReplacedKeys()) {
                                 DEPRECATION_MAP.put(replaces, desc.getKey());
@@ -291,13 +268,13 @@ public class OperatorService {
                     } catch (NoClassDefFoundError e) {
                         LogService.getRoot().log(Level.WARNING, "Cannot load operator class: " + e, e);
                     } catch (Exception e) {
-                        LogService.getRoot().log(Level.WARNING, "Failed to register operator: "+e, e);
+                        LogService.getRoot().log(Level.WARNING, "Failed to register operator: " + e, e);
                     } catch (AbstractMethodError e) {
-                        LogService.getRoot().log(Level.WARNING, "Failed to register operator: "+e, e);
+                        LogService.getRoot().log(Level.WARNING, "Failed to register operator: " + e, e);
                     } catch (Throwable e) {
                         // Yes, this is evil. However, it is the only way we can prevent errors due to
                         // incompatible RapidMiner / extension updates
-                        LogService.getRoot().log(Level.SEVERE, "Failed to register operator: "+e, e);
+                        LogService.getRoot().log(Level.SEVERE, "Failed to register operator: " + e, e);
                     }
                 } else if (childElement.getTagName().equals("factory")) {
                     String factoryClassName = childElement.getTextContent();
@@ -320,17 +297,17 @@ public class OperatorService {
                                 } catch (Throwable e) {
                                     // Yes, this is evil. However, it is the only way we can prevent errors due to
                                     // incompatible RapidMiner / extension updates
-                                    LogService.getRoot().log(Level.SEVERE, "Failed to register operator: "+e, e);
+                                    LogService.getRoot().log(Level.SEVERE, "Failed to register operator: " + e, e);
                                 }
                                 LogService.getRoot().config("Creating operators from factory " + factoryClassName);
                                 try {
                                     factory.registerOperators(classLoader, provider);
                                 } catch (Exception e) {
-                                    LogService.getRoot().log(Level.WARNING, "Error registering operators from "+factoryClass.getName()+e, e);
+                                    LogService.getRoot().log(Level.WARNING, "Error registering operators from " + factoryClass.getName() + e, e);
                                 } catch (Throwable e) {
                                     // Yes, this is evil. However, it is the only way we can prevent errors due to
                                     // incompatible RapidMiner / extension updates
-                                    LogService.getRoot().log(Level.SEVERE, "Failed to register operator: "+e, e);
+                                    LogService.getRoot().log(Level.SEVERE, "Failed to register operator: " + e, e);
                                 }
                             } else {
                                 LogService.getRoot().warning("Malformed operator descriptor: Only subclasses of GenericOperatorFactory may be defined as class, was '" + factoryClassName + "'!");
@@ -346,68 +323,79 @@ public class OperatorService {
         }
     }
 
-    private static void parseOperatorsPre5(Document document, ClassLoader classLoader, Plugin provider) {
-        // operators
-        NodeList operatorTags = document.getDocumentElement().getElementsByTagName("operator");
-        for (int i = 0; i < operatorTags.getLength(); i++) {
-            Element currentElement = (Element) operatorTags.item(i);
-            try {
-                parseOperatorPre5(currentElement, classLoader, provider);
-            } catch (Throwable e) {
-                Attr currentNameAttr = currentElement.getAttributeNode("name");
-                if (currentNameAttr != null) {
-                    LogService.getRoot().log(Level.WARNING, "Cannot register '" + currentNameAttr.getValue() + "': " + e, e);
-                } else {
-                    LogService.getRoot().log(Level.WARNING, "Cannot register '" + currentElement + "': " + e, e);
-                }
-            }
-        }
-    }
+    // private static void parseOperatorsPre5(Document document, ClassLoader classLoader, Plugin provider) {
+    // // operators
+    // NodeList operatorTags = document.getDocumentElement().getElementsByTagName("operator");
+    // for (int i = 0; i < operatorTags.getLength(); i++) {
+    // Element currentElement = (Element) operatorTags.item(i);
+    // try {
+    // parseOperatorPre5(currentElement, classLoader, provider);
+    // } catch (Throwable e) {
+    // Attr currentNameAttr = currentElement.getAttributeNode("name");
+    // if (currentNameAttr != null) {
+    // LogService.getRoot().log(Level.WARNING, "Cannot register '" + currentNameAttr.getValue() + "': " + e, e);
+    // } else {
+    // LogService.getRoot().log(Level.WARNING, "Cannot register '" + currentElement + "': " + e, e);
+    // }
+    // }
+    // }
+    // }
+    //
+    // /**
+    // * Registers an operator description from an XML tag (operator description
+    // * file, mostly operators.xml).
+    // *
+    // * Warning suppressed because of old style creation of OperatorDescription
+    // */
+    // @SuppressWarnings("deprecation")
+    // private static void parseOperatorPre5(Element operatorTag, ClassLoader classLoader, Plugin provider) throws Exception {
+    // Attr nameAttr = operatorTag.getAttributeNode("name");
+    // Attr classAttr = operatorTag.getAttributeNode("class");
+    // if (nameAttr == null)
+    // throw new Exception("Missing name for <operator> tag");
+    // if (classAttr == null)
+    // throw new Exception("Missing class for <operator> tag");
+    //
+    // String name = nameAttr.getValue();
+    //
+    // String deprecationString = operatorTag.getAttribute("deprecation");
+    // String group = operatorTag.getAttribute("group");
+    // String icon = operatorTag.getAttribute("icon");
+    // if (icon.isEmpty()) {
+    // icon = null;
+    // }
+    //
+    // String names[] = name.split(",");
+    // int i = 0;
+    // for (String opName : names) {
+    // if (i > 0) {
+    // deprecationString = "Replaced by " + names[0] + ".";
+    // DEPRECATION_MAP.put(opName, names[0]);
+    //
+    // OperatorDescription replacement = getOperatorDescription(names[0]);
+    // replacement.setIsReplacementFor(opName);
+    // }
+    // String name1 = opName.trim();
+    // OperatorDescription description = new OperatorDescription(classLoader, name1, name1, classAttr.getValue(), group, icon,
+    // deprecationString, provider);
+    // // add to group
+    // try {
+    // registerOperator(description);
+    // } catch (Exception e) {
+    // LogService.getRoot().log(Level.WARNING, "Failed to register operator "+description.getKey()+": "+e, e);
+    // }
+    // i++;
+    // }
+    // }
 
     /**
-     * Registers an operator description from an XML tag (operator description
-     * file, mostly operators.xml).
-     * 
-     * Warning suppressed because of old style creation of OperatorDescription
+     * This method does the same as {@link #registerOperator(OperatorDescription, OperatorDocBundle))},
+     * but without an {@link OperatorDocBundle} groups will not have a name or icon. This method remains for
+     * compatibility of older extensions.
      */
-    @SuppressWarnings("deprecation")
-    private static void parseOperatorPre5(Element operatorTag, ClassLoader classLoader, Plugin provider) throws Exception {
-        Attr nameAttr = operatorTag.getAttributeNode("name");
-        Attr classAttr = operatorTag.getAttributeNode("class");
-        if (nameAttr == null)
-            throw new Exception("Missing name for <operator> tag");
-        if (classAttr == null)
-            throw new Exception("Missing class for <operator> tag");
-
-        String name = nameAttr.getValue();
-
-        String deprecationString = operatorTag.getAttribute("deprecation");
-        String group = operatorTag.getAttribute("group");
-        String icon = operatorTag.getAttribute("icon");
-        if (icon.isEmpty()) {
-            icon = null;
-        }
-
-        String names[] = name.split(",");
-        int i = 0;
-        for (String opName : names) {
-            if (i > 0) {
-                deprecationString = "Replaced by " + names[0] + ".";
-                DEPRECATION_MAP.put(opName, names[0]);
-
-                OperatorDescription replacement = getOperatorDescription(names[0]);
-                replacement.setIsReplacementFor(opName);
-            }
-            String name1 = opName.trim();
-            OperatorDescription description = new OperatorDescription(classLoader, name1, name1, classAttr.getValue(), group, icon, deprecationString, provider);
-            // add to group
-            try {
-                registerOperator(description);
-            } catch (Exception e) {
-                LogService.getRoot().log(Level.WARNING, "Failed to register operator "+description.getKey()+": "+e, e);
-            }
-            i++;
-        }
+    @Deprecated
+    public static void registerOperator(OperatorDescription description) throws OperatorCreationException {
+        registerOperator(description, null);
     }
 
     /**
@@ -415,26 +403,49 @@ public class OperatorService {
      * descriptions must not have the same name. Otherwise the second
      * description overwrite the first in the description map.
      * 
+     * If there's no icon defined for the given {@link OperatorDescription},
+     * the group icon will be set here.
+     * 
+     * @param bundle
+     *            might be null. If existing will be used for GroupCreation / Icon settings
      * @throws OperatorCreationException
      */
-    public static void registerOperator(OperatorDescription description) throws OperatorCreationException {
+    public static void registerOperator(OperatorDescription description, OperatorDocBundle bundle) throws OperatorCreationException {
         // check if this operator was not registered earlier
         OperatorDescription oldDescription = KEYS_TO_DESCRIPTIONS.get(description.getName());
         if (oldDescription != null) {
-            LogService.getRoot().warning(
-                    "Operator key '" + description.getKey() + "' was already registered for class " + oldDescription.getOperatorClass().getName() + ". Overwriting with "
-                    + description.getOperatorClass() + ".");
+            LogService.getRoot().warning("Operator key '" + description.getKey() + "' was already registered for class " + oldDescription.getOperatorClass().getName() + ". Overwriting with " + description.getOperatorClass() + ".");
         }
 
-        // register
+        // check if icon already was set.
+        if (!description.isIconDefined()) {
+            description.setIconName(groupTreeRoot.findOrCreateGroup(description.getGroup(), bundle).getIconName());
+        }
+
+        // register in maps
         KEYS_TO_DESCRIPTIONS.put(description.getKey(), description);
         REGISTERED_OPERATOR_CLASSES.add(description.getOperatorClass());
 
+        // TODO: Check if still necessary.
         Operator currentOperator = description.createOperatorInstance();
         currentOperator.assumePreconditionsSatisfied();
         currentOperator.transformMetaData();
         checkIOObjects(currentOperator.getInputPorts());
         checkIOObjects(currentOperator.getOutputPorts());
+
+        // inform listener
+        invokeOperatorRegisteredListener(description, bundle);
+    }
+
+    /**
+     * This method can be used to dynamically remove Operators from the number of defined operators.
+     */
+    public static void unregisterOperator(OperatorDescription description) {
+        KEYS_TO_DESCRIPTIONS.remove(description).getKey();
+        REGISTERED_OPERATOR_CLASSES.remove(description.getOperatorClass());
+
+        // inform all listener including GroupTree
+        invokeOperatorUnregisteredListener(description);
     }
 
     /**
@@ -461,84 +472,16 @@ public class OperatorService {
 
     /** Returns a sorted set of all short IO object names. */
     public static Set<String> getIOObjectsNames() {
-        return IO_OBJECT_NAME_MAP.keySet();
+        return RendererService.getAllRenderableObjectNames();
+        // return IO_OBJECT_NAME_MAP.keySet();
     }
-
-    /**
-     * Defines the alias pairs for the {@link XMLSerialization} for all IOObject
-     * pairs.
-     */
-    public static void defineXMLAliasPairs() {
-        // pairs for IOObjects
-        Iterator<Map.Entry<String, Class<? extends IOObject>>> i = IO_OBJECT_NAME_MAP.entrySet().iterator();
-        while (i.hasNext()) {
-            Map.Entry<String, Class<? extends IOObject>> entry = i.next();
-            String objectName = entry.getKey();
-            Class objectClass = entry.getValue();
-            XMLSerialization.getXMLSerialization().addAlias(objectName, objectClass);
-        }
-
-        // pairs for performance criteria
-        Iterator<String> o = getOperatorNames().iterator();
-        while (o.hasNext()) {
-            String name = o.next();
-            OperatorDescription description = getOperatorDescription(name);
-            // test if operator delivers performance criteria
-            if (AbstractPerformanceEvaluator.class.isAssignableFrom(description.getOperatorClass())) {
-                Operator operator = null;
-                try {
-                    operator = createOperator(name);
-                } catch (OperatorCreationException e) {
-                    // does nothing
-                }
-                if (operator != null) {
-                    AbstractPerformanceEvaluator evaluator = (AbstractPerformanceEvaluator) operator;
-                    List<PerformanceCriterion> criteria = evaluator.getCriteria();
-                    for (PerformanceCriterion criterion : criteria) {
-                        XMLSerialization.getXMLSerialization().addAlias(criterion.getName(), criterion.getClass());
-                    }
-                }
-            }
-        }
-    }
-
-    /*
-     * /** Returns a collection of all operator descriptions of operators which
-     * return the desired IO object as output. TODO: Remove. This method is
-     * never called.
-     * 
-     * @deprecated This method is never called.
-     * 
-     * @Deprecated public static Set<OperatorDescription>
-     * getOperatorsDelivering(Class<? extends IOObject> ioObject) {
-     * Set<OperatorDescription> result = new HashSet<OperatorDescription>();
-     * Iterator<String> i = NAMES_TO_DESCRIPTIONS.keySet().iterator(); while
-     * (i.hasNext()) { String name = i.next(); OperatorDescription description =
-     * getOperatorDescription(name); try { Operator currentOperator =
-     * description.createOperatorInstance(); if
-     * (currentOperator.producesOutput(ioObject)) { result.add(description); } }
-     * catch (Exception e) { LogService.getRoot().log(Level.WARNING,
-     * "Cannot check IO for operator "+name+": "+e, e); } } return result; }
-     * 
-     * /** Returns a collection of all operator descriptions which requires the
-     * given IO object as input. TODO: Remove. Method is never called.
-     * 
-     * @deprecated Method is never called.
-     * 
-     * @Deprecated public static Set<OperatorDescription>
-     * getOperatorsRequiring(Class<? extends IOObject> ioObject) {
-     * Set<OperatorDescription> result = new HashSet<OperatorDescription>();
-     * Iterator<String> i = NAMES_TO_DESCRIPTIONS.keySet().iterator(); while
-     * (i.hasNext()) { String name = i.next(); OperatorDescription description =
-     * getOperatorDescription(name); try { Operator currentOperator =
-     * description.createOperatorInstance(); if
-     * (currentOperator.acceptsInput(ioObject)) { result.add(description); } }
-     * catch (Exception e) {} } return result; }
-     */
 
     /** Returns the class for the short name of an IO object. */
     public static Class<? extends IOObject> getIOObjectClass(String name) {
-        return IO_OBJECT_NAME_MAP.get(name);
+        assert (IO_OBJECT_NAME_MAP.get(name).equals(RendererService.getClass(name)));
+
+        return RendererService.getClass(name);
+
     }
 
     /**
@@ -556,9 +499,14 @@ public class OperatorService {
         return KEYS_TO_DESCRIPTIONS.keySet();
     }
 
-    /** Returns the group hierarchy of all operators. */
+    /**
+     * Returns the group hierarchy of all operators.
+     * This will automatically reflect changes on the registered Operators.
+     * You might register as listener to {@link OperatorService} in order
+     * to receive registration or unregistration eventsevents
+     */
     public static GroupTree getGroups() {
-        return GroupTree.ROOT;
+        return groupTreeRoot;
     }
 
     // ================================================================================
@@ -591,12 +539,10 @@ public class OperatorService {
     /**
      * Use this method to create an operator from the given class name (from
      * operator description file operators.xml, not from the Java class name).
-     * For most operators, is is recommended to use the method
-     * {@link #createOperator(Class)} which can be checked during compile time.
+     * For most operators, is is recommended to use the method {@link #createOperator(Class)} which can be checked during compile time.
      * This is, however, not possible for some generic operators like the Weka
      * operators. In that case, you have to use this method with the argument
-     * from the operators.xml file, e.g.
-     * <tt>createOperator(&quot;J48&quot;)</tt> for a J48 decision tree learner.
+     * from the operators.xml file, e.g. <tt>createOperator(&quot;J48&quot;)</tt> for a J48 decision tree learner.
      */
     public static Operator createOperator(String typeName) throws OperatorCreationException {
         OperatorDescription description = getOperatorDescription(typeName);
@@ -612,27 +558,22 @@ public class OperatorService {
 
     /**
      * <p>
-     * Use this method to create an operator from an operator class. This is the
-     * only method which ensures operator existence checks during compile time
-     * (and not during runtime) and the usage of this method is therefore the
-     * recommended way for operator creation.
+     * Use this method to create an operator from an operator class. This is the only method which ensures operator existence checks during
+     * compile time (and not during runtime) and the usage of this method is therefore the recommended way for operator creation.
      * </p>
      * 
      * <p>
-     * It is, however, not possible to create some generic operators with this
-     * method (this mainly applies to the Weka operators). Please use the method
-     * {@link #createOperator(String)} for those generic operators.
+     * It is, however, not possible to create some generic operators with this method (this mainly applies to the Weka operators). Please
+     * use the method {@link #createOperator(String)} for those generic operators.
      * </p>
      * 
      * <p>
-     * If you try to create a generic operator with this method, the
-     * OperatorDescription will not be unique for the given class and an
+     * If you try to create a generic operator with this method, the OperatorDescription will not be unique for the given class and an
      * OperatorCreationException is thrown.
      * </p>
      * 
      * <p>
-     * Please note that is is not necessary to cast the operator to the desired
-     * class.
+     * Please note that is is not necessary to cast the operator to the desired class.
      * </p>
      * 
      * TODO: can we remove the suppress warning here?
@@ -686,19 +627,86 @@ public class OperatorService {
         System.setProperty(RapidMiner.PROPERTY_RAPIDMINER_OPERATORS_ADDITIONAL, buf.toString());
     }
 
-    private static final List<OperatorCreationHook> operatorCreationHooks = new LinkedList<OperatorCreationHook>();
+    /** Returns the main operator description file (XML). */
+    private static URL getMainOperators() {
+        String resource;
+        String operatorsXML = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_OPERATORS);
+        if (operatorsXML != null) {
+            resource = operatorsXML;
+            LogService.getRoot().config("Main operator descriptor overrideen by system property. Using " + operatorsXML + ".");
+        } else {
+            resource = "/" + Tools.RESOURCE_PREFIX + OPERATORS_XML;
+        }
+        return OperatorService.class.getResource(resource);
+    }
 
+    /*
+     * OperatorCreationHooks
+     */
+
+    /**
+     * This method adds an {@link OperatorCreationHook} that will be informed whenever an {@link Operator} instance is created.
+     */
     public static void addOperatorCreationHook(OperatorCreationHook operatorCreationHook) {
         operatorCreationHooks.add(operatorCreationHook);
     }
 
+    /**
+     * This method must be called by each {@link OperatorDescription#createOperatorInstance()} call.
+     * It is used for example for statistics purpose.
+     */
     public static void invokeCreationHooks(Operator operator) {
         for (OperatorCreationHook hook : operatorCreationHooks) {
             try {
                 hook.operatorCreated(operator);
-            } catch (Exception e) {
-                LogService.getRoot().log(Level.WARNING, "Error in operator creation hooK: " + e, e);
+            } catch (RuntimeException e) {
+                LogService.getRoot().log(Level.WARNING, "Error in operator creation hook: " + e, e);
             }
+        }
+    }
+
+    /*
+     * Listener to changes in available Operators
+     */
+    /**
+     * This method can be used to add an listener to the OperatorService that is
+     * informed whenever the set of available operators changes.
+     * Internally WeakReferences are used so that there's no need to deregister listeners.
+     */
+    public static void addOperatorServiceListener(OperatorServiceListener listener) {
+        listeners.add(new WeakReference<OperatorServiceListener>(listener));
+    }
+
+    /**
+     * This method will inform all listeners of a change in the available operators.
+     */
+    private static void invokeOperatorRegisteredListener(OperatorDescription description, OperatorDocBundle bundle) {
+    	List<WeakReference<OperatorServiceListener>> listenersCopy = new LinkedList<WeakReference<OperatorServiceListener>>(listeners);
+    	for (WeakReference<OperatorServiceListener> listenerRef : listenersCopy) {
+            OperatorServiceListener operatorServiceListener = listenerRef.get();
+            if (operatorServiceListener != null)
+                operatorServiceListener.operatorRegistered(description, bundle);
+        }
+        Iterator<WeakReference<OperatorServiceListener>> iterator = listenersCopy.iterator();
+        while (iterator.hasNext()) {
+            OperatorServiceListener operatorServiceListener = iterator.next().get();
+            if (operatorServiceListener == null)
+                iterator.remove();
+        }
+
+    }
+
+    /**
+     * This method will inform all listeners of a change in the available operators.
+     */
+    private static void invokeOperatorUnregisteredListener(OperatorDescription description) {
+        Iterator<WeakReference<OperatorServiceListener>> iterator = listeners.iterator();
+        while (iterator.hasNext()) {
+            OperatorServiceListener operatorServiceListener = iterator.next().get();
+            if (operatorServiceListener != null)
+                operatorServiceListener.operatorUnregistered(description);
+            else
+                iterator.remove();
         }
     }
 }

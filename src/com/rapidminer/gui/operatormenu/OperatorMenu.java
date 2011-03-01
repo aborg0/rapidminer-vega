@@ -39,6 +39,8 @@ import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.tools.GroupTree;
 import com.rapidminer.tools.OperatorService;
+import com.rapidminer.tools.OperatorService.OperatorServiceListener;
+import com.rapidminer.tools.documentation.OperatorDocBundle;
 
 
 /**
@@ -49,69 +51,92 @@ import com.rapidminer.tools.OperatorService;
  * 
  * @author Simon Fischer, Ingo Mierswa
  */
-public abstract class OperatorMenu extends ResourceMenu {
+public abstract class OperatorMenu extends ResourceMenu implements OperatorServiceListener {
 
-	private static final long serialVersionUID = 2685621612717488446L;
+    private static final long serialVersionUID = 2685621612717488446L;
 
-	public static final OperatorMenu NEW_OPERATOR_MENU = new NewOperatorMenu();
+    public static final OperatorMenu NEW_OPERATOR_MENU = new NewOperatorMenu();
 
-	public static final OperatorMenu REPLACE_OPERATOR_MENU = new ReplaceOperatorMenu(false);
+    public static final OperatorMenu REPLACE_OPERATOR_MENU = new ReplaceOperatorMenu(false);
 
-	public static final OperatorMenu REPLACE_OPERATORCHAIN_MENU = new ReplaceOperatorMenu(true);
+    public static final OperatorMenu REPLACE_OPERATORCHAIN_MENU = new ReplaceOperatorMenu(true);
 
-	protected OperatorMenu(String key, boolean onlyChains) {
-		super(key);
-		addMenu(OperatorService.getGroups(), this, onlyChains);
-	}
+    private boolean onlySubprocesses;
 
-	public void addMenu(GroupTree group, JMenu menu, boolean onlyChains) {
-		Iterator<GroupTree> gi = group.getSubGroups().iterator();
-		while (gi.hasNext()) {
-			GroupTree subGroup = gi.next();
-			OperatorGroupMenu subMenu = new OperatorGroupMenu(subGroup.getName());
-			addMenu(subGroup, subMenu, onlyChains);
-			// do not add group named deprecated to menu
-			if (subMenu.getItemCount() > 0 && !"deprecated".equals(subGroup.getKey())) {
-				menu.add(subMenu);
-			}
-		}
-		Iterator<OperatorDescription> i = group.getOperatorDescriptions().iterator();
-		while (i.hasNext()) {
-			final OperatorDescription description = (OperatorDescription) i.next();
-			if ((!onlyChains) || OperatorChain.class.isAssignableFrom(description.getOperatorClass())) {
-				JMenuItem item = null;
-				Icon icon = description.getSmallIcon();
-				if (icon == null)
-					item = new JMenuItem(description.getName());
-				else
-					item = new JMenuItem(description.getName(), icon);
-				String descriptionText = description.getLongDescriptionHTML();
-				if (descriptionText == null) {
-					descriptionText = description.getShortDescription();
-				}
-				
-				StringBuffer toolTipText = new StringBuffer("<b>Description: </b>" + descriptionText);
-				Operator operator = null;
-				try {
-					operator = description.createOperatorInstance();
-				} catch (OperatorCreationException e1) {
-					// do nothing
-				}
-				item.setToolTipText(SwingTools.transformToolTipText(toolTipText.toString()));
-				item.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						performAction(description);
-					}
-				});
-				
-		        if ((description.getDeprecationInfo() != null) || ((operator != null) && (operator.getOperatorDescription().getDeprecationInfo() != null))) {
-		        	item.setForeground(Color.LIGHT_GRAY);
-		        }
-		        
-				menu.add(item);
-			}
-		}
-	}
+    protected OperatorMenu(String key, boolean onlySubprocesses) {
+        super(key);
+        this.onlySubprocesses = onlySubprocesses;
 
-	public abstract void performAction(OperatorDescription description);
+        addMenu(OperatorService.getGroups(), this, onlySubprocesses);
+
+        OperatorService.addOperatorServiceListener(this);
+    }
+
+    public void addMenu(GroupTree group, JMenu menu, boolean onlyChains) {
+        Iterator<? extends GroupTree> gi = group.getSubGroups().iterator();
+        while (gi.hasNext()) {
+            GroupTree subGroup = gi.next();
+            OperatorGroupMenu subMenu = new OperatorGroupMenu(subGroup.getName());
+            addMenu(subGroup, subMenu, onlyChains);
+            // do not add group named "deprecated" to menu
+            if (subMenu.getItemCount() > 0 && !"deprecated".equals(subGroup.getKey())) {
+                menu.add(subMenu);
+            }
+        }
+        Iterator<OperatorDescription> i = group.getOperatorDescriptions().iterator();
+        while (i.hasNext()) {
+            final OperatorDescription description = i.next();
+            if ((!onlyChains) || OperatorChain.class.isAssignableFrom(description.getOperatorClass())) {
+                JMenuItem item = null;
+                Icon icon = description.getSmallIcon();
+                if (icon == null)
+                    item = new JMenuItem(description.getName());
+                else
+                    item = new JMenuItem(description.getName(), icon);
+                String descriptionText = description.getLongDescriptionHTML();
+                if (descriptionText == null) {
+                    descriptionText = description.getShortDescription();
+                }
+
+                StringBuffer toolTipText = new StringBuffer("<b>Description: </b>" + descriptionText);
+                Operator operator = null;
+                try {
+                    operator = description.createOperatorInstance();
+                } catch (OperatorCreationException e1) {
+                    // do nothing
+                }
+                item.setToolTipText(SwingTools.transformToolTipText(toolTipText.toString()));
+                item.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        performAction(description);
+                    }
+                });
+
+                if ((description.getDeprecationInfo() != null) || ((operator != null) && (operator.getOperatorDescription().getDeprecationInfo() != null))) {
+                    item.setForeground(Color.LIGHT_GRAY);
+                }
+
+                menu.add(item);
+            }
+        }
+    }
+
+    public abstract void performAction(OperatorDescription description);
+
+    @Override
+    public void operatorRegistered(OperatorDescription description, OperatorDocBundle bundle) {
+        removeAll();
+
+        // then add everything back
+        addMenu(OperatorService.getGroups(), this, onlySubprocesses);
+    }
+
+    @Override
+    public void operatorUnregistered(OperatorDescription description) {
+        removeAll();
+
+        // then add everything back
+        addMenu(OperatorService.getGroups(), this, onlySubprocesses);
+    }
 }

@@ -29,10 +29,12 @@ import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ValueDouble;
+import com.rapidminer.operator.learner.CapabilityProvider;
 import com.rapidminer.operator.performance.PerformanceCriterion;
 import com.rapidminer.operator.performance.PerformanceVector;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
+import com.rapidminer.operator.ports.metadata.CapabilityPrecondition;
 import com.rapidminer.operator.ports.metadata.SubprocessTransformRule;
 
 
@@ -47,7 +49,7 @@ import com.rapidminer.operator.ports.metadata.SubprocessTransformRule;
  * 
  * @author Ingo Mierswa
  */
-public abstract class WrapperValidationChain extends OperatorChain {
+public abstract class WrapperValidationChain extends OperatorChain implements CapabilityProvider {
 
 	private PerformanceCriterion lastPerformance;
 
@@ -65,6 +67,8 @@ public abstract class WrapperValidationChain extends OperatorChain {
 
 	public WrapperValidationChain(OperatorDescription description) {
 		super(description, "Attribute Weighting", "Model Building", "Model Evaluation");
+		
+		exampleSetInput.addPrecondition(new CapabilityPrecondition(this, exampleSetInput));
 		
 		getTransformer().addPassThroughRule(exampleSetInput, innerWeightingSetSource);
 		getTransformer().addRule(new SubprocessTransformRule(getSubprocess(0)));

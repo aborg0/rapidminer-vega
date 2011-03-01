@@ -30,6 +30,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Constructor;
+import java.util.List;
 import java.util.logging.Level;
 
 import com.rapidminer.example.AttributeRole;
@@ -44,10 +45,15 @@ import com.rapidminer.example.table.NumericalAttribute;
 import com.rapidminer.example.table.PolynominalAttribute;
 import com.rapidminer.example.table.PolynominalMapping;
 import com.rapidminer.operator.IOContainer;
+import com.rapidminer.operator.Operator;
+import com.rapidminer.operator.OperatorCreationException;
+import com.rapidminer.operator.OperatorDescription;
+import com.rapidminer.operator.performance.AbstractPerformanceEvaluator;
+import com.rapidminer.operator.performance.PerformanceCriterion;
 
 
-/** 
- * This class handles all kinds in- and output write processes for all kinds of objects 
+/**
+ * This class handles all kinds in- and output write processes for all kinds of objects
  * into and from XML. This class must use object streams since memory consumption is too
  * big otherwise. Hence, string based methods are no longer supported.
  * 
@@ -55,95 +61,131 @@ import com.rapidminer.operator.IOContainer;
  */
 public class XMLSerialization {
 
-	private static ClassLoader classLoader;
-	
-	private com.thoughtworks.xstream.XStream xStream;
-    
-	private XMLSerialization(ClassLoader classLoader) {
-		try {
+    private static ClassLoader classLoader;
+
+    private com.thoughtworks.xstream.XStream xStream;
+
+    private XMLSerialization(ClassLoader classLoader) {
+        try {
             Class<?> xStreamClass = Class.forName("com.thoughtworks.xstream.XStream");
             Class generalDriverClass = Class.forName("com.thoughtworks.xstream.io.HierarchicalStreamDriver");
             Constructor constructor = xStreamClass.getConstructor(new Class[] { generalDriverClass });
             Class driverClass = Class.forName("com.thoughtworks.xstream.io.xml.XppDriver");
             xStream = (com.thoughtworks.xstream.XStream)constructor.newInstance(driverClass.newInstance());
-			xStream.setMode(com.thoughtworks.xstream.XStream.ID_REFERENCES);  
-        
-			// define default aliases here
-			addAlias("IOContainer", IOContainer.class);
-			addAlias("PolynominalAttribute", PolynominalAttribute.class);
-			addAlias("BinominalAttribute", BinominalAttribute.class);
-			addAlias("NumericalAttribute", NumericalAttribute.class);
-			
-			addAlias("PolynominalMapping", PolynominalMapping.class);
-			addAlias("BinominalMapping", BinominalMapping.class);
-			
-			addAlias("NumericalStatistics", NumericalStatistics.class);
-			addAlias("WeightedNumericalStatistics", WeightedNumericalStatistics.class);
-			addAlias("NominalStatistics", NominalStatistics.class);
-			addAlias("UnknownStatistics", UnknownStatistics.class);
-			
-			addAlias("SimpleAttributes", SimpleAttributes.class);
-			addAlias("AttributeRole", AttributeRole.class);
-			
-			xStream.setClassLoader(classLoader);
-			
-		} catch (Throwable e) {
-			// TODO: Why are we catching Throwables?
-            LogService.getRoot().log(Level.WARNING, "Cannot initialize XML serialization. Probably the libraries 'xstream.jar' and 'xpp.jar' were not provided. XML serialization will not work!", e);
-		}
-	}
-	
-	public static void init(ClassLoader classLoader) {
-		XMLSerialization.classLoader = classLoader;
-	}
-	
-	public void addAlias(String name, Class clazz) {
-		if (xStream != null) {
-			String alias = name.replaceAll("[^a-zA-Z_0-9-]", "_").replaceAll("_+", "-");
-			if (alias.endsWith("-"))
-				alias = alias.substring(0, alias.length() -1);
-			xStream.alias(alias, clazz);
-        }
-	}
-	
-	public void writeXML(Object object, OutputStream out) throws IOException {
-		if (xStream != null) {
-			ObjectOutputStream xOut = xStream.createObjectOutputStream(new OutputStreamWriter(out));
-			xOut.writeObject(object);
-            // xstream requires us to close() stream. see java doc of createObjectOutputStream 
-			xOut.close();
-		} else {
-            LogService.getRoot().warning("Cannot write XML serialization. Probably the libraries 'xstream.jar' and 'xpp.jar' were not provided.");
-			throw new IOException("Cannot write object with XML serialization.");
-		}
-	}
+            xStream.setMode(com.thoughtworks.xstream.XStream.ID_REFERENCES);
 
-	public Object fromXML(InputStream in) throws IOException {   
-		if (xStream != null) {
-			try {
-				ObjectInputStream xIn = xStream.createObjectInputStream(new InputStreamReader(in));
-				Object result = null;
-				try {
-					result = xIn.readObject();
-				} catch (ClassNotFoundException e) {
-					throw new IOException("Class not found: " + e.getMessage(), e);
-				}
-				return result;
-			} catch (Throwable e) {
-				throw new IOException("Cannot read from XML stream, wrong format: " + e.getMessage(), e);
-			}
-		} else {
+            // define default aliases here
+            addAlias("IOContainer", IOContainer.class);
+            addAlias("PolynominalAttribute", PolynominalAttribute.class);
+            addAlias("BinominalAttribute", BinominalAttribute.class);
+            addAlias("NumericalAttribute", NumericalAttribute.class);
+
+            addAlias("PolynominalMapping", PolynominalMapping.class);
+            addAlias("BinominalMapping", BinominalMapping.class);
+
+            addAlias("NumericalStatistics", NumericalStatistics.class);
+            addAlias("WeightedNumericalStatistics", WeightedNumericalStatistics.class);
+            addAlias("NominalStatistics", NominalStatistics.class);
+            addAlias("UnknownStatistics", UnknownStatistics.class);
+
+            addAlias("SimpleAttributes", SimpleAttributes.class);
+            addAlias("AttributeRole", AttributeRole.class);
+
+            xStream.setClassLoader(classLoader);
+
+
+            defineXMLAliasPairs();
+        } catch (Throwable e) {
+            // TODO: Why are we catching Throwables?
+            LogService.getRoot().log(Level.WARNING, "Cannot initialize XML serialization. Probably the libraries 'xstream.jar' and 'xpp.jar' were not provided. XML serialization will not work!", e);
+        }
+    }
+
+    public static void init(ClassLoader classLoader) {
+        XMLSerialization.classLoader = classLoader;
+    }
+
+    public void addAlias(String name, Class clazz) {
+        if (xStream != null) {
+            String alias = name.replaceAll("[^a-zA-Z_0-9-]", "_").replaceAll("_+", "-");
+            if (alias.endsWith("-"))
+                alias = alias.substring(0, alias.length() -1);
+            xStream.alias(alias, clazz);
+        }
+    }
+
+    public void writeXML(Object object, OutputStream out) throws IOException {
+        if (xStream != null) {
+            ObjectOutputStream xOut = xStream.createObjectOutputStream(new OutputStreamWriter(out));
+            xOut.writeObject(object);
+            // xstream requires us to close() stream. see java doc of createObjectOutputStream
+            xOut.close();
+        } else {
+            LogService.getRoot().warning("Cannot write XML serialization. Probably the libraries 'xstream.jar' and 'xpp.jar' were not provided.");
+            throw new IOException("Cannot write object with XML serialization.");
+        }
+    }
+
+    public Object fromXML(InputStream in) throws IOException {
+        if (xStream != null) {
+            try {
+                ObjectInputStream xIn = xStream.createObjectInputStream(new InputStreamReader(in));
+                Object result = null;
+                try {
+                    result = xIn.readObject();
+                } catch (ClassNotFoundException e) {
+                    throw new IOException("Class not found: " + e.getMessage(), e);
+                }
+                return result;
+            } catch (Throwable e) {
+                throw new IOException("Cannot read from XML stream, wrong format: " + e.getMessage(), e);
+            }
+        } else {
             LogService.getRoot().warning("Cannot read object from XML serialization. Probably the libraries 'xstream.jar' and 'xpp.jar' were not provided.");
-			throw new IOException("Cannot read object from XML serialization.");
-		}
-	}
-	
-	/** 
-	 * Returns the singleton instance. 
-	 * We have to return a new instance, since the xStream will remember several mappings and causing a huge
-	 * memory leak.
-	 **/
-	public static XMLSerialization getXMLSerialization() {
-		return new XMLSerialization(classLoader);
-	}
+            throw new IOException("Cannot read object from XML serialization.");
+        }
+    }
+
+    /**
+     * Returns the singleton instance.
+     * We have to return a new instance, since the xStream will remember several mappings and causing a huge
+     * memory leak.
+     **/
+    public static XMLSerialization getXMLSerialization() {
+        return new XMLSerialization(classLoader);
+    }
+
+    /**
+     * Defines the alias pairs for the {@link XMLSerialization} for all IOObject
+     * pairs.
+     */
+    private void defineXMLAliasPairs() {
+        // pairs for IOObjects
+        for (String ioObjectName: OperatorService.getIOObjectsNames()) {
+            XMLSerialization.getXMLSerialization().addAlias(ioObjectName, OperatorService.getIOObjectClass(ioObjectName));
+        }
+
+        // pairs for performance criteria
+
+        for (String key: OperatorService.getOperatorKeys()) {
+            OperatorDescription description = OperatorService.getOperatorDescription(key);
+            // test if operator delivers performance criteria
+            if (AbstractPerformanceEvaluator.class.isAssignableFrom(description.getOperatorClass())) {
+                Operator operator = null;
+                try {
+                    operator = OperatorService.createOperator(key);
+                } catch (OperatorCreationException e) {
+                    // does nothing
+                }
+                if (operator != null) {
+                    AbstractPerformanceEvaluator evaluator = (AbstractPerformanceEvaluator) operator;
+                    List<PerformanceCriterion> criteria = evaluator.getCriteria();
+                    for (PerformanceCriterion criterion : criteria) {
+                        XMLSerialization.getXMLSerialization().addAlias(criterion.getName(), criterion.getClass());
+                    }
+                }
+            }
+        }
+    }
+
 }

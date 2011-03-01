@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<process version="5.0">
+<process version="5.1.003">
   <context>
     <input/>
     <output/>
     <macros/>
   </context>
-  <operator activated="true" class="process" expanded="true" name="Root">
+  <operator activated="true" class="process" compatibility="5.0.000" expanded="true" name="Root">
     <description>&lt;p&gt; Just as for learning, it is also possible that overfitting occurs during preprocessing. In order to estimate the generalization performance of a preprocessing method RapidMiner supports several validation operators for preprocessing steps. The basic idea is the same as for all other validation operators with a slight difference: the first inner operator must produce a transformed example set, the second must produce a model from this transformed data set and the third operator must produce a performance vector of this model on a hold-out test set transformed in the same way.  &lt;/p&gt; &lt;p&gt;This is a more complex process which demonstrates RapidMiner's capability to build processes from already known building blocks. In this process a special variant of a cross validation operator is used to estimate the performance of a feature space transformation, i.e. the simple feature forward selection in this case.&lt;/p&gt; &lt;p&gt;The complete feature selection block is now the first inner operator of a &lt;i&gt;WrapperXValidation&lt;/i&gt; which like normal crossvalidation uses a subset for feature space transformation (selection here) and learning based on the determined feature set. A second applier chain is used to estimate the performance on a test set which was not used for learning and feature selection. The estimated performance and an attribute weights vector is returned as result.&lt;/p&gt; &lt;p&gt;Please note the &lt;i&gt;MinMaxWrapper&lt;/i&gt; after the inner performance evaluator. This operator encapsulate the given performance criteria in such a way that no longer only average values but also minimum values are calculated during cross validation. Arbitrarily weighted linear combinations of the minimum and the normal average leads to far better generalization capabilities. Just change the weighting parameter to 0.0 or disable the operator in the context menu or delete it from the process to see the effect. The performance decreases rapidly when only the average performance is used as selection criterion.&lt;/p&gt;</description>
     <parameter key="logverbosity" value="3"/>
     <parameter key="random_seed" value="2001"/>
@@ -13,7 +13,7 @@
     <parameter key="process_duration_for_mail" value="30"/>
     <parameter key="encoding" value="SYSTEM"/>
     <process expanded="true" height="584" width="915">
-      <operator activated="true" class="generate_data" expanded="true" height="60" name="ExampleSetGenerator" width="90" x="45" y="30">
+      <operator activated="true" class="generate_data" compatibility="5.0.000" expanded="true" height="60" name="ExampleSetGenerator" width="90" x="45" y="30">
         <parameter key="target_function" value="sum"/>
         <parameter key="number_examples" value="60"/>
         <parameter key="number_of_attributes" value="3"/>
@@ -23,7 +23,7 @@
         <parameter key="local_random_seed" value="1992"/>
         <parameter key="datamanagement" value="0"/>
       </operator>
-      <operator activated="true" class="add_noise" expanded="true" height="94" name="NoiseGenerator" width="90" x="180" y="30">
+      <operator activated="true" class="add_noise" compatibility="5.0.000" expanded="true" height="94" name="NoiseGenerator" width="90" x="180" y="30">
         <parameter key="return_preprocessing_model" value="false"/>
         <parameter key="create_view" value="false"/>
         <parameter key="attribute_filter_type" value="0"/>
@@ -46,14 +46,14 @@
         <parameter key="use_local_random_seed" value="false"/>
         <parameter key="local_random_seed" value="1992"/>
       </operator>
-      <operator activated="true" class="wrapper_x_validation" expanded="true" height="76" name="WrapperXValidation" width="90" x="313" y="30">
+      <operator activated="true" class="wrapper_x_validation" compatibility="5.1.003" expanded="true" height="76" name="WrapperXValidation" width="90" x="313" y="30">
         <parameter key="leave_one_out" value="false"/>
         <parameter key="number_of_validations" value="10"/>
         <parameter key="sampling_type" value="shuffled sampling"/>
         <parameter key="use_local_random_seed" value="false"/>
         <parameter key="local_random_seed" value="1992"/>
         <process expanded="true" height="584" width="271">
-          <operator activated="true" class="optimize_selection" expanded="true" height="94" name="FeatureSelection" width="90" x="45" y="30">
+          <operator activated="true" class="optimize_selection" compatibility="5.0.000" expanded="true" height="94" name="FeatureSelection" width="90" x="45" y="30">
             <parameter key="selection_direction" value="0"/>
             <parameter key="limit_generations_without_improval" value="true"/>
             <parameter key="generations_without_improval" value="1"/>
@@ -71,7 +71,7 @@
             <parameter key="draw_dominated_points" value="true"/>
             <parameter key="maximal_fitness" value="Infinity"/>
             <process expanded="true">
-              <operator activated="true" class="x_validation" expanded="true" name="FSXValidation">
+              <operator activated="true" class="x_validation" compatibility="5.0.000" expanded="true" name="FSXValidation">
                 <parameter key="create_complete_model" value="false"/>
                 <parameter key="average_performances_only" value="true"/>
                 <parameter key="leave_one_out" value="false"/>
@@ -80,7 +80,7 @@
                 <parameter key="use_local_random_seed" value="false"/>
                 <parameter key="local_random_seed" value="1992"/>
                 <process expanded="true">
-                  <operator activated="true" class="support_vector_machine" expanded="true" name="FSLearner">
+                  <operator activated="true" class="support_vector_machine" compatibility="5.0.000" expanded="true" name="FSLearner">
                     <parameter key="kernel_type" value="0"/>
                     <parameter key="kernel_gamma" value="1.0"/>
                     <parameter key="kernel_sigma1" value="1.0"/>
@@ -116,11 +116,11 @@
                   <portSpacing port="sink_through 2" spacing="0"/>
                 </process>
                 <process expanded="true">
-                  <operator activated="true" class="apply_model" expanded="true" name="FSModelApplier">
+                  <operator activated="true" class="apply_model" compatibility="5.0.000" expanded="true" name="FSModelApplier">
                     <list key="application_parameters"/>
                     <parameter key="create_view" value="false"/>
                   </operator>
-                  <operator activated="true" class="performance_regression" expanded="true" name="FSEvaluation">
+                  <operator activated="true" class="performance_regression" compatibility="5.0.000" expanded="true" name="FSEvaluation">
                     <parameter key="main_criterion" value="first"/>
                     <parameter key="root_mean_squared_error" value="false"/>
                     <parameter key="absolute_error" value="false"/>
@@ -138,7 +138,7 @@
                     <parameter key="skip_undefined_labels" value="true"/>
                     <parameter key="use_example_weights" value="true"/>
                   </operator>
-                  <operator activated="true" class="performance_min_max" expanded="true" name="FSMinMaxWrapper">
+                  <operator activated="true" class="performance_min_max" compatibility="5.0.000" expanded="true" name="FSMinMaxWrapper">
                     <parameter key="minimum_weight" value="0.5"/>
                   </operator>
                   <connect from_port="model" to_op="FSModelApplier" to_port="model"/>
@@ -169,7 +169,7 @@
           <portSpacing port="sink_attribute weights sink" spacing="0"/>
         </process>
         <process expanded="true" height="584" width="271">
-          <operator activated="true" class="support_vector_machine" expanded="true" height="112" name="Learner" width="90" x="45" y="30">
+          <operator activated="true" class="support_vector_machine" compatibility="5.0.000" expanded="true" height="112" name="Learner" width="90" x="45" y="30">
             <parameter key="kernel_type" value="0"/>
             <parameter key="kernel_gamma" value="1.0"/>
             <parameter key="kernel_sigma1" value="1.0"/>
@@ -202,11 +202,11 @@
           <portSpacing port="sink_model sink" spacing="0"/>
         </process>
         <process expanded="true" height="584" width="271">
-          <operator activated="true" class="apply_model" expanded="true" height="76" name="ModelApplier" width="90" x="45" y="30">
+          <operator activated="true" class="apply_model" compatibility="5.0.000" expanded="true" height="76" name="ModelApplier" width="90" x="45" y="30">
             <list key="application_parameters"/>
             <parameter key="create_view" value="false"/>
           </operator>
-          <operator activated="true" class="performance_regression" expanded="true" height="76" name="WrapperEvaluation" width="90" x="158" y="30">
+          <operator activated="true" class="performance_regression" compatibility="5.0.000" expanded="true" height="76" name="WrapperEvaluation" width="90" x="158" y="30">
             <parameter key="main_criterion" value="first"/>
             <parameter key="root_mean_squared_error" value="false"/>
             <parameter key="absolute_error" value="false"/>

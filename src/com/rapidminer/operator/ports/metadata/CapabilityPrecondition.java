@@ -162,17 +162,17 @@ public class CapabilityPrecondition extends ExampleSetPrecondition {
 									}
 								} else {
 									if (!capabilityProvider.supportsCapability(OperatorCapability.POLYNOMINAL_LABEL)) {
-										if (capabilityProvider.supportsCapability(OperatorCapability.BINOMINAL_LABEL)) {
-											fixes.addAll(getFixesForPolynomialClassificationWhenBinominalSupported());
-											if ((label.getValueSetRelation() == SetRelation.EQUAL) &&
-													(label.getValueSet().size() == 2)) {
+										// check if not nominal binominal label
+										if ((label.getValueSetRelation() != SetRelation.EQUAL) || (label.getValueSet().size() != 2)) {
+											if (capabilityProvider.supportsCapability(OperatorCapability.BINOMINAL_LABEL)) {
 												fixes.add(createToBinominalFix(label.getName()));
+												fixes.addAll(getFixesForPolynomialClassificationWhenBinominalSupported());
 											}
+											if (capabilityProvider.supportsCapability(OperatorCapability.NUMERICAL_LABEL)) {
+												fixes.add(createToNumericalFix(label.getName()));
+											}
+											createLearnerError(OperatorCapability.POLYNOMINAL_LABEL.getDescription(), fixes);
 										}
-										if (capabilityProvider.supportsCapability(OperatorCapability.NUMERICAL_LABEL)) {
-											fixes.add(createToNumericalFix(label.getName()));
-										}
-										createLearnerError(OperatorCapability.POLYNOMINAL_LABEL.getDescription(), fixes);						
 									}
 								}
 							}

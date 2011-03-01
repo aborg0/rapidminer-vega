@@ -71,7 +71,6 @@ import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.tools.GroupTree;
 import com.rapidminer.tools.I18N;
-import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.usagestats.OperatorStatisticsValue;
 import com.rapidminer.tools.usagestats.OperatorUsageStatistics;
@@ -81,444 +80,444 @@ import com.rapidminer.tools.usagestats.UsageStatistics.StatisticsScope;
 /**
  * This tree displays all groups and can be used to change the selected operators.
  * 
- * @author Ingo Mierswa, Tobias Malbrecht
+ * @author Ingo Mierswa, Tobias Malbrecht, Sebastian Land
  */
 public class NewOperatorGroupTree extends JPanel implements FilterListener, SelectionNavigationListener {
 
-	private static final long serialVersionUID = 133086849304885475L;
+    private static final long serialVersionUID = 133086849304885475L;
 
-	private final FilterTextField filterField = new FilterTextField(12);
+    private final FilterTextField filterField = new FilterTextField(12);
 
-	private transient final NewOperatorGroupTreeModel model = new NewOperatorGroupTreeModel(OperatorService.getGroups());
+    private transient final NewOperatorGroupTreeModel model = new NewOperatorGroupTreeModel();
 
-	private final JTree operatorGroupTree = new JTree(model);
+    private final JTree operatorGroupTree = new JTree(model);
 
-	private final NewOperatorEditor editor;
+    private final NewOperatorEditor editor;
 
-	private transient final Action CLEAR_FILTER_ACTION = new ResourceAction(true, "clear_filter") {
-		private static final long serialVersionUID = 3236281211064051583L;
+    private transient final Action CLEAR_FILTER_ACTION = new ResourceAction(true, "clear_filter") {
+        private static final long serialVersionUID = 3236281211064051583L;
 
-		public void actionPerformed(ActionEvent e) {
-			filterField.clearFilter();
-		}
-	};
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            filterField.clearFilter();
+        }
+    };
 
-	private transient final ToggleAction FILTER_DEPRECATED_ACTION = new ToggleAction(true, "filter_deprecated") {
-		private static final long serialVersionUID = -35181409559416043L;
+    private transient final ToggleAction FILTER_DEPRECATED_ACTION = new ToggleAction(true, "filter_deprecated") {
+        private static final long serialVersionUID = -35181409559416043L;
 
-		{
-			setSelected(true);
-			actionToggled(null);
-		}
+        {
+            setSelected(true);
+            actionToggled(null);
+        }
 
-		@Override
-		public void actionToggled(ActionEvent e) {
-			Enumeration<TreePath> expandedPaths = operatorGroupTree.getExpandedDescendants(new TreePath(operatorGroupTree.getModel().getRoot()));
-			TreePath selectedPath = operatorGroupTree.getSelectionPath();
-			model.setFilterDeprecated(isSelected());
-			while (expandedPaths.hasMoreElements()) {
-				operatorGroupTree.expandPath(expandedPaths.nextElement());
-			}
-			operatorGroupTree.setSelectionPath(selectedPath);
-		}
-	};
+        @Override
+        public void actionToggled(ActionEvent e) {
+            Enumeration<TreePath> expandedPaths = operatorGroupTree.getExpandedDescendants(new TreePath(operatorGroupTree.getModel().getRoot()));
+            TreePath selectedPath = operatorGroupTree.getSelectionPath();
+            model.setFilterDeprecated(isSelected());
+            while (expandedPaths.hasMoreElements()) {
+                operatorGroupTree.expandPath(expandedPaths.nextElement());
+            }
+            operatorGroupTree.setSelectionPath(selectedPath);
+        }
+    };
 
-	private transient final ToggleAction SORT_BY_USAGE_ACTION = new ToggleAction(true, "sort_by_usage") {
-		private static final long serialVersionUID = 1L;
-		{
-			setSelected(true);
-			actionToggled(null);
-		}
+    private transient final ToggleAction SORT_BY_USAGE_ACTION = new ToggleAction(true, "sort_by_usage") {
+        private static final long serialVersionUID = 1L;
+        {
+            setSelected(true);
+            actionToggled(null);
+        }
 
-		@Override
-		public void actionToggled(ActionEvent e) {
-			model.setSortByUsage(isSelected());
-		}
-	};
+        @Override
+        public void actionToggled(ActionEvent e) {
+            model.setSortByUsage(isSelected());
+        }
+    };
 
-	public transient final Action INFO_OPERATOR_ACTION = new InfoOperatorAction() {
-		private static final long serialVersionUID = 7157100643209732656L;
+    public transient final Action INFO_OPERATOR_ACTION = new InfoOperatorAction() {
+        private static final long serialVersionUID = 7157100643209732656L;
 
-		@Override
-		protected Operator getOperator() {
-			return getSelectedOperator();
-		}
-	};
+        @Override
+        protected Operator getOperator() {
+            return getSelectedOperator();
+        }
+    };
 
-	private final JCheckBoxMenuItem autoWireInputsItem = new JCheckBoxMenuItem(new ResourceAction("auto_wire_inputs_on_add") {
-		private static final long serialVersionUID = 1L;
+    private final JCheckBoxMenuItem autoWireInputsItem = new JCheckBoxMenuItem(new ResourceAction("auto_wire_inputs_on_add") {
+        private static final long serialVersionUID = 1L;
 
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			System.setProperty(RapidMinerGUI.PROPERTY_AUTOWIRE_INPUT, Boolean.toString(autoWireInputsItem.isSelected()));
-			ParameterService.writePropertyIntoMainUserConfigFile(RapidMinerGUI.PROPERTY_AUTOWIRE_INPUT, Boolean.toString(autoWireInputsItem.isSelected()));
-		}
-	});
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            System.setProperty(RapidMinerGUI.PROPERTY_AUTOWIRE_INPUT, Boolean.toString(autoWireInputsItem.isSelected()));
+            ParameterService.writePropertyIntoMainUserConfigFile(RapidMinerGUI.PROPERTY_AUTOWIRE_INPUT, Boolean.toString(autoWireInputsItem.isSelected()));
+        }
+    });
 
-	private final JCheckBoxMenuItem autoWireOutputsItem = new JCheckBoxMenuItem(new ResourceAction("auto_wire_outputs_on_add") {
-		private static final long serialVersionUID = 1L;
+    private final JCheckBoxMenuItem autoWireOutputsItem = new JCheckBoxMenuItem(new ResourceAction("auto_wire_outputs_on_add") {
+        private static final long serialVersionUID = 1L;
 
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			System.setProperty(RapidMinerGUI.PROPERTY_AUTOWIRE_OUTPUT, Boolean.toString(autoWireOutputsItem.isSelected()));
-			ParameterService.writePropertyIntoMainUserConfigFile(RapidMinerGUI.PROPERTY_AUTOWIRE_OUTPUT, Boolean.toString(autoWireOutputsItem.isSelected()));
-		}
-	});
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            System.setProperty(RapidMinerGUI.PROPERTY_AUTOWIRE_OUTPUT, Boolean.toString(autoWireOutputsItem.isSelected()));
+            ParameterService.writePropertyIntoMainUserConfigFile(RapidMinerGUI.PROPERTY_AUTOWIRE_OUTPUT, Boolean.toString(autoWireOutputsItem.isSelected()));
+        }
+    });
 
-	private NewOperatorGroupTreeRenderer renderer;
+    private NewOperatorGroupTreeRenderer renderer;
 
-	public NewOperatorGroupTree(NewOperatorEditor editor) {
-		this.editor = editor;
-		setLayout(new BorderLayout());
+    public NewOperatorGroupTree(NewOperatorEditor editor) {
+        this.editor = editor;
+        setLayout(new BorderLayout());
 
-		// TODO: Select checkboxes if system property changes (e.g. in preferences dialog)
-		autoWireInputsItem.setSelected("true".equals(System.getProperty(RapidMinerGUI.PROPERTY_AUTOWIRE_INPUT)));
-		autoWireOutputsItem.setSelected("true".equals(System.getProperty(RapidMinerGUI.PROPERTY_AUTOWIRE_OUTPUT)));
+        // TODO: Select checkboxes if system property changes (e.g. in preferences dialog)
+        autoWireInputsItem.setSelected("true".equals(System.getProperty(RapidMinerGUI.PROPERTY_AUTOWIRE_INPUT)));
+        autoWireOutputsItem.setSelected("true".equals(System.getProperty(RapidMinerGUI.PROPERTY_AUTOWIRE_OUTPUT)));
 
-		// operatorGroupTree.setRootVisible(true);
-		operatorGroupTree.setShowsRootHandles(true);
-		renderer = new NewOperatorGroupTreeRenderer();
-		operatorGroupTree.setCellRenderer(renderer);
-		operatorGroupTree.expandRow(0);
+        // operatorGroupTree.setRootVisible(true);
+        operatorGroupTree.setShowsRootHandles(true);
+        renderer = new NewOperatorGroupTreeRenderer();
+        operatorGroupTree.setCellRenderer(renderer);
+        operatorGroupTree.expandRow(0);
 
-		JScrollPane scrollPane = new ExtendedJScrollPane(operatorGroupTree);
-		scrollPane.setBorder(null);
-		add(scrollPane, BorderLayout.CENTER);
+        JScrollPane scrollPane = new ExtendedJScrollPane(operatorGroupTree);
+        scrollPane.setBorder(null);
+        add(scrollPane, BorderLayout.CENTER);
 
-		filterField.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.field.filter_deprecated.tip"));
-		filterField.addFilterListener(this);
-		filterField.addSelectionNavigationListener(this);
+        filterField.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.field.filter_deprecated.tip"));
+        filterField.addFilterListener(this);
+        filterField.addSelectionNavigationListener(this);
 
-		JToolBar toolBar = new ExtendedJToolBar();
-		toolBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
-		toolBar.setFloatable(false);
-		DropDownButton autoWireMenuButton = DropDownButton.makeDropDownButton(new ResourceActionAdapter(true, "auto_wire_on_add"));
-		autoWireMenuButton.add(autoWireInputsItem);
-		autoWireMenuButton.add(autoWireOutputsItem);
-		autoWireMenuButton.addToToolBar(toolBar);
-		// final JToggleButton filterDeprecatedButton = new JToggleButton(new ResourceActionAdapter(true,
-		// "filter_deprecated"));
-		// filterDeprecatedButton.addActionListener(new ActionListener() {
-		// @Override
-		// public void actionPerformed(ActionEvent e) {
-		//
-		// }
-		// });
-		// filterDeprecatedButton.setText(null);
-		// filterDeprecatedButton.setSelected(true);
-		toolBar.addSeparator();
-		toolBar.add(filterField);
-		toolBar.add(CLEAR_FILTER_ACTION);
-		JToggleButton filterDeprecatedButton = FILTER_DEPRECATED_ACTION.createToggleButton();
-		filterDeprecatedButton.setText("");
-		toolBar.add(filterDeprecatedButton);
+        JToolBar toolBar = new ExtendedJToolBar();
+        toolBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+        toolBar.setFloatable(false);
+        DropDownButton autoWireMenuButton = DropDownButton.makeDropDownButton(new ResourceActionAdapter(true, "auto_wire_on_add"));
+        autoWireMenuButton.add(autoWireInputsItem);
+        autoWireMenuButton.add(autoWireOutputsItem);
+        autoWireMenuButton.addToToolBar(toolBar);
+        // final JToggleButton filterDeprecatedButton = new JToggleButton(new ResourceActionAdapter(true,
+        // "filter_deprecated"));
+        // filterDeprecatedButton.addActionListener(new ActionListener() {
+        // @Override
+        // public void actionPerformed(ActionEvent e) {
+        //
+        // }
+        // });
+        // filterDeprecatedButton.setText(null);
+        // filterDeprecatedButton.setSelected(true);
+        toolBar.addSeparator();
+        toolBar.add(filterField);
+        toolBar.add(CLEAR_FILTER_ACTION);
+        JToggleButton filterDeprecatedButton = FILTER_DEPRECATED_ACTION.createToggleButton();
+        filterDeprecatedButton.setText("");
+        toolBar.add(filterDeprecatedButton);
 
-		JToggleButton sortButton = SORT_BY_USAGE_ACTION.createToggleButton();
-		sortButton.setText("");
-		toolBar.add(sortButton);
+        JToggleButton sortButton = SORT_BY_USAGE_ACTION.createToggleButton();
+        sortButton.setText("");
+        toolBar.add(sortButton);
 
-		add(toolBar, BorderLayout.NORTH);
+        add(toolBar, BorderLayout.NORTH);
 
-		operatorGroupTree.setRootVisible(false);
-		operatorGroupTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-		operatorGroupTree.setDragEnabled(true);
-		operatorGroupTree.addTreeSelectionListener(new TreeSelectionListener() {
-			@Override
-			public void valueChanged(TreeSelectionEvent e) {
-				Operator op = getSelectedOperator();
-				if (op != null) {
-					RapidMinerGUI.getMainFrame().getOperatorDocViewer().setDisplayedOperator(op);
-				}
-			}
-		});
-		operatorGroupTree.addTreeExpansionListener(new TreeExpansionListener() {
+        operatorGroupTree.setRootVisible(false);
+        operatorGroupTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        operatorGroupTree.setDragEnabled(true);
+        operatorGroupTree.addTreeSelectionListener(new TreeSelectionListener() {
+            @Override
+            public void valueChanged(TreeSelectionEvent e) {
+                Operator op = getSelectedOperator();
+                if (op != null) {
+                    RapidMinerGUI.getMainFrame().getOperatorDocViewer().setDisplayedOperator(op);
+                }
+            }
+        });
+        operatorGroupTree.addTreeExpansionListener(new TreeExpansionListener() {
 
-			@Override
-			public void treeExpanded(TreeExpansionEvent event) {
-				updateMaxUsageCount();
-			}
+            @Override
+            public void treeExpanded(TreeExpansionEvent event) {
+                updateMaxUsageCount();
+            }
 
-			@Override
-			public void treeCollapsed(TreeExpansionEvent event) {
-				updateMaxUsageCount();
-			}
-		});
+            @Override
+            public void treeCollapsed(TreeExpansionEvent event) {
+                updateMaxUsageCount();
+            }
+        });
 
-		operatorGroupTree.setTransferHandler(new OperatorTransferHandler() {
-			private static final long serialVersionUID = 1L;
+        operatorGroupTree.setTransferHandler(new OperatorTransferHandler() {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected List<Operator> getDraggedOperators() {
-				Operator selectedOperator = NewOperatorGroupTree.this.getSelectedOperator();
-				if (selectedOperator == null) {
-					return Collections.emptyList();
-				} else {
-					return Collections.singletonList(selectedOperator);
-				}
-			}
-		});
-		operatorGroupTree.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (e.getClickCount() == 2) {
-					insertSelected();
-				} else {
-					TreePath selPath = operatorGroupTree.getPathForLocation(e.getX(), e.getY());
-					if (selPath != null) {
-						operatorGroupTree.setSelectionPath(selPath);
-					}
-					evaluatePopup(e);
-				}
-			}
+            @Override
+            protected List<Operator> getDraggedOperators() {
+                Operator selectedOperator = NewOperatorGroupTree.this.getSelectedOperator();
+                if (selectedOperator == null) {
+                    return Collections.emptyList();
+                } else {
+                    return Collections.singletonList(selectedOperator);
+                }
+            }
+        });
+        operatorGroupTree.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    insertSelected();
+                } else {
+                    TreePath selPath = operatorGroupTree.getPathForLocation(e.getX(), e.getY());
+                    if (selPath != null) {
+                        operatorGroupTree.setSelectionPath(selPath);
+                    }
+                    evaluatePopup(e);
+                }
+            }
 
-			@Override
-			public void mousePressed(MouseEvent e) {
-				TreePath selPath = operatorGroupTree.getPathForLocation(e.getX(), e.getY());
-				if (selPath != null) {
-					operatorGroupTree.setSelectionPath(selPath);
-				}
-				evaluatePopup(e);
-			}
+            @Override
+            public void mousePressed(MouseEvent e) {
+                TreePath selPath = operatorGroupTree.getPathForLocation(e.getX(), e.getY());
+                if (selPath != null) {
+                    operatorGroupTree.setSelectionPath(selPath);
+                }
+                evaluatePopup(e);
+            }
 
-			@Override
-			public void mouseReleased(MouseEvent e) {
-				TreePath selPath = operatorGroupTree.getPathForLocation(e.getX(), e.getY());
-				if (selPath != null) {
-					operatorGroupTree.setSelectionPath(selPath);
-				}
-				evaluatePopup(e);
-			}
-		});
-		operatorGroupTree.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                TreePath selPath = operatorGroupTree.getPathForLocation(e.getX(), e.getY());
+                if (selPath != null) {
+                    operatorGroupTree.setSelectionPath(selPath);
+                }
+                evaluatePopup(e);
+            }
+        });
+        operatorGroupTree.addKeyListener(new KeyListener() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+            }
 
-			@Override
-			public void keyReleased(KeyEvent e) {
-				// insert selected operator upon press of enter or space
-				switch (e.getKeyCode()) {
-				case KeyEvent.VK_ENTER:
-				case KeyEvent.VK_SPACE:
-					insertSelected();
-					e.consume();
-					return;
-				}
-			}
+            @Override
+            public void keyReleased(KeyEvent e) {
+                // insert selected operator upon press of enter or space
+                switch (e.getKeyCode()) {
+                case KeyEvent.VK_ENTER:
+                case KeyEvent.VK_SPACE:
+                    insertSelected();
+                    e.consume();
+                    return;
+                }
+            }
 
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
 
-		});
+        });
 
-		new ToolTipWindow(new TipProvider() {
-			@Override
-			public String getTip(Object o) {
-				OperatorDescription opDesc;
-				if (o instanceof OperatorDescription) {
-					opDesc = (OperatorDescription) o;
-				} else if (o instanceof GroupTree) {
-					GroupTree groupTree = (GroupTree) o;
-					return "<h3>" + groupTree.getName() + "</h3><p>" + groupTree.getDescription() + "</p>";
-				} else {
-					return null;
-				}
-				StringBuilder b = new StringBuilder();
-				b.append("<h3>").append(opDesc.getName()).append("</h3><p>");
-				b.append(opDesc.getLongDescriptionHTML()).append("</p>");
-				return b.toString();
-			}
+        new ToolTipWindow(new TipProvider() {
+            @Override
+            public String getTip(Object o) {
+                OperatorDescription opDesc;
+                if (o instanceof OperatorDescription) {
+                    opDesc = (OperatorDescription) o;
+                } else if (o instanceof GroupTree) {
+                    GroupTree groupTree = (GroupTree) o;
+                    return "<h3>" + groupTree.getName() + "</h3><p>" + groupTree.getDescription() + "</p>";
+                } else {
+                    return null;
+                }
+                StringBuilder b = new StringBuilder();
+                b.append("<h3>").append(opDesc.getName()).append("</h3><p>");
+                b.append(opDesc.getLongDescriptionHTML()).append("</p>");
+                return b.toString();
+            }
 
-			@Override
-			public Object getIdUnder(Point point) {
-				TreePath path = operatorGroupTree.getPathForLocation((int) point.getX(), (int) point.getY());
-				if (path != null) {
-					return path.getLastPathComponent();
-				} else {
-					return null;
-				}
-			}
+            @Override
+            public Object getIdUnder(Point point) {
+                TreePath path = operatorGroupTree.getPathForLocation((int) point.getX(), (int) point.getY());
+                if (path != null) {
+                    return path.getLastPathComponent();
+                } else {
+                    return null;
+                }
+            }
 
-			@Override
-			public Component getCustomComponent(Object id) {
-				return null;
-			}
-		}, operatorGroupTree);
-	}
+            @Override
+            public Component getCustomComponent(Object id) {
+                return null;
+            }
+        }, operatorGroupTree);
+    }
 
-	@Override
-	public void valueChanged(String value) {
-		TreePath[] selectionPaths = operatorGroupTree.getSelectionPaths();
+    @Override
+    public void valueChanged(String value) {
+        TreePath[] selectionPaths = operatorGroupTree.getSelectionPaths();
 
-		model.applyFilter(value);
+        model.applyFilter(value);
 
-		if (value != null && value.length() > 0)
-			for (int i = 0; i < operatorGroupTree.getRowCount(); i++) {
-				operatorGroupTree.expandRow(i);
-			}
+        if (value != null && value.length() > 0)
+            for (int i = 0; i < operatorGroupTree.getRowCount(); i++) {
+                operatorGroupTree.expandRow(i);
+            }
 
-		if (operatorGroupTree.getRowCount() > getHeight() / (operatorGroupTree.getRowHeight() + 2)) {
-			for (int i = operatorGroupTree.getRowCount(); i >= 0; i--) {
-				operatorGroupTree.collapseRow(i);
-			}
-		}
+        if (operatorGroupTree.getRowCount() > getHeight() / (operatorGroupTree.getRowHeight() + 2)) {
+            for (int i = operatorGroupTree.getRowCount(); i >= 0; i--) {
+                operatorGroupTree.collapseRow(i);
+            }
+        }
 
-		GroupTree root = (GroupTree) this.operatorGroupTree.getModel().getRoot();
-		TreePath path = new TreePath(root);
-		showNodes(root, path);
-		if (selectionPaths != null) {
-			for (TreePath selectionPath : selectionPaths) {
-				Object lastPathComponent = selectionPath.getLastPathComponent();
-				if (model.contains(lastPathComponent)) {
-					operatorGroupTree.addSelectionPath(selectionPath);
-				}
-			}
-		}
-	}
+        GroupTree root = (GroupTree) this.operatorGroupTree.getModel().getRoot();
+        TreePath path = new TreePath(root);
+        showNodes(root, path);
+        if (selectionPaths != null) {
+            for (TreePath selectionPath : selectionPaths) {
+                Object lastPathComponent = selectionPath.getLastPathComponent();
+                if (model.contains(lastPathComponent)) {
+                    operatorGroupTree.addSelectionPath(selectionPath);
+                }
+            }
+        }
+    }
 
-	private void showNodes(GroupTree tree, TreePath path) {
-		if (tree.getSubGroups().size() == 0) {
-			int row = this.operatorGroupTree.getRowForPath(path);
-			this.operatorGroupTree.expandRow(row);
-			this.editor.setOperatorList(tree);
-		} else if ((tree.getSubGroups().size() == 1) && (tree.getOperatorDescriptions().size() == 0)) {
-			int row = this.operatorGroupTree.getRowForPath(path);
-			this.operatorGroupTree.expandRow(row);
-			GroupTree child = tree.getSubGroup(0);
-			path = path.pathByAddingChild(child);
-			showNodes(child, path);
-		} else {
-			int row = this.operatorGroupTree.getRowForPath(path);
-			this.operatorGroupTree.expandRow(row);
-			this.editor.setOperatorList(null);
-		}
-	}
+    private void showNodes(GroupTree tree, TreePath path) {
+        if (tree.getSubGroups().size() == 0) {
+            int row = this.operatorGroupTree.getRowForPath(path);
+            this.operatorGroupTree.expandRow(row);
+            this.editor.setOperatorList(tree);
+        } else if ((tree.getSubGroups().size() == 1) && (tree.getOperatorDescriptions().size() == 0)) {
+            int row = this.operatorGroupTree.getRowForPath(path);
+            this.operatorGroupTree.expandRow(row);
+            GroupTree child = tree.getSubGroup(0);
+            path = path.pathByAddingChild(child);
+            showNodes(child, path);
+        } else {
+            int row = this.operatorGroupTree.getRowForPath(path);
+            this.operatorGroupTree.expandRow(row);
+            this.editor.setOperatorList(null);
+        }
+    }
 
-	public boolean shouldAutoConnectNewOperatorsInputs() {
-		return autoWireInputsItem.isSelected();
-	}
+    public boolean shouldAutoConnectNewOperatorsInputs() {
+        return autoWireInputsItem.isSelected();
+    }
 
-	public boolean shouldAutoConnectNewOperatorsOutputs() {
-		return autoWireOutputsItem.isSelected();
-	}
+    public boolean shouldAutoConnectNewOperatorsOutputs() {
+        return autoWireOutputsItem.isSelected();
+    }
 
-	public JTree getTree() {
-		return this.operatorGroupTree;
-	}
+    public JTree getTree() {
+        return this.operatorGroupTree;
+    }
 
-	/** Creates a new popup menu for the selected operator. */
-	private JPopupMenu createOperatorPopupMenu() {
-		JPopupMenu menu = new JPopupMenu();
-		menu.add(this.INFO_OPERATOR_ACTION);
-		menu.addSeparator();
-		menu.add(new ResourceAction(true, "add_operator_now") {
-			private static final long serialVersionUID = 4363124048356045034L;
+    /** Creates a new popup menu for the selected operator. */
+    private JPopupMenu createOperatorPopupMenu() {
+        JPopupMenu menu = new JPopupMenu();
+        menu.add(this.INFO_OPERATOR_ACTION);
+        menu.addSeparator();
+        menu.add(new ResourceAction(true, "add_operator_now") {
+            private static final long serialVersionUID = 4363124048356045034L;
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				insertSelected();
-			}
-		});
-		return menu;
-	}
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                insertSelected();
+            }
+        });
+        return menu;
+    }
 
-	/** Checks if the given mouse event is a popup trigger and creates a new popup menu if necessary. */
-	private void evaluatePopup(MouseEvent e) {
-		if (e.isPopupTrigger()) {
-			if (getSelectedOperator() != null) {
-				createOperatorPopupMenu().show(operatorGroupTree, e.getX(), e.getY());
-			}
-		}
-	}
+    /** Checks if the given mouse event is a popup trigger and creates a new popup menu if necessary. */
+    private void evaluatePopup(MouseEvent e) {
+        if (e.isPopupTrigger()) {
+            if (getSelectedOperator() != null) {
+                createOperatorPopupMenu().show(operatorGroupTree, e.getX(), e.getY());
+            }
+        }
+    }
 
-	private Operator getSelectedOperator() {
-		if (operatorGroupTree.getSelectionPath() == null) {
-			return null;
-		}
-		Object selectedOperator = operatorGroupTree.getSelectionPath().getLastPathComponent();
-		if ((selectedOperator != null) && (selectedOperator instanceof OperatorDescription)) {
-			try {
-				return ((OperatorDescription) selectedOperator).createOperatorInstance();
-			} catch (OperatorCreationException e) {
-				e.printStackTrace();
-				return null;
-			}
-		} else {
-			return null;
-		}
-	}
+    private Operator getSelectedOperator() {
+        if (operatorGroupTree.getSelectionPath() == null) {
+            return null;
+        }
+        Object selectedOperator = operatorGroupTree.getSelectionPath().getLastPathComponent();
+        if ((selectedOperator != null) && (selectedOperator instanceof OperatorDescription)) {
+            try {
+                return ((OperatorDescription) selectedOperator).createOperatorInstance();
+            } catch (OperatorCreationException e) {
+                e.printStackTrace();
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
 
-	private void insertSelected() {
-		Operator operator = getSelectedOperator();
-		if (operator == null) {
-			return;
-		}
-		MainFrame mainFrame = RapidMinerGUI.getMainFrame();
-		mainFrame.getActions().insert(Collections.singletonList(operator));
-	}
+    private void insertSelected() {
+        Operator operator = getSelectedOperator();
+        if (operator == null) {
+            return;
+        }
+        MainFrame mainFrame = RapidMinerGUI.getMainFrame();
+        mainFrame.getActions().insert(Collections.singletonList(operator));
+    }
 
-	@Override
-	public void down() {
-		int[] selectionRows = operatorGroupTree.getSelectionRows();
-		if (selectionRows != null) {
-			if (selectionRows.length > 0 && selectionRows[0] < operatorGroupTree.getRowCount() - 1) {
-				operatorGroupTree.setSelectionRow(selectionRows[0] + 1);
-			}
-		} else {
-			if (operatorGroupTree.getRowCount() > 0) {
-				operatorGroupTree.setSelectionRow(0);
-			}
-		}
-	}
+    @Override
+    public void down() {
+        int[] selectionRows = operatorGroupTree.getSelectionRows();
+        if (selectionRows != null) {
+            if (selectionRows.length > 0 && selectionRows[0] < operatorGroupTree.getRowCount() - 1) {
+                operatorGroupTree.setSelectionRow(selectionRows[0] + 1);
+            }
+        } else {
+            if (operatorGroupTree.getRowCount() > 0) {
+                operatorGroupTree.setSelectionRow(0);
+            }
+        }
+    }
 
-	@Override
-	public void left() {
-	}
+    @Override
+    public void left() {
+    }
 
-	@Override
-	public void right() {
-	}
+    @Override
+    public void right() {
+    }
 
-	@Override
-	public void up() {
-		int[] selectionRows = operatorGroupTree.getSelectionRows();
-		if (selectionRows != null) {
-			if (selectionRows.length > 0 && selectionRows[0] > 0) {
-				operatorGroupTree.setSelectionRow(selectionRows[0] - 1);
-			}
-		} else {
-			if (operatorGroupTree.getRowCount() > 0) {
-				operatorGroupTree.setSelectionRow(operatorGroupTree.getRowCount());
-			}
-		}
-	}
+    @Override
+    public void up() {
+        int[] selectionRows = operatorGroupTree.getSelectionRows();
+        if (selectionRows != null) {
+            if (selectionRows.length > 0 && selectionRows[0] > 0) {
+                operatorGroupTree.setSelectionRow(selectionRows[0] - 1);
+            }
+        } else {
+            if (operatorGroupTree.getRowCount() > 0) {
+                operatorGroupTree.setSelectionRow(operatorGroupTree.getRowCount());
+            }
+        }
+    }
 
-	@Override
-	public void selected() {
-		insertSelected();
-	}
+    @Override
+    public void selected() {
+        insertSelected();
+    }
 
-	private void updateMaxUsageCount() {
-		if (SORT_BY_USAGE_ACTION.isSelected()) {
-			renderer.setMaxVisibleUsageCount(getMaxVisibleUsage());
-		} else {
-			renderer.setMaxVisibleUsageCount(0);
-		}
-	}
+    private void updateMaxUsageCount() {
+        if (SORT_BY_USAGE_ACTION.isSelected()) {
+            renderer.setMaxVisibleUsageCount(getMaxVisibleUsage());
+        } else {
+            renderer.setMaxVisibleUsageCount(0);
+        }
+    }
 
-	private int getMaxVisibleUsage() {
-		int max = 0;
-		for (int i = 0; i < operatorGroupTree.getRowCount(); i++) {
-			TreePath path = operatorGroupTree.getPathForRow(i);
-			Object leaf = path.getLastPathComponent();
-			if (leaf instanceof OperatorDescription) {
-				OperatorUsageStatistics operatorStatistics1 = UsageStatistics.getInstance().getOperatorStatistics(StatisticsScope.ALL_TIME, (OperatorDescription) leaf);
-				int usageCount1 = (operatorStatistics1 == null) ? 0 : operatorStatistics1.getStatistics(OperatorStatisticsValue.EXECUTION);
-				max = Math.max(max, usageCount1);
-			}
-		}
-		return max;
-	}
-
+    private int getMaxVisibleUsage() {
+        int max = 0;
+        for (int i = 0; i < operatorGroupTree.getRowCount(); i++) {
+            TreePath path = operatorGroupTree.getPathForRow(i);
+            Object leaf = path.getLastPathComponent();
+            if (leaf instanceof OperatorDescription) {
+                OperatorUsageStatistics operatorStatistics1 = UsageStatistics.getInstance().getOperatorStatistics(StatisticsScope.ALL_TIME, (OperatorDescription) leaf);
+                int usageCount1 = (operatorStatistics1 == null) ? 0 : operatorStatistics1.getStatistics(OperatorStatisticsValue.EXECUTION);
+                max = Math.max(max, usageCount1);
+            }
+        }
+        return max;
+    }
 }

@@ -32,12 +32,14 @@ import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ValueDouble;
+import com.rapidminer.operator.learner.CapabilityProvider;
 import com.rapidminer.operator.learner.PredictionModel;
 import com.rapidminer.operator.performance.PerformanceCriterion;
 import com.rapidminer.operator.performance.PerformanceVector;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.PortPairExtender;
+import com.rapidminer.operator.ports.metadata.CapabilityPrecondition;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetPassThroughRule;
 import com.rapidminer.operator.ports.metadata.MDInteger;
@@ -62,7 +64,7 @@ import com.rapidminer.tools.math.AverageVector;
  * 
  * @author Ingo Mierswa, Simon Fischer
  */
-public abstract class ValidationChain extends OperatorChain {
+public abstract class ValidationChain extends OperatorChain implements CapabilityProvider {
 
     /** The parameter name for &quot;Indicates if a model of the complete data set should be additionally build after estimation.&quot; */
     public static final String PARAMETER_CREATE_COMPLETE_MODEL = "create_complete_model";
@@ -98,6 +100,8 @@ public abstract class ValidationChain extends OperatorChain {
         super(description, "Training", "Testing");
         throughExtender.start();
 
+        trainingSetInput.addPrecondition(new CapabilityPrecondition(this, trainingSetInput));
+        
         applyProcessPerformancePortExtender.ensureMinimumNumberOfPorts(1);
 
         InputPort inputPort = applyProcessPerformancePortExtender.getManagedPairs().iterator().next().getInputPort();

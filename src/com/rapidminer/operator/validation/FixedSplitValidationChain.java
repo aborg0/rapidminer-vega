@@ -26,8 +26,10 @@ import java.util.List;
 
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.set.SplittedExampleSet;
+import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ports.metadata.MDInteger;
 import com.rapidminer.operator.visualization.ProcessLogOperator;
@@ -76,7 +78,6 @@ import com.rapidminer.tools.RandomGenerator;
  * </ul>
  * 
  * @author Simon Fischer, Ingo Mierswa
- *          ingomierswa Exp $
  */
 public class FixedSplitValidationChain extends ValidationChain {
 
@@ -111,7 +112,7 @@ public class FixedSplitValidationChain extends ValidationChain {
 		}
 		log("Using " + trainingSetSize + " examples for learning and " + testSetSize + " examples for testing. " + rest + " examples are not used.");
 		double[] ratios = new double[] { (double) trainingSetSize / (double) inputSetSize, (double) testSetSize / (double) inputSetSize, (double) rest / (double) inputSetSize };
-		SplittedExampleSet eSet = new SplittedExampleSet(inputSet, ratios, getParameterAsInt(PARAMETER_SAMPLING_TYPE), getParameterAsBoolean(RandomGenerator.PARAMETER_USE_LOCAL_RANDOM_SEED), getParameterAsInt(RandomGenerator.PARAMETER_LOCAL_RANDOM_SEED));
+		SplittedExampleSet eSet = new SplittedExampleSet(inputSet, ratios, getParameterAsInt(PARAMETER_SAMPLING_TYPE), getParameterAsBoolean(RandomGenerator.PARAMETER_USE_LOCAL_RANDOM_SEED), getParameterAsInt(RandomGenerator.PARAMETER_LOCAL_RANDOM_SEED), getCompatibilityLevel().isAtMost(SplittedExampleSet.VERSION_SAMPLING_CHANGED));
 
 		eSet.selectSingleSubset(0);
 		learn(eSet);
@@ -138,8 +139,30 @@ public class FixedSplitValidationChain extends ValidationChain {
 		type = new ParameterTypeInt(PARAMETER_TEST_SET_SIZE, "Absolute size required for the test set (-1: use rest for testing)", -1, Integer.MAX_VALUE, -1);
 		type.setExpert(false);
 		types.add(type);
-		types.add(new ParameterTypeCategory(PARAMETER_SAMPLING_TYPE, "Defines the sampling type of the cross validation (linear = consecutive subsets, shuffled = random subsets, stratified = random subsets with class distribution kept constant)", SplittedExampleSet.SAMPLING_NAMES, SplittedExampleSet.SHUFFLED_SAMPLING));
+		types.add(new ParameterTypeCategory(PARAMETER_SAMPLING_TYPE, "Defines the sampling type of the cross validation (linear = consecutive subsets, shuffled = random subsets, stratified = random subsets with class distribution kept constant)", SplittedExampleSet.SAMPLING_NAMES, SplittedExampleSet.SHUFFLED_SAMPLING, false));
 		types.addAll(RandomGenerator.getRandomGeneratorParameters(this));
 		return types;
 	}
+	
+
+    @Override
+    public OperatorVersion[] getIncompatibleVersionChanges() {
+        return new OperatorVersion[] { SplittedExampleSet.VERSION_SAMPLING_CHANGED };
+    }
+    
+    @Override
+    public boolean supportsCapability(OperatorCapability capability) {
+        switch (capability) {
+        case NO_LABEL:
+            return false;
+        case NUMERICAL_LABEL:
+        	try {
+				return getParameterAsInt(PARAMETER_SAMPLING_TYPE) != SplittedExampleSet.STRATIFIED_SAMPLING;
+			} catch (UndefinedParameterError e) {
+				return false;
+			}
+        default:
+            return true;
+        }
+    }
 }

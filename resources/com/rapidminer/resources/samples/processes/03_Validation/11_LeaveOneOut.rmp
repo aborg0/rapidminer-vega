@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<process version="5.0">
+<process version="5.1.003">
   <context>
     <input/>
     <output/>
     <macros/>
   </context>
-  <operator activated="true" class="process" expanded="true" name="Root">
+  <operator activated="true" class="process" compatibility="5.0.000" expanded="true" name="Root">
     <description>&lt;p&gt;This process is basically the same as process &amp;quot;04_XValidation_Nominal.xml&amp;quot;. There are two differences: the first one is that the parameter &amp;quot;leave_one_out&amp;quot; of the XValidation operator is set to true. The cross validation use exactly as many iterations as are examples in the input data set which turns the XValidation into a leave-one-out estimation operator.&lt;/p&gt;&lt;p&gt;The second difference is that another preprocessing operator is used called MissingValueReplenishment. This operator uses a simple strategy in order to  replace missing attribute values by a fixed value, e.g. the average of all other non-missing values.  &lt;/p&gt;</description>
     <parameter key="logverbosity" value="3"/>
     <parameter key="random_seed" value="2001"/>
@@ -13,10 +13,10 @@
     <parameter key="process_duration_for_mail" value="30"/>
     <parameter key="encoding" value="SYSTEM"/>
     <process expanded="true" height="584" width="915">
-      <operator activated="true" class="retrieve" expanded="true" height="60" name="Retrieve" width="90" x="45" y="30">
+      <operator activated="true" class="retrieve" compatibility="5.0.000" expanded="true" height="60" name="Retrieve" width="90" x="45" y="30">
         <parameter key="repository_entry" value="../../data/Labor-Negotiations"/>
       </operator>
-      <operator activated="true" class="x_validation" expanded="true" height="112" name="XValidation" width="90" x="180" y="30">
+      <operator activated="true" class="x_validation" compatibility="5.1.003" expanded="true" height="112" name="XValidation" width="90" x="180" y="30">
         <parameter key="create_complete_model" value="false"/>
         <parameter key="average_performances_only" value="true"/>
         <parameter key="leave_one_out" value="false"/>
@@ -25,7 +25,7 @@
         <parameter key="use_local_random_seed" value="false"/>
         <parameter key="local_random_seed" value="1992"/>
         <process expanded="true" height="584" width="432">
-          <operator activated="true" class="decision_tree" expanded="true" height="76" name="DecisionTree" width="90" x="171" y="30">
+          <operator activated="true" class="decision_tree" compatibility="5.0.000" expanded="true" height="76" name="DecisionTree" width="90" x="171" y="30">
             <parameter key="criterion" value="gain_ratio"/>
             <parameter key="minimal_size_for_split" value="4"/>
             <parameter key="minimal_leaf_size" value="2"/>
@@ -43,11 +43,11 @@
           <portSpacing port="sink_through 1" spacing="0"/>
         </process>
         <process expanded="true" height="584" width="432">
-          <operator activated="true" class="apply_model" expanded="true" height="76" name="ModelApplier" width="90" x="45" y="30">
+          <operator activated="true" class="apply_model" compatibility="5.0.000" expanded="true" height="76" name="ModelApplier" width="90" x="45" y="30">
             <list key="application_parameters"/>
             <parameter key="create_view" value="false"/>
           </operator>
-          <operator activated="true" class="performance" expanded="true" height="76" name="Performance" width="90" x="238" y="30">
+          <operator activated="true" class="performance" compatibility="5.0.000" expanded="true" height="76" name="Performance" width="90" x="238" y="30">
             <parameter key="use_example_weights" value="true"/>
           </operator>
           <connect from_port="model" to_op="ModelApplier" to_port="model"/>

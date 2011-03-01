@@ -26,6 +26,7 @@ import java.util.List;
 
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.set.MappedExampleSet;
+import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ValueDouble;
@@ -135,5 +136,10 @@ public class BootstrappingValidation extends ValidationChain {
 		types.add(new ParameterTypeBoolean(PARAMETER_AVERAGE_PERFORMANCES_ONLY, "Indicates if only performance vectors should be averaged or all types of averagable result vectors.", true));
 		types.addAll(RandomGenerator.getRandomGeneratorParameters(this));
 		return types;
+	}
+	
+	@Override
+	public boolean supportsCapability(OperatorCapability capability) {
+		return true;
 	}
 }

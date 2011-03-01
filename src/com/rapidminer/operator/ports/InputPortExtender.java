@@ -147,6 +147,14 @@ public class InputPortExtender extends SinglePortExtender<InputPort> {
 					if (!getManagedPorts().isEmpty()) {
 						int portIndex = getManagedPorts().indexOf(port);
 						boolean isMandatory = (portIndex < numberOfMandatory);
+						// checking if some of the ports received collection
+						for (int i = portIndex; i >= 0; i--) {
+							MetaData portMetaData = getManagedPorts().get(i).getMetaData();
+							if (portMetaData != null)
+								isMandatory &= !portMetaData.isCompatible(new CollectionMetaData(desiredMetaData), CompatibilityLevel.VERSION_5);
+						}
+						
+						// if not: throw error
 						if (metaData == null && isMandatory) {
 							port.addError(new InputMissingMetaDataError(port, desiredMetaData.getObjectClass(), null));
 						}

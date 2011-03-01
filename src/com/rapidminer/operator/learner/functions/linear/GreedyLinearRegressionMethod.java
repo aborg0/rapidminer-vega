@@ -37,49 +37,51 @@ import com.rapidminer.parameter.UndefinedParameterError;
  * @author Sebastian Land
  */
 public class GreedyLinearRegressionMethod implements LinearRegressionMethod {
-	@Override
-	public LinearRegressionResult applyMethod(LinearRegression regression, boolean useBias, double ridge, ExampleSet exampleSet, boolean[] isUsedAttribute, int numberOfExamples, int numberOfUsedAttributes, double[] means, double labelMean, double[] standardDeviations, double labelStandardDeviation, double[] coefficientsOnFullData, double errorOnFullData) throws UndefinedParameterError {
-		LinearRegressionResult greedyResult = new LinearRegressionResult();
-		greedyResult.isUsedAttribute = isUsedAttribute;
-		
-		boolean improved = true;
-		double akaike = (numberOfExamples - numberOfUsedAttributes) + 2 * numberOfUsedAttributes;
-		int currentNumberOfAttributes = numberOfUsedAttributes;
-		
-		// loop as long as improvements are found and deselect one attribute each time
-		while (improved) {
-			boolean[] currentlySelected = isUsedAttribute.clone();
-			improved = false;
-			currentNumberOfAttributes--;
-			// for all remaining attributes: test if are best selection
-			for (int i = 0; i < isUsedAttribute.length; i++) {
-				if (currentlySelected[i]) {
-					// calculate the akaike value without this attribute
-					currentlySelected[i] = false;
-					double[] currentCoeffs = regression.performRegression(exampleSet, currentlySelected, means, labelMean, ridge);
-					double currentError = regression.getSquaredError(exampleSet, currentlySelected, currentCoeffs, useBias);
-					double currentAkaike = currentError / errorOnFullData * (numberOfExamples - numberOfUsedAttributes) + 2 * currentNumberOfAttributes;
-					
-					// if the value is improved compared to the current best
-					if (currentAkaike < akaike) {
-						improved = true;
-						akaike = currentAkaike;
-						System.arraycopy(currentlySelected, 0, greedyResult.isUsedAttribute, 0, currentlySelected.length);
-						greedyResult.coefficients = currentCoeffs;
-						greedyResult.error = currentError;							
-					} 
+    @Override
+    public LinearRegressionResult applyMethod(LinearRegression regression, boolean useBias, double ridge, ExampleSet exampleSet, boolean[] isUsedAttribute, int numberOfExamples, int numberOfUsedAttributes, double[] means, double labelMean, double[] standardDeviations, double labelStandardDeviation, double[] coefficientsOnFullData, double errorOnFullData) throws UndefinedParameterError {
+        LinearRegressionResult greedyResult = new LinearRegressionResult();
+        greedyResult.isUsedAttribute = isUsedAttribute;
+        greedyResult.coefficients =coefficientsOnFullData;
+        greedyResult.error = errorOnFullData;
 
-					// select it again for calculating other attributes
-					currentlySelected[i] = true;
-				}
-			}
-		}
-		return greedyResult;
-	}
+        boolean improved = true;
+        double akaike = (numberOfExamples - numberOfUsedAttributes) + 2 * numberOfUsedAttributes;
+        int currentNumberOfAttributes = numberOfUsedAttributes;
 
-	
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		return Collections.emptyList();
-	}
+        // loop as long as improvements are found and deselect one attribute each time
+        while (improved) {
+            boolean[] currentlySelected = isUsedAttribute.clone();
+            improved = false;
+            currentNumberOfAttributes--;
+            // for all remaining attributes: test if are best selection
+            for (int i = 0; i < isUsedAttribute.length; i++) {
+                if (currentlySelected[i]) {
+                    // calculate the akaike value without this attribute
+                    currentlySelected[i] = false;
+                    double[] currentCoeffs = regression.performRegression(exampleSet, currentlySelected, means, labelMean, ridge);
+                    double currentError = regression.getSquaredError(exampleSet, currentlySelected, currentCoeffs, useBias);
+                    double currentAkaike = currentError / errorOnFullData * (numberOfExamples - numberOfUsedAttributes) + 2 * currentNumberOfAttributes;
+
+                    // if the value is improved compared to the current best
+                    if (currentAkaike < akaike) {
+                        improved = true;
+                        akaike = currentAkaike;
+                        System.arraycopy(currentlySelected, 0, greedyResult.isUsedAttribute, 0, currentlySelected.length);
+                        greedyResult.coefficients = currentCoeffs;
+                        greedyResult.error = currentError;
+                    }
+
+                    // select it again for calculating other attributes
+                    currentlySelected[i] = true;
+                }
+            }
+        }
+        return greedyResult;
+    }
+
+
+    @Override
+    public List<ParameterType> getParameterTypes() {
+        return Collections.emptyList();
+    }
 }

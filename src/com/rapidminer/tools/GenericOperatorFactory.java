@@ -30,11 +30,10 @@ import com.rapidminer.tools.plugin.Plugin;
  * {@link #registerOperators(ClassLoader)}.
  * 
  * @author Ingo Mierswa
- *          ingomierswa Exp $
  */
 public interface GenericOperatorFactory {
 
-	/** Register additional generic operators. */
-	public void registerOperators(ClassLoader loader, Plugin you);
+    /** Register additional generic operators. */
+    public void registerOperators(ClassLoader loader, Plugin you);
 
 }

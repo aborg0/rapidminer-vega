@@ -34,6 +34,7 @@ import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.ValueDouble;
 import com.rapidminer.operator.learner.CapabilityCheck;
 import com.rapidminer.operator.learner.CapabilityProvider;
@@ -65,176 +66,187 @@ import com.rapidminer.tools.RandomGenerator;
  */
 public class XVPrediction extends OperatorChain implements CapabilityProvider {
 
-	/** The parameter name for &quot;Number of subsets for the crossvalidation.&quot; */
-	public static final String PARAMETER_NUMBER_OF_VALIDATIONS = "number_of_validations";
+    /** The parameter name for &quot;Number of subsets for the crossvalidation.&quot; */
+    public static final String PARAMETER_NUMBER_OF_VALIDATIONS = "number_of_validations";
 
-	/**
-	 * The parameter name for &quot;Set the number of validations to the number of examples. If set to true,
-	 * number_of_validations is ignored.&quot;
-	 */
-	public static final String PARAMETER_LEAVE_ONE_OUT = "leave_one_out";
+    /**
+     * The parameter name for &quot;Set the number of validations to the number of examples. If set to true,
+     * number_of_validations is ignored.&quot;
+     */
+    public static final String PARAMETER_LEAVE_ONE_OUT = "leave_one_out";
 
-	/** The parameter name for &quot;Defines the sampling type of the cross validation.&quot; */
-	public static final String PARAMETER_SAMPLING_TYPE = "sampling_type";
+    /** The parameter name for &quot;Defines the sampling type of the cross validation.&quot; */
+    public static final String PARAMETER_SAMPLING_TYPE = "sampling_type";
 
-	private int number;
+    private int number;
 
-	private int iteration;
+    private int iteration;
 
-	private final InputPort exampleSetInput = getInputPorts().createPort("example set", ExampleSet.class);
+    private final InputPort exampleSetInput = getInputPorts().createPort("example set", ExampleSet.class);
 
-	private final OutputPort trainingProcessExampleSource = getSubprocess(0).getInnerSources().createPort("training");
-	private final InputPort trainingProcessModelSink = getSubprocess(0).getInnerSinks().createPort("model");
+    private final OutputPort trainingProcessExampleSource = getSubprocess(0).getInnerSources().createPort("training");
+    private final InputPort trainingProcessModelSink = getSubprocess(0).getInnerSinks().createPort("model");
 
-	// training -> testing
-	private final PortPairExtender throughExtender = new PortPairExtender("through", getSubprocess(0).getInnerSinks(), getSubprocess(1).getInnerSources());
+    // training -> testing
+    private final PortPairExtender throughExtender = new PortPairExtender("through", getSubprocess(0).getInnerSinks(), getSubprocess(1).getInnerSources());
 
-	// testing
-	private final OutputPort applyProcessModelSource = getSubprocess(1).getInnerSources().createPort("model");
-	private final OutputPort applyProcessExampleSource = getSubprocess(1).getInnerSources().createPort("unlabelled data");
-	private final InputPort applyProcessExampleInnerSink = getSubprocess(1).getInnerSinks().createPort("labelled data");
+    // testing
+    private final OutputPort applyProcessModelSource = getSubprocess(1).getInnerSources().createPort("model");
+    private final OutputPort applyProcessExampleSource = getSubprocess(1).getInnerSources().createPort("unlabelled data");
+    private final InputPort applyProcessExampleInnerSink = getSubprocess(1).getInnerSinks().createPort("labelled data");
 
-	// output
-	private final OutputPort exampleSetOutput = getOutputPorts().createPort("labelled data");
+    // output
+    private final OutputPort exampleSetOutput = getOutputPorts().createPort("labelled data");
 
-	public XVPrediction(OperatorDescription description) {
-		super(description, "Training", "Model Application");
+    public XVPrediction(OperatorDescription description) {
+        super(description, "Training", "Model Application");
 
-		exampleSetInput.addPrecondition(new CapabilityPrecondition(this, exampleSetInput));
-		
-		throughExtender.start();
+        exampleSetInput.addPrecondition(new CapabilityPrecondition(this, exampleSetInput));
 
-		getTransformer().addRule(new ExampleSetPassThroughRule(exampleSetInput, trainingProcessExampleSource, SetRelation.EQUAL) {
-			@Override
-			public ExampleSetMetaData modifyExampleSet(ExampleSetMetaData metaData) throws UndefinedParameterError {
-				try {
-					metaData.setNumberOfExamples(getTrainingSetSize(metaData.getNumberOfExamples()));
-				} catch (UndefinedParameterError e) {
-				}
-				return super.modifyExampleSet(metaData);
+        throughExtender.start();
+
+        getTransformer().addRule(new ExampleSetPassThroughRule(exampleSetInput, trainingProcessExampleSource, SetRelation.EQUAL) {
+            @Override
+            public ExampleSetMetaData modifyExampleSet(ExampleSetMetaData metaData) throws UndefinedParameterError {
+                try {
+                    metaData.setNumberOfExamples(getTrainingSetSize(metaData.getNumberOfExamples()));
+                } catch (UndefinedParameterError e) {
+                }
+                return super.modifyExampleSet(metaData);
+            }
+        });
+        getTransformer().addRule(new ExampleSetPassThroughRule(exampleSetInput, applyProcessExampleSource, SetRelation.EQUAL) {
+            @Override
+            public ExampleSetMetaData modifyExampleSet(ExampleSetMetaData metaData) throws UndefinedParameterError {
+                try {
+                    metaData.setNumberOfExamples(getTestSetSize(metaData.getNumberOfExamples()));
+                } catch (UndefinedParameterError e) {
+                }
+                return super.modifyExampleSet(metaData);
+            }
+        });
+        getTransformer().addRule(new SubprocessTransformRule(getSubprocess(0)));
+        getTransformer().addRule(new PassThroughRule(trainingProcessModelSink, applyProcessModelSource, false));
+        getTransformer().addRule(throughExtender.makePassThroughRule());
+        getTransformer().addRule(new SubprocessTransformRule(getSubprocess(1)));
+        getTransformer().addPassThroughRule(applyProcessExampleInnerSink, exampleSetOutput);
+
+        addValue(new ValueDouble("iteration", "The number of the current iteration.") {
+            @Override
+            public double getDoubleValue() {
+                return iteration;
+            }
+        });
+    }
+
+    @Override
+    public void doWork() throws OperatorException {
+        ExampleSet inputSet = exampleSetInput.getData();
+
+        // check capabilities and produce errors if they are not fulfilled
+        CapabilityCheck check = new CapabilityCheck(this, false);
+        check.checkLearnerCapabilities(this, inputSet);
+
+
+        if (getParameterAsBoolean(PARAMETER_LEAVE_ONE_OUT)) {
+            number = inputSet.size();
+        } else {
+            number = getParameterAsInt(PARAMETER_NUMBER_OF_VALIDATIONS);
+        }
+        log("Starting " + number + "-fold cross validation prediction");
+
+        // creating predicted label
+        Attribute predictedLabel = PredictionModel.createPredictedLabel(inputSet, inputSet.getAttributes().getLabel());
+        Collection<String> predictedLabelValues = null;
+        if (predictedLabel.isNominal())
+            predictedLabelValues = predictedLabel.getMapping().getValues();
+
+        // Split training / test set
+        int samplingType = getParameterAsInt(PARAMETER_SAMPLING_TYPE);
+        SplittedExampleSet splittedSet = new SplittedExampleSet(inputSet, number, samplingType, getParameterAsBoolean(RandomGenerator.PARAMETER_USE_LOCAL_RANDOM_SEED), getParameterAsInt(RandomGenerator.PARAMETER_LOCAL_RANDOM_SEED), getCompatibilityLevel().isAtMost(SplittedExampleSet.VERSION_SAMPLING_CHANGED));
+
+        for (iteration = 0; iteration < number; iteration++) {
+            splittedSet.selectAllSubsetsBut(iteration);
+            trainingProcessExampleSource.deliver(splittedSet);
+            getSubprocess(0).execute();
+            // IOContainer learnResult = getLearner().apply(new IOContainer(new IOObject[] { splittedSet }));
+
+            splittedSet.selectSingleSubset(iteration);
+            applyProcessExampleSource.deliver(splittedSet);
+            throughExtender.passDataThrough();
+            applyProcessModelSource.deliver(trainingProcessModelSink.getData());
+            getSubprocess(1).execute();
+
+            ExampleSet predictedSet = applyProcessExampleInnerSink.getData();
+
+            for (int i = 0; i < splittedSet.size(); i++) {
+                Example predictedExample = predictedSet.getExample(i);
+                // setting label in inputSet
+                Example inputExample = inputSet.getExample(splittedSet.getActualParentIndex(i));
+                inputExample.setValue(predictedLabel, predictedExample.getPredictedLabel());
+                if (predictedLabel.isNominal()) {
+                    for (String s : predictedLabelValues) {
+                        inputExample.setConfidence(s, predictedExample.getConfidence(s));
+                    }
+                }
+            }
+            inApplyLoop();
+        }
+
+        exampleSetOutput.deliver(inputSet);
+    }
+
+    protected MDInteger getTestSetSize(MDInteger originalSize) throws UndefinedParameterError {
+        if (getParameterAsBoolean(PARAMETER_LEAVE_ONE_OUT)) {
+            return new MDInteger(1);
+        } else {
+            return originalSize.multiply(1d / getParameterAsDouble(PARAMETER_NUMBER_OF_VALIDATIONS));
+        }
+    }
+
+    protected MDInteger getTrainingSetSize(MDInteger originalSize) throws UndefinedParameterError {
+        if (getParameterAsBoolean(PARAMETER_LEAVE_ONE_OUT)) {
+            return originalSize.add(-1);
+        } else {
+            return originalSize.multiply(1d - 1d / getParameterAsDouble(PARAMETER_NUMBER_OF_VALIDATIONS));
+        }
+    }
+
+    @Override
+    public List<ParameterType> getParameterTypes() {
+        List<ParameterType> types = super.getParameterTypes();
+
+        types.add(new ParameterTypeBoolean(PARAMETER_LEAVE_ONE_OUT, "Set the number of validations to the number of examples. If set to true, number_of_validations is ignored.", false, false));
+
+        ParameterType type = new ParameterTypeInt(PARAMETER_NUMBER_OF_VALIDATIONS, "Number of subsets for the crossvalidation.", 2, Integer.MAX_VALUE, 10, false);
+        type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_LEAVE_ONE_OUT, false, false));
+        types.add(type);
+
+        types.add(new ParameterTypeCategory(PARAMETER_SAMPLING_TYPE, "Defines the sampling type of the cross validation.", SplittedExampleSet.SAMPLING_NAMES, SplittedExampleSet.STRATIFIED_SAMPLING, false));
+
+        types.addAll(RandomGenerator.getRandomGeneratorParameters(this));
+
+        return types;
+    }
+
+    @Override
+    public boolean supportsCapability(OperatorCapability capability) {
+        switch (capability) {
+        case NO_LABEL:
+            return false;
+        case NUMERICAL_LABEL:
+        	try {
+				return getParameterAsInt(PARAMETER_SAMPLING_TYPE) != SplittedExampleSet.STRATIFIED_SAMPLING;
+			} catch (UndefinedParameterError e) {
+				return false;
 			}
-		});
-		getTransformer().addRule(new ExampleSetPassThroughRule(exampleSetInput, applyProcessExampleSource, SetRelation.EQUAL) {
-			@Override
-			public ExampleSetMetaData modifyExampleSet(ExampleSetMetaData metaData) throws UndefinedParameterError {
-				try {
-					metaData.setNumberOfExamples(getTestSetSize(metaData.getNumberOfExamples()));
-				} catch (UndefinedParameterError e) {
-				}
-				return super.modifyExampleSet(metaData);
-			}
-		});
-		getTransformer().addRule(new SubprocessTransformRule(getSubprocess(0)));
-		getTransformer().addRule(new PassThroughRule(trainingProcessModelSink, applyProcessModelSource, false));
-		getTransformer().addRule(throughExtender.makePassThroughRule());
-		getTransformer().addRule(new SubprocessTransformRule(getSubprocess(1)));
-		getTransformer().addPassThroughRule(applyProcessExampleInnerSink, exampleSetOutput);
-
-		addValue(new ValueDouble("iteration", "The number of the current iteration.") {
-			@Override
-			public double getDoubleValue() {
-				return iteration;
-			}
-		});
-	}
-
-	@Override
-	public void doWork() throws OperatorException {
-		ExampleSet inputSet = exampleSetInput.getData();
-
-		// check capabilities and produce errors if they are not fulfilled
-		CapabilityCheck check = new CapabilityCheck(this, false);
-		check.checkLearnerCapabilities(this, inputSet);
-
-		
-		if (getParameterAsBoolean(PARAMETER_LEAVE_ONE_OUT)) {
-			number = inputSet.size();
-		} else {
-			number = getParameterAsInt(PARAMETER_NUMBER_OF_VALIDATIONS);
-		}
-		log("Starting " + number + "-fold cross validation prediction");
-
-		// creating predicted label
-		Attribute predictedLabel = PredictionModel.createPredictedLabel(inputSet, inputSet.getAttributes().getLabel());
-		Collection<String> predictedLabelValues = null;
-		if (predictedLabel.isNominal())
-			predictedLabelValues = predictedLabel.getMapping().getValues();
-
-		// Split training / test set
-		int samplingType = getParameterAsInt(PARAMETER_SAMPLING_TYPE);
-		SplittedExampleSet splittedSet = new SplittedExampleSet(inputSet, number, samplingType, getParameterAsBoolean(RandomGenerator.PARAMETER_USE_LOCAL_RANDOM_SEED), getParameterAsInt(RandomGenerator.PARAMETER_LOCAL_RANDOM_SEED));
-
-		for (iteration = 0; iteration < number; iteration++) {
-			splittedSet.selectAllSubsetsBut(iteration);
-			trainingProcessExampleSource.deliver(splittedSet);
-			getSubprocess(0).execute();
-			// IOContainer learnResult = getLearner().apply(new IOContainer(new IOObject[] { splittedSet }));
-
-			splittedSet.selectSingleSubset(iteration);
-			applyProcessExampleSource.deliver(splittedSet);
-			throughExtender.passDataThrough();
-			applyProcessModelSource.deliver(trainingProcessModelSink.getData());
-			getSubprocess(1).execute();
-
-			ExampleSet predictedSet = applyProcessExampleInnerSink.getData();
-
-			for (int i = 0; i < splittedSet.size(); i++) {
-				Example predictedExample = predictedSet.getExample(i);
-				// setting label in inputSet
-				Example inputExample = inputSet.getExample(splittedSet.getActualParentIndex(i));
-				inputExample.setValue(predictedLabel, predictedExample.getPredictedLabel());
-				if (predictedLabel.isNominal()) {
-					for (String s : predictedLabelValues) {
-						inputExample.setConfidence(s, predictedExample.getConfidence(s));
-					}
-				}
-			}
-			inApplyLoop();
-		}
-
-		exampleSetOutput.deliver(inputSet);
-	}
-
-	protected MDInteger getTestSetSize(MDInteger originalSize) throws UndefinedParameterError {
-		if (getParameterAsBoolean(PARAMETER_LEAVE_ONE_OUT)) {
-			return new MDInteger(1);
-		} else {
-			return originalSize.multiply(1d / getParameterAsDouble(PARAMETER_NUMBER_OF_VALIDATIONS));
-		}
-	}
-
-	protected MDInteger getTrainingSetSize(MDInteger originalSize) throws UndefinedParameterError {
-		if (getParameterAsBoolean(PARAMETER_LEAVE_ONE_OUT)) {
-			return originalSize.add(-1);
-		} else {
-			return originalSize.multiply(1d - 1d / getParameterAsDouble(PARAMETER_NUMBER_OF_VALIDATIONS));
-		}
-	}
-
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		List<ParameterType> types = super.getParameterTypes();
-
-		types.add(new ParameterTypeBoolean(PARAMETER_LEAVE_ONE_OUT, "Set the number of validations to the number of examples. If set to true, number_of_validations is ignored.", false, false));
-
-		ParameterType type = new ParameterTypeInt(PARAMETER_NUMBER_OF_VALIDATIONS, "Number of subsets for the crossvalidation.", 2, Integer.MAX_VALUE, 10, false);
-		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_LEAVE_ONE_OUT, false, false));
-		types.add(type);
-
-		types.add(new ParameterTypeCategory(PARAMETER_SAMPLING_TYPE, "Defines the sampling type of the cross validation.", SplittedExampleSet.SAMPLING_NAMES, SplittedExampleSet.STRATIFIED_SAMPLING));
-
-		types.addAll(RandomGenerator.getRandomGeneratorParameters(this));
-
-		return types;
-	}
-
-	@Override
-	public boolean supportsCapability(OperatorCapability capability) {
-		switch (capability) {
-		case NO_LABEL:
-			return false;
-		default:
-			return true;
-		}
-	}
+        default:
+            return true;
+        }
+    }
+    
+    @Override
+    public OperatorVersion[] getIncompatibleVersionChanges() {
+        return new OperatorVersion[] { SplittedExampleSet.VERSION_SAMPLING_CHANGED };
+    }
 }

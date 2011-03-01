@@ -32,6 +32,7 @@ import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.ExampleTable;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.tools.Tools;
 
@@ -39,9 +40,10 @@ import com.rapidminer.tools.Tools;
  * An example set that can be split into subsets by using a {@link Partition}.
  * 
  * @author Simon Fischer, Ingo Mierswa, Felix Jungermann
- *         Exp $
  */
 public class SplittedExampleSet extends AbstractExampleSet {
+
+    public static final OperatorVersion VERSION_SAMPLING_CHANGED = new OperatorVersion(5, 1, 2);
 
     private static final long serialVersionUID = 4573262969007377183L;
 
@@ -72,6 +74,20 @@ public class SplittedExampleSet extends AbstractExampleSet {
     /**
      * Creates an example set that is splitted into two subsets using the given
      * sampling type.
+     * If autoSwitchToShuffled is true, the sampling type is switched from Stratified to
+     * Shuffled automatically without error when no classification label is present.
+     * This shouldn't be used, but it keeps compatibility to previous versions.
+     * 
+     * 
+     * @throws UserError
+     */
+    public SplittedExampleSet(ExampleSet exampleSet, double splitRatio, int samplingType, boolean useLocalRandomSeed, int seed, boolean autoSwitchToShuffled) throws UserError {
+        this(exampleSet, new double[] { splitRatio, 1 - splitRatio }, samplingType, useLocalRandomSeed, seed, autoSwitchToShuffled);
+    }
+
+    /**
+     * Creates an example set that is splitted into two subsets using the given
+     * sampling type.
      * 
      * @throws UserError
      */
@@ -86,7 +102,20 @@ public class SplittedExampleSet extends AbstractExampleSet {
      * @throws UserError
      */
     public SplittedExampleSet(ExampleSet exampleSet, double[] splitRatios, int samplingType, boolean useLocalRandomSeed, int seed) throws UserError {
-        this(exampleSet, new Partition(splitRatios, exampleSet.size(), createPartitionBuilder(exampleSet, samplingType, useLocalRandomSeed, seed)));
+        this(exampleSet, new Partition(splitRatios, exampleSet.size(), createPartitionBuilder(exampleSet, samplingType, useLocalRandomSeed, seed, true)));
+    }
+
+    /**
+     * Creates an example set that is splitted into n subsets with the given
+     * sampling type.
+     * If autoSwitchToShuffled is true, the sampling type is switched from Stratified to
+     * Shuffled automatically without error when no classification label is present.
+     * This shouldn't be used, but it keeps compatibility to previous versions.
+     * 
+     * @throws UserError
+     */
+    public SplittedExampleSet(ExampleSet exampleSet, double[] splitRatios, int samplingType, boolean useLocalRandomSeed, int seed, boolean autoSwitchToShuffled) throws UserError {
+        this(exampleSet, new Partition(splitRatios, exampleSet.size(), createPartitionBuilder(exampleSet, samplingType, useLocalRandomSeed, seed, autoSwitchToShuffled)));
     }
 
     /**
@@ -96,7 +125,20 @@ public class SplittedExampleSet extends AbstractExampleSet {
      * @throws UserError
      */
     public SplittedExampleSet(ExampleSet exampleSet, int numberOfSubsets, int samplingType, boolean useLocalRandomSeed, int seed) throws UserError {
-        this(exampleSet, new Partition(numberOfSubsets, exampleSet.size(), createPartitionBuilder(exampleSet, samplingType, useLocalRandomSeed, seed)));
+        this(exampleSet, new Partition(numberOfSubsets, exampleSet.size(), createPartitionBuilder(exampleSet, samplingType, useLocalRandomSeed, seed, true)));
+    }
+
+    /**
+     * Creates an example set that is splitted into <i>numberOfSubsets</i>
+     * parts with the given sampling type.
+     * If autoSwitchToShuffled is true, the sampling type is switched from Stratified to
+     * Shuffled automatically without error when no classification label is present.
+     * This shouldn't be used, but it keeps compatibility to previous versions.
+     * 
+     * @throws UserError
+     */
+    public SplittedExampleSet(ExampleSet exampleSet, int numberOfSubsets, int samplingType, boolean useLocalRandomSeed, int seed, boolean autoSwitchToShuffled) throws UserError {
+        this(exampleSet, new Partition(numberOfSubsets, exampleSet.size(), createPartitionBuilder(exampleSet, samplingType, useLocalRandomSeed, seed, autoSwitchToShuffled)));
     }
 
     /** Clone constructor. */
@@ -121,10 +163,11 @@ public class SplittedExampleSet extends AbstractExampleSet {
 
     /**
      * Creates the partition builder for the given sampling type.
+     * If autoSwitchToShuffled is true, it will be changed to shuffled sampling if Stratified
      * 
      * @throws UserError
      */
-    private static PartitionBuilder createPartitionBuilder(ExampleSet exampleSet, int samplingType, boolean useLocalRandomSeed, int seed) throws UserError {
+    private static PartitionBuilder createPartitionBuilder(ExampleSet exampleSet, int samplingType, boolean useLocalRandomSeed, int seed, boolean autoSwitchToShuffled) throws UserError {
         PartitionBuilder builder = null;
         switch (samplingType) {
         case LINEAR_SAMPLING:
@@ -139,6 +182,13 @@ public class SplittedExampleSet extends AbstractExampleSet {
             if ((label != null) && (label.isNominal()))
                 builder = new StratifiedPartitionBuilder(exampleSet, useLocalRandomSeed, seed);
             else {
+                if (autoSwitchToShuffled) {
+                    if (label == null || !label.isNominal()) {
+                        exampleSet.getLog().logWarning("Example set has no nominal label: using shuffled partition instead of stratified partition!");
+                        return new ShuffledPartitionBuilder(useLocalRandomSeed, seed);
+                    }
+                }
+
                 if (label == null) {
                     throw new UserError(null, 105);
                 }

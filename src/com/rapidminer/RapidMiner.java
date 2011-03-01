@@ -332,7 +332,7 @@ public class RapidMiner {
 
         registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTP_PROXY_NON_PROXY_HOSTS, "List of regular expressions separated by '|' determining hosts to be connected directly bypassing the proxy.", true));
 
-        registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_HTTPS_PROXY_SET, "Determines whether a proxy is used for HTTPS connections.", true));
+        registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_HTTPS_PROXY_SET, "Determines whether a proxy is used for HTTPS connections.", false));
         registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTPS_PROXY_HOST, "The proxy host to use for HTTPS.", true));
         registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_HTTPS_PROXY_PORT, "The proxy port to use for HTTPS.", 0, 65535, true));
         registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTPS_PROXY_USERNAME, "The user name for the https proxy server in cases where it needs authentication.", true));
@@ -471,13 +471,6 @@ public class RapidMiner {
         RapidMiner.splashMessage("init_repository");
         RepositoryManager.init();
 
-        RapidMiner.splashMessage("xml_serialization");
-        XMLSerialization.init(Plugin.getMajorClassLoader());
-
-        RapidMiner.splashMessage("xml_alias");
-        OperatorService.defineXMLAliasPairs();
-
-
         // generate encryption key if necessary
         if (!CipherTools.isKeyAvailable()) {
             RapidMiner.splashMessage("gen_key");
@@ -491,6 +484,10 @@ public class RapidMiner {
         // initialize renderers
         RapidMiner.splashMessage("init_renderers");
         RendererService.init();
+
+        // initialize xml serialization
+        RapidMiner.splashMessage("xml_serialization");
+        XMLSerialization.init(Plugin.getMajorClassLoader());
     }
 
     private static void showSplashInfos() {

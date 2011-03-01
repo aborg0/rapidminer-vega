@@ -28,6 +28,7 @@ import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.set.SplittedExampleSet;
+import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
@@ -138,5 +139,10 @@ public class BatchXValidation extends ValidationChain {
         List<ParameterType> types = super.getParameterTypes();
         types.add(new ParameterTypeBoolean(PARAMETER_AVERAGE_PERFORMANCES_ONLY, "Indicates if only performance vectors should be averaged or all types of averagable result vectors", true));
         return types;
+    }
+    
+    @Override
+    public boolean supportsCapability(OperatorCapability capability) {
+    	return true;
     }
 }

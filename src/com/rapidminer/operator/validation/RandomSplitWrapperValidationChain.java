@@ -29,14 +29,16 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.set.AttributeWeightedExampleSet;
 import com.rapidminer.example.set.SplittedExampleSet;
 import com.rapidminer.operator.Model;
+import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.performance.PerformanceVector;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeDouble;
+import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.RandomGenerator;
-
 
 /**
  * This operator evaluates the performance of feature weighting algorithms
@@ -50,14 +52,12 @@ import com.rapidminer.tools.RandomGenerator;
  * This implementation is described for the {@link RandomSplitValidationChain}.
  * 
  * @author Ingo Mierswa
- *          08:57:28 ingomierswa Exp $
  */
 public class RandomSplitWrapperValidationChain extends WrapperValidationChain {
 
 	public static final String PARAMETER_SPLIT_RATIO = "split_ratio";
 
 	public static final String PARAMETER_SAMPLING_TYPE = "sampling_type";
-
 
 	public RandomSplitWrapperValidationChain(OperatorDescription description) {
 		super(description);
@@ -67,18 +67,26 @@ public class RandomSplitWrapperValidationChain extends WrapperValidationChain {
 	public void doWork() throws OperatorException {
 		double splitRatio = getParameterAsDouble(PARAMETER_SPLIT_RATIO);
 		ExampleSet inputSet = exampleSetInput.getData();
-		SplittedExampleSet eSet = new SplittedExampleSet(inputSet, splitRatio, getParameterAsInt(PARAMETER_SAMPLING_TYPE), getParameterAsBoolean(RandomGenerator.PARAMETER_USE_LOCAL_RANDOM_SEED), getParameterAsInt(RandomGenerator.PARAMETER_LOCAL_RANDOM_SEED));
+		SplittedExampleSet eSet = new SplittedExampleSet(
+				inputSet,
+				splitRatio,
+				getParameterAsInt(PARAMETER_SAMPLING_TYPE),
+				getParameterAsBoolean(RandomGenerator.PARAMETER_USE_LOCAL_RANDOM_SEED),
+				getParameterAsInt(RandomGenerator.PARAMETER_LOCAL_RANDOM_SEED),
+				getCompatibilityLevel().isAtMost(SplittedExampleSet.VERSION_SAMPLING_CHANGED));
 
 		eSet.selectSingleSubset(0);
 		AttributeWeights weights = useWeightingMethod(eSet);
 		SplittedExampleSet newInputSet = (SplittedExampleSet) eSet.clone();
 
 		// learn on the same data
-		Model model = learn(new AttributeWeightedExampleSet(newInputSet, weights, 0.0d).createCleanClone());
+		Model model = learn(new AttributeWeightedExampleSet(newInputSet,
+				weights, 0.0d).createCleanClone());
 
 		// testing
 		newInputSet.selectSingleSubset(1);
-		PerformanceVector pv = evaluate(new AttributeWeightedExampleSet(newInputSet, weights, 0.0d).createCleanClone(), model);
+		PerformanceVector pv = evaluate(new AttributeWeightedExampleSet(
+				newInputSet, weights, 0.0d).createCleanClone(), model);
 		setResult(pv.getMainCriterion());
 
 		performanceOutput.deliver(pv);
@@ -88,11 +96,37 @@ public class RandomSplitWrapperValidationChain extends WrapperValidationChain {
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
-		ParameterType type = new ParameterTypeDouble(PARAMETER_SPLIT_RATIO, "Relative size of the training set", 0, 1, 0.7);
+		ParameterType type = new ParameterTypeDouble(PARAMETER_SPLIT_RATIO,
+				"Relative size of the training set", 0, 1, 0.7);
 		type.setExpert(false);
 		types.add(type);
-		types.add(new ParameterTypeCategory(PARAMETER_SAMPLING_TYPE, "Defines the sampling type of the cross validation (linear = consecutive subsets, shuffled = random subsets, stratified = random subsets with class distribution kept constant)", SplittedExampleSet.SAMPLING_NAMES, SplittedExampleSet.STRATIFIED_SAMPLING));
+		types.add(new ParameterTypeCategory(
+				PARAMETER_SAMPLING_TYPE,
+				"Defines the sampling type of the cross validation (linear = consecutive subsets, shuffled = random subsets, stratified = random subsets with class distribution kept constant)",
+				SplittedExampleSet.SAMPLING_NAMES,
+				SplittedExampleSet.STRATIFIED_SAMPLING, false));
 		types.addAll(RandomGenerator.getRandomGeneratorParameters(this));
 		return types;
+	}
+
+	@Override
+	public boolean supportsCapability(OperatorCapability capability) {
+		switch (capability) {
+		case NO_LABEL:
+			return false;
+		case NUMERICAL_LABEL:
+			try {
+				return getParameterAsInt(PARAMETER_SAMPLING_TYPE) != SplittedExampleSet.STRATIFIED_SAMPLING;
+			} catch (UndefinedParameterError e) {
+				return false;
+			}
+		default:
+			return true;
+		}
+	}
+
+	@Override
+	public OperatorVersion[] getIncompatibleVersionChanges() {
+		return new OperatorVersion[] { SplittedExampleSet.VERSION_SAMPLING_CHANGED };
 	}
 }

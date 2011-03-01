@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<process version="5.0">
+<process version="5.1.003">
   <context>
     <input/>
     <output/>
     <macros/>
   </context>
-  <operator activated="true" class="process" expanded="true" name="Root">
+  <operator activated="true" class="process" compatibility="5.0.000" expanded="true" name="Root">
     <description>&lt;p&gt;This process is basically the same as one of the feature selection processes discussed before. This time, we want to discuss the ProcessLog operator. This operator collects some values each time is applied. In this process, the operator is invoked once for each generation of the evolutionary algorithm. Please have a look at the parameter list of the ProcessLog operator. You can see which values are collected, in this case the current generation and the current performance values. &lt;/p&gt;&lt;p&gt;Start the process and change to the result tab. Even while the process is running the results are plotted online. Just select the number of generations for the x axis and one (or more) values from the selection list. The result can also be written into a data or graphics file. &lt;/p&gt;&lt;/p&gt;</description>
     <parameter key="logverbosity" value="3"/>
     <parameter key="random_seed" value="1977"/>
@@ -13,7 +13,7 @@
     <parameter key="process_duration_for_mail" value="30"/>
     <parameter key="encoding" value="SYSTEM"/>
     <process expanded="true" height="604" width="435">
-      <operator activated="true" class="generate_data" expanded="true" height="60" name="ExampleSetGenerator" width="90" x="45" y="30">
+      <operator activated="true" class="generate_data" compatibility="5.0.000" expanded="true" height="60" name="ExampleSetGenerator" width="90" x="45" y="30">
         <parameter key="target_function" value="sum"/>
         <parameter key="number_examples" value="150"/>
         <parameter key="number_of_attributes" value="4"/>
@@ -23,7 +23,7 @@
         <parameter key="local_random_seed" value="1992"/>
         <parameter key="datamanagement" value="0"/>
       </operator>
-      <operator activated="true" class="add_noise" expanded="true" height="94" name="NoiseGenerator" width="90" x="180" y="30">
+      <operator activated="true" class="add_noise" compatibility="5.0.000" expanded="true" height="94" name="NoiseGenerator" width="90" x="180" y="30">
         <parameter key="return_preprocessing_model" value="false"/>
         <parameter key="create_view" value="false"/>
         <parameter key="attribute_filter_type" value="0"/>
@@ -46,7 +46,7 @@
         <parameter key="use_local_random_seed" value="false"/>
         <parameter key="local_random_seed" value="1992"/>
       </operator>
-      <operator activated="true" class="optimize_selection_evolutionary" expanded="true" height="94" name="GeneticAlgorithm" width="90" x="315" y="30">
+      <operator activated="true" class="optimize_selection_evolutionary" compatibility="5.0.000" expanded="true" height="94" name="GeneticAlgorithm" width="90" x="313" y="30">
         <parameter key="use_exact_number_of_attributes" value="false"/>
         <parameter key="restrict_maximum" value="false"/>
         <parameter key="min_number_of_attributes" value="1"/>
@@ -79,7 +79,7 @@
         <parameter key="p_crossover" value="0.9"/>
         <parameter key="crossover_type" value="1"/>
         <process expanded="true" height="604" width="934">
-          <operator activated="true" class="x_validation" expanded="true" height="112" name="XValidation" width="90" x="45" y="30">
+          <operator activated="true" class="x_validation" compatibility="5.1.003" expanded="true" height="112" name="XValidation" width="90" x="45" y="30">
             <parameter key="create_complete_model" value="false"/>
             <parameter key="average_performances_only" value="true"/>
             <parameter key="leave_one_out" value="false"/>
@@ -88,7 +88,7 @@
             <parameter key="use_local_random_seed" value="false"/>
             <parameter key="local_random_seed" value="1992"/>
             <process expanded="true" height="604" width="165">
-              <operator activated="true" class="k_nn" expanded="true" height="76" name="NearestNeighbors" width="90" x="45" y="30">
+              <operator activated="true" class="k_nn" compatibility="5.0.000" expanded="true" height="76" name="NearestNeighbors" width="90" x="45" y="30">
                 <parameter key="k" value="1"/>
                 <parameter key="weighted_vote" value="false"/>
                 <parameter key="measure_types" value="0"/>
@@ -113,11 +113,11 @@
               <portSpacing port="sink_through 1" spacing="0"/>
             </process>
             <process expanded="true" height="604" width="300">
-              <operator activated="true" class="apply_model" expanded="true" height="76" name="ModelApplier" width="90" x="45" y="30">
+              <operator activated="true" class="apply_model" compatibility="5.0.000" expanded="true" height="76" name="ModelApplier" width="90" x="45" y="30">
                 <list key="application_parameters"/>
                 <parameter key="create_view" value="false"/>
               </operator>
-              <operator activated="true" class="performance_regression" expanded="true" height="76" name="RegressionPerformance" width="90" x="180" y="30">
+              <operator activated="true" class="performance_regression" compatibility="5.0.000" expanded="true" height="76" name="RegressionPerformance" width="90" x="180" y="30">
                 <parameter key="main_criterion" value="root_relative_squared_error"/>
                 <parameter key="root_mean_squared_error" value="true"/>
                 <parameter key="absolute_error" value="false"/>
@@ -146,7 +146,7 @@
               <portSpacing port="sink_averagable 2" spacing="0"/>
             </process>
           </operator>
-          <operator activated="true" class="log" expanded="true" height="76" name="ProcessLog" width="90" x="179" y="30">
+          <operator activated="true" class="log" compatibility="5.0.000" expanded="true" height="76" name="ProcessLog" width="90" x="179" y="30">
             <list key="log">
               <parameter key="generation" value="operator.GeneticAlgorithm.value.generation"/>
               <parameter key="current_best_performance" value="operator.GeneticAlgorithm.value.performance"/>

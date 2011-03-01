@@ -26,8 +26,10 @@ import java.util.List;
 
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.set.SplittedExampleSet;
+import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.ports.metadata.MDInteger;
 import com.rapidminer.operator.visualization.ProcessLogOperator;
 import com.rapidminer.parameter.ParameterType;
@@ -76,7 +78,7 @@ public class RandomSplitValidationChain extends ValidationChain {
 	@Override
 	public void estimatePerformance(ExampleSet inputSet) throws OperatorException {
 		double splitRatio = getParameterAsDouble(PARAMETER_SPLIT_RATIO);
-		SplittedExampleSet eSet = new SplittedExampleSet(inputSet, splitRatio, getParameterAsInt(PARAMETER_SAMPLING_TYPE), getParameterAsBoolean(RandomGenerator.PARAMETER_USE_LOCAL_RANDOM_SEED), getParameterAsInt(RandomGenerator.PARAMETER_LOCAL_RANDOM_SEED));
+		SplittedExampleSet eSet = new SplittedExampleSet(inputSet, splitRatio, getParameterAsInt(PARAMETER_SAMPLING_TYPE), getParameterAsBoolean(RandomGenerator.PARAMETER_USE_LOCAL_RANDOM_SEED), getParameterAsInt(RandomGenerator.PARAMETER_LOCAL_RANDOM_SEED), getCompatibilityLevel().isAtMost(SplittedExampleSet.VERSION_SAMPLING_CHANGED));
 
 		eSet.selectSingleSubset(0);
 		learn(eSet);
@@ -105,4 +107,26 @@ public class RandomSplitValidationChain extends ValidationChain {
 	protected MDInteger getTrainingSetSize(MDInteger originalSize) throws UndefinedParameterError {
 		return originalSize.multiply(getParameterAsDouble(PARAMETER_SPLIT_RATIO));
 	}
+	
+
+    @Override
+    public boolean supportsCapability(OperatorCapability capability) {
+        switch (capability) {
+        case NO_LABEL:
+            return false;
+        case NUMERICAL_LABEL:
+        	try {
+				return getParameterAsInt(PARAMETER_SAMPLING_TYPE) != SplittedExampleSet.STRATIFIED_SAMPLING;
+			} catch (UndefinedParameterError e) {
+				return false;
+			}
+        default:
+            return true;
+        }
+    }
+    
+    @Override
+    public OperatorVersion[] getIncompatibleVersionChanges() {
+        return new OperatorVersion[] { SplittedExampleSet.VERSION_SAMPLING_CHANGED };
+    }
 }
