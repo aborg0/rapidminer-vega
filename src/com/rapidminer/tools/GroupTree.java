@@ -202,6 +202,14 @@ public abstract class GroupTree implements Comparable<GroupTree> {
      */
     public abstract String getFullyQualifiedKey();
 
+    /**
+     * Deprecated method that returns the fully qualified key. See {@link #getFullyQualifiedKey()} for Details.
+     */
+    @Deprecated
+    public String getQName() {
+        return getFullyQualifiedKey();
+    }
+
     /** Returns the name of this group. This name depends on internationalization! */
     public abstract String getName();
 

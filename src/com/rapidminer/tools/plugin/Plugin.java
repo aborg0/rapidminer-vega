@@ -42,6 +42,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -182,7 +183,7 @@ public class Plugin {
     public Plugin(File file) throws IOException {
         this.file = file;
         this.archive = new JarFile(this.file);
-        this.classLoader = makeNonDelegatingClassloader();
+        this.classLoader = makeInitialClassloader();
         Tools.addResourceSource(new ResourceSource(this.classLoader));
         fetchMetaData();
 
@@ -191,7 +192,13 @@ public class Plugin {
         }
     }
 
-    private PluginClassLoader makeNonDelegatingClassloader() {
+    /**
+     * This method will create an initial class loader that is only used to
+     * access the manifest.
+     * After the manifest is read, a new class loader will be constructed from
+     * all dependencies.
+     */
+    private PluginClassLoader makeInitialClassloader() {
         URL url;
         try {
             url = this.file.toURI().toURL();
@@ -200,6 +207,36 @@ public class Plugin {
         }
         final PluginClassLoader cl = new PluginClassLoader(new URL[] { url });
         return cl;
+    }
+
+    /**
+     * This method will build the final class loader for this plugin
+     * that contains all class loaders of all plugins this plugin depends on.
+     * 
+     * This must be called after all plugins have been initially loaded.
+     */
+    public void buildFinalClassLoader() {
+        final ArrayList<URL> classLoaderURLs = new ArrayList<URL>();
+        // adding all self urls
+        for (URL url: classLoader.getURLs()) {
+            classLoaderURLs.add(url);
+        }
+
+        // add URLs of plugins this plugin depends on
+        for (Dependency dependency: this.pluginDependencies) {
+            final Plugin other = getPluginByExtensionId(dependency.getPluginExtensionId());
+            // adding all urls of this plugin
+            for (URL url: other.getClassLoader().getURLs()) {
+                classLoaderURLs.add(url);
+            }
+        }
+
+        this.classLoader = AccessController.doPrivileged(new PrivilegedAction<PluginClassLoader>() {
+            @Override
+            public PluginClassLoader run() {
+                return new PluginClassLoader(classLoaderURLs.toArray(new URL[classLoaderURLs.size()]), classLoader.getParent());
+            }
+        });
     }
 
     /** Returns the name of the plugin. */
@@ -267,7 +304,7 @@ public class Plugin {
      * Returns the class loader of this plugin. This class loader should be used in cases where Class.forName(...)
      * should be used, e.g. for implementation finding in all classes (including the core and the plugins).
      */
-    public ClassLoader getClassLoader() {
+    public PluginClassLoader getClassLoader() {
         return this.classLoader;
     }
 
@@ -446,22 +483,6 @@ public class Plugin {
             }
         }
         if (in != null) {
-            // add URLs of plugins this plugin depends on
-            Iterator<Dependency> i = pluginDependencies.iterator();
-            while (i.hasNext()) {
-                String pluginName = i.next().getPluginExtensionId();
-                final Plugin other = getPluginByExtensionId(pluginName);
-
-                // Using classLoader of dependent plugin as parent
-                // TODO: Needs to cope with multiple dependencies: Solve Graph problem of dependencies
-                this.classLoader = AccessController.doPrivileged(new PrivilegedAction<PluginClassLoader>() {
-                    @Override
-                    public PluginClassLoader run() {
-                        return new PluginClassLoader(classLoader.getURLs(), other);
-                    }
-                });
-            }
-
             OperatorService.registerOperators(archive.getName(), in, this.classLoader, this);
         } else {
             LogService.getRoot().warning("No operator descriptor defined for: " + getName());
@@ -565,7 +586,7 @@ public class Plugin {
 
     /** Creates the about box for this plugin. */
     public AboutBox createAboutBox(Frame owner) {
-        ClassLoader simpleClassLoader = makeNonDelegatingClassloader();
+        ClassLoader simpleClassLoader = makeInitialClassloader();
         String about = "";
         try {
             URL url = simpleClassLoader.getResource("META-INF/ABOUT.NFO");
@@ -605,7 +626,9 @@ public class Plugin {
         registerPlugins(files, showWarningForNonPluginJars);
     }
 
-    /** Makes {@link Plugin} s from all files and adds them to {@link #allPlugins}. */
+    /** Makes {@link Plugin} s from all files and adds them to {@link #allPlugins}.
+     * After all Plugins are loaded, they must be assigend their final class loader.
+     *  */
     private static void registerPlugins(List<File> files, boolean showWarningForNonPluginJars) {
         for (File file : files) {
             try {
@@ -664,6 +687,50 @@ public class Plugin {
         }
     }
 
+    /**
+     * This method will check all needed dependencies of all currently registered
+     * plugin files and will build the final class loaders for the extensions containing all
+     * dependencies.
+     */
+    public static void finalizePluginLoading() {
+        // building final class loader with all dependent extensions
+        LinkedList<Plugin> queue = new LinkedList<Plugin>(allPlugins);
+        HashSet<Plugin> initialized = new HashSet<Plugin>();
+        // now initialized every extension that's dependencies are fulfilled as long as we find another per round
+        boolean found = false;
+        while(found || (!queue.isEmpty() && initialized.isEmpty())) {
+            found = false;
+            Iterator<Plugin> iterator = queue.iterator();
+            while (iterator.hasNext()) {
+                Plugin plugin = iterator.next();
+                boolean dependenciesMet = true;
+                for (Dependency dependency: plugin.pluginDependencies) {
+                    Plugin dependencyPlugin = getPluginByExtensionId(dependency.getPluginExtensionId());
+                    if (dependencyPlugin == null) {
+                        // if we cannot find dependency plugin: Don't load this one, instead remove it and post error
+                        allPlugins.remove(plugin);
+                        iterator.remove();
+                        LogService.getRoot().log(Level.SEVERE, "Cannot load extension '" + plugin.extensionId + "': Depends on '" + dependency.getPluginExtensionId() + "' which cannot be found!");
+                        found = true;
+                        break; //break this loop: Nothing to check
+                    } else {
+                        dependenciesMet &= initialized.contains(dependencyPlugin);
+                    }
+                }
+
+                // if we have all dependencies met: Load final class loader
+                if (dependenciesMet) {
+                    plugin.buildFinalClassLoader();
+                    initialized.add(plugin);
+                    iterator.remove();
+
+                    // then we have one more extension that is initialized, next round might find more
+                    found = true;
+                }
+            }
+
+        }
+    }
     /**
      * Registers all operators from the plugins previously found by a call of registerAllPluginDescriptions
      */
@@ -761,7 +828,7 @@ public class Plugin {
             return true;
         }
         try {
-            Class<?> pluginInitator = Class.forName(pluginInitClassName, false, getOriginalClassLoader());
+            Class<?> pluginInitator = Class.forName(pluginInitClassName, false, getClassLoader());
             Method initGuiMethod = pluginInitator.getMethod("showAboutBox", new Class[] {});
             Boolean showAboutBox = (Boolean) initGuiMethod.invoke(null, new Object[] {});
             return showAboutBox.booleanValue();
@@ -818,6 +885,7 @@ public class Plugin {
             registerPlugins(ManagedExtension.getActivePluginJars(), true);
 
             registerAllPluginDescriptions();
+            finalizePluginLoading();
             initPlugins();
         } else {
             LogService.getRoot().config("Plugins skipped.");

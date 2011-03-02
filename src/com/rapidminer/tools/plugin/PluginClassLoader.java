@@ -37,22 +37,26 @@ import com.rapidminer.RapidMiner;
  */
 public class PluginClassLoader extends URLClassLoader {
 
-	public PluginClassLoader(URL[] urls) {
-		super(urls, RapidMiner.class.getClassLoader());
-	}
+    public PluginClassLoader(URL[] urls) {
+        super(urls, RapidMiner.class.getClassLoader());
+    }
 
-	public PluginClassLoader(URL[] urls, Plugin plugin) {
-		super(urls, plugin.getClassLoader());
-	}
-	
-	
-	public void addDependingURL(URL url) {
-		addURL(url);
-	}
-	
-	
-	@Override
-	public String toString() {
-		return "PluginClassLoader (" + Arrays.asList(getURLs()) + ")";
-	}
+    public PluginClassLoader(URL[] urls, ClassLoader parent) {
+        super(urls, parent);
+    }
+
+    public PluginClassLoader(URL[] urls, Plugin plugin) {
+        super(urls, plugin.getClassLoader());
+    }
+
+
+    public void addDependingURL(URL url) {
+        addURL(url);
+    }
+
+
+    @Override
+    public String toString() {
+        return "PluginClassLoader (" + Arrays.asList(getURLs()) + ")";
+    }
 }
