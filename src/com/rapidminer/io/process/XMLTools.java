@@ -304,6 +304,23 @@ public class XMLTools {
 	}
 
 	/**
+	 * This will parse the text contents of an child element of element parent with the given tagName as double. If no
+	 * such child element can be found, the given default value is returned. If more than one exists, the first is used. A
+	 * {@link XMLException} is thrown if the text content is not a valid integer.
+	 */
+	public static double getTagContentsAsDouble(Element element, String tag, double dfltValue) throws XMLException {
+		final String string = getTagContents(element, tag, false);
+		if (string == null) {
+			return dfltValue;
+		}
+		try {
+			return Double.parseDouble(string);
+		} catch (NumberFormatException e) {
+			throw new XMLException("Contents of tag <" + tag + "> must be double, but found '" + string + "'.");
+		}
+	}
+
+	/**
 	 * This will parse the text contents of an child element of element parent with the given tagName as boolean. If no
 	 * such child element can be found the default is returned. If more than one exists, the first is used. A
 	 * {@link NumberFormatException} is thrown if the text content is not a valid integer.
