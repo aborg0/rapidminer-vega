@@ -156,7 +156,11 @@ public class AssociationRulesApplier extends Operator {
 					// now test if each item of the premise has the positive value in the current example
 					String attributeName = premiseItem.toString();
 					Pair<Attribute, Double> attributePositiveValuePair = nameAttributePositiveValueMap.get(attributeName);
-					premiseFullfilled &= attributePositiveValuePair.getSecond().equals(example.getValue(attributePositiveValuePair.getFirst()));
+					if (attributePositiveValuePair == null) {
+						premiseFullfilled &= false; //if attribute isn't present assume it's false. 
+					} else {
+						premiseFullfilled &= attributePositiveValuePair.getSecond().equals(example.getValue(attributePositiveValuePair.getFirst()));
+					}
 				}
 
 				// if premise is fulfilled: Aggregate rules confidence etc to all conclusion items confidence attributes

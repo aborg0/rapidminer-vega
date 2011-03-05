@@ -46,6 +46,14 @@ public class BinominalMapping implements NominalMapping {
 
 	/** The index of the second value. */
 	private static final int SECOND_VALUE_INDEX = 1;
+
+	/** Nominal index of the value that will be treated as the "positive" value
+	 *  of this attribute. */
+	public static final int POSITIVE_INDEX = SECOND_VALUE_INDEX;
+
+	/** Nominal index of the value that will be treated as the "negative" value
+	 *  of this attribute. */
+	public static final int NEGATIVE_INDEX = FIRST_VALUE_INDEX;
 	
 	/** The first nominal value. */
 	private String firstValue = null;
@@ -157,7 +165,7 @@ public class BinominalMapping implements NominalMapping {
 	 * classification attribute, i.e. if it is binominal.
 	 */
 	public int getNegativeIndex() {
-		return FIRST_VALUE_INDEX;
+		return NEGATIVE_INDEX;
 	}
 
 	/**
@@ -165,7 +173,7 @@ public class BinominalMapping implements NominalMapping {
 	 * classification attribute. Works for all binominal attributes.
 	 */
 	public int getPositiveIndex() {
-		return SECOND_VALUE_INDEX;
+		return POSITIVE_INDEX;
 	}
 
 	public String getNegativeString() {
