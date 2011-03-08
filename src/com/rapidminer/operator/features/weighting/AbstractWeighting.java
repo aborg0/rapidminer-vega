@@ -112,7 +112,8 @@ public abstract class AbstractWeighting extends Operator implements CapabilityPr
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet =
+			isExampleSetMandatory() ? exampleSetInput.getData(ExampleSet.class) : exampleSetInput.<ExampleSet>getDataOrNull();
 		AttributeWeights weights = calculateWeights(exampleSet);
 		if (getParameterAsBoolean(PARAMETER_NORMALIZE_WEIGHTS)) {
 			weights.normalize();

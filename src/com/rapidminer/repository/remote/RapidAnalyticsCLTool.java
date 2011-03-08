@@ -34,6 +34,7 @@ import com.rapid_i.repository.wsimport.ProcessResponse;
 import com.rapid_i.repository.wsimport.ProcessService;
 import com.rapid_i.repository.wsimport.ProcessStackTrace;
 import com.rapid_i.repository.wsimport.ProcessStackTraceElement;
+import com.rapid_i.repository.wsimport.RepositoryService;
 import com.rapidminer.repository.RemoteProcessState;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryManager;
@@ -47,6 +48,8 @@ import com.rapidminer.tools.Tools;
  */
 public class RapidAnalyticsCLTool {
 
+	private static final String NULL = new String();
+	
 	private Map<String,String> argsMap = new HashMap<String,String>();
 	private long delay = 1000;
 	private boolean dumpStatus = false;
@@ -65,12 +68,19 @@ public class RapidAnalyticsCLTool {
 					System.exit(0);
 				}
 				String[] split = args[i].split("=", 2);
-				if (split.length != 2) {
+				switch (split.length) {
+				case 1:
+					argsMap.put(split[0], NULL);
+					break;
+				case 2:
+					argsMap.put(split[0], split[1]);
+					break;
+				default:
+					// cannot happen
 					System.err.println("Arguments must be of the form \"--key=value\".");
 					System.exit(1);
-				} else {
-					argsMap.put(split[0], split[1]);
-				}
+					break;
+				}				
 			} else {
 				System.err.println("Arguments must be of the form \"--key=value\".");
 				System.exit(1);
@@ -80,6 +90,8 @@ public class RapidAnalyticsCLTool {
 	
 	private void printUsage() {
 		System.out.println(RapidAnalyticsCLTool.class.getName()+" [OPTIONS]");
+		System.out.println("   --check-state");
+		System.out.println("       Check state and exit with code 0 if server is up, state 1 if server does not respond or causes an error.");
 		System.out.println("   --url=URL ");
 		System.out.println("       Base URL of the RapidAnalytics installation.");
 		System.out.println("   --user=USER ");
@@ -96,6 +108,10 @@ public class RapidAnalyticsCLTool {
 		System.out.println("       Loop delay in milliseconds when --watch is enabled.");
 	}
 
+	private boolean isArgumentSet(String argName) {
+		return argsMap.containsKey(argName);
+	}
+	
 	private String getArgument(String argName, String defaultValue) {
 		String value = argsMap.get(argName);
 		if (value != null) {
@@ -122,15 +138,31 @@ public class RapidAnalyticsCLTool {
 	}
 	
 	public void run() throws IllegalArgumentException, MalformedURLException, RepositoryException {
-		
 		String url = getArgument("url", "http://localhost:8080");
 		String user = getArgument("user", "admin");
 		String password = getArgument("password", "changeit");
-		
+
 		System.err.println("Using RapidAnalytics server at "+url+"...");
 		RemoteRepository repository = new RemoteRepository(new URL(url), 
 				"Temp", user, password.toCharArray(), true);
 		RepositoryManager.getInstance(null).addRepository(repository);
+
+		if (isArgumentSet("check-state")) {
+			long startTime;
+			try {
+				final RepositoryService repoService = repository.getRepositoryService();
+				startTime = System.currentTimeMillis();
+				repoService.getFolderContents("/");
+			} catch (Exception e) {
+				System.err.println("Error checking state of RapidAnalytics server at "+url+": "+e);
+				System.exit(1);
+				return;
+			}
+			long responseTime = System.currentTimeMillis() - startTime;
+			System.err.println("RapidAnalytics server at "+url+" is up. Response time was "+responseTime+" ms.");
+			System.exit(0);
+		}
+		
 
 		delay = getArgumentInt("delay", 1000);
 		if ("true".equals(getArgument("watch", "false"))) {

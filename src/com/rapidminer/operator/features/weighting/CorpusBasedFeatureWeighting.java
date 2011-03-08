@@ -56,8 +56,7 @@ public class CorpusBasedFeatureWeighting extends AbstractWeighting {
 
 	public CorpusBasedFeatureWeighting(OperatorDescription description) {
 		super(description);
-
-		//TODO: Add Dictinary Quickfix for parameter.
+		//TODO: Add Dictionary Quickfix for parameter.
 	}	
 
 	@Override

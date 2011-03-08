@@ -47,8 +47,12 @@ public class ColorProvider {
         String propertyString = System.getProperty(propertyName);
         if (propertyString != null) {
         	String[] colors = propertyString.split(",");
-        	Color color = new Color(Integer.parseInt(colors[0]), Integer.parseInt(colors[1]), Integer.parseInt(colors[2]));
-        	return color;      
+        	if (colors.length != 3) {
+        		throw new IllegalArgumentException("Color '"+propertyString+"' defined as value for property '"+propertyName+"' is not a vaild color. Colors must be of the form 'r,g,b'.");
+        	} else {
+        		Color color = new Color(Integer.parseInt(colors[0].trim()), Integer.parseInt(colors[1].trim()), Integer.parseInt(colors[2].trim()));
+        		return color;
+        	}        	      
         } else {
         	return errorColor;
         }

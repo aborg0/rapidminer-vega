@@ -97,6 +97,7 @@ public class StandardDeviationWeighting extends AbstractWeighting {
 	public boolean supportsCapability(OperatorCapability capability) {
 		switch (capability) {
 		case NUMERICAL_ATTRIBUTES:
+		case NO_LABEL:
 			return true;
 		default:
 			return false;
