@@ -24,6 +24,7 @@ package com.rapidminer.tools.plugin;
 
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import com.rapidminer.RapidMiner;
@@ -37,23 +38,94 @@ import com.rapidminer.RapidMiner;
  */
 public class PluginClassLoader extends URLClassLoader {
 
+    private ArrayList<Plugin> parentPlugins = new ArrayList<Plugin>();
+
+    /**
+     * This constructor is for plugins that only depend on the core.
+     * 
+     * @param urls
+     *            These URLs will be used for class building.
+     */
     public PluginClassLoader(URL[] urls) {
         super(urls, RapidMiner.class.getClassLoader());
     }
 
+    @Deprecated
     public PluginClassLoader(URL[] urls, ClassLoader parent) {
         super(urls, parent);
     }
 
-    public PluginClassLoader(URL[] urls, Plugin plugin) {
-        super(urls, plugin.getClassLoader());
+    /**
+     * This method can be used if for a plugin already is known which parent plugins are needed.
+     * Otherwise you can use the standard constructor and add the Dependencies later using {@link #addDependency(Plugin)}.
+     * 
+     * @param urls
+     * @param parentPlugins
+     */
+    public PluginClassLoader(URL[] urls, Plugin... parentPlugins) {
+        super(urls, RapidMiner.class.getClassLoader());
+
+        for (Plugin plugin : parentPlugins)
+            this.parentPlugins.add(plugin);
+
     }
 
-
-    public void addDependingURL(URL url) {
-        addURL(url);
+    /**
+     * This adds another parent plugin to the list of dependencies.
+     */
+    public void addDependency(Plugin parentPlugin) {
+        parentPlugins.add(parentPlugin);
     }
 
+    @Override
+    protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+        // First, check if the class has already been loaded
+        Class c = findLoadedClass(name);
+        if (c == null) {
+            try {
+                c = super.loadClass(name, resolve);
+            } catch (ClassNotFoundException e) {
+                // ClassNotFoundException thrown if class not found
+                // from the urls registered nor the core class loader
+            }
+        }
+        if (c == null) {
+            for (Plugin plugin : parentPlugins) {
+                try {
+                    c = plugin.getClassLoader().loadClass(name, resolve);
+                } catch (ClassNotFoundException e) {
+                    // ClassNotFoundException thrown if class not found
+                    // from the parent extension
+                }
+            }
+        }
+        if (c == null) {
+            // If still not found, then invoke findClass in order
+            // to find the class.
+            c = findClass(name);
+        }
+        // if no class found during findClass an Exception is thrown anyway
+        if (resolve) {
+            resolveClass(c);
+        }
+        return c;
+    }
+
+    @Override
+    public URL getResource(String name) {
+        URL url = super.getResource(name);
+
+        for (Plugin parentPlugin : parentPlugins) {
+            url = parentPlugin.getClassLoader().getResource(name);
+            if (url != null)
+                break;
+        }
+
+        if (url == null) {
+            url = findResource(name);
+        }
+        return url;
+    }
 
     @Override
     public String toString() {

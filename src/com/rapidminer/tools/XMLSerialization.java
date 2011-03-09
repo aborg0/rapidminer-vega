@@ -162,7 +162,7 @@ public class XMLSerialization {
     private void defineXMLAliasPairs() {
         // pairs for IOObjects
         for (String ioObjectName: OperatorService.getIOObjectsNames()) {
-            XMLSerialization.getXMLSerialization().addAlias(ioObjectName, OperatorService.getIOObjectClass(ioObjectName));
+            addAlias(ioObjectName, OperatorService.getIOObjectClass(ioObjectName));
         }
 
         // pairs for performance criteria
@@ -181,7 +181,7 @@ public class XMLSerialization {
                     AbstractPerformanceEvaluator evaluator = (AbstractPerformanceEvaluator) operator;
                     List<PerformanceCriterion> criteria = evaluator.getCriteria();
                     for (PerformanceCriterion criterion : criteria) {
-                        XMLSerialization.getXMLSerialization().addAlias(criterion.getName(), criterion.getClass());
+                        addAlias(criterion.getName(), criterion.getClass());
                     }
                 }
             }

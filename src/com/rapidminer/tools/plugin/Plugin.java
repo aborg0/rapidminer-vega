@@ -39,10 +39,8 @@ import java.net.URLClassLoader;
 import java.security.AccessController;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -216,27 +214,13 @@ public class Plugin {
      * This must be called after all plugins have been initially loaded.
      */
     public void buildFinalClassLoader() {
-        final ArrayList<URL> classLoaderURLs = new ArrayList<URL>();
-        // adding all self urls
-        for (URL url: classLoader.getURLs()) {
-            classLoaderURLs.add(url);
-        }
-
         // add URLs of plugins this plugin depends on
         for (Dependency dependency: this.pluginDependencies) {
             final Plugin other = getPluginByExtensionId(dependency.getPluginExtensionId());
-            // adding all urls of this plugin
-            for (URL url: other.getClassLoader().getURLs()) {
-                classLoaderURLs.add(url);
-            }
+            classLoader.addDependency(other);
         }
 
-        this.classLoader = AccessController.doPrivileged(new PrivilegedAction<PluginClassLoader>() {
-            @Override
-            public PluginClassLoader run() {
-                return new PluginClassLoader(classLoaderURLs.toArray(new URL[classLoaderURLs.size()]), classLoader.getParent());
-            }
-        });
+
     }
 
     /** Returns the name of the plugin. */

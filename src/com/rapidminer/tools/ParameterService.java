@@ -29,6 +29,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.logging.Level;
 
@@ -237,7 +238,13 @@ public class ParameterService {
         if (in != null) {
             LogService.getRoot().config("Reading configuration resource " + Tools.RESOURCE_PREFIX + "rapidminerrc.");
             Properties props = readPropertyFile(in);
-            System.getProperties().putAll(props);
+            // Don't override if already set
+            for (Entry<Object, Object> prop : props.entrySet()) {
+            	if (System.getProperty((String)prop.getKey()) == null) {
+            		System.setProperty((String)prop.getKey(), (String)prop.getValue());
+            	}
+            }
+            //System.getProperties().putAll(props);
         } else {
             LogService.getRoot().warning("Resource " + Tools.RESOURCE_PREFIX + "rapidminerrc is missing.");
         }
