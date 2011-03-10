@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -98,7 +99,7 @@ public class SplashScreen extends JPanel implements ActionListener {
 	private Timer animationTimer;
 	private List<Runnable> animationRenderers = new LinkedList<Runnable>();
 	
-	private ArrayList<Pair<BufferedImage, Long>> extensionIcons = new ArrayList<Pair<BufferedImage, Long>>();
+	private List<Pair<BufferedImage, Long>> extensionIcons = Collections.synchronizedList(new LinkedList<Pair<BufferedImage, Long>>());
 	private long lastExtensionAdd = 0;
 
 	public SplashScreen(String productVersion, Image productLogo) {
@@ -172,7 +173,8 @@ public class SplashScreen extends JPanel implements ActionListener {
 		g.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
 
 		// draw extensions
-		int size = extensionIcons.size();
+		List<Pair<BufferedImage, Long>> currentExtensionIcons = getSynchronizedExtensionIcons();
+		int size = currentExtensionIcons.size();
 		if (size > 0) {
 			Graphics2D g2d = (Graphics2D) g;
 			
@@ -184,7 +186,7 @@ public class SplashScreen extends JPanel implements ActionListener {
 			long currentTimeMillis = System.currentTimeMillis();
 
 			int numberToShow = 0;
-			for (Pair<BufferedImage, Long> pair : extensionIcons) {
+			for (Pair<BufferedImage, Long> pair : currentExtensionIcons) {
 				if (currentTimeMillis > pair.getSecond())
 					numberToShow++;
 			}
@@ -194,16 +196,16 @@ public class SplashScreen extends JPanel implements ActionListener {
 			for (int i = 0; i < numberToShow; i++) {
 				if (numberToShow > i + MAX_NUMBER_EXTENSION_ICONS) {
 					// then we have to fade out again
-					Pair<BufferedImage, Long> pair = extensionIcons.get(i + MAX_NUMBER_EXTENSION_ICONS);					
+					Pair<BufferedImage, Long> pair = currentExtensionIcons.get(i + MAX_NUMBER_EXTENSION_ICONS);					
 					float min = Math.min((currentTimeMillis - pair.getSecond()) / EXTENSION_FADE_TIME, 1f);
 					g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1-min));
 				} else {
 					// fade in
-					Pair<BufferedImage, Long> pair = extensionIcons.get(i);
+					Pair<BufferedImage, Long> pair = currentExtensionIcons.get(i);
 					float min = Math.min((currentTimeMillis - pair.getSecond()) / EXTENSION_FADE_TIME, 1f);
 					g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, min));
 				}
-				g2d.drawImage(extensionIcons.get(i).getFirst(), null, -(i % MAX_NUMBER_EXTENSION_ICONS) * shiftX, 0);
+				g2d.drawImage(currentExtensionIcons.get(i).getFirst(), null, -(i % MAX_NUMBER_EXTENSION_ICONS) * shiftX, 0);
 			}
 		}
 	}
@@ -267,8 +269,16 @@ public class SplashScreen extends JPanel implements ActionListener {
 			BufferedImage bufferedImage = new BufferedImage(48, 48, BufferedImage.TYPE_INT_ARGB);
 			Graphics2D graphics = bufferedImage.createGraphics();
 			graphics.drawImage(extensionIcon.getImage(), 0, 0, null);
-
-			extensionIcons.add(new Pair<BufferedImage, Long>(bufferedImage, currentTimeMillis));
+			
+			synchronized (extensionIcons) {
+				extensionIcons.add(new Pair<BufferedImage, Long>(bufferedImage, currentTimeMillis));
+			}
+		}
+	}
+	
+	private List<Pair<BufferedImage, Long>> getSynchronizedExtensionIcons() {
+		synchronized (extensionIcons) {
+			return new ArrayList<Pair<BufferedImage, Long>>(extensionIcons);
 		}
 	}
 

@@ -154,22 +154,11 @@ public class ParameterService {
             LogService.getRoot().config("Ignoring request to save properties file in execution mode " + RapidMiner.getExecutionMode() + ".");
             return;
         }
-        Properties writeableProperties = new Properties();
-        // for (ParameterType type : RapidMiner.getRapidMinerProperties()) {
-        // we can't do this, because properties not registered yet. Using heuristic instead: Only properties starting with rapid...
-        for (Object key : properties.keySet()) {
-            if (key.toString().startsWith("rapid")) {
-                String value = (String) properties.get(key);
-                if (value != null) {
-                    writeableProperties.setProperty(key.toString(), value);
-                }
-            }
-        }
 
         BufferedOutputStream out = null;
         try {
             out = new BufferedOutputStream(new FileOutputStream(file));
-            writeableProperties.store(out, "");
+            properties.store(out, "");
         } catch (IOException e) {
             LogService.getRoot().log(Level.WARNING, "Cannot write user properties: " + e.getMessage(), e);
         } finally {
@@ -240,9 +229,9 @@ public class ParameterService {
             Properties props = readPropertyFile(in);
             // Don't override if already set
             for (Entry<Object, Object> prop : props.entrySet()) {
-            	if (System.getProperty((String)prop.getKey()) == null) {
-            		System.setProperty((String)prop.getKey(), (String)prop.getValue());
-            	}
+                if (System.getProperty((String)prop.getKey()) == null) {
+                    System.setProperty((String)prop.getKey(), (String)prop.getValue());
+                }
             }
             //System.getProperties().putAll(props);
         } else {
