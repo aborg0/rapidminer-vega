@@ -32,50 +32,64 @@ import com.rapidminer.operator.visualization.dependencies.NumericalMatrix;
  *  {@link com.rapidminer.datatable.CorrelationMatrixRow2DataTableRowWrapper} objects.
  *  If matrix is symetrical, it will iterate only over the pairs of the lower left triangle of the matrix,
  *  sparing the diagonal. Otherwise it will return all pairs.
- *  
+ * 
  *   @author Ingo Mierswa, Sebastian Land
  */
 public class PairwiseMatrix2DataTableRowIterator implements Iterator<DataTableRow> {
 
     private NumericalMatrix matrix;
-    
+
     private int firstAttribute;
-    
+
     private int secondAttribute;
-    
-    /** Creates a new DataTable iterator backed up by examples. If the idAttribute is null the DataTableRows 
+
+    private boolean showSymetrically;
+
+    /** Creates a new DataTable iterator for the given numerical matrix. If the idAttribute is null the DataTableRows
      *  will not be able to deliver an Id. */
     public PairwiseMatrix2DataTableRowIterator(NumericalMatrix matrix) {
+        this(matrix, true);
+    }
+
+    /**
+     * Creates a new iterator that will show the matrix symetrically only if matrix is symetrically
+     * and parameter showSymetrically is true.
+     */
+    public PairwiseMatrix2DataTableRowIterator(NumericalMatrix matrix, boolean showSymetrically) {
+        this.showSymetrically = showSymetrically;
         this.matrix = matrix;
         this.firstAttribute = 0;
         if (matrix.isSymmetrical())
-        	this.secondAttribute = 1;
+            this.secondAttribute = 1;
         else
-        	this.secondAttribute = 0;
+            this.secondAttribute = 0;
     }
-    
+
+    @Override
     public boolean hasNext() {
-    	return (firstAttribute < matrix.getNumberOfRows()) && (secondAttribute < matrix.getNumberOfColumns());
+        return (firstAttribute < matrix.getNumberOfRows()) && (secondAttribute < matrix.getNumberOfColumns());
     }
-    
+
+    @Override
     public DataTableRow next() {
-    	DataTableRow row = new PairwiseMatrix2DataTableRowWrapper(matrix, firstAttribute, secondAttribute);
-    	if (matrix.isSymmetrical()) {
-	        secondAttribute++;
-	        if (secondAttribute >= matrix.getNumberOfColumns()) {
-	            firstAttribute++;
-	            secondAttribute = firstAttribute + 1;
-	        }
+        DataTableRow row = new PairwiseMatrix2DataTableRowWrapper(matrix, firstAttribute, secondAttribute);
+        if (matrix.isSymmetrical() && showSymetrically) {
+            secondAttribute++;
+            if (secondAttribute >= matrix.getNumberOfColumns()) {
+                firstAttribute++;
+                secondAttribute = firstAttribute + 1;
+            }
         } else {
-        	secondAttribute++;
-        	if (secondAttribute >= matrix.getNumberOfColumns()) {
-        		secondAttribute = 0;
-        		firstAttribute++;
-        	}
+            secondAttribute++;
+            if (secondAttribute >= matrix.getNumberOfColumns()) {
+                secondAttribute = 0;
+                firstAttribute++;
+            }
         }
-    	return row;
+        return row;
     }
-    
+
+    @Override
     public void remove() {
         throw new RuntimeException("PairwiseCorrelation2DataTableRowIterator: removing rows is not supported!");
     }

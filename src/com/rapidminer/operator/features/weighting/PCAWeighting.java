@@ -47,54 +47,54 @@ import com.rapidminer.tools.OperatorService;
  */
 public class PCAWeighting extends AbstractWeighting {
 
-	public PCAWeighting(OperatorDescription description) {
-		super(description);
-	}
+    public PCAWeighting(OperatorDescription description) {
+        super(description);
+    }
 
-	@Override
-	protected AttributeWeights calculateWeights(ExampleSet exampleSet) throws OperatorException {
-		PCA pcaOperator = null;
-		try {
-			pcaOperator = OperatorService.createOperator(PCA.class);
-		} catch (OperatorCreationException e) {
-			throw new UserError(this, 904, "inner pca operator", e.getMessage());
-		}
-		pcaOperator.setParameter(PCA.PARAMETER_REDUCTION_TYPE, PCA.REDUCTION_NONE + "");
+    @Override
+    protected AttributeWeights calculateWeights(ExampleSet exampleSet) throws OperatorException {
+        PCA pcaOperator = null;
+        try {
+            pcaOperator = OperatorService.createOperator(PCA.class);
+        } catch (OperatorCreationException e) {
+            throw new UserError(this, 904, "inner pca operator", e.getMessage());
+        }
+        pcaOperator.setParameter(PCA.PARAMETER_REDUCTION_TYPE, PCA.REDUCTION_NONE + "");
 
-		ComponentWeights weightOperator = null;
-		try {
-			weightOperator = OperatorService.createOperator(ComponentWeights.class);
-		} catch (OperatorCreationException e) {
-			throw new UserError(this, 904, "inner weight operator", e.getMessage());
-		}
-		weightOperator.setParameter(ComponentWeights.PARAMETER_COMPONENT_NUMBER, getParameterAsInt(ComponentWeights.PARAMETER_COMPONENT_NUMBER) + "");
-		weightOperator.setParameter(ComponentWeights.PARAMETER_NORMALIZE_WEIGHTS, getParameterAsBoolean(AbstractWeighting.PARAMETER_NORMALIZE_WEIGHTS) + "");
+        ComponentWeights weightOperator = null;
+        try {
+            weightOperator = OperatorService.createOperator(ComponentWeights.class);
+        } catch (OperatorCreationException e) {
+            throw new UserError(this, 904, "inner weight operator", e.getMessage());
+        }
+        weightOperator.setParameter(ComponentWeights.PARAMETER_COMPONENT_NUMBER, getParameterAsInt(ComponentWeights.PARAMETER_COMPONENT_NUMBER) + "");
+        weightOperator.setParameter(ComponentWeights.PARAMETER_NORMALIZE_WEIGHTS, false + "");
+        weightOperator.setParameter(ComponentWeights.PARAMETER_SORT_WEIGHTS, false + "");
 
-		//IOContainer ioContainer = new IOContainer(exampleSet);
-		Model pcaModel = pcaOperator.doWork(exampleSet);
-		AttributeWeights result = weightOperator.doWork(pcaModel, exampleSet);
+        Model pcaModel = pcaOperator.doWork(exampleSet);
+        AttributeWeights result = weightOperator.doWork(pcaModel, exampleSet);
 
-		result.setSource(this.getName());
-		return result;
-	}
+        result.setSource(this.getName());
+        return result;
+    }
 
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		List<ParameterType> types = super.getParameterTypes();
-		types.add(new ParameterTypeInt(ComponentWeights.PARAMETER_COMPONENT_NUMBER,
-				"Indicates the number of the component from which the weights should be calculated.",
-				1, Integer.MAX_VALUE, 1));
-		return types;
-	}
+    @Override
+    public List<ParameterType> getParameterTypes() {
+        List<ParameterType> types = super.getParameterTypes();
+        types.add(new ParameterTypeInt(ComponentWeights.PARAMETER_COMPONENT_NUMBER,
+                "Indicates the number of the component from which the weights should be calculated.",
+                1, Integer.MAX_VALUE, 1));
+        return types;
+    }
 
-	@Override
-	public boolean supportsCapability(OperatorCapability capability) {
-		switch (capability) {
-		case NUMERICAL_ATTRIBUTES:
-		case NO_LABEL:
-			return true;
-		default:
-			return false;
-		}
-	}
+    @Override
+    public boolean supportsCapability(OperatorCapability capability) {
+        switch (capability) {
+        case NUMERICAL_ATTRIBUTES:
+        case NO_LABEL:
+            return true;
+        default:
+            return false;
+        }
+    }
 }

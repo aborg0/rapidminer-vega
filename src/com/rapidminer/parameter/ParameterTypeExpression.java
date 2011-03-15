@@ -23,6 +23,7 @@
 package com.rapidminer.parameter;
 
 import com.rapidminer.operator.ports.InputPort;
+import com.rapidminer.operator.ports.metadata.MetaData;
 
 /**
  * This attribute type supports the user by letting him define an expression with a
@@ -34,31 +35,45 @@ import com.rapidminer.operator.ports.InputPort;
  * @author Ingo Mierswa
  */
 public class ParameterTypeExpression extends ParameterTypeString {
-	
-	private static final long serialVersionUID = -1938925853519339382L;
 
-	private transient InputPort inPort;
+    private static final long serialVersionUID = -1938925853519339382L;
 
-	public ParameterTypeExpression(final String key, String description, InputPort inPort) {
-		this(key, description, inPort, false);
-	}
+    private transient InputPort inPort;
 
-	public ParameterTypeExpression(final String key, String description, InputPort inPort, boolean optional, boolean expert) {
-		this(key, description, inPort, optional);
-		setExpert(expert);
-	}
+    /**
+     * This constructor will generate a ParameterType that does not
+     * use the {@link MetaData} of an associated {@link InputPort} to verify
+     * the expressions.
+     * @param key
+     * @param description
+     */
+    public ParameterTypeExpression(final String key, String description) {
+        this(key, description, null, false);
+    }
 
-	public ParameterTypeExpression(final String key, String description, InputPort inPort, boolean optional) {
-		super(key, description, optional);
-		this.inPort = inPort;
-	}
+    public ParameterTypeExpression(final String key, String description, InputPort inPort) {
+        this(key, description, inPort, false);
+    }
 
-	@Override
-	public Object getDefaultValue() {
-		return "";
-	}
-	
-	public InputPort getInputPort() {
-		return inPort;
-	}
+    public ParameterTypeExpression(final String key, String description, InputPort inPort, boolean optional, boolean expert) {
+        this(key, description, inPort, optional);
+        setExpert(expert);
+    }
+
+    public ParameterTypeExpression(final String key, String description, InputPort inPort, boolean optional) {
+        super(key, description, optional);
+        this.inPort = inPort;
+    }
+
+    @Override
+    public Object getDefaultValue() {
+        return "";
+    }
+
+    /**
+     * Returns the input port associated with this ParameterType. This might be null!
+     */
+    public InputPort getInputPort() {
+        return inPort;
+    }
 }

@@ -41,60 +41,61 @@ import com.rapidminer.tools.math.matrix.CovarianceMatrix;
 
 /** This operator calculates the covariances between all attributes
  *  of the input example set and returns a covariance matrix object
- *  which can be visualized. 
- *  
+ *  which can be visualized.
+ * 
  *  @author Ingo Mierswa
  */
 public class CovarianceMatrixOperator extends Operator {
 
-	private InputPort exampleSetInput = getInputPorts().createPort("example set");
+    private InputPort exampleSetInput = getInputPorts().createPort("example set");
 
-	private OutputPort exampleSetOutput = getOutputPorts().createPort("example set");
-	private OutputPort covarianceOutput = getOutputPorts().createPort("covariance");
+    private OutputPort exampleSetOutput = getOutputPorts().createPort("example set");
+    private OutputPort covarianceOutput = getOutputPorts().createPort("covariance");
 
-	public CovarianceMatrixOperator(OperatorDescription description) {
-		super(description);
+    public CovarianceMatrixOperator(OperatorDescription description) {
+        super(description);
 
-		exampleSetInput.addPrecondition(new ExampleSetPrecondition(exampleSetInput) {
-			@Override
-			public void makeAdditionalChecks(ExampleSetMetaData emd) throws UndefinedParameterError {
-				for (AttributeMetaData amd: emd.getAllAttributes()) {
-					if (!amd.isSpecial() && !amd.isNumerical()) {
-						exampleSetInput.addError(new SimpleMetaDataError(Severity.WARNING, exampleSetInput, "not_defined_on_nominal", "Covariance"));
-						break;
-					}
-				}
-				super.makeAdditionalChecks(emd);
-			}
-		});
+        exampleSetInput.addPrecondition(new ExampleSetPrecondition(exampleSetInput) {
+            @Override
+            public void makeAdditionalChecks(ExampleSetMetaData emd) throws UndefinedParameterError {
+                for (AttributeMetaData amd: emd.getAllAttributes()) {
+                    if (!amd.isSpecial() && !amd.isNumerical()) {
+                        exampleSetInput.addError(new SimpleMetaDataError(Severity.WARNING, exampleSetInput, "not_defined_on_nominal", "Covariance"));
+                        break;
+                    }
+                }
+                super.makeAdditionalChecks(emd);
+            }
+        });
 
-		getTransformer().addPassThroughRule(exampleSetInput, exampleSetOutput);
-		getTransformer().addGenerationRule(covarianceOutput, NumericalMatrix.class);
-	}
+        getTransformer().addPassThroughRule(exampleSetInput, exampleSetOutput);
+        getTransformer().addGenerationRule(covarianceOutput, NumericalMatrix.class);
+    }
 
-	@Override
-	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
-		String[] columnNames = new String[exampleSet.getAttributes().size()];
-		boolean[] isNominal = new boolean[columnNames.length];
-		int counter = 0;
-		for (Attribute attribute : exampleSet.getAttributes()) {
-			columnNames[counter++] = attribute.getName();
-			if (attribute.isNominal())
-				isNominal[counter] = true;
-		}
-		Matrix covarianceMatrix = CovarianceMatrix.getCovarianceMatrix(exampleSet);
+    @Override
+    public void doWork() throws OperatorException {
+        ExampleSet exampleSet = exampleSetInput.getData();
+        String[] columnNames = new String[exampleSet.getAttributes().size()];
+        boolean[] isNominal = new boolean[columnNames.length];
+        int counter = 0;
+        for (Attribute attribute : exampleSet.getAttributes()) {
+            columnNames[counter++] = attribute.getName();
+            if (attribute.isNominal())
+                isNominal[counter] = true;
+            counter++;
+        }
+        Matrix covarianceMatrix = CovarianceMatrix.getCovarianceMatrix(exampleSet);
 
-		// setting all nominal colums on NaN
-		double[][] matrix = covarianceMatrix.getArray();
-		for (int i = 0; i < covarianceMatrix.getColumnDimension(); i++) {
-			for (int j = 0; j < covarianceMatrix.getRowDimension(); j++) {
-				if (isNominal[i] || isNominal[j])
-					matrix[i][j] = Double.NaN;
-			}
-		}
+        // setting all nominal colums on NaN
+        double[][] matrix = covarianceMatrix.getArray();
+        for (int i = 0; i < covarianceMatrix.getColumnDimension(); i++) {
+            for (int j = 0; j < covarianceMatrix.getRowDimension(); j++) {
+                if (isNominal[i] || isNominal[j])
+                    matrix[i][j] = Double.NaN;
+            }
+        }
 
-		exampleSetOutput.deliver(exampleSet);
-		covarianceOutput.deliver(new NumericalMatrix("Covariance", columnNames, covarianceMatrix, true));
-	}
+        exampleSetOutput.deliver(exampleSet);
+        covarianceOutput.deliver(new NumericalMatrix("Covariance", columnNames, covarianceMatrix, true));
+    }
 }

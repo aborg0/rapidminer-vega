@@ -5266,6 +5266,12 @@
             positive sinus values).</help>
     <key>generate_data</key>
   </operator>
+  <operator>
+  	<name>Generate Data by User Specification</name>
+  	<synopsis>Generates an ExampleSet containing exactly one example. The attributes and their types and roles are derived from the expressions
+  	given by the parameters.</synopsis>
+  	<key>generate_data_user_specification</key>
+  </operator>
     <operator>
         <name>Generate Aggregation</name>
         <synopsis>This operator constructs a new attribute by aggregating

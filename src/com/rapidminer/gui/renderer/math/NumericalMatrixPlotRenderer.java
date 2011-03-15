@@ -34,10 +34,10 @@ import com.rapidminer.operator.visualization.dependencies.NumericalMatrix;
  */
 public class NumericalMatrixPlotRenderer extends AbstractDataTablePlotterRenderer {
 
-	@Override
-	public DataTable getDataTable(Object renderable, IOContainer ioContainer) {
-		NumericalMatrix matrix = (NumericalMatrix) renderable;
-		return matrix.createPairwiseDataTable();
-	}
+    @Override
+    public DataTable getDataTable(Object renderable, IOContainer ioContainer) {
+        NumericalMatrix matrix = (NumericalMatrix) renderable;
+        return matrix.createPairwiseDataTable(false);
+    }
 
 }

@@ -572,6 +572,10 @@
                <replaces>ExampleSetGenerator</replaces>
             </operator>
             <operator>
+               <key>generate_data_user_specification</key>
+               <class>com.rapidminer.operator.generator.UserSpecificationDataGenerator</class>
+            </operator>
+            <operator>
                <key>generate_nominal_data</key>
                <class>com.rapidminer.operator.generator.NominalExampleSetGenerator</class>
                <replaces>NominalExampleSetGenerator</replaces>

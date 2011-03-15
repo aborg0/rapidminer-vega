@@ -47,108 +47,108 @@ import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.tools.Tools;
 
 /**
- * This is an abstract superclass for RapidMiner weighting operators. New weighting 
- * schemes should extend this class to support the same normalization parameter as 
+ * This is an abstract superclass for RapidMiner weighting operators. New weighting
+ * schemes should extend this class to support the same normalization parameter as
  * other weighting operators.
  * 
  * @author Helge Homburg
  */
 public abstract class AbstractWeighting extends Operator implements CapabilityProvider {
 
-	private InputPort exampleSetInput = getInputPorts().createPort("example set");
-	private OutputPort weightsOutput = getOutputPorts().createPort("weights");
-	private OutputPort exampleSetOutput = getOutputPorts().createPort("example set");
+    private InputPort exampleSetInput = getInputPorts().createPort("example set");
+    private OutputPort weightsOutput = getOutputPorts().createPort("weights");
+    private OutputPort exampleSetOutput = getOutputPorts().createPort("example set");
 
-	private static final String[] SORT_DIRECTIONS = new String[] {
-		"ascending",
-		"descending"
-	};
-	
-	public static final int SORT_ASCENDING = 0;
-	public static final int SORT_DESCENDING = 1;
-	
-	/** The parameter name for &quot;Activates the normalization of all weights.&quot; */
-	public static final String PARAMETER_NORMALIZE_WEIGHTS = "normalize_weights";
-	public static final String PARAMETER_SORT_WEIGHTS = "sort_weights";
-	public static final String PARAMETER_SORT_DIRECTION = "sort_direction";
+    private static final String[] SORT_DIRECTIONS = new String[] {
+        "ascending",
+        "descending"
+    };
 
-	public AbstractWeighting(OperatorDescription description) {
-		super(description);
-		if (isExampleSetMandatory())
-			exampleSetInput.addPrecondition(new CapabilityPrecondition(this, exampleSetInput));
+    public static final int SORT_ASCENDING = 0;
+    public static final int SORT_DESCENDING = 1;
 
-		getTransformer().addRule(new GenerateNewMDRule(weightsOutput, AttributeWeights.class));
-		getTransformer().addRule(new ExampleSetPassThroughRule(exampleSetInput, exampleSetOutput, SetRelation.EQUAL) {
-			@Override
-			public ExampleSetMetaData modifyExampleSet(ExampleSetMetaData metaData) throws UndefinedParameterError {
-				boolean normalizedWeights = getParameterAsBoolean(PARAMETER_NORMALIZE_WEIGHTS);
-				for (AttributeMetaData amd: metaData.getAllAttributes()) {
-					if (!amd.isSpecial() && amd.isNumerical()) {
-						if (normalizedWeights)
-							amd.setValueSetRelation(SetRelation.SUBSET);
-						else	
-							amd.setValueSetRelation(SetRelation.UNKNOWN);
-					}
-				}
-				return super.modifyExampleSet(metaData);
-			}
-		});
-	}
+    /** The parameter name for &quot;Activates the normalization of all weights.&quot; */
+    public static final String PARAMETER_NORMALIZE_WEIGHTS = "normalize_weights";
+    public static final String PARAMETER_SORT_WEIGHTS = "sort_weights";
+    public static final String PARAMETER_SORT_DIRECTION = "sort_direction";
 
-	protected abstract AttributeWeights calculateWeights(ExampleSet exampleSet) throws OperatorException;
+    public AbstractWeighting(OperatorDescription description) {
+        super(description);
+        if (isExampleSetMandatory())
+            exampleSetInput.addPrecondition(new CapabilityPrecondition(this, exampleSetInput));
 
-	/** Helper method for anonymous instances of this class. 
-	 */
-	public AttributeWeights doWork(ExampleSet exampleSet) throws OperatorException {
-		exampleSetInput.receive(exampleSet);
+        getTransformer().addRule(new GenerateNewMDRule(weightsOutput, AttributeWeights.class));
+        getTransformer().addRule(new ExampleSetPassThroughRule(exampleSetInput, exampleSetOutput, SetRelation.EQUAL) {
+            @Override
+            public ExampleSetMetaData modifyExampleSet(ExampleSetMetaData metaData) throws UndefinedParameterError {
+                boolean normalizedWeights = getParameterAsBoolean(PARAMETER_NORMALIZE_WEIGHTS);
+                for (AttributeMetaData amd: metaData.getAllAttributes()) {
+                    if (!amd.isSpecial() && amd.isNumerical()) {
+                        if (normalizedWeights)
+                            amd.setValueSetRelation(SetRelation.SUBSET);
+                        else
+                            amd.setValueSetRelation(SetRelation.UNKNOWN);
+                    }
+                }
+                return super.modifyExampleSet(metaData);
+            }
+        });
+    }
 
-		// check capabilities and produce errors if they are not fulfilled
-		CapabilityCheck check = new CapabilityCheck(this, Tools.booleanValue(System.getProperty(PROPERTY_RAPIDMINER_GENERAL_CAPABILITIES_WARN), true) || onlyWarnForNonSufficientCapabilities());
-		check.checkLearnerCapabilities(this, exampleSet);
+    protected abstract AttributeWeights calculateWeights(ExampleSet exampleSet) throws OperatorException;
 
-		doWork();
-		return weightsOutput.getData();
-	}
+    /** Helper method for anonymous instances of this class.
+     */
+    public AttributeWeights doWork(ExampleSet exampleSet) throws OperatorException {
+        exampleSetInput.receive(exampleSet);
 
-	@Override
-	public void doWork() throws OperatorException {
-		ExampleSet exampleSet =
-			isExampleSetMandatory() ? exampleSetInput.getData(ExampleSet.class) : exampleSetInput.<ExampleSet>getDataOrNull();
-		AttributeWeights weights = calculateWeights(exampleSet);
-		if (getParameterAsBoolean(PARAMETER_NORMALIZE_WEIGHTS)) {
-			weights.normalize();
-		}
-		if (getParameterAsBoolean(PARAMETER_NORMALIZE_WEIGHTS)) {
-			weights.sort((getParameterAsInt(PARAMETER_SORT_DIRECTION) == SORT_ASCENDING)? AttributeWeights.DECREASING: AttributeWeights.INCREASING, AttributeWeights.ORIGINAL_WEIGHTS);
-		}
-		exampleSetOutput.deliver(exampleSet);
-		weightsOutput.deliver(weights);		
-	}
+        // check capabilities and produce errors if they are not fulfilled
+        CapabilityCheck check = new CapabilityCheck(this, Tools.booleanValue(System.getProperty(PROPERTY_RAPIDMINER_GENERAL_CAPABILITIES_WARN), true) || onlyWarnForNonSufficientCapabilities());
+        check.checkLearnerCapabilities(this, exampleSet);
 
-	public InputPort getExampleSetInputPort() {
-		return exampleSetInput;
-	}
+        doWork();
+        return weightsOutput.getData();
+    }
 
-	public OutputPort getWeightsOutputPort() {
-		return weightsOutput;
-	}
+    @Override
+    public void doWork() throws OperatorException {
+        ExampleSet exampleSet =
+            isExampleSetMandatory() ? exampleSetInput.getData(ExampleSet.class) : exampleSetInput.<ExampleSet>getDataOrNull();
+            AttributeWeights weights = calculateWeights(exampleSet);
+            if (getParameterAsBoolean(PARAMETER_NORMALIZE_WEIGHTS)) {
+                weights.normalize();
+            }
+            if (getParameterAsBoolean(PARAMETER_SORT_WEIGHTS)) {
+                weights.sort((getParameterAsInt(PARAMETER_SORT_DIRECTION) == SORT_ASCENDING)? AttributeWeights.INCREASING: AttributeWeights.DECREASING, AttributeWeights.ORIGINAL_WEIGHTS);
+            }
+            exampleSetOutput.deliver(exampleSet);
+            weightsOutput.deliver(weights);
+    }
 
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		List<ParameterType> list = super.getParameterTypes();
-		list.add(new ParameterTypeBoolean(PARAMETER_NORMALIZE_WEIGHTS, "Activates the normalization of all weights.", true, false));
-		list.add(new ParameterTypeBoolean(PARAMETER_SORT_WEIGHTS, "If activated the weights will be returned sorted.", true, false));
-		ParameterType type = new ParameterTypeCategory(PARAMETER_SORT_DIRECTION, "Defines the sorting direction.", SORT_DIRECTIONS, 0);
-		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_SORT_WEIGHTS, true, true));
-		list.add(type);
-		return list;
-	}
+    public InputPort getExampleSetInputPort() {
+        return exampleSetInput;
+    }
 
-	protected boolean isExampleSetMandatory() {
-		return true;
-	}
+    public OutputPort getWeightsOutputPort() {
+        return weightsOutput;
+    }
 
-	protected boolean onlyWarnForNonSufficientCapabilities() {
-		return false;
-	}
+    @Override
+    public List<ParameterType> getParameterTypes() {
+        List<ParameterType> list = super.getParameterTypes();
+        list.add(new ParameterTypeBoolean(PARAMETER_NORMALIZE_WEIGHTS, "Activates the normalization of all weights.", true, false));
+        list.add(new ParameterTypeBoolean(PARAMETER_SORT_WEIGHTS, "If activated the weights will be returned sorted.", true, false));
+        ParameterType type = new ParameterTypeCategory(PARAMETER_SORT_DIRECTION, "Defines the sorting direction.", SORT_DIRECTIONS, 0);
+        type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_SORT_WEIGHTS, true, true));
+        list.add(type);
+        return list;
+    }
+
+    protected boolean isExampleSetMandatory() {
+        return true;
+    }
+
+    protected boolean onlyWarnForNonSufficientCapabilities() {
+        return false;
+    }
 }
