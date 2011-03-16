@@ -110,8 +110,16 @@ public class UpdateManager {
                             (incremental ? "?baseVersion="+URLEncoder.encode(baseVersion, "UTF-8") : "")).toURL();
                     if (incremental) {
                         LogService.getRoot().info("Updating "+desc.getPackageId()+" incrementally.");
-                        updatePluginIncrementally(extension, openStream(url, progressListener, minProgress, maxProgress), baseVersion, desc.getVersion());
-                    } else {
+                        try {
+                            updatePluginIncrementally(extension, openStream(url, progressListener, minProgress, maxProgress), baseVersion, desc.getVersion());
+                        } catch (IOException e) {
+                            // if encountering problems during incremental installation, try using standard.
+                            LogService.getRoot().warning("Incremental Update failed. Trying to fall back on non incremental Update...");
+                            incremental = false;
+                        }
+                    }
+                    // try standard non incremental way
+                    if (!incremental){
                         LogService.getRoot().info("Updating "+desc.getPackageId()+".");
                         updatePlugin(extension, openStream(url, progressListener, minProgress, maxProgress), desc.getVersion());
                     }

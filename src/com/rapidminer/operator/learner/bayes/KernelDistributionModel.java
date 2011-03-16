@@ -360,8 +360,6 @@ public class KernelDistributionModel extends DistributionModel {
                     }
                     j++;
                 }
-                if (Double.isInfinite(logProbability))
-                    System.out.println("Na");
                 if (!Double.isNaN(logProbability) && logProbability > maxLogProbability) {
                     maxLogProbability = logProbability;
                     mostProbableClass = i;

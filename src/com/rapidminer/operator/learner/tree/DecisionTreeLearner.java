@@ -40,100 +40,101 @@ import com.rapidminer.parameter.ParameterTypeInt;
  * easily be understood. This decision tree learner works similar to Quinlan's
  * C4.5 or CART.</p>
  * 
- * <p>The actual type of the tree is determined by the criterion, e.g. using 
+ * <p>The actual type of the tree is determined by the criterion, e.g. using
  * gain_ratio or Gini for CART / C4.5.</p>
  * 
  * @rapidminer.index C4.5
  * @rapidminer.index CART
- *  
+ * 
  * @author Sebastian Land, Ingo Mierswa
  */
 public class DecisionTreeLearner extends AbstractTreeLearner {
 
-	/** The parameter name for the maximum tree depth. */
-	public static final String PARAMETER_MAXIMAL_DEPTH = "maximal_depth";
+    /** The parameter name for the maximum tree depth. */
+    public static final String PARAMETER_MAXIMAL_DEPTH = "maximal_depth";
 
-	/** The parameter name for &quot;The confidence level used for pruning.&quot; */
-	public static final String PARAMETER_CONFIDENCE = "confidence";
+    /** The parameter name for &quot;The confidence level used for pruning.&quot; */
+    public static final String PARAMETER_CONFIDENCE = "confidence";
 
-	/** The parameter name for &quot;Disables the pruning and delivers an unpruned tree.&quot; */
-	public static final String PARAMETER_NO_PRUNING = "no_pruning";
+    /** The parameter name for &quot;Disables the pruning and delivers an unpruned tree.&quot; */
+    public static final String PARAMETER_NO_PRUNING = "no_pruning";
 
-	public static final String PARAMETER_NO_PRE_PRUNING = "no_pre_pruning";
+    public static final String PARAMETER_NO_PRE_PRUNING = "no_pre_pruning";
 
-	public static final String PARAMETER_NUMBER_OF_PREPRUNING_ALTERNATIVES = "number_of_prepruning_alternatives";
-
-
-	public DecisionTreeLearner(OperatorDescription description) {
-		super(description);
-	}
-
-	@Override
-	public Pruner getPruner() throws OperatorException {
-		if (!getParameterAsBoolean(PARAMETER_NO_PRUNING)) {
-			return new PessimisticPruner(getParameterAsDouble(PARAMETER_CONFIDENCE), new DecisionTreeLeafCreator());
-		} else {
-			return null;
-		}
-	}
-
-	@Override
-	public List<Terminator> getTerminationCriteria(ExampleSet exampleSet) throws OperatorException {
-		List<Terminator> result = new LinkedList<Terminator>();
-		result.add(new SingleLabelTermination());
-		result.add(new NoAttributeLeftTermination());
-		result.add(new EmptyTermination());
-		int maxDepth = getParameterAsInt(PARAMETER_MAXIMAL_DEPTH);
-		if (maxDepth <= 0) {
-			maxDepth = exampleSet.size();
-		}
-		result.add(new MaxDepthTermination(maxDepth));
-		return result;
-	}
-
-	public boolean supportsCapability(OperatorCapability capability) {
-		switch (capability) {
-		case BINOMINAL_ATTRIBUTES:
-		case POLYNOMINAL_ATTRIBUTES:
-		case NUMERICAL_ATTRIBUTES:
-		case POLYNOMINAL_LABEL:
-		case BINOMINAL_LABEL:
-		//case WEIGHTED_EXAMPLES:
-		case MISSING_VALUES:
-			return true;
-		default:
-			return false;
-		}
-	}
+    public static final String PARAMETER_NUMBER_OF_PREPRUNING_ALTERNATIVES = "number_of_prepruning_alternatives";
 
 
-	@Override
-	protected TreeBuilder getTreeBuilder(ExampleSet exampleSet) throws OperatorException {
-		return new TreeBuilder(createCriterion(getParameterAsDouble(PARAMETER_MINIMAL_GAIN)),
-				getTerminationCriteria(exampleSet),
-				getPruner(),
-				getSplitPreprocessing(),
-				new DecisionTreeLeafCreator(),
-				getParameterAsBoolean(PARAMETER_NO_PRE_PRUNING),
-				getParameterAsInt(PARAMETER_NUMBER_OF_PREPRUNING_ALTERNATIVES),
-				getParameterAsInt(PARAMETER_MINIMAL_SIZE_FOR_SPLIT),
-				getParameterAsInt(PARAMETER_MINIMAL_LEAF_SIZE));
-	}
+    public DecisionTreeLearner(OperatorDescription description) {
+        super(description);
+    }
 
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		List<ParameterType> types = super.getParameterTypes();
-		ParameterType type = new ParameterTypeInt(PARAMETER_MAXIMAL_DEPTH, "The maximum tree depth (-1: no bound)", -1, Integer.MAX_VALUE, 20);
-		type.setExpert(false);
-		types.add(type);
-		type = new ParameterTypeDouble(PARAMETER_CONFIDENCE, "The confidence level used for the pessimistic error calculation of pruning.", 0.0000001, 0.5, 0.25);
-		type.setExpert(false);
-		types.add(type);
+    @Override
+    public Pruner getPruner() throws OperatorException {
+        if (!getParameterAsBoolean(PARAMETER_NO_PRUNING)) {
+            return new PessimisticPruner(getParameterAsDouble(PARAMETER_CONFIDENCE), new DecisionTreeLeafCreator());
+        } else {
+            return null;
+        }
+    }
 
-		types.add(new ParameterTypeInt(PARAMETER_NUMBER_OF_PREPRUNING_ALTERNATIVES, "The number of alternative nodes tried when prepruning would prevent a split.", 0, Integer.MAX_VALUE, 3));
-		types.add(new ParameterTypeBoolean(PARAMETER_NO_PRE_PRUNING, "Disables the pre pruning and delivers a tree without any prepruning.", false));
-		types.add(new ParameterTypeBoolean(PARAMETER_NO_PRUNING, "Disables the pruning and delivers an unpruned tree.", false));
+    @Override
+    public List<Terminator> getTerminationCriteria(ExampleSet exampleSet) throws OperatorException {
+        List<Terminator> result = new LinkedList<Terminator>();
+        result.add(new SingleLabelTermination());
+        result.add(new NoAttributeLeftTermination());
+        result.add(new EmptyTermination());
+        int maxDepth = getParameterAsInt(PARAMETER_MAXIMAL_DEPTH);
+        if (maxDepth <= 0) {
+            maxDepth = exampleSet.size();
+        }
+        result.add(new MaxDepthTermination(maxDepth));
+        return result;
+    }
 
-		return types;
-	}
+    @Override
+    public boolean supportsCapability(OperatorCapability capability) {
+        switch (capability) {
+        case BINOMINAL_ATTRIBUTES:
+        case POLYNOMINAL_ATTRIBUTES:
+        case NUMERICAL_ATTRIBUTES:
+        case POLYNOMINAL_LABEL:
+        case BINOMINAL_LABEL:
+        case WEIGHTED_EXAMPLES:
+        case MISSING_VALUES:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+
+    @Override
+    protected TreeBuilder getTreeBuilder(ExampleSet exampleSet) throws OperatorException {
+        return new TreeBuilder(createCriterion(getParameterAsDouble(PARAMETER_MINIMAL_GAIN)),
+                getTerminationCriteria(exampleSet),
+                getPruner(),
+                getSplitPreprocessing(),
+                new DecisionTreeLeafCreator(),
+                getParameterAsBoolean(PARAMETER_NO_PRE_PRUNING),
+                getParameterAsInt(PARAMETER_NUMBER_OF_PREPRUNING_ALTERNATIVES),
+                getParameterAsInt(PARAMETER_MINIMAL_SIZE_FOR_SPLIT),
+                getParameterAsInt(PARAMETER_MINIMAL_LEAF_SIZE));
+    }
+
+    @Override
+    public List<ParameterType> getParameterTypes() {
+        List<ParameterType> types = super.getParameterTypes();
+        ParameterType type = new ParameterTypeInt(PARAMETER_MAXIMAL_DEPTH, "The maximum tree depth (-1: no bound)", -1, Integer.MAX_VALUE, 20);
+        type.setExpert(false);
+        types.add(type);
+        type = new ParameterTypeDouble(PARAMETER_CONFIDENCE, "The confidence level used for the pessimistic error calculation of pruning.", 0.0000001, 0.5, 0.25);
+        type.setExpert(false);
+        types.add(type);
+
+        types.add(new ParameterTypeInt(PARAMETER_NUMBER_OF_PREPRUNING_ALTERNATIVES, "The number of alternative nodes tried when prepruning would prevent a split.", 0, Integer.MAX_VALUE, 3));
+        types.add(new ParameterTypeBoolean(PARAMETER_NO_PRE_PRUNING, "Disables the pre pruning and delivers a tree without any prepruning.", false));
+        types.add(new ParameterTypeBoolean(PARAMETER_NO_PRUNING, "Disables the pruning and delivers an unpruned tree.", false));
+
+        return types;
+    }
 }

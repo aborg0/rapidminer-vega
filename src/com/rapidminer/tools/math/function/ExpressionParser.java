@@ -610,6 +610,13 @@ public class ExpressionParser {
     }
 
     private void addCustomConstants(JEP parser) {
+        parser.addConstant("true", Boolean.valueOf(true));
+        parser.addConstant("TRUE", Boolean.valueOf(true));
+        parser.addConstant("false", Boolean.valueOf(false));
+        parser.addConstant("FALSE", Boolean.valueOf(false));
+        parser.addConstant("NaN", Double.NaN);
+        parser.addConstant("NAN", Double.NaN);
+
         parser.addConstant("DATE_SHORT", ExpressionParserConstants.DATE_FORMAT_SHORT);
         parser.addConstant("DATE_MEDIUM", ExpressionParserConstants.DATE_FORMAT_MEDIUM);
         parser.addConstant("DATE_LONG", ExpressionParserConstants.DATE_FORMAT_LONG);

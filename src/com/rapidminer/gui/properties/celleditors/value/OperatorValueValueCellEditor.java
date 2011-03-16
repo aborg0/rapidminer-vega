@@ -137,7 +137,7 @@ public class OperatorValueValueCellEditor extends AbstractCellEditor implements 
                 valueCombo.addItem("no params");
             break;
         }
-        valueCombo.setSelectedIndex(0);
+        valueCombo.setSelectedIndex(-1);
     }
 
     @Override
@@ -156,12 +156,12 @@ public class OperatorValueValueCellEditor extends AbstractCellEditor implements 
             } else {
                 operatorCombo.setSelectedIndex(0);
                 typeCombo.setSelectedIndex(0);
-                valueCombo.setSelectedIndex(0);
+                valueCombo.setSelectedIndex(-1);
             }
         } else {
             operatorCombo.setSelectedIndex(0);
             typeCombo.setSelectedIndex(0);
-            valueCombo.setSelectedIndex(0);
+            valueCombo.setSelectedIndex(-1);
         }
         fireEditingStopped();
     }

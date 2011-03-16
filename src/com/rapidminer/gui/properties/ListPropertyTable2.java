@@ -103,14 +103,9 @@ public class ListPropertyTable2 extends JTable {
             for (int i = 0; i < types.length; i++) {
                 rowRenderers[i] = PropertyPanel.instantiateValueCellEditor(types[i], operator);
                 rowEditors[i]  = PropertyPanel.instantiateValueCellEditor(types[i], operator);
-                rowEditors[i].addCellEditorListener(this);
             }
             renderers.add(rowRenderers);
             editors.add(rowEditors);
-            //			getColumnModel().getColumn(i).setCellEditor(PropertyPanel.instantiateValueCellEditor(types[i], operator));
-            //			getColumnModel().getColumn(i).setCellRenderer(PropertyPanel.instantiateValueCellEditor(types[i], operator));
-            //		}
-
         }
     }
 
