@@ -24,45 +24,47 @@ package com.rapidminer.parameter.conditions;
 
 import org.w3c.dom.Element;
 
+import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.Operator;
-import com.rapidminer.parameter.ParameterHandler;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.tools.XMLException;
 
 /**
- * This condition checks if a boolean parameter has a certain value.
+ * This {@link ParameterCondition} implementation checks whether the
+ * currently selected {@link OperatorVersion} matches
+ * a predefined one.
  * 
- * @author Sebastian Land, Ingo Mierswa
+ * @author Sebastian Land
  */
-public class BooleanParameterCondition extends ParameterCondition {
+public class EqualOperatorVersionCondition extends ParameterCondition {
 
-    private static final String ELEMENT_CONDITION_VALUE = "ConditionValue";
+    private static final String ELEMENT_VERSION = "IsVersion";
+    private VersionNumber neededVersion;
+    private Operator operator;
 
-    private boolean conditionValue;
-
-    public BooleanParameterCondition(Operator operator, Element element) throws XMLException {
+    public EqualOperatorVersionCondition(Operator operator, Element element) throws XMLException {
         super(operator, element);
-
-        conditionValue = Boolean.valueOf(XMLTools.getTagContents(element, ELEMENT_CONDITION_VALUE, true));
+        neededVersion = new VersionNumber(XMLTools.getTagContents(element, ELEMENT_VERSION, true));
+        this.operator = operator;
     }
 
-    public BooleanParameterCondition(ParameterHandler parameterHandler, String conditionParameter, boolean becomeMandatory, boolean conditionValue) {
-        super(parameterHandler, conditionParameter, becomeMandatory);
-        this.conditionValue = conditionValue;
+    public EqualOperatorVersionCondition(Operator operator, VersionNumber neededVersion) {
+        super(operator, false);
+        this.operator = operator;
+        this.neededVersion = neededVersion;
+
     }
 
     @Override
     public boolean isConditionFullfilled() {
-        return (parameterHandler.getParameterAsBoolean(conditionParameter) == conditionValue);
-    }
-
-    @Override
-    public String toString() {
-        return conditionParameter.replace('_',' ') + " = " + conditionValue;
+        return operator.getCompatibilityLevel().equals(neededVersion);
     }
 
     @Override
     public void getDefinitionAsXML(Element element) {
-        XMLTools.addTag(element, ELEMENT_CONDITION_VALUE, conditionParameter + "");
+        XMLTools.addTag(element, ELEMENT_VERSION, neededVersion.getLongVersion());
     }
+
+
 }

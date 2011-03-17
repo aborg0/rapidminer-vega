@@ -22,10 +22,14 @@
  */
 package com.rapidminer.parameter.conditions;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterHandler;
 
 /**
- * The ParameterCondition interface can be used to define dependencies 
+ * The ParameterCondition interface can be used to define dependencies
  * for parameter types, e.g. to show certain parameters only in cases
  * where another parameter has a specified value.
  * 
@@ -33,34 +37,86 @@ import com.rapidminer.parameter.ParameterHandler;
  */
 public abstract class ParameterCondition {
 
-	protected ParameterHandler parameterHandler;
+    private static final String ELEMENT_CONDITION = "Condition";
 
-	protected String conditionParameter;
+    private static final String ATTRIBUTE_CONDITION_PARAMETER = "depends-on";
 
-	protected boolean becomeMandatory;
+    private static final String ATTRIBUTE_MANDATORY = "is-becoming-mandatory";
 
-	public ParameterCondition(ParameterHandler parameterHandler, String conditionParameter, boolean becomeMandatory) {
-		this.parameterHandler = parameterHandler;
-		this.conditionParameter = conditionParameter;
-		this.becomeMandatory = becomeMandatory;
-	}
+    protected ParameterHandler parameterHandler;
 
-	/**
-	 * This returns true if the condition is met and if the ancestor type isn't hidden.
-	 */
-	final public boolean dependencyMet() {
+    protected String conditionParameter;
 
-		if (parameterHandler.getParameters().getParameterType(conditionParameter).isHidden())
-			return false;
-		return isConditionFullfilled();
-	}
+    protected boolean becomeMandatory;
 
-	/**
-	 * Subclasses have to implement this method in order to return if the condition is fulfilled.
-	 */
-	public abstract boolean isConditionFullfilled();
+    /**
+     * This constructor is the inverse to {@link #getDefinitionAsXML(Element)} and
+     * must be implemented by the subclasses. It will be called by reflection!
+     */
+    public ParameterCondition(Operator operator, Element conditionElement) {
+        this.parameterHandler = operator;
+        loadDefinitionFromXML(conditionElement);
+    }
 
-	public boolean becomeMandatory() {
-		return becomeMandatory;
-	}
+    /**
+     * This constructor can be used when this condition does not depend on any
+     * other parameter but outer conditions as for example the version of the operator.
+     */
+    public ParameterCondition(ParameterHandler parameterHandler, boolean becomeMandatory) {
+        this.parameterHandler = parameterHandler;
+        this.conditionParameter = null;
+        this.becomeMandatory = becomeMandatory;
+    }
+
+    public ParameterCondition(ParameterHandler parameterHandler, String conditionParameter, boolean becomeMandatory) {
+        this.parameterHandler = parameterHandler;
+        this.conditionParameter = conditionParameter;
+        this.becomeMandatory = becomeMandatory;
+    }
+
+    /**
+     * This returns true if the condition is met and if the ancestor type isn't hidden.
+     */
+    final public boolean dependencyMet() {
+        if (conditionParameter != null)
+            if (parameterHandler.getParameters().getParameterType(conditionParameter).isHidden())
+                return false;
+        return isConditionFullfilled();
+    }
+
+    /**
+     * Subclasses have to implement this method in order to return if the condition is fulfilled.
+     */
+    public abstract boolean isConditionFullfilled();
+
+    public boolean becomeMandatory() {
+        return becomeMandatory;
+    }
+
+    /**
+     * This must return an XML Element that represents this condition.
+     */
+    public final Element getDefinitionAsXML(Document document) {
+        Element conditionElement = document.createElement(ELEMENT_CONDITION);
+        conditionElement.setAttribute(ATTRIBUTE_MANDATORY, becomeMandatory + "");
+        conditionElement.setAttribute(ATTRIBUTE_CONDITION_PARAMETER, conditionParameter);
+
+        // add subclasses information
+        getDefinitionAsXML(conditionElement);
+
+        return conditionElement;
+    }
+
+    /**
+     * Subclasses must override this method and append all their properties to the given element.
+     * From this element they must be able to reload their definition.
+     */
+    public void getDefinitionAsXML(Element element) {
+        throw new UnsupportedOperationException("This Subclasses " + this.getClass().getCanonicalName() + " of the super type " + ParameterCondition.class.getCanonicalName() + " must override the method getDefinitionAsXML in order to make this work.");
+    }
+
+    private void loadDefinitionFromXML(Element element) {
+        this.conditionParameter = element.getAttribute(ATTRIBUTE_CONDITION_PARAMETER);
+        this.becomeMandatory = Boolean.valueOf(element.getAttribute(ATTRIBUTE_MANDATORY));
+    }
 }

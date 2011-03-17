@@ -22,6 +22,11 @@
  */
 package com.rapidminer.parameter;
 
+import org.w3c.dom.Element;
+
+import com.rapidminer.operator.Operator;
+import com.rapidminer.tools.XMLException;
+
 
 /**
  * A parameter type for boolean parameters. Operators ask for the boolean value
@@ -31,42 +36,55 @@ package com.rapidminer.parameter;
  */
 public class ParameterTypeBoolean extends ParameterTypeSingle {
 
-	private static final long serialVersionUID = 6524969076774489545L;
+    private static final long serialVersionUID = 6524969076774489545L;
 
-	private boolean defaultValue = false;
+    private static final String ATTRIBUTE_DEFAULT = "default";
 
-	public ParameterTypeBoolean(String key, String description, boolean defaultValue, boolean expert) {
-		this(key, description, defaultValue);
-		setExpert(expert);
-	}
+    private boolean defaultValue = false;
 
-	public ParameterTypeBoolean(String key, String description, boolean defaultValue) {
-		super(key, description);
-		this.defaultValue = defaultValue;
-	}
+    public ParameterTypeBoolean(Operator operator, Element element) throws XMLException {
+        super(operator, element);
+
+        this.defaultValue = Boolean.valueOf(element.getAttribute(ATTRIBUTE_DEFAULT));
+    }
+
+    public ParameterTypeBoolean(String key, String description, boolean defaultValue, boolean expert) {
+        this(key, description, defaultValue);
+        setExpert(expert);
+    }
+
+    public ParameterTypeBoolean(String key, String description, boolean defaultValue) {
+        super(key, description);
+        this.defaultValue = defaultValue;
+    }
 
 
 
-	public boolean getDefault() {
-		return defaultValue;
-	}
+    public boolean getDefault() {
+        return defaultValue;
+    }
 
-	@Override
-	public Object getDefaultValue() {
-		return Boolean.valueOf(defaultValue);
-	}
+    @Override
+    public Object getDefaultValue() {
+        return Boolean.valueOf(defaultValue);
+    }
 
-	@Override
-	public void setDefaultValue(Object defaultValue) {
-		this.defaultValue = (Boolean)defaultValue;
-	}
+    @Override
+    public void setDefaultValue(Object defaultValue) {
+        this.defaultValue = (Boolean)defaultValue;
+    }
 
-	/** Returns false. */
-	@Override
-	public boolean isNumerical() { return false; }
+    /** Returns false. */
+    @Override
+    public boolean isNumerical() { return false; }
 
-	@Override
-	public String getRange() {
-		return "boolean; default: " + defaultValue;
-	}
+    @Override
+    public String getRange() {
+        return "boolean; default: " + defaultValue;
+    }
+
+    @Override
+    public void getDefinitionAsXML(Element typeElement) {
+        typeElement.setAttribute(ATTRIBUTE_DEFAULT, defaultValue + "");
+    }
 }

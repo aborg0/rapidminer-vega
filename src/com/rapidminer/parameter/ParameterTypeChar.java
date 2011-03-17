@@ -22,6 +22,12 @@
  */
 package com.rapidminer.parameter;
 
+import org.w3c.dom.Element;
+
+import com.rapidminer.operator.Operator;
+import com.rapidminer.tools.XMLException;
+
+
 /**
  * A parameter type for char values. Operators ask for the value with
  * {@link com.rapidminer.operator.Operator#getParameterAsChar(String)}.
@@ -30,63 +36,63 @@ package com.rapidminer.parameter;
  */
 public class ParameterTypeChar extends ParameterTypeSingle {
 
-	private static final long serialVersionUID = 6451584265725535856L;
+    private static final long serialVersionUID = 6451584265725535856L;
 
-	private char defaultValue = '\0';
+    private static final String ATTRIBUTE_DEFAULT = null;
 
-	private boolean optional = false;
+    private char defaultValue = '\0';
 
-	public ParameterTypeChar(String key, String description, boolean optional, boolean expert) {
-		this(key, description, optional);
-		setExpert(expert);
-	}
+    public ParameterTypeChar(Operator operator, Element element) throws XMLException {
+        super(operator, element);
 
-	public ParameterTypeChar(String key, String description, boolean optional) {
-		super(key, description);
-		this.defaultValue = '\0';
-		this.optional = optional;
-		if (!optional)
-			setExpert(false);
-	}
+        defaultValue = element.getAttribute(ATTRIBUTE_DEFAULT).charAt(0);
+    }
 
-	public ParameterTypeChar(String key, String description) {
-		this(key, description, true);
-	}
+    public ParameterTypeChar(String key, String description, boolean optional, boolean expert) {
+        this(key, description, optional);
+        setExpert(expert);
+    }
 
-	public ParameterTypeChar(String key, String description, char defaultValue, boolean expert) {
-		this(key, description, defaultValue);
-		setExpert(expert);
-	}
-	public ParameterTypeChar(String key, String description, char defaultValue) {
-		this(key, description);
-		this.defaultValue = defaultValue;
-	}
+    public ParameterTypeChar(String key, String description, boolean optional) {
+        super(key, description);
+        this.defaultValue = '\0';
+        setOptional(optional);
+    }
 
-	public void setOptional(boolean optional) {
-		this.optional = optional;
-	}
+    public ParameterTypeChar(String key, String description) {
+        this(key, description, true);
+    }
 
-	@Override
-	public boolean isOptional() {
-		return super.isOptional() && optional;
-	}
+    public ParameterTypeChar(String key, String description, char defaultValue, boolean expert) {
+        this(key, description, defaultValue);
+        setExpert(expert);
+    }
+    public ParameterTypeChar(String key, String description, char defaultValue) {
+        this(key, description);
+        this.defaultValue = defaultValue;
+    }
 
-	@Override
-	public Object getDefaultValue() {
-		return defaultValue;
-	}
+    @Override
+    public Object getDefaultValue() {
+        return defaultValue;
+    }
 
-	@Override
-	public void setDefaultValue(Object defaultValue) {
-		this.defaultValue = ((String) defaultValue).charAt(0);
-	}
+    @Override
+    public void setDefaultValue(Object defaultValue) {
+        this.defaultValue = defaultValue.toString().charAt(0);
+    }
 
-	/** Returns false. */
-	@Override
-	public boolean isNumerical() { return false; }
+    /** Returns false. */
+    @Override
+    public boolean isNumerical() { return false; }
 
-	@Override
-	public String getRange() {
-		return "char" + ((defaultValue != '\0') ? ("; default: '" + defaultValue + "'") : "");
-	}
+    @Override
+    public String getRange() {
+        return "char" + ((defaultValue != '\0') ? ("; default: '" + defaultValue + "'") : "");
+    }
+
+    @Override
+    public void getDefinitionAsXML(Element typeElement) {
+        typeElement.setAttribute(ATTRIBUTE_DEFAULT, String.valueOf(defaultValue));
+    }
 }

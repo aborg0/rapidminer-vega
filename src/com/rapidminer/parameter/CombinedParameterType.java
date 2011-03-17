@@ -22,32 +22,28 @@
  */
 package com.rapidminer.parameter;
 
+import org.w3c.dom.Element;
+
+import com.rapidminer.operator.Operator;
+import com.rapidminer.tools.XMLException;
+
 
 /**
  * This is an abstract class for all ParameterTypes that are a combination
  * of several other {@link ParameterType}s.
- * 
+ * In fact it doesn't do anything...
  * @author Sebastian Land
  *
  */
 public abstract class CombinedParameterType extends ParameterType {
 
-	private static final long serialVersionUID = 1674072082952288334L;
+    private static final long serialVersionUID = 1674072082952288334L;
 
-	private ParameterType[] types;
-	/**
-	 * @param key
-	 * @param description
-	 */
-	public CombinedParameterType(String key, String description, ParameterType...types) {
-		super(key, description);
-		this.types = types;
-	}
+    public CombinedParameterType(String key, String description, ParameterType...types) {
+        super(key, description);
+    }
 
-	public boolean containsType(Class<? extends ParameterType> type) {
-		for (ParameterType member: types)
-			if (type.isAssignableFrom(member.getClass()))
-				return true;
-		return false;
-	}
+    public CombinedParameterType(Operator operator, Element element) throws XMLException {
+        super(operator, element);
+    }
 }

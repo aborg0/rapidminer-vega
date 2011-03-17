@@ -22,7 +22,11 @@
  */
 package com.rapidminer.parameter;
 
+import org.w3c.dom.Element;
 
+import com.rapidminer.io.process.XMLTools;
+import com.rapidminer.operator.Operator;
+import com.rapidminer.tools.XMLException;
 
 /**
  * A parameter type for categories. These are several Strings and one of these
@@ -30,102 +34,121 @@ package com.rapidminer.parameter;
  * {@link com.rapidminer.operator.Operator#getParameterAsInt(String)}.
  * 
  * @author Ingo Mierswa, Simon Fischer
- *          ingomierswa Exp $
  */
 public class ParameterTypeCategory extends ParameterTypeSingle {
 
-	private static final long serialVersionUID = 5747692587025691591L;
+    private static final long serialVersionUID = 5747692587025691591L;
 
-	private int defaultValue = 0;
+    private static final String ATTRIBUTE_DEFAULT = "default";
 
-	private String[] categories = new String[0];
+    private static final String ELEMENT_VALUES = "Values";
 
-	public ParameterTypeCategory(String key, String description, String[] categories, int defaultValue, boolean expert) {
-		this(key, description, categories, defaultValue);
-		setExpert(expert);
-	}
+    private static final String ELEMENT_VALUE = "Value";
 
-	public ParameterTypeCategory(String key, String description, String[] categories, int defaultValue) {
-		super(key, description);
-		this.categories = categories;
-		this.defaultValue = defaultValue;
-	}
+    private int defaultValue = 0;
 
-	@Override
-	public boolean isOptional() {
-		return super.isOptional() || (defaultValue != -1);
-	}
+    private String[] categories = new String[0];
 
-	public int getDefault() {
-		return defaultValue;
-	}
+    public ParameterTypeCategory(Operator operator, Element element) throws XMLException {
+        super(operator, element);
 
-	@Override
-	public Object getDefaultValue() {
-		if (defaultValue == -1) {
-			return null;
-		} else {
-			return categories[defaultValue];
-		}
-	}
+        defaultValue = Integer.parseInt(element.getAttribute(ATTRIBUTE_DEFAULT));
+        categories = XMLTools.getChildTagsContentAsStringArray(XMLTools.getChildElement(element, ELEMENT_VALUES, true), ELEMENT_VALUE);
+    }
 
-	@Override
-	public void setDefaultValue(Object defaultValue) {
-		this.defaultValue = (Integer)defaultValue;
-	}
+    public ParameterTypeCategory(String key, String description, String[] categories, int defaultValue, boolean expert) {
+        this(key, description, categories, defaultValue);
+        setExpert(expert);
+    }
 
-	/** Returns false. */
-	@Override
-	public boolean isNumerical() { return false; }
+    public ParameterTypeCategory(String key, String description, String[] categories, int defaultValue) {
+        super(key, description);
+        this.categories = categories;
+        this.defaultValue = defaultValue;
+    }
 
-	public String getCategory(int index) {
-		return categories[index];
-	}
+    public int getDefault() {
+        return defaultValue;
+    }
 
-	public int getIndex(String string) {
-		for (int i = 0; i < categories.length; i++) {
-			if (categories[i].equals(string)) {
-				return Integer.valueOf(i);
-			}
-		}
-		// try to interpret string as number
-		try {
-			return Integer.parseInt(string);
-		} catch (NumberFormatException e) {
-			return -1;
-		}
-	}
+    @Override
+    public Object getDefaultValue() {
+        if (defaultValue == -1) {
+            return null;
+        } else {
+            return categories[defaultValue];
+        }
+    }
 
-	@Override
-	public String toString(Object value) {
-		try {
-			if (value == null)
-				return null;
-			int index = Integer.parseInt(value.toString());
-			if (index >= categories.length)
-				return "";
-			return super.toString(categories[index]);
-		} catch (NumberFormatException e) {
-			return super.toString(value);
-		}
-	}
+    @Override
+    public void setDefaultValue(Object defaultValue) {
+        this.defaultValue = (Integer) defaultValue;
+    }
 
-	public String[] getValues() {
-		return categories;
-	}
+    /** Returns false. */
+    @Override
+    public boolean isNumerical() {
+        return false;
+    }
 
-	@Override
-	public String getRange() {
-		StringBuffer values = new StringBuffer();
-		for (int i = 0; i < categories.length; i++) {
-			if (i > 0)
-				values.append(", ");
-			values.append(categories[i]);
-		}
-		return values.toString() + "; default: " + categories[defaultValue];
-	}
+    public String getCategory(int index) {
+        return categories[index];
+    }
 
-	public int getNumberOfCategories() {
-		return categories.length;
-	}
+    public int getIndex(String string) {
+        for (int i = 0; i < categories.length; i++) {
+            if (categories[i].equals(string)) {
+                return Integer.valueOf(i);
+            }
+        }
+        // try to interpret string as number
+        try {
+            return Integer.parseInt(string);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    @Override
+    public String toString(Object value) {
+        try {
+            if (value == null)
+                return null;
+            int index = Integer.parseInt(value.toString());
+            if (index >= categories.length)
+                return "";
+            return super.toString(categories[index]);
+        } catch (NumberFormatException e) {
+            return super.toString(value);
+        }
+    }
+
+    public String[] getValues() {
+        return categories;
+    }
+
+    @Override
+    public String getRange() {
+        StringBuffer values = new StringBuffer();
+        for (int i = 0; i < categories.length; i++) {
+            if (i > 0)
+                values.append(", ");
+            values.append(categories[i]);
+        }
+        return values.toString() + "; default: " + categories[defaultValue];
+    }
+
+    public int getNumberOfCategories() {
+        return categories.length;
+    }
+
+    @Override
+    public void getDefinitionAsXML(Element typeElement) {
+        typeElement.setAttribute(ATTRIBUTE_DEFAULT, defaultValue + "");
+
+        Element valuesElement = XMLTools.addTag(typeElement, ELEMENT_VALUES);
+        for (String category : categories) {
+            XMLTools.addTag(valuesElement, ELEMENT_VALUE, category);
+        }
+    }
 }

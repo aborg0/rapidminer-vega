@@ -22,72 +22,49 @@
  */
 package com.rapidminer.parameter;
 
-import java.util.Vector;
+import org.w3c.dom.Element;
 
+import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.ports.InputPort;
-import com.rapidminer.operator.ports.metadata.AttributeMetaData;
-import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.XMLException;
 
 
 /**
- * A parameter type for regular expressions.
+ * A parameter type for selecting several attributes.
+ * This is merely a copy of the {@link ParameterTypeAttribute}, since it
+ * already comes with all needed functions. But we register a different CellRenderer
+ * for this class.
  * 
- * @author Tobias Malbrecht
+ * @author Tobias Malbrecht, Sebastian Land
  */
-public class ParameterTypeAttributes extends ParameterTypeString {
+public class ParameterTypeAttributes extends ParameterTypeAttribute {
 
-	private static final long serialVersionUID = -4177652183651031337L;
+    private static final long serialVersionUID = -4177652183651031337L;
 
-	private transient InputPort inPort;
+    public ParameterTypeAttributes(Operator operator, Element element) throws XMLException {
+        super(operator, element);
+    }
 
-	private int[] allowedValueTypes;
+    public ParameterTypeAttributes(final String key, String description, InputPort inPort) {
+        this(key, description, inPort, true, Ontology.ATTRIBUTE_VALUE);
+    }
 
-	public ParameterTypeAttributes(final String key, String description, InputPort inPort) {
-		this(key, description, inPort, true, Ontology.ATTRIBUTE_VALUE);
-	}
+    public ParameterTypeAttributes(final String key, String description, InputPort inPort, int...valueTypes) {
+        this(key, description, inPort, true, valueTypes);
+    }
 
-	public ParameterTypeAttributes(final String key, String description, InputPort inPort, int...valueTypes) {
-		this(key, description, inPort, true, valueTypes);
-	}
+    public ParameterTypeAttributes(final String key, String description, InputPort inPort, boolean optional) {
+        this(key, description, inPort, optional, Ontology.ATTRIBUTE_VALUE);
+    }
 
-	public ParameterTypeAttributes(final String key, String description, InputPort inPort, boolean optional) {
-		this(key, description, inPort, optional, Ontology.ATTRIBUTE_VALUE);
-	}
+    public ParameterTypeAttributes(final String key, String description, InputPort inPort, boolean optional, int...valueTypes) {
+        super(key, description, inPort, optional, valueTypes);
+    }
 
-	public ParameterTypeAttributes(final String key, String description, InputPort inPort, boolean optional, int...valueTypes) {
-		super(key, description, optional);
-		this.inPort = inPort;
-		this.allowedValueTypes = valueTypes;
-	}
-
-	public ParameterTypeAttributes(final String key, String description, InputPort inPort, boolean optional, boolean expert) {
-		this(key, description, inPort, optional);
-		setExpert(expert);
-
-	}
-
-	public Vector<String> getAttributeNames() {
-		Vector<String> names = new Vector<String>();
-		if (inPort != null) {
-			if (inPort.getMetaData() instanceof ExampleSetMetaData) {
-				ExampleSetMetaData emd = (ExampleSetMetaData) inPort.getMetaData();
-				for (AttributeMetaData amd : emd.getAllAttributes()) {
-					if (isOfAllowedType(amd.getValueType())) {
-						names.add(amd.getName());
-					}
-				}
-			}
-		}
-		return names;
-	}
-
-	private boolean isOfAllowedType(int valueType) {
-		boolean isAllowed = false;
-		for (int type: allowedValueTypes) {
-			isAllowed |= Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, type);
-		}
-		return isAllowed;
-	}
+    public ParameterTypeAttributes(final String key, String description, InputPort inPort, boolean optional, boolean expert) {
+        this(key, description, inPort, optional);
+        setExpert(expert);
+    }
 }
 

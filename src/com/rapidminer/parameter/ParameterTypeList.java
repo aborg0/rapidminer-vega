@@ -30,7 +30,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.rapidminer.MacroHandler;
+import com.rapidminer.io.process.XMLTools;
+import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.XMLException;
 
 /**
  * A parameter type for parameter lists. Operators ask for the list of the specified values with
@@ -46,203 +49,246 @@ import com.rapidminer.tools.Tools;
  */
 public class ParameterTypeList extends CombinedParameterType {
 
-	private static final long serialVersionUID = -6101604413822993455L;
+    private static final long serialVersionUID = -6101604413822993455L;
 
-	private List<String[]> defaultList = new LinkedList<String[]>();
+    private static final String ELEMENT_KEY_TYPE = "KeyType";
 
-	private final ParameterType valueType;
-	private final ParameterType keyType;
+    private static final String ELEMENT_VALUE_TYPE = "ValueType";
+    private static final String ELEMENT_DEFAULT_ENTRIES = "DefaultEntries";
+    private static final String ELEMENT_ENTRY= "Entry";
+    private static final String ATTRIBUTE_KEY= "key";
+    private static final String ATTRIBUTE_VALUE= "value";
 
-	@Deprecated
-	/**
-	 * This constructor is deprecated, because it does not provide enough information for user guidance
-	 */
-	public ParameterTypeList(String key, String description, ParameterType valueType) {
-		this(key, description, valueType, new LinkedList<String[]>());
-	}
 
-	@Deprecated
-	/**
-	 * This constructor is deprecated, because it does not provide enough information for user guidance
-	 */
-	public ParameterTypeList(String key, String description, ParameterType valueType, List<String[]> defaultList) {
-		super(key, description);
-		this.defaultList = defaultList;
-		this.valueType = valueType;
-		this.keyType = new ParameterTypeString(key, description);
-		if (valueType.getDescription() == null)
-			valueType.setDescription(description);
-	}
+    private List<String[]> defaultList = new LinkedList<String[]>();
 
-	public ParameterTypeList(String key, String description, ParameterType keyType, ParameterType valueType, boolean expert) {
-		this(key, description, keyType, valueType, new LinkedList<String[]>());
-		setExpert(expert);
-	}
+    private final ParameterType valueType;
+    private final ParameterType keyType;
 
-	public ParameterTypeList(String key, String description, ParameterType keyType, ParameterType valueType) {
-		this(key, description, keyType, valueType, new LinkedList<String[]>());
-	}
 
-	public ParameterTypeList(String key, String description, ParameterType keyType, ParameterType valueType, List<String[]> defaultList, boolean expert) {
-		this(key, description, keyType, valueType, defaultList);
-		setExpert(expert);
-	}
+    public ParameterTypeList(Operator operator, Element element) throws XMLException {
+        super(operator, element);
 
-	public ParameterTypeList(String key, String description, ParameterType keyType, ParameterType valueType, List<String[]> defaultList) {
-		super(key, description, keyType, valueType);
-		this.defaultList = defaultList;
-		this.valueType = valueType;
-		this.keyType = keyType;
-	}
+        valueType = ParameterType.createType(operator, XMLTools.getChildElement(element, ELEMENT_VALUE_TYPE, true));
+        keyType = ParameterType.createType(operator, XMLTools.getChildElement(element, ELEMENT_KEY_TYPE, true));
 
-	public ParameterType getValueType() {
-		return valueType;
-	}
+        // now default values
+        Element defaultEntriesElement = XMLTools.getChildElement(element, ELEMENT_DEFAULT_ENTRIES, true);
+        for (Element entryElement: XMLTools.getChildElements(defaultEntriesElement, ELEMENT_ENTRY)) {
+            defaultList.add(new String[] {entryElement.getAttribute(ATTRIBUTE_KEY), entryElement.getAttribute(ATTRIBUTE_VALUE)});
+        }
+    }
 
-	public ParameterType getKeyType() {
-		return keyType;
-	}
 
-	@Override
-	public Object getDefaultValue() {
-		return defaultList;
-	}
+    @Deprecated
+    /**
+     * This constructor is deprecated, because it does not provide enough information for user guidance
+     */
+    public ParameterTypeList(String key, String description, ParameterType valueType) {
+        this(key, description, valueType, new LinkedList<String[]>());
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	// TODO: Introduce Typing??
-	public void setDefaultValue(Object defaultValue) {
-		this.defaultList = (List<String[]>) defaultValue;
-	}
+    @Deprecated
+    /**
+     * This constructor is deprecated, because it does not provide enough information for user guidance
+     */
+    public ParameterTypeList(String key, String description, ParameterType valueType, List<String[]> defaultList) {
+        super(key, description);
+        this.defaultList = defaultList;
+        this.valueType = valueType;
+        this.keyType = new ParameterTypeString(key, description);
+        if (valueType.getDescription() == null)
+            valueType.setDescription(description);
+    }
 
-	/** Returns false. */
-	@Override
-	public boolean isNumerical() {
-		return false;
-	}
+    public ParameterTypeList(String key, String description, ParameterType keyType, ParameterType valueType, boolean expert) {
+        this(key, description, keyType, valueType, new LinkedList<String[]>());
+        setExpert(expert);
+    }
 
-	@Override
-	public Element getXML(String key, String value, boolean hideDefault, Document doc) {
-		Element element = doc.createElement("list");
-		element.setAttribute("key", key);
-		List list = null;
-		if (value != null) {
-			list = transformString2List(value);
-		} else {
-			list = (List) getDefaultValue();
-		}
-		if (list != null) {
-			for (Object object : list) {
-				Object[] entry = (Object[]) object;
-				element.appendChild(valueType.getXML((String) entry[0], entry[1].toString(), false, doc));
-			}
-		}
-		return element;
-	}
+    public ParameterTypeList(String key, String description, ParameterType keyType, ParameterType valueType) {
+        this(key, description, keyType, valueType, new LinkedList<String[]>());
+    }
 
-	/** @deprecated Replaced by DOM. */
-	@Override
-	@Deprecated
-	public String getXML(String indent, String key, String value, boolean hideDefault) {
-		StringBuffer result = new StringBuffer();
-		result.append(indent + "<list key=\"" + key + "\">" + Tools.getLineSeparator());
+    public ParameterTypeList(String key, String description, ParameterType keyType, ParameterType valueType, List<String[]> defaultList, boolean expert) {
+        this(key, description, keyType, valueType, defaultList);
+        setExpert(expert);
+    }
 
-		if (value != null) {
-			List list = Parameters.transformString2List(value);
-			Iterator i = list.iterator();
-			while (i.hasNext()) {
-				Object[] current = (Object[]) i.next();
-				result.append(valueType.getXML(indent + "  ", (String) current[0], current[1].toString(), false));
-			}
-		} else {
-			Object defaultValue = getDefaultValue();
-			if (defaultValue != null) {
-				List defaultList = (List) defaultValue;
-				Iterator i = defaultList.iterator();
-				while (i.hasNext()) {
-					Object[] current = (Object[]) i.next();
-					result.append(valueType.getXML(indent + "  ", (String) current[0], current[1].toString(), false));
-				}
-			}
-		}
-		result.append(indent + "</list>" + Tools.getLineSeparator());
-		return result.toString();
-	}
+    public ParameterTypeList(String key, String description, ParameterType keyType, ParameterType valueType, List<String[]> defaultList) {
+        super(key, description, keyType, valueType);
+        this.defaultList = defaultList;
+        this.valueType = valueType;
+        this.keyType = keyType;
+    }
 
-	@Override
-	public String getRange() {
-		return "list";
-	}
+    public ParameterType getValueType() {
+        return valueType;
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public String toString(Object value) {
-		return transformList2String((List<String[]>) value);
-	}
+    public ParameterType getKeyType() {
+        return keyType;
+    }
 
-	public static String transformList2String(List<String[]> parameterList) {
-		StringBuffer result = new StringBuffer();
-		Iterator<String[]> i = parameterList.iterator();
-		boolean first = true;
-		while (i.hasNext()) {
-			String[] objects = i.next();
-			if (objects.length != 2)
-				continue;
+    @Override
+    public Object getDefaultValue() {
+        return defaultList;
+    }
 
-			String firstToken = objects[0];
-			String secondToken = objects[1];
-			if (!first)
-				result.append(Parameters.RECORD_SEPARATOR);
-			if (secondToken != null) {
-				if (firstToken != null) {
-					result.append(firstToken);
-				}
-				result.append(Parameters.PAIR_SEPARATOR);
-				if (secondToken != null) {
-					result.append(secondToken);
-				}
-			}
-			first = false;
-		}
-		return result.toString();
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    // TODO: Introduce Typing??
+    public void setDefaultValue(Object defaultValue) {
+        this.defaultList = (List<String[]>) defaultValue;
+    }
 
-	public static List<String[]> transformString2List(String listString) {
-		List<String[]> result = new LinkedList<String[]>();
-		String[] splittedList = listString.split(Character.valueOf(Parameters.RECORD_SEPARATOR).toString());
-		for (String record : splittedList) {
-			if (record.length() > 0) {
-				String[] pair = record.split(Character.valueOf(Parameters.PAIR_SEPARATOR).toString());
-				if ((pair.length == 2) && (pair[0].length() > 0 && pair[1].length() > 0))
-					result.add(new String[] { pair[0], pair[1] });
-			}
-		}
-		return result;
-	}
+    /** Returns false. */
+    @Override
+    public boolean isNumerical() {
+        return false;
+    }
 
-	@Override
-	public String notifyOperatorRenaming(String oldOperatorName, String newOperatorName, String parameterValue) {
-		List<String[]> list = transformString2List(parameterValue);
-		for (String[] pair : list) {
-			pair[0] = keyType.notifyOperatorRenaming(oldOperatorName, newOperatorName, pair[0]);
-			pair[1] = valueType.notifyOperatorRenaming(oldOperatorName, newOperatorName, pair[1]);
-		}
-		return transformList2String(list);
-	}
-	
-	public String substituteMacros(String parameterValue, MacroHandler mh) {
-		if (parameterValue.indexOf("%{") == -1) {
-			return parameterValue;
-		}
-		List<String[]> list = transformString2List(parameterValue);
-		List<String[]> result = new LinkedList<String[]>();
-		for (String[] entry : list) {
-			result.add(new String[] {
-					getKeyType().substituteMacros(entry[0], mh),
-					getValueType().substituteMacros(entry[1], mh)
-			});
-		}
-		return transformList2String(result);	
-	}		
+    @Override
+    public Element getXML(String key, String value, boolean hideDefault, Document doc) {
+        Element element = doc.createElement("list");
+        element.setAttribute("key", key);
+        List list = null;
+        if (value != null) {
+            list = transformString2List(value);
+        } else {
+            list = (List) getDefaultValue();
+        }
+        if (list != null) {
+            for (Object object : list) {
+                Object[] entry = (Object[]) object;
+                element.appendChild(valueType.getXML((String) entry[0], entry[1].toString(), false, doc));
+            }
+        }
+        return element;
+    }
+
+    /** @deprecated Replaced by DOM. */
+    @Override
+    @Deprecated
+    public String getXML(String indent, String key, String value, boolean hideDefault) {
+        StringBuffer result = new StringBuffer();
+        result.append(indent + "<list key=\"" + key + "\">" + Tools.getLineSeparator());
+
+        if (value != null) {
+            List list = Parameters.transformString2List(value);
+            Iterator i = list.iterator();
+            while (i.hasNext()) {
+                Object[] current = (Object[]) i.next();
+                result.append(valueType.getXML(indent + "  ", (String) current[0], current[1].toString(), false));
+            }
+        } else {
+            Object defaultValue = getDefaultValue();
+            if (defaultValue != null) {
+                List defaultList = (List) defaultValue;
+                Iterator i = defaultList.iterator();
+                while (i.hasNext()) {
+                    Object[] current = (Object[]) i.next();
+                    result.append(valueType.getXML(indent + "  ", (String) current[0], current[1].toString(), false));
+                }
+            }
+        }
+        result.append(indent + "</list>" + Tools.getLineSeparator());
+        return result.toString();
+    }
+
+    @Override
+    public String getRange() {
+        return "list";
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public String toString(Object value) {
+        return transformList2String((List<String[]>) value);
+    }
+
+    public static String transformList2String(List<String[]> parameterList) {
+        StringBuffer result = new StringBuffer();
+        Iterator<String[]> i = parameterList.iterator();
+        boolean first = true;
+        while (i.hasNext()) {
+            String[] objects = i.next();
+            if (objects.length != 2)
+                continue;
+
+            String firstToken = objects[0];
+            String secondToken = objects[1];
+            if (!first)
+                result.append(Parameters.RECORD_SEPARATOR);
+            if (secondToken != null) {
+                if (firstToken != null) {
+                    result.append(firstToken);
+                }
+                result.append(Parameters.PAIR_SEPARATOR);
+                if (secondToken != null) {
+                    result.append(secondToken);
+                }
+            }
+            first = false;
+        }
+        return result.toString();
+    }
+
+    public static List<String[]> transformString2List(String listString) {
+        List<String[]> result = new LinkedList<String[]>();
+        String[] splittedList = listString.split(Character.valueOf(Parameters.RECORD_SEPARATOR).toString());
+        for (String record : splittedList) {
+            if (record.length() > 0) {
+                String[] pair = record.split(Character.valueOf(Parameters.PAIR_SEPARATOR).toString());
+                if ((pair.length == 2) && (pair[0].length() > 0 && pair[1].length() > 0))
+                    result.add(new String[] { pair[0], pair[1] });
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public String notifyOperatorRenaming(String oldOperatorName, String newOperatorName, String parameterValue) {
+        List<String[]> list = transformString2List(parameterValue);
+        for (String[] pair : list) {
+            pair[0] = keyType.notifyOperatorRenaming(oldOperatorName, newOperatorName, pair[0]);
+            pair[1] = valueType.notifyOperatorRenaming(oldOperatorName, newOperatorName, pair[1]);
+        }
+        return transformList2String(list);
+    }
+
+    @Override
+    public String substituteMacros(String parameterValue, MacroHandler mh) {
+        if (parameterValue.indexOf("%{") == -1) {
+            return parameterValue;
+        }
+        List<String[]> list = transformString2List(parameterValue);
+        List<String[]> result = new LinkedList<String[]>();
+        for (String[] entry : list) {
+            result.add(new String[] {
+                    getKeyType().substituteMacros(entry[0], mh),
+                    getValueType().substituteMacros(entry[1], mh)
+            });
+        }
+        return transformList2String(result);
+    }
+
+
+    @Override
+    public void getDefinitionAsXML(Element typeElement) {
+        Element keyTypeElement = XMLTools.addTag(typeElement, ELEMENT_KEY_TYPE);
+        keyType.getDefinitionAsXML(keyTypeElement);
+
+        Element valueTypeElement = XMLTools.addTag(typeElement, ELEMENT_VALUE_TYPE);
+        valueType.getDefinitionAsXML(valueTypeElement);
+
+        // now default list
+        Element defaultEntriesElement = XMLTools.addTag(typeElement, ELEMENT_DEFAULT_ENTRIES);
+        for (String[] pair: defaultList) {
+            Element defaultEntryElement = XMLTools.addTag(defaultEntriesElement, ELEMENT_ENTRY);
+            defaultEntryElement.setAttribute(ATTRIBUTE_KEY, pair[0]);
+            defaultEntryElement.setAttribute(ATTRIBUTE_VALUE, pair[1]);
+        }
+    }
 
 }

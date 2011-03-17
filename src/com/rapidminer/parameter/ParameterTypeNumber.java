@@ -22,22 +22,30 @@
  */
 package com.rapidminer.parameter;
 
+import org.w3c.dom.Element;
+
+import com.rapidminer.operator.Operator;
+import com.rapidminer.tools.XMLException;
+
 /**
  * An abstract superclass for all numerical parameter types.
  * 
  * @author Simon Fischer, Ingo Mierswa
- *          Exp $
  */
 public abstract class ParameterTypeNumber extends ParameterTypeSingle {
 
-	private static final long serialVersionUID = 1733078666760192282L;
+    private static final long serialVersionUID = 1733078666760192282L;
 
-	public ParameterTypeNumber(String key, String description) {
-		super(key, description);
-	}
+    public ParameterTypeNumber(Operator operator, Element element) throws XMLException {
+        super(operator, element);
+    }
 
-	public abstract double getMinValue();
+    public ParameterTypeNumber(String key, String description) {
+        super(key, description);
+    }
 
-	public abstract double getMaxValue();
+    public abstract double getMinValue();
+
+    public abstract double getMaxValue();
 
 }

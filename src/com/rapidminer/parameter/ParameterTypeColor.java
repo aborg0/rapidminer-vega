@@ -31,40 +31,39 @@ import com.rapidminer.tools.LogService;
  * {@link com.rapidminer.operator.Operator#getParameterAsColor(String)}.
  * 
  * @author Ingo Mierswa
- *          Exp $
  */
 public class ParameterTypeColor extends ParameterTypeString {
 
-	private static final long serialVersionUID = 2205857626001106753L;
+    private static final long serialVersionUID = 2205857626001106753L;
 
-	public ParameterTypeColor(String key, String description, Color defaultColor) {
-		super(key, description, color2String(defaultColor));
-	}
+    public ParameterTypeColor(String key, String description, Color defaultColor) {
+        super(key, description, color2String(defaultColor));
+    }
 
-	public ParameterTypeColor(String key, String description, String defaultColor) {
-		super(key, description, defaultColor);
-	}
+    public ParameterTypeColor(String key, String description, String defaultColor) {
+        super(key, description, defaultColor);
+    }
 
-	public static String color2String(Color color) {
-		return color.getRed() + "," + color.getGreen() + "," + color.getBlue();
-	}
+    public static String color2String(Color color) {
+        return color.getRed() + "," + color.getGreen() + "," + color.getBlue();
+    }
 
-	@Override
-	public String getRange() {
-		return "colors";
-	}
+    @Override
+    public String getRange() {
+        return "colors";
+    }
 
-	public static Color string2Color(String colorString) {
-		try {
-			return Color.decode(colorString);
-		} catch (Exception e) {			
-			String[] colors = colorString.split(",");
-			if (colors.length == 3) {
-				return new Color(Integer.parseInt(colors[0]), Integer.parseInt(colors[1]), Integer.parseInt(colors[2]));
-			} else {
-				LogService.getRoot().warning("Cannot parse color: "+colorString);
-				return Color.BLACK;
-			}
-		}
-	}
+    public static Color string2Color(String colorString) {
+        try {
+            return Color.decode(colorString);
+        } catch (Exception e) {
+            String[] colors = colorString.split(",");
+            if (colors.length == 3) {
+                return new Color(Integer.parseInt(colors[0]), Integer.parseInt(colors[1]), Integer.parseInt(colors[2]));
+            } else {
+                LogService.getRoot().warning("Cannot parse color: "+colorString);
+                return Color.BLACK;
+            }
+        }
+    }
 }

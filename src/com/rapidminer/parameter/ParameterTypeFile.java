@@ -22,53 +22,70 @@
  */
 package com.rapidminer.parameter;
 
+import org.w3c.dom.Element;
+
+import com.rapidminer.operator.Operator;
+import com.rapidminer.tools.XMLException;
+
 /**
  * A parameter type for files. Operators ask for the selected file with
- * {@link com.rapidminer.operator.Operator#getParameterAsFile(String)}. The 
+ * {@link com.rapidminer.operator.Operator#getParameterAsFile(String)}. The
  * extension should be defined without the point (separator).
  * 
  * @author Ingo Mierswa, Simon Fischer
  */
 public class ParameterTypeFile extends ParameterTypeString {
 
-	private static final long serialVersionUID = -1350352634043084406L;
+    private static final long serialVersionUID = -1350352634043084406L;
 
-	private String extension = null;
+    private static final String ATTRIBUTE_EXTENSION = "extension";
 
-	/** Creates a new parameter type for files with the given extension. If the extension is null
-	 *  no file filters will be used. If the parameter is not optional, it is set to be not expert.*/
-	public ParameterTypeFile(String key, String description, String extension, boolean optional) {
-		super(key, description, null);
-		setOptional(optional);
-		if (!optional)
-			setExpert(false);
-		this.extension = extension;
-	}
+    private String extension = null;
 
-	/** Creates a new parameter type for file with the given extension. If the extension is null
-	 *  no file filters will be used. The parameter will be optional. */
-	public ParameterTypeFile(String key, String description, String extension, String defaultFileName) {
-		super(key, description, defaultFileName);
-		setOptional(true);
-		this.extension = extension;
-	}
+    public ParameterTypeFile(Operator operator, Element element) throws XMLException {
+        super(operator, element);
+        if (element.hasAttribute(ATTRIBUTE_EXTENSION))
+            this.extension = element.getAttribute(ATTRIBUTE_EXTENSION);
+    }
 
-	public ParameterTypeFile(String key, String description, String extension, boolean optional, boolean expert) {
-		this(key, description, extension, optional);
-		setExpert(expert);
-	}
+    /** Creates a new parameter type for files with the given extension. If the extension is null
+     *  no file filters will be used. If the parameter is not optional, it is set to be not expert.*/
+    public ParameterTypeFile(String key, String description, String extension, boolean optional) {
+        super(key, description, null);
+        setOptional(optional);
+        this.extension = extension;
+    }
 
-	public String getExtension() {
-		return extension;	
-	}
+    /** Creates a new parameter type for file with the given extension. If the extension is null
+     *  no file filters will be used. The parameter will be optional. */
+    public ParameterTypeFile(String key, String description, String extension, String defaultFileName) {
+        super(key, description, defaultFileName);
+        this.extension = extension;
+    }
 
-	public void setExtension(String extension) {
-		this.extension = extension;
-	}
+    public ParameterTypeFile(String key, String description, String extension, boolean optional, boolean expert) {
+        this(key, description, extension, optional);
+        setExpert(expert);
+    }
 
-	@Override
-	public String getRange() {
-		return "filename";
-	}
+    public String getExtension() {
+        return extension;
+    }
+
+    public void setExtension(String extension) {
+        this.extension = extension;
+    }
+
+    @Override
+    public String getRange() {
+        return "filename";
+    }
+
+    @Override
+    public void getDefinitionAsXML(Element typeElement) {
+        super.getDefinitionAsXML(typeElement);
+        if (extension != null)
+            typeElement.setAttribute(ATTRIBUTE_EXTENSION, extension);
+    }
 
 }

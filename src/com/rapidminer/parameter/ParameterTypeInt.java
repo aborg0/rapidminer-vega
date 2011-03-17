@@ -22,133 +22,151 @@
  */
 package com.rapidminer.parameter;
 
+import org.w3c.dom.Element;
+
+import com.rapidminer.operator.Operator;
+import com.rapidminer.tools.XMLException;
+
 /**
  * A parameter type for integer values. Operators ask for the integer value with
  * {@link com.rapidminer.operator.Operator#getParameterAsInt(String)}. For
  * infinite ranges Integer.MIN_VALUE and Integer.MAX_VALUE should be used.
  * 
  * @author Ingo Mierswa, Simon Fischer
- *          Exp $
  */
 public class ParameterTypeInt extends ParameterTypeNumber {
 
-	private static final long serialVersionUID = -7360090072467405524L;
+    private static final long serialVersionUID = -7360090072467405524L;
 
-	private int defaultValue = -1;
+    private static final String ATTRIBUTE_DEFAULT = "default";
 
-	private int min = Integer.MIN_VALUE;
+    private static final String ATTRIBUTE_MAX = "max";
 
-	private int max = Integer.MAX_VALUE;
+    private static final String ATTRIBUTE_MIN = "min";
 
-	private boolean noDefault = true;
+    private int defaultValue = -1;
 
-	private boolean optional = true;
+    private int min = Integer.MIN_VALUE;
 
-	public ParameterTypeInt(String key, String description, int min, int max) {
-		this(key, description, min, max, -1);
-		this.noDefault = true;
-		optional = false;
-	}
+    private int max = Integer.MAX_VALUE;
 
-	public ParameterTypeInt(String key, String description, int min, int max, boolean optional) {
-		this(key, description, min, max, -1);
-		this.noDefault = true;
-		this.optional = optional;
-		if (!optional)
-			setExpert(false);
-	}
+    private boolean noDefault = true;
 
-	public ParameterTypeInt(String key, String description, int min, int max, int defaultValue) {
-		super(key, description);
-		this.defaultValue = defaultValue;
-		this.min = min;
-		this.max = max;
-		this.noDefault = false;
-		this.optional = true;
-	}
+    public ParameterTypeInt(Operator operator, Element element) throws XMLException {
+        super(operator, element);
 
-	public ParameterTypeInt(String key, String description, int min, int max, int defaultValue, boolean expert) {	
-		this(key, description, min, max, defaultValue);
-		setExpert(expert);
-	}
+        noDefault = element.hasAttribute(ATTRIBUTE_DEFAULT);
+        if (!noDefault)
+            defaultValue = Integer.parseInt(element.getAttribute(ATTRIBUTE_DEFAULT));
+        max = Integer.parseInt(element.getAttribute(ATTRIBUTE_MAX));
+        min = Integer.parseInt(element.getAttribute(ATTRIBUTE_MIN));
+    }
+    public ParameterTypeInt(String key, String description, int min, int max) {
+        this(key, description, min, max, -1);
+        this.noDefault = true;
+        setOptional(false);
+    }
 
-	public void setMinValue(int min) {
-		this.min = min;
-	}
+    public ParameterTypeInt(String key, String description, int min, int max, boolean optional) {
+        this(key, description, min, max, -1);
+        this.noDefault = true;
+        setOptional(optional);
+    }
 
-	public void getMaxValue(int max) {
-		this.max = max;
-	}
+    public ParameterTypeInt(String key, String description, int min, int max, int defaultValue) {
+        super(key, description);
+        this.defaultValue = defaultValue;
+        this.min = min;
+        this.max = max;
+        this.noDefault = false;
+    }
 
-	@Override
-	public double getMinValue() {
-		return min;
-	}
+    public ParameterTypeInt(String key, String description, int min, int max, int defaultValue, boolean expert) {
+        this(key, description, min, max, defaultValue);
+        setExpert(expert);
+    }
 
-	@Override
-	public double getMaxValue() {
-		return max;
-	}
+    public void setMinValue(int min) {
+        this.min = min;
+    }
 
-	public int getMinValueInt() {
-		return min;
-	}
+    public void getMaxValue(int max) {
+        this.max = max;
+    }
 
-	public int getMaxValueInt() {
-		return max;
-	}
+    @Override
+    public double getMinValue() {
+        return min;
+    }
 
-	public int getDefaultInt() {
-		return defaultValue;
-	}
+    @Override
+    public double getMaxValue() {
+        return max;
+    }
 
-	@Override
-	public boolean isOptional() {
-		return super.isOptional() && optional;
-	}
+    public int getMinValueInt() {
+        return min;
+    }
 
-	@Override
-	public Object getDefaultValue() {
-		if (noDefault)
-			return null;
-		else
-			return Integer.valueOf(defaultValue);
-	}
+    public int getMaxValueInt() {
+        return max;
+    }
 
-	@Override
-	public void setDefaultValue(Object defaultValue) {
-		this.defaultValue = (Integer)defaultValue;
-	}
+    public int getDefaultInt() {
+        return defaultValue;
+    }
 
-	/** Returns true. */
-	@Override
-	public boolean isNumerical() { return true; }
+    @Override
+    public Object getDefaultValue() {
+        if (noDefault)
+            return null;
+        else
+            return Integer.valueOf(defaultValue);
+    }
 
-	@Override
-	public String getRange() {
-		String range = "integer; ";
-		if (min == -Integer.MAX_VALUE)
-			range += "-\u221E";
-		else
-			range += min;
-		range += "-";
-		if (max == Integer.MAX_VALUE)
-			range += "+\u221E";
-		else
-			range += max;
-		if (!noDefault) {
-			range += "; default: " + getStringRepresentation(defaultValue);
-		}
-		return range;
-	}
+    @Override
+    public void setDefaultValue(Object defaultValue) {
+        this.defaultValue = (Integer)defaultValue;
+    }
 
-	public String getStringRepresentation(int value) {
-		String valueString = value + "";
-		if (value == Integer.MAX_VALUE) {
-			valueString = "+\u221E";
-		} else if (value == Integer.MIN_VALUE) {
-			valueString = "-\u221E";
-		}
-		return valueString;
-	}
+    /** Returns true. */
+    @Override
+    public boolean isNumerical() { return true; }
+
+    @Override
+    public String getRange() {
+        String range = "integer; ";
+        if (min == -Integer.MAX_VALUE)
+            range += "-\u221E";
+        else
+            range += min;
+        range += "-";
+        if (max == Integer.MAX_VALUE)
+            range += "+\u221E";
+        else
+            range += max;
+        if (!noDefault) {
+            range += "; default: " + getStringRepresentation(defaultValue);
+        }
+        return range;
+    }
+
+    public String getStringRepresentation(int value) {
+        String valueString = value + "";
+        if (value == Integer.MAX_VALUE) {
+            valueString = "+\u221E";
+        } else if (value == Integer.MIN_VALUE) {
+            valueString = "-\u221E";
+        }
+        return valueString;
+    }
+
+    @Override
+    public void getDefinitionAsXML(Element typeElement) {
+        if (!noDefault)
+            typeElement.setAttribute(ATTRIBUTE_DEFAULT, defaultValue + "");
+
+        typeElement.setAttribute(ATTRIBUTE_MIN, min + "");
+        typeElement.setAttribute(ATTRIBUTE_MAX, max + "");
+    }
 }

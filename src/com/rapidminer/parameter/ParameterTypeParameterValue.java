@@ -22,43 +22,52 @@
  */
 package com.rapidminer.parameter;
 
+import org.w3c.dom.Element;
+
+import com.rapidminer.operator.Operator;
+import com.rapidminer.tools.XMLException;
+
 /**
  * Helper class for GUI purposes. This parameter type should hold information
  * about other parameter values, e.g. for the definition of the parameters for a
  * parameter optimization.
+ * Parameters of this type are never optional.
  * 
  * @author Ingo Mierswa
- *          ingomierswa Exp $
  */
 public class ParameterTypeParameterValue extends ParameterTypeSingle {
 
-	private static final long serialVersionUID = 5248919176004016189L;
+    private static final long serialVersionUID = 5248919176004016189L;
 
-	public ParameterTypeParameterValue(String key, String description) {
-		super(key, description);
-	}
+    public ParameterTypeParameterValue(Operator operator, Element element) throws XMLException {
+        super(operator, element);
+    }
 
-    @Override
-	public boolean isOptional() {
-        return false;
+    public ParameterTypeParameterValue(String key, String description) {
+        super(key, description);
+        setOptional(false);
     }
 
     /** Returns null. */
     @Override
-	public Object getDefaultValue() {
+    public Object getDefaultValue() {
         return null;
     }
-    
+
     /** Does nothing. */
     @Override
-	public void setDefaultValue(Object defaultValue) {}
+    public void setDefaultValue(Object defaultValue) {}
 
     @Override
-	public String getRange() {
+    public String getRange() {
         return "parameter values";
     }
-    
+
     /** Returns false. */
     @Override
-	public boolean isNumerical() { return false; }
+    public boolean isNumerical() { return false; }
+
+    @Override
+    public void getDefinitionAsXML(Element typeElement) {
+    }
 }

@@ -22,56 +22,31 @@
  */
 package com.rapidminer.parameter.conditions;
 
+import org.w3c.dom.Element;
+
+import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterHandler;
-import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.XMLException;
 
 /**
- * This condition checks if a string parameter (also string category) 
+ * This condition checks if a string parameter (also string category)
  * has NOT a certain value.
  * 
- * @author Ingo Mierswa
+ * @author Ingo Mierswa, Sebastian Land
  */
-public class NonEqualStringCondition extends ParameterCondition {
+public class NonEqualStringCondition extends EqualStringCondition {
 
-	private String[] types;
+    public NonEqualStringCondition(ParameterHandler handler, String conditionParameter, boolean becomeMandatory, String...types) {
+        super(handler, conditionParameter, becomeMandatory, types);
 
-	public NonEqualStringCondition(ParameterHandler handler, String conditionParameter, boolean becomeMandatory, String... types) {
-		super(handler, conditionParameter, becomeMandatory);
-		this.types = types;
-	}
+    }
 
-	@Override
-	public boolean isConditionFullfilled() {
-		boolean equals = false;
-		String isType;
-		try {
-			isType = parameterHandler.getParameterAsString(conditionParameter);
-		} catch (UndefinedParameterError e) {
-			return false;
-		} 
-		for (String type : types) {
-			if (type.equals(isType)) {
-				equals = true;
-				break;
-			}
-		}
-		return !equals;
-	}
+    public NonEqualStringCondition(Operator operator, Element element) throws XMLException {
+        super(operator, element);
+    }
 
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		if (types.length > 1) {
-			builder.append(conditionParameter.replace('_',' ') + " \u2209 {");
-			for (int i = 0; i < types.length; i++) {
-				builder.append(types[i]);
-				if (i + 1 < types.length)
-					builder.append(", ");
-			}
-			builder.append("}");
-		} else
-			if (types.length > 0)
-				builder.append(conditionParameter.replace('_',' ') + " \u2260 " + types[0]);
-		return builder.toString();
-	}
+    @Override
+    public boolean isConditionFullfilled() {
+        return !super.isConditionFullfilled();
+    }
 }

@@ -22,6 +22,12 @@
  */
 package com.rapidminer.parameter;
 
+import org.w3c.dom.Element;
+
+import com.rapidminer.io.process.XMLTools;
+import com.rapidminer.operator.Operator;
+import com.rapidminer.tools.XMLException;
+
 /**
  * A parameter type for String values. Operators ask for the value with
  * {@link com.rapidminer.operator.Operator#getParameterAsString(String)}.
@@ -30,67 +36,64 @@ package com.rapidminer.parameter;
  */
 public class ParameterTypeString extends ParameterTypeSingle {
 
-	private static final long serialVersionUID = 6451584265725535856L;
+    private static final long serialVersionUID = 6451584265725535856L;
 
-	private String defaultValue = null;
+    private static final String ELEMENT_DEFAULT = "Default";
 
-	private boolean optional = false;
+    private String defaultValue = null;
 
-	public ParameterTypeString(String key, String description, boolean optional, boolean expert) {
-		this(key, description, optional);
-		setExpert(expert);
-	}
+    public ParameterTypeString(Operator operator, Element element) throws XMLException {
+        super(operator, element);
 
-	public ParameterTypeString(String key, String description, boolean optional) {
-		super(key, description);
-		this.defaultValue = null;
-		this.optional = optional;
-		if (!optional)
-			setExpert(false);
-	}
+        defaultValue = XMLTools.getTagContents(element, ELEMENT_DEFAULT);
+    }
 
-	public ParameterTypeString(String key, String description) {
-		this(key, description, true);
-	}
+    public ParameterTypeString(String key, String description, boolean optional, boolean expert) {
+        this(key, description, optional);
+        setExpert(expert);
+    }
 
-	public ParameterTypeString(String key, String description, String defaultValue, boolean expert) {
-		this(key, description, defaultValue);
-		setExpert(expert);
-	}
-	public ParameterTypeString(String key, String description, String defaultValue) {
-		this(key, description);
-		this.defaultValue = defaultValue;
-	}
+    public ParameterTypeString(String key, String description, boolean optional) {
+        super(key, description);
+        this.defaultValue = null;
+        setOptional(optional);
+    }
 
-	public void setOptional(boolean optional) {
-		this.optional = optional;
-		if (!optional)
-			setExpert(false);
-	}
+    public ParameterTypeString(String key, String description) {
+        this(key, description, true);
+    }
 
-	@Override
-	public boolean isOptional() {
-		if (super.isOptional())
-			return optional;
-		return false;
-	}
+    public ParameterTypeString(String key, String description, String defaultValue, boolean expert) {
+        this(key, description, defaultValue);
+        setExpert(expert);
+    }
+    public ParameterTypeString(String key, String description, String defaultValue) {
+        this(key, description);
+        this.defaultValue = defaultValue;
+    }
 
-	@Override
-	public Object getDefaultValue() {
-		return defaultValue;
-	}
+    @Override
+    public Object getDefaultValue() {
+        return defaultValue;
+    }
 
-	@Override
-	public void setDefaultValue(Object defaultValue) {
-		this.defaultValue = (String)defaultValue;
-	}
+    @Override
+    public void setDefaultValue(Object defaultValue) {
+        this.defaultValue = (String)defaultValue;
+    }
 
-	/** Returns false. */
-	@Override
-	public boolean isNumerical() { return false; }
+    /** Returns false. */
+    @Override
+    public boolean isNumerical() { return false; }
 
-	@Override
-	public String getRange() {
-		return "string" + ((defaultValue != null) ? ("; default: '" + defaultValue + "'") : "");
-	}
+    @Override
+    public String getRange() {
+        return "string" + ((defaultValue != null) ? ("; default: '" + defaultValue + "'") : "");
+    }
+
+    @Override
+    public void getDefinitionAsXML(Element typeElement) {
+        if (defaultValue != null)
+            XMLTools.addTag(typeElement, ELEMENT_DEFAULT, defaultValue);
+    }
 }

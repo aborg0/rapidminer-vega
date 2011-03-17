@@ -156,4 +156,9 @@ public class ParameterTypeConfiguration extends ParameterType {
     public String substituteMacros(String parameterValue, MacroHandler mh) {
         return parameterValue;
     }
+
+    @Override
+    public void getDefinitionAsXML(Element typeElement) {
+        throw new UnsupportedOperationException("XML Definition not supported for this type");
+    }
 }

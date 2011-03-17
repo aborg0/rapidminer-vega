@@ -25,120 +25,150 @@ package com.rapidminer.parameter;
 import java.util.Collections;
 import java.util.Vector;
 
+import org.w3c.dom.Element;
+
+import com.rapidminer.io.process.XMLTools;
+import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.ModelMetaData;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.XMLException;
 
 /**
- * This attribute type supports the user by let him select an attribute name from a combo box 
+ * This attribute type supports the user by let him select an attribute name from a combo box
  * of known attribute names. For long lists, auto completition and filtering of the drop down menu
  * eases the handling.
  * For knowing attribute names before process execution a valid meta data transformation must be performed. Otherwise
  * the user might type in the name, instead of choosing.
+ * 
  * @author Sebastian Land
  */
 public class ParameterTypeAttribute extends ParameterTypeString {
 
-	private static final long serialVersionUID = -4177652183651031337L;
+    private static final long serialVersionUID = -4177652183651031337L;
 
-	private transient InputPort inPort;
+    private static final String ELEMENT_ALLOWED_TYPES = "AllowedTypes";
 
-	private int[] allowedValueTypes;
+    private static final String ELEMENT_ALLOWED_TYPE = "Type";
 
-	public ParameterTypeAttribute(final String key, String description, InputPort inPort) {
-		this(key, description, inPort, false);
-	}
+    private static final String ATTRIBUTE_INPUT_PORT = "port-name";
 
-	public ParameterTypeAttribute(final String key, String description, InputPort inPort, int...valueTypes) {
-		this(key, description, inPort, false, valueTypes);
-	}
+    private transient InputPort inPort;
 
-	public ParameterTypeAttribute(final String key, String description, InputPort inPort, boolean optional) {
-		this(key, description, inPort, optional, Ontology.ATTRIBUTE_VALUE);
-	}
+    private int[] allowedValueTypes;
 
-	public ParameterTypeAttribute(final String key, String description, InputPort inPort, boolean optional, boolean expert) {
-		this(key, description, inPort, optional, Ontology.ATTRIBUTE_VALUE);
-		setExpert(expert);
-	}
+    public ParameterTypeAttribute(Operator operator, Element element) throws XMLException {
+        super(operator, element);
+
+        allowedValueTypes = XMLTools.getChildTagsContentAsIntArray(XMLTools.getChildElement(element, ELEMENT_ALLOWED_TYPES, true), ELEMENT_ALLOWED_TYPE);
+        operator.getInputPorts().getPortByName(element.getAttribute(ATTRIBUTE_INPUT_PORT));
+    }
+
+    public ParameterTypeAttribute(final String key, String description, InputPort inPort) {
+        this(key, description, inPort, false);
+    }
+
+    public ParameterTypeAttribute(final String key, String description, InputPort inPort, int...valueTypes) {
+        this(key, description, inPort, false, valueTypes);
+    }
+
+    public ParameterTypeAttribute(final String key, String description, InputPort inPort, boolean optional) {
+        this(key, description, inPort, optional, Ontology.ATTRIBUTE_VALUE);
+    }
+
+    public ParameterTypeAttribute(final String key, String description, InputPort inPort, boolean optional, boolean expert) {
+        this(key, description, inPort, optional, Ontology.ATTRIBUTE_VALUE);
+        setExpert(expert);
+    }
 
 
-	public ParameterTypeAttribute(final String key, String description, InputPort inPort, boolean optional, boolean expert, int...valueTypes) {
-		this(key, description, inPort, optional, Ontology.ATTRIBUTE_VALUE);
-		setExpert(expert);
-		allowedValueTypes = valueTypes;
-	}
+    public ParameterTypeAttribute(final String key, String description, InputPort inPort, boolean optional, boolean expert, int...valueTypes) {
+        this(key, description, inPort, optional, Ontology.ATTRIBUTE_VALUE);
+        setExpert(expert);
+        allowedValueTypes = valueTypes;
+    }
 
 
-	public ParameterTypeAttribute(final String key, String description, InputPort inPort, boolean optional, int...valueTypes) {
-		super(key, description, optional);
-		this.inPort = inPort;
-		allowedValueTypes = valueTypes;
-	}
+    public ParameterTypeAttribute(final String key, String description, InputPort inPort, boolean optional, int...valueTypes) {
+        super(key, description, optional);
+        this.inPort = inPort;
+        allowedValueTypes = valueTypes;
+    }
 
-	public Vector<String> getAttributeNames() {
-		Vector<String> names = new Vector<String>();
-		Vector<String> regularNames = new Vector<String>();
-		
-		if (inPort != null) {
-			if (inPort.getMetaData() instanceof ExampleSetMetaData) {
-				ExampleSetMetaData emd = (ExampleSetMetaData) inPort.getMetaData();
-				for (AttributeMetaData amd : emd.getAllAttributes()) {
-					if (!isFilteredOut(amd) && isOfAllowedType(amd.getValueType())) {
-						if (amd.isSpecial())
-							names.add(amd.getName());
-						else
-							regularNames.add(amd.getName());
-					}
-						
-				}
-			} else if (inPort.getMetaData() instanceof ModelMetaData) {
-				ModelMetaData mmd = (ModelMetaData) inPort.getMetaData();
-				if (mmd != null) {
-					ExampleSetMetaData emd = mmd.getTrainingSetMetaData();
-					if (emd != null) {
-						for (AttributeMetaData amd : emd.getAllAttributes()) {
-							if (!isFilteredOut(amd) && isOfAllowedType(amd.getValueType()))
-								if (amd.isSpecial())
-									names.add(amd.getName());
-								else
-									regularNames.add(amd.getName());
-						}
-					}
-				}
-			}
-		}
-		Collections.sort(names);
-		Collections.sort(regularNames);
-		names.addAll(regularNames);
-		
-		return names;
-	}
+    public Vector<String> getAttributeNames() {
+        Vector<String> names = new Vector<String>();
+        Vector<String> regularNames = new Vector<String>();
 
-	private boolean isOfAllowedType(int valueType) {
-		boolean isAllowed = false;
-		for (int type: allowedValueTypes) {
-			isAllowed |= Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, type);
-		}
-		return isAllowed;
-	}
+        if (inPort != null) {
+            if (inPort.getMetaData() instanceof ExampleSetMetaData) {
+                ExampleSetMetaData emd = (ExampleSetMetaData) inPort.getMetaData();
+                for (AttributeMetaData amd : emd.getAllAttributes()) {
+                    if (!isFilteredOut(amd) && isOfAllowedType(amd.getValueType())) {
+                        if (amd.isSpecial())
+                            names.add(amd.getName());
+                        else
+                            regularNames.add(amd.getName());
+                    }
 
-	@Override
-	public Object getDefaultValue() {
-		return "";
-	}
+                }
+            } else if (inPort.getMetaData() instanceof ModelMetaData) {
+                ModelMetaData mmd = (ModelMetaData) inPort.getMetaData();
+                if (mmd != null) {
+                    ExampleSetMetaData emd = mmd.getTrainingSetMetaData();
+                    if (emd != null) {
+                        for (AttributeMetaData amd : emd.getAllAttributes()) {
+                            if (!isFilteredOut(amd) && isOfAllowedType(amd.getValueType()))
+                                if (amd.isSpecial())
+                                    names.add(amd.getName());
+                                else
+                                    regularNames.add(amd.getName());
+                        }
+                    }
+                }
+            }
+        }
+        Collections.sort(names);
+        Collections.sort(regularNames);
+        names.addAll(regularNames);
 
-	/** This method might be overridden by subclasses in order to 
-	 *  select attributes which are applicable
-	 */
-	protected boolean isFilteredOut(AttributeMetaData amd) {
-		return false;
-	};
-	
-	public InputPort getInputPort() {
-		return inPort;
-	}
+        return names;
+    }
+
+    private boolean isOfAllowedType(int valueType) {
+        boolean isAllowed = false;
+        for (int type: allowedValueTypes) {
+            isAllowed |= Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, type);
+        }
+        return isAllowed;
+    }
+
+    @Override
+    public Object getDefaultValue() {
+        return "";
+    }
+
+    /** This method might be overridden by subclasses in order to
+     *  select attributes which are applicable
+     */
+    protected boolean isFilteredOut(AttributeMetaData amd) {
+        return false;
+    };
+
+    public InputPort getInputPort() {
+        return inPort;
+    }
+
+    @Override
+    public void getDefinitionAsXML(Element typeElement) {
+        super.getDefinitionAsXML(typeElement);
+
+        typeElement.setAttribute(ATTRIBUTE_INPUT_PORT, inPort.getName());
+        Element allowedTypesElement = XMLTools.addTag(typeElement, ELEMENT_ALLOWED_TYPES);
+        for (int i = 0; i < allowedValueTypes.length; i++) {
+            XMLTools.addTag(allowedTypesElement, ELEMENT_ALLOWED_TYPE, allowedValueTypes[i] + "");
+        }
+    }
 }
 

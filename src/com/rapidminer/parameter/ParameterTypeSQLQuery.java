@@ -22,40 +22,54 @@
  */
 package com.rapidminer.parameter;
 
+import org.w3c.dom.Element;
 
+import com.rapidminer.operator.Operator;
+import com.rapidminer.tools.XMLException;
 
 /**
+ * A parameter type that has a specialized renderer for editing SQL queries.
+ * 
  * @author Tobias Malbrecht
  */
 public class ParameterTypeSQLQuery extends ParameterTypeSingle {
 
-	private static final long serialVersionUID = 5747692587025691591L;
+    private static final long serialVersionUID = 5747692587025691591L;
 
-	public ParameterTypeSQLQuery(String key, String description, boolean expert) {
-		this(key, description);
-		setExpert(expert);
-	}
+    public ParameterTypeSQLQuery(Operator operator, Element element) throws XMLException {
+        super(operator, element);
+    }
 
-	public ParameterTypeSQLQuery(String key, String description) {
-		super(key, description);
-	}
+    public ParameterTypeSQLQuery(String key, String description, boolean expert) {
+        this(key, description);
+        setExpert(expert);
+    }
 
-	/** Returns false. */
-	@Override
-	public boolean isNumerical() {
-		return false;
-	}
+    public ParameterTypeSQLQuery(String key, String description) {
+        super(key, description);
+    }
 
-	@Override
-	public Object getDefaultValue() {
-		return null;
-	}
+    /** Returns false. */
+    @Override
+    public boolean isNumerical() {
+        return false;
+    }
 
-	@Override
-	public String getRange() {
-		return null;
-	}
+    @Override
+    public Object getDefaultValue() {
+        return null;
+    }
 
-	@Override
-	public void setDefaultValue(Object defaultValue) {}
+    @Override
+    public String getRange() {
+        return null;
+    }
+
+    @Override
+    public void setDefaultValue(Object defaultValue) {
+    }
+
+    @Override
+    public void getDefinitionAsXML(Element typeElement) {
+    }
 }

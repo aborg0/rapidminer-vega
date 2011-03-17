@@ -22,90 +22,119 @@
  */
 package com.rapidminer.parameter;
 
+import org.w3c.dom.Element;
+
+import com.rapidminer.io.process.XMLTools;
+import com.rapidminer.operator.Operator;
+import com.rapidminer.tools.XMLException;
+
 /**
  * A parameter type for categories. These are several Strings and one of these
  * is the default value. Additionally users can define other strings than these
  * given in as pre-defined categories. Operators ask for the defined String with
- * the method
- * {@link com.rapidminer.operator.Operator#getParameterAsString(String)}.
+ * the method {@link com.rapidminer.operator.Operator#getParameterAsString(String)}.
  * 
  * @author Ingo Mierswa, Simon Fischer
  */
 public class ParameterTypeStringCategory extends ParameterTypeSingle {
 
-	private static final long serialVersionUID = 1620216625117563601L;
+    private static final long serialVersionUID = 1620216625117563601L;
 
-	private String defaultValue = null;
+    private static final String ELEMENT_DEFAULT = "default";
 
-	private String[] categories = new String[0];
+    private static final String ELEMENT_VALUES = "Values";
 
-	private boolean editable = true;
+    private static final String ELEMENT_VALUE = "Value";
 
-	public ParameterTypeStringCategory(String key, String description, String[] categories) {
-		this(key, description, categories, null);
-	}
+    private static final String ATTRIBUTE_IS_EDITABLE = "is-editable";
 
-	public ParameterTypeStringCategory(String key, String description, String[] categories, String defaultValue) {
-		this(key, description, categories, defaultValue, true);
-	}
 
-	public ParameterTypeStringCategory(String key, String description, String[] categories, String defaultValue, boolean editable) {
-		super(key, description);
-		this.categories = categories;
-		this.defaultValue = defaultValue;
-		this.editable = editable;
-	}
-	
-	@Override
-	public boolean isOptional() {
-		if (defaultValue == null && !super.isOptional()) {
-			return false;
-		} else {
-			return super.isOptional();
-		}
-	}
+    private String defaultValue = null;
 
-	public void setEditable(boolean editable) {
-		this.editable = editable;
-	}
+    private String[] categories = new String[0];
 
-	public boolean isEditable() {
-		return editable;
-	}
+    private boolean editable = true;
 
-	@Override
-	public Object getDefaultValue() {
-		return defaultValue;
-	}
+    public ParameterTypeStringCategory(Operator operator, Element element) throws XMLException {
+        super(operator, element);
 
-	@Override
-	public void setDefaultValue(Object defaultValue) {
-		this.defaultValue = (String)defaultValue;
-	}
+        editable = Boolean.valueOf(element.getAttribute(ATTRIBUTE_IS_EDITABLE));
+        defaultValue = XMLTools.getTagContents(element, ELEMENT_DEFAULT);
+        if (defaultValue == null)
+            setOptional(false);
+        categories = XMLTools.getChildTagsContentAsStringArray(XMLTools.getChildElement(element, ELEMENT_VALUES, true), ELEMENT_VALUE);
+    }
 
-	@Override
-	public String toString(Object value) {
-		return (String) value;
-	}
+    public ParameterTypeStringCategory(String key, String description, String[] categories) {
+        this(key, description, categories, null);
+    }
 
-	public String[] getValues() {
-		return categories;
-	}
+    public ParameterTypeStringCategory(String key, String description, String[] categories, String defaultValue) {
+        this(key, description, categories, defaultValue, true);
+    }
 
-	/** Returns false. */
-	@Override
-	public boolean isNumerical() { return false; }
+    public ParameterTypeStringCategory(String key, String description, String[] categories, String defaultValue, boolean editable) {
+        super(key, description);
+        this.categories = categories;
+        this.defaultValue = defaultValue;
+        this.editable = editable;
+        setOptional(defaultValue != null);
+    }
 
-	@Override
-	public String getRange() {
-		StringBuffer values = new StringBuffer();
-		for (int i = 0; i < categories.length; i++) {
-			if (i > 0)
-				values.append(", ");
-			values.append(categories[i]);
-		}
-		values.append((defaultValue != null) ? ("; default: '" + defaultValue + "'") : "");
-		return values.toString();
-	}
+    public void setEditable(boolean editable) {
+        this.editable = editable;
+    }
 
+    public boolean isEditable() {
+        return editable;
+    }
+
+    @Override
+    public Object getDefaultValue() {
+        return defaultValue;
+    }
+
+    @Override
+    public void setDefaultValue(Object defaultValue) {
+        this.defaultValue = (String) defaultValue;
+    }
+
+    @Override
+    public String toString(Object value) {
+        return (String) value;
+    }
+
+    public String[] getValues() {
+        return categories;
+    }
+
+    /** Returns false. */
+    @Override
+    public boolean isNumerical() {
+        return false;
+    }
+
+    @Override
+    public String getRange() {
+        StringBuffer values = new StringBuffer();
+        for (int i = 0; i < categories.length; i++) {
+            if (i > 0)
+                values.append(", ");
+            values.append(categories[i]);
+        }
+        values.append((defaultValue != null) ? ("; default: '" + defaultValue + "'") : "");
+        return values.toString();
+    }
+
+    @Override
+    public void getDefinitionAsXML(Element typeElement) {
+        typeElement.setAttribute(ATTRIBUTE_IS_EDITABLE, editable + "");
+        if (defaultValue != null)
+            XMLTools.addTag(typeElement, ELEMENT_DEFAULT, defaultValue + "");
+
+        Element valuesElement = XMLTools.addTag(typeElement, ELEMENT_VALUES);
+        for (String category : categories) {
+            XMLTools.addTag(valuesElement, ELEMENT_VALUE, category);
+        }
+    }
 }

@@ -22,6 +22,11 @@
  */
 package com.rapidminer.parameter;
 
+import org.w3c.dom.Element;
+
+import com.rapidminer.operator.Operator;
+import com.rapidminer.tools.XMLException;
+
 /**
  * A parameter type for longer texts. In the GUI this might lead to a button opening
  * a text editor.
@@ -29,23 +34,31 @@ package com.rapidminer.parameter;
  * @author Ingo Mierswa
  */
 public class ParameterTypeText extends ParameterTypeString {
-    
-	private static final long serialVersionUID = 8056689512740292084L;
-	
-	private TextType type = TextType.PLAIN;
-    
+
+    private static final long serialVersionUID = 8056689512740292084L;
+
+    private static final String ATTRIBUTE_TEXT_TYPE = "text-type";
+
+    private TextType type = TextType.PLAIN;
+
+    public ParameterTypeText(Operator operator, Element element) throws XMLException {
+        super(operator, element);
+
+        type = TextType.valueOf(element.getAttribute(ATTRIBUTE_TEXT_TYPE));
+    }
+
     /** Creates a new optional parameter type for longer texts. */
     public ParameterTypeText(String key, String description, TextType type) {
         super(key, description, true);
         setTextType(type);
     }
-    
+
     /** Creates a new parameter type for longer texts with the given default value. */
     public ParameterTypeText(String key, String description, TextType type, String defaultValue) {
         super(key, description, defaultValue);
         setTextType(type);
     }
-    
+
     /** Creates a new parameter type for longer texts. */
     public ParameterTypeText(String key, String description, TextType type, boolean optional) {
         super(key, description, optional);
@@ -55,8 +68,15 @@ public class ParameterTypeText extends ParameterTypeString {
     public void setTextType(TextType type) {
         this.type = type;
     }
-    
+
     public TextType getTextType() {
         return this.type;
+    }
+
+    @Override
+    public void getDefinitionAsXML(Element typeElement) {
+        super.getDefinitionAsXML(typeElement);
+
+        typeElement.setAttribute(ATTRIBUTE_TEXT_TYPE, type.toString());
     }
 }

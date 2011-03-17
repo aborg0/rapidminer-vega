@@ -26,7 +26,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.rapidminer.MacroHandler;
+import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.XMLException;
 
 /**
  * An abstract superclass for single, i.e. non-list, parameters.
@@ -35,89 +37,93 @@ import com.rapidminer.tools.Tools;
  */
 public abstract class ParameterTypeSingle extends ParameterType {
 
-	private static final long serialVersionUID = 1144201124955949715L;
+    private static final long serialVersionUID = 1144201124955949715L;
 
-	public ParameterTypeSingle(String key, String description) {
-		super(key, description);
-	}
+    public ParameterTypeSingle(Operator operator, Element element) throws XMLException {
+        super(operator, element);
+    }
 
-	@Override
-	public Element getXML(String key, String value, boolean hideDefault, Document doc) {
-		Element element = doc.createElement("parameter");
-		element.setAttribute("key", key);
-		if (value != null) {
-			if (toString(value).equals(toString(getDefaultValue()))) {
-				if (!hideDefault) {
-					element.setAttribute("value", value);
-				} else {
-					return null;
-				}
-			} else {
-				element.setAttribute("value", toXMLString(value));
-			}
-		} else {
-			if ((!hideDefault) && (getDefaultValue() != null)) {
-				element.setAttribute("value", getDefaultValue().toString());					
-			} else {
-				return null;
-			}
-		}
-		return element;
-	}
+    public ParameterTypeSingle(String key, String description) {
+        super(key, description);
+    }
 
-	@Override
-	public String getXML(String indent, String key, String value, boolean hideDefault) {
-		if (value != null) {
-			if (toString(value).equals(toString(getDefaultValue()))) {
-				if (!hideDefault) {
-					return (indent + "<parameter key=\"" + toXMLString(key) + "\"\tvalue=\"" + toXMLString(value) + "\"/>" + Tools.getLineSeparator());
-				} else {
-					return "";
-				}
-			} else {
-				return (indent + "<parameter key=\"" + toXMLString(key) + "\"\tvalue=\"" + toXMLString(value) + "\"/>" + Tools.getLineSeparator());
-			}
-		} else {
-			if ((!hideDefault) && (getDefaultValue() != null)) {
-				return (indent + "<parameter key=\"" + toXMLString(key) + "\"\tvalue=\"" + toXMLString(getDefaultValue()) + "\"/>" + Tools.getLineSeparator());	
-			} else {
-				return "";
-			}
-		}
-	}
+    @Override
+    public Element getXML(String key, String value, boolean hideDefault, Document doc) {
+        Element element = doc.createElement("parameter");
+        element.setAttribute("key", key);
+        if (value != null) {
+            if (toString(value).equals(toString(getDefaultValue()))) {
+                if (!hideDefault) {
+                    element.setAttribute("value", value);
+                } else {
+                    return null;
+                }
+            } else {
+                element.setAttribute("value", toXMLString(value));
+            }
+        } else {
+            if ((!hideDefault) && (getDefaultValue() != null)) {
+                element.setAttribute("value", getDefaultValue().toString());
+            } else {
+                return null;
+            }
+        }
+        return element;
+    }
 
-	/** Subclasses may override this method to transform the string before
-	 *  writing it to XML. {@link ParameterTypePassword} uses this to encrypt the string. */
-	public String toXMLString(String value) {
-		return value;
-	}
+    @Override
+    public String getXML(String indent, String key, String value, boolean hideDefault) {
+        if (value != null) {
+            if (toString(value).equals(toString(getDefaultValue()))) {
+                if (!hideDefault) {
+                    return (indent + "<parameter key=\"" + toXMLString(key) + "\"\tvalue=\"" + toXMLString(value) + "\"/>" + Tools.getLineSeparator());
+                } else {
+                    return "";
+                }
+            } else {
+                return (indent + "<parameter key=\"" + toXMLString(key) + "\"\tvalue=\"" + toXMLString(value) + "\"/>" + Tools.getLineSeparator());
+            }
+        } else {
+            if ((!hideDefault) && (getDefaultValue() != null)) {
+                return (indent + "<parameter key=\"" + toXMLString(key) + "\"\tvalue=\"" + toXMLString(getDefaultValue()) + "\"/>" + Tools.getLineSeparator());
+            } else {
+                return "";
+            }
+        }
+    }
+
+    /** Subclasses may override this method to transform the string before
+     *  writing it to XML. {@link ParameterTypePassword} uses this to encrypt the string. */
+    public String toXMLString(String value) {
+        return value;
+    }
 
 
-	@Override
-	public String substituteMacros(String parameterValue, MacroHandler mh) {
-		int startIndex = parameterValue.indexOf("%{");
-		if (startIndex == -1) {
-			return parameterValue;
-		}
-		try {		
-			StringBuffer result = new StringBuffer();
-			while (startIndex >= 0) {
-				result.append(parameterValue.substring(0, startIndex));
-				int endIndex = parameterValue.indexOf("}", startIndex + 2);
-				String macroString = parameterValue.substring(startIndex + 2, endIndex);
-				String macroValue = mh.getMacro(macroString);
-				if (macroValue != null) {
-					result.append(macroValue);
-				} else {
-					result.append("%{" + macroString + "}");
-				}
-				parameterValue = parameterValue.substring(endIndex + 1);
-				startIndex = parameterValue.indexOf("%{");
-			}
-			result.append(parameterValue);
-			return result.toString();
-		} catch (Exception e) {
-			return parameterValue;
-		}
-	}
+    @Override
+    public String substituteMacros(String parameterValue, MacroHandler mh) {
+        int startIndex = parameterValue.indexOf("%{");
+        if (startIndex == -1) {
+            return parameterValue;
+        }
+        try {
+            StringBuffer result = new StringBuffer();
+            while (startIndex >= 0) {
+                result.append(parameterValue.substring(0, startIndex));
+                int endIndex = parameterValue.indexOf("}", startIndex + 2);
+                String macroString = parameterValue.substring(startIndex + 2, endIndex);
+                String macroValue = mh.getMacro(macroString);
+                if (macroValue != null) {
+                    result.append(macroValue);
+                } else {
+                    result.append("%{" + macroString + "}");
+                }
+                parameterValue = parameterValue.substring(endIndex + 1);
+                startIndex = parameterValue.indexOf("%{");
+            }
+            result.append(parameterValue);
+            return result.toString();
+        } catch (Exception e) {
+            return parameterValue;
+        }
+    }
 }

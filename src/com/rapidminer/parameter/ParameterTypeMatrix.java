@@ -22,6 +22,12 @@
  */
 package com.rapidminer.parameter;
 
+import org.w3c.dom.Element;
+
+import com.rapidminer.io.process.XMLTools;
+import com.rapidminer.operator.Operator;
+import com.rapidminer.tools.XMLException;
+
 
 /**
  * A parameter type for parameter matrices. Operators ask for the matrix of the
@@ -32,57 +38,84 @@ package com.rapidminer.parameter;
  */
 public class ParameterTypeMatrix extends ParameterTypeString {
 
-	private static final long serialVersionUID = 0L;
-	
-	private boolean isSquared = false;
-	
-	private String baseName;
-	
-	private String rowBaseName;
-	
-	private String columnBaseName;
-	
-	public ParameterTypeMatrix(String key, String description, String baseName, String rowBaseName, String columnBaseName, boolean isSquared) {
-		this(key, description, baseName, rowBaseName, columnBaseName, isSquared, true);
-	}
-	
-	public ParameterTypeMatrix(String key, String description,  String baseName, String rowBaseName, String columnBaseName, boolean isSquared, boolean isOptional) {
-		super(key, description, isOptional);
-		this.isSquared = isSquared;
-		this.baseName = baseName;
-		this.rowBaseName = rowBaseName;
-		this.columnBaseName = columnBaseName;
-	}
+    private static final long serialVersionUID = 0L;
 
-	public boolean isSquared() {
-		return isSquared;
-	}
+    private static final String ATTRIBUTE_IS_SQUARED = null;
 
-	public void setSquared(boolean isSquared) {
-		this.isSquared = isSquared;
-	}
+    private static final String ELEMENT_NAME = null;
 
-	public String getBaseName() {
-		return baseName;
-	}
+    private static final String ELEMENT_COLUMN_NAME = null;
 
-	public void setBaseName(String baseName) {
-		this.baseName = baseName;
-	}
+    private static final String ELEMENT_ROW_NAME = null;
 
-	public String getRowBaseName() {
-		return rowBaseName;
-	}
+    private boolean isSquared = false;
 
-	public void setRowBaseName(String rowBaseName) {
-		this.rowBaseName = rowBaseName;
-	}
+    private String baseName;
 
-	public String getColumnBaseName() {
-		return columnBaseName;
-	}
+    private String rowBaseName;
 
-	public void setColumnBaseName(String columnBaseName) {
-		this.columnBaseName = columnBaseName;
-	}
+    private String columnBaseName;
+
+    public ParameterTypeMatrix(Operator operator, Element element) throws XMLException {
+        super(operator, element);
+
+        isSquared = Boolean.valueOf(element.getAttribute(ATTRIBUTE_IS_SQUARED));
+        baseName = XMLTools.getTagContents(element, ELEMENT_NAME, true);
+        rowBaseName = XMLTools.getTagContents(element, ELEMENT_ROW_NAME, true);
+        columnBaseName = XMLTools.getTagContents(element, ELEMENT_COLUMN_NAME, true);
+    }
+
+    public ParameterTypeMatrix(String key, String description, String baseName, String rowBaseName, String columnBaseName, boolean isSquared) {
+        this(key, description, baseName, rowBaseName, columnBaseName, isSquared, true);
+    }
+
+    public ParameterTypeMatrix(String key, String description,  String baseName, String rowBaseName, String columnBaseName, boolean isSquared, boolean isOptional) {
+        super(key, description, isOptional);
+        this.isSquared = isSquared;
+        this.baseName = baseName;
+        this.rowBaseName = rowBaseName;
+        this.columnBaseName = columnBaseName;
+    }
+
+    public boolean isSquared() {
+        return isSquared;
+    }
+
+    public void setSquared(boolean isSquared) {
+        this.isSquared = isSquared;
+    }
+
+    public String getBaseName() {
+        return baseName;
+    }
+
+    public void setBaseName(String baseName) {
+        this.baseName = baseName;
+    }
+
+    public String getRowBaseName() {
+        return rowBaseName;
+    }
+
+    public void setRowBaseName(String rowBaseName) {
+        this.rowBaseName = rowBaseName;
+    }
+
+    public String getColumnBaseName() {
+        return columnBaseName;
+    }
+
+    public void setColumnBaseName(String columnBaseName) {
+        this.columnBaseName = columnBaseName;
+    }
+
+    @Override
+    public void getDefinitionAsXML(Element typeElement) {
+        super.getDefinitionAsXML(typeElement);
+
+        typeElement.setAttribute(ATTRIBUTE_IS_SQUARED, isSquared + "");
+        XMLTools.setTagContents(typeElement, ELEMENT_NAME, baseName);
+        XMLTools.setTagContents(typeElement, ELEMENT_ROW_NAME, rowBaseName);
+        XMLTools.setTagContents(typeElement, ELEMENT_COLUMN_NAME, columnBaseName);
+    }
 }

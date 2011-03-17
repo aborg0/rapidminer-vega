@@ -29,153 +29,184 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.rapidminer.MacroHandler;
+import com.rapidminer.io.process.XMLTools;
+import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.XMLException;
 
 /**
+ * This is a parameter type that will present a list of values. This
+ * would have been made a better list than {@link ParameterTypeList} itself,
+ * which is more a mapping list with a pair of values.
+ * This one only has one inner type.
+ * 
  * @author Sebastian Land
- *
  */
 public class ParameterTypeEnumeration extends CombinedParameterType {
 
-	private static final long serialVersionUID = -3677952200700007724L;
-	private static final char ESCAPE_CHAR = '\\';
-	private static final char SEPERATOR_CHAR = ','; // Parameters.RECORD_SEPARATOR; //
-	private static final char[] SPECIAL_CHARACTERS = new char[] { SEPERATOR_CHAR };
-	
-	private Object defaultValue;
+    private static final long serialVersionUID = -3677952200700007724L;
 
-	private ParameterType type;
+    private static final String ELEMENT_CHILD_TYPE = "ChildType";
+    private static final String ELEMENT_DEFAULT_VALUE = "Default";
 
+    private static final char ESCAPE_CHAR = '\\';
+    private static final char SEPERATOR_CHAR = ','; // Parameters.RECORD_SEPARATOR; //
+    private static final char[] SPECIAL_CHARACTERS = new char[] { SEPERATOR_CHAR };
 
-	public ParameterTypeEnumeration(String key, String description, ParameterType parameterType) {
-		super(key, description, parameterType);
-		this.type = parameterType;
-	}
+    private Object defaultValue;
 
-	public ParameterTypeEnumeration(String key, String description, ParameterType parameterType, boolean expert) {	
-		this(key, description, parameterType);
-		setExpert(false);
-	}
+    private ParameterType type;
 
-	@Override
-	public Element getXML(String key, String value, boolean hideDefault, Document doc) {
-		Element element = doc.createElement("enumeration");
-		element.setAttribute("key", key);
-		String[] list = null;
-		if (value != null) {
-			list = transformString2Enumeration(value);
-		} else {
-			list = (String[]) getDefaultValue();
-		}
-		if (list != null) {
-			for (String string: list) {
-				element.appendChild(type.getXML(type.getKey(), string, false, doc));
-			}						
-		}		
-		return element;
-	}
+    public ParameterTypeEnumeration(Operator operator, Element element) throws XMLException {
+        super(operator, element);
 
-	@Override
-	@Deprecated
-	public String getXML(String indent, String key, String value, boolean hideDefault) {
-		return "";
-	}
-
-	@Override
-	public boolean isNumerical() {
-		return false;
-	}
-
-	@Override
-	public String getRange() {
-		return "enumeration";
-	}
-
-	@Override
-	public Object getDefaultValue() {
-		return defaultValue;
-	}
-
-	@Override
-	public String getDefaultValueAsString() {
-		if (defaultValue == null)
-			return null;
-		return getValueType().toString(defaultValue);
-	}
-	
-	@Override
-	public void setDefaultValue(Object defaultValue) {
-		this.defaultValue = defaultValue;
-	}
-
-	public ParameterType getValueType() {
-		return type;
-	}
-
-	@Override
-	public String notifyOperatorRenaming(String oldOperatorName, String newOperatorName, String parameterValue) {
-		String[] enumeratedValues = transformString2Enumeration(parameterValue);
-		for (int i = 0; i < enumeratedValues.length; i++) {
-			enumeratedValues[i] = type.notifyOperatorRenaming(oldOperatorName, newOperatorName, enumeratedValues[i]);
-		}
-		return transformEnumeration2String(Arrays.asList(enumeratedValues));
-
-	}
-	
-	public static String transformEnumeration2String(List<String> list) {
-		StringBuilder builder = new StringBuilder();
-		boolean isFirst = true;
-		for (String string : list) {
-			if (!isFirst)
-				builder.append(SEPERATOR_CHAR);
-			if (string != null) {
-				builder.append(Tools.escape(string, ESCAPE_CHAR, SPECIAL_CHARACTERS));
-			}
-			isFirst = false;
-		}
-		return builder.toString();
-	}
+        type = ParameterType.createType(operator, XMLTools.getChildElement(element, ELEMENT_CHILD_TYPE, true));
+        Element defaultValueElement = XMLTools.getChildElement(element, ELEMENT_DEFAULT_VALUE, false);
+        if (defaultValueElement != null)
+            defaultValue = defaultValueElement.getTextContent();
+    }
 
 
-	public static String[] transformString2Enumeration(String parameterValue) {
-		if (parameterValue == null || "".equals(parameterValue)) {
-			return new String[0];
-		}
-		List<String> split = Tools.unescape(parameterValue, ESCAPE_CHAR, SPECIAL_CHARACTERS, SEPERATOR_CHAR);
-		return split.toArray(new String[split.size()]);
-//
-//		if (parameterValue != null && !parameterValue.equals("")) {
-//			String[] unescaped = parameterValue.split("(?<=[^"+ ESCAPE_CHAR_REGEX + "])" + SEPERATOR_CHAR, -1);
-//			for (int i = 0; i < unescaped.length; i++) {
-//				unescaped[i] = unescape(unescaped[i]);
-//			}
-//			return unescaped;
-//		}
-//		return new String[0];
-	}
+    public ParameterTypeEnumeration(String key, String description, ParameterType parameterType) {
+        super(key, description, parameterType);
+        this.type = parameterType;
+    }
 
-//	private static String unescape(String escapedString) {
-//		escapedString = escapedString.replace(ESCAPE_CHAR + SEPERATOR_CHAR, SEPERATOR_CHAR);
-//		escapedString = escapedString.replace(ESCAPE_CHAR + ESCAPE_CHAR, ESCAPE_CHAR);
-//		return escapedString; 
-//	}
+    public ParameterTypeEnumeration(String key, String description, ParameterType parameterType, boolean expert) {
+        this(key, description, parameterType);
+        setExpert(false);
+    }
 
-//	private static String escape(String unescapedString) {
-//		unescapedString = unescapedString.replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR);
-//		return unescapedString.replace(SEPERATOR_CHAR, ESCAPE_CHAR + SEPERATOR_CHAR);
-//
-//	}
-	
-	@Override
-	public String substituteMacros(String parameterValue, MacroHandler mh) {
-		if (parameterValue.indexOf("%{") == -1) {
-			return parameterValue;
-		}
-		String[] list = transformString2Enumeration(parameterValue);
-		String[] result = new String[list.length];
-		for (int i = 0; i < list.length; i++) {
-			result[i] = getValueType().substituteMacros(list[i], mh);
-		}
-		return transformEnumeration2String(Arrays.asList(result));	
-	}	
+    @Override
+    public Element getXML(String key, String value, boolean hideDefault, Document doc) {
+        Element element = doc.createElement("enumeration");
+        element.setAttribute("key", key);
+        String[] list = null;
+        if (value != null) {
+            list = transformString2Enumeration(value);
+        } else {
+            list = (String[]) getDefaultValue();
+        }
+        if (list != null) {
+            for (String string: list) {
+                element.appendChild(type.getXML(type.getKey(), string, false, doc));
+            }
+        }
+        return element;
+    }
+
+    @Override
+    @Deprecated
+    public String getXML(String indent, String key, String value, boolean hideDefault) {
+        return "";
+    }
+
+    @Override
+    public boolean isNumerical() {
+        return false;
+    }
+
+    @Override
+    public String getRange() {
+        return "enumeration";
+    }
+
+    @Override
+    public Object getDefaultValue() {
+        return defaultValue;
+    }
+
+    @Override
+    public String getDefaultValueAsString() {
+        if (defaultValue == null)
+            return null;
+        return getValueType().toString(defaultValue);
+    }
+
+    @Override
+    public void setDefaultValue(Object defaultValue) {
+        this.defaultValue = defaultValue;
+    }
+
+    public ParameterType getValueType() {
+        return type;
+    }
+
+    @Override
+    public String notifyOperatorRenaming(String oldOperatorName, String newOperatorName, String parameterValue) {
+        String[] enumeratedValues = transformString2Enumeration(parameterValue);
+        for (int i = 0; i < enumeratedValues.length; i++) {
+            enumeratedValues[i] = type.notifyOperatorRenaming(oldOperatorName, newOperatorName, enumeratedValues[i]);
+        }
+        return transformEnumeration2String(Arrays.asList(enumeratedValues));
+
+    }
+
+    public static String transformEnumeration2String(List<String> list) {
+        StringBuilder builder = new StringBuilder();
+        boolean isFirst = true;
+        for (String string : list) {
+            if (!isFirst)
+                builder.append(SEPERATOR_CHAR);
+            if (string != null) {
+                builder.append(Tools.escape(string, ESCAPE_CHAR, SPECIAL_CHARACTERS));
+            }
+            isFirst = false;
+        }
+        return builder.toString();
+    }
+
+
+    public static String[] transformString2Enumeration(String parameterValue) {
+        if (parameterValue == null || "".equals(parameterValue)) {
+            return new String[0];
+        }
+        List<String> split = Tools.unescape(parameterValue, ESCAPE_CHAR, SPECIAL_CHARACTERS, SEPERATOR_CHAR);
+        return split.toArray(new String[split.size()]);
+        //
+        //		if (parameterValue != null && !parameterValue.equals("")) {
+        //			String[] unescaped = parameterValue.split("(?<=[^"+ ESCAPE_CHAR_REGEX + "])" + SEPERATOR_CHAR, -1);
+        //			for (int i = 0; i < unescaped.length; i++) {
+        //				unescaped[i] = unescape(unescaped[i]);
+        //			}
+        //			return unescaped;
+        //		}
+        //		return new String[0];
+    }
+
+    //	private static String unescape(String escapedString) {
+    //		escapedString = escapedString.replace(ESCAPE_CHAR + SEPERATOR_CHAR, SEPERATOR_CHAR);
+    //		escapedString = escapedString.replace(ESCAPE_CHAR + ESCAPE_CHAR, ESCAPE_CHAR);
+    //		return escapedString;
+    //	}
+
+    //	private static String escape(String unescapedString) {
+    //		unescapedString = unescapedString.replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR);
+    //		return unescapedString.replace(SEPERATOR_CHAR, ESCAPE_CHAR + SEPERATOR_CHAR);
+    //
+    //	}
+
+    @Override
+    public String substituteMacros(String parameterValue, MacroHandler mh) {
+        if (parameterValue.indexOf("%{") == -1) {
+            return parameterValue;
+        }
+        String[] list = transformString2Enumeration(parameterValue);
+        String[] result = new String[list.length];
+        for (int i = 0; i < list.length; i++) {
+            result[i] = getValueType().substituteMacros(list[i], mh);
+        }
+        return transformEnumeration2String(Arrays.asList(result));
+    }
+
+    @Override
+    public void getDefinitionAsXML(Element typeElement) {
+        Element childTypeElement = XMLTools.addTag(typeElement, ELEMENT_CHILD_TYPE);
+        type.getDefinitionAsXML(childTypeElement);
+
+        if (defaultValue instanceof String) {
+            XMLTools.addTag(typeElement, ELEMENT_DEFAULT_VALUE, defaultValue.toString());
+        }
+
+    }
 }

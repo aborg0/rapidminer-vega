@@ -22,8 +22,12 @@
  */
 package com.rapidminer.parameter;
 
+import org.w3c.dom.Element;
+
+import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.metadata.MetaData;
+import com.rapidminer.tools.XMLException;
 
 /**
  * This attribute type supports the user by letting him define an expression with a
@@ -38,7 +42,15 @@ public class ParameterTypeExpression extends ParameterTypeString {
 
     private static final long serialVersionUID = -1938925853519339382L;
 
+    private static final String ATTRIBUTE_INPUT_PORT = "port-name";
+
     private transient InputPort inPort;
+
+    public ParameterTypeExpression(Operator operator, Element element) throws XMLException {
+        super(operator, element);
+
+        operator.getInputPorts().getPortByName(element.getAttribute(ATTRIBUTE_INPUT_PORT));
+    }
 
     /**
      * This constructor will generate a ParameterType that does not
@@ -75,5 +87,12 @@ public class ParameterTypeExpression extends ParameterTypeString {
      */
     public InputPort getInputPort() {
         return inPort;
+    }
+
+    @Override
+    public void getDefinitionAsXML(Element typeElement) {
+        super.getDefinitionAsXML(typeElement);
+
+        typeElement.setAttribute(ATTRIBUTE_INPUT_PORT, inPort.getName());
     }
 }

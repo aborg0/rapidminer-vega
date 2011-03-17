@@ -22,6 +22,11 @@
  */
 package com.rapidminer.parameter;
 
+import org.w3c.dom.Element;
+
+import com.rapidminer.operator.Operator;
+import com.rapidminer.tools.XMLException;
+
 /**
  * A parameter type for double values. Operators ask for the double value with
  * {@link com.rapidminer.operator.Operator#getParameterAsDouble(String)}. For
@@ -29,102 +34,115 @@ package com.rapidminer.parameter;
  * be used.
  * 
  * @author Ingo Mierswa, Simon Fischer
- *          Exp $
  */
 public class ParameterTypeDouble extends ParameterTypeNumber {
 
-	private static final long serialVersionUID = 2455026868706964187L;
+    private static final long serialVersionUID = 2455026868706964187L;
 
-	private double defaultValue = Double.NaN;
+    private static final String ATTRIBUTE_DEFAULT = "default";
 
-	private double min = Double.NEGATIVE_INFINITY;
+    private static final String ATTRIBUTE_MAX = "max";
 
-	private double max = Double.POSITIVE_INFINITY;
+    private static final String ATTRIBUTE_MIN = "min";
 
-	private boolean noDefault = true;
+    private double defaultValue = Double.NaN;
 
-	private boolean optional = true;
+    private double min = Double.NEGATIVE_INFINITY;
 
-	public ParameterTypeDouble(String key, String description, double min, double max) {
-		this(key, description, min, max, Double.NaN);
-		this.noDefault = true;
-		this.optional = false;
-	}
+    private double max = Double.POSITIVE_INFINITY;
 
-	public ParameterTypeDouble(String key, String description, double min, double max, boolean optional) {
-		this(key, description, min, max, Double.NaN);
-		this.noDefault = true;
-		this.optional = optional;
-		if (!optional)
-			setExpert(false);
+    private boolean noDefault = true;
 
-	}
+    public ParameterTypeDouble(Operator operator, Element element) throws XMLException {
+        super(operator, element);
 
-	public ParameterTypeDouble(String key, String description, double min, double max, double defaultValue) {
-		super(key, description);
-		this.defaultValue = defaultValue;
-		this.min = min;
-		this.max = max;
-		this.optional = true;
-		setExpert(false);
-	}
+        noDefault = element.hasAttribute(ATTRIBUTE_DEFAULT);
+        if (!noDefault)
+            defaultValue = Double.parseDouble(element.getAttribute(ATTRIBUTE_DEFAULT));
+        max = Double.parseDouble(element.getAttribute(ATTRIBUTE_MAX));
+        min = Double.parseDouble(element.getAttribute(ATTRIBUTE_MIN));
+    }
 
+    public ParameterTypeDouble(String key, String description, double min, double max) {
+        this(key, description, min, max, Double.NaN);
+        this.noDefault = true;
+    }
 
-	public ParameterTypeDouble(String key, String description, double min, double max, double defaultValue, boolean expert) {
-		super(key, description);
-		this.defaultValue = defaultValue;
-		this.min = min;
-		this.max = max;
-		this.optional = true;
-		setExpert(expert);
-	}
-	@Override
-	public double getMinValue() {
-		return min;
-	}
+    public ParameterTypeDouble(String key, String description, double min, double max, boolean optional) {
+        this(key, description, min, max, Double.NaN);
+        this.noDefault = true;
+        setOptional(optional);
+    }
 
-	@Override
-	public double getMaxValue() {
-		return max;
-	}
+    public ParameterTypeDouble(String key, String description, double min, double max, double defaultValue) {
+        super(key, description);
+        this.defaultValue = defaultValue;
+        this.min = min;
+        this.max = max;
+        setExpert(false);
+    }
 
-	@Override
-	public boolean isOptional() {
-		return super.isOptional() && optional;
-	}
+    public ParameterTypeDouble(String key, String description, double min, double max, double defaultValue, boolean expert) {
+        super(key, description);
+        this.defaultValue = defaultValue;
+        this.min = min;
+        this.max = max;
+        setExpert(expert);
+    }
 
-	@Override
-	public Object getDefaultValue() {
-		if (Double.isNaN(defaultValue)) {
-			return null;
-		} else {
-			return Double.valueOf(defaultValue);
-		}
-	}
+    @Override
+    public double getMinValue() {
+        return min;
+    }
 
-	@Override
-	public void setDefaultValue(Object object) {
-		this.defaultValue = (Double)object;
-	}
+    @Override
+    public double getMaxValue() {
+        return max;
+    }
 
-	/** Returns true. */
-	@Override
-	public boolean isNumerical() { return true; }
+    @Override
+    public Object getDefaultValue() {
+        if (Double.isNaN(defaultValue)) {
+            return null;
+        } else {
+            return Double.valueOf(defaultValue);
+        }
+    }
 
-	@Override
-	public String getRange() {
-		String range = "real; ";
-		if (min == Double.NEGATIVE_INFINITY)
-			range += "-\u221E";
-		else
-			range += min;
-		range += "-";
-		if (max == Double.POSITIVE_INFINITY)
-			range += "+\u221E";
-		else
-			range += max;
-		if (!noDefault)
-			range += "; default: " + defaultValue;
-		return range;
-	}
+    @Override
+    public void setDefaultValue(Object object) {
+        this.defaultValue = (Double) object;
+    }
+
+    /** Returns true. */
+    @Override
+    public boolean isNumerical() {
+        return true;
+    }
+
+    @Override
+    public String getRange() {
+        String range = "real; ";
+        if (min == Double.NEGATIVE_INFINITY)
+            range += "-\u221E";
+        else
+            range += min;
+        range += "-";
+        if (max == Double.POSITIVE_INFINITY)
+            range += "+\u221E";
+        else
+            range += max;
+        if (!noDefault)
+            range += "; default: " + defaultValue;
+        return range;
+    }
+
+    @Override
+    public void getDefinitionAsXML(Element typeElement) {
+        if (!noDefault)
+            typeElement.setAttribute(ATTRIBUTE_DEFAULT, defaultValue + "");
+
+        typeElement.setAttribute(ATTRIBUTE_MIN, min + "");
+        typeElement.setAttribute(ATTRIBUTE_MAX, max + "");
+    }
 }

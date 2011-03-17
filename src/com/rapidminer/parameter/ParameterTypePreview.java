@@ -28,11 +28,13 @@ import org.w3c.dom.Element;
 import com.rapidminer.MacroHandler;
 import com.rapidminer.gui.wizards.PreviewCreator;
 import com.rapidminer.gui.wizards.PreviewListener;
+import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.XMLException;
 
 
 /**
- * This parameter type will lead to a GUI element which can be used as initialization for a 
+ * This parameter type will lead to a GUI element which can be used as initialization for a
  * results preview. This might be practical especially for complex operators which often also
  * provide a configuration wizard.
  * 
@@ -40,74 +42,97 @@ import com.rapidminer.tools.LogService;
  */
 public class ParameterTypePreview extends ParameterType {
 
-	private static final long serialVersionUID = 6538432700371374278L;
+    private static final long serialVersionUID = 6538432700371374278L;
 
-	private Class<? extends PreviewCreator> previewCreatorClass;
+    private static final String ATTRIBUTE_PREVIEW_CLASS = "preview-class";
 
-	private transient PreviewListener previewListener;
+    private Class<? extends PreviewCreator> previewCreatorClass;
 
-	public ParameterTypePreview(Class<? extends PreviewCreator> previewCreatorClass, PreviewListener previewListener) {
-		this("preview", "Shows a preview for the results which will be achieved by the current configuration.", previewCreatorClass, previewListener);
-	}
+    private transient PreviewListener previewListener;
 
-	public ParameterTypePreview(String parameterName, String description, Class<? extends PreviewCreator> previewCreatorClass, PreviewListener previewListener) {
-		super(parameterName, description);
-		this.previewCreatorClass = previewCreatorClass;
-		this.previewListener = previewListener;
-	}
+    @SuppressWarnings("unchecked")
+    public ParameterTypePreview(Operator operator, Element element) throws XMLException {
+        super(operator, element);
 
-	/** Returns a new instance of the wizard creator. If anything does not work this method will return null. */
-	public PreviewCreator getPreviewCreator() {
-		PreviewCreator creator = null;
-		try {
-			creator = previewCreatorClass.newInstance();
-		} catch (InstantiationException e) {
-			LogService.getGlobal().log("Problem during creation of previewer: " + e.getMessage(), LogService.WARNING);
-		} catch (IllegalAccessException e) {
-			LogService.getGlobal().log("Problem during creation of previewer: " + e.getMessage(), LogService.WARNING);
-		}
-		return creator;
-	}
+        this.previewListener = operator;
+        String previewCreatorClassName = element.getAttribute(ATTRIBUTE_PREVIEW_CLASS);
+        try {
+            previewCreatorClass = (Class<? extends PreviewCreator>) Class.forName(previewCreatorClassName);
 
-	public PreviewListener getPreviewListener() {
-		return previewListener;
-	}
+        } catch (ClassNotFoundException e) {
+            throw new XMLException("Illegal value for attribute " + ATTRIBUTE_PREVIEW_CLASS, e);
+        } catch (ClassCastException e) {
+            throw new XMLException("Illegal value for attribute " + ATTRIBUTE_PREVIEW_CLASS, e);
+        }
+    }
 
-	/** Returns null. */
-	@Override
-	public Object getDefaultValue() {
-		return null;
-	}
+    public ParameterTypePreview(Class<? extends PreviewCreator> previewCreatorClass, PreviewListener previewListener) {
+        this("preview", "Shows a preview for the results which will be achieved by the current configuration.", previewCreatorClass, previewListener);
+    }
 
-	/** Does nothing. */
-	@Override
-	public void setDefaultValue(Object defaultValue) {}
+    public ParameterTypePreview(String parameterName, String description, Class<? extends PreviewCreator> previewCreatorClass, PreviewListener previewListener) {
+        super(parameterName, description);
+        this.previewCreatorClass = previewCreatorClass;
+        this.previewListener = previewListener;
+    }
 
-	/** Returns null. */
-	@Override
-	public String getRange() {
-		return null;
-	}
+    /** Returns a new instance of the wizard creator. If anything does not work this method will return null. */
+    public PreviewCreator getPreviewCreator() {
+        PreviewCreator creator = null;
+        try {
+            creator = previewCreatorClass.newInstance();
+        } catch (InstantiationException e) {
+            LogService.getGlobal().log("Problem during creation of previewer: " + e.getMessage(), LogService.WARNING);
+        } catch (IllegalAccessException e) {
+            LogService.getGlobal().log("Problem during creation of previewer: " + e.getMessage(), LogService.WARNING);
+        }
+        return creator;
+    }
 
-	/** Returns an empty string since this parameter cannot be used in XML description but is only used for
-	 *  GUI purposes. */
-	@Override
-	public String getXML(String indent, String key, String value, boolean hideDefault) {
-		return "";
-	}
+    public PreviewListener getPreviewListener() {
+        return previewListener;
+    }
 
-	@Override
-	public boolean isNumerical() {
-		return false;
-	}
+    /** Returns null. */
+    @Override
+    public Object getDefaultValue() {
+        return null;
+    }
 
-	@Override
-	public Element getXML(String key, String value, boolean hideDefault, Document doc) {
-		return null;
-	}
+    /** Does nothing. */
+    @Override
+    public void setDefaultValue(Object defaultValue) {}
 
-	@Override
-	public String substituteMacros(String parameterValue, MacroHandler mh) {
-		return parameterValue;
-	}
+    /** Returns null. */
+    @Override
+    public String getRange() {
+        return null;
+    }
+
+    /** Returns an empty string since this parameter cannot be used in XML description but is only used for
+     *  GUI purposes. */
+    @Override
+    public String getXML(String indent, String key, String value, boolean hideDefault) {
+        return "";
+    }
+
+    @Override
+    public boolean isNumerical() {
+        return false;
+    }
+
+    @Override
+    public Element getXML(String key, String value, boolean hideDefault, Document doc) {
+        return null;
+    }
+
+    @Override
+    public String substituteMacros(String parameterValue, MacroHandler mh) {
+        return parameterValue;
+    }
+
+    @Override
+    public void getDefinitionAsXML(Element typeElement) {
+        typeElement.setAttribute(ATTRIBUTE_PREVIEW_CLASS, previewCreatorClass.getCanonicalName());
+    }
 }

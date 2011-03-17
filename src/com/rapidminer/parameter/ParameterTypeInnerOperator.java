@@ -22,6 +22,11 @@
  */
 package com.rapidminer.parameter;
 
+import org.w3c.dom.Element;
+
+import com.rapidminer.operator.Operator;
+import com.rapidminer.tools.XMLException;
+
 /**
  * Helper class for GUI purposes. This parameter type should hold information
  * about other inner operator names, e.g. for the definition of the inner operator
@@ -31,40 +36,45 @@ package com.rapidminer.parameter;
  */
 public class ParameterTypeInnerOperator extends ParameterTypeSingle {
 
-	private static final long serialVersionUID = -8428679832770835634L;
+    private static final long serialVersionUID = -8428679832770835634L;
 
-	public ParameterTypeInnerOperator(String key, String description) {
-        super(key, description);
+    public ParameterTypeInnerOperator(Operator operator, Element element) throws XMLException {
+        super(operator, element);
+        setOptional(false);
     }
 
-    @Override
-	public boolean isOptional() {
-        return false;
+    public ParameterTypeInnerOperator(String key, String description) {
+        super(key, description);
+        setOptional(false);
     }
 
     /** Returns null. */
     @Override
-	public Object getDefaultValue() {
+    public Object getDefaultValue() {
         return null;
     }
-    
+
     /** Does nothing. */
     @Override
-	public void setDefaultValue(Object defaultValue) {}
+    public void setDefaultValue(Object defaultValue) {}
 
     @Override
-	public String getRange() {
+    public String getRange() {
         return "inner operator names";
     }
-    
+
     /** Returns false. */
     @Override
-	public boolean isNumerical() { return false; }
-    
+    public boolean isNumerical() { return false; }
+
     @Override
     public String notifyOperatorRenaming(String oldOperatorName, String newOperatorName, String parameterValue) {
-    	if (oldOperatorName.equals(parameterValue))
-    		return newOperatorName;
-    	return parameterValue;
+        if (oldOperatorName.equals(parameterValue))
+            return newOperatorName;
+        return parameterValue;
+    }
+
+    @Override
+    public void getDefinitionAsXML(Element typeElement) {
     }
 }
