@@ -42,76 +42,76 @@ import javax.swing.Timer;
  */
 public class PanningManager implements AWTEventListener  {
 
-	private static final int PAN_DELAY = 50;
-	private static final int PAN_STEP_SIZE = 20;
+    private static final int PAN_DELAY = 50;
+    private static final int PAN_STEP_SIZE = 20;
 
-	private JComponent target;
+    private JComponent target;
 
-	private Point mouseOnScreenPoint;
+    private Point mouseOnScreenPoint;
 
-	private Timer timer = new Timer(PAN_DELAY, new ActionListener() {
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			scrollNow();
-		}
-	});
+    private Timer timer = new Timer(PAN_DELAY, new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            scrollNow();
+        }
+    });
 
-	public PanningManager(JComponent target) {
-		super();
-		this.target = target;
-		timer.setRepeats(true);
-		timer.start();
-		Toolkit.getDefaultToolkit().addAWTEventListener(this, AWTEvent.MOUSE_MOTION_EVENT_MASK | AWTEvent.MOUSE_EVENT_MASK);
-	}
+    public PanningManager(JComponent target) {
+        super();
+        this.target = target;
+        timer.setRepeats(true);
+        timer.start();
+        Toolkit.getDefaultToolkit().addAWTEventListener(this, AWTEvent.MOUSE_MOTION_EVENT_MASK | AWTEvent.MOUSE_EVENT_MASK);
+    }
 
-	@Override
-	public void eventDispatched(AWTEvent e) {
-		if (e instanceof MouseEvent) {
-			MouseEvent me = (MouseEvent) e;
-			if (!SwingUtilities.isDescendingFrom(me.getComponent(), target)) { 
-				return; 
-			}
-			if (me.getID() == MouseEvent.MOUSE_RELEASED) {
-				// stop when mouse released 
-				mouseOnScreenPoint = null;
-				if (timer.isRunning()) {
-					timer.stop();
-				}
-			} else if (me.getID() == MouseEvent.MOUSE_DRAGGED && me.getComponent() == target) {				
-				mouseOnScreenPoint = me.getLocationOnScreen();
-			} else if (me.getID() == MouseEvent.MOUSE_PRESSED && me.getComponent() == target) {
-				mouseOnScreenPoint = me.getLocationOnScreen();
-				timer.start();
-			}
-		}
-	}
+    @Override
+    public void eventDispatched(AWTEvent e) {
+        if (e instanceof MouseEvent) {
+            MouseEvent me = (MouseEvent) e;
+            if (!SwingUtilities.isDescendingFrom(me.getComponent(), target)) {
+                return;
+            }
+            if (me.getID() == MouseEvent.MOUSE_RELEASED) {
+                // stop when mouse released
+                mouseOnScreenPoint = null;
+                if (timer.isRunning()) {
+                    timer.stop();
+                }
+            } else if (me.getID() == MouseEvent.MOUSE_DRAGGED && me.getComponent() == target) {
+                mouseOnScreenPoint = me.getLocationOnScreen();
+            } else if (me.getID() == MouseEvent.MOUSE_PRESSED && me.getComponent() == target) {
+                mouseOnScreenPoint = me.getLocationOnScreen();
+                timer.start();
+            }
+        }
+    }
 
-	private void scrollNow() {
-		if (mouseOnScreenPoint != null) {
-			Point origin = target.getLocationOnScreen();
-			Point relative = new Point(mouseOnScreenPoint.x - origin.x, mouseOnScreenPoint.y - origin.y);			
+    private void scrollNow() {
+        if (mouseOnScreenPoint != null && target.isShowing()) {
+            Point origin = target.getLocationOnScreen();
+            Point relative = new Point(mouseOnScreenPoint.x - origin.x, mouseOnScreenPoint.y - origin.y);
 
-			Rectangle visibleRect = target.getVisibleRect();
-			
-			if (!visibleRect.contains(relative)) {
-				int destX = relative.x;
-				if (relative.getX() < visibleRect.getMinX()) {
-					destX = (int)visibleRect.getMinX() - PAN_STEP_SIZE;
-				}
-				if (relative.getX() > visibleRect.getMaxX()) {
-					destX = (int)visibleRect.getMaxX() + PAN_STEP_SIZE;
-				}
-				
-				int destY = relative.y;
-				if (relative.getY() < visibleRect.getMinY()) {
-					destY = (int)visibleRect.getMinY() - PAN_STEP_SIZE;
-				}
-				if (relative.getY() > visibleRect.getMaxY()) {
-					destY = (int)visibleRect.getMaxY() + PAN_STEP_SIZE;
-				}
-				
-				target.scrollRectToVisible(new Rectangle(new Point(destX, destY)));
-			}
-		}		
-	}
+            Rectangle visibleRect = target.getVisibleRect();
+
+            if (!visibleRect.contains(relative)) {
+                int destX = relative.x;
+                if (relative.getX() < visibleRect.getMinX()) {
+                    destX = (int)visibleRect.getMinX() - PAN_STEP_SIZE;
+                }
+                if (relative.getX() > visibleRect.getMaxX()) {
+                    destX = (int)visibleRect.getMaxX() + PAN_STEP_SIZE;
+                }
+
+                int destY = relative.y;
+                if (relative.getY() < visibleRect.getMinY()) {
+                    destY = (int)visibleRect.getMinY() - PAN_STEP_SIZE;
+                }
+                if (relative.getY() > visibleRect.getMaxY()) {
+                    destY = (int)visibleRect.getMaxY() + PAN_STEP_SIZE;
+                }
+
+                target.scrollRectToVisible(new Rectangle(new Point(destX, destY)));
+            }
+        }
+    }
 }

@@ -32,37 +32,43 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 
 /**
+ * This class is completely unnecessary and is only kept for compatibility reasons.
+ * The class hierarchy is complete nonsense and will be dropped with one of the next
+ * versions. So if you implement using this class, please implement this little code fragment
+ * below again or build a more fitting class hierarchy.
+ * 
  * This class represents an abstract framework for performing dimensionality reduction using the JAMA package.
  * 
  * @author Michael Wurst, Ingo Mierswa
  * 
  */
+@Deprecated
 public abstract class JamaDimensionalityReduction extends DimensionalityReducer {
 
-	public JamaDimensionalityReduction(OperatorDescription description) {
-		super(description);
-	}
+    public JamaDimensionalityReduction(OperatorDescription description) {
+        super(description);
+    }
 
-	protected abstract Matrix callMatrixMethod(ExampleSet es, int dimension, Matrix in);
+    protected abstract Matrix callMatrixMethod(ExampleSet es, int dimension, Matrix in);
 
-	@Override
-	protected double[][] dimensionalityReduction(ExampleSet es, int dimensions) {
-		// encode matrix
-		Matrix in = new Matrix(es.size(), es.getAttributes().size());
-		Iterator<Example> er = es.iterator();
-		int count = 0;
-		while (er.hasNext()) {
-			Example e = er.next();
-			int i = 0;
-			for (Attribute attribute : e.getAttributes()) {
-				in.set(count, i++, e.getValue(attribute));
-			}
+    @Override
+    protected double[][] dimensionalityReduction(ExampleSet es, int dimensions) {
+        // encode matrix
+        Matrix in = new Matrix(es.size(), es.getAttributes().size());
+        Iterator<Example> er = es.iterator();
+        int count = 0;
+        while (er.hasNext()) {
+            Example e = er.next();
+            int i = 0;
+            for (Attribute attribute : e.getAttributes()) {
+                in.set(count, i++, e.getValue(attribute));
+            }
 
-			count++;
-		}
-		Matrix result = callMatrixMethod(es, dimensions, in);
+            count++;
+        }
+        Matrix result = callMatrixMethod(es, dimensions, in);
 
-		// decode matrix
-		return result.getArray();
-	}
+        // decode matrix
+        return result.getArray();
+    }
 }

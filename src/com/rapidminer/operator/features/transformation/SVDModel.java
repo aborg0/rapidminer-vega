@@ -22,20 +22,17 @@
  */
 package com.rapidminer.operator.features.transformation;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+
+import Jama.Matrix;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.AttributeWeights;
 import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
-import com.rapidminer.example.Statistics;
 import com.rapidminer.example.table.AttributeFactory;
-import com.rapidminer.gui.renderer.models.EigenvectorModelEigenvalueRenderer.EigenvalueTableModel;
-import com.rapidminer.gui.renderer.models.EigenvectorModelEigenvectorRenderer.EigenvectorTableModel;
+import com.rapidminer.operator.AbstractModel;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.tools.Ontology;
@@ -54,13 +51,17 @@ import com.rapidminer.tools.Tools;
  * @author Sebastian Land, Daniel Hakenjos, Ingo Mierswa
  * @see PCA
  */
-public class PCAModel extends AbstractEigenvectorModel implements ComponentWeightsCreatable {
+public class SVDModel extends AbstractModel implements ComponentWeightsCreatable {
 
     private static final long serialVersionUID = 5424591594470376525L;
 
-    private List<Eigenvector> eigenVectors;
+    private Matrix vMatrix;
 
-    private double[] means;
+    private double[] singularValues;
+
+    private double[] cumulativeSingularValueProportion;
+
+    private double singularValuesSum;
 
     private String[] attributeNames;
 
@@ -68,99 +69,97 @@ public class PCAModel extends AbstractEigenvectorModel implements ComponentWeigh
 
     private int numberOfComponents = -1;
 
-    private double varianceThreshold;
+    private double proportionThreshold;
+
+    private boolean useLegacyNames = false;
 
     // -----------------------------------
 
-    private double[] variances;
-
-    private double[] cumulativeVariance;
-
     private boolean keepAttributes = false;
 
-    public PCAModel(ExampleSet eSet, double[] eigenvalues, double[][] eigenvectors) {
-        super(eSet);
+    public SVDModel(ExampleSet exampleSet, double[] singularValues, Matrix vMatrix) {
+        super(exampleSet);
+
+        this.vMatrix = vMatrix;
+        this.singularValues = singularValues;
 
         this.keepAttributes = false;
-        this.attributeNames = new String[eSet.getAttributes().size()];
-        this.means = new double[eSet.getAttributes().size()];
+        this.attributeNames = new String[exampleSet.getAttributes().size()];
         int counter = 0;
-        for (Attribute attribute : eSet.getAttributes()) {
+        for (Attribute attribute : exampleSet.getAttributes()) {
             attributeNames[counter] = attribute.getName();
-            means[counter] = eSet.getStatistics(attribute, Statistics.AVERAGE);
             counter++;
         }
-        this.eigenVectors = new ArrayList<Eigenvector>(eigenvalues.length);
-        for (int i = 0; i < eigenvalues.length; i++) {
-            double[] currentEigenVector = new double[eSet.getAttributes().size()];
-            for (int j = 0; j < currentEigenVector.length; j++) {
-                currentEigenVector[j] = eigenvectors[j][i];
-            }
-            this.eigenVectors.add(new Eigenvector(currentEigenVector, eigenvalues[i]));
+
+        // compute cumulative values
+        cumulativeSingularValueProportion = new double[singularValues.length];
+        // insert cumulative sum of singular values
+        singularValuesSum = 0.0d;
+        for (int i = 0; i < singularValues.length; i++) {
+            singularValuesSum += singularValues[i];
+            cumulativeSingularValueProportion[i] = singularValuesSum;
         }
 
-        // order the eigenvectors by the eigenvalues
-        Collections.sort(this.eigenVectors);
+        // now reduce to proportion
+        for (int i = 0; i < singularValues.length; i++) {
+            cumulativeSingularValueProportion[i] /= singularValuesSum;
+        }
 
-        calculateCumulativeVariance();
     }
 
     public String[] getAttributeNames() {
         return attributeNames;
     }
 
-    public double[] getMeans() {
-        return means;
+    public double getSingularValue(int index) {
+        return this.singularValues[index];
     }
 
-    public double getMean(int index) {
-        return means[index];
+    public double getSingularValueProportion(int index) {
+        return this.singularValues[index] / singularValuesSum;
     }
 
-    public double getVariance(int index) {
-        return this.variances[index];
+    public double getCumulativeSingularValue(int index) {
+        return this.cumulativeSingularValueProportion[index] * singularValuesSum;
     }
 
-    public double getCumulativeVariance(int index) {
-        return this.cumulativeVariance[index];
+    public double getCumulativeSingularValueProportion(int index) {
+        return this.cumulativeSingularValueProportion[index];
     }
 
-    public double getEigenvalue(int index) {
-        return this.eigenVectors.get(index).getEigenvalue();
+    public double[] getSingularVector(int index) {
+        return this.vMatrix.getArray()[index];
     }
 
-    public double[] getEigenvector(int index) {
-        return this.eigenVectors.get(index).getEigenvector();
-    }
-
-    public double getVarianceThreshold() {
-        return this.varianceThreshold;
+    public double getProportionThreshold() {
+        return this.proportionThreshold;
     }
 
     public int getMaximumNumberOfComponents() {
         return attributeNames.length;
     }
 
+    /**
+     * This returns the total number of possible components.
+     */
     public int getNumberOfComponents() {
-        return numberOfComponents;
+        return vMatrix.getColumnDimension();
     }
 
     public void setVarianceThreshold(double threshold) {
         this.manualNumber = false;
-        this.varianceThreshold = threshold;
+        this.proportionThreshold = threshold;
         this.numberOfComponents = -1;
     }
 
     public void setNumberOfComponents(int numberOfComponents) {
-        this.varianceThreshold = 0.95;
+        this.proportionThreshold = 0.95;
         this.manualNumber = true;
         this.numberOfComponents = numberOfComponents;
     }
 
     @Override
     public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
-        exampleSet.recalculateAllAttributeStatistics();
-
         Attributes attributes = exampleSet.getAttributes();
         if (attributeNames.length != attributes.size()) {
             throw new UserError(null, 133, numberOfComponents, attributes.size());
@@ -179,34 +178,41 @@ public class PCAModel extends AbstractEigenvectorModel implements ComponentWeigh
         if (manualNumber) {
             numberOfUsedComponents = numberOfComponents;
         } else {
-            if (varianceThreshold == 0.0d) {
+            if (proportionThreshold == 0.0d) {
                 numberOfUsedComponents = -1;
             } else {
                 numberOfUsedComponents = 0;
-                while (cumulativeVariance[numberOfUsedComponents] < varianceThreshold) {
+                while (cumulativeSingularValueProportion[numberOfUsedComponents] < proportionThreshold) {
                     numberOfUsedComponents++;
                 }
                 numberOfUsedComponents++;
-                if (numberOfUsedComponents == eigenVectors.size()) {
-                    numberOfUsedComponents--;
-                }
             }
         }
-        if (numberOfUsedComponents == -1) {
+        // if nothing defined or number exceeds maximal number of possible components
+        if (numberOfUsedComponents == -1 || numberOfUsedComponents > vMatrix.getColumnDimension()) {
             // keep all components
-            numberOfUsedComponents = attributes.size();
+            numberOfUsedComponents = vMatrix.getColumnDimension();
         }
 
-        // retrieve factors inside eigenVectors
-        double[][] eigenValueFactors = new double[numberOfUsedComponents][attributeNames.length];
+
+
+        // retrieve factors inside singularValueVectors
+        double[][] singularValueFactors = new double[numberOfUsedComponents][attributeNames.length];
+        double[][] vMatrixData = vMatrix.getArray();
         for (int i = 0; i < numberOfUsedComponents; i++) {
-            eigenValueFactors[i] = this.eigenVectors.get(i).getEigenvector();
+            double invertedSingularValue = 1d / singularValues[i];
+            for (int j = 0; j < attributeNames.length; j++) {
+                singularValueFactors[i][j] = vMatrixData[j][i] * invertedSingularValue;
+            }
         }
 
         // now build new attributes
         Attribute[] derivedAttributes = new Attribute[numberOfUsedComponents];
         for (int i = 0; i < numberOfUsedComponents; i++) {
-            derivedAttributes[i] = AttributeFactory.createAttribute("pc_" + (i + 1), Ontology.REAL);
+            if (useLegacyNames)
+                derivedAttributes[i] = AttributeFactory.createAttribute("d" + (i), Ontology.REAL);
+            else
+                derivedAttributes[i] = AttributeFactory.createAttribute("svd_" + (i + 1), Ontology.REAL);
             exampleSet.getExampleTable().addAttribute(derivedAttributes[i]);
             attributes.addRegular(derivedAttributes[i]);
         }
@@ -217,9 +223,9 @@ public class PCAModel extends AbstractEigenvectorModel implements ComponentWeigh
             // calculate values of new attributes with single scan over attributes
             d = 0;
             for (Attribute attribute : inputAttributes) {
-                double attributeValue = example.getValue(attribute) - means[d];
+                double attributeValue = example.getValue(attribute);
                 for (int i = 0; i < numberOfUsedComponents; i++) {
-                    derivedValues[i] += eigenValueFactors[i][d] * attributeValue;
+                    derivedValues[i] += singularValueFactors[i][d] * attributeValue;
                 }
                 d++;
             }
@@ -243,28 +249,13 @@ public class PCAModel extends AbstractEigenvectorModel implements ComponentWeigh
         return exampleSet;
     }
 
-    /** Calculates the cumulative variance. */
-    private void calculateCumulativeVariance() {
-        double sumvariance = 0.0d;
-        for (Eigenvector ev : this.eigenVectors) {
-            sumvariance += ev.getEigenvalue();
-        }
-        this.variances = new double[this.eigenVectors.size()];
-        this.cumulativeVariance = new double[variances.length];
-        double cumulative = 0.0d;
-        int counter = 0;
-        for (Eigenvector ev : this.eigenVectors) {
-            double proportion = ev.getEigenvalue() / sumvariance;
-            this.variances[counter] = proportion;
-            cumulative += proportion;
-            this.cumulativeVariance[counter] = cumulative;
-            counter++;
-        }
+    public void enableLegacyMode() {
+        this.useLegacyNames = true;
     }
 
     @Override
     public void setParameter(String name, Object object) throws OperatorException {
-        if (name.equals("variance_threshold")) {
+        if (name.equals("proportion_threshold")) {
             String value = (String) object;
 
             try {
@@ -304,9 +295,9 @@ public class PCAModel extends AbstractEigenvectorModel implements ComponentWeigh
         }
         AttributeWeights weights = new AttributeWeights();
 
-        double[] eigenvector = eigenVectors.get(component - 1).getEigenvector();
+        double[] singularVector = vMatrix.getArray()[component];
         for (int i = 0; i < attributeNames.length; i++) {
-            weights.setWeight(attributeNames[i], eigenvector[i]);
+            weights.setWeight(attributeNames[i], singularVector[i]);
         }
 
         return weights;
@@ -318,12 +309,12 @@ public class PCAModel extends AbstractEigenvectorModel implements ComponentWeigh
         if (manualNumber) {
             result.append("Number of Components: " + numberOfComponents + Tools.getLineSeparator());
         } else {
-            result.append("Variance Threshold: " + varianceThreshold + Tools.getLineSeparator());
+            result.append("Proportion Threshold: " + proportionThreshold + Tools.getLineSeparator());
         }
-        for (int i = 0; i < eigenVectors.size(); i++) {
+        for (int i = 0; i < vMatrix.getColumnDimension(); i++) {
             result.append("PC " + (i + 1) + ": ");
             for (int j = 0; j < attributeNames.length; j++) {
-                double value = eigenVectors.get(i).getEigenvector()[j];
+                double value = vMatrix.get(i,j);
                 if (value > 0)
                     result.append(" + ");
                 else
@@ -341,34 +332,8 @@ public class PCAModel extends AbstractEigenvectorModel implements ComponentWeigh
         if (manualNumber) {
             result.append("Number of Components: " + numberOfComponents + Tools.getLineSeparator());
         } else {
-            result.append("Variance Threshold: " + varianceThreshold + Tools.getLineSeparator());
+            result.append("Variance Threshold: " + proportionThreshold + Tools.getLineSeparator());
         }
         return result.toString();
-    }
-
-    @Override
-    public double[] getCumulativeVariance() {
-        double[] cumulativeVariance = new double[attributeNames.length];
-        double varianceSum = 0.0d;
-        int i = 0;
-        for (Eigenvector wv : eigenVectors) {
-            varianceSum += wv.getEigenvalue();
-            cumulativeVariance[i++] = varianceSum;
-        }
-        return cumulativeVariance;
-    }
-
-    @Override
-    public EigenvalueTableModel getEigenvalueTableModel() {
-        double varianceSum = 0.0d;
-        for (Eigenvector wv : eigenVectors) {
-            varianceSum += wv.getEigenvalue();
-        }
-        return new EigenvalueTableModel(eigenVectors, cumulativeVariance, varianceSum);
-    }
-
-    @Override
-    public EigenvectorTableModel getEigenvectorTableModel() {
-        return new EigenvectorTableModel(eigenVectors, attributeNames, attributeNames.length);
     }
 }

@@ -43,76 +43,83 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.tools.Ontology;
 
 /**
+ * This class is completely unnecessary and is only kept for compatibility reasons.
+ * The class hierarchy is complete nonsense and will be dropped with one of the next
+ * versions. So if you implement using this class, please implement this little code fragment
+ * below again or build a more fitting class hierarchy.
+ * 
  * The model for the generic dimensionality reducer.
  * 
  * @author Ingo Mierswa
  */
+@Deprecated
 public class DimensionalityReducerModel extends AbstractModel {
 
-	private static final long serialVersionUID = 1036161585615738268L;
+    private static final long serialVersionUID = 1036161585615738268L;
 
-	private int dimensions;
-	
-	private double[][] p;
-	
-	protected DimensionalityReducerModel(ExampleSet exampleSet, double[][] p, int dimensions) {
-		super(exampleSet);
-		this.p = p;
-		this.dimensions = dimensions;
-	}
+    private int dimensions;
 
-	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
-		List<Attribute> attributes = new ArrayList<Attribute>();
-		for (int i = 0; i < dimensions; i++) {
-			Attribute att = AttributeFactory.createAttribute("d" + i, Ontology.REAL);
-			attributes.add(att);
-		}
+    private double[][] p;
 
-		Map<String, Attribute> newSpecialAttributes = new HashMap<String, Attribute>();
-		Map<String, Attribute> oldSpecialAttributes = new HashMap<String, Attribute>();
-		Iterator<AttributeRole> s = exampleSet.getAttributes().specialAttributes();
-		while (s.hasNext()) {
-			AttributeRole role = s.next();
-			Attribute att = AttributeFactory.createAttribute(role.getAttribute());
-			newSpecialAttributes.put(role.getSpecialName(), att);
-			oldSpecialAttributes.put(role.getSpecialName(), role.getAttribute());
-			attributes.add(att);
-		}
-		MemoryExampleTable table = new MemoryExampleTable(attributes);
+    protected DimensionalityReducerModel(ExampleSet exampleSet, double[][] p, int dimensions) {
+        super(exampleSet);
+        this.p = p;
+        this.dimensions = dimensions;
+    }
 
-		// Apply build the instances
-		int i = 0;
-		for (Example oldExample : exampleSet) {
-			DataRow row = new DoubleArrayDataRow(new double[attributes.size()]);
-			for (int j = 0; j < dimensions; j++)
-				row.set(attributes.get(j), p[i][j]);
+    @Override
+    public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
+        List<Attribute> attributes = new ArrayList<Attribute>();
+        for (int i = 0; i < dimensions; i++) {
+            Attribute att = AttributeFactory.createAttribute("d" + i, Ontology.REAL);
+            attributes.add(att);
+        }
 
-			for (String specialAttributeRole: newSpecialAttributes.keySet()) {
+        Map<String, Attribute> newSpecialAttributes = new HashMap<String, Attribute>();
+        Map<String, Attribute> oldSpecialAttributes = new HashMap<String, Attribute>();
+        Iterator<AttributeRole> s = exampleSet.getAttributes().specialAttributes();
+        while (s.hasNext()) {
+            AttributeRole role = s.next();
+            Attribute att = AttributeFactory.createAttribute(role.getAttribute());
+            newSpecialAttributes.put(role.getSpecialName(), att);
+            oldSpecialAttributes.put(role.getSpecialName(), role.getAttribute());
+            attributes.add(att);
+        }
+        MemoryExampleTable table = new MemoryExampleTable(attributes);
+
+        // Apply build the instances
+        int i = 0;
+        for (Example oldExample : exampleSet) {
+            DataRow row = new DoubleArrayDataRow(new double[attributes.size()]);
+            for (int j = 0; j < dimensions; j++)
+                row.set(attributes.get(j), p[i][j]);
+
+            for (String specialAttributeRole: newSpecialAttributes.keySet()) {
                 Attribute attribute = newSpecialAttributes.get(specialAttributeRole);
-				row.set(attribute, oldExample.getValue(oldSpecialAttributes.get(specialAttributeRole)));
+                row.set(attribute, oldExample.getValue(oldSpecialAttributes.get(specialAttributeRole)));
             }
-            
-			table.addDataRow(row);
-			i++;
-		}
 
-		ExampleSet resultSet = table.createExampleSet();
-		// set special roles
-		Attributes newAttributes = resultSet.getAttributes();
-		for (Entry<String, Attribute> specialEntry: newSpecialAttributes.entrySet()) {
-			newAttributes.setSpecialAttribute(specialEntry.getValue(), specialEntry.getKey());
-		}
-		
-		return resultSet;
-	}
+            table.addDataRow(row);
+            i++;
+        }
 
-	@Override
-	public String getName() {
-		return "Dimensionality Reduction";
-	}
-	
-	@Override
-	public String toString() {
-		return "This model reduces the number of dimensions to " + dimensions + ".";
-	}
+        ExampleSet resultSet = table.createExampleSet();
+        // set special roles
+        Attributes newAttributes = resultSet.getAttributes();
+        for (Entry<String, Attribute> specialEntry: newSpecialAttributes.entrySet()) {
+            newAttributes.setSpecialAttribute(specialEntry.getValue(), specialEntry.getKey());
+        }
+
+        return resultSet;
+    }
+
+    @Override
+    public String getName() {
+        return "Dimensionality Reduction";
+    }
+
+    @Override
+    public String toString() {
+        return "This model reduces the number of dimensions to " + dimensions + ".";
+    }
 }

@@ -48,74 +48,80 @@ import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.Ontology;
 
 /**
- * Abstract class representing some common functionality of dimensionality reduction methods. 
+ * This class is completely unnecessary and is only kept for compatibility reasons.
+ * The class hierarchy is complete nonsense and will be dropped with one of the next
+ * versions. So if you implement using this class, please implement this little code fragment
+ * below again or build a more fitting class hierarchy.
+ * 
+ * Abstract class representing some common functionality of dimensionality reduction methods.
  * 
  * @author Michael Wurst, Ingo Mierswa
  */
+@Deprecated
 public abstract class DimensionalityReducer extends Operator implements CapabilityProvider {
 
-	/** The parameter name for &quot;the number of dimensions in the result representation&quot; */
-	public static final String PARAMETER_DIMENSIONS = "dimensions";
+    /** The parameter name for &quot;the number of dimensions in the result representation&quot; */
+    public static final String PARAMETER_DIMENSIONS = "dimensions";
 
-	private InputPort exampleSetInput = getInputPorts().createPort("example set input");
+    private InputPort exampleSetInput = getInputPorts().createPort("example set input");
 
-	private OutputPort exampleSetOutput = getOutputPorts().createPort("example set output");
-	private OutputPort originalOutput = getOutputPorts().createPort("original");
-	private OutputPort modelOutput = getOutputPorts().createPort("preprocessing model");
+    private OutputPort exampleSetOutput = getOutputPorts().createPort("example set output");
+    private OutputPort originalOutput = getOutputPorts().createPort("original");
+    private OutputPort modelOutput = getOutputPorts().createPort("preprocessing model");
 
-	public DimensionalityReducer(OperatorDescription description) {
-		super(description);
+    public DimensionalityReducer(OperatorDescription description) {
+        super(description);
 
-		exampleSetInput.addPrecondition(new CapabilityPrecondition(this, exampleSetInput));
-		
-		getTransformer().addRule(new ExampleSetPassThroughRule(exampleSetInput, exampleSetOutput, SetRelation.SUBSET) {
-			@Override
-			public ExampleSetMetaData modifyExampleSet(ExampleSetMetaData metaData) throws UndefinedParameterError {
-				metaData.clearRegular();
-				int numberOfDimensinos = getParameterAsInt(PARAMETER_DIMENSIONS);
-				for (int i = 0; i < numberOfDimensinos; i++) {
-					metaData.addAttribute(new AttributeMetaData("d" + i, Ontology.REAL));
-				}
-				return metaData;
-			}
-		});
-		getTransformer().addRule(new GenerateNewMDRule(modelOutput, Model.class));
-		getTransformer().addRule(new PassThroughRule(exampleSetInput, originalOutput, false));
-	}
+        exampleSetInput.addPrecondition(new CapabilityPrecondition(this, exampleSetInput));
 
-	/**
-	 * Perform the actual dimensionality reduction.
-	 */
-	protected abstract double[][] dimensionalityReduction(ExampleSet es, int dimensions);
+        getTransformer().addRule(new ExampleSetPassThroughRule(exampleSetInput, exampleSetOutput, SetRelation.SUBSET) {
+            @Override
+            public ExampleSetMetaData modifyExampleSet(ExampleSetMetaData metaData) throws UndefinedParameterError {
+                metaData.clearRegular();
+                int numberOfDimensinos = getParameterAsInt(PARAMETER_DIMENSIONS);
+                for (int i = 0; i < numberOfDimensinos; i++) {
+                    metaData.addAttribute(new AttributeMetaData("d" + i, Ontology.REAL));
+                }
+                return metaData;
+            }
+        });
+        getTransformer().addRule(new GenerateNewMDRule(modelOutput, Model.class));
+        getTransformer().addRule(new PassThroughRule(exampleSetInput, originalOutput, false));
+    }
 
-	@Override
-	public void doWork() throws OperatorException {
-		ExampleSet es = exampleSetInput.getData();
-		int dimensions = getParameterAsInt(PARAMETER_DIMENSIONS);
+    /**
+     * Perform the actual dimensionality reduction.
+     */
+    protected abstract double[][] dimensionalityReduction(ExampleSet es, int dimensions);
 
-		Tools.onlyNumericalAttributes(es, "dimensionality reduction");
-		Tools.isNonEmpty(es);
-		Tools.checkAndCreateIds(es);
+    @Override
+    public void doWork() throws OperatorException {
+        ExampleSet es = exampleSetInput.getData();
+        int dimensions = getParameterAsInt(PARAMETER_DIMENSIONS);
 
-		double[][] p = dimensionalityReduction(es, dimensions);
+        Tools.onlyNumericalAttributes(es, "dimensionality reduction");
+        Tools.isNonEmpty(es);
+        Tools.checkAndCreateIds(es);
 
-		DimensionalityReducerModel model = new DimensionalityReducerModel(es, p, dimensions);
+        double[][] p = dimensionalityReduction(es, dimensions);
 
-		if (exampleSetOutput.isConnected())
-			exampleSetOutput.deliver(model.apply((ExampleSet)es.clone()));
-		originalOutput.deliver(es);
-		modelOutput.deliver(model);
-	}
+        DimensionalityReducerModel model = new DimensionalityReducerModel(es, p, dimensions);
+
+        if (exampleSetOutput.isConnected())
+            exampleSetOutput.deliver(model.apply((ExampleSet)es.clone()));
+        originalOutput.deliver(es);
+        modelOutput.deliver(model);
+    }
 
 
-	
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		List<ParameterType> types = super.getParameterTypes();
-		types.add(new ParameterTypeBoolean(PreprocessingOperator.PARAMETER_RETURN_PREPROCESSING_MODEL, "Indicates if the preprocessing model should also be returned", false));
-		ParameterType type = new ParameterTypeInt(PARAMETER_DIMENSIONS, "the number of dimensions in the result representation", 1, Integer.MAX_VALUE, 2);
-		type.setExpert(false);
-		types.add(type);
-		return types;
-	}
+
+    @Override
+    public List<ParameterType> getParameterTypes() {
+        List<ParameterType> types = super.getParameterTypes();
+        types.add(new ParameterTypeBoolean(PreprocessingOperator.PARAMETER_RETURN_PREPROCESSING_MODEL, "Indicates if the preprocessing model should also be returned", false));
+        ParameterType type = new ParameterTypeInt(PARAMETER_DIMENSIONS, "the number of dimensions in the result representation", 1, Integer.MAX_VALUE, 2);
+        type.setExpert(false);
+        types.add(type);
+        return types;
+    }
 }

@@ -34,66 +34,71 @@ import com.rapidminer.operator.features.transformation.ComponentVector;
 import com.rapidminer.tools.Tools;
 
 /**
+ * This is an renderer for {@link AbstractEigenvectorModel}s. It shows the
+ * EigenValues in a table view.
  * 
  * @author Sebastian Land
  */
 public class EigenvectorModelEigenvalueRenderer extends AbstractTableModelTableRenderer {
 
-	public static class EigenvalueTableModel extends AbstractTableModel {
+    public static class EigenvalueTableModel extends AbstractTableModel {
 
-		private static final long serialVersionUID = -9026248524043239399L;
+        private static final long serialVersionUID = -9026248524043239399L;
 
-		private double varianceSum;
+        private double varianceSum;
 
-		private double[] cumulativeVariance;
+        private double[] cumulativeVariance;
 
-		private List<? extends ComponentVector> eigenVectors;
+        private List<? extends ComponentVector> eigenVectors;
 
-		public EigenvalueTableModel(List<? extends ComponentVector> eigenVectors, double[] cumulativeVariance, double varianceSum) {
-			this.eigenVectors = eigenVectors;
-			this.cumulativeVariance = cumulativeVariance;
-			this.varianceSum = varianceSum;
-		}
+        public EigenvalueTableModel(List<? extends ComponentVector> eigenVectors, double[] cumulativeVariance, double varianceSum) {
+            this.eigenVectors = eigenVectors;
+            this.cumulativeVariance = cumulativeVariance;
+            this.varianceSum = varianceSum;
+        }
 
-		public int getColumnCount() {
-			return 4;
-		}
+        @Override
+        public int getColumnCount() {
+            return 4;
+        }
 
-		public int getRowCount() {
-			return eigenVectors.size();
-		}
+        @Override
+        public int getRowCount() {
+            return eigenVectors.size();
+        }
 
-		public Object getValueAt(int rowIndex, int columnIndex) {
-			switch (columnIndex) {
-			case 0: return "PC " + (rowIndex + 1);
-			case 1: return Tools.formatNumber(Math.sqrt(eigenVectors.get(rowIndex).getEigenvalue()));
-			case 2: return Tools.formatNumber(eigenVectors.get(rowIndex).getEigenvalue() / this.varianceSum);
-			case 3: return Tools.formatNumber(cumulativeVariance[rowIndex]);
-			default: return "unknown";
-			}
-		}
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            switch (columnIndex) {
+            case 0: return "PC " + (rowIndex + 1);
+            case 1: return Tools.formatNumber(Math.sqrt(eigenVectors.get(rowIndex).getEigenvalue()));
+            case 2: return Tools.formatNumber(eigenVectors.get(rowIndex).getEigenvalue() / this.varianceSum);
+            case 3: return Tools.formatNumber(cumulativeVariance[rowIndex]);
+            default: return "unknown";
+            }
+        }
 
-		@Override
-		public String getColumnName(int column) {
-			switch (column) {
-			case 0: return "Component";
-			case 1: return "Standard Deviation";
-			case 2: return "Proportion of Variance";
-			case 3: return "Cumulative Variance";
-			default: return "unknown";
-			}
-		}
+        @Override
+        public String getColumnName(int column) {
+            switch (column) {
+            case 0: return "Component";
+            case 1: return "Standard Deviation";
+            case 2: return "Proportion of Variance";
+            case 3: return "Cumulative Variance";
+            default: return "unknown";
+            }
+        }
 
-	}
+    }
 
-	@Override
-	public String getName() {
-		return "Eigenvalues";
-	}
+    @Override
+    public String getName() {
+        return "Eigenvalues";
+    }
 
-	@Override
-	public TableModel getTableModel(Object renderable, IOContainer ioContainer, boolean isReporting) {
-		AbstractEigenvectorModel model = (AbstractEigenvectorModel) renderable;
-		return model.getEigenvalueTableModel();
-	}
+    @Override
+    public TableModel getTableModel(Object renderable, IOContainer ioContainer, boolean isReporting) {
+        AbstractEigenvectorModel model = (AbstractEigenvectorModel) renderable;
+        return model.getEigenvalueTableModel();
+    }
 }
