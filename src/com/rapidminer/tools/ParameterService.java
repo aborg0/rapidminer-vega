@@ -268,8 +268,12 @@ public class ParameterService {
             LogService.getRoot().config("Trying rcfile '" + rcFile + "'...skipped");
             return;
         }
+
+        // TODO: Needs to distinguish between system and RapidMiner Properties!!!
+        String userDir = System.getProperty("user.dir");
         Properties props = readPropertyFile(rcFile);
         System.getProperties().putAll(props);
+        System.getProperties().put("user.dir", userDir);
         LogService.getRoot().config("Read rcfile '" + rcFile + "'.");
     }
 

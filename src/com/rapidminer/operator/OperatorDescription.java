@@ -176,7 +176,11 @@ public class OperatorDescription implements Comparable<OperatorDescription> {
         this(group.getFullyQualifiedKey(), key, clazz, classLoader, iconName, provider);
     }
 
-    public String getName() {
+    public OperatorDescription(String key, Class<? extends Operator> clazz, GroupTree groupTree, ClassLoader classLoader, String iconName, Plugin provider, OperatorDocBundle bundle) {
+		this(groupTree.getFullyQualifiedKey(), key, clazz, classLoader, iconName, provider);
+	}
+
+	public String getName() {
         return getOperatorDocumentation().getName();
     }
 

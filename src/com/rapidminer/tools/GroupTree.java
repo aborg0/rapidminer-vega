@@ -307,7 +307,7 @@ public abstract class GroupTree implements Comparable<GroupTree> {
      * the GroupTree accordingly.
      */
     @Deprecated
-    public static GroupTree findGroup(String fullyQualifiedGroupName, Object object) {
+    public static GroupTree findGroup(String fullyQualifiedGroupName, OperatorDocBundle object) {
         GroupTreeRoot root = (GroupTreeRoot) OperatorService.getGroups();
         return root.findGroup(fullyQualifiedGroupName);
     }

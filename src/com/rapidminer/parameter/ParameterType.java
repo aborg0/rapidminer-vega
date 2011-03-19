@@ -393,9 +393,14 @@ public abstract class ParameterType implements Comparable, Serializable {
 
     /**
      * Subclasses must store all their properties inside the typeElement and must be able to reload it from
-     * their using the
+     * their using the constructor (Operator operator, Element element). This constructor is called via
+     * reflection.
+     * This method should be abstract, but in order to keep the class compatible with existing extensions,
+     * this only throws an unsupported exception.
      */
-    public abstract void getDefinitionAsXML(Element typeElement);
+    public void getDefinitionAsXML(Element typeElement) {
+        throw new UnsupportedOperationException("The Subclass " + this.getClass().getCanonicalName() + " must override the method getDefinitionAsXML(Element) of the super type " + ParameterType.class.getCanonicalName());
+    }
 
     private void loadDefinitionFromXML(Operator operator, Element typeElement) throws XMLException {
         // simple properties
@@ -419,18 +424,19 @@ public abstract class ParameterType implements Comparable, Serializable {
                 conditions.add((ParameterCondition) constructor.newInstance(operator, conditionElement));
             }
         } catch (ClassNotFoundException e) {
+            throw new XMLException("Illegal value for attribute " + ATTRIBUTE_CONDITION_CLASS, e);
         } catch (IllegalArgumentException e) {
-            e.printStackTrace();
+            throw new XMLException("Illegal value for attribute " + ATTRIBUTE_CONDITION_CLASS, e);
         } catch (InstantiationException e) {
-            e.printStackTrace();
+            throw new XMLException("Illegal value for attribute " + ATTRIBUTE_CONDITION_CLASS, e);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new XMLException("Illegal value for attribute " + ATTRIBUTE_CONDITION_CLASS, e);
         } catch (InvocationTargetException e) {
-            e.printStackTrace();
+            throw new XMLException("Illegal value for attribute " + ATTRIBUTE_CONDITION_CLASS, e);
         } catch (SecurityException e) {
-            e.printStackTrace();
+            throw new XMLException("Illegal value for attribute " + ATTRIBUTE_CONDITION_CLASS, e);
         } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+            throw new XMLException("Illegal value for attribute " + ATTRIBUTE_CONDITION_CLASS, e);
         }
     }
 
