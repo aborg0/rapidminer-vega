@@ -47,7 +47,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.rapidminer.RapidMiner;
-import com.rapidminer.gui.renderer.RendererService;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Operator;
@@ -472,16 +471,15 @@ public class OperatorService {
 
     /** Returns a sorted set of all short IO object names. */
     public static Set<String> getIOObjectsNames() {
-        return RendererService.getAllRenderableObjectNames();
-        // return IO_OBJECT_NAME_MAP.keySet();
+        //return RendererService.getAllRenderableObjectNames();
+        return IO_OBJECT_NAME_MAP.keySet();
     }
 
     /** Returns the class for the short name of an IO object. */
     public static Class<? extends IOObject> getIOObjectClass(String name) {
-        assert (IO_OBJECT_NAME_MAP.get(name).equals(RendererService.getClass(name)));
-
-        return RendererService.getClass(name);
-
+        //assert (IO_OBJECT_NAME_MAP.get(name).equals(RendererService.getClass(name)));
+        //return RendererService.getClass(name);
+        return IO_OBJECT_NAME_MAP.get(name);
     }
 
     /**
