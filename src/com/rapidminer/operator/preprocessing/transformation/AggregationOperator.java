@@ -226,7 +226,8 @@ public class AggregationOperator extends AbstractDataProcessing {
         MemoryExampleTable resultTable = null;
         boolean allCombinations = getParameterAsBoolean(PARAMETER_ALL_COMBINATIONS);
 
-        if (isParameterSet(PARAMETER_GROUP_BY_ATTRIBUTES)) {
+        // TODO: @SeLa: CHECK THIS! Why is the second check below necessary at all? Without the Num2Nom crashes...
+        if (isParameterSet(PARAMETER_GROUP_BY_ATTRIBUTES) && (getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES).length() > 0)) {
             String groupByAttributesRegex = getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES);
 
             // make attributes nominal
