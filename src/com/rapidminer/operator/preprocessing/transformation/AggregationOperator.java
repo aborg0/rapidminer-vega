@@ -24,6 +24,7 @@ package com.rapidminer.operator.preprocessing.transformation;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -123,14 +124,17 @@ public class AggregationOperator extends AbstractDataProcessing {
         ExampleSetMetaData resultMD = metaData.clone();
         resultMD.clear();
 
-        String attributeRegex = getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES);
-        if (attributeRegex != null) {
+        // add group by attributes
+        if (isParameterSet(PARAMETER_GROUP_BY_ATTRIBUTES) && !getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES).isEmpty()) {
+            String attributeRegex = getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES);
             Pattern pattern = Pattern.compile(attributeRegex);
 
-            Iterator<AttributeMetaData> iterator = metaData.getAllAttributes().iterator();
-            while (iterator.hasNext()) {
-                AttributeMetaData amd = iterator.next();
+            for (AttributeMetaData amd : metaData.getAllAttributes()) {
                 if (pattern.matcher(amd.getName()).matches()) {
+                    if (amd.isNumerical()) { //converting type to mimic NumericalToPolynomial used below
+                        amd.setType(Ontology.NOMINAL);
+                        amd.setValueSet(Collections.<String>emptySet(), SetRelation.SUPERSET);
+                    }
                     resultMD.addAttribute(amd);
                 }
             }
@@ -144,6 +148,7 @@ public class AggregationOperator extends AbstractDataProcessing {
             resultMD.setNumberOfExamples(new MDInteger(1));
         }
 
+        // add aggregated attributes of default aggregation
         if (getParameterAsBoolean(PARAMETER_USE_DEFAULT_AGGREGATION)) {
             String defaultFunction = getParameterAsString(PARAMETER_DEFAULT_AGGREGATION_FUNCTION);
             ExampleSetMetaData metaDataSubset = attributeSelector.getMetaDataSubset(metaData, false);
@@ -151,6 +156,8 @@ public class AggregationOperator extends AbstractDataProcessing {
                 resultMD.addAttribute(new AttributeMetaData(defaultFunction + "(" + amd.getName() + ")", getResultType(defaultFunction, amd)));
             }
         }
+        
+        // add aggregated attributes of list
         List<String[]> parameterList = this.getParameterList(PARAMETER_AGGREGATION_ATTRIBUTES);
         for (String[] function : parameterList) {
             AttributeMetaData amd = metaData.getAttributeByName(function[0]);
@@ -161,7 +168,7 @@ public class AggregationOperator extends AbstractDataProcessing {
     }
 
     /**
-     * Returns the result type of an aggregation of a given attribute with given functio nname
+     * Returns the result type of an aggregation of a given attribute with given function name
      */
     private int getResultType(String functionName, AttributeMetaData attribute) {
         if (functionName.equals(AbstractAggregationFunction.KNOWN_AGGREGATION_FUNCTION_NAMES[AbstractAggregationFunction.COUNT])) {
@@ -176,7 +183,6 @@ public class AggregationOperator extends AbstractDataProcessing {
             }
         }
     }
-
 
     @Override
     public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
@@ -226,8 +232,11 @@ public class AggregationOperator extends AbstractDataProcessing {
         MemoryExampleTable resultTable = null;
         boolean allCombinations = getParameterAsBoolean(PARAMETER_ALL_COMBINATIONS);
 
-        // TODO: @SeLa: CHECK THIS! Why is the second check below necessary at all? Without the Num2Nom crashes...
-        if (isParameterSet(PARAMETER_GROUP_BY_ATTRIBUTES) && (getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES).length() > 0)) {
+        /*
+         * We have to check whether parameter is set and not empty,
+         * because RegexpAttributeFilter needs parameter set and not empty. Otherwise a UserError is thrown.
+         */
+        if (isParameterSet(PARAMETER_GROUP_BY_ATTRIBUTES) && (!getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES).isEmpty())) {
             String groupByAttributesRegex = getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES);
 
             // make attributes nominal
@@ -238,7 +247,7 @@ public class AggregationOperator extends AbstractDataProcessing {
                 toNominalOperator.setParameter(AttributeSubsetSelector.PARAMETER_INCLUDE_SPECIAL_ATTRIBUTES, "true");
                 exampleSet = toNominalOperator.apply(exampleSet);
             } catch (OperatorCreationException e) {
-                // might work if attributes already nominal. Otherwise UserError will be thrown.
+                // might work if attributes already nominal. Otherwise UserError will be thrown below.
             }
 
             Attribute[] groupByAttributes = getAttributesArrayFromRegex(exampleSet.getAttributes(), groupByAttributesRegex);
