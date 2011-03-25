@@ -696,6 +696,7 @@ public class Plugin {
                         iterator.remove();
                         LogService.getRoot().log(Level.SEVERE, "Cannot load extension '" + plugin.extensionId + "': Depends on '" + dependency.getPluginExtensionId() + "' which cannot be found!");
                         found = true;
+                        dependenciesMet = false;
                         break; //break this loop: Nothing to check
                     } else {
                         dependenciesMet &= initialized.contains(dependencyPlugin);

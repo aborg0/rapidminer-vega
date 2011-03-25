@@ -477,6 +477,17 @@
         <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>                
     </ioobject> 
 
+    <ioobject
+        name="SVD Model"
+        class="com.rapidminer.operator.features.transformation.SVDModel"
+        reportable="true"
+        icon="table_column_replace.png">
+        <renderer>com.rapidminer.gui.renderer.models.SVDModelValueRenderer</renderer>      
+        <renderer>com.rapidminer.gui.renderer.models.SVDModelVectorRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.models.SVDModelCumulativePlotRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>                
+    </ioobject> 
+
     <!-- Preprocessing models -->
     <ioobject
         name="Discretization Model"

@@ -79,20 +79,17 @@ public class PluginClassLoader extends URLClassLoader {
 
     @Override
     protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        // First, check if the class has already been loaded
-        Class c = findLoadedClass(name);
-        if (c == null) {
-            try {
-                c = super.loadClass(name, resolve);
-            } catch (ClassNotFoundException e) {
-                // ClassNotFoundException thrown if class not found
-                // from the urls registered nor the core class loader
-            }
+        Class c = null;
+        try {
+            c = super.loadClass(name, resolve);
+        } catch (ClassNotFoundException e) {
+            // ClassNotFoundException thrown if class not found
+            // from the urls registered nor the core class loader
         }
         if (c == null) {
             for (Plugin plugin : parentPlugins) {
                 try {
-                    c = plugin.getClassLoader().loadClass(name, resolve);
+                    return plugin.getClassLoader().loadClass(name, resolve);
                 } catch (ClassNotFoundException e) {
                     // ClassNotFoundException thrown if class not found
                     // from the parent extension

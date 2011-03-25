@@ -16,6 +16,10 @@ ShowInstDetails nevershow
  
 Section ""
 
+; This will set the environment variables accordingly
+Call SetEnvironment 
+
+; Searching for system memory to use
 System::Alloc 32
 Pop $1
 System::Call "Kernel32::GlobalMemoryStatus(i) v (r1)"
@@ -50,13 +54,8 @@ after_mem_more:
  
   Call GetParameters
   Pop $R1
-  
-  ; change for your purpose (-jar etc.)
-  ;StrCpy $0 '"$R0" -classpath "${CLASSPATH}" ${CLASS}'
-  
 
-
-; Testing for number of processors
+; testing for number of processors for switching to multi threaded GC
 ReadEnvStr $R2 "NUMBER_OF_PROCESSORS"  
   IntFmt $0 "0x%08X" $R2
   IntCmp $0 1 is1 done morethan1
@@ -75,10 +74,14 @@ done:
  
   
   SetOutPath $EXEDIR
- Relaunch:
-  Call PerformUpdate
-  ExecWait $0 $1
+
+  Relaunch:
+	  Call PerformUpdate
+	  
+	  ExecWait $0 $1
+	  Call SetEnvironment ;if settings have been adapted inside RapidMiner
   IntCmp $1 2 Relaunch
+  
 SectionEnd
  
 Function PerformUpdate
@@ -182,4 +185,52 @@ Function GetParameters
   Pop $R1
   Exch $R0
  
+FunctionEnd
+
+; This function will read from the ./scripts/config/config.win file
+; which environment variables have to be set
+Function SetEnvironment
+	Push $R0		; R0 will be used as handle
+	Push $R1		; R1 is the line string for the environment variable name
+	Push $R2		; R2 is the line string for the environment variable value
+	Push $R3		; R3 is the current value of the environment variable
+	Push $R4		; R4 is the mode: either append or overwrite
+	
+	ClearErrors
+	FileOpen $R0 $EXEDIR\scripts\config\config.win r
+	IfErrors nextVariableEnd
+	
+	nextVariable:
+		ClearErrors
+		FileRead $R0 $R4
+		StrCpy $R4 $R4 -2
+		FileRead $R0 $R1
+		StrCpy $R1 $R1 -2
+		FileRead $R0 $R2
+		StrCpy $R2 $R2 -2
+		IfErrors nextVariableEnd
+		
+		; check whether the overwrite mode is on, then only set
+		StrCmp $R4 "overwrite" useRawValue
+		; if not, check if environment variable already exists. 
+		ClearErrors
+		ReadEnvStr $R3 $R1
+		IfErrors useRawValue 	;If exists, append new value
+			StrCpy $R2 "$R3;$R2"
+		useRawValue:		;else set to raw value
+			System::Call 'Kernel32::SetEnvironmentVariableA(t R1, t R2) .r0'
+  	
+		Goto nextVariable
+	nextVariableEnd:
+	
+	; close file
+	FileClose $R0
+	
+	; restore old registers
+	clearErrors
+    Pop $R4
+	Pop $R3
+	Pop $R2
+	Pop $R1
+	Pop $R0
 FunctionEnd

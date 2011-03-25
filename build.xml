@@ -259,6 +259,12 @@
 		<ant target="release.finish" />
 	</target>
 
+	<target name="release.makeWin32Launcher">
+		<exec executable="makensis.exe">
+			<arg line="installation/launcher.nsi" />
+		</exec>
+	</target>
+	
 	<target name="release.makeWin32" depends="release.prepare" description="This creates the installer for the Windows32 platform">
 		<echo message="Releasing Windows32 Installer..." />
 		<!-- Now creating rapidminer.jar and copy from lib to release path -->
