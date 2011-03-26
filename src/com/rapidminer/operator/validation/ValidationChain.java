@@ -45,6 +45,7 @@ import com.rapidminer.operator.ports.metadata.ExampleSetPassThroughRule;
 import com.rapidminer.operator.ports.metadata.MDInteger;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.PassThroughRule;
+import com.rapidminer.operator.ports.metadata.Precondition;
 import com.rapidminer.operator.ports.metadata.SetRelation;
 import com.rapidminer.operator.ports.metadata.SimplePrecondition;
 import com.rapidminer.operator.ports.metadata.SubprocessTransformRule;
@@ -70,7 +71,7 @@ public abstract class ValidationChain extends OperatorChain implements Capabilit
     public static final String PARAMETER_CREATE_COMPLETE_MODEL = "create_complete_model";
 
     // input
-    private final InputPort trainingSetInput = getInputPorts().createPort("training", ExampleSet.class);
+    protected final InputPort trainingSetInput = getInputPorts().createPort("training", ExampleSet.class);
 
     // training
     protected final OutputPort trainingProcessExampleSetOutput = getSubprocess(0).getInnerSources().createPort("training");
@@ -100,7 +101,7 @@ public abstract class ValidationChain extends OperatorChain implements Capabilit
         super(description, "Training", "Testing");
         throughExtender.start();
 
-        trainingSetInput.addPrecondition(new CapabilityPrecondition(this, trainingSetInput));
+        trainingSetInput.addPrecondition(getCapabilityPrecondition());
         
         applyProcessPerformancePortExtender.ensureMinimumNumberOfPorts(1);
 
@@ -173,6 +174,13 @@ public abstract class ValidationChain extends OperatorChain implements Capabilit
                 return ValidationChain.this.lastThirdPerformance;
             }
         });
+    }
+
+    /**
+     * This method can be overwritten in order to give a more senseful quickfix.
+     */
+    protected Precondition getCapabilityPrecondition() {
+        return new CapabilityPrecondition(this, trainingSetInput);
     }
 
     protected abstract MDInteger getTrainingSetSize(MDInteger originalSize) throws UndefinedParameterError;

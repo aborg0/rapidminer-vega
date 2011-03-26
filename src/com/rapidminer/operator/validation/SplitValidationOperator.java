@@ -31,7 +31,12 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.ports.metadata.AttributeMetaData;
+import com.rapidminer.operator.ports.metadata.CapabilityPrecondition;
 import com.rapidminer.operator.ports.metadata.MDInteger;
+import com.rapidminer.operator.ports.metadata.Precondition;
+import com.rapidminer.operator.ports.quickfix.ParameterSettingQuickFix;
+import com.rapidminer.operator.ports.quickfix.QuickFix;
 import com.rapidminer.operator.visualization.ProcessLogOperator;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeCategory;
@@ -103,6 +108,18 @@ public class SplitValidationOperator extends ValidationChain {
 		super(description);
 	}
 
+    @Override
+    protected Precondition getCapabilityPrecondition() {
+        return new CapabilityPrecondition(this, trainingSetInput) {
+            @Override
+            protected List<QuickFix> getFixesForRegressionWhenClassificationSupported(AttributeMetaData labelMD) {
+                List<QuickFix> fixes = super.getFixesForRegressionWhenClassificationSupported(labelMD);
+                fixes.add(0, new ParameterSettingQuickFix(SplitValidationOperator.this, PARAMETER_SAMPLING_TYPE, SplittedExampleSet.SHUFFLED_SAMPLING + "", "switch_to_shuffled_sampling"));
+                return fixes;
+            }
+        };
+    }
+	
 	@Override
 	public void estimatePerformance(ExampleSet inputSet) throws OperatorException {
 		SplittedExampleSet eSet = null;

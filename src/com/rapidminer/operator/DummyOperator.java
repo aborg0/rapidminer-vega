@@ -27,6 +27,8 @@ import java.util.logging.Level;
 
 import com.rapid_i.deployment.update.client.UpdateDialog;
 import com.rapid_i.deployment.update.client.UpdateManager;
+import com.rapidminer.RapidMiner;
+import com.rapidminer.RapidMiner.ExecutionMode;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.deployment.client.wsimport.UpdateService;
 import com.rapidminer.io.process.XMLImporter;
@@ -120,6 +122,9 @@ public class DummyOperator extends Operator {
 	}
 	
 	private String getExtensionName() {
+		if (RapidMiner.getExecutionMode().isHeadless()) {
+			return getRequiredPluginPrefix();
+		}
 		try {
 			UpdateService service = UpdateManager.getService();
 			String extensionId = service.getRapidMinerExtensionForOperatorPrefix(getRequiredPluginPrefix());

@@ -250,6 +250,15 @@ public class XMLTools {
         }
     }
 
+    public static String getTagContents(Element element, String tag, String deflt) {
+    	String result = getTagContents(element, tag);
+    	if (result == null) {
+    		return deflt;
+    	} else {
+    		return result;
+    	}
+    }
+
     /**
      * For a tag <parent> <tagName>content</tagName> <something>else</something> ... </parent>
      * 

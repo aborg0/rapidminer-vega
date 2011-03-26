@@ -178,12 +178,20 @@ public class CapabilityPrecondition extends ExampleSetPrecondition {
 							}
 						}
 					} else if (label.isNumerical() && !capabilityProvider.supportsCapability(OperatorCapability.NUMERICAL_LABEL)) {
-						createLearnerError(OperatorCapability.NUMERICAL_LABEL.getDescription(), AbstractDiscretizationOperator.createDiscretizationFixes(getInputPort(), label.getName()));
+						createLearnerError(OperatorCapability.NUMERICAL_LABEL.getDescription(), getFixesForRegressionWhenClassificationSupported(label));
 					}		
 				}
 			}
 		}
 	}
+	 /**
+     * This method has to return a collection of quick fixes which are appropriate when classification is supported and
+     * the data needs regression. The default implementation will return fixes for discretization.
+     */
+    protected List<QuickFix> getFixesForRegressionWhenClassificationSupported(AttributeMetaData labelMD) {
+        return AbstractDiscretizationOperator.createDiscretizationFixes(getInputPort(), labelMD.getName());
+    }
+	
 	
 	/**
 	 * This method has to return a collection of quick fixes which are appropriate when regression is supported and

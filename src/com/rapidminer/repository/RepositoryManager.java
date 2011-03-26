@@ -113,7 +113,13 @@ public class RepositoryManager extends AbstractObservable<Repository> {
         final String homeUrl = System.getProperty(RapidMiner.PROPERTY_HOME_REPOSITORY_URL);
         if (homeUrl != null) {
             try {
-                RemoteRepository homeRepository = new RemoteRepository(new URL(homeUrl), "Home", System.getProperty(RapidMiner.PROPERTY_HOME_REPOSITORY_USER), null, true);
+            	String username = System.getProperty(RapidMiner.PROPERTY_HOME_REPOSITORY_USER);
+                String password = System.getProperty(RapidMiner.PROPERTY_HOME_REPOSITORY_PASSWORD);
+                char[] passwordChars = null;
+                if (password != null) {
+                	passwordChars = password.toCharArray();
+                }
+				RemoteRepository homeRepository = new RemoteRepository(new URL(homeUrl), "Home", username, passwordChars, true);
                 repositories.add(homeRepository);
                 LogService.getRoot().config("Adding home repository "+homeUrl+".");
             } catch (MalformedURLException e) {

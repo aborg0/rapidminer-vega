@@ -282,6 +282,12 @@ public class RapidMiner {
     public static final String PROPERTY_RAPIDMINER_SOCKS_PROXY_HOST = "socksProxyHost";
     public static final String PROPERTY_RAPIDMINER_SOCKS_PROXY_PORT = "socksProxyPort";
 
+    // Webstart properties
+    public static final String PROPERTY_HOME_REPOSITORY_URL = "rapidminer.homerepository.url";
+    public static final String PROPERTY_HOME_REPOSITORY_USER = "rapidminer.homerepository.user";
+    public static final String PROPERTY_HOME_REPOSITORY_PASSWORD= "rapidminer.homerepository.password";
+
+    
     /**
      * A set of some non-gui and operator related system properties (starting with "rapidminer."). Properties
      * can be registered using {@link RapidMiner#registerRapidMinerProperty(ParameterType)}.
@@ -709,8 +715,4 @@ public class RapidMiner {
         System.setProperty(PROPERTY_RAPIDMINER_INIT_LOCALE_VARIANT, variant);
 
     }
-
-    public static final String PROPERTY_HOME_REPOSITORY_URL = "rapidminer.homerepository.url";
-
-    public static final String PROPERTY_HOME_REPOSITORY_USER = "rapidminer.homerepository.user";
 }

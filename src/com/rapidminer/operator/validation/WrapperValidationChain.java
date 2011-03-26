@@ -35,6 +35,7 @@ import com.rapidminer.operator.performance.PerformanceVector;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.metadata.CapabilityPrecondition;
+import com.rapidminer.operator.ports.metadata.Precondition;
 import com.rapidminer.operator.ports.metadata.SubprocessTransformRule;
 
 
@@ -68,7 +69,7 @@ public abstract class WrapperValidationChain extends OperatorChain implements Ca
 	public WrapperValidationChain(OperatorDescription description) {
 		super(description, "Attribute Weighting", "Model Building", "Model Evaluation");
 		
-		exampleSetInput.addPrecondition(new CapabilityPrecondition(this, exampleSetInput));
+		exampleSetInput.addPrecondition(getCapabilityPrecondition());
 		
 		getTransformer().addPassThroughRule(exampleSetInput, innerWeightingSetSource);
 		getTransformer().addRule(new SubprocessTransformRule(getSubprocess(0)));
@@ -100,6 +101,13 @@ public abstract class WrapperValidationChain extends OperatorChain implements Ca
 		});
 	}
 
+    /**
+     * This method can be overwritten in order to give a more senseful quickfix.
+     */
+    protected Precondition getCapabilityPrecondition() {
+        return new CapabilityPrecondition(this, exampleSetInput);
+    }
+	
 	/**
 	 * Can be used by subclasses to set the performance of the example set. Will
 	 * be used for plotting only.

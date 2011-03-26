@@ -45,6 +45,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.rapidminer.RapidMiner;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.io.Base64;
 import com.rapidminer.io.process.XMLTools;
@@ -121,7 +122,11 @@ public class PasswordDialog extends ButtonDialog {
 		return getPasswordAuthentication(forUrl, forceRefresh, false);
 	}
 
-	public static PasswordAuthentication getPasswordAuthentication(String forUrl, boolean forceRefresh, boolean hideDialogIfPasswordKnown) {		
+	public static PasswordAuthentication getPasswordAuthentication(String forUrl, boolean forceRefresh, boolean hideDialogIfPasswordKnown) {
+		if (RapidMiner.getExecutionMode().isHeadless()) {
+			LogService.getRoot().warning("Cannot query password in batch mode. Password was requested for "+forUrl+".");
+			return null;
+		}
 		PasswordAuthentication authentication = CACHE.get(forUrl);
 		// return immediately if known and desired
 		if (hideDialogIfPasswordKnown && !forceRefresh && (authentication != null) && (authentication.getPassword() != null)) {

@@ -201,15 +201,15 @@ public class ConditionedExampleSet extends AbstractExampleSet {
 			java.lang.reflect.Constructor constructor = clazz.getConstructor(new Class[] { ExampleSet.class, String.class });
 			return (Condition) constructor.newInstance(new Object[] { exampleSet, parameterString });
 		} catch (ClassNotFoundException e) {
-			throw new ConditionCreationException("Cannot find class '" + className + "'. Check your classpath.");
+			throw new ConditionCreationException("Cannot find class '" + className + "'. Check your classpath.", e);
 		} catch (NoSuchMethodException e) {
-			throw new ConditionCreationException("'" + className + "' must implement two argument constructor " + className + "(ExampleSet, String)!");
+			throw new ConditionCreationException("'" + className + "' must implement two argument constructor " + className + "(ExampleSet, String)!", e);
 		} catch (IllegalAccessException e) {
-			throw new ConditionCreationException("'" + className + "' cannot access two argument constructor " + className + "(ExampleSet, String)!");
+			throw new ConditionCreationException("'" + className + "' cannot access two argument constructor " + className + "(ExampleSet, String)!", e);
 		} catch (InstantiationException e) {
-			throw new ConditionCreationException(className + ": cannot create condition (" + e.getMessage() + ").");
+			throw new ConditionCreationException(className + ": cannot create condition (" + e.getMessage() + ").", e);
 		} catch (Throwable e) {
-			throw new ConditionCreationException(className + ": cannot invoke condition (" + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage()) + ").");
+			throw new ConditionCreationException(className + ": cannot invoke condition (" + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage()) + ").", e);
 		}
 	}
 }
