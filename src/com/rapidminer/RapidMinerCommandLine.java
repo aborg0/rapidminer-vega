@@ -122,7 +122,7 @@ public class RapidMinerCommandLine extends RapidMiner implements BreakpointListe
 				process = loc.load(null);
 			}
 		} catch (Exception e) {
-			LogService.getRoot().severe("Cannot read process setup '" + repositoryLocation + "': "+e.getMessage());
+			LogService.getRoot().log(Level.SEVERE, "Cannot read process setup '" + repositoryLocation + "': "+e.getMessage(), e);
 			RapidMiner.quit(RapidMiner.ExitMode.ERROR);
 		}
 
