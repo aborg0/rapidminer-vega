@@ -17,7 +17,6 @@
 	<classpathentry kind="lib" path="lib/junit.jar"/>
 	<classpathentry kind="lib" path="lib/commons-collections.jar"/>
 	<classpathentry kind="lib" path="lib/looks.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jh.jar"/>
 	<classpathentry kind="lib" path="lib/collections-generic.jar"/>
 	<classpathentry kind="lib" path="lib/colt.jar"/>
 	<classpathentry kind="lib" path="lib/concurrent.jar"/>
@@ -27,16 +26,6 @@
 	<classpathentry kind="lib" path="lib/jung-api.jar"/>
 	<classpathentry kind="lib" path="lib/jung-graph-impl.jar"/>
 	<classpathentry kind="lib" path="lib/jung-visualization.jar"/>
-	<classpathentry kind="lib" path="lib/blas.jar"/>
-	<classpathentry kind="lib" path="lib/mail.jar"/>
-	<classpathentry kind="lib" path="lib/glazedlists.jar"/>
-	<classpathentry kind="lib" path="lib/microba.jar"/>
-	<classpathentry kind="lib" path="lib/rome.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jdom.jar"/>
-	<classpathentry kind="lib" path="lib/bcmail.jar"/>
-	<classpathentry kind="lib" path="lib/bcprov.jar"/>
-	<classpathentry kind="lib" path="lib/gentlyWEB.jar"/>
-	<classpathentry kind="lib" path="lib/jwnl.jar"/>
 	<classpathentry kind="lib" path="lib/jdbc/hsqldb.jar"/>
 	<classpathentry kind="lib" path="lib/jdbc/iijdbc.jar"/>
 	<classpathentry kind="lib" path="lib/jdbc/jtds-1.2.2.jar"/>
@@ -63,6 +52,9 @@
 	<classpathentry kind="lib" path="lib/commons-logging-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-codec-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/encog.jar"/>
+	<classpathentry kind="lib" path="lib/microba.jar"/>
+	<classpathentry kind="lib" path="lib/blas.jar"/>
+	<classpathentry kind="lib" path="lib/mail.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-lang-2.4.jar"/>
 	<classpathentry kind="lib" path="lib/groovy-all-1.7.7.jar"/>

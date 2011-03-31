@@ -142,11 +142,15 @@ public class LogService extends WrapperLoggingHandler {
    
     private LogService(Logger logger) {
     	super(logger);
-    	getRoot().setLevel(Level.CONFIG);
-    	for (Handler handler : Logger.getLogger("").getHandlers()) {
-    		handler.setLevel(Level.CONFIG);
-    		if (handler instanceof ConsoleHandler) {
-    			handler.setFormatter(new LeanFormatter());
+    	// we install the default logging properties only if not overridden by the user at startup
+    	if ((System.getProperty("java.util.logging.config.file") != null) &&
+    			(System.getProperty("java.util.logging.config.class") != null))	{
+    		getRoot().setLevel(Level.CONFIG);
+    		for (Handler handler : Logger.getLogger("").getHandlers()) {
+    			handler.setLevel(Level.CONFIG);
+    			if (handler instanceof ConsoleHandler) {
+    				handler.setFormatter(new LeanFormatter());
+    			}
     		}
     	}
     }

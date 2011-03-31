@@ -61,7 +61,7 @@ public class SVDModelVectorRenderer extends AbstractTableModelTableRenderer {
                 attributeNames[i] = attribute.getName();
                 i++;
             }
-            this.numberOfComponents = model.getMaximumNumberOfComponents();
+            this.numberOfComponents = model.getNumberOfComponents();
 
             this.model = model;
         }
@@ -81,7 +81,7 @@ public class SVDModelVectorRenderer extends AbstractTableModelTableRenderer {
             if (columnIndex == 0) {
                 return attributeNames[rowIndex];
             } else {
-                return Tools.formatNumber(model.getSingularVector(columnIndex - 1)[rowIndex]);
+                return Tools.formatNumber(model.getSingularVectorValue(columnIndex - 1, rowIndex));
             }
         }
 

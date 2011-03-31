@@ -55,7 +55,7 @@ public class SVDModelValueRenderer extends AbstractTableModelTableRenderer {
 
         @Override
         public int getRowCount() {
-            return model.getMaximumNumberOfComponents();
+            return model.getNumberOfComponents();
         }
 
         @Override

@@ -22,7 +22,6 @@
  */
 package com.rapidminer.repository.resource;
 
-import javax.help.UnsupportedOperationException;
 import javax.swing.event.EventListenerList;
 
 import org.w3c.dom.Document;

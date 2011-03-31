@@ -22,14 +22,8 @@
  */
 package com.rapidminer.gui.tools;
 
-import java.awt.Component;
-
-import javax.swing.Icon;
 import javax.swing.JTabbedPane;
-import javax.swing.SingleSelectionModel;
 import javax.swing.SwingConstants;
-
-import com.rapidminer.tools.help.HelpService;
 
 /**
  * Creates a tabbed pane with tabs at top and which scroll the tabs instead of creating 
@@ -45,7 +39,7 @@ public class ExtendedJTabbedPane extends JTabbedPane {
 		super(SwingConstants.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
 	}
 	
-	/**
+	/*
 	 * Adds a component and tip represented by a title and/or icon, either of 
 	 * which can be null. Cover method for insertTab.
 	 * Additionally this method will register the context of the tab on the
@@ -55,10 +49,11 @@ public class ExtendedJTabbedPane extends JTabbedPane {
 	 * @param component the component to be displayed when this tab is clicked
 	 * @param tip the tooltip to be displayed for this tab
 	 * @param helpTopicId the help topic id of the context to be shown if tab is activeted
-	 */
+	 *
 	public void addTab(String title, Icon icon, Component component, String tip, String helpTopicId) {
-		SingleSelectionModel thisModel = this.getModel();
+		//SingleSelectionModel thisModel = this.getModel();
 		super.addTab(title, icon, component, tip);
-		HelpService.registerModel(thisModel, getTabCount() - 1, helpTopicId);
+		//HelpService.registerModel(thisModel, getTabCount() - 1, helpTopicId);
 	}
+	*/
 }

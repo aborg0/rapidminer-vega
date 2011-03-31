@@ -127,8 +127,8 @@ public class SVDModel extends AbstractModel implements ComponentWeightsCreatable
         return this.cumulativeSingularValueProportion[index];
     }
 
-    public double[] getSingularVector(int index) {
-        return this.vMatrix.getArray()[index];
+    public double getSingularVectorValue(int vectorIndex, int component) {
+        return this.vMatrix.get(component, vectorIndex);
     }
 
     public double getProportionThreshold() {
@@ -143,7 +143,7 @@ public class SVDModel extends AbstractModel implements ComponentWeightsCreatable
      * This returns the total number of possible components.
      */
     public int getNumberOfComponents() {
-        return vMatrix.getColumnDimension();
+        return singularValues.length;
     }
 
     public void setVarianceThreshold(double threshold) {
@@ -189,9 +189,9 @@ public class SVDModel extends AbstractModel implements ComponentWeightsCreatable
             }
         }
         // if nothing defined or number exceeds maximal number of possible components
-        if (numberOfUsedComponents == -1 || numberOfUsedComponents > vMatrix.getColumnDimension()) {
+        if (numberOfUsedComponents == -1 || numberOfUsedComponents > getNumberOfComponents()) {
             // keep all components
-            numberOfUsedComponents = vMatrix.getColumnDimension();
+            numberOfUsedComponents = getNumberOfComponents();
         }
 
 
