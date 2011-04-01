@@ -82,7 +82,8 @@ public abstract class AbstractNominalSimilarity extends SimilarityMeasure {
 	
 	@Override
 	public void init(ExampleSet exampleSet) throws OperatorException {
-		Tools.onlyNominalAttributes(exampleSet, "nominal similarities");
+	    super.init(exampleSet);
+	    Tools.onlyNominalAttributes(exampleSet, "nominal similarities");
 		binominal = new boolean[exampleSet.getAttributes().size()];
 		falseIndex = new double[exampleSet.getAttributes().size()];
 		int index = 0;

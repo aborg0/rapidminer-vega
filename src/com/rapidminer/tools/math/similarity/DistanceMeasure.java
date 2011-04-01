@@ -50,7 +50,7 @@ public abstract class DistanceMeasure implements Serializable {
         boolean isMatching = true;
     }
 
-    private SoftReference<DistanceMeasureConfig> initConfig = new SoftReference<DistanceMeasure.DistanceMeasureConfig>(null);
+    private transient SoftReference<DistanceMeasureConfig> initConfig = new SoftReference<DistanceMeasure.DistanceMeasureConfig>(null);
 
     /**
      * If you intend to use the method {@link #calculateDistance(Example, Example)} or {@link #calculateSimilarity(Example, Example)} on
@@ -103,10 +103,14 @@ public abstract class DistanceMeasure implements Serializable {
      * Please note that it might be necessary to also override the other init methods if this measure should make
      * use of parameters or other IOObjects.
      * 
+     * Attention! Subclasses must call this super method to ensure correct initialization!
+     * 
      * @param exampleSet
      *            the exampleset
      */
-    public abstract void init(ExampleSet exampleSet) throws OperatorException;
+    public void init(ExampleSet exampleSet) throws OperatorException {
+        init(exampleSet.getAttributes(), exampleSet.getAttributes());
+    }
 
     /**
      * If using this measure only on examples of the same example set, you can use this method. Otherwise please
@@ -173,7 +177,9 @@ public abstract class DistanceMeasure implements Serializable {
      * @return the distance
      */
     public double calculateDistance(Example firstExample, Example secondExample) {
-        DistanceMeasureConfig config = initConfig.get();
+        DistanceMeasureConfig config = null;
+        if (initConfig != null)
+            config = initConfig.get();
         if (config == null) {
             // this will build the config and assign it to the softreference initConfig
             config = init(firstExample.getAttributes(), secondExample.getAttributes());
@@ -220,7 +226,9 @@ public abstract class DistanceMeasure implements Serializable {
      * @return the distance
      */
     public double calculateSimilarity(Example firstExample, Example secondExample) {
-        DistanceMeasureConfig config = initConfig.get();
+        DistanceMeasureConfig config = null;
+        if (initConfig != null)
+            config = initConfig.get();
         if (config == null) {
             // this will build the config and assign it to the softreference initConfig
             config = init(firstExample.getAttributes(), secondExample.getAttributes());

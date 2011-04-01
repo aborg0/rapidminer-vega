@@ -56,7 +56,8 @@ public class CamberraNumericalDistance extends DistanceMeasure {
 
 	@Override
 	public void init(ExampleSet exampleSet) throws OperatorException {
-		Tools.onlyNumericalAttributes(exampleSet, "value based similarities");
+	    super.init(exampleSet);
+	    Tools.onlyNumericalAttributes(exampleSet, "value based similarities");
 	}
 	@Override
 	public String toString() {

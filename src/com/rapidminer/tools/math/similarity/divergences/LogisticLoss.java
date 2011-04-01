@@ -46,7 +46,8 @@ public class LogisticLoss extends BregmanDivergence {
 
 	@Override
 	public void init(ExampleSet exampleSet) throws OperatorException {
-		Tools.onlyNumericalAttributes(exampleSet, "value based similarities");
+	    super.init(exampleSet);
+	    Tools.onlyNumericalAttributes(exampleSet, "value based similarities");
 		Attributes attributes = exampleSet.getAttributes();
 		if (attributes.size() != 1)
 			throw new OperatorException("The bregman divergence you've choosen is not applicable for the dataset! Proceeding with the 'Squared Euclidean distance' bregman divergence.");

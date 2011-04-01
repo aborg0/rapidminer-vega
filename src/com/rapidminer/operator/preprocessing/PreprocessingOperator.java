@@ -208,4 +208,8 @@ public abstract class PreprocessingOperator extends AbstractDataProcessing {
 	public boolean isSupportingView() {
 		return true;
 	}
+	
+	public OutputPort getPreprocessingModelOutputPort() {
+		return modelOutput;
+	}
 }

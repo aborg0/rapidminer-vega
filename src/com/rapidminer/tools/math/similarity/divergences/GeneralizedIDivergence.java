@@ -53,7 +53,8 @@ public class GeneralizedIDivergence extends BregmanDivergence {
 
 	@Override
 	public void init(ExampleSet exampleSet) throws OperatorException {
-		Tools.onlyNumericalAttributes(exampleSet, "value based similarities");
+		super.init(exampleSet);
+	    Tools.onlyNumericalAttributes(exampleSet, "value based similarities");
 		Attributes attributes = exampleSet.getAttributes();
 		for (Example example: exampleSet) {
 			for (Attribute attribute: attributes) {

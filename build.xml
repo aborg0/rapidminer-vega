@@ -396,6 +396,12 @@
 		<fail unless="release.accepted" />
 		<echo message="Releasing started..." />
 
+		<delete failonerror="false" includeemptydirs="true">
+			<fileset dir="${release}">
+				<include name="**/*"/>
+			</fileset>
+		</delete>
+		
 		<ant target="version.updateFiles" />
 		<ant target="javaDoc.makeZip" />
 		<ant target="release.publish" />
