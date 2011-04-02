@@ -5,9 +5,6 @@ import org.junit.runners.Suite;
 
 import com.rapidminer.example.test.ExampleTestSuite;
 import com.rapidminer.operator.annotation.test.PolynomialFunctionTest;
-import com.rapidminer.operator.io.test.CSVReaderTest;
-import com.rapidminer.operator.io.test.DatabaseWriteTest;
-import com.rapidminer.operator.learner.test.LearnerTestSuite;
 import com.rapidminer.operator.performance.test.PerformanceTestSuite;
 
 /**
@@ -26,13 +23,13 @@ import com.rapidminer.operator.performance.test.PerformanceTestSuite;
 	IterationArrayListTest.class,
 	MathUtilsTest.class,
 	PolynomialFunctionTest.class,
-	SECDTest.class,
+	SECDTest.class//,
 	
-	CSVReaderTest.class,
-	// Slow, instantiates all learners
-	LearnerTestSuite.class,
-	// Depends on servers being up, timeout takes a while
-	DatabaseWriteTest.class
+//	CSVReaderTest.class,
+//	// Slow, instantiates all learners
+//	LearnerTestSuite.class,
+//	// Depends on servers being up, timeout takes a while
+//	DatabaseWriteTest.class
 	//SampleTest.class,
 	})
 public class AllTests {

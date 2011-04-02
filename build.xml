@@ -55,6 +55,11 @@
 		<path refid="javadoc.classpath" />
 		<pathelement location="${build}" />
 	</path>
+	<path id="classpath.test">
+		<pathelement location="${build}" />
+		<path refid="classpath" />
+	</path>
+
 
 	<target name="init" depends="version.get" unless="lock.isInitialized">
 		<tstamp />
@@ -163,6 +168,30 @@
 		</jar>
 	</target>
 
+	<!-- BEGIN Test targets -->
+	<target name="compile-test" depends="clean-compile-test">
+		<javac debug="${compiler.debug}" destdir="${build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m">
+			
+			<classpath refid="classpath" />
+			<src path="${src_test}" />
+		</javac>
+	</target>
+	
+	<target name="clean-compile-test">
+		<delete>
+		  <fileset dir="${build}" includes="**/test/*.class" />
+		</delete>
+	</target>
+
+	<target name="test" depends="compile-test">
+		<junit>
+			<classpath refid="classpath.test" />
+			<formatter type="brief" usefile="false" />
+			<test name="com.rapidminer.test.AllTests" />
+		</junit>
+	</target>
+	<!-- END Test targets -->
+	
 	<target name="release.prepare" depends="clean, build" unless="lock.isPrepared" description="Copies all needed files to the release/files directory">
 		<echo message="Preparing Release..." />
 		<mkdir dir="${release.includes}" />

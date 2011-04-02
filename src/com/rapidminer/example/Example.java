@@ -366,6 +366,10 @@ public class Example implements Serializable, Map<String, Object> {
 		if (key instanceof String) {
 			attribute = parentExampleSet.getAttributes().get((String)key);
 		}
+		double value = getValue(attribute);
+		if (Double.isNaN(value)) {
+			return "?";
+		}
 		if (attribute == null) {
 			return null;
 		} else if (attribute.isNominal()) {
