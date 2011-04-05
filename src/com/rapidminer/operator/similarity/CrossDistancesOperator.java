@@ -67,133 +67,140 @@ import com.rapidminer.tools.math.similarity.DistanceMeasures;
  * @author Sebastian Land
  */
 public class CrossDistancesOperator extends Operator {
-	
-	public static final String PARAMETER_K = "k";
-	public static final String PARAMETER_USE_K = "only_top_k";
-	public static final String PARAMETER_SEARCH_MODE = "search_for";
-	
-	private static final String[] SEARCH_MODE = new String[] {"nearest", "farthest"}; 
-	private static final int MODE_NEAREST = 0;
-	private static final int MODE_FARTHEST = 1;
-	
-	
-	private InputPort requestSetInput = getInputPorts().createPort("request set", ExampleSet.class);
-	private InputPort referenceSetInput = getInputPorts().createPort("reference set", ExampleSet.class);
-	private OutputPort resultSetOutput = getOutputPorts().createPort("result set");
-	private OutputPort requestSetOutput = getOutputPorts().createPort("request set");
-	private OutputPort referenceSetOutput = getOutputPorts().createPort("reference set");
 
-	
-	public CrossDistancesOperator(OperatorDescription description) {
-		super(description);
-		
-		getTransformer().addPassThroughRule(referenceSetInput, referenceSetOutput);
-		getTransformer().addPassThroughRule(requestSetInput, requestSetOutput);
-		getTransformer().addRule(new GenerateNewMDRule(resultSetOutput, ExampleSet.class) {
-			@Override
-			public MetaData modifyMetaData(MetaData unmodifiedMetaData) {
-				try {
-					// getting types of old id attributes
-					ExampleSetMetaData refMD = (ExampleSetMetaData) referenceSetInput.getMetaData();
-					ExampleSetMetaData requestMD = (ExampleSetMetaData) requestSetInput.getMetaData();
-					if (refMD != null && requestMD != null) {
-						AttributeMetaData refId = refMD.getAttributeByRole(Attributes.ID_NAME);
-						AttributeMetaData requestId = requestMD.getAttributeByRole(Attributes.ID_NAME);
-						
-						ExampleSetMetaData emd = new ExampleSetMetaData();
-						emd.addAttribute(new AttributeMetaData("request", (requestId == null) ? Ontology.REAL : refId.getValueType()));
-						emd.addAttribute(new AttributeMetaData("document", (refId == null) ? Ontology.REAL : refId.getValueType()));
-						emd.addAttribute(new AttributeMetaData("distance", Ontology.REAL));
-						
-						return emd;
-					} else
-						return unmodifiedMetaData;
-				} catch (ClassCastException e) {
-					return unmodifiedMetaData;
-				}
-			}
-		});
-	}
+    public static final String PARAMETER_K = "k";
+    public static final String PARAMETER_USE_K = "only_top_k";
+    public static final String PARAMETER_SEARCH_MODE = "search_for";
+    public static final String PARAMETER_COMPUTE_SIMILARITIES = "compute_similarities";
 
-	@Override
-	public void doWork() throws OperatorException {
-		ExampleSet requestSet = requestSetInput.getData();
-		ExampleSet documentSet = referenceSetInput.getData();
-		Tools.checkAndCreateIds(requestSet);
-		Tools.checkAndCreateIds(documentSet);
+    private static final String[] SEARCH_MODE = new String[] {"nearest", "farthest"};
+    private static final int MODE_NEAREST = 0;
+    private static final int MODE_FARTHEST = 1;
 
-		DistanceMeasure measure = DistanceMeasures.createMeasure(this);
-		measure.init(documentSet);
-		
-		Attribute oldRequestId = requestSet.getAttributes().getId();
-		Attribute oldDocumentId = documentSet.getAttributes().getId();
-		
-		// creating new exampleSet
-		Attribute requestId = AttributeFactory.createAttribute("request", oldRequestId.getValueType());
-		Attribute documentId = AttributeFactory.createAttribute("document", oldDocumentId.getValueType());
-		Attribute distance = AttributeFactory.createAttribute("distance", Ontology.REAL);
 
-		List<Attribute> newAttributes = new LinkedList<Attribute>();
-		Collections.addAll(newAttributes, requestId, documentId, distance);
-		MemoryExampleTable table = new MemoryExampleTable(newAttributes);
-		
-		double searchModeFactor = (getParameterAsInt(PARAMETER_SEARCH_MODE) == MODE_FARTHEST) ? -1d : 1d;
-		
-		for (Example request: requestSet) {
-			Collection<Tupel<Double, Double>> distances;
-			if (getParameterAsBoolean(PARAMETER_USE_K)) 
-				distances = new BoundedPriorityQueue<Tupel<Double,Double>>(getParameterAsInt(PARAMETER_K));
-			else
-				distances = new ArrayList<Tupel<Double,Double>>();
-			
-			// calculating distance
-			for (Example document: documentSet) {
-				distances.add(new Tupel<Double, Double>(measure.calculateDistance(request, document) * searchModeFactor, document.getValue(oldDocumentId)));
-			}
-			
-			// writing into table
-			DataRowFactory factory = new DataRowFactory(DataRowFactory.TYPE_DOUBLE_ARRAY, '.');
-			double requestIdValue = request.getValue(oldRequestId);
-			if (oldRequestId.isNominal())
-				requestIdValue = requestId.getMapping().mapString(request.getValueAsString(oldRequestId));
+    private InputPort requestSetInput = getInputPorts().createPort("request set", ExampleSet.class);
+    private InputPort referenceSetInput = getInputPorts().createPort("reference set", ExampleSet.class);
+    private OutputPort resultSetOutput = getOutputPorts().createPort("result set");
+    private OutputPort requestSetOutput = getOutputPorts().createPort("request set");
+    private OutputPort referenceSetOutput = getOutputPorts().createPort("reference set");
 
-			for (Tupel<Double, Double> tupel: distances) {
-				double documentIdValue = tupel.getSecond();
-				if (oldDocumentId.isNominal())
-					documentIdValue = documentId.getMapping().mapString(oldDocumentId.getMapping().mapIndex((int) documentIdValue));
-				DataRow row = factory.create(3);
-				row.set(distance, tupel.getFirst() *  searchModeFactor);
-				row.set(requestId, requestIdValue);
-				row.set(documentId, documentIdValue);
-				table.addDataRow(row);
-			}
-		}
-		
-		// sorting set
-		ExampleSet result = new SortedExampleSet(table.createExampleSet(), distance, (searchModeFactor == -1d) ? SortedExampleSet.DECREASING : SortedExampleSet.INCREASING);
-		
-		requestSetOutput.deliver(requestSet);
-		referenceSetOutput.deliver(documentSet);
-		resultSetOutput.deliver(result);
-	}
 
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		List<ParameterType> types = super.getParameterTypes();
-		types.addAll(DistanceMeasures.getParameterTypes(this));
-		
-		ParameterType type = new ParameterTypeBoolean(PARAMETER_USE_K, "Only calculate the k nearest to each request example.", false);
-		type.setExpert(false);
-		types.add(type);
-		
-		type = new ParameterTypeInt(PARAMETER_K, "Determines how many of the nearest examples are shown in the result.", 1, Integer.MAX_VALUE, 10);
-		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_K, true, true));
-		type.setExpert(false);
-		types.add(type);
+    public CrossDistancesOperator(OperatorDescription description) {
+        super(description);
 
-		type = new ParameterTypeCategory(PARAMETER_SEARCH_MODE, "Determines if the nearest or the farthest distances should be selected.", SEARCH_MODE, MODE_NEAREST, false);
-		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_K, true, true));
-		types.add(type);
-		return types;
-	}
+        getTransformer().addPassThroughRule(referenceSetInput, referenceSetOutput);
+        getTransformer().addPassThroughRule(requestSetInput, requestSetOutput);
+        getTransformer().addRule(new GenerateNewMDRule(resultSetOutput, ExampleSet.class) {
+            @Override
+            public MetaData modifyMetaData(MetaData unmodifiedMetaData) {
+                try {
+                    // getting types of old id attributes
+                    ExampleSetMetaData refMD = (ExampleSetMetaData) referenceSetInput.getMetaData();
+                    ExampleSetMetaData requestMD = (ExampleSetMetaData) requestSetInput.getMetaData();
+                    if (refMD != null && requestMD != null) {
+                        AttributeMetaData refId = refMD.getAttributeByRole(Attributes.ID_NAME);
+                        AttributeMetaData requestId = requestMD.getAttributeByRole(Attributes.ID_NAME);
+
+                        ExampleSetMetaData emd = new ExampleSetMetaData();
+                        emd.addAttribute(new AttributeMetaData("request", requestId == null ? Ontology.REAL : refId.getValueType()));
+                        emd.addAttribute(new AttributeMetaData("document", refId == null ? Ontology.REAL : refId.getValueType()));
+                        emd.addAttribute(new AttributeMetaData("distance", Ontology.REAL));
+
+                        return emd;
+                    } else
+                        return unmodifiedMetaData;
+                } catch (ClassCastException e) {
+                    return unmodifiedMetaData;
+                }
+            }
+        });
+    }
+
+    @Override
+    public void doWork() throws OperatorException {
+        ExampleSet requestSet = requestSetInput.getData();
+        ExampleSet documentSet = referenceSetInput.getData();
+        Tools.checkAndCreateIds(requestSet);
+        Tools.checkAndCreateIds(documentSet);
+
+        DistanceMeasure measure = DistanceMeasures.createMeasure(this);
+        measure.init(documentSet);
+
+        Attribute oldRequestId = requestSet.getAttributes().getId();
+        Attribute oldDocumentId = documentSet.getAttributes().getId();
+
+        // creating new exampleSet
+        Attribute requestId = AttributeFactory.createAttribute("request", oldRequestId.getValueType());
+        Attribute documentId = AttributeFactory.createAttribute("document", oldDocumentId.getValueType());
+        Attribute distance = AttributeFactory.createAttribute("distance", Ontology.REAL);
+
+        List<Attribute> newAttributes = new LinkedList<Attribute>();
+        Collections.addAll(newAttributes, requestId, documentId, distance);
+        MemoryExampleTable table = new MemoryExampleTable(newAttributes);
+
+        double searchModeFactor = getParameterAsInt(PARAMETER_SEARCH_MODE) == MODE_FARTHEST ? -1d : 1d;
+        boolean computeSimilarity = getParameterAsBoolean(PARAMETER_COMPUTE_SIMILARITIES);
+
+        for (Example request: requestSet) {
+            Collection<Tupel<Double, Double>> distances;
+            if (getParameterAsBoolean(PARAMETER_USE_K))
+                distances = new BoundedPriorityQueue<Tupel<Double,Double>>(getParameterAsInt(PARAMETER_K));
+            else
+                distances = new ArrayList<Tupel<Double,Double>>();
+
+            // calculating distance
+            for (Example document: documentSet) {
+                if (computeSimilarity)
+                    distances.add(new Tupel<Double, Double>(measure.calculateSimilarity(request, document) * searchModeFactor, document.getValue(oldDocumentId)));
+                else
+                    distances.add(new Tupel<Double, Double>(measure.calculateDistance(request, document) * searchModeFactor, document.getValue(oldDocumentId)));
+            }
+
+            // writing into table
+            DataRowFactory factory = new DataRowFactory(DataRowFactory.TYPE_DOUBLE_ARRAY, '.');
+            double requestIdValue = request.getValue(oldRequestId);
+            if (oldRequestId.isNominal())
+                requestIdValue = requestId.getMapping().mapString(request.getValueAsString(oldRequestId));
+
+            for (Tupel<Double, Double> tupel: distances) {
+                double documentIdValue = tupel.getSecond();
+                if (oldDocumentId.isNominal())
+                    documentIdValue = documentId.getMapping().mapString(oldDocumentId.getMapping().mapIndex((int) documentIdValue));
+                DataRow row = factory.create(3);
+                row.set(distance, tupel.getFirst() *  searchModeFactor);
+                row.set(requestId, requestIdValue);
+                row.set(documentId, documentIdValue);
+                table.addDataRow(row);
+            }
+        }
+
+        // sorting set
+        ExampleSet result = new SortedExampleSet(table.createExampleSet(), distance, searchModeFactor == -1d ? SortedExampleSet.DECREASING : SortedExampleSet.INCREASING);
+
+        requestSetOutput.deliver(requestSet);
+        referenceSetOutput.deliver(documentSet);
+        resultSetOutput.deliver(result);
+    }
+
+    @Override
+    public List<ParameterType> getParameterTypes() {
+        List<ParameterType> types = super.getParameterTypes();
+        types.addAll(DistanceMeasures.getParameterTypes(this));
+
+        ParameterType type = new ParameterTypeBoolean(PARAMETER_USE_K, "Only calculate the k nearest to each request example.", false);
+        type.setExpert(false);
+        types.add(type);
+
+        type = new ParameterTypeInt(PARAMETER_K, "Determines how many of the nearest examples are shown in the result.", 1, Integer.MAX_VALUE, 10);
+        type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_K, true, true));
+        type.setExpert(false);
+        types.add(type);
+
+        type = new ParameterTypeCategory(PARAMETER_SEARCH_MODE, "Determines if the smallest (nearest) or the largest (farthest) distances or similarities should be selected. Keep in mind that the meaning inverses if you compute the similarity instead the distance between examples!", SEARCH_MODE, MODE_NEAREST, false);
+        type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_K, true, true));
+        types.add(type);
+
+        types.add(new ParameterTypeBoolean(PARAMETER_COMPUTE_SIMILARITIES, "If checked the similarities are computed instead of the distances. All measures will still be usable, but measures that are not originally distance or respectively similarity measures are transformed to match optimization direction. This will most likely transform the scale in a non linear way.", false, true));
+        return types;
+    }
 }
