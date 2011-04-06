@@ -67,5 +67,4 @@ public class ResourceLabel extends JLabel {
 	private static String getMessageOrNull(String key) {
 		return I18N.getMessageOrNull(I18N.getGUIBundle(), "gui.label." + key);
 	}
-
 }

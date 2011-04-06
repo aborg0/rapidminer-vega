@@ -56,6 +56,7 @@ import com.rapid_i.repository.wsimport.RepositoryService_Service;
 import com.rapidminer.gui.actions.BrowseAction;
 import com.rapidminer.gui.tools.PasswordDialog;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.io.Base64;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.repository.BlobEntry;
 import com.rapidminer.repository.Entry;
@@ -83,6 +84,7 @@ import com.rapidminer.tools.jdbc.connection.FieldConnectionEntry;
  */
 public class RemoteRepository extends RemoteFolder implements Repository {
 
+	/** Type of object requested from a server.*/
 	public static enum EntryStreamType {
 		METADATA, IOOBJECT, PROCESS, BLOB
 	}
@@ -365,7 +367,11 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		installJDBCConnectionEntries();
 	}
 
-	protected HttpURLConnection getHTTPConnection(String location, EntryStreamType type) throws IOException {
+	/** Returns a connection to a given location in the repository. 
+	 * @param preAuthHeader If set, the Authorization: header will be set to basic auth. Otherwise, the {@link GlobalAuthenticator} mechanism
+	 *  will be used. 
+	 *  @param type can be null*/
+	public HttpURLConnection getHTTPConnection(String location, EntryStreamType type, boolean preAuthHeader) throws IOException {
 		String split[] = location.split("/");
 		StringBuilder encoded = new StringBuilder();
 		encoded.append("RAWS/resources");
@@ -380,6 +386,12 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		}
 		final HttpURLConnection conn = (HttpURLConnection) new URL(getBaseUrl(), encoded.toString()).openConnection();
 
+		if (preAuthHeader) {
+			String userpass = username + ":" + new String(password);
+			String basicAuth = "Basic " + new String(Base64.encodeBytes(userpass.getBytes()));
+			conn.setRequestProperty ("Authorization", basicAuth);
+		}
+		
 		return conn;
 	}
 
@@ -479,6 +491,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		return true;
 	}
 
+	/** Returns the URI to which a browser can be pointed to browse a given entry. */
 	public URI getURIForResource(String path) {
 		try {
 			return getBaseUrl().toURI().resolve("RA/faces/restricted/browse.xhtml?location=" + URLEncoder.encode(path, "UTF-8"));
@@ -489,6 +502,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		}
 	}
 
+	/** Returns the URI to which a browser can be pointed to access the RA web interface. */
 	private URI getURIWebInterfaceURI() {
 		try {
 			return getBaseUrl().toURI().resolve("RA/faces/restricted/index.xhtml");
