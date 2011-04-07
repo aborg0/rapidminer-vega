@@ -58,7 +58,7 @@ import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.XMLException;
 
-/** Keeps static references to registered repositories.
+/** Keeps static references to registered repositories and provides helper methods.
  *
  * @author Simon Fischer
  *
@@ -148,6 +148,9 @@ public class RepositoryManager extends AbstractObservable<Repository> {
         }
     }
 
+    /** Registers a repository. 
+     * 
+     * @see #removeRepository(Repository) */
     public void addRepository(Repository repository) {
         LOGGER.config("Adding repository "+repository.getName());
         repositories.add(repository);
@@ -161,6 +164,9 @@ public class RepositoryManager extends AbstractObservable<Repository> {
         fireUpdate(repository);
     }
 
+    /** Removes a registered repository. 
+     * 
+     * @see #addRepository(Repository) */
     public void removeRepository(Repository repository) {
         repository.preRemove();
         repositories.remove(repository);
@@ -171,6 +177,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
         return Collections.unmodifiableList(repositories);
     }
 
+    /** Gets a registered ({@link #addRepository(Repository)} repository by {@link Repository#getName()}*/
     public Repository getRepository(String name) throws RepositoryException {
         for (Repository repos : repositories) {
             if (repos.getName().equals(name)) {
@@ -180,6 +187,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
         throw new RepositoryException("Requested repository "+name + " does not exist.");
     }
 
+    /** Gets a list of all registered repositories inheriting from {@link RemoteRepository}. */
     public List<RemoteRepository> getRemoteRepositories() {
         List<RemoteRepository> result = new LinkedList<RemoteRepository>();
         for (Repository repos : getRepositories()) {
@@ -194,6 +202,9 @@ public class RepositoryManager extends AbstractObservable<Repository> {
         return ParameterService.getUserConfigFile("repositories.xml");
     }
 
+    /** Loads the XML configuration file.
+     * 
+     * @see #save() */
     public void load() {
         if (!RapidMiner.getExecutionMode().canAccessFilesystem()) {
             LOGGER.info("Cannot access file system in execution mode "+RapidMiner.getExecutionMode()+". Not loading repositories.");
@@ -242,6 +253,9 @@ public class RepositoryManager extends AbstractObservable<Repository> {
         }
     }
 
+    /** Stores the XML configuration file. 
+     * @see #load() 
+     */
     public void save() {
         if (!RapidMiner.getExecutionMode().canAccessFilesystem()) {
             LOGGER.config("Cannot access file system in execution mode "+RapidMiner.getExecutionMode()+". Not saving repositories.");
@@ -271,10 +285,12 @@ public class RepositoryManager extends AbstractObservable<Repository> {
         }
     }
 
+    /** Stores an IOObject at the given location. Creates entries if they don't exist. */
     public IOObject store(IOObject ioobject, RepositoryLocation location, Operator callingOperator) throws RepositoryException {
         return store(ioobject, location, callingOperator, null);
     }
 
+    /** Stores an IOObject at the given location. Creates entries if they don't exist. */
     public IOObject store(IOObject ioobject, RepositoryLocation location, Operator callingOperator, ProgressListener progressListener) throws RepositoryException {
         Entry entry = location.locateEntry();
         if (entry == null) {
@@ -305,6 +321,37 @@ public class RepositoryManager extends AbstractObservable<Repository> {
         }
     }
 
+    /** Gets the referenced blob entry. Creates a new one if it does not exist. */
+    public BlobEntry getOrCreateBlob(RepositoryLocation location) throws RepositoryException {
+        Entry entry = location.locateEntry();
+        if (entry == null) {
+            RepositoryLocation parentLocation = location.parent();
+            if (parentLocation != null) {
+                String childName = location.getName();
+                Entry parentEntry = parentLocation.locateEntry();
+                Folder parentFolder;
+                if (parentEntry != null) {
+                    if (parentEntry instanceof Folder) {
+                        parentFolder = (Folder)parentEntry;
+                    } else {
+                        throw new RepositoryException("Parent '"+parentLocation+"' of '"+location+"' is not a folder.");
+                    }
+                } else {
+                    parentFolder = parentLocation.createFoldersRecursively();
+                }
+                return parentFolder.createBlobEntry(childName);                
+            } else {
+                throw new RepositoryException("Entry '"+location+"' does not exist.");
+            }
+        } else if (entry instanceof BlobEntry) {
+            return (BlobEntry) entry;
+        } else {
+            throw new RepositoryException("Entry '"+location+"' is not a blob entry, but a "+entry.getType());
+        }
+    }
+
+    
+    /** Saves the configuration file. */
     public static void shutdown() {
         if (instance != null) {
             instance.save();
@@ -464,6 +511,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
         }
     }
 
+    /** Returns the repository containing the RapidMiner sample processes. */
     public Repository getSampleRepository() {
         return sampleRepository;
     }

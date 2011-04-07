@@ -161,6 +161,7 @@ public class RapidAnalyticsCLTool {
 			long responseTime = System.currentTimeMillis() - startTime;
 			System.err.println("RapidAnalytics server at "+url+" is up. Response time was "+responseTime+" ms.");
 			System.exit(0);
+			return;
 		}
 		
 
