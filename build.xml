@@ -20,6 +20,9 @@
 	<property name="release.includes" location="${release}/filesToInclude" />
 	<property name="jre32" location="jre/jre32" />
 	<property name="jre64" location="jre/jre64" />
+	
+	<property name="junit.reports" location="junit-reports" />
+	<property name="junit.tests.dir" value="" />
 
 	<!-- compiler options -->
 	<property name="compiler.version" value="modern" />
@@ -167,30 +170,6 @@
 			</manifest>
 		</jar>
 	</target>
-
-	<!-- BEGIN Test targets -->
-	<target name="compile-test" depends="clean-compile-test">
-		<javac debug="${compiler.debug}" destdir="${build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m">
-			
-			<classpath refid="classpath" />
-			<src path="${src_test}" />
-		</javac>
-	</target>
-	
-	<target name="clean-compile-test">
-		<delete>
-		  <fileset dir="${build}" includes="**/test/*.class" />
-		</delete>
-	</target>
-
-	<target name="test" depends="compile-test">
-		<junit>
-			<classpath refid="classpath.test" />
-			<formatter type="brief" usefile="false" />
-			<test name="com.rapidminer.test.AllTests" />
-		</junit>
-	</target>
-	<!-- END Test targets -->
 	
 	<target name="release.prepare" depends="clean, build" unless="lock.isPrepared" description="Copies all needed files to the release/files directory">
 		<echo message="Preparing Release..." />
@@ -556,7 +535,32 @@
 		<ant target="update.publish" />
 	</target>
 
+	<!-- BEGIN Test targets -->
+	<target name="test.compile" depends="test.clean">
+		<javac debug="${compiler.debug}" destdir="${build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m">
+			
+			<classpath refid="classpath" />
+			<src path="${src_test}" />
+		</javac>
+	</target>
+	
+	<target name="test.clean">
+		<mkdir dir="${junit.reports}"/>
+		<delete>
+		  <fileset dir="${build}" includes="**/test/*.class" />
+		  <fileset dir="${junit.reports}" />
+		</delete>
+	</target>
 
+	<target name="test" depends="test.compile">
+		<junit>
+			<sysproperty key="rapidminer.test.resolvedir" value="${junit.tests.dir}" />
+			<classpath refid="classpath.test" />
+			<formatter type="xml" usefile="true"/>
+			<test name="com.rapidminer.test.AllTests" todir="${junit.reports}"/>
+		</junit>
+	</target>
+	<!-- END Test targets -->
 
 	<!-- Version handling -->
 

@@ -19,6 +19,7 @@ import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.learner.Learner;
+import com.rapidminer.operator.learner.functions.kernel.RVMLearner;
 import com.rapidminer.test.TestUtils;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorService;
@@ -75,20 +76,23 @@ public class LearnerTest extends TestCase {
 		}
 		
 		List<Attribute> labels = new LinkedList<Attribute>();
-		if (learner.supportsCapability(OperatorCapability.BINOMINAL_LABEL)) {
-			labels.add(addBinomialAttribute(exTable));
-		}
 		if (learner.supportsCapability(OperatorCapability.POLYNOMINAL_LABEL)) {
 			labels.add(addNominalAttribute(exTable));
 		}
 		if (learner.supportsCapability(OperatorCapability.NUMERICAL_LABEL)) {
 			labels.add(addNumericalAttribute(exTable));
 		}
+		if (learner.supportsCapability(OperatorCapability.BINOMINAL_LABEL)) {
+			labels.add(addBinomialAttribute(exTable));
+		}
 		if (labels.isEmpty()) {
 			throw new Exception("No label type supported.");
 		}
 		
 		for (Attribute label : labels) {
+			// Some learner need special parameters for certain label types
+			if( !checkLearnerCapability(learner, label) )
+				continue;
 			//AttributeSet attributes = new AttributeSet(regulars, Collections.singletonMap(Attributes.LABEL_NAME, label));
 			//exTable.createExampleSet(specialAttributes)
 			ExampleSet exampleSet = new SimpleExampleSet(exTable, regulars, Collections.singletonMap(label, Attributes.LABEL_NAME));
@@ -136,6 +140,18 @@ public class LearnerTest extends TestCase {
 			row.set(att, Math.random()*10d-5d);
 		}
 		return att;
+	}
+	
+	private boolean checkLearnerCapability( Learner learner, Attribute label ) {
+		if( learner instanceof RVMLearner ) {
+			RVMLearner rvm = (RVMLearner) learner;
+			if( label.isNominal() ) {
+				rvm.setParameter(RVMLearner.PARAMETER_RVM_TYPE, "1");
+			}
+			return true;
+		}
+		
+		return true;
 	}
 
 }

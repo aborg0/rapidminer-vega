@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.Iterator;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.rapidminer.example.Attribute;
@@ -77,7 +78,7 @@ public class DatabaseWriteTest {
 		this.exampleSet = (ExampleSet) ((IOObjectEntry)entry).retrieveData(null);
 	}
 	
-	@Test
+	@Test@Ignore
 	public void testCreateTableMicrosoftSQLServer() throws SQLException, OperatorException, ClassNotFoundException, OperatorCreationException {
 		testCreateTable(DB_SQL_SERVER);
 	}
@@ -87,12 +88,12 @@ public class DatabaseWriteTest {
 		testCreateTable(DB_MY_SQL);
 	}
 
-	@Test
+	@Test@Ignore
 	public void testCreateTableOracle() throws SQLException, OperatorException, ClassNotFoundException, OperatorCreationException {
 		testCreateTable(DB_ORACLE);
 	}
 
-	@Test
+	@Test@Ignore
 	public void testCreateTableIngres() throws SQLException, OperatorException, ClassNotFoundException, OperatorCreationException {
 		testCreateTable(DB_INGRES);
 	}

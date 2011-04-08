@@ -11,6 +11,7 @@ import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.learner.Learner;
 import com.rapidminer.operator.learner.functions.SeeminglyUnrelatedRegressionOperator;
+import com.rapidminer.operator.learner.functions.neuralnet.SimpleNeuralNetLearner;
 import com.rapidminer.test.TestUtils;
 import com.rapidminer.tools.OperatorService;
 
@@ -24,6 +25,7 @@ public class LearnerTestSuite extends TestCase {
 	private static final Set<Class> SKIP_CLASSES = new HashSet<Class>();
 	static {
 		SKIP_CLASSES.add(SeeminglyUnrelatedRegressionOperator.class);
+		SKIP_CLASSES.add(SimpleNeuralNetLearner.class);
 	}
 	public static Test suite() {
 		TestUtils.initRapidMiner();
@@ -32,7 +34,8 @@ public class LearnerTestSuite extends TestCase {
 			OperatorDescription opDesc = OperatorService.getOperatorDescription(key);
 			if (Learner.class.isAssignableFrom(opDesc.getOperatorClass()) &&
 					!OperatorChain.class.isAssignableFrom(opDesc.getOperatorClass()) &&
-					!SKIP_CLASSES.contains(opDesc.getOperatorClass())) {
+					!SKIP_CLASSES.contains(opDesc.getOperatorClass()) &&
+					!opDesc.isDeprecated()) {
 				suite.addTest(new LearnerTest(opDesc));
 			}
 		}
