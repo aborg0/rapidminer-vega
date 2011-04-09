@@ -30,8 +30,10 @@ import org.w3c.dom.Element;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.ports.InputPort;
+import com.rapidminer.operator.ports.MetaDataChangeListener;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
+import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.ModelMetaData;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.XMLException;
@@ -55,7 +57,8 @@ public class ParameterTypeAttribute extends ParameterTypeString {
 
     private static final String ATTRIBUTE_INPUT_PORT = "port-name";
 
-    private transient InputPort inPort;
+    //private transient InputPort inPort;
+    private MetaDataProvider metaDataProvider;
 
     private int[] allowedValueTypes;
 
@@ -91,9 +94,31 @@ public class ParameterTypeAttribute extends ParameterTypeString {
     }
 
 
-    public ParameterTypeAttribute(final String key, String description, InputPort inPort, boolean optional, int...valueTypes) {
+    public ParameterTypeAttribute(final String key, String description, final InputPort inPort, boolean optional, int...valueTypes) {
+    	this(key, description, new MetaDataProvider() {
+			@Override
+			public MetaData getMetaData() {
+				if (inPort != null) {
+					return inPort.getMetaData();
+				} else {
+					return null;
+				}
+			}
+			@Override
+			public void addMetaDataChangeListener(MetaDataChangeListener l) {
+				inPort.registerMetaDataChangeListener(l);
+			}
+			@Override
+			public void removeMetaDataChangeListener(MetaDataChangeListener l) {
+				inPort.removeMetaDataChangeListener(l);
+				
+			}        	
+        }, optional, valueTypes);
+    }
+    
+    public ParameterTypeAttribute(final String key, String description, MetaDataProvider metaDataProvider, boolean optional, int...valueTypes) {
         super(key, description, optional);
-        this.inPort = inPort;
+        this.metaDataProvider = metaDataProvider;
         allowedValueTypes = valueTypes;
     }
 
@@ -101,9 +126,10 @@ public class ParameterTypeAttribute extends ParameterTypeString {
         Vector<String> names = new Vector<String>();
         Vector<String> regularNames = new Vector<String>();
 
-        if (inPort != null) {
-            if (inPort.getMetaData() instanceof ExampleSetMetaData) {
-                ExampleSetMetaData emd = (ExampleSetMetaData) inPort.getMetaData();
+        MetaData metaData = getMetaData();
+        if (metaData != null) {
+            if (metaData instanceof ExampleSetMetaData) {
+                ExampleSetMetaData emd = (ExampleSetMetaData) metaData;
                 for (AttributeMetaData amd : emd.getAllAttributes()) {
                     if (!isFilteredOut(amd) && isOfAllowedType(amd.getValueType())) {
                         if (amd.isSpecial())
@@ -113,8 +139,8 @@ public class ParameterTypeAttribute extends ParameterTypeString {
                     }
 
                 }
-            } else if (inPort.getMetaData() instanceof ModelMetaData) {
-                ModelMetaData mmd = (ModelMetaData) inPort.getMetaData();
+            } else if (metaData instanceof ModelMetaData) {
+                ModelMetaData mmd = (ModelMetaData) metaData;
                 if (mmd != null) {
                     ExampleSetMetaData emd = mmd.getTrainingSetMetaData();
                     if (emd != null) {
@@ -156,15 +182,29 @@ public class ParameterTypeAttribute extends ParameterTypeString {
         return false;
     };
 
-    public InputPort getInputPort() {
-        return inPort;
+	//    public InputPort getInputPort() {
+	//        return inPort;
+	//    }
+    public MetaDataProvider getMetaDataProvider() {
+    	return metaDataProvider;
     }
+
+    /** Returns the meta data currently avaiable by the {@link #metaDataProvider}. */
+    public MetaData getMetaData() {
+		MetaData metaData = null;
+        if (metaDataProvider != null) {
+        	metaData = metaDataProvider.getMetaData();
+        }
+		return metaData;
+	}
+
 
     @Override
     public void getDefinitionAsXML(Element typeElement) {
         super.getDefinitionAsXML(typeElement);
 
-        typeElement.setAttribute(ATTRIBUTE_INPUT_PORT, inPort.getName());
+        // TODO: What was this for?
+        //typeElement.setAttribute(ATTRIBUTE_INPUT_PORT, inPort.getName());
         Element allowedTypesElement = XMLTools.addTag(typeElement, ELEMENT_ALLOWED_TYPES);
         for (int i = 0; i < allowedValueTypes.length; i++) {
             XMLTools.addTag(allowedTypesElement, ELEMENT_ALLOWED_TYPE, allowedValueTypes[i] + "");

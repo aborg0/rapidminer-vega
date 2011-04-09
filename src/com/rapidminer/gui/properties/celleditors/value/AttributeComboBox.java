@@ -29,9 +29,9 @@ import javax.swing.JComboBox;
 import javax.swing.SwingUtilities;
 
 import com.rapidminer.gui.tools.autocomplete.AutoCompleteComboBoxAddition;
-import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.MetaDataChangeListener;
 import com.rapidminer.operator.ports.metadata.MetaData;
+import com.rapidminer.parameter.MetaDataProvider;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 
 /**
@@ -52,9 +52,10 @@ public class AttributeComboBox extends JComboBox {
 
 		public AttributeComboBoxModel(ParameterTypeAttribute attributeType) {
 			this.attributeType = attributeType;
-			InputPort inputPort = attributeType.getInputPort();
-			if (inputPort != null && inputPort.getMetaData() != null)
-				informMetaDataChanged(inputPort.getMetaData());
+			MetaData metaData = attributeType.getMetaData();
+			//InputPort inputPort = attributeType.getInputPort();
+			if (metaData != null)
+				informMetaDataChanged(metaData);
 		}
 
 		@Override
@@ -72,18 +73,18 @@ public class AttributeComboBox extends JComboBox {
 		 * Make sure, it will be proper unregistered to avoid a memory leak!
 		 */
 		protected void registerListener() {
-			InputPort inputPort = attributeType.getInputPort();
-			if (inputPort != null)
-				inputPort.registerMetaDataChangeListener(this);
+			MetaDataProvider mdp = attributeType.getMetaDataProvider();
+			if (mdp != null)
+				mdp.addMetaDataChangeListener(this);
 		}
 
 		/**
 		 * This method will unregister this model from the InputPort.
 		 */
 		protected void unregisterListener() {
-			InputPort inputPort = attributeType.getInputPort();
-			if (inputPort != null)
-				inputPort.removeMetaDataChangeListener(this);
+			MetaDataProvider mdp = attributeType.getMetaDataProvider();
+			if (mdp != null)
+				mdp.removeMetaDataChangeListener(this);
 		}
 
 		@Override
