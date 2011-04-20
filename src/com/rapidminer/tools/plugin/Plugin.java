@@ -75,6 +75,7 @@ import com.rapidminer.gui.tools.dialogs.AboutBox;
 import com.rapidminer.io.Base64;
 import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.io.process.XMLTools;
+import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.OperatorService;
@@ -586,7 +587,7 @@ public class Plugin {
         } catch (Exception e) {
             LogService.getRoot().log(Level.WARNING, "Error reading icon.png for plugin " + getName(), e);
         }
-        return new AboutBox(owner, name, version, "Vendor: " + ((vendor != null) ? vendor : "unknown"), url, about, true, productLogo);
+        return new AboutBox(owner, name, version, "Vendor: " + (vendor != null ? vendor : "unknown"), url, about, true, productLogo);
     }
 
     /** Scans the directory for jar files and calls {@link #registerPlugins(List, boolean)} on the list of files. */
@@ -682,7 +683,7 @@ public class Plugin {
         HashSet<Plugin> initialized = new HashSet<Plugin>();
         // now initialized every extension that's dependencies are fulfilled as long as we find another per round
         boolean found = false;
-        while(found || (!queue.isEmpty() && initialized.isEmpty())) {
+        while(found || !queue.isEmpty() && initialized.isEmpty()) {
             found = false;
             Iterator<Plugin> iterator = queue.iterator();
             while (iterator.hasNext()) {
@@ -837,7 +838,7 @@ public class Plugin {
         if (RapidMiner.getExecutionMode().isLoadingManagedExtensions())
             ManagedExtension.init();
 
-        String loadPluginsString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS);
+        String loadPluginsString = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS);
         boolean loadPlugins = Tools.booleanValue(loadPluginsString, true);
         if (loadPlugins) {
             File webstartPluginDir;
@@ -848,8 +849,8 @@ public class Plugin {
             }
 
             File pluginDir = null;
-            String pluginDirString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS_LOCATION);
-            if ((pluginDirString != null) && !pluginDirString.isEmpty()) {
+            String pluginDirString = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS_LOCATION);
+            if (pluginDirString != null && !pluginDirString.isEmpty()) {
                 pluginDir = new File(pluginDirString);
             }
 
@@ -951,12 +952,12 @@ public class Plugin {
 
     /** Specifies whether plugins should be initialized on startup. */
     public static void setInitPlugins(boolean init) {
-        System.setProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS, Boolean.toString(init));
+        ParameterService.setParameterValue(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS, Boolean.toString(init));
     }
 
     /** Specifies a directory to scan for plugins. */
     public static void setPluginLocation(String directory) {
-        System.setProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS_LOCATION, directory);
+        ParameterService.setParameterValue(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS_LOCATION, directory);
     }
 
     /** Returns the prefix to be used in the operator keys (namespace). This is also used for the Wiki URL. */
@@ -978,9 +979,9 @@ public class Plugin {
 
     /** Returns the directory where plugin files are expected. */
     public static File getPluginLocation() throws IOException {
-        String locationProperty = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS_LOCATION);
-        if (locationProperty == null) {
-            return ParameterService.getLibraryFile("plugins");
+        String locationProperty = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS_LOCATION);
+        if (locationProperty == null || locationProperty.isEmpty()) {
+            return FileSystemService.getLibraryFile("plugins");
         } else {
             return new File(locationProperty);
         }

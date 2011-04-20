@@ -26,7 +26,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.rapidminer.MacroHandler;
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.XMLException;
 
@@ -39,8 +38,8 @@ public abstract class ParameterTypeSingle extends ParameterType {
 
     private static final long serialVersionUID = 1144201124955949715L;
 
-    public ParameterTypeSingle(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeSingle(Element element) throws XMLException {
+        super(element);
     }
 
     public ParameterTypeSingle(String key, String description) {
@@ -62,7 +61,7 @@ public abstract class ParameterTypeSingle extends ParameterType {
                 element.setAttribute("value", toXMLString(value));
             }
         } else {
-            if ((!hideDefault) && (getDefaultValue() != null)) {
+            if (!hideDefault && getDefaultValue() != null) {
                 element.setAttribute("value", getDefaultValue().toString());
             } else {
                 return null;
@@ -76,16 +75,16 @@ public abstract class ParameterTypeSingle extends ParameterType {
         if (value != null) {
             if (toString(value).equals(toString(getDefaultValue()))) {
                 if (!hideDefault) {
-                    return (indent + "<parameter key=\"" + toXMLString(key) + "\"\tvalue=\"" + toXMLString(value) + "\"/>" + Tools.getLineSeparator());
+                    return indent + "<parameter key=\"" + toXMLString(key) + "\"\tvalue=\"" + toXMLString(value) + "\"/>" + Tools.getLineSeparator();
                 } else {
                     return "";
                 }
             } else {
-                return (indent + "<parameter key=\"" + toXMLString(key) + "\"\tvalue=\"" + toXMLString(value) + "\"/>" + Tools.getLineSeparator());
+                return indent + "<parameter key=\"" + toXMLString(key) + "\"\tvalue=\"" + toXMLString(value) + "\"/>" + Tools.getLineSeparator();
             }
         } else {
-            if ((!hideDefault) && (getDefaultValue() != null)) {
-                return (indent + "<parameter key=\"" + toXMLString(key) + "\"\tvalue=\"" + toXMLString(getDefaultValue()) + "\"/>" + Tools.getLineSeparator());
+            if (!hideDefault && getDefaultValue() != null) {
+                return indent + "<parameter key=\"" + toXMLString(key) + "\"\tvalue=\"" + toXMLString(getDefaultValue()) + "\"/>" + Tools.getLineSeparator();
             } else {
                 return "";
             }

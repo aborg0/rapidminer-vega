@@ -24,7 +24,6 @@ package com.rapidminer.parameter;
 
 import org.w3c.dom.Element;
 
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.XMLException;
 
 /**
@@ -41,8 +40,8 @@ public class ParameterTypeText extends ParameterTypeString {
 
     private TextType type = TextType.PLAIN;
 
-    public ParameterTypeText(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeText(Element element) throws XMLException {
+        super(element);
 
         type = TextType.valueOf(element.getAttribute(ATTRIBUTE_TEXT_TYPE));
     }
@@ -74,8 +73,8 @@ public class ParameterTypeText extends ParameterTypeString {
     }
 
     @Override
-    public void getDefinitionAsXML(Element typeElement) {
-        super.getDefinitionAsXML(typeElement);
+    protected void writeDefinitionToXML(Element typeElement) {
+        super.writeDefinitionToXML(typeElement);
 
         typeElement.setAttribute(ATTRIBUTE_TEXT_TYPE, type.toString());
     }

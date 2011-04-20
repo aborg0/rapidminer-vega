@@ -24,7 +24,6 @@ package com.rapidminer.parameter.conditions;
 
 import org.w3c.dom.Element;
 
-import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterHandler;
 import com.rapidminer.tools.XMLException;
 
@@ -35,8 +34,8 @@ import com.rapidminer.tools.XMLException;
  */
 public class NonEqualTypeCondition extends EqualTypeCondition {
 
-    public NonEqualTypeCondition(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public NonEqualTypeCondition(Element element) throws XMLException {
+        super(element);
     }
 
     public NonEqualTypeCondition(ParameterHandler handler, String conditionParameter, String[] options, boolean becomeMandatory, int...types) {

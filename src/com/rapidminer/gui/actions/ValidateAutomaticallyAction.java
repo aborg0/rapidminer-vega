@@ -35,23 +35,24 @@ import com.rapidminer.tools.ParameterService;
  */
 public class ValidateAutomaticallyAction extends ToggleAction {
 
-	private static final String PROPERTY_VALIDATE_AUTOMATICALLY = "rapidminer.gui.validate_automatically";
+    private static final String PROPERTY_VALIDATE_AUTOMATICALLY = "rapidminer.gui.validate_automatically";
 
-	public ValidateAutomaticallyAction() {
-		super(false, "validate_automatically");
-		setSelected(!"false".equals(System.getProperty(PROPERTY_VALIDATE_AUTOMATICALLY)));
-	}
+    public ValidateAutomaticallyAction() {
+        super(false, "validate_automatically");
+        setSelected(!"false".equals(ParameterService.getParameterValue(PROPERTY_VALIDATE_AUTOMATICALLY)));
+    }
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	@Override
-	public void actionToggled(ActionEvent e) {
-		if (isSelected()) {
-			RapidMinerGUI.getMainFrame().validateProcess(false);
-		} else {
-			RapidMinerGUI.getMainFrame().getProcess().getRootOperator().clear(Port.CLEAR_ALL_ERRORS | Port.CLEAR_ALL_METADATA);
-			RapidMinerGUI.getMainFrame().fireProcessUpdated();
-		}
-		ParameterService.writePropertyIntoMainUserConfigFile(PROPERTY_VALIDATE_AUTOMATICALLY, Boolean.toString(isSelected()));
-	}
+    @Override
+    public void actionToggled(ActionEvent e) {
+        if (isSelected()) {
+            RapidMinerGUI.getMainFrame().validateProcess(false);
+        } else {
+            RapidMinerGUI.getMainFrame().getProcess().getRootOperator().clear(Port.CLEAR_ALL_ERRORS | Port.CLEAR_ALL_METADATA);
+            RapidMinerGUI.getMainFrame().fireProcessUpdated();
+        }
+        ParameterService.setParameterValue(PROPERTY_VALIDATE_AUTOMATICALLY, Boolean.toString(isSelected()));
+        ParameterService.saveParameters();
+    }
 }

@@ -75,6 +75,7 @@ import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.LoggingHandler;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
@@ -306,7 +307,7 @@ public class DatabaseHandler {
         DriverManager.setLoginTimeout(30);
         Properties props = new Properties();
         props.put("SetBigStringTryClob", "true");
-        if ((this.user != null) && !user.isEmpty()) {
+        if (this.user != null && !user.isEmpty()) {
             props.put("user", user );
             props.put("password", new String(passwd));
         }
@@ -374,7 +375,7 @@ public class DatabaseHandler {
      * usually not necessary if the connection was created with AUTO_COMMIT set to true.
      */
     public void commit() throws SQLException {
-        if ((connection == null) || connection.isClosed()) {
+        if (connection == null || connection.isClosed()) {
             throw new SQLException("Could not commit: no open connection to database '" + databaseURL + "' !");
         }
         connection.commit();
@@ -804,7 +805,7 @@ public class DatabaseHandler {
 
         DatabaseMetaData metaData = connection.getMetaData();
         String[] types;
-        if (!"false".equals(System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_DB_ONLY_STANDARD_TABLES))) {
+        if (!"false".equals(ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_DB_ONLY_STANDARD_TABLES))) {
             types = new String[] { "TABLE" };
         } else {
             types = null;
@@ -824,7 +825,7 @@ public class DatabaseHandler {
         int count = 0;
         while (i.hasNext()) {
             String tableName = i.next();
-            if ((progressListener != null) && (size > 0)) {
+            if (progressListener != null && size > 0) {
                 progressListener.setCompleted(count * (maxProgress - minProgress) / size + minProgress);
             }
             count++;

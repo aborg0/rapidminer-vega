@@ -35,6 +35,7 @@ import com.rapidminer.parameter.ParameterHandler;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeStringCategory;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.ParameterService;
 
 /** Collection of static helper methods to add and evaluate parameters to specify an encoding.
  * 
@@ -43,52 +44,52 @@ import com.rapidminer.parameter.UndefinedParameterError;
  */
 public class Encoding {
 
-	public static final String PARAMETER_ENCODING = "encoding";
+    public static final String PARAMETER_ENCODING = "encoding";
 
-	public static final String[] CHARSETS;
-	static {
-		CHARSETS = new String[Charset.availableCharsets().size()+1];
-		CHARSETS[0] = RapidMiner.SYSTEM_ENCODING_NAME;
-		int i = 0;
-		for (String charSet : Charset.availableCharsets().keySet()) {
-			CHARSETS[i+1] = charSet;
-			i++;
-		}
-	}
+    public static final String[] CHARSETS;
+    static {
+        CHARSETS = new String[Charset.availableCharsets().size()+1];
+        CHARSETS[0] = RapidMiner.SYSTEM_ENCODING_NAME;
+        int i = 0;
+        for (String charSet : Charset.availableCharsets().keySet()) {
+            CHARSETS[i+1] = charSet;
+            i++;
+        }
+    }
 
-	public static Charset getEncoding(Operator handler) throws UndefinedParameterError, UserError {
-		String selectedCharsetName = handler.getParameterAsString(PARAMETER_ENCODING);
-		if (RapidMiner.SYSTEM_ENCODING_NAME.equals(selectedCharsetName)) {
-			return Charset.defaultCharset();
-		}
-		try {
-			return Charset.forName(selectedCharsetName);
-		} catch (IllegalCharsetNameException e) {
-			throw new UserError(handler, 207, selectedCharsetName, PARAMETER_ENCODING, "No legal charset name.");
-		} catch (UnsupportedCharsetException e) {
-			throw new UserError(handler, 207, selectedCharsetName, PARAMETER_ENCODING, "Charset not supported on this Java VM.");
-		} catch (IllegalArgumentException e) {
-			throw new UserError(handler, 207, selectedCharsetName, PARAMETER_ENCODING, "Select different charset.");			
-		}
-	}
-	
-	public static Charset getEncoding(String charsetName) {
-		if (RapidMiner.SYSTEM_ENCODING_NAME.equals(charsetName)) {
-			return Charset.defaultCharset();
-		}
-		return Charset.forName(charsetName);
-	}
+    public static Charset getEncoding(Operator handler) throws UndefinedParameterError, UserError {
+        String selectedCharsetName = handler.getParameterAsString(PARAMETER_ENCODING);
+        if (RapidMiner.SYSTEM_ENCODING_NAME.equals(selectedCharsetName)) {
+            return Charset.defaultCharset();
+        }
+        try {
+            return Charset.forName(selectedCharsetName);
+        } catch (IllegalCharsetNameException e) {
+            throw new UserError(handler, 207, selectedCharsetName, PARAMETER_ENCODING, "No legal charset name.");
+        } catch (UnsupportedCharsetException e) {
+            throw new UserError(handler, 207, selectedCharsetName, PARAMETER_ENCODING, "Charset not supported on this Java VM.");
+        } catch (IllegalArgumentException e) {
+            throw new UserError(handler, 207, selectedCharsetName, PARAMETER_ENCODING, "Select different charset.");
+        }
+    }
+
+    public static Charset getEncoding(String charsetName) {
+        if (RapidMiner.SYSTEM_ENCODING_NAME.equals(charsetName)) {
+            return Charset.defaultCharset();
+        }
+        return Charset.forName(charsetName);
+    }
 
 
-	public static List<ParameterType> getParameterTypes(ParameterHandler handler) {
-		List<ParameterType> types = new LinkedList<ParameterType>();
+    public static List<ParameterType> getParameterTypes(ParameterHandler handler) {
+        List<ParameterType> types = new LinkedList<ParameterType>();
 
-		String encoding = RapidMiner.SYSTEM_ENCODING_NAME;
-		String encodingProperty = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_DEFAULT_ENCODING);
-		if (encodingProperty != null)
-			encoding = encodingProperty;
-		types.add(new ParameterTypeStringCategory(PARAMETER_ENCODING, "The encoding used for reading or writing files.", CHARSETS, encoding, false));
+        String encoding = RapidMiner.SYSTEM_ENCODING_NAME;
+        String encodingProperty = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_DEFAULT_ENCODING);
+        if (encodingProperty != null)
+            encoding = encodingProperty;
+        types.add(new ParameterTypeStringCategory(PARAMETER_ENCODING, "The encoding used for reading or writing files.", CHARSETS, encoding, false));
 
-		return types;
-	}
+        return types;
+    }
 }

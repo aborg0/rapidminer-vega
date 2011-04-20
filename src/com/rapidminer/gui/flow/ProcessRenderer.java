@@ -122,6 +122,7 @@ import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryLocationChooser;
 import com.rapidminer.tools.ClassColorMap;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.ParentResolvingMap;
 
 /**
@@ -187,14 +188,14 @@ public class ProcessRenderer extends JPanel {
                 if (port.getPorts() == displayedChain.getSubprocess(0).getInnerSources()) {
                     int index = displayedChain.getSubprocess(0).getInnerSources().getAllPorts().indexOf(port);
                     List<String> locations = displayedChain.getProcess().getContext().getInputRepositoryLocations();
-                    if ((index >= 0) && (index < locations.size())) {
+                    if (index >= 0 && index < locations.size()) {
                         String dest = locations.get(index);
                         tip.append("Loaded from: ").append(dest).append("<br/>");
                     }
                 } else if (port.getPorts() == displayedChain.getSubprocess(0).getInnerSinks()) {
                     int index = displayedChain.getSubprocess(0).getInnerSinks().getAllPorts().indexOf(port);
                     List<String> locations = displayedChain.getProcess().getContext().getOutputRepositoryLocations();
-                    if ((index >= 0) && (index < locations.size())) {
+                    if (index >= 0 && index < locations.size()) {
                         String dest = locations.get(index);
                         tip.append("Stored at: ").append(dest).append("<br/>");
                     }
@@ -266,7 +267,7 @@ public class ProcessRenderer extends JPanel {
         public Component getCustomComponent(Object o) {
             Port hoveringPort = (Port) o;
             MetaData metaData = hoveringPort.getMetaData();
-            if ((metaData != null) && (metaData instanceof ExampleSetMetaData)) {
+            if (metaData != null && metaData instanceof ExampleSetMetaData) {
                 return ExampleSetMetaDataTableModel.makeTableForToolTip((ExampleSetMetaData) metaData);
             } else {
                 return null;
@@ -527,9 +528,9 @@ public class ProcessRenderer extends JPanel {
 
                 List<Operator> selection = getSelection();
                 // if we don't have a loc, we can use the mouse cursor
-                if ((loc == null) &&
-                        (((selection == null) || selection.isEmpty()) ||
-                                ((selection.size() == 1) && (selection.get(0) == displayedChain)))) {
+                if (loc == null &&
+                        (selection == null || selection.isEmpty() ||
+                                selection.size() == 1 && selection.get(0) == displayedChain)) {
                     loc = currentMousePosition;
                 }
 
@@ -538,7 +539,7 @@ public class ProcessRenderer extends JPanel {
                 if (loc != null) {
                     processIndex = getProcessIndexUnder(loc.getLocation());
                 } else {
-                    if ((selection != null) && !selection.isEmpty()) {
+                    if (selection != null && !selection.isEmpty()) {
                         processIndex = Arrays.asList(processes).indexOf(selection.get(0).getExecutionUnit());
                         if (processIndex == -1) {
                             processIndex = 0;
@@ -558,8 +559,8 @@ public class ProcessRenderer extends JPanel {
                             // if we drop a single Retrieve operator on an inner source of the root op,
                             // we immediately attach the repository location to the port.
                             boolean isRoot = displayedChain instanceof ProcessRootOperator;
-                            boolean dropsSource = (firstOperator instanceof RepositorySource);
-                            if (isRoot && dropsSource && (newOperators.size() == 1)) {
+                            boolean dropsSource = firstOperator instanceof RepositorySource;
+                            if (isRoot && dropsSource && newOperators.size() == 1) {
                                 if (checkPortUnder(processes[processIndex].getInnerSources(), (int) dest.getX(), (int) dest.getY())) {
                                     String location = firstOperator.getParameters().getParameterOrNull(RepositorySource.PARAMETER_REPOSITORY_ENTRY);
                                     int index = hoveringPort.getPorts().getAllPorts().indexOf(hoveringPort);
@@ -574,7 +575,7 @@ public class ProcessRenderer extends JPanel {
                             int firstInsertionIndex;
                             final boolean firstMustBeWired;
                             // insert first operator. Possibly insert into connection
-                            if ((hoveringConnectionSource != null) &&
+                            if (hoveringConnectionSource != null &&
                                     canBeInsertedIntoConnection(firstOperator)) {
                                 int predecessorIndex = processes[processIndex].getOperators().indexOf(hoveringConnectionSource.getPorts().getOwner().getOperator());
                                 if (predecessorIndex != -1) {
@@ -637,7 +638,7 @@ public class ProcessRenderer extends JPanel {
                 } else {
                     for (Operator newOperator : newOperators) {
                         if (newOperator instanceof OperatorChain) {
-                            if ((displayedChain == newOperator) ||
+                            if (displayedChain == newOperator ||
                                     ((OperatorChain) newOperator).getAllInnerOperators().contains(displayedChain)) {
                                 return false;
                             }
@@ -693,7 +694,7 @@ public class ProcessRenderer extends JPanel {
             public void keyPressed(KeyEvent e) {
                 switch (e.getKeyCode()) {
                 case KeyEvent.VK_BACK_SPACE:
-                    if ((displayedChain != null) && (displayedChain.getParent() != null)) {
+                    if (displayedChain != null && displayedChain.getParent() != null) {
                         ProcessRenderer.this.mainFrame.selectOperator(displayedChain.getParent());
                     }
                     e.consume();
@@ -928,8 +929,8 @@ public class ProcessRenderer extends JPanel {
     @Override
     public void paintComponent(Graphics graphics) {
         super.paintComponent(graphics);
-        snapToGrid = !"false".equals(System.getProperty(RapidMinerGUI.PROPERTY_RAPIDMINER_GUI_SNAP_TO_GRID));
-        if ((draggedOperatorsOrigins != null) || (connectingPortSource != null)) {
+        snapToGrid = !"false".equals(ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_RAPIDMINER_GUI_SNAP_TO_GRID));
+        if (draggedOperatorsOrigins != null || connectingPortSource != null) {
             ((Graphics2D) graphics).setRenderingHints(LOW_QUALITY_HINTS);
         } else {
             ((Graphics2D) graphics).setRenderingHints(HI_QUALITY_HINTS);
@@ -946,10 +947,10 @@ public class ProcessRenderer extends JPanel {
      */
     Rectangle2D getOperatorRect(Operator op, boolean autoPositionIfMissing) {
         Rectangle2D rect = operatorRects.get(op);
-        if ((rect == null) && autoPositionIfMissing) {
+        if (rect == null && autoPositionIfMissing) {
             // if connected (e.g. because inserted by quick fix), place in the middle
-            if ((op.getInputPorts().getNumberOfPorts() > 0) &&
-                    (op.getOutputPorts().getNumberOfPorts() > 0) &&
+            if (op.getInputPorts().getNumberOfPorts() > 0 &&
+                    op.getOutputPorts().getNumberOfPorts() > 0 &&
                     op.getInputPorts().getPortByIndex(0).isConnected() &&
                     op.getOutputPorts().getPortByIndex(0).isConnected()) {
 
@@ -957,8 +958,8 @@ public class ProcessRenderer extends JPanel {
                 boolean dependenciesOk = true;
                 Operator sourceOp = op.getInputPorts().getPortByIndex(0).getSource().getPorts().getOwner().getOperator();
                 Operator destOp = op.getOutputPorts().getPortByIndex(0).getDestination().getPorts().getOwner().getOperator();
-                dependenciesOk &= (sourceOp == displayedChain) || operatorRects.containsKey(sourceOp);
-                dependenciesOk &= (destOp == displayedChain) || operatorRects.containsKey(destOp);
+                dependenciesOk &= sourceOp == displayedChain || operatorRects.containsKey(sourceOp);
+                dependenciesOk &= destOp == displayedChain || operatorRects.containsKey(destOp);
 
                 if (dependenciesOk) {
                     Point2D sourcePos = getPortLocation(op.getInputPorts().getPortByIndex(0).getSource());
@@ -1025,7 +1026,7 @@ public class ProcessRenderer extends JPanel {
         final Ports ports = port.getPorts();
         final int myIndex = ports.getAllPorts().indexOf(port);
         final Double oldD = portSpacings.get(port);
-        final double old = (oldD == null) ? 0 : oldD;
+        final double old = oldD == null ? 0 : oldD;
 
         double newY = old + delta;
         if (isSnapToGrid()) {
@@ -1246,7 +1247,7 @@ public class ProcessRenderer extends JPanel {
             if (input) {
                 xt = PORT_SIZE / 2;
             } else {
-                xt = -(int) (strBounds.getWidth()) - 3;
+                xt = -(int) strBounds.getWidth() - 3;
             }
 
             if (hasError) {
@@ -1320,8 +1321,8 @@ public class ProcessRenderer extends JPanel {
         }
 
         // Shadow
-        if ((!selectedOperators.isEmpty() && (operator == selectedOperators.get(0))) ||
-                (dropInsertionPredecessor == operator)) {
+        if (!selectedOperators.isEmpty() && operator == selectedOperators.get(0) ||
+                dropInsertionPredecessor == operator) {
             Rectangle2D shadow = new Rectangle2D.Double(frame.getX() + 5, frame.getY() + 5, frame.getWidth(), frame.getHeight());
             GeneralPath bottom = new GeneralPath();
             bottom.moveTo(shadow.getX(), frame.getMaxY());
@@ -1376,7 +1377,7 @@ public class ProcessRenderer extends JPanel {
         // Frame Body
         g.setPaint(LINE_COLOR);
         g.setStroke(LINE_STROKE);
-        if (selectedOperators.contains(operator) || (operator == dropInsertionPredecessor)) {
+        if (selectedOperators.contains(operator) || operator == dropInsertionPredecessor) {
             g.setPaint(FRAME_COLOR_SELECTED);
             g.setStroke(FRAME_STROKE_SELECTED);
         } else {
@@ -1461,7 +1462,7 @@ public class ProcessRenderer extends JPanel {
         iconX += IMAGE_BREAKPOINTS.getIconWidth() + 1;
 
         // Comment
-        if ((operator.getUserDescription() != null) && (operator.getUserDescription().length() > 0)) {
+        if (operator.getUserDescription() != null && operator.getUserDescription().length() > 0) {
             getIcon(operator, IMAGE_COMMENT).paintIcon(this, g, iconX, (int) (frame.getY() + frame.getHeight() - IMAGE_COMMENT.getIconHeight() - 1));
         }
         iconX += IMAGE_COMMENT.getIconWidth() + 1;
@@ -1475,9 +1476,9 @@ public class ProcessRenderer extends JPanel {
     private Rectangle2D[] splitHorizontalBar(RectangularShape bar, double a, double b, double c) {
         Rectangle2D[] result = new Rectangle2D[4];
         double y0 = bar.getMinY();
-        double y1 = Math.rint(y0 + (bar.getHeight() * a));
-        double y2 = Math.rint(y0 + (bar.getHeight() * b));
-        double y3 = Math.rint(y0 + (bar.getHeight() * c));
+        double y1 = Math.rint(y0 + bar.getHeight() * a);
+        double y2 = Math.rint(y0 + bar.getHeight() * b);
+        double y3 = Math.rint(y0 + bar.getHeight() * c);
         result[0] = new Rectangle2D.Double(bar.getMinX(), bar.getMinY(),
                 bar.getWidth(), y1 - y0);
         result[1] = new Rectangle2D.Double(bar.getMinX(), y1, bar.getWidth(),
@@ -1531,10 +1532,10 @@ public class ProcessRenderer extends JPanel {
             g.setColor(getColorFor(from, true, Color.LIGHT_GRAY));
             if (to != null) {
                 if (from.getMetaData() instanceof CollectionMetaData) {
-                    if ((from == hoveringPort) ||
-                            (to == hoveringPort) ||
-                            (from == hoveringConnectionSource) ||
-                            (from == selectedConnectionSource)) {
+                    if (from == hoveringPort ||
+                            to == hoveringPort ||
+                            from == hoveringConnectionSource ||
+                            from == selectedConnectionSource) {
                         g.setStroke(CONNECTION_COLLECTION_HIGHLIGHT_STROKE);
                     } else {
                         g.setStroke(CONNECTION_COLLECTION_LINE_STROKE);
@@ -1544,10 +1545,10 @@ public class ProcessRenderer extends JPanel {
                     g.setStroke(LINE_STROKE);
                     g.draw(createConnector(from, to));
                 } else {
-                    if ((from == hoveringPort) ||
-                            (to == hoveringPort) ||
-                            (from == hoveringConnectionSource) ||
-                            (from == selectedConnectionSource)) {
+                    if (from == hoveringPort ||
+                            to == hoveringPort ||
+                            from == hoveringConnectionSource ||
+                            from == selectedConnectionSource) {
                         g.setStroke(CONNECTION_HIGHLIGHT_STROKE);
                     } else {
                         g.setStroke(CONNECTION_LINE_STROKE);
@@ -1557,7 +1558,7 @@ public class ProcessRenderer extends JPanel {
                 }
             }
 
-            if ((connectingPortSource == from) && (mousePositionRelativeToProcess != null)) {
+            if (connectingPortSource == from && mousePositionRelativeToProcess != null) {
                 g.setColor(ACTIVE_EDGE_COLOR);
                 Point2D fromLoc = getPortLocation(connectingPortSource);
                 g.draw(new Line2D.Double(fromLoc.getX() + PORT_SIZE / 2, fromLoc.getY(), mousePositionRelativeToProcess.getX(), mousePositionRelativeToProcess.getY()));
@@ -1566,7 +1567,7 @@ public class ProcessRenderer extends JPanel {
     }
 
     public void render(Graphics2D graphics) {
-        if ((processes == null) || (processes.length == 0)) {
+        if (processes == null || processes.length == 0) {
             return;
         }
 
@@ -1711,7 +1712,7 @@ public class ProcessRenderer extends JPanel {
                 setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                 return;
             }
-            if ((e.getButton() == MouseEvent.BUTTON1) && (hoveringPort != null)) {
+            if (e.getButton() == MouseEvent.BUTTON1 && hoveringPort != null) {
                 if (e.isAltDown()) {
                     if (hoveringPort instanceof OutputPort) {
                         if (((OutputPort) hoveringPort).isConnected()) {
@@ -1739,7 +1740,7 @@ public class ProcessRenderer extends JPanel {
                                 // move directly after source if first connection
                                 if (!hasConnections) {
                                     Operator sourceOp = connectingPortSource.getPorts().getOwner().getOperator();
-                                    if ((destOp != displayedChain) && (sourceOp != displayedChain)) {
+                                    if (destOp != displayedChain && sourceOp != displayedChain) {
                                         destOp.getExecutionUnit().moveToIndex(destOp, destOp.getExecutionUnit().getOperators().indexOf(sourceOp) + 1);
                                     }
                                 }
@@ -1817,7 +1818,7 @@ public class ProcessRenderer extends JPanel {
 
             try {
                 if (selectionRectangle != null) {
-                    if ((selectionRectangle.getWidth() > 3) && (selectionRectangle.getHeight() > 3)) {
+                    if (selectionRectangle.getWidth() > 3 && selectionRectangle.getHeight() > 3) {
                         int processIndex = getProcessIndexUnder(mousePositionAtDragStart);
                         if (processIndex == -1) {
                             processIndex = getProcessIndexUnder(e.getPoint());
@@ -1831,8 +1832,8 @@ public class ProcessRenderer extends JPanel {
                                     selectionRectangle.getY() + offset.getY(),
                                     selectionRectangle.getWidth(),
                                     selectionRectangle.getHeight());
-                            if ((!e.isShiftDown() && !e.isControlDown()) ||
-                                    ((selectedOperators.size() == 1) && (selectedOperators.get(0) == displayedChain))) { // if we have only
+                            if (!e.isShiftDown() && !e.isControlDown() ||
+                                    selectedOperators.size() == 1 && selectedOperators.get(0) == displayedChain) { // if we have only
                                 // selected the
                                 // parent, we
                                 // ignore SHIFT and
@@ -1849,15 +1850,15 @@ public class ProcessRenderer extends JPanel {
                     }
                     selectionRectangle = null;
                 } else {
-                    if (hasDragged && (draggedOperatorsOrigins != null) && (draggedOperatorsOrigins.size() == 1)) {
+                    if (hasDragged && draggedOperatorsOrigins != null && draggedOperatorsOrigins.size() == 1) {
                         insertIntoHoveringConnection(getHoveringOperator());
-                    } else if (!hasDragged && (getHoveringOperator() != null) && (!e.isPopupTrigger()) && (e.isControlDown() || (selectedOperators.contains(getHoveringOperator()) && !pressHasSelected))) {
+                    } else if (!hasDragged && getHoveringOperator() != null && !e.isPopupTrigger() && (e.isControlDown() || selectedOperators.contains(getHoveringOperator()) && !pressHasSelected)) {
                         // control and deselection was delayed to mouseReleased
                         selectOperator(getHoveringOperator(), !e.isControlDown(), e.isShiftDown());
                     }
                 }
 
-                if ((draggedOperatorsOrigins != null) || (draggedPort != null)) {
+                if (draggedOperatorsOrigins != null || draggedPort != null) {
                     // mainFrame.addToUndoList();
                     displayedChain.getProcess().updateNotify();
                 }
@@ -1912,7 +1913,7 @@ public class ProcessRenderer extends JPanel {
                 mousePositionRelativeToProcess = toProcessSpace(e.getPoint(), hoveringProcessIndex);
             }
             hasDragged = true;
-            if ((draggedOperatorsOrigins != null) && !draggedOperatorsOrigins.isEmpty()) {
+            if (draggedOperatorsOrigins != null && !draggedOperatorsOrigins.isEmpty()) {
                 ExecutionUnit draggingInSubprocess = draggedOperatorsOrigins.keySet().iterator().next().getExecutionUnit();
                 Operator hoveringOperator = getHoveringOperator();
                 if (hoveringOperator != null) {
@@ -1924,8 +1925,8 @@ public class ProcessRenderer extends JPanel {
                         }
                     }
 
-                    double difX = (e.getX() - mousePositionAtDragStart.getX());
-                    double difY = (e.getY() - mousePositionAtDragStart.getY());
+                    double difX = e.getX() - mousePositionAtDragStart.getX();
+                    double difY = e.getY() - mousePositionAtDragStart.getY();
 
                     // hoveringOperator is always included in draggedOperators
                     if (!draggedOperatorsOrigins.containsKey(hoveringOperator)) {
@@ -1983,7 +1984,7 @@ public class ProcessRenderer extends JPanel {
                     ensureHeight(draggingInSubprocess, (int) maxY);
                     repaint();
                 }
-            } else if ((draggedPort != null) && (draggedPort.getPorts().getOwner().getOperator() == displayedChain)) {
+            } else if (draggedPort != null && draggedPort.getPorts().getOwner().getOperator() == displayedChain) {
                 // ports are draggeable only if they belong to the displayedChain <-> they are inner sinks our sources
 
                 double diff = e.getY() - mousePositionAtLastEvaluation.getY();
@@ -2013,7 +2014,7 @@ public class ProcessRenderer extends JPanel {
             switch (e.getButton()) {
             case MouseEvent.BUTTON1:
                 if (e.getClickCount() == 2) {
-                    if ((hoveringPort != null) && (hoveringPort.getPorts().getOwner().getOperator() instanceof ProcessRootOperator)) {
+                    if (hoveringPort != null && hoveringPort.getPorts().getOwner().getOperator() instanceof ProcessRootOperator) {
                         RepositoryLocation procLoc = displayedChain.getProcess().getRepositoryLocation();
                         RepositoryLocation resolveRelativeTo = null;
                         if (procLoc != null) {
@@ -2149,7 +2150,7 @@ public class ProcessRenderer extends JPanel {
         if (hoveringPort != null) {
             // add port actions
             final IOObject data = hoveringPort.getAnyDataOrNull();
-            if ((data != null) && (data instanceof ResultObject)) {
+            if (data != null && data instanceof ResultObject) {
                 JMenuItem showResult = new JMenuItem(new ResourceAction(true, "show_port_data", ((ResultObject) data).getName()) {
                     private static final long serialVersionUID = -6557085878445788274L;
 
@@ -2247,7 +2248,7 @@ public class ProcessRenderer extends JPanel {
                 boolean first = true;
                 for (OutputPort port : getHoveringOperator().getOutputPorts().getAllPorts()) {
                     final IOObject data = port.getAnyDataOrNull();
-                    if ((data != null) && (data instanceof ResultObject)) {
+                    if (data != null && data instanceof ResultObject) {
                         if (first) {
                             menu.addSeparator();
                             first = false;
@@ -2304,7 +2305,7 @@ public class ProcessRenderer extends JPanel {
             double destIndex = -toPort.getPorts().getAllPorts().indexOf(toPort);
             int totalNumPorts = Math.max(fromPort.getPorts().getNumberOfPorts(), toPort.getPorts().getNumberOfPorts());
             double freeSpace = to.getX() - from.getX() - 2 * delta;
-            double centerX = (from.getX() + to.getX()) / 2 + 0.5 * freeSpace * (((sourceIndex + destIndex + 1d) / totalNumPorts - 0.5));
+            double centerX = (from.getX() + to.getX()) / 2 + 0.5 * freeSpace * ((sourceIndex + destIndex + 1d) / totalNumPorts - 0.5);
             connector.moveTo(from.getX() + 1, from.getY());
             if (to.getX() >= from.getX() + 2 * delta) {
                 if (to.getY() != from.getY()) {
@@ -2624,27 +2625,27 @@ public class ProcessRenderer extends JPanel {
     int getProcessIndexUnder(Point2D p) {
         switch (ORIENTATION) {
         case X_AXIS:
-            if ((p.getY() < PADDING) || p.getY() > getTotalHeight()) {
+            if (p.getY() < PADDING || p.getY() > getTotalHeight()) {
                 return -1;
             }
             int xOffset = 0;
             for (int i = 0; i < processes.length; i++) {
                 xOffset += WALL_WIDTH;
                 int relativeX = (int) p.getX() - xOffset;
-                if ((relativeX >= 0) && (relativeX <= getWidth(processes[i]))) {
+                if (relativeX >= 0 && relativeX <= getWidth(processes[i])) {
                     return i;
                 }
                 xOffset += WALL_WIDTH + getWidth(processes[i]);
             }
             break;
         case Y_AXIS:
-            if ((p.getX() < WALL_WIDTH) || p.getX() > WALL_WIDTH + getTotalWidth()) {
+            if (p.getX() < WALL_WIDTH || p.getX() > WALL_WIDTH + getTotalWidth()) {
                 return -1;
             }
             int yOffset = 0;
             for (int i = 0; i < processes.length; i++) {
                 int relativeY = (int) p.getY() - yOffset;
-                if ((relativeY >= 0) && (relativeY <= getHeight(processes[i]))) {
+                if (relativeY >= 0 && relativeY <= getHeight(processes[i])) {
                     return i;
                 }
                 yOffset += PADDING + getHeight(processes[i]);
@@ -2732,7 +2733,7 @@ public class ProcessRenderer extends JPanel {
     }
 
     private void updateCursor() {
-        if ((getHoveringOperator() != null) || (hoveringPort != null)) {
+        if (getHoveringOperator() != null || hoveringPort != null) {
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         } else {
             setCursor(Cursor.getDefaultCursor());
@@ -2849,7 +2850,7 @@ public class ProcessRenderer extends JPanel {
                 for (OutputPort outCandidate : operator.getOutputPorts().getAllPorts()) {
                     if (!outCandidate.isConnected()) {
                         md = outCandidate.getMetaData();
-                        if ((md != null) && (oldDest.isInputCompatible(md, CompatibilityLevel.PRE_VERSION_5))) {
+                        if (md != null && oldDest.isInputCompatible(md, CompatibilityLevel.PRE_VERSION_5)) {
                             bestOutput = outCandidate;
                             break;
                         }
@@ -2890,7 +2891,7 @@ public class ProcessRenderer extends JPanel {
         int processIndex = getIndex(op.getExecutionUnit());
         if (processIndex == -1) {
             String name = SwingTools.showInputDialog("rename_operator", op.getName());
-            if ((name != null) && (name.length() > 0)) {
+            if (name != null && name.length() > 0) {
                 op.rename(name);
             }
             return;
@@ -3074,7 +3075,7 @@ public class ProcessRenderer extends JPanel {
             String y = opElement.getAttribute("y");
             String w = opElement.getAttribute("width");
             String h = opElement.getAttribute("height");
-            if ((x != null) && (x.length() > 0)) {
+            if (x != null && x.length() > 0) {
                 try {
                     setOperatorRect(op, new Rectangle2D.Double(Double.parseDouble(x),
                             Double.parseDouble(y),
@@ -3092,7 +3093,7 @@ public class ProcessRenderer extends JPanel {
             String w = element.getAttribute("width");
             String h = element.getAttribute("height");
             try {
-                if ((w != null) && (w.length() > 0)) {
+                if (w != null && w.length() > 0) {
                     processSizes.put(process, new Dimension((int) Double.parseDouble(w), (int) Double.parseDouble(h)));
                 }
             } catch (NumberFormatException e) {
@@ -3101,7 +3102,7 @@ public class ProcessRenderer extends JPanel {
             NodeList children = element.getChildNodes();
             for (Port port : process.getInnerSources().getAllPorts()) {
                 for (int i = 0; i < children.getLength(); i++) {
-                    if ((children.item(i) instanceof Element) && "portSpacing".equals(((Element) children.item(i)).getTagName())) {
+                    if (children.item(i) instanceof Element && "portSpacing".equals(((Element) children.item(i)).getTagName())) {
                         Element psElement = (Element) children.item(i);
                         if (("source_" + port.getName()).equals(psElement.getAttribute("port"))) {
                             try {
@@ -3115,7 +3116,7 @@ public class ProcessRenderer extends JPanel {
             }
             for (Port port : process.getInnerSinks().getAllPorts()) {
                 for (int i = 0; i < children.getLength(); i++) {
-                    if ((children.item(i) instanceof Element) && "portSpacing".equals(((Element) children.item(i)).getTagName())) {
+                    if (children.item(i) instanceof Element && "portSpacing".equals(((Element) children.item(i)).getTagName())) {
                         Element psElement = (Element) children.item(i);
                         if (("sink_" + port.getName()).equals(psElement.getAttribute("port"))) {
                             try {

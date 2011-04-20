@@ -47,133 +47,135 @@ import com.rapidminer.tools.usagestats.UsageStatistics.StatisticsScope;
  * @author Simon Fischer */
 public class UsageStatsTransmissionDialog extends ButtonDialog {
 
-	private static final long serialVersionUID = 1L;
-	private static final long MIN_FIRE_INTERVAL = 1000*60*10;
-	//private static final long MIN_FIRE_INTERVAL = 1000*20;
+    private static final long serialVersionUID = 1L;
+    private static final long MIN_FIRE_INTERVAL = 1000*60*10;
+    //private static final long MIN_FIRE_INTERVAL = 1000*20;
 
-	public static final int ASK    = 0;
-	public static final int ALWAYS = 1;
-	public static final int NEVER  = 2;	
-	
-	private static final int YES  = 0;
-	private static final int NO   = 1;
-	
-	private int answer;
-	
-	/** Action to display the all time stats as a data table. */
-	public static final Action SHOW_STATISTICS_ACTION = new ResourceAction("show_usage_statistics") {
-		private static final long serialVersionUID = 1L;
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			RapidMinerGUI.getMainFrame().getResultDisplay().addDataTable(UsageStatistics.getInstance().getAsDataTable(UsageStatistics.StatisticsScope.ALL_TIME));
-		}	
-	};
-	
-	private UsageStatsTransmissionDialog() {
-		super("transmit_usage_statistics", true);
-	
-		JButton neverButton = new JButton(new ResourceAction("never") {
-			private static final long serialVersionUID = 1L;
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				dispose();
-				ParameterService.writePropertyIntoMainUserConfigFile(RapidMinerGUI.PROPERTY_TRANSFER_USAGESTATS, "never");
-				answer = NO;
-			}			
-		});		
-		JButton alwaysButton = new JButton(new ResourceAction("always") {
-			private static final long serialVersionUID = 1L;
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				answer = YES;
-				ParameterService.writePropertyIntoMainUserConfigFile(RapidMinerGUI.PROPERTY_TRANSFER_USAGESTATS, "always");
-				dispose();
-			}			
-		});
-				
-		DataTableViewerTable table = new DataTableViewerTable(UsageStatistics.getInstance().getAsDataTable(StatisticsScope.CURRENT), true, true, true);
-		table.setFocusable(false);
-		table.setBorder(null);
-		ExtendedJScrollPane tablePane = new ExtendedJScrollPane(table);
-		tablePane.setBorder(createBorder());
-		layoutDefault(tablePane, NORMAL, alwaysButton, makeOkButton("yes_later"), makeCancelButton("no_later"), neverButton);		
-	}
-	
-	@Override
-	public void ok() {
-		answer = YES;
-		super.ok();
-	}
-	
-	@Override
-	public void cancel() {
-		answer = NO;
-		super.cancel();
-	}
+    public static final int ASK    = 0;
+    public static final int ALWAYS = 1;
+    public static final int NEVER  = 2;
 
-	/** Starts the first timer. */
-	public static void init() {
-		startTimer();			
-	}
+    private static final int YES  = 0;
+    private static final int NO   = 1;
 
-	/** Pops up a dialog (unless "always" or "never" was chosen before asking the user to transmit
-	 *  usage statistics. */
-	private static boolean askForTransmission() {
-		String property = System.getProperty(RapidMinerGUI.PROPERTY_TRANSFER_USAGESTATS);
-		if ("never".equals(property)) {
-			return false;
-		} else if ("always".equals(property)) {
-			return true;
-		} else {
-			UsageStatsTransmissionDialog trd = new UsageStatsTransmissionDialog();
-			trd.setVisible(true);
-			return (trd.answer == YES);
-		}
-	}
+    private int answer;
 
-	/** Schedules the next dialog popup to the next transmission time of the UsageStatistics, but at least
-	 *  {@link #MIN_FIRE_INTERVAL} milliseconds from now. */
-	private static void startTimer() {
-		if (UsageStatistics.getInstance().hasFailedToday()) {
-			return;
-		}
-		long timeToFire = UsageStatistics.getInstance().getNextTransmission().getTime() - System.currentTimeMillis();
-		if (timeToFire < 0) {
-			timeToFire = MIN_FIRE_INTERVAL;
-		}
-		Timer timer = new Timer((int)timeToFire, new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (UsageStatsTransmissionDialog.askForTransmission()) {
-					new ProgressThread("transmit_usagestats") {
-						@Override
-						public void run() {
-							getProgressListener().setTotal(100);
-							getProgressListener().setCompleted(10);
-							try {
-								if (UsageStatistics.getInstance().transferUsageStats(getProgressListener())) {
-									UsageStatistics.getInstance().reset();
-									UsageStatistics.getInstance().scheduleTransmission(false);
-								} else {
-									UsageStatistics.getInstance().scheduleTransmission(true);
-								}
-							} catch (Exception e) {
-								LogService.getRoot().log(Level.WARNING, "Error submitting operator usage statistics. Are you online?", e);
-								UsageStatistics.getInstance().scheduleTransmission(true);
-							}
-							getProgressListener().setCompleted(90);							
-							startTimer();
-							getProgressListener().setCompleted(100);							
-							getProgressListener().complete();
-						}
-					}.start();					
-				} else {
-					UsageStatistics.getInstance().scheduleTransmissionFromNow();
-					startTimer();
-				}
-			}	
-		});
-		timer.setRepeats(false);
-		timer.start();
-	}
+    /** Action to display the all time stats as a data table. */
+    public static final Action SHOW_STATISTICS_ACTION = new ResourceAction("show_usage_statistics") {
+        private static final long serialVersionUID = 1L;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            RapidMinerGUI.getMainFrame().getResultDisplay().addDataTable(UsageStatistics.getInstance().getAsDataTable(UsageStatistics.StatisticsScope.ALL_TIME));
+        }
+    };
+
+    private UsageStatsTransmissionDialog() {
+        super("transmit_usage_statistics", true);
+
+        JButton neverButton = new JButton(new ResourceAction("never") {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+                ParameterService.setParameterValue(RapidMinerGUI.PROPERTY_TRANSFER_USAGESTATS, "never");
+                ParameterService.saveParameters();
+                answer = NO;
+            }
+        });
+        JButton alwaysButton = new JButton(new ResourceAction("always") {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                answer = YES;
+                ParameterService.setParameterValue(RapidMinerGUI.PROPERTY_TRANSFER_USAGESTATS, "always");
+                ParameterService.saveParameters();
+                dispose();
+            }
+        });
+
+        DataTableViewerTable table = new DataTableViewerTable(UsageStatistics.getInstance().getAsDataTable(StatisticsScope.CURRENT), true, true, true);
+        table.setFocusable(false);
+        table.setBorder(null);
+        ExtendedJScrollPane tablePane = new ExtendedJScrollPane(table);
+        tablePane.setBorder(createBorder());
+        layoutDefault(tablePane, NORMAL, alwaysButton, makeOkButton("yes_later"), makeCancelButton("no_later"), neverButton);
+    }
+
+    @Override
+    public void ok() {
+        answer = YES;
+        super.ok();
+    }
+
+    @Override
+    public void cancel() {
+        answer = NO;
+        super.cancel();
+    }
+
+    /** Starts the first timer. */
+    public static void init() {
+        startTimer();
+    }
+
+    /** Pops up a dialog (unless "always" or "never" was chosen before asking the user to transmit
+     *  usage statistics. */
+    private static boolean askForTransmission() {
+        String property = ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_TRANSFER_USAGESTATS);
+        if ("never".equals(property)) {
+            return false;
+        } else if ("always".equals(property)) {
+            return true;
+        } else {
+            UsageStatsTransmissionDialog trd = new UsageStatsTransmissionDialog();
+            trd.setVisible(true);
+            return trd.answer == YES;
+        }
+    }
+
+    /** Schedules the next dialog popup to the next transmission time of the UsageStatistics, but at least
+     *  {@link #MIN_FIRE_INTERVAL} milliseconds from now. */
+    private static void startTimer() {
+        if (UsageStatistics.getInstance().hasFailedToday()) {
+            return;
+        }
+        long timeToFire = UsageStatistics.getInstance().getNextTransmission().getTime() - System.currentTimeMillis();
+        if (timeToFire < 0) {
+            timeToFire = MIN_FIRE_INTERVAL;
+        }
+        Timer timer = new Timer((int)timeToFire, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (UsageStatsTransmissionDialog.askForTransmission()) {
+                    new ProgressThread("transmit_usagestats") {
+                        @Override
+                        public void run() {
+                            getProgressListener().setTotal(100);
+                            getProgressListener().setCompleted(10);
+                            try {
+                                if (UsageStatistics.getInstance().transferUsageStats(getProgressListener())) {
+                                    UsageStatistics.getInstance().reset();
+                                    UsageStatistics.getInstance().scheduleTransmission(false);
+                                } else {
+                                    UsageStatistics.getInstance().scheduleTransmission(true);
+                                }
+                            } catch (Exception e) {
+                                LogService.getRoot().log(Level.WARNING, "Error submitting operator usage statistics. Are you online?", e);
+                                UsageStatistics.getInstance().scheduleTransmission(true);
+                            }
+                            getProgressListener().setCompleted(90);
+                            startTimer();
+                            getProgressListener().setCompleted(100);
+                            getProgressListener().complete();
+                        }
+                    }.start();
+                } else {
+                    UsageStatistics.getInstance().scheduleTransmissionFromNow();
+                    startTimer();
+                }
+            }
+        });
+        timer.setRepeats(false);
+        timer.start();
+    }
 }

@@ -30,29 +30,32 @@ import com.rapidminer.repository.gui.RepositoryConfigurationPanel;
  * @author Simon Fischer
  */
 public interface Repository extends Folder {
-	
-	public void addRepositoryListener(RepositoryListener l);
-	
-	public void removeRepositoryListener(RepositoryListener l);
 
-	public Entry locate(String string) throws RepositoryException;
+    public void addRepositoryListener(RepositoryListener l);
 
-	/** Returns some user readable information about the state of this repository. */
-	public String getState();
-	
-	/** Returns a piece of XML to store the repository in a configuration file. */
-	public Element createXML(Document doc);
+    public void removeRepositoryListener(RepositoryListener l);
 
-	public abstract boolean shouldSave();
+    /**
+     * This will return the entry if existing or null if it can't be found.
+     */
+    public Entry locate(String string) throws RepositoryException;
 
-	/** Called after the repository is added. Currently unused, but may be useful. Was once
-	 *  used to fetch JDBC connection entries from remote server. */
-	public void postInstall();
-	
-	public void preRemove();
+    /** Returns some user readable information about the state of this repository. */
+    public String getState();
 
-	/** Returns true if the repository is configurable. In that case,*/
-	public boolean isConfigurable();
-	
-	public RepositoryConfigurationPanel makeConfigurationPanel(); 
+    /** Returns a piece of XML to store the repository in a configuration file. */
+    public Element createXML(Document doc);
+
+    public abstract boolean shouldSave();
+
+    /** Called after the repository is added. Currently unused, but may be useful. Was once
+     *  used to fetch JDBC connection entries from remote server. */
+    public void postInstall();
+
+    public void preRemove();
+
+    /** Returns true if the repository is configurable. In that case,*/
+    public boolean isConfigurable();
+
+    public RepositoryConfigurationPanel makeConfigurationPanel();
 }

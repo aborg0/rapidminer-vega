@@ -82,138 +82,138 @@ import com.vlsolutions.swing.docking.Dockable;
  */
 public class LoggingViewer extends JPanel implements MouseListener, Dockable {
 
-	private static final long serialVersionUID = 551259537624386372L;
+    private static final long serialVersionUID = 551259537624386372L;
 
-	public static final Level[] SELECTABLE_LEVELS = {
-		Level.ALL,
-		Level.FINEST,
-		Level.FINER,
-		Level.FINE,
-		Level.CONFIG,
-		Level.INFO,
-		Level.WARNING,
-		Level.SEVERE,
-		Level.OFF
-	};
-	public static final int DEFAULT_LEVEL_INDEX = 4;
-	public static final String[] SELECTABLE_LEVEL_NAMES = new String[SELECTABLE_LEVELS.length];
-	static {
-		for (int i = 0; i < SELECTABLE_LEVELS.length; i++) {
-			SELECTABLE_LEVEL_NAMES[i] = SELECTABLE_LEVELS[i].getName();
-		}
-	}
-	
-	public transient final Action CLEAR_MESSAGE_VIEWER_ACTION = new ClearMessageAction(this);
-	
-	public transient final Action SAVE_LOGFILE_ACTION = new SaveLogFileAction(this);
-	
-	public transient final Action SEARCH_ACTION = new LoggingSearchAction(this);
-	
-	public transient final JMenu LEVEL_MENU = new LoggingLevelMenu(this);
+    public static final Level[] SELECTABLE_LEVELS = {
+        Level.ALL,
+        Level.FINEST,
+        Level.FINER,
+        Level.FINE,
+        Level.CONFIG,
+        Level.INFO,
+        Level.WARNING,
+        Level.SEVERE,
+        Level.OFF
+    };
+    public static final int DEFAULT_LEVEL_INDEX = 4;
+    public static final String[] SELECTABLE_LEVEL_NAMES = new String[SELECTABLE_LEVELS.length];
+    static {
+        for (int i = 0; i < SELECTABLE_LEVELS.length; i++) {
+            SELECTABLE_LEVEL_NAMES[i] = SELECTABLE_LEVELS[i].getName();
+        }
+    }
+
+    public transient final Action CLEAR_MESSAGE_VIEWER_ACTION = new ClearMessageAction(this);
+
+    public transient final Action SAVE_LOGFILE_ACTION = new SaveLogFileAction(this);
+
+    public transient final Action SEARCH_ACTION = new LoggingSearchAction(this);
+
+    public transient final JMenu LEVEL_MENU = new LoggingLevelMenu(this);
 
     private transient final SimpleAttributeSet attributeSet = new SimpleAttributeSet();
 
     private transient final LinkedList<Integer> lineLengths = new LinkedList<Integer>();
 
-	private final JTextPane textArea;
+    private final JTextPane textArea;
 
-	private static final Color COLOR_DEFAULT;
-	private static final Color COLOR_WARNING;
-	private static final Color COLOR_ERROR;
-	private static final Color COLOR_INFO;
-	static {
-		String colorStr = System.getProperty(MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_LOGSERVICE);		
-		if (colorStr != null) {
-			COLOR_DEFAULT = ParameterTypeColor.string2Color(colorStr);
-		} else {
-			COLOR_DEFAULT = Color.BLACK;
-		}
-		colorStr = System.getProperty(MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_NOTES);
-		if (colorStr != null) {
-			COLOR_INFO = ParameterTypeColor.string2Color(colorStr);
-		} else {
-			COLOR_INFO = Color.BLACK;
-		}
-		colorStr = System.getProperty(MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_WARNINGS);
-		if (colorStr != null) {
-			COLOR_WARNING= ParameterTypeColor.string2Color(colorStr);
-		} else {
-			COLOR_WARNING  = Color.BLACK;
-		}		
-		colorStr = System.getProperty(MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_ERRORS);
-		if (colorStr != null) {
-			COLOR_ERROR = ParameterTypeColor.string2Color(colorStr);
-		} else {
-			COLOR_ERROR = Color.BLACK;
-		}
-	}
-	
-	private final Formatter formatter = new Formatter() {
-		@Override
-		public String format(LogRecord record) {
-			StringBuilder b = new StringBuilder();
-//			b.append(record.getLoggerName());
-//			b.append(": ");
-			b.append(DateFormat.getDateTimeInstance().format(new Date(record.getMillis())));
-			b.append(" ");
-			b.append(record.getLevel().getLocalizedName());
-			b.append(": ");
-			b.append(record.getMessage());
-			b.append("\n");
-			return b.toString();
-		}
-		
-	};
-	
-	private int maxRows;
-	
-	private final Handler handler = new Handler() {
-		@Override
-		public void close() throws SecurityException {
-		}
-		@Override
-		public void flush() {
-		}
-		@Override
-		public void publish(final LogRecord record) {
-			if (isLoggable(record)) {
-				if (SwingUtilities.isEventDispatchThread()) {
-					append(record);
-				} else {
-					SwingUtilities.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							append(record);
-						}
-						
-					});
-				}
-			}
-		}		
-	};
-	
-	public LoggingViewer() {
-		this(new JTextPane());
-	}
+    private static final Color COLOR_DEFAULT;
+    private static final Color COLOR_WARNING;
+    private static final Color COLOR_ERROR;
+    private static final Color COLOR_INFO;
+    static {
+        String colorStr = ParameterService.getParameterValue(MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_LOGSERVICE);
+        if (colorStr != null) {
+            COLOR_DEFAULT = ParameterTypeColor.string2Color(colorStr);
+        } else {
+            COLOR_DEFAULT = Color.BLACK;
+        }
+        colorStr = ParameterService.getParameterValue(MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_NOTES);
+        if (colorStr != null) {
+            COLOR_INFO = ParameterTypeColor.string2Color(colorStr);
+        } else {
+            COLOR_INFO = Color.BLACK;
+        }
+        colorStr = ParameterService.getParameterValue(MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_WARNINGS);
+        if (colorStr != null) {
+            COLOR_WARNING= ParameterTypeColor.string2Color(colorStr);
+        } else {
+            COLOR_WARNING  = Color.BLACK;
+        }
+        colorStr = ParameterService.getParameterValue(MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_ERRORS);
+        if (colorStr != null) {
+            COLOR_ERROR = ParameterTypeColor.string2Color(colorStr);
+        } else {
+            COLOR_ERROR = Color.BLACK;
+        }
+    }
 
-	private LoggingViewer(JTextPane textArea) {
-		super(new BorderLayout());
-		final Level level = getSpecifiedLogLevelIndex();
-		handler.setLevel(level);
-		LogService.getRoot().setLevel(level);
-		maxRows = 1000;
-		try {
-			String maxRowsString = System.getProperty(MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_ROWLIMIT);
-			if (maxRowsString != null)
-				maxRows = Integer.parseInt(maxRowsString);
-		} catch (NumberFormatException e) {
-			LogService.getGlobal().log("Bad integer format for property '', using default number of maximum rows for logging (1000).", LogService.WARNING);
-		}
-		
-		this.textArea = textArea;
-		this.textArea.setToolTipText("Displays logging messages according to the current log verbosity (parameter of root operator).");
-		this.textArea.setEditable(false);
-		this.textArea.addMouseListener(this);
+    private final Formatter formatter = new Formatter() {
+        @Override
+        public String format(LogRecord record) {
+            StringBuilder b = new StringBuilder();
+            //			b.append(record.getLoggerName());
+            //			b.append(": ");
+            b.append(DateFormat.getDateTimeInstance().format(new Date(record.getMillis())));
+            b.append(" ");
+            b.append(record.getLevel().getLocalizedName());
+            b.append(": ");
+            b.append(record.getMessage());
+            b.append("\n");
+            return b.toString();
+        }
+
+    };
+
+    private int maxRows;
+
+    private final Handler handler = new Handler() {
+        @Override
+        public void close() throws SecurityException {
+        }
+        @Override
+        public void flush() {
+        }
+        @Override
+        public void publish(final LogRecord record) {
+            if (isLoggable(record)) {
+                if (SwingUtilities.isEventDispatchThread()) {
+                    append(record);
+                } else {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            append(record);
+                        }
+
+                    });
+                }
+            }
+        }
+    };
+
+    public LoggingViewer() {
+        this(new JTextPane());
+    }
+
+    private LoggingViewer(JTextPane textArea) {
+        super(new BorderLayout());
+        final Level level = getSpecifiedLogLevelIndex();
+        handler.setLevel(level);
+        LogService.getRoot().setLevel(level);
+        maxRows = 1000;
+        try {
+            String maxRowsString = ParameterService.getParameterValue(MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_ROWLIMIT);
+            if (maxRowsString != null)
+                maxRows = Integer.parseInt(maxRowsString);
+        } catch (NumberFormatException e) {
+            LogService.getGlobal().log("Bad integer format for property '', using default number of maximum rows for logging (1000).", LogService.WARNING);
+        }
+
+        this.textArea = textArea;
+        this.textArea.setToolTipText("Displays logging messages according to the current log verbosity (parameter of root operator).");
+        this.textArea.setEditable(false);
+        this.textArea.addMouseListener(this);
         this.textArea.setFont(this.textArea.getFont().deriveFont(Font.PLAIN));
         LogService.getRoot().addHandler(handler);
 
@@ -226,155 +226,161 @@ public class LoggingViewer extends JPanel implements MouseListener, Dockable {
         JScrollPane scrollPane = new ExtendedJScrollPane(textArea);
         scrollPane.setBorder(null);
         add(scrollPane, BorderLayout.CENTER);
-	}
-	
-	private static Level getSpecifiedLogLevelIndex() {
-		String value = System.getProperty(MainFrame.PROPERTY_RAPIDMINER_GUI_LOG_LEVEL);
-		if (value == null) {
-			return Level.CONFIG;
-		} else {
-			for (int i = 0; i < SELECTABLE_LEVEL_NAMES.length; i++) {
-				if (SELECTABLE_LEVEL_NAMES[i].equals(value)) {
-					return SELECTABLE_LEVELS[i]; 
-				}
-			}
-			return Level.CONFIG;
-		}
-	}
-	
-	public void setLevel(Level level) {
-		LogService.getRoot().setLevel(level);
-		handler.setLevel(level);
-		ParameterService.writePropertyIntoMainUserConfigFile(MainFrame.PROPERTY_RAPIDMINER_GUI_LOG_LEVEL, level.getName());
-	}
+    }
 
-	protected Object readResolve() {
-		return this;
-	}
-	
-	public void mouseEntered(MouseEvent e) {}
+    private static Level getSpecifiedLogLevelIndex() {
+        String value = ParameterService.getParameterValue(MainFrame.PROPERTY_RAPIDMINER_GUI_LOG_LEVEL);
+        if (value == null) {
+            return Level.CONFIG;
+        } else {
+            for (int i = 0; i < SELECTABLE_LEVEL_NAMES.length; i++) {
+                if (SELECTABLE_LEVEL_NAMES[i].equals(value)) {
+                    return SELECTABLE_LEVELS[i];
+                }
+            }
+            return Level.CONFIG;
+        }
+    }
 
-	public void mouseExited(MouseEvent e) {}
+    public void setLevel(Level level) {
+        LogService.getRoot().setLevel(level);
+        handler.setLevel(level);
+        ParameterService.setParameterValue(MainFrame.PROPERTY_RAPIDMINER_GUI_LOG_LEVEL, level.getName());
+        ParameterService.saveParameters();
+    }
 
-	public void mouseClicked(MouseEvent e) {}
+    protected Object readResolve() {
+        return this;
+    }
 
-	public void mouseReleased(MouseEvent e) {
-		evaluatePopup(e);
-	}
+    @Override
+    public void mouseEntered(MouseEvent e) {}
 
-	public void mousePressed(MouseEvent e) {
-		evaluatePopup(e);
-	}
+    @Override
+    public void mouseExited(MouseEvent e) {}
 
-	private void evaluatePopup(MouseEvent e) {
-		if (e.isPopupTrigger()) {
-			createPopupMenu().show(textArea, e.getX(), e.getY());
-		}
-	}
+    @Override
+    public void mouseClicked(MouseEvent e) {}
 
-	private JPopupMenu createPopupMenu() {
-		JPopupMenu menu = new JPopupMenu();
-		menu.add(CLEAR_MESSAGE_VIEWER_ACTION);
-		menu.add(SAVE_LOGFILE_ACTION);
-		menu.add(SEARCH_ACTION);		
-		menu.add(LEVEL_MENU);
-		return menu;
-	}
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        evaluatePopup(e);
+    }
 
-	private synchronized void append(LogRecord record) {
-		Document doc = textArea.getStyledDocument();
-		String formatted = formatter.format(record);
+    @Override
+    public void mousePressed(MouseEvent e) {
+        evaluatePopup(e);
+    }
 
-		if (record.getLevel().intValue() >= Level.SEVERE.intValue()) {
-			StyleConstants.setForeground(attributeSet, COLOR_ERROR);
-			StyleConstants.setBold(attributeSet, true);
-		} else if (record.getLevel().intValue() >= Level.WARNING.intValue()) {
-			StyleConstants.setForeground(attributeSet, COLOR_WARNING);
-			StyleConstants.setBold(attributeSet, true);
-		} else if (record.getLevel().intValue() >= Level.INFO.intValue()) {
-			StyleConstants.setForeground(attributeSet, COLOR_INFO);
-			StyleConstants.setBold(attributeSet, false);
-		} else {
-			StyleConstants.setForeground(attributeSet, COLOR_DEFAULT);
-			StyleConstants.setBold(attributeSet, false);
-		}
+    private void evaluatePopup(MouseEvent e) {
+        if (e.isPopupTrigger()) {
+            createPopupMenu().show(textArea, e.getX(), e.getY());
+        }
+    }
 
-		try {
-			doc.insertString(doc.getLength(), formatted, attributeSet);
-		} catch (BadLocationException e) {
-			// cannot happen
-			// rather dump to stderr than logging and having this method called back
-			e.printStackTrace();
-		}
+    private JPopupMenu createPopupMenu() {
+        JPopupMenu menu = new JPopupMenu();
+        menu.add(CLEAR_MESSAGE_VIEWER_ACTION);
+        menu.add(SAVE_LOGFILE_ACTION);
+        menu.add(SEARCH_ACTION);
+        menu.add(LEVEL_MENU);
+        return menu;
+    }
 
-		if (maxRows >= 0) {
-			int removeLength = 0;
-			while (lineLengths.size() > maxRows) {
-				removeLength += lineLengths.removeFirst();
-			}
-			try {
-				doc.remove(0, removeLength);
-			} catch (BadLocationException e) {
-				SwingTools.showSimpleErrorMessage("error_during_logging", e);
-			}                
-		}
-		textArea.setCaretPosition(textArea.getDocument().getLength());
-	}
+    private synchronized void append(LogRecord record) {
+        Document doc = textArea.getStyledDocument();
+        String formatted = formatter.format(record);
+
+        if (record.getLevel().intValue() >= Level.SEVERE.intValue()) {
+            StyleConstants.setForeground(attributeSet, COLOR_ERROR);
+            StyleConstants.setBold(attributeSet, true);
+        } else if (record.getLevel().intValue() >= Level.WARNING.intValue()) {
+            StyleConstants.setForeground(attributeSet, COLOR_WARNING);
+            StyleConstants.setBold(attributeSet, true);
+        } else if (record.getLevel().intValue() >= Level.INFO.intValue()) {
+            StyleConstants.setForeground(attributeSet, COLOR_INFO);
+            StyleConstants.setBold(attributeSet, false);
+        } else {
+            StyleConstants.setForeground(attributeSet, COLOR_DEFAULT);
+            StyleConstants.setBold(attributeSet, false);
+        }
+
+        try {
+            doc.insertString(doc.getLength(), formatted, attributeSet);
+        } catch (BadLocationException e) {
+            // cannot happen
+            // rather dump to stderr than logging and having this method called back
+            e.printStackTrace();
+        }
+
+        if (maxRows >= 0) {
+            int removeLength = 0;
+            while (lineLengths.size() > maxRows) {
+                removeLength += lineLengths.removeFirst();
+            }
+            try {
+                doc.remove(0, removeLength);
+            } catch (BadLocationException e) {
+                SwingTools.showSimpleErrorMessage("error_during_logging", e);
+            }
+        }
+        textArea.setCaretPosition(textArea.getDocument().getLength());
+    }
 
 
-	public String getLogMessage() {
-		return textArea.getText();
-	}
+    public String getLogMessage() {
+        return textArea.getText();
+    }
 
-	public void clear() {
-		textArea.setText("");
-	}
-	
-	public void saveLog() {
-		File file = new File("." + File.separator);
-		String logFile = null;
-		try {
-			logFile = RapidMinerGUI.getMainFrame().getProcess().getRootOperator().getParameterAsString(ProcessRootOperator.PARAMETER_LOGFILE); 
-		} catch (UndefinedParameterError ex) {
-          // tries to use process file name for initialization
-		} 
-		if (logFile != null) {
-			file = RapidMinerGUI.getMainFrame().getProcess().resolveFileName(logFile);
-		}
-		file = SwingTools.chooseFile(RapidMinerGUI.getMainFrame(), file, false, "log", "log file");
-		if (file != null) {
-			PrintWriter out = null;
-			try {
-				out = new PrintWriter(new FileWriter(file));
-				out.println(textArea.getText());
-			} catch (IOException ex) {
-				SwingTools.showSimpleErrorMessage("cannot_write_log_file", ex);
-			} finally {
-				if (out != null) {
-					out.close();
-				}
-			}
-		}
-	}
-	
-	public void performSearch() {
-		new SearchDialog(textArea, new SearchableJTextComponent(textArea)).setVisible(true);
-	}
+    public void clear() {
+        textArea.setText("");
+    }
 
-	public static final String LOG_VIEWER_DOCK_KEY = "log_viewer";
-	
-	private final DockKey DOCK_KEY = new ResourceDockKey(LOG_VIEWER_DOCK_KEY);
-	{
-		DOCK_KEY.setDockGroup(MainFrame.DOCK_GROUP_ROOT);
-	}
-	
-	@Override
-	public Component getComponent() {
-		return this;
-	}
+    public void saveLog() {
+        File file = new File("." + File.separator);
+        String logFile = null;
+        try {
+            logFile = RapidMinerGUI.getMainFrame().getProcess().getRootOperator().getParameterAsString(ProcessRootOperator.PARAMETER_LOGFILE);
+        } catch (UndefinedParameterError ex) {
+            // tries to use process file name for initialization
+        }
+        if (logFile != null) {
+            file = RapidMinerGUI.getMainFrame().getProcess().resolveFileName(logFile);
+        }
+        file = SwingTools.chooseFile(RapidMinerGUI.getMainFrame(), file, false, "log", "log file");
+        if (file != null) {
+            PrintWriter out = null;
+            try {
+                out = new PrintWriter(new FileWriter(file));
+                out.println(textArea.getText());
+            } catch (IOException ex) {
+                SwingTools.showSimpleErrorMessage("cannot_write_log_file", ex);
+            } finally {
+                if (out != null) {
+                    out.close();
+                }
+            }
+        }
+    }
 
-	@Override
-	public DockKey getDockKey() {
-		return DOCK_KEY;
-	}
+    public void performSearch() {
+        new SearchDialog(textArea, new SearchableJTextComponent(textArea)).setVisible(true);
+    }
+
+    public static final String LOG_VIEWER_DOCK_KEY = "log_viewer";
+
+    private final DockKey DOCK_KEY = new ResourceDockKey(LOG_VIEWER_DOCK_KEY);
+    {
+        DOCK_KEY.setDockGroup(MainFrame.DOCK_GROUP_ROOT);
+    }
+
+    @Override
+    public Component getComponent() {
+        return this;
+    }
+
+    @Override
+    public DockKey getDockKey() {
+        return DOCK_KEY;
+    }
 }

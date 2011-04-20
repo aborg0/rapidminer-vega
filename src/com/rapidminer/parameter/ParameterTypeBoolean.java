@@ -24,7 +24,6 @@ package com.rapidminer.parameter;
 
 import org.w3c.dom.Element;
 
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.XMLException;
 
 
@@ -42,8 +41,8 @@ public class ParameterTypeBoolean extends ParameterTypeSingle {
 
     private boolean defaultValue = false;
 
-    public ParameterTypeBoolean(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeBoolean(Element element) throws XMLException {
+        super(element);
 
         this.defaultValue = Boolean.valueOf(element.getAttribute(ATTRIBUTE_DEFAULT));
     }
@@ -84,7 +83,7 @@ public class ParameterTypeBoolean extends ParameterTypeSingle {
     }
 
     @Override
-    public void getDefinitionAsXML(Element typeElement) {
+    protected void writeDefinitionToXML(Element typeElement) {
         typeElement.setAttribute(ATTRIBUTE_DEFAULT, defaultValue + "");
     }
 }

@@ -39,6 +39,7 @@ import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.ResultObject;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.ParameterService;
 
 /** Static methods to generate result visualization components etc.
  * 
@@ -46,59 +47,59 @@ import com.rapidminer.tools.LogService;
  * */
 public class ResultDisplayTools {
 
-	static final String CLIENT_PROPERTY_RAPIDMINER_RESULT_NAME_HTML = "rapidminer.result.name.html";
-	static final String CLIENT_PROPERTY_RAPIDMINER_RESULT_ICON = "rapidminer.result.icon";
-	static final String CLIENT_PROPERTY_RAPIDMINER_RESULT_NAME = "rapidminer.result.name";
-	public static final String[] TYPE_NAMES = {"docking", "tabbed"};
+    static final String CLIENT_PROPERTY_RAPIDMINER_RESULT_NAME_HTML = "rapidminer.result.name.html";
+    static final String CLIENT_PROPERTY_RAPIDMINER_RESULT_ICON = "rapidminer.result.icon";
+    static final String CLIENT_PROPERTY_RAPIDMINER_RESULT_NAME = "rapidminer.result.name";
+    public static final String[] TYPE_NAMES = {"docking", "tabbed"};
 
-	public static JPanel createVisualizationComponent(IOObject resultObject, IOContainer resultContainer, String usedResultName) {
-		final String resultName = RendererService.getName(resultObject.getClass());
-		Component visualisationComponent;
-		Collection<Renderer> renderers = RendererService.getRenderers(resultName);
-	
-		// fallback to default toString method!
-		if (resultName == null) {
-			renderers.add(new DefaultTextRenderer());
-		}
-	
-		// constructing panel of renderers
-		visualisationComponent = new RadioCardPanel(usedResultName, resultObject);
-		for (Renderer renderer : renderers) {
-			try {
-				Component rendererComponent = renderer.getVisualizationComponent(resultObject, resultContainer);
-				if (rendererComponent != null)
-					((RadioCardPanel)visualisationComponent).addCard(renderer.getName(), rendererComponent);				
-			} catch (Exception e) {
-				LogService.getRoot().log(Level.WARNING, "Error creating renderer: "+e, e);
-				((RadioCardPanel)visualisationComponent).addCard(renderer.getName(), new JLabel("Error creating renderer "+renderer.getName() + " (see log)."));
-			}
-		}
-	
-		// result panel
-		final JPanel resultPanel = new JPanel(new BorderLayout());
-		resultPanel.putClientProperty("main.component", visualisationComponent);
-		resultPanel.add(visualisationComponent, BorderLayout.CENTER);
-	
-		if (resultObject instanceof ResultObject) {
-			if (((ResultObject)resultObject).getResultIcon() != null) {
-				resultPanel.putClientProperty(ResultDisplayTools.CLIENT_PROPERTY_RAPIDMINER_RESULT_ICON, ((ResultObject)resultObject).getResultIcon());
-			} else {
-				resultPanel.putClientProperty(ResultDisplayTools.CLIENT_PROPERTY_RAPIDMINER_RESULT_ICON, TabbedResultDisplay.defaultResultIcon);					 
-			}
-		}
-		resultPanel.putClientProperty(ResultDisplayTools.CLIENT_PROPERTY_RAPIDMINER_RESULT_NAME, usedResultName);
-		resultPanel.putClientProperty(ResultDisplayTools.CLIENT_PROPERTY_RAPIDMINER_RESULT_NAME_HTML,  "<html>" + usedResultName + "<br/><small>" + resultObject.getSource() + "</small></html>");
-	
-		return resultPanel;
-	}
+    public static JPanel createVisualizationComponent(IOObject resultObject, IOContainer resultContainer, String usedResultName) {
+        final String resultName = RendererService.getName(resultObject.getClass());
+        Component visualisationComponent;
+        Collection<Renderer> renderers = RendererService.getRenderers(resultName);
 
-	public static ResultDisplay makeResultDisplay() {
-		String chosen = System.getProperty(MainFrame.PROPERTY_RAPIDMINER_GUI_RESULT_DISPLAY_TYPE);
-		if ((chosen != null) && chosen.equals("tabbed")) {
-			return new TabbedResultDisplay();
-		} else {
-			return new DockableResultDisplay();
-		}
-	}
+        // fallback to default toString method!
+        if (resultName == null) {
+            renderers.add(new DefaultTextRenderer());
+        }
+
+        // constructing panel of renderers
+        visualisationComponent = new RadioCardPanel(usedResultName, resultObject);
+        for (Renderer renderer : renderers) {
+            try {
+                Component rendererComponent = renderer.getVisualizationComponent(resultObject, resultContainer);
+                if (rendererComponent != null)
+                    ((RadioCardPanel)visualisationComponent).addCard(renderer.getName(), rendererComponent);
+            } catch (Exception e) {
+                LogService.getRoot().log(Level.WARNING, "Error creating renderer: "+e, e);
+                ((RadioCardPanel)visualisationComponent).addCard(renderer.getName(), new JLabel("Error creating renderer "+renderer.getName() + " (see log)."));
+            }
+        }
+
+        // result panel
+        final JPanel resultPanel = new JPanel(new BorderLayout());
+        resultPanel.putClientProperty("main.component", visualisationComponent);
+        resultPanel.add(visualisationComponent, BorderLayout.CENTER);
+
+        if (resultObject instanceof ResultObject) {
+            if (((ResultObject)resultObject).getResultIcon() != null) {
+                resultPanel.putClientProperty(ResultDisplayTools.CLIENT_PROPERTY_RAPIDMINER_RESULT_ICON, ((ResultObject)resultObject).getResultIcon());
+            } else {
+                resultPanel.putClientProperty(ResultDisplayTools.CLIENT_PROPERTY_RAPIDMINER_RESULT_ICON, TabbedResultDisplay.defaultResultIcon);
+            }
+        }
+        resultPanel.putClientProperty(ResultDisplayTools.CLIENT_PROPERTY_RAPIDMINER_RESULT_NAME, usedResultName);
+        resultPanel.putClientProperty(ResultDisplayTools.CLIENT_PROPERTY_RAPIDMINER_RESULT_NAME_HTML,  "<html>" + usedResultName + "<br/><small>" + resultObject.getSource() + "</small></html>");
+
+        return resultPanel;
+    }
+
+    public static ResultDisplay makeResultDisplay() {
+        String chosen = ParameterService.getParameterValue(MainFrame.PROPERTY_RAPIDMINER_GUI_RESULT_DISPLAY_TYPE);
+        if (chosen != null && chosen.equals("tabbed")) {
+            return new TabbedResultDisplay();
+        } else {
+            return new DockableResultDisplay();
+        }
+    }
 
 }

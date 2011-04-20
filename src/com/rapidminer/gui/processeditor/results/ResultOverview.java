@@ -39,6 +39,7 @@ import com.rapidminer.Process;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.operator.IOObject;
+import com.rapidminer.tools.ParameterService;
 
 /** Summarizes the results recent process executions.
  * 
@@ -47,88 +48,88 @@ import com.rapidminer.operator.IOObject;
  */
 public class ResultOverview extends JPanel {
 
-	private static final int HISTORY_LENGTH = 50;
+    private static final int HISTORY_LENGTH = 50;
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private final LinkedList<ProcessExecutionResultOverview> processOverviews = new LinkedList<ProcessExecutionResultOverview>();
+    private final LinkedList<ProcessExecutionResultOverview> processOverviews = new LinkedList<ProcessExecutionResultOverview>();
 
-	protected final Action CLEAR_HISTORY_ACTION = new ResourceAction("resulthistory.clear_history") {
-		private static final long serialVersionUID = 1L;
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			Iterator<ProcessExecutionResultOverview> i = processOverviews.iterator();
-			while (i.hasNext()) {
-				ProcessExecutionResultOverview o = i.next();
-				i.remove();
-				ResultOverview.this.remove(o);
-			}
-			ResultOverview.this.repaint();
-		}		
-	};
-	
-	public ResultOverview() {
-		setLayout(null);
-		setBackground(Color.WHITE);
-		addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				showContextMenu(e);
-			}			
-			@Override
-			public void mousePressed(MouseEvent e) {
-				showContextMenu(e);
-			}
-			@Override
-			public void mouseReleased(MouseEvent e) {
-				showContextMenu(e);	
-			}
-			private void showContextMenu(MouseEvent e) {
-				if (e.isPopupTrigger()) {
-					JPopupMenu m = new JPopupMenu();
-					m.add(CLEAR_HISTORY_ACTION);
-					m.show(ResultOverview.this, e.getX(), e.getY());
-				}
-			}			
-		});
-	}
-	
-	@Override
-	public void doLayout() {
-		int y = 0;
-		for (ProcessExecutionResultOverview overview : processOverviews) {
-			overview.recomputeLayout();
-			overview.setBounds(0, y, (int)overview.getPreferredSize().getWidth(), (int)overview.getPreferredSize().getHeight());
-			y += overview.getPreferredSize().getHeight();
-		}
-		if (y != getHeight()) {
-			Dimension total = new Dimension(getWidth(), y);
-			setPreferredSize(total);
-			setMaximumSize(total);
-			setMinimumSize(total);
-		}
-		getParent().doLayout();
-	}
-	
-	public void addResults(Process process, List<IOObject> results, String statusMessage) {
-		if ((process.getProcessState() != Process.PROCESS_STATE_PAUSED) ||
-				"true".equals(System.getProperty(RapidMinerGUI.PROPERTY_ADD_BREAKPOINT_RESULTS_TO_HISTORY))) {
-			ProcessExecutionResultOverview newOverview = new ProcessExecutionResultOverview(this, process, results, statusMessage);
+    protected final Action CLEAR_HISTORY_ACTION = new ResourceAction("resulthistory.clear_history") {
+        private static final long serialVersionUID = 1L;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Iterator<ProcessExecutionResultOverview> i = processOverviews.iterator();
+            while (i.hasNext()) {
+                ProcessExecutionResultOverview o = i.next();
+                i.remove();
+                ResultOverview.this.remove(o);
+            }
+            ResultOverview.this.repaint();
+        }
+    };
 
-			processOverviews.add(newOverview);
-			add(newOverview);
+    public ResultOverview() {
+        setLayout(null);
+        setBackground(Color.WHITE);
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                showContextMenu(e);
+            }
+            @Override
+            public void mousePressed(MouseEvent e) {
+                showContextMenu(e);
+            }
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                showContextMenu(e);
+            }
+            private void showContextMenu(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    JPopupMenu m = new JPopupMenu();
+                    m.add(CLEAR_HISTORY_ACTION);
+                    m.show(ResultOverview.this, e.getX(), e.getY());
+                }
+            }
+        });
+    }
 
-			while (processOverviews.size() > HISTORY_LENGTH) {
-				ProcessExecutionResultOverview first = processOverviews.removeFirst();
-				remove(first);
-			}
-		}
-	}
+    @Override
+    public void doLayout() {
+        int y = 0;
+        for (ProcessExecutionResultOverview overview : processOverviews) {
+            overview.recomputeLayout();
+            overview.setBounds(0, y, (int)overview.getPreferredSize().getWidth(), (int)overview.getPreferredSize().getHeight());
+            y += overview.getPreferredSize().getHeight();
+        }
+        if (y != getHeight()) {
+            Dimension total = new Dimension(getWidth(), y);
+            setPreferredSize(total);
+            setMaximumSize(total);
+            setMinimumSize(total);
+        }
+        getParent().doLayout();
+    }
 
-	public void removeProcessOverview(ProcessExecutionResultOverview processExecutionResultOverview) {
-		remove(processExecutionResultOverview);
-		processOverviews.remove(processExecutionResultOverview);
-		doLayout();
-		repaint();
-	}
+    public void addResults(Process process, List<IOObject> results, String statusMessage) {
+        if (process.getProcessState() != Process.PROCESS_STATE_PAUSED ||
+                "true".equals(ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_ADD_BREAKPOINT_RESULTS_TO_HISTORY))) {
+            ProcessExecutionResultOverview newOverview = new ProcessExecutionResultOverview(this, process, results, statusMessage);
+
+            processOverviews.add(newOverview);
+            add(newOverview);
+
+            while (processOverviews.size() > HISTORY_LENGTH) {
+                ProcessExecutionResultOverview first = processOverviews.removeFirst();
+                remove(first);
+            }
+        }
+    }
+
+    public void removeProcessOverview(ProcessExecutionResultOverview processExecutionResultOverview) {
+        remove(processExecutionResultOverview);
+        processOverviews.remove(processExecutionResultOverview);
+        doLayout();
+        repaint();
+    }
 }

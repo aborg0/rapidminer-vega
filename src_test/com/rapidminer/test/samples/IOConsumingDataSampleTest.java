@@ -23,6 +23,7 @@
 package com.rapidminer.test.samples;
 
 import java.io.File;
+
 import com.rapidminer.Process;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.operator.IOConsumeOperator;
@@ -31,8 +32,8 @@ import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.MissingIOObjectException;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.LogService;
-import com.rapidminer.tools.ParameterService;
 
 /**
  * Tests the output-data of the operators IOConsumer and IOMultiplier
@@ -41,58 +42,58 @@ import com.rapidminer.tools.ParameterService;
  */
 public class IOConsumingDataSampleTest extends OperatorDataSampleTest {
 
-	private static final int DELETE_ONE = 0;
-	private static final int DELETE_ALL = 1;
-	private int copies = 0;
-	private Operator op = null;
-	private Process process = null;
-	private IOObject obj = null;
+    private static final int DELETE_ONE = 0;
+    private static final int DELETE_ALL = 1;
+    private int copies = 0;
+    private Operator op = null;
+    private Process process = null;
+    private IOObject obj = null;
 
-	public IOConsumingDataSampleTest(String file, int copies) {
-		super(file);
-		this.copies = copies;
-	}
-	
-	@Override
-	public void checkOutput(IOContainer output) throws MissingIOObjectException {
-		try {
-			if(process.getOperator("IOConsumer") == null) {
-				obj = output.getElementAt(0);
-				for(int i = copies; i >= 0; i--) {
-					assertEquals(obj.getClass(), output.getElementAt(i).getClass());
-					output.remove(obj.getClass(), i);
-				}
-				assertEquals(0, output.size());
-			}
-			else {
-				op = process.getOperator("IOConsumer");
-				switch(op.getParameterAsInt(IOConsumeOperator.PARAMETER_DELETION_TYPE)) { 
-					case DELETE_ONE:
-						assertEquals(copies, output.size());
-						break;
-					case DELETE_ALL:
-						assertEquals(0, output.size());
-						break;
-				}
-			}
-		}
-		catch(UndefinedParameterError e) {
-			e.printStackTrace();
-		}
-	}
-	
-	@Override
-	public void sampleTest() throws Exception {
-		File processFile = new File(ParameterService.getSourceRoot(), "test" + File.separator + file);
-		if (!processFile.exists())
-			throw new Exception("File '" + processFile.getAbsolutePath() + "' does not exist!");
-		LogService.getGlobal().setVerbosityLevel(LogService.OFF);
-		process = RapidMiner.readProcessFile(processFile);
-		op = process.getOperator("IOMultiplier");
-		if(copies > 1) {
-			op.setParameter("number_of_copies", Integer.toString(copies));
-		}		
-		IOContainer output = process.run(new IOContainer(), LogService.OFF);
-		checkOutput(output);
-	}
+    public IOConsumingDataSampleTest(String file, int copies) {
+        super(file);
+        this.copies = copies;
+    }
+
+    @Override
+    public void checkOutput(IOContainer output) throws MissingIOObjectException {
+        try {
+            if(process.getOperator("IOConsumer") == null) {
+                obj = output.getElementAt(0);
+                for(int i = copies; i >= 0; i--) {
+                    assertEquals(obj.getClass(), output.getElementAt(i).getClass());
+                    output.remove(obj.getClass(), i);
+                }
+                assertEquals(0, output.size());
+            }
+            else {
+                op = process.getOperator("IOConsumer");
+                switch(op.getParameterAsInt(IOConsumeOperator.PARAMETER_DELETION_TYPE)) {
+                case DELETE_ONE:
+                    assertEquals(copies, output.size());
+                    break;
+                case DELETE_ALL:
+                    assertEquals(0, output.size());
+                    break;
+                }
+            }
+        }
+        catch(UndefinedParameterError e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void sampleTest() throws Exception {
+        File processFile = new File(FileSystemService.getSourceRoot(), "test" + File.separator + file);
+        if (!processFile.exists())
+            throw new Exception("File '" + processFile.getAbsolutePath() + "' does not exist!");
+        LogService.getGlobal().setVerbosityLevel(LogService.OFF);
+        process = RapidMiner.readProcessFile(processFile);
+        op = process.getOperator("IOMultiplier");
+        if(copies > 1) {
+            op.setParameter("number_of_copies", Integer.toString(copies));
+        }
+        IOContainer output = process.run(new IOContainer(), LogService.OFF);
+        checkOutput(output);
+    }
 }

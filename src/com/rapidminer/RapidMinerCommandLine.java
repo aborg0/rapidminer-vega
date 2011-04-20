@@ -44,128 +44,130 @@ import com.rapidminer.tools.usagestats.UsageStatistics;
  */
 public class RapidMinerCommandLine extends RapidMiner implements BreakpointListener {
 
-	private static final String LICENSE = "RapidMiner version " + RapidMiner.getLongVersion() + ", Copyright (C) 2001-2008" + Tools.getLineSeparator() + "RapidMiner comes with ABSOLUTELY NO WARRANTY; This is free software," + Tools.getLineSeparator() + "and you are welcome to redistribute it under certain conditions;" + Tools.getLineSeparator() + "see license information in the file named LICENSE.";
+    private static final String LICENSE = "RapidMiner version " + RapidMiner.getLongVersion() + ", Copyright (C) 2001-2008" + Tools.getLineSeparator() + "RapidMiner comes with ABSOLUTELY NO WARRANTY; This is free software," + Tools.getLineSeparator() + "and you are welcome to redistribute it under certain conditions;" + Tools.getLineSeparator() + "see license information in the file named LICENSE.";
 
-	private String repositoryLocation = null;
-	private boolean readFromFile = false;
-	
-	/**
-	 * This tread waits for pressing an arbitrary key. Used for resuming an
-	 * process if a breakpoint was reached in command line mode.
-	 */
-	private static class WaitForKeyThread extends Thread {
+    private String repositoryLocation = null;
+    private boolean readFromFile = false;
 
-		private final Process process;
+    /**
+     * This tread waits for pressing an arbitrary key. Used for resuming an
+     * process if a breakpoint was reached in command line mode.
+     */
+    private static class WaitForKeyThread extends Thread {
 
-		public WaitForKeyThread(Process process) {
-			this.process = process;
-		}
+        private final Process process;
 
-		@Override
-		public void run() {
-			try {
-				System.in.read();
-			} catch (IOException e) {
-				LogService.getRoot().log(Level.WARNING, "Error occured while waiting for user input: " + e.getMessage(), e);
-			}
-			process.resume();			
-		}
-	}
+        public WaitForKeyThread(Process process) {
+            this.process = process;
+        }
 
-	public void breakpointReached(Process process, Operator operator, IOContainer container, int location) {
-		System.out.println("Results in application " + operator.getApplyCount() + " of " + operator.getName() + ":" + Tools.getLineSeparator() + container);
-		System.out.println("Breakpoint reached " + (location == BreakpointListener.BREAKPOINT_BEFORE ? "before " : "after ") + operator.getName() + ", press enter...");
-		new WaitForKeyThread(process).start(); // must be extra thread to
-												// ensure that wait is invoked
-												// before notify...
-	}
+        @Override
+        public void run() {
+            try {
+                System.in.read();
+            } catch (IOException e) {
+                LogService.getRoot().log(Level.WARNING, "Error occured while waiting for user input: " + e.getMessage(), e);
+            }
+            process.resume();
+        }
+    }
 
-	/** Does nothing. */
-	public void resume() {}
+    @Override
+    public void breakpointReached(Process process, Operator operator, IOContainer container, int location) {
+        System.out.println("Results in application " + operator.getApplyCount() + " of " + operator.getName() + ":" + Tools.getLineSeparator() + container);
+        System.out.println("Breakpoint reached " + (location == BreakpointListener.BREAKPOINT_BEFORE ? "before " : "after ") + operator.getName() + ", press enter...");
+        new WaitForKeyThread(process).start(); // must be extra thread to
+        // ensure that wait is invoked
+        // before notify...
+    }
 
-	/** Parses the commandline arguments. */
-	private void parseArguments(String[] argv) {
-		repositoryLocation = null;
+    /** Does nothing. */
+    @Override
+    public void resume() {}
 
-		for (int i = 0; i < argv.length; i++) {
-			if ("-f".equals(argv[i])) {
-				readFromFile = true;
-			} else {
-				repositoryLocation = argv[i];
-			}
-		}
+    /** Parses the commandline arguments. */
+    private void parseArguments(String[] argv) {
+        repositoryLocation = null;
 
-		if (repositoryLocation == null) {
-			printUsage();
-		}
-	}
+        for (String element : argv) {
+            if ("-f".equals(element)) {
+                readFromFile = true;
+            } else {
+                repositoryLocation = element;
+            }
+        }
 
-	private static void printUsage() {
-		System.err.println("Usage: " + RapidMinerCommandLine.class.getName() + " [-f] PROCESS\n"+
-				"  PROCESS   a repository location containing a process\n"+
-				"  -f        interpret PROCESS as a file rather than a repository location (deprecated)");
-		System.exit(1);
-	}
+        if (repositoryLocation == null) {
+            printUsage();
+        }
+    }
 
-	private void run() {
-		ParameterService.ensureRapidMinerHomeSet();
-		
-		// init rapidminer
-		RapidMiner.init();
-		
-		Process process = null;
-		try {
-			if (readFromFile) {
-				process = RapidMiner.readProcessFile(new File(repositoryLocation));
-			} else {
-				RepositoryProcessLocation loc = new RepositoryProcessLocation(new RepositoryLocation(repositoryLocation));
-				process = loc.load(null);
-			}
-		} catch (Exception e) {
-			LogService.getRoot().log(Level.SEVERE, "Cannot read process setup '" + repositoryLocation + "': "+e.getMessage(), e);
-			RapidMiner.quit(RapidMiner.ExitMode.ERROR);
-		}
+    private static void printUsage() {
+        System.err.println("Usage: " + RapidMinerCommandLine.class.getName() + " [-f] PROCESS\n"+
+                "  PROCESS   a repository location containing a process\n"+
+        "  -f        interpret PROCESS as a file rather than a repository location (deprecated)");
+        System.exit(1);
+    }
 
-		if (process != null) {
-			try {
-				process.addBreakpointListener(this);
-				IOContainer results = process.run();
-				process.getRootOperator().sendEmail(results, null);
-				LogService.getRoot().info("Process finished successfully");
-				RapidMiner.quit(RapidMiner.ExitMode.NORMAL);
-			} catch (Throwable e) {
-				UsageStatistics.getInstance().count(process.getCurrentOperator(), OperatorStatisticsValue.FAILURE);
-				UsageStatistics.getInstance().count(process.getCurrentOperator(), OperatorStatisticsValue.RUNTIME_EXCEPTION);
-				String debugProperty = System.getProperty(PROPERTY_RAPIDMINER_GENERAL_DEBUGMODE);
-				boolean debugMode = Tools.booleanValue(debugProperty, false);
-				String message = e.getMessage();
-				if (!debugMode) {
-					if (e instanceof RuntimeException) {
-						if (e.getMessage() != null)
-							message = "operator cannot be executed (" + e.getMessage() + "). Check the log messages...";
-						else
-							message = "operator cannot be executed. Check the log messages...";
-					}
-				}
+    private void run() {
+        ParameterService.ensureRapidMinerHomeSet();
+
+        // init rapidminer
+        RapidMiner.init();
+
+        Process process = null;
+        try {
+            if (readFromFile) {
+                process = RapidMiner.readProcessFile(new File(repositoryLocation));
+            } else {
+                RepositoryProcessLocation loc = new RepositoryProcessLocation(new RepositoryLocation(repositoryLocation));
+                process = loc.load(null);
+            }
+        } catch (Exception e) {
+            LogService.getRoot().severe("Cannot read process setup '" + repositoryLocation + "': "+e.getMessage());
+            RapidMiner.quit(RapidMiner.ExitMode.ERROR);
+        }
+
+        if (process != null) {
+            try {
+                process.addBreakpointListener(this);
+                IOContainer results = process.run();
+                process.getRootOperator().sendEmail(results, null);
+                LogService.getRoot().info("Process finished successfully");
+                RapidMiner.quit(RapidMiner.ExitMode.NORMAL);
+            } catch (Throwable e) {
+                UsageStatistics.getInstance().count(process.getCurrentOperator(), OperatorStatisticsValue.FAILURE);
+                UsageStatistics.getInstance().count(process.getCurrentOperator(), OperatorStatisticsValue.RUNTIME_EXCEPTION);
+                String debugProperty = ParameterService.getParameterValue(PROPERTY_RAPIDMINER_GENERAL_DEBUGMODE);
+                boolean debugMode = Tools.booleanValue(debugProperty, false);
+                String message = e.getMessage();
+                if (!debugMode) {
+                    if (e instanceof RuntimeException) {
+                        if (e.getMessage() != null)
+                            message = "operator cannot be executed (" + e.getMessage() + "). Check the log messages...";
+                        else
+                            message = "operator cannot be executed. Check the log messages...";
+                    }
+                }
                 process.getLogger().log(Level.SEVERE, "Process failed: " + message, e);
                 process.getLogger().log(Level.SEVERE, "Here: "+process.getRootOperator().createMarkedProcessTree(10, "==>", process.getCurrentOperator()));
-				try {
-					process.getRootOperator().sendEmail(null, e);
-				} catch (UndefinedParameterError ex) {
-					// cannot happen
-				}
-				LogService.getRoot().severe("Process not successful");
-				RapidMiner.quit(RapidMiner.ExitMode.ERROR);
-			}
-		}
-	}
+                try {
+                    process.getRootOperator().sendEmail(null, e);
+                } catch (UndefinedParameterError ex) {
+                    // cannot happen
+                }
+                LogService.getRoot().severe("Process not successful");
+                RapidMiner.quit(RapidMiner.ExitMode.ERROR);
+            }
+        }
+    }
 
-	public static void main(String argv[]) {
-		setExecutionMode(ExecutionMode.COMMAND_LINE);
-		System.out.println(LICENSE);
-		RapidMinerCommandLine main = new RapidMinerCommandLine();
-		main.parseArguments(argv);
-		main.run();
-	}
+    public static void main(String argv[]) {
+        setExecutionMode(ExecutionMode.COMMAND_LINE);
+        System.out.println(LICENSE);
+        RapidMinerCommandLine main = new RapidMinerCommandLine();
+        main.parseArguments(argv);
+        main.run();
+    }
 
 }

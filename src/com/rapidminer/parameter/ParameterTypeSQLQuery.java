@@ -24,7 +24,6 @@ package com.rapidminer.parameter;
 
 import org.w3c.dom.Element;
 
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.XMLException;
 
 /**
@@ -36,8 +35,8 @@ public class ParameterTypeSQLQuery extends ParameterTypeSingle {
 
     private static final long serialVersionUID = 5747692587025691591L;
 
-    public ParameterTypeSQLQuery(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeSQLQuery(Element element) throws XMLException {
+        super(element);
     }
 
     public ParameterTypeSQLQuery(String key, String description, boolean expert) {
@@ -70,6 +69,6 @@ public class ParameterTypeSQLQuery extends ParameterTypeSingle {
     }
 
     @Override
-    public void getDefinitionAsXML(Element typeElement) {
+    protected void writeDefinitionToXML(Element typeElement) {
     }
 }

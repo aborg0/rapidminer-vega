@@ -34,6 +34,7 @@ import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.plotter.conditions.ColumnsPlotterCondition;
 import com.rapidminer.gui.plotter.conditions.PlotterCondition;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.ParameterService;
 
 
 /**
@@ -46,26 +47,26 @@ public class ColorQuartileMatrixPlotter extends PlotterAdapter {
     private static final long serialVersionUID = -3049267947471497204L;
 
     static final int MAX_NUMBER_OF_COLUMNS = 100;
-    
+
     private ColorQuartilePlotter[] plotters = new ColorQuartilePlotter[0];
 
     private int plotterSize;
 
     private int colorIndex = -1;
-    
+
     private double maxWeight = Double.NaN;
-    
+
     private transient DataTable dataTable;
-    
-    
+
+
     public ColorQuartileMatrixPlotter(PlotterConfigurationModel settings) {
         super(settings);
-    	setBackground(Color.white);
-        String sizeProperty = System.getProperty(MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_MATRIXPLOT_SIZE);
+        setBackground(Color.white);
+        String sizeProperty = ParameterService.getParameterValue(MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_MATRIXPLOT_SIZE);
         this.plotterSize = 200;
         try {
-        	if (sizeProperty != null)
-        		this.plotterSize = Integer.parseInt(sizeProperty);
+            if (sizeProperty != null)
+                this.plotterSize = Integer.parseInt(sizeProperty);
         } catch (NumberFormatException e) {
             LogService.getGlobal().log("Quartile matrix: cannot parse plotter size (was '" + sizeProperty + "'), using default size (200).", LogService.WARNING);
         }
@@ -77,17 +78,17 @@ public class ColorQuartileMatrixPlotter extends PlotterAdapter {
     }
 
     @Override
-	public void setDataTable(DataTable dataTable) {
+    public void setDataTable(DataTable dataTable) {
         super.setDataTable(dataTable);
         this.dataTable = dataTable;
         updateMatrix();
     }
 
     @Override
-	public PlotterCondition getPlotterCondition() {
+    public PlotterCondition getPlotterCondition() {
         return new ColumnsPlotterCondition(MAX_NUMBER_OF_COLUMNS);
     }
-    
+
     private void updateMatrix() {
         int numberOfPlotters = dataTable.getNumberOfColumns();
         if (colorIndex != -1)
@@ -105,23 +106,23 @@ public class ColorQuartileMatrixPlotter extends PlotterAdapter {
                 plotters[x].setKey(dataTable.getColumnName(i));
                 x++;
             }
-            
+
             this.maxWeight = getMaxWeight(dataTable);
         }
-        repaint();      
+        repaint();
     }
-    
+
     @Override
-	public Dimension getPreferredSize() {
+    public Dimension getPreferredSize() {
         return new Dimension(getMaxNumberPerRow() * plotterSize + 2 * MARGIN, getMaxNumberPerRow() * plotterSize + 2 * MARGIN);
     }
-    
+
     private int getMaxNumberPerRow() {
         return (int)Math.ceil(Math.sqrt(plotters.length));
     }
-    
+
     @Override
-	public void paintComponent(Graphics graphics) {
+    public void paintComponent(Graphics graphics) {
         super.paintComponent(graphics);
         int xPos = 0;
         int yPos = 0;
@@ -132,10 +133,10 @@ public class ColorQuartileMatrixPlotter extends PlotterAdapter {
             }
             Graphics2D newSpace = (Graphics2D) graphics.create();
             newSpace.translate(MARGIN + xPos * plotterSize, MARGIN + yPos * plotterSize);
-			drawWeightRectangle(newSpace, this.dataTable, x, this.maxWeight, plotterSize);
-			newSpace.translate(WEIGHT_BORDER_WIDTH + 2, WEIGHT_BORDER_WIDTH + 2);
-			plotters[x].paintQuartiles(newSpace, plotterSize - (WEIGHT_BORDER_WIDTH + 8), plotterSize - (WEIGHT_BORDER_WIDTH + 8));
-			newSpace.dispose();
+            drawWeightRectangle(newSpace, this.dataTable, x, this.maxWeight, plotterSize);
+            newSpace.translate(WEIGHT_BORDER_WIDTH + 2, WEIGHT_BORDER_WIDTH + 2);
+            plotters[x].paintQuartiles(newSpace, plotterSize - (WEIGHT_BORDER_WIDTH + 8), plotterSize - (WEIGHT_BORDER_WIDTH + 8));
+            newSpace.dispose();
             xPos++;
         }
         if (colorIndex != -1)
@@ -143,28 +144,28 @@ public class ColorQuartileMatrixPlotter extends PlotterAdapter {
     }
 
     @Override
-	public String getPlotName() {
+    public String getPlotName() {
         return "Color";
     }
-    
+
     @Override
-	public void setPlotColumn(int index, boolean plot) {
+    public void setPlotColumn(int index, boolean plot) {
         colorIndex = index;
         updateMatrix();
     }
 
     @Override
-	public boolean getPlotColumn(int index) {
+    public boolean getPlotColumn(int index) {
         return index == colorIndex;
     }
-    
+
     @Override
-	public Icon getIcon(int index) {
+    public Icon getIcon(int index) {
         return null;
     }
-    
-	@Override
-	public String getPlotterName() {
-		return PlotterConfigurationModel.QUARTILE_PLOT_COLOR_MATRIX;
-	}
+
+    @Override
+    public String getPlotterName() {
+        return PlotterConfigurationModel.QUARTILE_PLOT_COLOR_MATRIX;
+    }
 }

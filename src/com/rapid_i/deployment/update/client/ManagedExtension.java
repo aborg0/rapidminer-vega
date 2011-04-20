@@ -48,6 +48,7 @@ import org.w3c.dom.NodeList;
 import com.rapid_i.Launcher;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.io.process.XMLTools;
+import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.plugin.Plugin;
@@ -168,7 +169,7 @@ public class ManagedExtension {
     }
 
     public static File getUserExtensionsDir() {
-        return ParameterService.getUserConfigFile("managed");
+        return FileSystemService.getUserConfigFile("managed");
     }
 
     private Element toXML(Document doc) {
@@ -310,7 +311,7 @@ public class ManagedExtension {
     }
 
     private static boolean isInstallToHome() {
-        return !"false".equals(System.getProperty(UpdateManager.PARAMETER_INSTALL_TO_HOME));
+        return !"false".equals(ParameterService.getParameterValue(UpdateManager.PARAMETER_INSTALL_TO_HOME));
     }
 
     public static void init() {
@@ -363,7 +364,7 @@ public class ManagedExtension {
             }
             String letters = split[i].substring(lastDigit+1);
             String digits = split[i].substring(0, lastDigit+1);
-            int desiredLength = (i == split.length-1) ? 3 : 2;
+            int desiredLength = i == split.length-1 ? 3 : 2;
             while (digits.length() < desiredLength) {
                 digits = "0"+digits;
             }
@@ -378,7 +379,7 @@ public class ManagedExtension {
     private static Collection<ManagedExtension> getActiveByLicense(String license) {
         List<ManagedExtension> result = new LinkedList<ManagedExtension>();
         for (ManagedExtension ext : MANAGED_EXTENSIONS.values()) {
-            if (ext.isActive() && (ext.license != null) && ext.license.equals(license)) {
+            if (ext.isActive() && ext.license != null && ext.license.equals(license)) {
                 result.add(ext);
             }
         }

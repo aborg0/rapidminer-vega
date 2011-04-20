@@ -24,7 +24,6 @@ package com.rapidminer.parameter.conditions;
 
 import org.w3c.dom.Element;
 
-import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterHandler;
 import com.rapidminer.tools.XMLException;
 
@@ -41,8 +40,8 @@ public class NonEqualStringCondition extends EqualStringCondition {
 
     }
 
-    public NonEqualStringCondition(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public NonEqualStringCondition(Element element) throws XMLException {
+        super(element);
     }
 
     @Override

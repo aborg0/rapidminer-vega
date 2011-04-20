@@ -56,15 +56,15 @@ import com.rapidminer.datatable.DataTable;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
+import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.LogService;
-import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.WebServiceTools;
 
 /** Collects statistics about usage of operators.
  *  Statistics can be sent to a server collecting them.
  *  Counting and resetting is thread safe.
- *  
+ * 
  * @see UsageStatsTransmissionDialog
  * 
  * @author Simon Fischer
@@ -72,327 +72,327 @@ import com.rapidminer.tools.WebServiceTools;
  */
 public class UsageStatistics {
 
-	/** URL to send the statistics values to. */
-	private static final String RAPIDMINER_HOME_URLS[] = {
-		//"http://localhost:8080/RapidHome/RapidHomeService?wsdl",
-		"http://rapid1.de:80/RapidHome/RapidHomeService?wsdl",
-		"http://rapid21.de:80/RapidHome/RapidHomeService?wsdl"
-	};
-	//private static final String RAPIDMINER_HOME_URL = "http://192.168.1.3:8080/RapidHome/RapidHomeService?wsdl";
-	//URL url = new URL("http://localhost:8080/RapidHome/RapidHomeService?wsdl");
-	
-	private static final long TRANSMISSION_INTERVAL = 1000 * 60 * 60 * 24 * 14;
-	//private static final long TRANSMISSION_INTERVAL = 1000 * 20;
+    /** URL to send the statistics values to. */
+    private static final String RAPIDMINER_HOME_URLS[] = {
+        //"http://localhost:8080/RapidHome/RapidHomeService?wsdl",
+        "http://rapid1.de:80/RapidHome/RapidHomeService?wsdl",
+        "http://rapid21.de:80/RapidHome/RapidHomeService?wsdl"
+    };
+    //private static final String RAPIDMINER_HOME_URL = "http://192.168.1.3:8080/RapidHome/RapidHomeService?wsdl";
+    //URL url = new URL("http://localhost:8080/RapidHome/RapidHomeService?wsdl");
 
-	/** Selects with which scope the statistics are collected and reported. */
-	public static enum StatisticsScope {
-		/** Since the last reset. */
-		CURRENT("current"),
+    private static final long TRANSMISSION_INTERVAL = 1000 * 60 * 60 * 24 * 14;
+    //private static final long TRANSMISSION_INTERVAL = 1000 * 20;
 
-		/** Since RapidMiner was installed. */
-		ALL_TIME("allTime");
+    /** Selects with which scope the statistics are collected and reported. */
+    public static enum StatisticsScope {
+        /** Since the last reset. */
+        CURRENT("current"),
 
-		private String xmlTag;
+        /** Since RapidMiner was installed. */
+        ALL_TIME("allTime");
 
-		private StatisticsScope(String xmlTag) {
-			this.xmlTag = xmlTag;
-		}
+        private String xmlTag;
 
-		/** Tag to put around statistic map when exported as XML. */
-		protected String getXMLTag() {
-			return xmlTag;
-		}
-	}
+        private StatisticsScope(String xmlTag) {
+            this.xmlTag = xmlTag;
+        }
 
-	private final EnumMap<StatisticsScope,Map<String,OperatorUsageStatistics>> statsMaps = new EnumMap<StatisticsScope,Map<String,OperatorUsageStatistics>>(StatisticsScope.class);
-	private Date lastReset;
-	private Date nextTransmission;
+        /** Tag to put around statistic map when exported as XML. */
+        protected String getXMLTag() {
+            return xmlTag;
+        }
+    }
 
-	private static final UsageStatistics INSTANCE = new UsageStatistics();
+    private final EnumMap<StatisticsScope,Map<String,OperatorUsageStatistics>> statsMaps = new EnumMap<StatisticsScope,Map<String,OperatorUsageStatistics>>(StatisticsScope.class);
+    private Date lastReset;
+    private Date nextTransmission;
 
-	private String randomKey;
-	
-	private transient boolean failedToday = false;
-	
-	public static UsageStatistics getInstance() {
-		return INSTANCE;
-	}
+    private static final UsageStatistics INSTANCE = new UsageStatistics();
 
-	private UsageStatistics() {
-		for (StatisticsScope t : StatisticsScope.values()) {
-			statsMaps.put(t, new HashMap<String,OperatorUsageStatistics>());
-		}
-		load();
-	}
+    private String randomKey;
 
-	/** Loads the statistics from the user file. */
-	private void load() {
-		if (!RapidMiner.getExecutionMode().canAccessFilesystem()) {
-			LogService.getRoot().config("Cannot access file system. Bypassing loading of operator usage statistics.");
-			return;
-		}
-		File file = ParameterService.getUserConfigFile("usagestats.xml");
-		if (file.exists()) {
-			try {
-				LogService.getRoot().config("Loading operator usage statistics.");
-				Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file);
+    private transient boolean failedToday = false;
 
-				Element root = doc.getDocumentElement();
-				String lastReset = root.getAttribute("last_reset");
-				if ((lastReset != null) && !lastReset.isEmpty()) {
-					try {
-						this.lastReset = getDateFormat().parse(lastReset);
-					} catch (ParseException e) {
-						this.lastReset = new Date();
-					}			
-				} else {
-					this.lastReset = new Date();
-				}
-				
-				this.randomKey = root.getAttribute("random_key");
-				if ((randomKey == null) || randomKey.isEmpty()) {
-					this.randomKey = createRandomKey();
-				}
+    public static UsageStatistics getInstance() {
+        return INSTANCE;
+    }
 
-				String nextTransmission = root.getAttribute("next_transmission");
-				if ((lastReset != null) && !lastReset.isEmpty()) {
-					try {
-						this.nextTransmission = getDateFormat().parse(nextTransmission);
-					} catch (ParseException e) {
-						scheduleTransmission(true);
-					}			
-				} else {
-					scheduleTransmission(false);
-				}
+    private UsageStatistics() {
+        for (StatisticsScope t : StatisticsScope.values()) {
+            statsMaps.put(t, new HashMap<String,OperatorUsageStatistics>());
+        }
+        load();
+    }
 
-				for (StatisticsScope scope : StatisticsScope.values()) {
-					Element element = (Element) doc.getElementsByTagName(scope.getXMLTag()).item(0);
-					NodeList children = element.getChildNodes();
-					for (int i = 0; i < children.getLength(); i++) {
-						if (children.item(i) instanceof Element) {
-							Element child = (Element) children.item(i);
-							getOperatorStatistics(scope, child.getTagName()).parse(child);
-						}
-					}
-				}
-			} catch (Exception e) {
-				LogService.getRoot().log(Level.WARNING, "Cannot load usage statistics: "+e, e);
-			}		
-		} else {
-			this.randomKey = createRandomKey();
-		}
-	}
+    /** Loads the statistics from the user file. */
+    private void load() {
+        if (!RapidMiner.getExecutionMode().canAccessFilesystem()) {
+            LogService.getRoot().config("Cannot access file system. Bypassing loading of operator usage statistics.");
+            return;
+        }
+        File file = FileSystemService.getUserConfigFile("usagestats.xml");
+        if (file.exists()) {
+            try {
+                LogService.getRoot().config("Loading operator usage statistics.");
+                Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file);
 
-	private String createRandomKey() {
-		StringBuilder randomKey = new StringBuilder();
-		Random random = new Random();
-		for (int i = 0; i < 16; i++) {
-			randomKey.append((char)('A' + random.nextInt(26)));
-		}
-		return randomKey.toString();
-	}
+                Element root = doc.getDocumentElement();
+                String lastReset = root.getAttribute("last_reset");
+                if ((lastReset != null) && !lastReset.isEmpty()) {
+                    try {
+                        this.lastReset = getDateFormat().parse(lastReset);
+                    } catch (ParseException e) {
+                        this.lastReset = new Date();
+                    }
+                } else {
+                    this.lastReset = new Date();
+                }
 
-	/** Sets all current counters to 0 and sets the last reset date to the current time. */
-	public synchronized void reset() {
-		getOperatorUsageStatistics(StatisticsScope.CURRENT).clear();
-		this.lastReset = new Date();
-	}
+                this.randomKey = root.getAttribute("random_key");
+                if ((randomKey == null) || randomKey.isEmpty()) {
+                    this.randomKey = createRandomKey();
+                }
 
-	/** Adds 1 to the statistics value for all operators contained in the current process in all scopes. */
-	public synchronized void count(Process process, OperatorStatisticsValue type) {
-		count(process, type, StatisticsScope.values());
-	}
+                String nextTransmission = root.getAttribute("next_transmission");
+                if ((lastReset != null) && !lastReset.isEmpty()) {
+                    try {
+                        this.nextTransmission = getDateFormat().parse(nextTransmission);
+                    } catch (ParseException e) {
+                        scheduleTransmission(true);
+                    }
+                } else {
+                    scheduleTransmission(false);
+                }
 
-	/** Adds 1 to the statistics value for all operators contained in the current process the given scopes. */
-	public void count(Process process, OperatorStatisticsValue type, StatisticsScope ... scopes) {
-		List<Operator> allInnerOperators = process.getRootOperator().getAllInnerOperators();
-		for (Operator op : allInnerOperators) {
-			count(op, type, scopes);
-		}
-	}
+                for (StatisticsScope scope : StatisticsScope.values()) {
+                    Element element = (Element) doc.getElementsByTagName(scope.getXMLTag()).item(0);
+                    NodeList children = element.getChildNodes();
+                    for (int i = 0; i < children.getLength(); i++) {
+                        if (children.item(i) instanceof Element) {
+                            Element child = (Element) children.item(i);
+                            getOperatorStatistics(scope, child.getTagName()).parse(child);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                LogService.getRoot().log(Level.WARNING, "Cannot load usage statistics: "+e, e);
+            }
+        } else {
+            this.randomKey = createRandomKey();
+        }
+    }
 
-	/** Adds 1 to the statistics value for the given operator in all scopes. */
-	public void count(Operator op, OperatorStatisticsValue type) {
-		count(op, type, StatisticsScope.values());
-	}
+    private String createRandomKey() {
+        StringBuilder randomKey = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < 16; i++) {
+            randomKey.append((char)('A' + random.nextInt(26)));
+        }
+        return randomKey.toString();
+    }
 
-	/** Adds 1 to the statistics value for the given operator in the given scopes. */
-	public void count(Operator op, OperatorStatisticsValue type, StatisticsScope ... scopes) {
-		if (op != null) {
-			count(op.getOperatorDescription().getKey(), type, scopes);
-		}
-	}
+    /** Sets all current counters to 0 and sets the last reset date to the current time. */
+    public synchronized void reset() {
+        getOperatorUsageStatistics(StatisticsScope.CURRENT).clear();
+        this.lastReset = new Date();
+    }
 
-	private synchronized void count(String operatorKey, OperatorStatisticsValue type, StatisticsScope ... scopes) {
-		for (StatisticsScope scope : scopes) {
-			getOperatorStatistics(scope, operatorKey).count(type);
-		}
-	}
+    /** Adds 1 to the statistics value for all operators contained in the current process in all scopes. */
+    public synchronized void count(Process process, OperatorStatisticsValue type) {
+        count(process, type, StatisticsScope.values());
+    }
 
-	public OperatorUsageStatistics getOperatorStatistics(StatisticsScope scope, OperatorDescription op) {
-		return getOperatorStatistics(scope, op.getKey());
-	}
-	
-	/** Returns the statistics for the given scope and key. */
-	synchronized OperatorUsageStatistics getOperatorStatistics(StatisticsScope scope, String opKey) {
-		OperatorUsageStatistics stats = getOperatorUsageStatistics(scope).get(opKey);
-		if (stats == null) {
-			stats = new OperatorUsageStatistics();
-			getOperatorUsageStatistics(scope).put(opKey, stats);
-		}
-		return stats;
-	}
+    /** Adds 1 to the statistics value for all operators contained in the current process the given scopes. */
+    public void count(Process process, OperatorStatisticsValue type, StatisticsScope ... scopes) {
+        List<Operator> allInnerOperators = process.getRootOperator().getAllInnerOperators();
+        for (Operator op : allInnerOperators) {
+            count(op, type, scopes);
+        }
+    }
 
-	private Map<String, OperatorUsageStatistics> getOperatorUsageStatistics(StatisticsScope scope) {
-		return statsMaps.get(scope);
-	}
+    /** Adds 1 to the statistics value for the given operator in all scopes. */
+    public void count(Operator op, OperatorStatisticsValue type) {
+        count(op, type, StatisticsScope.values());
+    }
 
-	private Document getXML() {
-		Document doc;
-		try {
-			doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-		} catch (ParserConfigurationException e) {
-			throw new RuntimeException("Cannot create parser: "+e, e);
-		}
-		Element root = doc.createElement("usageStatistics");
+    /** Adds 1 to the statistics value for the given operator in the given scopes. */
+    public void count(Operator op, OperatorStatisticsValue type, StatisticsScope ... scopes) {
+        if (op != null) {
+            count(op.getOperatorDescription().getKey(), type, scopes);
+        }
+    }
 
-		if (lastReset != null) {
-			root.setAttribute("last_reset", getDateFormat().format(lastReset));
-		}
-		if (nextTransmission != null) {
-			root.setAttribute("next_transmission", getDateFormat().format(nextTransmission));
-		}
-		root.setAttribute("random_key", this.randomKey);
+    private synchronized void count(String operatorKey, OperatorStatisticsValue type, StatisticsScope ... scopes) {
+        for (StatisticsScope scope : scopes) {
+            getOperatorStatistics(scope, operatorKey).count(type);
+        }
+    }
 
-		doc.appendChild(root);
+    public OperatorUsageStatistics getOperatorStatistics(StatisticsScope scope, OperatorDescription op) {
+        return getOperatorStatistics(scope, op.getKey());
+    }
 
-		for (Entry<StatisticsScope, Map<String, OperatorUsageStatistics>> entry : statsMaps.entrySet()) {
-			Map<String,OperatorUsageStatistics> statsMap = entry.getValue();
-			StatisticsScope scope = entry.getKey();
-			Element current = doc.createElement(scope.getXMLTag());
-			root.appendChild(current);
-			for (Map.Entry<String,OperatorUsageStatistics> statsEntry : statsMap.entrySet()) {
-				current.appendChild(statsEntry.getValue().getXML(statsEntry.getKey(), doc));
-			}
-		}
-		return doc;
-	}
+    /** Returns the statistics for the given scope and key. */
+    synchronized OperatorUsageStatistics getOperatorStatistics(StatisticsScope scope, String opKey) {
+        OperatorUsageStatistics stats = getOperatorUsageStatistics(scope).get(opKey);
+        if (stats == null) {
+            stats = new OperatorUsageStatistics();
+            getOperatorUsageStatistics(scope).put(opKey, stats);
+        }
+        return stats;
+    }
 
-	/** Saves the statistics to a user file. */
-	public void save() {
-		if (RapidMiner.getExecutionMode().canAccessFilesystem()) {
-			File file = ParameterService.getUserConfigFile("usagestats.xml");
-			try {
-				LogService.getRoot().config("Saving operator usage.");
-				XMLTools.stream(getXML(), file, null);
-			} catch (Exception e) {
-				LogService.getRoot().log(Level.WARNING, "Cannot save operator usage statistics: "+e, e);
-			}
-		} else {
-			LogService.getRoot().config("Cannot access file system. Bypassing save of operator usage statistics.");
-		}
-	}
+    private Map<String, OperatorUsageStatistics> getOperatorUsageStatistics(StatisticsScope scope) {
+        return statsMaps.get(scope);
+    }
 
-	/** Returns the statistics as a data table that can be displayed to the user. */
-	public DataTable getAsDataTable(final StatisticsScope scope) {
-		return new OperatorStatisticsDataTable(this, scope);
-	}
+    private Document getXML() {
+        Document doc;
+        try {
+            doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException("Cannot create parser: "+e, e);
+        }
+        Element root = doc.createElement("usageStatistics");
 
-	/** Returns a list of all operator names for which statistics are available. */
-	public List<String> getOperatorKeys(StatisticsScope scope) {
-		return new LinkedList<String>(getOperatorUsageStatistics(scope).keySet());
-	}
+        if (lastReset != null) {
+            root.setAttribute("last_reset", getDateFormat().format(lastReset));
+        }
+        if (nextTransmission != null) {
+            root.setAttribute("next_transmission", getDateFormat().format(nextTransmission));
+        }
+        root.setAttribute("random_key", this.randomKey);
 
-	private static DateFormat getDateFormat() {
-		return DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.US);
-	}
+        doc.appendChild(root);
 
-	/**
-	 * 
-	 * @return true on success
-	 */
-	public boolean transferUsageStats(ProgressListener progressListener) throws Exception {
-		StatisticsReport report = new StatisticsReport();
-		report.setFrom(XMLTools.getXMLGregorianCalendar(lastReset));
-		report.setTo(XMLTools.getXMLGregorianCalendar(new Date()));
-		report.setUserKey(this.randomKey);
-		for (String name : getOperatorKeys(StatisticsScope.CURRENT)) {
-			OperatorUsageStatistics stats = getOperatorStatistics(StatisticsScope.CURRENT, name);
-			StatisticsRecord record = new StatisticsRecord();
-			record.setOperatorName(name);
-			record.setExecution(stats.getStatistics(OperatorStatisticsValue.EXECUTION));
-			record.setFailure(stats.getStatistics(OperatorStatisticsValue.FAILURE));
-			record.setOperatorException(stats.getStatistics(OperatorStatisticsValue.OPERATOR_EXCEPTION));
-			record.setRuntimeError(stats.getStatistics(OperatorStatisticsValue.RUNTIME_EXCEPTION));
-			record.setStop(stats.getStatistics(OperatorStatisticsValue.STOPPED));
-			record.setUserError(stats.getStatistics(OperatorStatisticsValue.USER_ERROR));
-			report.getRecords().add(record);
-		}			
+        for (Entry<StatisticsScope, Map<String, OperatorUsageStatistics>> entry : statsMaps.entrySet()) {
+            Map<String,OperatorUsageStatistics> statsMap = entry.getValue();
+            StatisticsScope scope = entry.getKey();
+            Element current = doc.createElement(scope.getXMLTag());
+            root.appendChild(current);
+            for (Map.Entry<String,OperatorUsageStatistics> statsEntry : statsMap.entrySet()) {
+                current.appendChild(statsEntry.getValue().getXML(statsEntry.getKey(), doc));
+            }
+        }
+        return doc;
+    }
 
-		if (progressListener != null) {
-			progressListener.setCompleted(25);
-		}
+    /** Saves the statistics to a user file. */
+    public void save() {
+        if (RapidMiner.getExecutionMode().canAccessFilesystem()) {
+            File file = FileSystemService.getUserConfigFile("usagestats.xml");
+            try {
+                LogService.getRoot().config("Saving operator usage.");
+                XMLTools.stream(getXML(), file, null);
+            } catch (Exception e) {
+                LogService.getRoot().log(Level.WARNING, "Cannot save operator usage statistics: "+e, e);
+            }
+        } else {
+            LogService.getRoot().config("Cannot access file system. Bypassing save of operator usage statistics.");
+        }
+    }
 
-		RapidHome rapidHome = getPort();
-		if (rapidHome != null) {
-			if (progressListener != null) {
-				progressListener.setCompleted(40);
-			}
-			rapidHome.uploadUsageStatistics(report);
-			if (progressListener != null) {
-				progressListener.setCompleted(80);
-			}
-			return true;
-		} else {
-			if (progressListener != null) {
-				progressListener.setCompleted(80);
-			}
-			return false;
-		}		
-	}	
+    /** Returns the statistics as a data table that can be displayed to the user. */
+    public DataTable getAsDataTable(final StatisticsScope scope) {
+        return new OperatorStatisticsDataTable(this, scope);
+    }
 
-	private RapidHome getPort() {
-		for (String urlString : RAPIDMINER_HOME_URLS) {
-			try {
-				URL url = new URL(urlString);
-				LogService.getRoot().info("Transferring operator usage statistics to "+url+".");
-				RapidHomeService rapidHomeService = new RapidHomeService(url, 
-						new QName("http://ws.rapidhome.rapid_i.com/", "RapidHomeService"));
-				
-				final RapidHome port = rapidHomeService.getRapidHomePort();
-				WebServiceTools.setTimeout((BindingProvider) port);
-				return port;
-			} catch (Exception e) {
-				LogService.getRoot().log(Level.WARNING, "Failed to connect to usage statistics service "+urlString+".", e);
-				continue;
-			}
-		}
-		return null;
-	}
+    /** Returns a list of all operator names for which statistics are available. */
+    public List<String> getOperatorKeys(StatisticsScope scope) {
+        return new LinkedList<String>(getOperatorUsageStatistics(scope).keySet());
+    }
 
-	/** Sets the date for the next transmission. Starts no timers. */
-	void scheduleTransmission(boolean lastAttemptFailed) {
-		this.failedToday = true;
-		this.nextTransmission = new Date(lastReset.getTime() + TRANSMISSION_INTERVAL);
-	}
+    private static DateFormat getDateFormat() {
+        return DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.US);
+    }
 
-	/** Returns the date at which the next transmission should be scheduled. */
-	public Date getNextTransmission() {
-		if (nextTransmission == null) {
-			scheduleTransmissionFromNow();
-		}
-		return nextTransmission;
-	}
+    /**
+     * 
+     * @return true on success
+     */
+    public boolean transferUsageStats(ProgressListener progressListener) throws Exception {
+        StatisticsReport report = new StatisticsReport();
+        report.setFrom(XMLTools.getXMLGregorianCalendar(lastReset));
+        report.setTo(XMLTools.getXMLGregorianCalendar(new Date()));
+        report.setUserKey(this.randomKey);
+        for (String name : getOperatorKeys(StatisticsScope.CURRENT)) {
+            OperatorUsageStatistics stats = getOperatorStatistics(StatisticsScope.CURRENT, name);
+            StatisticsRecord record = new StatisticsRecord();
+            record.setOperatorName(name);
+            record.setExecution(stats.getStatistics(OperatorStatisticsValue.EXECUTION));
+            record.setFailure(stats.getStatistics(OperatorStatisticsValue.FAILURE));
+            record.setOperatorException(stats.getStatistics(OperatorStatisticsValue.OPERATOR_EXCEPTION));
+            record.setRuntimeError(stats.getStatistics(OperatorStatisticsValue.RUNTIME_EXCEPTION));
+            record.setStop(stats.getStatistics(OperatorStatisticsValue.STOPPED));
+            record.setUserError(stats.getStatistics(OperatorStatisticsValue.USER_ERROR));
+            report.getRecords().add(record);
+        }
 
-	public void scheduleTransmissionFromNow() {
-		this.nextTransmission = new Date(System.currentTimeMillis() + TRANSMISSION_INTERVAL);
-	}
+        if (progressListener != null) {
+            progressListener.setCompleted(25);
+        }
 
-	public boolean hasFailedToday() {
-		return failedToday;
-	}
-	
-	public static void main(String[] args) {
-		UsageStatistics.getInstance().getPort();
-	}
+        RapidHome rapidHome = getPort();
+        if (rapidHome != null) {
+            if (progressListener != null) {
+                progressListener.setCompleted(40);
+            }
+            rapidHome.uploadUsageStatistics(report);
+            if (progressListener != null) {
+                progressListener.setCompleted(80);
+            }
+            return true;
+        } else {
+            if (progressListener != null) {
+                progressListener.setCompleted(80);
+            }
+            return false;
+        }
+    }
+
+    private RapidHome getPort() {
+        for (String urlString : RAPIDMINER_HOME_URLS) {
+            try {
+                URL url = new URL(urlString);
+                LogService.getRoot().info("Transferring operator usage statistics to "+url+".");
+                RapidHomeService rapidHomeService = new RapidHomeService(url,
+                        new QName("http://ws.rapidhome.rapid_i.com/", "RapidHomeService"));
+
+                final RapidHome port = rapidHomeService.getRapidHomePort();
+                WebServiceTools.setTimeout((BindingProvider) port);
+                return port;
+            } catch (Exception e) {
+                LogService.getRoot().log(Level.WARNING, "Failed to connect to usage statistics service "+urlString+".", e);
+                continue;
+            }
+        }
+        return null;
+    }
+
+    /** Sets the date for the next transmission. Starts no timers. */
+    void scheduleTransmission(boolean lastAttemptFailed) {
+        this.failedToday = true;
+        this.nextTransmission = new Date(lastReset.getTime() + TRANSMISSION_INTERVAL);
+    }
+
+    /** Returns the date at which the next transmission should be scheduled. */
+    public Date getNextTransmission() {
+        if (nextTransmission == null) {
+            scheduleTransmissionFromNow();
+        }
+        return nextTransmission;
+    }
+
+    public void scheduleTransmissionFromNow() {
+        this.nextTransmission = new Date(System.currentTimeMillis() + TRANSMISSION_INTERVAL);
+    }
+
+    public boolean hasFailedToday() {
+        return failedToday;
+    }
+
+    public static void main(String[] args) {
+        UsageStatistics.getInstance().getPort();
+    }
 }

@@ -35,152 +35,153 @@ import com.rapidminer.io.process.XMLTools;
 /** The operator documentation, currently consisting of a short synopsis,
  *  a long help text plus examples. None of the getters returns null. If no long description
  *  is given, the synopsis will be returned.
- *  
+ * 
  *  Setting properties of instances of this class will, as a side effect, also
  *  modify the original DOM element used to create this instance, so the DOM
  *  is always in sync with the data.
- *  
+ * 
  * @author Simon Fischer
  *
  */
 public class OperatorDocumentation {
-	/**
-	 * 
-	 */
-	private final OperatorDocBundle operatorDocBundle;
-	//private String key;
-	private String name;
-	private String shortName;
-	private String synopsis;
-	private String documentation;
-	private String deprecation;
-	private final Element element;
-	private final List<ExampleProcess> exampleProcesses = new LinkedList<ExampleProcess>();
-	
-	public OperatorDocumentation(String name) {
-		this.name = this.shortName = name;
-		this.documentation = this.synopsis = null;
-		this.element = null;
-		this.operatorDocBundle = null;
-	}
-	
-	OperatorDocumentation(OperatorDocBundle operatorDocBundle, Element element) {
-		this.operatorDocBundle = operatorDocBundle;
-		this.name      = XMLTools.getTagContents(element, "name");
-		this.shortName = XMLTools.getTagContents(element, "shortName");
-		this.synopsis  = XMLTools.getTagContents(element, "synopsis");
-		this.documentation = XMLTools.getTagContents(element, "help");
-		this.deprecation = XMLTools.getTagContents(element, "deprecation");
-		this.element = element;
-		if (synopsis == null) {
-			synopsis = "";
-		}
-		if (documentation == null) {
-			documentation = synopsis;
-		}
-		NodeList exampleNodes = element.getElementsByTagName("example");
-		for (int i = 0; i < exampleNodes.getLength(); i++) {
-			exampleProcesses.add(new ExampleProcess((Element)exampleNodes.item(i)));
-		}
-	}
+    /**
+     * 
+     */
+    private final OperatorDocBundle operatorDocBundle;
+    //private String key;
+    private String name;
+    private String shortName;
+    private String synopsis;
+    private String documentation;
+    private String deprecation;
+    private final Element element;
+    private final List<ExampleProcess> exampleProcesses = new LinkedList<ExampleProcess>();
 
-//	/** @deprecated Remove after operator renaming. */
-//	@Deprecated
-//	public void setKey(String key) {
-//		this.operatorDocBundle.operatorKeyDescriptionMap.remove(this.key);
-//		this.key = key;
-//		XMLTools.setTagContents(element, "key", key);
-//		this.operatorDocBundle.operatorKeyDescriptionMap.put(key, this);
-//	}
-	
-	public String getName() {
-		if (name != null) {
-			return name;
-		} else {
-			return "";
-		}
-	}
-	public void setName(String name) {
-		this.name= name;
-		XMLTools.setTagContents(element, "name", name);
-	}
+    public OperatorDocumentation(String name) {
+        this.name = this.shortName = name;
+        this.documentation = this.synopsis = null;
+        this.element = null;
+        this.operatorDocBundle = null;
+    }
 
-	public String getShortName() {
-		if (shortName != null) {
-			return shortName;
-		} else {
-			return name;
-		}
-	}
-	public void setShortName(String shortName) {
-		this.shortName = shortName;
-		if (element != null) {
-			XMLTools.setTagContents(element, "shortName", shortName);
-		}
-	}
+    OperatorDocumentation(OperatorDocBundle operatorDocBundle, Element element) {
+        this.operatorDocBundle = operatorDocBundle;
+        this.name      = XMLTools.getTagContents(element, "name");
+        this.shortName = XMLTools.getTagContents(element, "shortName");
+        this.synopsis  = XMLTools.getTagContents(element, "synopsis");
+        this.documentation = XMLTools.getTagContents(element, "help");
+        this.deprecation = XMLTools.getTagContents(element, "deprecation");
+        this.element = element;
+        if (synopsis == null) {
+            synopsis = "";
+        }
+        if (documentation == null) {
+            documentation = synopsis;
+        }
+        NodeList exampleNodes = element.getElementsByTagName("example");
+        for (int i = 0; i < exampleNodes.getLength(); i++) {
+            exampleProcesses.add(new ExampleProcess((Element)exampleNodes.item(i)));
+        }
+    }
 
-	public String getSynopsis() {
-		return synopsis;
-	}
-	public String getDocumentation() {
-		return documentation;
-	}
-	public void setDocumentation(String text) {
-		this.documentation = text;
-		if (element != null) {
-			XMLTools.setTagContents(element, "help", documentation);
-		}
-	}
-	public void setSynopsis(String text) {			
-		this.synopsis = text;
-		if (element != null) {
-			XMLTools.setTagContents(element, "synopsis", text);
-		}
-	}
-	
-	public String getDeprecation() {
-		return deprecation;
-	}
-	
-	public void setDeprecation(String deprecation) {
-		if (deprecation != null) {
-			deprecation = deprecation.trim();
-			if (deprecation.isEmpty()) {
-				deprecation = null;
-			}
-		}
-		this.deprecation = deprecation;
-		if (element != null) {
-			XMLTools.setTagContents(element, "deprecation", deprecation);
-		}
-	}
+    //	/** @deprecated Remove after operator renaming. */
+    //	@Deprecated
+    //	public void setKey(String key) {
+    //		this.operatorDocBundle.operatorKeyDescriptionMap.remove(this.key);
+    //		this.key = key;
+    //		XMLTools.setTagContents(element, "key", key);
+    //		this.operatorDocBundle.operatorKeyDescriptionMap.put(key, this);
+    //	}
 
-	public void addExample(Process process, String comment) {
-		Element exampleElement = (element != null) ? element.getOwnerDocument().createElement("example") : null;
-		ExampleProcess exampleProcess = new ExampleProcess(exampleElement);
-		exampleProcess.setProcessXML(process.getRootOperator().getXML(true));
-		if (comment != null) {
-			exampleProcess.setComment(comment);
-		}
-		if (element != null) {
-			element.appendChild(exampleElement);
-		}
-		exampleProcesses.add(exampleProcess);
-	}
+    public String getName() {
+        if (name != null) {
+            return name;
+        } else {
+            return "";
+        }
+    }
+    public void setName(String name) {
+        this.name= name;
+        if (element != null)
+            XMLTools.setTagContents(element, "name", name);
+    }
 
-	public List<ExampleProcess> getExamples() {
-		return Collections.unmodifiableList(exampleProcesses);
-	}
-	public void removeExample(int index) {
-		ExampleProcess process = exampleProcesses.get(index);
-		if (element != null) {	
-			element.removeChild(process.getElement());
-		}
-		exampleProcesses.remove(index);
+    public String getShortName() {
+        if (shortName != null) {
+            return shortName;
+        } else {
+            return name;
+        }
+    }
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
+        if (element != null) {
+            XMLTools.setTagContents(element, "shortName", shortName);
+        }
+    }
 
-	}
+    public String getSynopsis() {
+        return synopsis;
+    }
+    public String getDocumentation() {
+        return documentation;
+    }
+    public void setDocumentation(String text) {
+        this.documentation = text;
+        if (element != null) {
+            XMLTools.setTagContents(element, "help", documentation);
+        }
+    }
+    public void setSynopsis(String text) {
+        this.synopsis = text;
+        if (element != null) {
+            XMLTools.setTagContents(element, "synopsis", text);
+        }
+    }
 
-	public OperatorDocBundle getBundle() {			
-		return this.operatorDocBundle;
-	}		
+    public String getDeprecation() {
+        return deprecation;
+    }
+
+    public void setDeprecation(String deprecation) {
+        if (deprecation != null) {
+            deprecation = deprecation.trim();
+            if (deprecation.isEmpty()) {
+                deprecation = null;
+            }
+        }
+        this.deprecation = deprecation;
+        if (element != null) {
+            XMLTools.setTagContents(element, "deprecation", deprecation);
+        }
+    }
+
+    public void addExample(Process process, String comment) {
+        Element exampleElement = element != null ? element.getOwnerDocument().createElement("example") : null;
+        ExampleProcess exampleProcess = new ExampleProcess(exampleElement);
+        exampleProcess.setProcessXML(process.getRootOperator().getXML(true));
+        if (comment != null) {
+            exampleProcess.setComment(comment);
+        }
+        if (element != null) {
+            element.appendChild(exampleElement);
+        }
+        exampleProcesses.add(exampleProcess);
+    }
+
+    public List<ExampleProcess> getExamples() {
+        return Collections.unmodifiableList(exampleProcesses);
+    }
+    public void removeExample(int index) {
+        ExampleProcess process = exampleProcesses.get(index);
+        if (element != null) {
+            element.removeChild(process.getElement());
+        }
+        exampleProcesses.remove(index);
+
+    }
+
+    public OperatorDocBundle getBundle() {
+        return this.operatorDocBundle;
+    }
 }

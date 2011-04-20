@@ -34,6 +34,7 @@ import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
@@ -54,6 +55,7 @@ import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.ParameterTypePassword;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.GlobalAuthenticator;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
@@ -164,6 +166,13 @@ public class RapidMiner {
 
     /** The name of the property indicating the path to the global logging file. */
     public static final String PROPERTY_RAPIDMINER_GLOBAL_LOG_VERBOSITY = "rapidminer.global.logging.verbosity";
+
+
+    // Webstart properties
+    public static final String PROPERTY_HOME_REPOSITORY_URL = "rapidminer.homerepository.url";
+    public static final String PROPERTY_HOME_REPOSITORY_USER = "rapidminer.homerepository.user";
+    public static final String PROPERTY_HOME_REPOSITORY_PASSWORD= "rapidminer.homerepository.password";
+
 
 
     // ---  INIT PROPERTIES  ---
@@ -282,79 +291,69 @@ public class RapidMiner {
     public static final String PROPERTY_RAPIDMINER_SOCKS_PROXY_HOST = "socksProxyHost";
     public static final String PROPERTY_RAPIDMINER_SOCKS_PROXY_PORT = "socksProxyPort";
 
-    // Webstart properties
-    public static final String PROPERTY_HOME_REPOSITORY_URL = "rapidminer.homerepository.url";
-    public static final String PROPERTY_HOME_REPOSITORY_USER = "rapidminer.homerepository.user";
-    public static final String PROPERTY_HOME_REPOSITORY_PASSWORD= "rapidminer.homerepository.password";
-
-    
-    /**
-     * A set of some non-gui and operator related system properties (starting with "rapidminer."). Properties
-     * can be registered using {@link RapidMiner#registerRapidMinerProperty(ParameterType)}.
-     */
-    private static final java.util.Set<ParameterType> PROPERTY_TYPES = new java.util.TreeSet<ParameterType>();
-
 
     public static final String PROCESS_FILE_EXTENSION = "rmp";
 
     static {
         System.setProperty(PROPERTY_RAPIDMINER_VERSION, RapidMiner.getLongVersion());
-        registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_NUMBERS, "The number of fraction digits of formatted numbers.", 0, Integer.MAX_VALUE, 3));
-        registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_PERCENT, "The number of fraction digits of formatted percent values.", 0, Integer.MAX_VALUE, 2));
-        registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GENERAL_MAX_NOMINAL_VALUES, "The number of nominal values to use for meta data transformation, 0 for unlimited. (Changing this value requires a cache refresh of the meta data for the current process, e.g. by changing the 'location' parameter of a 'Retrieve' operator.)", 0, Integer.MAX_VALUE, 100));
-        registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GENERAL_MAX_TEST_ROWS, "The number of lines read during input operations to guess the value type of certain columns if not specified. If set to 0, all rows will be used", 0, Integer.MAX_VALUE, 100));
-        registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_TOOLS_EDITOR, "Path to external Java editor. %f is replaced by filename and %l by the linenumber.", true));
-        registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_RAPIDMINER_TOOLS_MAIL_METHOD, "Method to send outgoing mails. Either SMTP or sendmail.", PROPERTY_RAPIDMINER_TOOLS_MAIL_METHOD_VALUES, 0));
-        registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_TOOLS_MAIL_DEFAULT_RECIPIENT, "Default recipient for outgoing mails.", true));
-        registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_TOOLS_MAIL_DEFAULT_PROCESS_DURATION_FOR_MAIL, "Default process duration time necessary to send notification emails (in minutes).", 0, Integer.MAX_VALUE, 30));
+        ParameterService.setParameterValue(PROPERTY_RAPIDMINER_VERSION, RapidMiner.getLongVersion());
 
-        registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_TOOLS_SENDMAIL_COMMAND, "Path to sendmail. Used for email notifications.", true));
-        registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_TOOLS_SMTP_HOST, "SMTP host. Used for email notifications.", true));
-        registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_TOOLS_SMTP_PORT, "SMTP port, defaults to 25. Used for email notifications.", true));
-        registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_TOOLS_SMTP_USER, "SMTP user name. Used for email notifications.", true));
-        registerRapidMinerProperty(new ParameterTypePassword(PROPERTY_RAPIDMINER_TOOLS_SMTP_PASSWD, "SMTP password, if required. Used for email notifications."));
-        registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GENERAL_LOGFILE_FORMAT, "Use unix special characters for logfile highlighting (requires new RapidMiner instance).", false));
-        registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GENERAL_DEBUGMODE, "Indicates if RapidMiner should be used in debug mode (print exception stacks and shows more technical error messages)", false));
-        registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_GENERAL_DEFAULT_ENCODING, "The default encoding used for file operations (default: 'SYSTEM' uses the underlying system encoding, 'UTF-8' or 'ISO-8859-1' are other common options)", SYSTEM_ENCODING_NAME));
-        registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GENERAL_TIME_ZONE, "The default time zone used for displaying date and time information (default: 'SYSTEM' uses the underlying system encoding, 'UCT', 'GMT' or 'CET' are other common options)", Tools.getAllTimeZones(), Tools.SYSTEM_TIME_ZONE));
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_NUMBERS, "The number of fraction digits of formatted numbers.", 0, Integer.MAX_VALUE, 3));
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_PERCENT, "The number of fraction digits of formatted percent values.", 0, Integer.MAX_VALUE, 2));
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GENERAL_MAX_NOMINAL_VALUES, "The number of nominal values to use for meta data transformation, 0 for unlimited. (Changing this value requires a cache refresh of the meta data for the current process, e.g. by changing the 'location' parameter of a 'Retrieve' operator.)", 0, Integer.MAX_VALUE, 100));
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GENERAL_MAX_TEST_ROWS, "The number of lines read during input operations to guess the value type of certain columns if not specified. If set to 0, all rows will be used", 0, Integer.MAX_VALUE, 100));
+        ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_TOOLS_EDITOR, "Path to external Java editor. %f is replaced by filename and %l by the linenumber.", true));
+        ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_RAPIDMINER_TOOLS_MAIL_METHOD, "Method to send outgoing mails. Either SMTP or sendmail.", PROPERTY_RAPIDMINER_TOOLS_MAIL_METHOD_VALUES, 0));
+        ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_TOOLS_MAIL_DEFAULT_RECIPIENT, "Default recipient for outgoing mails.", true));
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_TOOLS_MAIL_DEFAULT_PROCESS_DURATION_FOR_MAIL, "Default process duration time necessary to send notification emails (in minutes).", 0, Integer.MAX_VALUE, 30));
 
-        registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_TOOLS_DB_ONLY_STANDARD_TABLES, "If checked, assistants and query builders will only show standard database tables, hiding system tables, views, etc.", true));
+        ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_TOOLS_SENDMAIL_COMMAND, "Path to sendmail. Used for email notifications.", true));
+        ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_TOOLS_SMTP_HOST, "SMTP host. Used for email notifications.", true));
+        ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_TOOLS_SMTP_PORT, "SMTP port, defaults to 25. Used for email notifications.", true));
+        ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_TOOLS_SMTP_USER, "SMTP user name. Used for email notifications.", true));
+        ParameterService.registerParameter(new ParameterTypePassword(PROPERTY_RAPIDMINER_TOOLS_SMTP_PASSWD, "SMTP password, if required. Used for email notifications."));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GENERAL_LOGFILE_FORMAT, "Use unix special characters for logfile highlighting (requires new RapidMiner instance).", false));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GENERAL_DEBUGMODE, "Indicates if RapidMiner should be used in debug mode (print exception stacks and shows more technical error messages)", false));
+        ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_GENERAL_DEFAULT_ENCODING, "The default encoding used for file operations (default: 'SYSTEM' uses the underlying system encoding, 'UTF-8' or 'ISO-8859-1' are other common options)", SYSTEM_ENCODING_NAME));
+        ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GENERAL_TIME_ZONE, "The default time zone used for displaying date and time information (default: 'SYSTEM' uses the underlying system encoding, 'UCT', 'GMT' or 'CET' are other common options)", Tools.getAllTimeZones(), Tools.SYSTEM_TIME_ZONE));
 
-        registerRapidMinerProperty(new ParameterTypeBoolean(CapabilityProvider.PROPERTY_RAPIDMINER_GENERAL_CAPABILITIES_WARN, "Indicates if only a warning should be made if learning capabilities are not fulfilled (instead of breaking the process).", false));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_TOOLS_DB_ONLY_STANDARD_TABLES, "If checked, assistants and query builders will only show standard database tables, hiding system tables, views, etc.", true));
+
+        ParameterService.registerParameter(new ParameterTypeBoolean(CapabilityProvider.PROPERTY_RAPIDMINER_GENERAL_CAPABILITIES_WARN, "Indicates if only a warning should be made if learning capabilities are not fulfilled (instead of breaking the process).", false));
 
         // INIT
-        //		registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_INIT_JDBC_LIB, "Load JDBC drivers from lib dir?", true));
-        //		registerRapidMinerProperty(new ParameterTypeFile(PROPERTY_RAPIDMINER_INIT_JDBC_LIB_LOCATION, "Directory to scan for JDBC drivers.", null, true));
-        //		registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_INIT_JDBC_CLASSPATH, "Scan classpath for JDBC drivers (very time consuming)?", false));
+        //		ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_INIT_JDBC_LIB, "Load JDBC drivers from lib dir?", true));
+        //		ParameterService.registerParameter(new ParameterTypeFile(PROPERTY_RAPIDMINER_INIT_JDBC_LIB_LOCATION, "Directory to scan for JDBC drivers.", null, true));
+        //		ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_INIT_JDBC_CLASSPATH, "Scan classpath for JDBC drivers (very time consuming)?", false));
 
-        registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_INIT_PLUGINS, "Initialize pluigins?", true));
-        registerRapidMinerProperty(new ParameterTypeFile(PROPERTY_RAPIDMINER_INIT_PLUGINS_LOCATION, "Directory to scan for plugin jars.", null, true));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_INIT_PLUGINS, "Initialize pluigins?", true));
+        ParameterService.registerParameter(new ParameterTypeFile(PROPERTY_RAPIDMINER_INIT_PLUGINS_LOCATION, "Directory to scan for plugin jars.", null, true));
 
-        registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_HTTP_PROXY_SET, "Determines whether a proxy is used for HTTP connections.", false));
-        registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTP_PROXY_HOST, "The proxy host to use for HTTP.", true));
-        registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_HTTP_PROXY_PORT, "The proxy port to use for HTTP.", 0, 65535, true));
-        registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTP_PROXY_USERNAME, "The user name for the http proxy server in cases where it needs authentication.", true));
-        registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTP_PROXY_PASSWORD, "The password for the http proxy server in cases where it needs authentication.", true));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_HTTP_PROXY_SET, "Determines whether a proxy is used for HTTP connections.", false), "system");
+        ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTP_PROXY_HOST, "The proxy host to use for HTTP.", true), "system");
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_HTTP_PROXY_PORT, "The proxy port to use for HTTP.", 0, 65535, true), "system");
+        ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTP_PROXY_USERNAME, "The user name for the http proxy server in cases where it needs authentication.", true), "system");
+        ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTP_PROXY_PASSWORD, "The password for the http proxy server in cases where it needs authentication.", true) , "system");
 
-        registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTP_PROXY_NON_PROXY_HOSTS, "List of regular expressions separated by '|' determining hosts to be connected directly bypassing the proxy.", true));
+        ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTP_PROXY_NON_PROXY_HOSTS, "List of regular expressions separated by '|' determining hosts to be connected directly bypassing the proxy.", true), "system");
 
-        registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_HTTPS_PROXY_SET, "Determines whether a proxy is used for HTTPS connections.", false));
-        registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTPS_PROXY_HOST, "The proxy host to use for HTTPS.", true));
-        registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_HTTPS_PROXY_PORT, "The proxy port to use for HTTPS.", 0, 65535, true));
-        registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTPS_PROXY_USERNAME, "The user name for the https proxy server in cases where it needs authentication.", true));
-        registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTPS_PROXY_PASSWORD, "The password for the https proxy server in cases where it needs authentication.", true));
-
-
-        registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_FTP_PROXY_SET, "Determines whether a proxy is used for FTPconnections.", false));
-        registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_FTP_PROXY_HOST, "The proxy host to use for FTP.", true));
-        registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_FTP_PROXY_PORT, "The proxy port to use for FTP.", 0, 65535, true));
-        registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_FTP_PROXY_NON_PROXY_HOSTS, "List of regular expressions separated by '|' determining hosts to be connected directly bypassing the proxy.", true));
-        registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_FTP_PROXY_USERNAME, "The user name for the ftp proxy server in cases where it needs authentication.", true));
-        registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_FTP_PROXY_PASSWORD, "The password for the ftp proxy server in cases where it needs authentication.", true));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_HTTPS_PROXY_SET, "Determines whether a proxy is used for HTTPS connections.", false), "system");
+        ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTPS_PROXY_HOST, "The proxy host to use for HTTPS.", true), "system");
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_HTTPS_PROXY_PORT, "The proxy port to use for HTTPS.", 0, 65535, true), "system");
+        ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTPS_PROXY_USERNAME, "The user name for the https proxy server in cases where it needs authentication.", true), "system");
+        ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_HTTPS_PROXY_PASSWORD, "The password for the https proxy server in cases where it needs authentication.", true), "system");
 
 
-        registerRapidMinerProperty(new ParameterTypeString(PROPERTY_RAPIDMINER_SOCKS_PROXY_HOST, "The proxy host to use for SOCKS.", true));
-        registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_SOCKS_PROXY_PORT, "The proxy port to use for SOCKS.", 0, 65535, true));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_FTP_PROXY_SET, "Determines whether a proxy is used for FTPconnections.", false), "system");
+        ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_FTP_PROXY_HOST, "The proxy host to use for FTP.", true), "system");
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_FTP_PROXY_PORT, "The proxy port to use for FTP.", 0, 65535, true), "system");
+        ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_FTP_PROXY_NON_PROXY_HOSTS, "List of regular expressions separated by '|' determining hosts to be connected directly bypassing the proxy.", true), "system");
+        ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_FTP_PROXY_USERNAME, "The user name for the ftp proxy server in cases where it needs authentication.", true), "system");
+        ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_FTP_PROXY_PASSWORD, "The password for the ftp proxy server in cases where it needs authentication.", true), "system");
+
+
+        ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_SOCKS_PROXY_HOST, "The proxy host to use for SOCKS.", true), "system");
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_SOCKS_PROXY_PORT, "The proxy port to use for SOCKS.", 0, 65535, true), "system");
     }
 
     private static InputHandler inputHandler = new ConsoleInputHandler();
@@ -423,7 +422,7 @@ public class RapidMiner {
         String localeVariant  = System.getProperty(PROPERTY_RAPIDMINER_INIT_LOCALE_VARIANT);
         if (localeLanguage != null) {
             Locale locale;
-            if ((localeVariant != null) && (localeCountry != null)) {
+            if (localeVariant != null && localeCountry != null) {
                 locale = new Locale(localeLanguage, localeCountry, localeVariant);
             } else if (localeCountry != null) {
                 locale = new Locale(localeLanguage, localeCountry);
@@ -546,7 +545,7 @@ public class RapidMiner {
         VersionNumber lastVersionNumber = null;
         VersionNumber currentVersionNumber = new VersionNumber(getLongVersion());
 
-        File lastVersionFile = new File(ParameterService.getUserRapidMinerDir(), "lastversion");
+        File lastVersionFile = new File(FileSystemService.getUserRapidMinerDir(), "lastversion");
         if (!lastVersionFile.exists()) {
             firstStart = true;
         } else {
@@ -627,50 +626,9 @@ public class RapidMiner {
         return inputHandler;
     }
 
-    /** Returns a set of {@link ParameterType}s for the RapidMiner system properties.
-     * @deprecated Use {@link #getRapidMinerProperties()} instead*/
-    @Deprecated
-    public static java.util.Set<ParameterType> getYaleProperties() {
-        return getRapidMinerProperties();
-    }
 
-    /** Returns a set of {@link ParameterType}s for the RapidMiner system properties. */
-    public static java.util.Set<ParameterType> getRapidMinerProperties() {
-        return PROPERTY_TYPES;
-    }
 
-    /**
-     * @deprecated Use {@link #registerRapidMinerProperty(ParameterType)} instead
-     */
-    @Deprecated
-    public static void registerYaleProperty(ParameterType type) {
-        registerRapidMinerProperty(type);
-    }
 
-    /**
-     * This registers a property with the name of the given ParameterType. For convenience
-     * the property is of this type, for offering the user a reasonable interface.
-     */
-    public static void registerRapidMinerProperty(ParameterType type) {
-        PROPERTY_TYPES.add(type);
-    }
-
-    /**
-     * This method will return the value of an registered RapidMiner Property or null
-     * if no property is known with the given identifier.
-     * @param property The identifier of the property
-     * @return the String value of the property or null if property is unknown.
-     */
-    public static String getRapidMinerPropertyValue(String property) {
-        return System.getProperty(property);
-    }
-
-    /**
-     * This method will set the given property to the given value.
-     */
-    public static void setRapidMinerPropertyValue(String property, String value) {
-        System.setProperty(property, value);
-    }
     public synchronized static void addShutdownHook(Runnable runnable) {
         shutdownHooks.add(runnable);
     }
@@ -714,5 +672,63 @@ public class RapidMiner {
         System.setProperty(PROPERTY_RAPIDMINER_INIT_LOCALE_COUNTRY, country);
         System.setProperty(PROPERTY_RAPIDMINER_INIT_LOCALE_VARIANT, variant);
 
+    }
+
+    /** Returns a set of {@link ParameterType}s for the RapidMiner system properties.
+     * @deprecated Use {@link #getRapidMinerProperties()} instead*/
+    @Deprecated
+    public static Set<ParameterType> getYaleProperties() {
+        return getRapidMinerProperties();
+    }
+
+    /**
+     * Use {@link ParameterService#getDefinedParameterTypes()} instead.
+     * Returns a set of {@link ParameterType}s for the RapidMiner system properties.
+     * */
+    @Deprecated
+    public static Set<ParameterType> getRapidMinerProperties() {
+        return ParameterService.getDefinedParameterTypes();
+    }
+
+    /**
+     * @deprecated Use {@link #ParameterService.registerParameter(ParameterType)} instead
+     */
+    @Deprecated
+    public static void registerYaleProperty(ParameterType type) {
+        ParameterService.registerParameter(type);
+    }
+
+    /**
+     * Please use {@link ParameterService#registerParameter(ParameterType)} instead.
+     * 
+     * This registers a property with the name of the given ParameterType. For convenience
+     * the property is of this type, for offering the user a reasonable interface.
+     */
+    @Deprecated
+    public static void registerRapidMinerProperty(ParameterType type) {
+        ParameterService.registerParameter(type);
+    }
+
+    /**
+     * This method is deprecated and remains only for compatiblity reasons.
+     * Please refer to {@link ParameterService#getParameterValue(String)} instead.
+     * 
+     * This method will return the value of an registered RapidMiner Property or null
+     * if no property is known with the given identifier.
+     * @param property The identifier of the property
+     * @return the String value of the property or null if property is unknown.
+     */
+    @Deprecated
+    public static String getRapidMinerPropertyValue(String property) {
+        return ParameterService.getParameterValue(property);
+    }
+
+    /**
+     * This method will set the given property to the given value.
+     * Please use {@link ParameterService#setParameterValue(String, String)} instead of this method.
+     */
+    @Deprecated
+    public static void setRapidMinerPropertyValue(String property, String value) {
+        ParameterService.setParameterValue(property, value);
     }
 }

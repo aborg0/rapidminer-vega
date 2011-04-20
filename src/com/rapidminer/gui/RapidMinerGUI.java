@@ -72,6 +72,7 @@ import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.LaunchListener;
 import com.rapidminer.tools.LaunchListener.RemoteControlHandler;
 import com.rapidminer.tools.LogService;
@@ -147,30 +148,30 @@ public class RapidMinerGUI extends RapidMiner {
     public static final String PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES  = DatabaseDataReader.PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES;
 
     static {
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_UPDATE_CHECK, "Check for new RapidMiner versions at start up time?", true));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_MAX_STATISTICS_ROWS, "Indicates the maximum number of rows for the automatic calculation of statistics and other time intensive data viewing actions.", 1, Integer.MAX_VALUE, 100000));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_MAX_SORTABLE_ROWS, "Indicates the maximum number of rows for sortable tables.", 1, Integer.MAX_VALUE, 100000));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_MAX_DISPLAYED_VALUES, "Indicates the maximum number of different values which will for example be displayed in the meta data view.", 1, Integer.MAX_VALUE, MetaDataViewerTableModel.DEFAULT_MAX_DISPLAYED_VALUES));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RESOLVE_RELATIVE_REPOSITORY_LOCATIONS, "If checked, the repository browser dialog will resolve repository locations relative to the current process by default. Can be disabled within the dialog.", true));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_SNAP_TO_GRID, "If checked, operators snap to the grid.", true));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_AUTOWIRE_INPUT, "If checked, operator's inputs are wired automatically when added. Can be checked also in the \"Operators\" tree.", true));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_AUTOWIRE_OUTPUT, "If checked, operator's outputs are wired automatically when added. Can be checked also in the \"Operators\" tree.", true));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_CLOSE_RESULTS_BEFORE_RUN, "Close active result tabs when new process starts?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_UPDATE_CHECK, "Check for new RapidMiner versions at start up time?", true));
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_MAX_STATISTICS_ROWS, "Indicates the maximum number of rows for the automatic calculation of statistics and other time intensive data viewing actions.", 1, Integer.MAX_VALUE, 100000));
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_MAX_SORTABLE_ROWS, "Indicates the maximum number of rows for sortable tables.", 1, Integer.MAX_VALUE, 100000));
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_MAX_DISPLAYED_VALUES, "Indicates the maximum number of different values which will for example be displayed in the meta data view.", 1, Integer.MAX_VALUE, MetaDataViewerTableModel.DEFAULT_MAX_DISPLAYED_VALUES));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RESOLVE_RELATIVE_REPOSITORY_LOCATIONS, "If checked, the repository browser dialog will resolve repository locations relative to the current process by default. Can be disabled within the dialog.", true));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_SNAP_TO_GRID, "If checked, operators snap to the grid.", true));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_AUTOWIRE_INPUT, "If checked, operator's inputs are wired automatically when added. Can be checked also in the \"Operators\" tree.", true));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_AUTOWIRE_OUTPUT, "If checked, operator's outputs are wired automatically when added. Can be checked also in the \"Operators\" tree.", true));
+        ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_CLOSE_RESULTS_BEFORE_RUN, "Close active result tabs when new process starts?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
 
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_FETCH_DATA_BASE_TABLES_NAMES, "Fetch the data base tables names in the SQL query dialog of all SQL operators.", true));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES,  "If selected, the SQL meta data will be fetched during meta data evaluation in RapidMiner. For some databases, this may be slow.", true));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_FETCH_DATA_BASE_TABLES_NAMES, "Fetch the data base tables names in the SQL query dialog of all SQL operators.", true));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES,  "If selected, the SQL meta data will be fetched during meta data evaluation in RapidMiner. For some databases, this may be slow.", true));
 
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(RapidMinerGUI.PROPERTY_TRANSFER_USAGESTATS, "Allow RapidMiner to transfer RapidMiner operator usage statistics?", RapidMinerGUI.PROPERTY_TRANSFER_USAGESTATS_ANSWERS, UsageStatsTransmissionDialog.ASK));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(RapidMinerGUI.PROPERTY_ADD_BREAKPOINT_RESULTS_TO_HISTORY, "Should results produced at breakpoints be added to the result history?", false));
+        ParameterService.registerParameter(new ParameterTypeCategory(RapidMinerGUI.PROPERTY_TRANSFER_USAGESTATS, "Allow RapidMiner to transfer RapidMiner operator usage statistics?", RapidMinerGUI.PROPERTY_TRANSFER_USAGESTATS_ANSWERS, UsageStatsTransmissionDialog.ASK));
+        ParameterService.registerParameter(new ParameterTypeBoolean(RapidMinerGUI.PROPERTY_ADD_BREAKPOINT_RESULTS_TO_HISTORY, "Should results produced at breakpoints be added to the result history?", false));
 
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(RapidMinerGUI.PROPERTY_DISCONNECT_ON_DISABLE, "Should operators be disconnected upon disabling them?", true));
+        ParameterService.registerParameter(new ParameterTypeBoolean(RapidMinerGUI.PROPERTY_DISCONNECT_ON_DISABLE, "Should operators be disconnected upon disabling them?", true));
 
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_CONFIRM_EXIT, "Should RapidMiner ask if you are sure each time you exit?", true));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_CONFIRM_EXIT, "Should RapidMiner ask if you are sure each time you exit?", true));
 
         // UPDATE
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(com.rapid_i.deployment.update.client.UpdateManager.PARAMETER_UPDATE_INCREMENTALLY, "Download (small) patches rather than complete installation archives?", true));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeString(com.rapid_i.deployment.update.client.UpdateManager.PARAMETER_UPDATE_URL, "URL of the RapidMiner update server.", com.rapid_i.deployment.update.client.UpdateManager.UPDATESERVICE_URL));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(com.rapid_i.deployment.update.client.UpdateManager.PARAMETER_INSTALL_TO_HOME, "If checked, all upgrades will be installed to the users home directory. Otherwise, administrator privileges are required.", true));
+        ParameterService.registerParameter(new ParameterTypeBoolean(com.rapid_i.deployment.update.client.UpdateManager.PARAMETER_UPDATE_INCREMENTALLY, "Download (small) patches rather than complete installation archives?", true));
+        ParameterService.registerParameter(new ParameterTypeString(com.rapid_i.deployment.update.client.UpdateManager.PARAMETER_UPDATE_URL, "URL of the RapidMiner update server.", com.rapid_i.deployment.update.client.UpdateManager.UPDATESERVICE_URL));
+        ParameterService.registerParameter(new ParameterTypeBoolean(com.rapid_i.deployment.update.client.UpdateManager.PARAMETER_INSTALL_TO_HOME, "If checked, all upgrades will be installed to the users home directory. Otherwise, administrator privileges are required.", true));
     }
 
     private static final int NUMBER_OF_RECENT_FILES = 8;
@@ -236,7 +237,7 @@ public class RapidMinerGUI extends RapidMiner {
         SwingUtilities.invokeAndWait(new Runnable() {
             @Override
             public void run() {
-                setMainFrame(new MainFrame((openLocation != null) ? "design" : "welcome"));
+                setMainFrame(new MainFrame(openLocation != null ? "design" : "welcome"));
             }
         });
 
@@ -283,7 +284,7 @@ public class RapidMinerGUI extends RapidMiner {
     /** This default implementation only setup the tool tip durations. Subclasses might
      *  override this method. */
     protected void setupGUI() throws NoOpUserError {
-        System.setProperty(BookmarkIO.PROPERTY_BOOKMARKS_DIR, ParameterService.getUserRapidMinerDir().getAbsolutePath());
+        System.setProperty(BookmarkIO.PROPERTY_BOOKMARKS_DIR, FileSystemService.getUserRapidMinerDir().getAbsolutePath());
         System.setProperty(BookmarkIO.PROPERTY_BOOKMARKS_FILE, ".bookmarks");
         System.setProperty(DatabaseConnectionService.PROPERTY_CONNECTIONS_FILE, "connections");
         try {
@@ -327,7 +328,7 @@ public class RapidMinerGUI extends RapidMiner {
     }
 
     private static void loadRecentFileList() {
-        File file = ParameterService.getUserConfigFile("history");
+        File file = FileSystemService.getUserConfigFile("history");
         if (!file.exists())
             return;
         BufferedReader in = null;
@@ -362,7 +363,7 @@ public class RapidMinerGUI extends RapidMiner {
     }
 
     private static void saveRecentFileList() {
-        File file = ParameterService.getUserConfigFile("history");
+        File file = FileSystemService.getUserConfigFile("history");
         PrintWriter out = null;
         try {
             out = new PrintWriter(new FileWriter(file));
@@ -392,7 +393,7 @@ public class RapidMinerGUI extends RapidMiner {
             //properties.setProperty(PROPERTY_GEOMETRY_DIVIDER_LOGGING, "" + mainFrame.getLoggingDividerLocation());
             //properties.setProperty(PROPERTY_GEOMETRY_DIVIDER_GROUPSELECTION, "" + mainFrame.getGroupSelectionDividerLocation());
             properties.setProperty(PROPERTY_EXPERT_MODE, "" + mainFrame.getPropertyPanel().isExpertMode());
-            File file = ParameterService.getUserConfigFile("gui.properties");
+            File file = FileSystemService.getUserConfigFile("gui.properties");
             OutputStream out = null;
             try {
                 out = new FileOutputStream(file);
@@ -412,7 +413,7 @@ public class RapidMinerGUI extends RapidMiner {
 
     private static void loadGUIProperties(MainFrame mainFrame) {
         Properties properties = new Properties();
-        File file = ParameterService.getUserConfigFile("gui.properties");
+        File file = FileSystemService.getUserConfigFile("gui.properties");
         if (file.exists()) {
             InputStream in = null;
             try {
@@ -463,7 +464,7 @@ public class RapidMinerGUI extends RapidMiner {
         System.setSecurityManager(null);
         RapidMiner.addShutdownHook(new ShutdownHook());
         setExecutionMode(
-                (System.getProperty(PROPERTY_HOME_REPOSITORY_URL) == null) ?
+                System.getProperty(PROPERTY_HOME_REPOSITORY_URL) == null ?
                         ExecutionMode.UI : ExecutionMode.WEBSTART);
 
         boolean shouldLaunch = true;

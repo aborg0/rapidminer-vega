@@ -34,7 +34,6 @@ import org.w3c.dom.Element;
 
 import com.rapidminer.MacroHandler;
 import com.rapidminer.io.process.XMLTools;
-import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.conditions.ParameterCondition;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
@@ -51,7 +50,7 @@ public abstract class ParameterType implements Comparable, Serializable {
 
     private static final long serialVersionUID = 5296461242851710130L;
 
-    private static final String ELEMENT_PARAMETER_TYPE = "ParameterType";
+    public static final String ELEMENT_PARAMETER_TYPE = "ParameterType";
 
     private static final String ELEMENT_DESCRIPTION = "Description";
 
@@ -119,8 +118,8 @@ public abstract class ParameterType implements Comparable, Serializable {
      * 
      * @throws XMLException
      */
-    public ParameterType(Operator operator, Element element) throws XMLException {
-        loadDefinitionFromXML(operator, element);
+    public ParameterType(Element element) throws XMLException {
+        loadDefinitionFromXML(element);
     }
 
     /** Creates a new ParameterType. */
@@ -386,7 +385,7 @@ public abstract class ParameterType implements Comparable, Serializable {
             conditionsElement.appendChild(conditionElement);
         }
 
-        getDefinitionAsXML(typeElement);
+        writeDefinitionToXML(typeElement);
 
         return typeElement;
     }
@@ -398,11 +397,11 @@ public abstract class ParameterType implements Comparable, Serializable {
      * This method should be abstract, but in order to keep the class compatible with existing extensions,
      * this only throws an unsupported exception.
      */
-    public void getDefinitionAsXML(Element typeElement) {
+    protected void writeDefinitionToXML(Element typeElement) {
         throw new UnsupportedOperationException("The Subclass " + this.getClass().getCanonicalName() + " must override the method getDefinitionAsXML(Element) of the super type " + ParameterType.class.getCanonicalName());
     }
 
-    private void loadDefinitionFromXML(Operator operator, Element typeElement) throws XMLException {
+    private void loadDefinitionFromXML(Element typeElement) throws XMLException {
         // simple properties
         key = typeElement.getAttribute(ATTRIBUTE_KEY);
         expert = Boolean.parseBoolean(typeElement.getAttribute(ATTRIBUTE_EXPERT));
@@ -420,8 +419,8 @@ public abstract class ParameterType implements Comparable, Serializable {
             for (Element conditionElement : conditionElements) {
                 String className = conditionElement.getAttribute(ATTRIBUTE_CONDITION_CLASS);
                 Class<?> conditionClass = Class.forName(className);
-                Constructor<?> constructor = conditionClass.getConstructor(Operator.class, Element.class);
-                conditions.add((ParameterCondition) constructor.newInstance(operator, conditionElement));
+                Constructor<?> constructor = conditionClass.getConstructor(Element.class);
+                conditions.add((ParameterCondition) constructor.newInstance(conditionElement));
             }
         } catch (ClassNotFoundException e) {
             throw new XMLException("Illegal value for attribute " + ATTRIBUTE_CONDITION_CLASS, e);
@@ -444,12 +443,12 @@ public abstract class ParameterType implements Comparable, Serializable {
      * This creates the ParameterType defined by the given element for the given operator.
      * @throws XMLException
      */
-    public static ParameterType createType(Operator operator, Element element) throws XMLException {
+    public static ParameterType createType(Element element) throws XMLException {
         String className = element.getAttribute(ATTRIBUTE_CLASS);
         try {
             Class<?> typeClass = Class.forName(className);
-            Constructor<?> constructor = typeClass.getConstructor(Operator.class, Element.class);
-            Object type = constructor.newInstance(operator, element);
+            Constructor<?> constructor = typeClass.getConstructor(Element.class);
+            Object type = constructor.newInstance(element);
             return (ParameterType) type;
         } catch (ClassNotFoundException e) {
             throw new XMLException("Illegal value for attribute " + ATTRIBUTE_CLASS, e);

@@ -31,7 +31,6 @@ import org.w3c.dom.Element;
 
 import com.rapidminer.MacroHandler;
 import com.rapidminer.io.process.XMLTools;
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.XMLException;
 
@@ -66,11 +65,11 @@ public class ParameterTypeList extends CombinedParameterType {
     private final ParameterType keyType;
 
 
-    public ParameterTypeList(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeList(Element element) throws XMLException {
+        super(element);
 
-        valueType = ParameterType.createType(operator, XMLTools.getChildElement(element, ELEMENT_VALUE_TYPE, true));
-        keyType = ParameterType.createType(operator, XMLTools.getChildElement(element, ELEMENT_KEY_TYPE, true));
+        valueType = ParameterType.createType(XMLTools.getChildElement(element, ELEMENT_VALUE_TYPE, true));
+        keyType = ParameterType.createType(XMLTools.getChildElement(element, ELEMENT_KEY_TYPE, true));
 
         // now default values
         Element defaultEntriesElement = XMLTools.getChildElement(element, ELEMENT_DEFAULT_ENTRIES, true);
@@ -240,7 +239,7 @@ public class ParameterTypeList extends CombinedParameterType {
         for (String record : splittedList) {
             if (record.length() > 0) {
                 String[] pair = record.split(Character.valueOf(Parameters.PAIR_SEPARATOR).toString());
-                if ((pair.length == 2) && (pair[0].length() > 0 && pair[1].length() > 0))
+                if (pair.length == 2 && pair[0].length() > 0 && pair[1].length() > 0)
                     result.add(new String[] { pair[0], pair[1] });
             }
         }
@@ -275,12 +274,12 @@ public class ParameterTypeList extends CombinedParameterType {
 
 
     @Override
-    public void getDefinitionAsXML(Element typeElement) {
+    protected void writeDefinitionToXML(Element typeElement) {
         Element keyTypeElement = XMLTools.addTag(typeElement, ELEMENT_KEY_TYPE);
-        keyType.getDefinitionAsXML(keyTypeElement);
+        keyType.writeDefinitionToXML(keyTypeElement);
 
         Element valueTypeElement = XMLTools.addTag(typeElement, ELEMENT_VALUE_TYPE);
-        valueType.getDefinitionAsXML(valueTypeElement);
+        valueType.writeDefinitionToXML(valueTypeElement);
 
         // now default list
         Element defaultEntriesElement = XMLTools.addTag(typeElement, ELEMENT_DEFAULT_ENTRIES);

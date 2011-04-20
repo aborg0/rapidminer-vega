@@ -52,9 +52,12 @@ public abstract class ParameterCondition {
     /**
      * This constructor is the inverse to {@link #getDefinitionAsXML(Element)} and
      * must be implemented by the subclasses. It will be called by reflection!
+     * 
+     * Notice that conditions created with this constructor won't work until
+     * {@link #setOperator(Operator)} is called.
      */
-    public ParameterCondition(Operator operator, Element conditionElement) {
-        this.parameterHandler = operator;
+    public ParameterCondition(Element conditionElement) {
+        this.parameterHandler = null;
         loadDefinitionFromXML(conditionElement);
     }
 
@@ -75,9 +78,24 @@ public abstract class ParameterCondition {
     }
 
     /**
+     * This method sets the parameter handler from which the values to check the condition
+     * are retrieved, this is usually an operator.
+     * This can be used if during construction time no parameterhandler
+     * was known.
+     */
+    public void setOperator(Operator operator) {
+        this.parameterHandler = operator;
+    }
+
+    /**
      * This returns true if the condition is met and if the ancestor type isn't hidden.
      */
     final public boolean dependencyMet() {
+        // if we don't  can check: Return always true
+        if (parameterHandler == null)
+            return true;
+
+        // otherwise perform check
         if (conditionParameter != null)
             if (parameterHandler.getParameters().getParameterType(conditionParameter).isHidden())
                 return false;

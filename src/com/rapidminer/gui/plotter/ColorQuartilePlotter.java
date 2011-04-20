@@ -38,110 +38,111 @@ import com.rapidminer.datatable.DataTable;
 import com.rapidminer.datatable.DataTableRow;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.math.MathFunctions;
 
 
-/** This plotter can be used to create colorized quartile plots for one of the columns. 
+/** This plotter can be used to create colorized quartile plots for one of the columns.
  * 
  *  @author Ingo Mierswa
  */
 public class ColorQuartilePlotter extends PlotterAdapter {
 
     private static final long serialVersionUID = -5115095967846809152L;
-    
+
     private static final int LABEL_MARGIN_X = 50;
-    
+
     private static final int NUMBER_OF_TICS = 6;
-    
+
     private int columnIndex = -1;
-    
+
     private int colorIndex = -1;
-    
+
     protected transient DataTable dataTable;
-    
+
     protected List<Quartile> allQuartiles = new LinkedList<Quartile>();
-    
+
     private boolean drawLegend = true;
-    
+
     private String key = null;
-    
+
     protected double globalMin = Double.NaN;
-    
+
     protected double globalMax = Double.NaN;
-    
+
     public ColorQuartilePlotter(PlotterConfigurationModel settings) {
         super(settings);
         setBackground(Color.white);
     }
-    
+
     public ColorQuartilePlotter(PlotterConfigurationModel settings, DataTable dataTable) {
         this(settings);
         setDataTable(dataTable);
     }
-    
+
     @Override
-	public void setDataTable(DataTable dataTable) {
+    public void setDataTable(DataTable dataTable) {
         super.setDataTable(dataTable);
         this.dataTable = dataTable;
         repaint();
     }
-   
+
     @Override
-	public int getNumberOfAxes() {
+    public int getNumberOfAxes() {
         return 1;
     }
-    
+
     @Override
-	public int getAxis(int axis) { 
-        return columnIndex; 
+    public int getAxis(int axis) {
+        return columnIndex;
     }
-    
+
     @Override
-	public String getAxisName(int index) {
+    public String getAxisName(int index) {
         if (index == 0)
             return "Dimension";
         else
             return "empty";
     }
-    
+
     @Override
-	public void setAxis(int index, int dimension) {
+    public void setAxis(int index, int dimension) {
         if (this.columnIndex != dimension) {
             this.columnIndex = dimension;
             repaint();
         }
     }
-    
+
     @Override
-	public String getPlotName() {
+    public String getPlotName() {
         return "Color";
     }
-    
+
     @Override
-	public void setPlotColumn(int index, boolean plot) {
+    public void setPlotColumn(int index, boolean plot) {
         colorIndex = index;
         repaint();
     }
 
     @Override
-	public boolean getPlotColumn(int index) {
+    public boolean getPlotColumn(int index) {
         return index == colorIndex;
     }
-   
+
     public void setDrawLegend(boolean drawLegend) {
         this.drawLegend = drawLegend;
     }
-    
+
     @Override
-	public void setKey(String key) {
+    public void setKey(String key) {
         this.key = key;
     }
-    
+
     protected void prepareData() {
         allQuartiles.clear();
         this.globalMin = Double.POSITIVE_INFINITY;
         this.globalMax = Double.NEGATIVE_INFINITY;
-        
+
         if (columnIndex != -1) {
             if (colorIndex != -1) {
                 // create value map
@@ -161,22 +162,22 @@ public class ColorQuartilePlotter extends PlotterAdapter {
                             values.add(columnValue);
                         }
                     }
-                    
-                    String maxClassesProperty = System.getProperty(MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_COLORS_CLASSLIMIT);
+
+                    String maxClassesProperty = ParameterService.getParameterValue(MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_COLORS_CLASSLIMIT);
                     int maxClasses = 10;
                     try {
-                    	if (maxClassesProperty != null)
-                    		maxClasses = Integer.parseInt(maxClassesProperty);
+                        if (maxClassesProperty != null)
+                            maxClasses = Integer.parseInt(maxClassesProperty);
                     } catch (NumberFormatException e) {
                         LogService.getGlobal().log("Quartile: cannot parse property 'rapidminer.gui.plotter.colors.classlimit', using maximal 10 different classes.", LogService.WARNING);
                     }
-                    
+
                     if (valueMap.size() <= maxClasses) {
                         // collect actual data and create a histogram for each different color value
-						Iterator<Map.Entry<Double,List<Double>>>
-								it = valueMap.entrySet().iterator();
+                        Iterator<Map.Entry<Double,List<Double>>>
+                        it = valueMap.entrySet().iterator();
                         while (it.hasNext()) {
-							Map.Entry<Double,List<Double>> e = it.next();
+                            Map.Entry<Double,List<Double>> e = it.next();
                             Double key = e.getKey();
                             int colorValue = (int)key.doubleValue();
                             Color color = getColorProvider().getPointColor(colorValue / (dataTable.getNumberOfValues(colorIndex) - 1.0d));
@@ -189,25 +190,25 @@ public class ColorQuartilePlotter extends PlotterAdapter {
                         }
                     } else {
                         // too many classes --> super method in order to create usual non-colored histogram
-                        LogService.getGlobal().log("Quartile Color: cannot create colorized quartile plot since the number of different values (" + 
+                        LogService.getGlobal().log("Quartile Color: cannot create colorized quartile plot since the number of different values (" +
                                 valueMap.size() + ") is too large. Allowed are " + maxClassesProperty +
                                 " different values for a colorized plot (edit this limit in the properties dialog).", LogService.WARNING);
                     }
-                } 
+                }
             } else {
-                Quartile quartile = Quartile.calculateQuartile(this.dataTable, columnIndex); 
-                allQuartiles.add(quartile); 
+                Quartile quartile = Quartile.calculateQuartile(this.dataTable, columnIndex);
+                allQuartiles.add(quartile);
                 this.globalMin = quartile.getMin();
                 this.globalMax = quartile.getMax();
             }
         }
     }
-    
+
     @Override
-	public void paintComponent(Graphics graphics) {
+    public void paintComponent(Graphics graphics) {
         super.paintComponent(graphics);
         if (drawLegend)
-        	drawLegend(graphics, dataTable, colorIndex, 50, RectangleStyle.ALPHA);
+            drawLegend(graphics, dataTable, colorIndex, 50, RectangleStyle.ALPHA);
         int pixWidth = getWidth() - 2 * MARGIN;
         int pixHeight = getHeight() - 2 * MARGIN;
         Graphics2D translated = (Graphics2D)graphics.create();
@@ -216,15 +217,15 @@ public class ColorQuartilePlotter extends PlotterAdapter {
         translated.dispose();
     }
 
-    public void paintQuartiles(Graphics2D g, int pixWidth, int pixHeight) {        
+    public void paintQuartiles(Graphics2D g, int pixWidth, int pixHeight) {
         prepareData();
-        
+
         if (allQuartiles.size() == 0) return;
-        
+
         if (drawLegend) {
             drawGrid(g, pixWidth, pixHeight);
         }
-        
+
         if (key != null) {
             Rectangle2D stringBounds = LABEL_FONT.getStringBounds(key, g.getFontRenderContext());
             int xPos = (int)(pixWidth / 2.0d - stringBounds.getWidth() / 2.0d);
@@ -232,12 +233,12 @@ public class ColorQuartilePlotter extends PlotterAdapter {
             g.setColor(Color.black);
             g.drawString(key, xPos, yPos);
         }
-        
+
         double offsetWidth = drawLegend ? pixWidth - LABEL_MARGIN_X : pixWidth;
         double offset = offsetWidth / (allQuartiles.size() + 1);
         if (drawLegend)
-        	g.translate(LABEL_MARGIN_X, 0.0d);
-        
+            g.translate(LABEL_MARGIN_X, 0.0d);
+
         Iterator<Quartile> i = allQuartiles.iterator();
         while (i.hasNext()) {
             Quartile quartile = i.next();
@@ -245,7 +246,7 @@ public class ColorQuartilePlotter extends PlotterAdapter {
             paintQuartile(g, quartile, pixHeight);
         }
     }
-    
+
     private void paintQuartile(Graphics2D g, Quartile quartile, int pixHeight) {
         // box
         double upperQPos =  getNormedPosition(quartile.getUpperQuartile(), pixHeight);
@@ -253,24 +254,24 @@ public class ColorQuartilePlotter extends PlotterAdapter {
         double quartileHeight = getNormedLength(quartile.getUpperQuartile() - quartile.getLowerQuartile(), pixHeight);
         Rectangle2D quartileRect = new Rectangle2D.Double(0, upperQPos, Quartile.QUARTILE_WIDTH, quartileHeight);
         g.setColor(quartile.getColor());
-        g.fill(quartileRect);        
+        g.fill(quartileRect);
         g.setColor(Color.BLACK);
         g.draw(quartileRect);
-        
+
         // median
         double medianPos = getNormedPosition(quartile.getMedian(), pixHeight);
         g.draw(new Line2D.Double(0.0d, medianPos, Quartile.QUARTILE_WIDTH, medianPos));
-        
+
         // whiskers
         double lowerWhiskerPos = getNormedPosition(quartile.getLowerWhisker(), pixHeight);
-        g.draw(new Line2D.Double(0.0d, lowerWhiskerPos, Quartile.QUARTILE_WIDTH, lowerWhiskerPos));        
+        g.draw(new Line2D.Double(0.0d, lowerWhiskerPos, Quartile.QUARTILE_WIDTH, lowerWhiskerPos));
         double upperWhiskerPos = getNormedPosition(quartile.getUpperWhisker(), pixHeight);
         g.draw(new Line2D.Double(0.0d, upperWhiskerPos, Quartile.QUARTILE_WIDTH, upperWhiskerPos));
-        
+
         double whiskersXPos = Quartile.QUARTILE_WIDTH / 2.0d;
         g.draw(new Line2D.Double(whiskersXPos, upperQPos, whiskersXPos, upperWhiskerPos));
         g.draw(new Line2D.Double(whiskersXPos, lowerQPos, whiskersXPos, lowerWhiskerPos));
-        
+
         // mean and standard deviation
         double meanXPos = Quartile.QUARTILE_WIDTH / 2.0d + 5.0d;
         double mean = getNormedPosition(quartile.getMean(), pixHeight);
@@ -279,35 +280,35 @@ public class ColorQuartilePlotter extends PlotterAdapter {
         double standardDeviation = getNormedLength(quartile.getStandardDeviation(), pixHeight);
         g.draw(new Line2D.Double(meanXPos, mean, meanXPos, mean + standardDeviation));
         g.draw(new Line2D.Double(meanXPos, mean, meanXPos, mean - standardDeviation));
-        
+
         // outliers
         double outlierXPos = Quartile.QUARTILE_WIDTH / 2.0d;
         double[] outliers = quartile.getOutliers();
-        for (int i = 0; i < outliers.length; i++) {
-            double outlierYPos = getNormedPosition(outliers[i], pixHeight);
+        for (double outlier : outliers) {
+            double outlierYPos = getNormedPosition(outlier, pixHeight);
             drawPoint(g, outlierXPos, outlierYPos, Color.WHITE, Color.BLACK);
         }
     }
-    
+
     private double getNormedPosition(double value, int pixHeight) {
-        return pixHeight - ((value - this.globalMin) / (this.globalMax - this.globalMin)) * pixHeight;
+        return pixHeight - (value - this.globalMin) / (this.globalMax - this.globalMin) * pixHeight;
     }
-    
+
     private double getNormedLength(double length, int pixHeight) {
-        return (length / (this.globalMax - this.globalMin)) * pixHeight;
+        return length / (this.globalMax - this.globalMin) * pixHeight;
     }
-    
+
     private void drawGrid(Graphics2D g, int pixWidth, int pixHeight) {
         Graphics2D coordinateSpace = (Graphics2D)g.create();
         coordinateSpace.translate(LABEL_MARGIN_X, 0);
         drawGridLines(coordinateSpace, pixWidth - LABEL_MARGIN_X, pixHeight);
         coordinateSpace.dispose();
     }
-    
+
     private void drawGridLines(Graphics2D g, int pixWidth, int pixHeight) {
         DecimalFormat format = new DecimalFormat("0.00E0");
         g.setFont(LABEL_FONT);
-        
+
         double numberOfYTics = NUMBER_OF_TICS;
         double yTicSize = (this.globalMax - this.globalMin) / numberOfYTics;
         double ticDifference = pixHeight / numberOfYTics;
@@ -318,17 +319,17 @@ public class ColorQuartilePlotter extends PlotterAdapter {
 
     private void drawHorizontalTic(Graphics2D g, int ticNumber, double yTicSize, double ticDifference, int pixWidth, int pixHeight, DecimalFormat format) {
         g.setColor(GRID_COLOR);
-        double yValue = this.globalMax - (ticNumber * yTicSize);
+        double yValue = this.globalMax - ticNumber * yTicSize;
         double yPos   = ticNumber * ticDifference;
         g.draw(new Line2D.Double(0, yPos, pixWidth, yPos));
         g.setColor(Color.black);
-        String label = format.format(yValue) + " ";  
+        String label = format.format(yValue) + " ";
         Rectangle2D stringBounds = LABEL_FONT.getStringBounds(label, g.getFontRenderContext());
-        g.drawString(label, (float) (- stringBounds.getWidth()), (float) (yPos - stringBounds.getHeight() / 2 - stringBounds.getY()));
+        g.drawString(label, (float) - stringBounds.getWidth(), (float) (yPos - stringBounds.getHeight() / 2 - stringBounds.getY()));
     }
-    
-	@Override
-	public String getPlotterName() {
-		return PlotterConfigurationModel.QUARTILE_PLOT_COLOR;
-	}
+
+    @Override
+    public String getPlotterName() {
+        return PlotterConfigurationModel.QUARTILE_PLOT_COLOR;
+    }
 }

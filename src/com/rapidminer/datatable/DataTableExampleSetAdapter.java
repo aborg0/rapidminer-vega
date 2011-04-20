@@ -40,6 +40,7 @@ import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.tools.ObjectVisualizerService;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.ParameterService;
 
 
 /**
@@ -77,7 +78,7 @@ public class DataTableExampleSetAdapter extends AbstractDataTable {
         Iterator<AttributeRole> s = exampleSet.getAttributes().specialAttributes();
         while (s.hasNext()) {
             Attribute specialAttribute = s.next().getAttribute();
-            if ((idAttribute == null) || (!idAttribute.getName().equals(specialAttribute.getName()))) {
+            if (idAttribute == null || !idAttribute.getName().equals(specialAttribute.getName())) {
                 allAttributes.add(specialAttribute);
             }
         }
@@ -210,7 +211,7 @@ public class DataTableExampleSetAdapter extends AbstractDataTable {
         double ratio = (double)newSize / (double)getNumberOfRows();
 
         int maxNumberBeforeSampling = DEFAULT_MAX_SIZE_FOR_SHUFFLED_SAMPLING;
-        String maxString = System.getProperty(RapidMinerGUI.PROPERTY_RAPIDMINER_GUI_MAX_STATISTICS_ROWS);
+        String maxString = ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_RAPIDMINER_GUI_MAX_STATISTICS_ROWS);
         if (maxString != null) {
             try {
                 maxNumberBeforeSampling = Integer.parseInt(maxString);

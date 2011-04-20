@@ -56,6 +56,7 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
@@ -92,7 +93,7 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
             ExampleSet result = super.read();
             return result;
         } finally {
-            if ((databaseHandler != null) && (databaseHandler.getConnection() != null)) {
+            if (databaseHandler != null && databaseHandler.getConnection() != null) {
                 try {
                     databaseHandler.getConnection().close();
                 } catch (SQLException e) {
@@ -150,7 +151,7 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
             case DatabaseHandler.QUERY_QUERY:
             case DatabaseHandler.QUERY_FILE:
             default:
-                if (!"false".equals(System.getProperty(PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES))) {
+                if (!"false".equals(ParameterService.getParameterValue(PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES))) {
                     String query = getQuery(databaseHandler.getStatementCreator());
                     PreparedStatement prepared = databaseHandler.getConnection().prepareStatement(query);
                     // query = "SELECT * FROM (" + query + ") dummy WHERE 1=0";
@@ -167,7 +168,7 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
             LogService.getRoot().log(Level.WARNING, "Failed to fetch meta data: " + e, e);
         } finally {
             try {
-                if ((databaseHandler != null) && (databaseHandler.getConnection() != null)) {
+                if (databaseHandler != null && databaseHandler.getConnection() != null) {
                     databaseHandler.disconnect();
                 }
             } catch (SQLException e) {
@@ -232,7 +233,7 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
                         } else {
                             valueString = resultSet.getString(i);
                         }
-                        if (resultSet.wasNull() || (valueString == null)) {
+                        if (resultSet.wasNull() || valueString == null) {
                             value = Double.NaN;
                         } else {
                             value = attribute.getMapping().mapString(valueString);
@@ -297,7 +298,7 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
                 } catch (IOException ioe) {
                     throw new UserError(this, ioe, 302, new Object[] { queryFile, ioe.getMessage() });
                 }
-                if ((query == null) || (query.trim().length() == 0)) {
+                if (query == null || query.trim().length() == 0) {
                     throw new UserError(this, 205, queryFile);
                 }
                 return query;

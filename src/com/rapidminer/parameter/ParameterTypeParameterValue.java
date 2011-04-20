@@ -24,7 +24,6 @@ package com.rapidminer.parameter;
 
 import org.w3c.dom.Element;
 
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.XMLException;
 
 /**
@@ -39,8 +38,8 @@ public class ParameterTypeParameterValue extends ParameterTypeSingle {
 
     private static final long serialVersionUID = 5248919176004016189L;
 
-    public ParameterTypeParameterValue(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeParameterValue(Element element) throws XMLException {
+        super(element);
     }
 
     public ParameterTypeParameterValue(String key, String description) {
@@ -68,6 +67,6 @@ public class ParameterTypeParameterValue extends ParameterTypeSingle {
     public boolean isNumerical() { return false; }
 
     @Override
-    public void getDefinitionAsXML(Element typeElement) {
+    protected void writeDefinitionToXML(Element typeElement) {
     }
 }

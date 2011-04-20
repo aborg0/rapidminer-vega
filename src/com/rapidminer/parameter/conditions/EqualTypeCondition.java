@@ -25,7 +25,6 @@ package com.rapidminer.parameter.conditions;
 import org.w3c.dom.Element;
 
 import com.rapidminer.io.process.XMLTools;
-import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterHandler;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.XMLException;
@@ -45,8 +44,8 @@ public class EqualTypeCondition extends ParameterCondition {
     private int[] fulfillingOptions;
     private String[] possibleOptions;
 
-    public EqualTypeCondition(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public EqualTypeCondition(Element element) throws XMLException {
+        super(element);
 
         // possible options
         Element possibleOptionsElement = XMLTools.getChildElement(element, ELEMENT_POSSIBLE_OPTIONS, true);

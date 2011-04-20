@@ -24,7 +24,6 @@ package com.rapidminer.parameter;
 
 import org.w3c.dom.Element;
 
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.XMLException;
 
 /**
@@ -53,8 +52,8 @@ public class ParameterTypeDouble extends ParameterTypeNumber {
 
     private boolean noDefault = true;
 
-    public ParameterTypeDouble(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeDouble(Element element) throws XMLException {
+        super(element);
 
         noDefault = element.hasAttribute(ATTRIBUTE_DEFAULT);
         if (!noDefault)
@@ -138,7 +137,7 @@ public class ParameterTypeDouble extends ParameterTypeNumber {
     }
 
     @Override
-    public void getDefinitionAsXML(Element typeElement) {
+    protected void writeDefinitionToXML(Element typeElement) {
         if (!noDefault)
             typeElement.setAttribute(ATTRIBUTE_DEFAULT, defaultValue + "");
 

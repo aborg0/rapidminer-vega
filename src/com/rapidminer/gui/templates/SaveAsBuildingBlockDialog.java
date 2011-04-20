@@ -41,7 +41,7 @@ import com.rapidminer.io.process.XMLExporter;
 import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.Operator;
-import com.rapidminer.tools.ParameterService;
+import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.XMLException;
 
 
@@ -54,116 +54,117 @@ import com.rapidminer.tools.XMLException;
  */
 public class SaveAsBuildingBlockDialog extends ButtonDialog {
 
-	private static final long serialVersionUID = 7662184237558085856L;
+    private static final long serialVersionUID = 7662184237558085856L;
 
-	private boolean ok = false;
+    private boolean ok = false;
 
-	private final JTextField nameField = new JTextField();
+    private final JTextField nameField = new JTextField();
 
-	private final JTextField descriptionField = new JTextField();
+    private final JTextField descriptionField = new JTextField();
 
-	/** Creates a new save as building block dialog. */
-	public SaveAsBuildingBlockDialog(Operator operator) {
-		super("save_building_block", true);
-		
-		JPanel panel = new JPanel(new GridBagLayout());
-		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
-		
-		JLabel nameLabel = new ResourceLabel("save_building_block.name");
-		c.weightx   = 0;
-		c.gridwidth = GridBagConstraints.RELATIVE;
-		c.insets    = new Insets(0, 0, GAP, GAP);
-		panel.add(nameLabel, c);
+    /** Creates a new save as building block dialog. */
+    public SaveAsBuildingBlockDialog(Operator operator) {
+        super("save_building_block", true);
 
-		nameField.setText(operator.getName());
-		c.weightx   = 1;
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		c.insets    = new Insets(0, 0, GAP, 0);
-		panel.add(nameField, c);
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.HORIZONTAL;
 
-		JLabel descriptionLabel = new ResourceLabel("save_building_block.description");
-		c.insets    = new Insets(0, 0, 0, GAP);
-		c.weightx   = 0;
-		c.gridwidth = GridBagConstraints.RELATIVE;
-		panel.add(descriptionLabel, c);
+        JLabel nameLabel = new ResourceLabel("save_building_block.name");
+        c.weightx   = 0;
+        c.gridwidth = GridBagConstraints.RELATIVE;
+        c.insets    = new Insets(0, 0, GAP, GAP);
+        panel.add(nameLabel, c);
 
-		descriptionField.setText(operator.getUserDescription());
-		c.weightx   = 1;
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		c.insets    = new Insets(0, 0, 0, 0);
-		panel.add(descriptionField, c);
+        nameField.setText(operator.getName());
+        c.weightx   = 1;
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        c.insets    = new Insets(0, 0, GAP, 0);
+        panel.add(nameField, c);
 
-		JButton okButton = makeOkButton();
-		layoutDefault(panel, okButton, makeCloseButton());
-		getRootPane().setDefaultButton(okButton);
-	}
+        JLabel descriptionLabel = new ResourceLabel("save_building_block.description");
+        c.insets    = new Insets(0, 0, 0, GAP);
+        c.weightx   = 0;
+        c.gridwidth = GridBagConstraints.RELATIVE;
+        panel.add(descriptionLabel, c);
 
-	public boolean isOk() {
-		return ok;
-	}
+        descriptionField.setText(operator.getUserDescription());
+        c.weightx   = 1;
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        c.insets    = new Insets(0, 0, 0, 0);
+        panel.add(descriptionField, c);
 
-	public BuildingBlock getBuildingBlock(Operator operator) {
-		String name = nameField.getText();
-		String xmlString = null;
-		try {
-			xmlString = XMLTools.toString(new XMLExporter().exportSingleOperator(operator), XMLImporter.PROCESS_FILE_CHARSET);
-		} catch (XMLException e) {
-			// cannot happen
-			throw new RuntimeException("Cannot create process XML: "+e, e);
-		} catch (IOException e) {
-			// cannot happen
-			throw new RuntimeException("Cannot create process XML: "+e, e);
-		}		
-		return new BuildingBlock(name, descriptionField.getText(), 
-				operator.getOperatorDescription().getIconName(),
-				xmlString, BuildingBlock.USER_DEFINED);
-	}
+        JButton okButton = makeOkButton();
+        layoutDefault(panel, okButton, makeCloseButton());
+        getRootPane().setDefaultButton(okButton);
+    }
 
-	private boolean checkIfNameOk() {
-		String name = nameField.getText();
-		if ((name == null) || (name.length() == 0)) {
-			SwingTools.showVerySimpleErrorMessage("no_template_name");
-			return false;
-		}
+    public boolean isOk() {
+        return ok;
+    }
 
-//		File[] preDefinedBuildingBlockFiles = ParameterService.getConfigFile("buildingblocks").listFiles(new FileFilter() {
-//
-//			public boolean accept(File file) {
-//				return file.getName().endsWith(".buildingblock");
-//			}
-//		});
-		File[] userDefinedBuildingBlockFiles = ParameterService.getUserRapidMinerDir().listFiles(new FileFilter() {
-			public boolean accept(File file) {
-				return file.getName().endsWith(".buildingblock");
-			}
-		});
+    public BuildingBlock getBuildingBlock(Operator operator) {
+        String name = nameField.getText();
+        String xmlString = null;
+        try {
+            xmlString = XMLTools.toString(new XMLExporter().exportSingleOperator(operator), XMLImporter.PROCESS_FILE_CHARSET);
+        } catch (XMLException e) {
+            // cannot happen
+            throw new RuntimeException("Cannot create process XML: "+e, e);
+        } catch (IOException e) {
+            // cannot happen
+            throw new RuntimeException("Cannot create process XML: "+e, e);
+        }
+        return new BuildingBlock(name, descriptionField.getText(),
+                operator.getOperatorDescription().getIconName(),
+                xmlString, BuildingBlock.USER_DEFINED);
+    }
 
-		//File[] buildingBlockFiles = new File[preDefinedBuildingBlockFiles.length + userDefinedBuildingBlockFiles.length];
-		//System.arraycopy(preDefinedBuildingBlockFiles, 0, buildingBlockFiles, 0, preDefinedBuildingBlockFiles.length);
-		//System.arraycopy(userDefinedBuildingBlockFiles, 0, buildingBlockFiles, preDefinedBuildingBlockFiles.length, userDefinedBuildingBlockFiles.length);
+    private boolean checkIfNameOk() {
+        String name = nameField.getText();
+        if ((name == null) || (name.length() == 0)) {
+            SwingTools.showVerySimpleErrorMessage("no_template_name");
+            return false;
+        }
 
-		for (int i = 0; i < userDefinedBuildingBlockFiles.length; i++) {
-			String tempName = userDefinedBuildingBlockFiles[i].getName().substring(0, userDefinedBuildingBlockFiles[i].getName().lastIndexOf("."));
-			if (tempName.equals(name)) {
-				SwingTools.showVerySimpleErrorMessage("save_building_block.name_used", name);
-				return false;
-			}
-		}
-		return true;
-	}
+        //		File[] preDefinedBuildingBlockFiles = ParameterService.getConfigFile("buildingblocks").listFiles(new FileFilter() {
+        //
+        //			public boolean accept(File file) {
+        //				return file.getName().endsWith(".buildingblock");
+        //			}
+        //		});
+        File[] userDefinedBuildingBlockFiles = FileSystemService.getUserRapidMinerDir().listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                return file.getName().endsWith(".buildingblock");
+            }
+        });
 
-	@Override
-	protected void ok() {
-		if (checkIfNameOk()) {
-			ok = true;
-			dispose();
-		}
-	}
+        //File[] buildingBlockFiles = new File[preDefinedBuildingBlockFiles.length + userDefinedBuildingBlockFiles.length];
+        //System.arraycopy(preDefinedBuildingBlockFiles, 0, buildingBlockFiles, 0, preDefinedBuildingBlockFiles.length);
+        //System.arraycopy(userDefinedBuildingBlockFiles, 0, buildingBlockFiles, preDefinedBuildingBlockFiles.length, userDefinedBuildingBlockFiles.length);
 
-	@Override
-	protected void cancel() {
-		ok = false;
-		dispose();
-	}
+        for (int i = 0; i < userDefinedBuildingBlockFiles.length; i++) {
+            String tempName = userDefinedBuildingBlockFiles[i].getName().substring(0, userDefinedBuildingBlockFiles[i].getName().lastIndexOf("."));
+            if (tempName.equals(name)) {
+                SwingTools.showVerySimpleErrorMessage("save_building_block.name_used", name);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    protected void ok() {
+        if (checkIfNameOk()) {
+            ok = true;
+            dispose();
+        }
+    }
+
+    @Override
+    protected void cancel() {
+        ok = false;
+        dispose();
+    }
 }

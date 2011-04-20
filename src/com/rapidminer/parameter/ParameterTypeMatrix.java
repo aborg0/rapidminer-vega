@@ -25,7 +25,6 @@ package com.rapidminer.parameter;
 import org.w3c.dom.Element;
 
 import com.rapidminer.io.process.XMLTools;
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.XMLException;
 
 
@@ -56,8 +55,8 @@ public class ParameterTypeMatrix extends ParameterTypeString {
 
     private String columnBaseName;
 
-    public ParameterTypeMatrix(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeMatrix(Element element) throws XMLException {
+        super(element);
 
         isSquared = Boolean.valueOf(element.getAttribute(ATTRIBUTE_IS_SQUARED));
         baseName = XMLTools.getTagContents(element, ELEMENT_NAME, true);
@@ -110,8 +109,8 @@ public class ParameterTypeMatrix extends ParameterTypeString {
     }
 
     @Override
-    public void getDefinitionAsXML(Element typeElement) {
-        super.getDefinitionAsXML(typeElement);
+    protected void writeDefinitionToXML(Element typeElement) {
+        super.writeDefinitionToXML(typeElement);
 
         typeElement.setAttribute(ATTRIBUTE_IS_SQUARED, isSquared + "");
         XMLTools.setTagContents(typeElement, ELEMENT_NAME, baseName);

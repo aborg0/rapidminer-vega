@@ -30,7 +30,6 @@ import org.w3c.dom.Element;
 
 import com.rapidminer.MacroHandler;
 import com.rapidminer.io.process.XMLTools;
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.XMLException;
 import com.rapidminer.tools.container.Pair;
@@ -67,15 +66,15 @@ public class ParameterTypeTupel extends CombinedParameterType {
 
     private ParameterType[] types;
 
-    public ParameterTypeTupel(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeTupel(Element element) throws XMLException {
+        super(element);
 
         Element childTypesElement = XMLTools.getChildElement(element, ELEMENT_CHILD_TYPES, true);
         Collection<Element> childTypeElements = XMLTools.getChildElements(childTypesElement, ELEMENT_CHILD_TYPE);
         types = new ParameterType[childTypeElements.size()];
         int i = 0;
         for (Element childTypeElement: childTypeElements) {
-            types[i] = ParameterType.createType(operator, childTypeElement);
+            types[i] = ParameterType.createType(childTypeElement);
             i++;
         }
 
@@ -106,7 +105,7 @@ public class ParameterTypeTupel extends CombinedParameterType {
         if (defaultValues == null) {
             String[] defaultValues = new String[types.length];
             for (int i = 0; i < types.length; i++) {
-                defaultValues[i] = (types[i].getDefaultValue() == null) ? "" : types[i].getDefaultValue() + "";
+                defaultValues[i] = types[i].getDefaultValue() == null ? "" : types[i].getDefaultValue() + "";
             }
             return ParameterTypeTupel.transformTupel2String(defaultValues);
         } else {
@@ -204,7 +203,7 @@ public class ParameterTypeTupel extends CombinedParameterType {
     }
 
     public static String[] transformString2Tupel(String parameterValue) {
-        if ((parameterValue == null) || parameterValue.isEmpty()){
+        if (parameterValue == null || parameterValue.isEmpty()){
             return new String[2];
         }
         List<String> split = Tools.unescape(parameterValue, ESCAPE_CHAR, INTERNAL_SPECIAL_CHARACTERS, INTERNAL_SEPERATOR_CHAR);
@@ -281,12 +280,12 @@ public class ParameterTypeTupel extends CombinedParameterType {
     }
 
     @Override
-    public void getDefinitionAsXML(Element typeElement) {
+    protected void writeDefinitionToXML(Element typeElement) {
 
         Element childTypesElement = XMLTools.addTag(typeElement, ELEMENT_CHILD_TYPES);
         for (ParameterType type: types) {
             Element childTypeElement = XMLTools.addTag(childTypesElement, ELEMENT_CHILD_TYPE);
-            type.getDefinitionAsXML(childTypeElement);
+            type.writeDefinitionToXML(childTypeElement);
         }
 
         // now default list

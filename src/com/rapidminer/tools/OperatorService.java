@@ -56,6 +56,7 @@ import com.rapidminer.operator.ports.Port;
 import com.rapidminer.operator.ports.Ports;
 import com.rapidminer.operator.tools.OperatorCreationHook;
 import com.rapidminer.tools.documentation.OperatorDocBundle;
+import com.rapidminer.tools.documentation.XMLOperatorDocBundle;
 import com.rapidminer.tools.plugin.Plugin;
 import com.sun.corba.se.spi.orb.OperationFactory;
 
@@ -132,14 +133,14 @@ public class OperatorService {
 
         // additional operators from starting parameter
         String additionalOperators = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_OPERATORS_ADDITIONAL);
-        if ((additionalOperators != null) && !additionalOperators.isEmpty()) {
+        if (additionalOperators != null && !additionalOperators.isEmpty()) {
             if (!RapidMiner.getExecutionMode().canAccessFilesystem()) {
                 LogService.getRoot().config("Execution mode " + RapidMiner.getExecutionMode() + " does not permit accessing the file system. Ignoring additional operator description files '" + additionalOperators + "'.");
             } else {
                 LogService.getRoot().info("Loading additional operators specified by RapidMiner.PROPERTY_RAPIDMINER_OPERATORS_ADDITIONAL (" + additionalOperators + ")");
                 String[] additionalOperatorFileNames = additionalOperators.split(File.pathSeparator);
-                for (int i = 0; i < additionalOperatorFileNames.length; i++) {
-                    File additionalOperatorFile = new File(additionalOperatorFileNames[i]);
+                for (String additionalOperatorFileName : additionalOperatorFileNames) {
+                    File additionalOperatorFile = new File(additionalOperatorFileName);
                     if (additionalOperatorFile.exists()) {
                         FileInputStream in = null;
                         try {
@@ -156,7 +157,7 @@ public class OperatorService {
                             }
                         }
                     } else {
-                        LogService.getRoot().severe("Cannot find operator description file '" + additionalOperatorFileNames[i] + "'");
+                        LogService.getRoot().severe("Cannot find operator description file '" + additionalOperatorFileName + "'");
                     }
                 }
             }
@@ -221,11 +222,11 @@ public class OperatorService {
     private static void parseOperators(Document document, ClassLoader classLoader, Plugin provider) throws XMLException, OperatorCreationException {
         String docBundle = document.getDocumentElement().getAttribute("docbundle");
         OperatorDocBundle bundle;
-        if ((docBundle == null) || docBundle.isEmpty()) {
+        if (docBundle == null || docBundle.isEmpty()) {
             bundle = null;
             LogService.getRoot().warning("Operators for " + provider.getName() + " don't have an attached documentation.");
         } else {
-            bundle = OperatorDocBundle.load(classLoader, docBundle);
+            bundle = XMLOperatorDocBundle.load(classLoader, docBundle);
         }
 
         parseOperators(groupTreeRoot, document.getDocumentElement(), classLoader, provider, bundle);
@@ -241,7 +242,7 @@ public class OperatorService {
                     String name = childElement.getAttribute("key");
                     String icon = XMLTools.getTagContents(childElement, "icon");
                     GroupTree newTree;
-                    if ((name != null) && !name.isEmpty()) {
+                    if (name != null && !name.isEmpty()) {
                         newTree = currentGroup.getOrCreateSubGroup(name, bundle);
                     } else {
                         newTree = currentGroup;
@@ -277,7 +278,7 @@ public class OperatorService {
                     }
                 } else if (childElement.getTagName().equals("factory")) {
                     String factoryClassName = childElement.getTextContent();
-                    if ((factoryClassName == null) || (factoryClassName.isEmpty())) {
+                    if (factoryClassName == null || factoryClassName.isEmpty()) {
                         LogService.getRoot().warning("Malformed operator descriptor: <factory> tag must contain class name!");
                     } else {
                         Class factoryClass = null;
@@ -440,7 +441,7 @@ public class OperatorService {
      * This method can be used to dynamically remove Operators from the number of defined operators.
      */
     public static void unregisterOperator(OperatorDescription description) {
-        KEYS_TO_DESCRIPTIONS.remove(description).getKey();
+        KEYS_TO_DESCRIPTIONS.remove(description.getKey());
         REGISTERED_OPERATOR_CLASSES.remove(description.getOperatorClass());
 
         // inform all listener including GroupTree
@@ -471,14 +472,17 @@ public class OperatorService {
 
     /** Returns a sorted set of all short IO object names. */
     public static Set<String> getIOObjectsNames() {
+        //TODO: Check if this can be replaced!
         //return RendererService.getAllRenderableObjectNames();
         return IO_OBJECT_NAME_MAP.keySet();
     }
 
     /** Returns the class for the short name of an IO object. */
     public static Class<? extends IOObject> getIOObjectClass(String name) {
-        //assert (IO_OBJECT_NAME_MAP.get(name).equals(RendererService.getClass(name)));
-        //return RendererService.getClass(name);
+        // TODO: CHECK
+        //        assert (IO_OBJECT_NAME_MAP.get(name).equals(RendererService.getClass(name)));
+        //
+        //        return RendererService.getClass(name);
         return IO_OBJECT_NAME_MAP.get(name);
     }
 
@@ -601,14 +605,15 @@ public class OperatorService {
     /**
      * Returns a replacement if the given operator class is deprecated, and null
      * otherwise.
+     * The deprecated Key is the key with that this operator was used in RapidMiner 4.x
      */
-    public static String getReplacementForDeprecatedClass(String deprecatedClass) {
-        return DEPRECATION_MAP.get(deprecatedClass);
+    public static String getReplacementForDeprecatedClass(String deprecatedKey) {
+        return DEPRECATION_MAP.get(deprecatedKey);
     }
 
     /** Specifies a list of files to be loaded as operator descriptors. */
     public static void setAdditionalOperatorDescriptors(String... files) {
-        if ((files == null) || (files.length == 0)) {
+        if (files == null || files.length == 0) {
             System.setProperty(RapidMiner.PROPERTY_RAPIDMINER_OPERATORS_ADDITIONAL, null);
             return;
         }
@@ -679,8 +684,8 @@ public class OperatorService {
      * This method will inform all listeners of a change in the available operators.
      */
     private static void invokeOperatorRegisteredListener(OperatorDescription description, OperatorDocBundle bundle) {
-    	List<WeakReference<OperatorServiceListener>> listenersCopy = new LinkedList<WeakReference<OperatorServiceListener>>(listeners);
-    	for (WeakReference<OperatorServiceListener> listenerRef : listenersCopy) {
+        List<WeakReference<OperatorServiceListener>> listenersCopy = new LinkedList<WeakReference<OperatorServiceListener>>(listeners);
+        for (WeakReference<OperatorServiceListener> listenerRef : listenersCopy) {
             OperatorServiceListener operatorServiceListener = listenerRef.get();
             if (operatorServiceListener != null)
                 operatorServiceListener.operatorRegistered(description, bundle);
@@ -698,12 +703,16 @@ public class OperatorService {
      * This method will inform all listeners of a change in the available operators.
      */
     private static void invokeOperatorUnregisteredListener(OperatorDescription description) {
-        Iterator<WeakReference<OperatorServiceListener>> iterator = listeners.iterator();
-        while (iterator.hasNext()) {
-            OperatorServiceListener operatorServiceListener = iterator.next().get();
+        List<WeakReference<OperatorServiceListener>> listenersCopy = new LinkedList<WeakReference<OperatorServiceListener>>(listeners);
+        for (WeakReference<OperatorServiceListener> listenerRef : listenersCopy) {
+            OperatorServiceListener operatorServiceListener = listenerRef.get();
             if (operatorServiceListener != null)
                 operatorServiceListener.operatorUnregistered(description);
-            else
+        }
+        Iterator<WeakReference<OperatorServiceListener>> iterator = listenersCopy.iterator();
+        while (iterator.hasNext()) {
+            OperatorServiceListener operatorServiceListener = iterator.next().get();
+            if (operatorServiceListener == null)
                 iterator.remove();
         }
     }

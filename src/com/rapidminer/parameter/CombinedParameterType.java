@@ -24,7 +24,6 @@ package com.rapidminer.parameter;
 
 import org.w3c.dom.Element;
 
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.XMLException;
 
 
@@ -43,7 +42,7 @@ public abstract class CombinedParameterType extends ParameterType {
         super(key, description);
     }
 
-    public CombinedParameterType(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public CombinedParameterType(Element element) throws XMLException {
+        super(element);
     }
 }

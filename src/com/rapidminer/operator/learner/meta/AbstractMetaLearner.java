@@ -43,6 +43,7 @@ import com.rapidminer.operator.ports.metadata.PassThroughRule;
 import com.rapidminer.operator.ports.metadata.PredictionModelMetaData;
 import com.rapidminer.operator.ports.metadata.SimplePrecondition;
 import com.rapidminer.operator.ports.metadata.SubprocessTransformRule;
+import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
 
 
@@ -56,141 +57,145 @@ import com.rapidminer.tools.Tools;
  */
 public abstract class AbstractMetaLearner extends OperatorChain implements Learner {
 
-	protected final InputPort exampleSetInput = getInputPorts().createPort("training set");
-	private final OutputPort modelOutput = getOutputPorts().createPort("model");
-	private final OutputPort innerExampleSource = getSubprocess(0).getInnerSources().createPort("training set");
-	protected final InputPort innerModelSink = getSubprocess(0).getInnerSinks().createPort("model");
-	private final OutputPort exampleSetOutput = getOutputPorts().createPort("example set");
+    protected final InputPort exampleSetInput = getInputPorts().createPort("training set");
+    private final OutputPort modelOutput = getOutputPorts().createPort("model");
+    private final OutputPort innerExampleSource = getSubprocess(0).getInnerSources().createPort("training set");
+    protected final InputPort innerModelSink = getSubprocess(0).getInnerSinks().createPort("model");
+    private final OutputPort exampleSetOutput = getOutputPorts().createPort("example set");
 
-	public AbstractMetaLearner(OperatorDescription description) {
-		super(description, "Learning Process");
-		exampleSetInput.addPrecondition(new LearnerPrecondition(this, exampleSetInput));
-		innerModelSink.addPrecondition(new SimplePrecondition(innerModelSink, new PredictionModelMetaData(PredictionModel.class, new ExampleSetMetaData())));				
-		getTransformer().addRule(new PassThroughRule(exampleSetInput, innerExampleSource, true) {
-			@Override
-			public MetaData modifyMetaData(MetaData unmodifiedMetaData) {
-				if (unmodifiedMetaData instanceof ExampleSetMetaData)
-					return modifyExampleSetMetaData((ExampleSetMetaData) unmodifiedMetaData);
-				return unmodifiedMetaData;
-			}
-		});
-		getTransformer().addRule(new SubprocessTransformRule(getSubprocess(0)));
-		getTransformer().addRule(new PassThroughRule(innerModelSink, modelOutput, true) {
-			@Override
-			public MetaData modifyMetaData(MetaData unmodifiedMetaData) {
-				if (unmodifiedMetaData instanceof PredictionModelMetaData) {
-					return modifyGeneratedModelMetaData((PredictionModelMetaData)unmodifiedMetaData);
-				} else {
-					return super.modifyMetaData(unmodifiedMetaData);
-				}
-			}
-		});
-		getTransformer().addPassThroughRule(exampleSetInput, exampleSetOutput);
-	}
+    public AbstractMetaLearner(OperatorDescription description) {
+        super(description, "Learning Process");
+        exampleSetInput.addPrecondition(new LearnerPrecondition(this, exampleSetInput));
+        innerModelSink.addPrecondition(new SimplePrecondition(innerModelSink, new PredictionModelMetaData(PredictionModel.class, new ExampleSetMetaData())));
+        getTransformer().addRule(new PassThroughRule(exampleSetInput, innerExampleSource, true) {
+            @Override
+            public MetaData modifyMetaData(MetaData unmodifiedMetaData) {
+                if (unmodifiedMetaData instanceof ExampleSetMetaData)
+                    return modifyExampleSetMetaData((ExampleSetMetaData) unmodifiedMetaData);
+                return unmodifiedMetaData;
+            }
+        });
+        getTransformer().addRule(new SubprocessTransformRule(getSubprocess(0)));
+        getTransformer().addRule(new PassThroughRule(innerModelSink, modelOutput, true) {
+            @Override
+            public MetaData modifyMetaData(MetaData unmodifiedMetaData) {
+                if (unmodifiedMetaData instanceof PredictionModelMetaData) {
+                    return modifyGeneratedModelMetaData((PredictionModelMetaData)unmodifiedMetaData);
+                } else {
+                    return super.modifyMetaData(unmodifiedMetaData);
+                }
+            }
+        });
+        getTransformer().addPassThroughRule(exampleSetInput, exampleSetOutput);
+    }
 
-	/** Modifies the meta data of the generated model. */
-	protected MetaData modifyGeneratedModelMetaData(PredictionModelMetaData unmodifiedMetaData) {
-		return unmodifiedMetaData;
-	}
+    /** Modifies the meta data of the generated model. */
+    protected MetaData modifyGeneratedModelMetaData(PredictionModelMetaData unmodifiedMetaData) {
+        return unmodifiedMetaData;
+    }
 
-	/**
-	 * This method can be used by subclasses to additionally change the example set meta data delivered
-	 * to the inner learner
-	 */
-	protected MetaData modifyExampleSetMetaData(ExampleSetMetaData unmodifiedMetaData) {
-		return unmodifiedMetaData;
-	}
+    /**
+     * This method can be used by subclasses to additionally change the example set meta data delivered
+     * to the inner learner
+     */
+    protected MetaData modifyExampleSetMetaData(ExampleSetMetaData unmodifiedMetaData) {
+        return unmodifiedMetaData;
+    }
 
-	public InputPort getTrainingSetInputPort() {
-		return exampleSetInput;
-	}
+    public InputPort getTrainingSetInputPort() {
+        return exampleSetInput;
+    }
 
-	public OutputPort getModelOutputPort() {
-		return modelOutput;
-	}
+    public OutputPort getModelOutputPort() {
+        return modelOutput;
+    }
 
-	public InputPort getInnerModelSink() {
-		return innerModelSink;
-	}
-	/**
-	 * Trains a model using an ExampleSet from the input. Uses the method
-	 * learn(ExampleSet).
-	 */
-	@Override
-	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+    public InputPort getInnerModelSink() {
+        return innerModelSink;
+    }
+    /**
+     * Trains a model using an ExampleSet from the input. Uses the method
+     * learn(ExampleSet).
+     */
+    @Override
+    public void doWork() throws OperatorException {
+        ExampleSet exampleSet = exampleSetInput.getData();
 
-		// some checks
-		if (exampleSet.getAttributes().getLabel() == null) {
-			throw new UserError(this, 105, new Object[0]);
-		}
-		if (exampleSet.getAttributes().size() == 0) {
-			throw new UserError(this, 106, new Object[0]);
-		}
+        // some checks
+        if (exampleSet.getAttributes().getLabel() == null) {
+            throw new UserError(this, 105, new Object[0]);
+        }
+        if (exampleSet.getAttributes().size() == 0) {
+            throw new UserError(this, 106, new Object[0]);
+        }
 
-		// check capabilities and produce errors if they are not fulfilled
-		CapabilityCheck check = new CapabilityCheck(this, Tools.booleanValue(System.getProperty(AbstractLearner.PROPERTY_RAPIDMINER_GENERAL_CAPABILITIES_WARN), true));
-		check.checkLearnerCapabilities(this, exampleSet);
+        // check capabilities and produce errors if they are not fulfilled
+        CapabilityCheck check = new CapabilityCheck(this, Tools.booleanValue(ParameterService.getParameterValue(AbstractLearner.PROPERTY_RAPIDMINER_GENERAL_CAPABILITIES_WARN), true));
+        check.checkLearnerCapabilities(this, exampleSet);
 
-		Model model = learn(exampleSet);
+        Model model = learn(exampleSet);
 
-		modelOutput.deliver(model);
-		exampleSetOutput.deliver(exampleSet);
-	}
+        modelOutput.deliver(model);
+        exampleSetOutput.deliver(exampleSet);
+    }
 
-	/**
-	 * This is a convenience method to apply the inner operators and return the
-	 * model which must be output of the last operator.
-	 */
-	protected Model applyInnerLearner(ExampleSet exampleSet) throws OperatorException {
-		innerExampleSource.deliver(exampleSet);
-		executeInnerLearner();
-		return (Model)innerModelSink.getData();
-	}
+    /**
+     * This is a convenience method to apply the inner operators and return the
+     * model which must be output of the last operator.
+     */
+    protected Model applyInnerLearner(ExampleSet exampleSet) throws OperatorException {
+        innerExampleSource.deliver(exampleSet);
+        executeInnerLearner();
+        return (Model)innerModelSink.getData();
+    }
 
-	protected void executeInnerLearner() throws OperatorException {
-		getSubprocess(0).execute();
-	}
+    protected void executeInnerLearner() throws OperatorException {
+        getSubprocess(0).execute();
+    }
 
-	@Override
-	public boolean shouldAutoConnect(OutputPort port) {
-		if (port == exampleSetOutput) {
-			return getParameterAsBoolean("keep_example_set");
-		} else {
-			return super.shouldAutoConnect(port);
-		}
-	}
+    @Override
+    public boolean shouldAutoConnect(OutputPort port) {
+        if (port == exampleSetOutput) {
+            return getParameterAsBoolean("keep_example_set");
+        } else {
+            return super.shouldAutoConnect(port);
+        }
+    }
 
-	/**
-	 * Returns true if the user wants to estimate the performance (depending on
-	 * a parameter). In this case the method getEstimatedPerformance() must also
-	 * be overridden and deliver the estimated performance. The default
-	 * implementation returns false.
-	 */
-	public boolean shouldEstimatePerformance() {
-		return false;
-	}
+    /**
+     * Returns true if the user wants to estimate the performance (depending on
+     * a parameter). In this case the method getEstimatedPerformance() must also
+     * be overridden and deliver the estimated performance. The default
+     * implementation returns false.
+     */
+    @Override
+    public boolean shouldEstimatePerformance() {
+        return false;
+    }
 
-	/**
-	 * Returns true if the user wants to calculate feature weights (depending on
-	 * a parameter). In this case the method getWeights() must also be overriden
-	 * and deliver the calculated weights. The default implementation returns
-	 * false.
-	 */
-	public boolean shouldCalculateWeights() {
-		return false;
-	}
+    /**
+     * Returns true if the user wants to calculate feature weights (depending on
+     * a parameter). In this case the method getWeights() must also be overriden
+     * and deliver the calculated weights. The default implementation returns
+     * false.
+     */
+    @Override
+    public boolean shouldCalculateWeights() {
+        return false;
+    }
 
-	/** The default implementation throws an exception. */
-	public PerformanceVector getEstimatedPerformance() throws OperatorException {
-		throw new UserError(this, 912, getName(), "estimation of performance not supported.");
-	}
+    /** The default implementation throws an exception. */
+    @Override
+    public PerformanceVector getEstimatedPerformance() throws OperatorException {
+        throw new UserError(this, 912, getName(), "estimation of performance not supported.");
+    }
 
-	/**
-	 * Returns the calculated weight vectors. The default implementation throws
-	 * an exception.
-	 */
-	public AttributeWeights getWeights(ExampleSet exampleSet) throws OperatorException {
-		throw new UserError(this, 916, getName(), "calculation of weights not supported.");
-	}
+    /**
+     * Returns the calculated weight vectors. The default implementation throws
+     * an exception.
+     */
+    @Override
+    public AttributeWeights getWeights(ExampleSet exampleSet) throws OperatorException {
+        throw new UserError(this, 916, getName(), "calculation of weights not supported.");
+    }
 }

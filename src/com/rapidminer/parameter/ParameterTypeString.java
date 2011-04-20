@@ -25,7 +25,6 @@ package com.rapidminer.parameter;
 import org.w3c.dom.Element;
 
 import com.rapidminer.io.process.XMLTools;
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.XMLException;
 
 /**
@@ -42,8 +41,8 @@ public class ParameterTypeString extends ParameterTypeSingle {
 
     private String defaultValue = null;
 
-    public ParameterTypeString(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeString(Element element) throws XMLException {
+        super(element);
 
         defaultValue = XMLTools.getTagContents(element, ELEMENT_DEFAULT);
     }
@@ -88,11 +87,11 @@ public class ParameterTypeString extends ParameterTypeSingle {
 
     @Override
     public String getRange() {
-        return "string" + ((defaultValue != null) ? ("; default: '" + defaultValue + "'") : "");
+        return "string" + (defaultValue != null ? "; default: '" + defaultValue + "'" : "");
     }
 
     @Override
-    public void getDefinitionAsXML(Element typeElement) {
+    protected void writeDefinitionToXML(Element typeElement) {
         if (defaultValue != null)
             XMLTools.addTag(typeElement, ELEMENT_DEFAULT, defaultValue);
     }

@@ -30,7 +30,6 @@ import org.w3c.dom.Element;
 
 import com.rapidminer.MacroHandler;
 import com.rapidminer.io.process.XMLTools;
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.XMLException;
 
@@ -57,10 +56,10 @@ public class ParameterTypeEnumeration extends CombinedParameterType {
 
     private ParameterType type;
 
-    public ParameterTypeEnumeration(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeEnumeration(Element element) throws XMLException {
+        super(element);
 
-        type = ParameterType.createType(operator, XMLTools.getChildElement(element, ELEMENT_CHILD_TYPE, true));
+        type = ParameterType.createType(XMLTools.getChildElement(element, ELEMENT_CHILD_TYPE, true));
         Element defaultValueElement = XMLTools.getChildElement(element, ELEMENT_DEFAULT_VALUE, false);
         if (defaultValueElement != null)
             defaultValue = defaultValueElement.getTextContent();
@@ -200,9 +199,9 @@ public class ParameterTypeEnumeration extends CombinedParameterType {
     }
 
     @Override
-    public void getDefinitionAsXML(Element typeElement) {
+    protected void writeDefinitionToXML(Element typeElement) {
         Element childTypeElement = XMLTools.addTag(typeElement, ELEMENT_CHILD_TYPE);
-        type.getDefinitionAsXML(childTypeElement);
+        type.writeDefinitionToXML(childTypeElement);
 
         if (defaultValue instanceof String) {
             XMLTools.addTag(typeElement, ELEMENT_DEFAULT_VALUE, defaultValue.toString());

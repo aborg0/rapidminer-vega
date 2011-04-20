@@ -24,7 +24,6 @@ package com.rapidminer.parameter;
 
 import org.w3c.dom.Element;
 
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.XMLException;
 
 /**
@@ -42,8 +41,8 @@ public class ParameterTypeFile extends ParameterTypeString {
 
     private String extension = null;
 
-    public ParameterTypeFile(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeFile(Element element) throws XMLException {
+        super(element);
         if (element.hasAttribute(ATTRIBUTE_EXTENSION))
             this.extension = element.getAttribute(ATTRIBUTE_EXTENSION);
     }
@@ -82,8 +81,8 @@ public class ParameterTypeFile extends ParameterTypeString {
     }
 
     @Override
-    public void getDefinitionAsXML(Element typeElement) {
-        super.getDefinitionAsXML(typeElement);
+    protected void writeDefinitionToXML(Element typeElement) {
+        super.writeDefinitionToXML(typeElement);
         if (extension != null)
             typeElement.setAttribute(ATTRIBUTE_EXTENSION, extension);
     }

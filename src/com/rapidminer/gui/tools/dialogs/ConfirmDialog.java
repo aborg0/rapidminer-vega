@@ -44,151 +44,152 @@ import com.rapidminer.tools.ParameterService;
  */
 public class ConfirmDialog extends ButtonDialog {
 
-	private static final long serialVersionUID = -5825873580778775409L;
-	
-	public static final int OK_OPTION = JOptionPane.OK_OPTION;
-	
-	public static final int YES_OPTION = JOptionPane.YES_OPTION;
-	
-	public static final int NO_OPTION = JOptionPane.NO_OPTION;
-	
-	public static final int CANCEL_OPTION = JOptionPane.CANCEL_OPTION;
-	
-	public static final int CLOSED_OPTION = JOptionPane.CLOSED_OPTION;
-	
-	public static final int OK_CANCEL_OPTION = JOptionPane.OK_CANCEL_OPTION;
-	
-	public static final int YES_NO_OPTION = JOptionPane.YES_NO_OPTION;
-	
-	public static final int YES_NO_CANCEL_OPTION = JOptionPane.YES_NO_CANCEL_OPTION;
-	
-	
-	private int returnOption = CANCEL_OPTION;
+    private static final long serialVersionUID = -5825873580778775409L;
 
-	private JCheckBox dontAskAgainCheckbox = null;
-		
-	public ConfirmDialog(String key, int mode, boolean showAskAgainCheckbox, Object...arguments) {
-		super("confirm." + key, true, arguments);
-		Collection<AbstractButton> buttons = new LinkedList<AbstractButton>();
-		switch (mode) {
-		case OK_CANCEL_OPTION:
-			buttons.add(makeOkButton());
-			buttons.add(makeCancelButton());
-			break;
-		case YES_NO_OPTION:
-			buttons.add(makeYesButton());
-			buttons.add(makeNoButton());
-			break;
-		case YES_NO_CANCEL_OPTION:
-			buttons.add(makeYesButton());
-			buttons.add(makeNoButton());
-			buttons.add(makeCancelButton());
-			break;
-		}
-		
-		if (showAskAgainCheckbox) {
-			this.dontAskAgainCheckbox  = new JCheckBox(new ResourceActionAdapter("dont_ask_again"));
-		}
-		layoutDefault(this.dontAskAgainCheckbox, buttons);
-	}
-	
-	@Override
-	protected Icon getInfoIcon() {
-		String iconKey = I18N.getMessageOrNull(I18N.getGUIBundle(), getKey() + ".icon");
-		if (iconKey == null) {
-			return SwingTools.createIcon("48/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.confirm.icon"));
-		} else {
-			return SwingTools.createIcon("48/" + iconKey);
-		}
-	}
+    public static final int OK_OPTION = JOptionPane.OK_OPTION;
 
-	@Override
-	protected JButton makeOkButton() {
-		return new JButton(new ResourceAction("ok") {
-			private static final long serialVersionUID = -8887199234055845095L;
+    public static final int YES_OPTION = JOptionPane.YES_OPTION;
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				returnOption = OK_OPTION;
-				ok();
-			}
-		});
-	}
+    public static final int NO_OPTION = JOptionPane.NO_OPTION;
 
-	@Override
-	protected JButton makeCancelButton() {
-		return new JButton(new ResourceAction("cancel") {
-			private static final long serialVersionUID = -8887199234055845095L;
+    public static final int CANCEL_OPTION = JOptionPane.CANCEL_OPTION;
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				returnOption = CANCEL_OPTION;
-				cancel();
-			}
-		});
-	}
-	
-	protected JButton makeYesButton() {
-		return new JButton(new ResourceAction("confirm.yes") {
-			private static final long serialVersionUID = -8887199234055845095L;
+    public static final int CLOSED_OPTION = JOptionPane.CLOSED_OPTION;
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				returnOption = YES_OPTION;
-				yes();
-			}
-		});
-	}
-	
-	protected JButton makeNoButton() {
-		return new JButton(new ResourceAction("confirm.no") {
-			private static final long serialVersionUID = -8887199234055845095L;
+    public static final int OK_CANCEL_OPTION = JOptionPane.OK_CANCEL_OPTION;
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				returnOption = NO_OPTION;
-				no();
-			}
-		});
-	}
-	
-	@Override
-	protected void ok() {
-		dispose();
-	}
-	
-	@Override
-	protected void cancel() {
-		dispose();
-	}
-	
-	protected void yes() {
-		dispose();
-	}
-	
-	protected void no() {
-		dispose();
-	}
+    public static final int YES_NO_OPTION = JOptionPane.YES_NO_OPTION;
 
-	public int getReturnOption() {
-		return returnOption;
-	}
-	
-	public static int showConfirmDialog(String key, int mode, String propertyConfirmExit, int defaultOption, Object ... i18nArgs) {
-		if (propertyConfirmExit == null) {
-			ConfirmDialog dialog = new ConfirmDialog(key, mode, true, i18nArgs);
-			dialog.setVisible(true);
-			return dialog.getReturnOption();
-		} else {
-			String askProperty = System.getProperty(propertyConfirmExit);
-			if (!"false".equals(askProperty)) {
-				ConfirmDialog dialog = new ConfirmDialog(key, mode, true, i18nArgs);
-				dialog.setVisible(true);
-				ParameterService.writePropertyIntoMainUserConfigFile(propertyConfirmExit, Boolean.toString(!dialog.dontAskAgainCheckbox.isSelected()));				
-				return dialog.getReturnOption();
-			} else {			
-				return defaultOption;
-			}
-		}
-	}
+    public static final int YES_NO_CANCEL_OPTION = JOptionPane.YES_NO_CANCEL_OPTION;
+
+
+    private int returnOption = CANCEL_OPTION;
+
+    private JCheckBox dontAskAgainCheckbox = null;
+
+    public ConfirmDialog(String key, int mode, boolean showAskAgainCheckbox, Object...arguments) {
+        super("confirm." + key, true, arguments);
+        Collection<AbstractButton> buttons = new LinkedList<AbstractButton>();
+        switch (mode) {
+        case OK_CANCEL_OPTION:
+            buttons.add(makeOkButton());
+            buttons.add(makeCancelButton());
+            break;
+        case YES_NO_OPTION:
+            buttons.add(makeYesButton());
+            buttons.add(makeNoButton());
+            break;
+        case YES_NO_CANCEL_OPTION:
+            buttons.add(makeYesButton());
+            buttons.add(makeNoButton());
+            buttons.add(makeCancelButton());
+            break;
+        }
+
+        if (showAskAgainCheckbox) {
+            this.dontAskAgainCheckbox  = new JCheckBox(new ResourceActionAdapter("dont_ask_again"));
+        }
+        layoutDefault(this.dontAskAgainCheckbox, buttons);
+    }
+
+    @Override
+    protected Icon getInfoIcon() {
+        String iconKey = I18N.getMessageOrNull(I18N.getGUIBundle(), getKey() + ".icon");
+        if (iconKey == null) {
+            return SwingTools.createIcon("48/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.confirm.icon"));
+        } else {
+            return SwingTools.createIcon("48/" + iconKey);
+        }
+    }
+
+    @Override
+    protected JButton makeOkButton() {
+        return new JButton(new ResourceAction("ok") {
+            private static final long serialVersionUID = -8887199234055845095L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                returnOption = OK_OPTION;
+                ok();
+            }
+        });
+    }
+
+    @Override
+    protected JButton makeCancelButton() {
+        return new JButton(new ResourceAction("cancel") {
+            private static final long serialVersionUID = -8887199234055845095L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                returnOption = CANCEL_OPTION;
+                cancel();
+            }
+        });
+    }
+
+    protected JButton makeYesButton() {
+        return new JButton(new ResourceAction("confirm.yes") {
+            private static final long serialVersionUID = -8887199234055845095L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                returnOption = YES_OPTION;
+                yes();
+            }
+        });
+    }
+
+    protected JButton makeNoButton() {
+        return new JButton(new ResourceAction("confirm.no") {
+            private static final long serialVersionUID = -8887199234055845095L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                returnOption = NO_OPTION;
+                no();
+            }
+        });
+    }
+
+    @Override
+    protected void ok() {
+        dispose();
+    }
+
+    @Override
+    protected void cancel() {
+        dispose();
+    }
+
+    protected void yes() {
+        dispose();
+    }
+
+    protected void no() {
+        dispose();
+    }
+
+    public int getReturnOption() {
+        return returnOption;
+    }
+
+    public static int showConfirmDialog(String key, int mode, String propertyConfirmExit, int defaultOption, Object ... i18nArgs) {
+        if (propertyConfirmExit == null) {
+            ConfirmDialog dialog = new ConfirmDialog(key, mode, true, i18nArgs);
+            dialog.setVisible(true);
+            return dialog.getReturnOption();
+        } else {
+            String askProperty = ParameterService.getParameterValue(propertyConfirmExit);
+            if (!"false".equals(askProperty)) {
+                ConfirmDialog dialog = new ConfirmDialog(key, mode, true, i18nArgs);
+                dialog.setVisible(true);
+                ParameterService.setParameterValue(propertyConfirmExit, Boolean.toString(!dialog.dontAskAgainCheckbox.isSelected()));
+                ParameterService.saveParameters();
+                return dialog.getReturnOption();
+            } else {
+                return defaultOption;
+            }
+        }
+    }
 }

@@ -28,9 +28,7 @@ import org.w3c.dom.Element;
 import com.rapidminer.MacroHandler;
 import com.rapidminer.gui.wizards.PreviewCreator;
 import com.rapidminer.gui.wizards.PreviewListener;
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.LogService;
-import com.rapidminer.tools.XMLException;
 
 
 /**
@@ -44,27 +42,10 @@ public class ParameterTypePreview extends ParameterType {
 
     private static final long serialVersionUID = 6538432700371374278L;
 
-    private static final String ATTRIBUTE_PREVIEW_CLASS = "preview-class";
-
     private Class<? extends PreviewCreator> previewCreatorClass;
 
     private transient PreviewListener previewListener;
 
-    @SuppressWarnings("unchecked")
-    public ParameterTypePreview(Operator operator, Element element) throws XMLException {
-        super(operator, element);
-
-        this.previewListener = operator;
-        String previewCreatorClassName = element.getAttribute(ATTRIBUTE_PREVIEW_CLASS);
-        try {
-            previewCreatorClass = (Class<? extends PreviewCreator>) Class.forName(previewCreatorClassName);
-
-        } catch (ClassNotFoundException e) {
-            throw new XMLException("Illegal value for attribute " + ATTRIBUTE_PREVIEW_CLASS, e);
-        } catch (ClassCastException e) {
-            throw new XMLException("Illegal value for attribute " + ATTRIBUTE_PREVIEW_CLASS, e);
-        }
-    }
 
     public ParameterTypePreview(Class<? extends PreviewCreator> previewCreatorClass, PreviewListener previewListener) {
         this("preview", "Shows a preview for the results which will be achieved by the current configuration.", previewCreatorClass, previewListener);
@@ -129,10 +110,5 @@ public class ParameterTypePreview extends ParameterType {
     @Override
     public String substituteMacros(String parameterValue, MacroHandler mh) {
         return parameterValue;
-    }
-
-    @Override
-    public void getDefinitionAsXML(Element typeElement) {
-        typeElement.setAttribute(ATTRIBUTE_PREVIEW_CLASS, previewCreatorClass.getCanonicalName());
     }
 }

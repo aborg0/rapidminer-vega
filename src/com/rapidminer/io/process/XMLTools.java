@@ -251,12 +251,12 @@ public class XMLTools {
     }
 
     public static String getTagContents(Element element, String tag, String deflt) {
-    	String result = getTagContents(element, tag);
-    	if (result == null) {
-    		return deflt;
-    	} else {
-    		return result;
-    	}
+        String result = getTagContents(element, tag);
+        if (result == null) {
+            return deflt;
+        } else {
+            return result;
+        }
     }
 
     /**
@@ -269,7 +269,7 @@ public class XMLTools {
         NodeList nodeList = parent.getChildNodes();
         for (int i = 0; i < nodeList.getLength(); i++) {
             Node node = nodeList.item(i);
-            if ((node instanceof Element) && ((Element) node).getTagName().equals(tagName)) {
+            if (node instanceof Element && ((Element) node).getTagName().equals(tagName)) {
                 Element child = (Element) node;
                 return child.getTextContent();
             }
@@ -493,6 +493,15 @@ public class XMLTools {
     }
 
     /**
+     * This is the same as {@link #getChildElement(Element, String, boolean)}, but its always
+     * obligatory to have the child element.
+     * @throws XMLException
+     */
+    public static Element getUniqueChildElement(Element father, String tagName) throws XMLException {
+        return getChildElement(father, tagName, true);
+    }
+
+    /**
      * This adds a single tag with the given content to the given parent element. The new tag is automatically appended.
      */
     public static void addTag(Element parent, String name, String textValue) {
@@ -518,7 +527,7 @@ public class XMLTools {
     }
 
     /**
-     * Returns the list of children and returns the given tag. This tag must be unique, or an exception will be raised.
+     * Returns the unique child of the given element with the given tag name. This child tag must be unique, or an exception will be raised.
      * If optional is false and the tag is missing, this method also raises an exception. Otherwise it returns null.
      */
     public static Element getChildTag(Element element, String xmlTagName, boolean optional) throws XMLException {
@@ -536,7 +545,7 @@ public class XMLTools {
                 }
             }
         }
-        if (!optional && (found == null)) {
+        if (!optional && found == null) {
             throw new XMLException("Tag <" + xmlTagName + "> in <" + element.getTagName() + "> is missing.");
         } else {
             return found;

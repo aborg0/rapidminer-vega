@@ -22,8 +22,6 @@
  */
 package com.rapidminer.gui.templates;
 
-import com.rapidminer.Process;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -56,6 +54,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
+import com.rapidminer.Process;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
@@ -64,7 +63,7 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.UndefinedParameterError;
-import com.rapidminer.tools.ParameterService;
+import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.Tools;
 
 
@@ -78,243 +77,244 @@ import com.rapidminer.tools.Tools;
  */
 public class SaveAsTemplateDialog extends ButtonDialog {
 
-	private static final long serialVersionUID = -4892200177390173103L;
-	
-	private boolean ok = false;
+    private static final long serialVersionUID = -4892200177390173103L;
 
-	private final Set<OperatorParameterPair> selectedParameters = new HashSet<OperatorParameterPair>();
+    private boolean ok = false;
 
-	private final JTextField nameField = new JTextField();
-	
-	private final JTextField groupField = new JTextField();
+    private final Set<OperatorParameterPair> selectedParameters = new HashSet<OperatorParameterPair>();
 
-	private final JTextArea descriptionField = new JTextArea(5, 40);
+    private final JTextField nameField = new JTextField();
 
-	private Process process;
+    private final JTextField groupField = new JTextField();
 
-	/** Creates a new save as template dialog. */
-	public SaveAsTemplateDialog(Process process) {
-		super("save_as_template", true);
-		this.process = process;
-		
-		descriptionField.setText(process.getRootOperator().getUserDescription());
-		descriptionField.setLineWrap(true);
-		descriptionField.setWrapStyleWord(true);		
-		
-		JPanel panel = new JPanel(new GridBagLayout());
-		GridBagConstraints c = new GridBagConstraints();		
-		c.anchor = GridBagConstraints.FIRST_LINE_START;
-		
-		JLabel label = new ResourceLabel("save_as_template.name");	
-		c.fill = GridBagConstraints.NONE;
-		c.weightx   = 0;
-		c.weighty   = 0;
-		c.gridwidth = GridBagConstraints.RELATIVE;
-		c.insets    = new Insets(0, 0, GAP, GAP);
-		label.setLabelFor(nameField);
-		panel.add(label, c);
+    private final JTextArea descriptionField = new JTextArea(5, 40);
 
-		c.weightx   = 1;
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		c.insets    = new Insets(0, 0, GAP, 0);
-		c.fill = GridBagConstraints.BOTH;
-		panel.add(nameField, c);
+    private Process process;
 
-		label = new ResourceLabel("save_as_template.group");	
-		c.fill = GridBagConstraints.NONE;
-		c.weightx   = 0;
-		c.weighty   = 0;
-		c.gridwidth = GridBagConstraints.RELATIVE;
-		c.insets    = new Insets(0, 0, GAP, GAP);
-		label.setLabelFor(groupField);
-		panel.add(label, c);
-		c.weightx   = 1;
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		c.insets    = new Insets(0, 0, GAP, 0);
-		c.fill = GridBagConstraints.BOTH;
-		panel.add(groupField, c);
+    /** Creates a new save as template dialog. */
+    public SaveAsTemplateDialog(Process process) {
+        super("save_as_template", true);
+        this.process = process;
 
-		
-		label = new ResourceLabel("save_as_template.description");
-		c.insets    = new Insets(0, 0, GAP, GAP);
-		c.weightx   = 0;
-		c.gridwidth = GridBagConstraints.RELATIVE;
-		c.fill = GridBagConstraints.NONE;
-		label.setLabelFor(descriptionField);
-		panel.add(label, c);
+        descriptionField.setText(process.getRootOperator().getUserDescription());
+        descriptionField.setLineWrap(true);
+        descriptionField.setWrapStyleWord(true);
 
-		c.weightx   = 1;
-		c.weighty   = 0.1;
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		c.insets    = new Insets(0, 0, GAP, 0);
-		c.fill = GridBagConstraints.BOTH;
-		JScrollPane descriptionPane = new ExtendedJScrollPane(descriptionField);
-		descriptionPane.setBorder(createBorder());
-		panel.add(descriptionPane, c);
-		
-		JScrollPane tablePane = new ExtendedJScrollPane(makeCheckboxTable(process.getRootOperator()));
-		tablePane.setBorder(createBorder());
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.FIRST_LINE_START;
 
-		c.weightx = 1;
-		c.weighty = .9;
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		c.insets    = new Insets(0, 0, 0, 0);
-		panel.add(tablePane, c);
+        JLabel label = new ResourceLabel("save_as_template.name");
+        c.fill = GridBagConstraints.NONE;
+        c.weightx   = 0;
+        c.weighty   = 0;
+        c.gridwidth = GridBagConstraints.RELATIVE;
+        c.insets    = new Insets(0, 0, GAP, GAP);
+        label.setLabelFor(nameField);
+        panel.add(label, c);
 
-		JButton okButton = makeOkButton();
-		layoutDefault(panel, NORMAL, okButton, makeCancelButton());
-		getRootPane().setDefaultButton(okButton);
-	}
+        c.weightx   = 1;
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        c.insets    = new Insets(0, 0, GAP, 0);
+        c.fill = GridBagConstraints.BOTH;
+        panel.add(nameField, c);
 
-	private JComponent makeCheckboxTable(Operator operator) {
-		List<Operator> ops = new LinkedList<Operator>();
-		ops.add(operator);
-		if (operator instanceof OperatorChain) {
-			ops.addAll(((OperatorChain)operator).getAllInnerOperators());
-		}
+        label = new ResourceLabel("save_as_template.group");
+        c.fill = GridBagConstraints.NONE;
+        c.weightx   = 0;
+        c.weighty   = 0;
+        c.gridwidth = GridBagConstraints.RELATIVE;
+        c.insets    = new Insets(0, 0, GAP, GAP);
+        label.setLabelFor(groupField);
+        panel.add(label, c);
+        c.weightx   = 1;
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        c.insets    = new Insets(0, 0, GAP, 0);
+        c.fill = GridBagConstraints.BOTH;
+        panel.add(groupField, c);
 
-		JPanel panel = new JPanel(new GridBagLayout());
-		GridBagConstraints c = new GridBagConstraints();
-		c.weightx = 1;
-		c.weighty = 0;
-		c.insets = new Insets(0, 0, 0, 0);
-		c.fill = GridBagConstraints.BOTH;
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		
-		for (Operator op : ops) {
-			JPanel operatorPanel = new JPanel(new BorderLayout());
-			Collection<ParameterType> parameterTypes = op.getParameters().getParameterTypes();
-			if (parameterTypes.isEmpty()) {
-				continue;
-			}
-			JLabel label = new JLabel("<html>"+op.getName()+"<br/><small>"+op.getOperatorDescription().getName()+"</small></html>");
-			//label.setFont(label.getFont().deriveFont(Font.BOLD));
-			label.setIcon(op.getOperatorDescription().getSmallIcon());
-			label.setPreferredSize(new Dimension(190,50));
-			label.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
-			label.setVerticalAlignment(SwingConstants.TOP);
-			operatorPanel.add(label, BorderLayout.WEST);
 
-			int size = parameterTypes.size();
-			GridLayout layout = new GridLayout(size, 2);
-			layout.setHgap(GAP);
-			layout.setVgap(GAP);
-			JPanel parameterPanel = new JPanel(layout);
-			for (final ParameterType type : parameterTypes) {
-				final JCheckBox box = new JCheckBox(type.getKey());
-				final OperatorParameterPair opp = new OperatorParameterPair(op.getName(), type.getKey());
-				box.setSelected(false);
-				parameterPanel.add(box);
-				box.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						if (box.isSelected()) {
-							selectedParameters.add(opp);
-						} else {
-							selectedParameters.remove(opp);
-						}
-					}					
-				});
+        label = new ResourceLabel("save_as_template.description");
+        c.insets    = new Insets(0, 0, GAP, GAP);
+        c.weightx   = 0;
+        c.gridwidth = GridBagConstraints.RELATIVE;
+        c.fill = GridBagConstraints.NONE;
+        label.setLabelFor(descriptionField);
+        panel.add(label, c);
 
-				String current;
-				try {
-					current = op.getParameterAsString(type.getKey());
-					if (current == null){
-						current = "";
-					}
-				} catch (UndefinedParameterError e1) {
-					current = "";					
-				}
-				JLabel currentLabel = new JLabel(current);
-				if (!current.equals(type.toString(type.getDefaultValue()))) {
-					currentLabel.setFont(currentLabel.getFont().deriveFont(Font.BOLD));
-					box.setSelected(true);
-					selectedParameters.add(opp);
-				}
-				parameterPanel.add(currentLabel);
-			}
-			operatorPanel.add(parameterPanel, BorderLayout.CENTER);
-			operatorPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
-																	   BorderFactory.createEmptyBorder(4, 4, 4, 4)));
-			panel.add(operatorPanel, c);
-		}
-		c.fill = GridBagConstraints.BOTH;
-		c.weighty = 1;
-		panel.add(new JPanel(new BorderLayout()), c);
-		return panel;
-	}
+        c.weightx   = 1;
+        c.weighty   = 0.1;
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        c.insets    = new Insets(0, 0, GAP, 0);
+        c.fill = GridBagConstraints.BOTH;
+        JScrollPane descriptionPane = new ExtendedJScrollPane(descriptionField);
+        descriptionPane.setBorder(createBorder());
+        panel.add(descriptionPane, c);
 
-	private void addMandatoryParameters(Operator operator, Set<OperatorParameterPair> selectedOptional) {
-		Iterator<ParameterType> i = operator.getParameters().getParameterTypes().iterator();
-		while (i.hasNext()) {
-			ParameterType type = i.next();
-			if (!type.isOptional() && !operator.getParameters().isSet(type.getKey())) {
-				selectedOptional.add(new OperatorParameterPair(operator.getName(), type.getKey()));
-			}
-		}
-		if (operator instanceof OperatorChain) {
-			for (Operator child : ((OperatorChain)operator).getImmediateChildren())
-				addMandatoryParameters(child, selectedOptional);
-		}
-	}
+        JScrollPane tablePane = new ExtendedJScrollPane(makeCheckboxTable(process.getRootOperator()));
+        tablePane.setBorder(createBorder());
 
-	public boolean isOk() {
-		return ok;
-	}
+        c.weightx = 1;
+        c.weighty = .9;
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        c.insets    = new Insets(0, 0, 0, 0);
+        panel.add(tablePane, c);
 
-	public Template getTemplate() {
-		String name = nameField.getText();
-		String group = groupField.getText();
-		Set<OperatorParameterPair> selectedOptional = new TreeSet<OperatorParameterPair>(new Comparator<OperatorParameterPair>() {
-			@Override
-			public int compare(OperatorParameterPair o1, OperatorParameterPair o2) {
-				return o1.compareTo(o2);
-			}			
-		});
-		selectedOptional.addAll(selectedParameters);
-		addMandatoryParameters(process.getRootOperator(), selectedOptional);
-		return new Template(name, group, descriptionField.getText(), name + ".xml", selectedOptional);
-	}
+        JButton okButton = makeOkButton();
+        layoutDefault(panel, NORMAL, okButton, makeCancelButton());
+        getRootPane().setDefaultButton(okButton);
+    }
 
-	private boolean checkIfNameOk() {
-		String name = nameField.getText();
-		if ((name == null) || (name.length() == 0)) {
-			SwingTools.showVerySimpleErrorMessage("no_template_name");
-			return false;
-		}
+    private JComponent makeCheckboxTable(Operator operator) {
+        List<Operator> ops = new LinkedList<Operator>();
+        ops.add(operator);
+        if (operator instanceof OperatorChain) {
+            ops.addAll(((OperatorChain)operator).getAllInnerOperators());
+        }
 
-//		File[] preDefinedTemplateFiles = ParameterService.getConfigFile("templates").listFiles(new FileFilter() {
-//			public boolean accept(File file) {
-//				return file.getName().endsWith(".template");
-//			}
-//		});
-		File[] userDefinedTemplateFiles = ParameterService.getUserRapidMinerDir().listFiles(new FileFilter() {
-			public boolean accept(File file) {
-				return file.getName().endsWith(".template");
-			}
-		});
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.weightx = 1;
+        c.weighty = 0;
+        c.insets = new Insets(0, 0, 0, 0);
+        c.fill = GridBagConstraints.BOTH;
+        c.gridwidth = GridBagConstraints.REMAINDER;
 
-		for (int i = 0; i < userDefinedTemplateFiles.length; i++) {
-			String tempName = userDefinedTemplateFiles[i].getName().substring(0, userDefinedTemplateFiles[i].getName().lastIndexOf("."));
-			if (tempName.equals(name)) {
-				SwingTools.showVerySimpleErrorMessage("Name '" + name + "' is already used." + Tools.getLineSeparator() + "Please change name or delete the old template!");
-				return false;
-			}
-		}
-		return true;
-	}
+        for (Operator op : ops) {
+            JPanel operatorPanel = new JPanel(new BorderLayout());
+            Collection<ParameterType> parameterTypes = op.getParameters().getParameterTypes();
+            if (parameterTypes.isEmpty()) {
+                continue;
+            }
+            JLabel label = new JLabel("<html>"+op.getName()+"<br/><small>"+op.getOperatorDescription().getName()+"</small></html>");
+            //label.setFont(label.getFont().deriveFont(Font.BOLD));
+            label.setIcon(op.getOperatorDescription().getSmallIcon());
+            label.setPreferredSize(new Dimension(190,50));
+            label.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+            label.setVerticalAlignment(SwingConstants.TOP);
+            operatorPanel.add(label, BorderLayout.WEST);
 
-	@Override
-	protected void ok() {
-		if (checkIfNameOk()) {
-			ok = true;
-			dispose();
-		}
-	}
+            int size = parameterTypes.size();
+            GridLayout layout = new GridLayout(size, 2);
+            layout.setHgap(GAP);
+            layout.setVgap(GAP);
+            JPanel parameterPanel = new JPanel(layout);
+            for (final ParameterType type : parameterTypes) {
+                final JCheckBox box = new JCheckBox(type.getKey());
+                final OperatorParameterPair opp = new OperatorParameterPair(op.getName(), type.getKey());
+                box.setSelected(false);
+                parameterPanel.add(box);
+                box.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (box.isSelected()) {
+                            selectedParameters.add(opp);
+                        } else {
+                            selectedParameters.remove(opp);
+                        }
+                    }
+                });
 
-	@Override
-	protected void cancel() {
-		ok = false;
-		dispose();
-	}
+                String current;
+                try {
+                    current = op.getParameterAsString(type.getKey());
+                    if (current == null){
+                        current = "";
+                    }
+                } catch (UndefinedParameterError e1) {
+                    current = "";
+                }
+                JLabel currentLabel = new JLabel(current);
+                if (!current.equals(type.toString(type.getDefaultValue()))) {
+                    currentLabel.setFont(currentLabel.getFont().deriveFont(Font.BOLD));
+                    box.setSelected(true);
+                    selectedParameters.add(opp);
+                }
+                parameterPanel.add(currentLabel);
+            }
+            operatorPanel.add(parameterPanel, BorderLayout.CENTER);
+            operatorPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
+                    BorderFactory.createEmptyBorder(4, 4, 4, 4)));
+            panel.add(operatorPanel, c);
+        }
+        c.fill = GridBagConstraints.BOTH;
+        c.weighty = 1;
+        panel.add(new JPanel(new BorderLayout()), c);
+        return panel;
+    }
+
+    private void addMandatoryParameters(Operator operator, Set<OperatorParameterPair> selectedOptional) {
+        Iterator<ParameterType> i = operator.getParameters().getParameterTypes().iterator();
+        while (i.hasNext()) {
+            ParameterType type = i.next();
+            if (!type.isOptional() && !operator.getParameters().isSet(type.getKey())) {
+                selectedOptional.add(new OperatorParameterPair(operator.getName(), type.getKey()));
+            }
+        }
+        if (operator instanceof OperatorChain) {
+            for (Operator child : ((OperatorChain)operator).getImmediateChildren())
+                addMandatoryParameters(child, selectedOptional);
+        }
+    }
+
+    public boolean isOk() {
+        return ok;
+    }
+
+    public Template getTemplate() {
+        String name = nameField.getText();
+        String group = groupField.getText();
+        Set<OperatorParameterPair> selectedOptional = new TreeSet<OperatorParameterPair>(new Comparator<OperatorParameterPair>() {
+            @Override
+            public int compare(OperatorParameterPair o1, OperatorParameterPair o2) {
+                return o1.compareTo(o2);
+            }
+        });
+        selectedOptional.addAll(selectedParameters);
+        addMandatoryParameters(process.getRootOperator(), selectedOptional);
+        return new Template(name, group, descriptionField.getText(), name + ".xml", selectedOptional);
+    }
+
+    private boolean checkIfNameOk() {
+        String name = nameField.getText();
+        if ((name == null) || (name.length() == 0)) {
+            SwingTools.showVerySimpleErrorMessage("no_template_name");
+            return false;
+        }
+
+        //		File[] preDefinedTemplateFiles = ParameterService.getConfigFile("templates").listFiles(new FileFilter() {
+        //			public boolean accept(File file) {
+        //				return file.getName().endsWith(".template");
+        //			}
+        //		});
+        File[] userDefinedTemplateFiles = FileSystemService.getUserRapidMinerDir().listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                return file.getName().endsWith(".template");
+            }
+        });
+
+        for (int i = 0; i < userDefinedTemplateFiles.length; i++) {
+            String tempName = userDefinedTemplateFiles[i].getName().substring(0, userDefinedTemplateFiles[i].getName().lastIndexOf("."));
+            if (tempName.equals(name)) {
+                SwingTools.showVerySimpleErrorMessage("Name '" + name + "' is already used." + Tools.getLineSeparator() + "Please change name or delete the old template!");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    protected void ok() {
+        if (checkIfNameOk()) {
+            ok = true;
+            dispose();
+        }
+    }
+
+    @Override
+    protected void cancel() {
+        ok = false;
+        dispose();
+    }
 }

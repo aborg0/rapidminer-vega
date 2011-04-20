@@ -51,6 +51,7 @@ import com.rapidminer.gui.tools.dialogs.wizards.dataimport.MetaDataDeclarationEd
 import com.rapidminer.operator.io.CSVDataReader;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.LineParser;
+import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.io.Encoding;
 
 /**
@@ -63,7 +64,7 @@ public abstract class ParseFileWizardStep extends WizardStep {
     private final JComboBox encodingComboBox = new JComboBox(Encoding.CHARSETS);
     {
         String encoding = RapidMiner.SYSTEM_ENCODING_NAME;
-        String encodingProperty = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_DEFAULT_ENCODING);
+        String encodingProperty = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_DEFAULT_ENCODING);
         if (encodingProperty != null) {
             encoding = encodingProperty;
         }

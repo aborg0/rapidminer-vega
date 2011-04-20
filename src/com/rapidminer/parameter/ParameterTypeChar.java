@@ -24,7 +24,6 @@ package com.rapidminer.parameter;
 
 import org.w3c.dom.Element;
 
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.XMLException;
 
 
@@ -42,8 +41,8 @@ public class ParameterTypeChar extends ParameterTypeSingle {
 
     private char defaultValue = '\0';
 
-    public ParameterTypeChar(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeChar(Element element) throws XMLException {
+        super(element);
 
         defaultValue = element.getAttribute(ATTRIBUTE_DEFAULT).charAt(0);
     }
@@ -88,11 +87,11 @@ public class ParameterTypeChar extends ParameterTypeSingle {
 
     @Override
     public String getRange() {
-        return "char" + ((defaultValue != '\0') ? ("; default: '" + defaultValue + "'") : "");
+        return "char" + (defaultValue != '\0' ? "; default: '" + defaultValue + "'" : "");
     }
 
     @Override
-    public void getDefinitionAsXML(Element typeElement) {
+    protected void writeDefinitionToXML(Element typeElement) {
         typeElement.setAttribute(ATTRIBUTE_DEFAULT, String.valueOf(defaultValue));
     }
 }

@@ -158,7 +158,7 @@ public class ParameterTypeConfiguration extends ParameterType {
     }
 
     @Override
-    public void getDefinitionAsXML(Element typeElement) {
+    protected void writeDefinitionToXML(Element typeElement) {
         throw new UnsupportedOperationException("XML Definition not supported for this type");
     }
 }

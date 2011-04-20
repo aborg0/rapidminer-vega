@@ -44,6 +44,7 @@ import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
+import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
 
 /**
@@ -103,7 +104,7 @@ public abstract class AbstractWeighting extends Operator implements CapabilityPr
         exampleSetInput.receive(exampleSet);
 
         // check capabilities and produce errors if they are not fulfilled
-        CapabilityCheck check = new CapabilityCheck(this, Tools.booleanValue(System.getProperty(PROPERTY_RAPIDMINER_GENERAL_CAPABILITIES_WARN), true) || onlyWarnForNonSufficientCapabilities());
+        CapabilityCheck check = new CapabilityCheck(this, Tools.booleanValue(ParameterService.getParameterValue(PROPERTY_RAPIDMINER_GENERAL_CAPABILITIES_WARN), true) || onlyWarnForNonSufficientCapabilities());
         check.checkLearnerCapabilities(this, exampleSet);
 
         doWork();
@@ -119,7 +120,7 @@ public abstract class AbstractWeighting extends Operator implements CapabilityPr
                 weights.normalize();
             }
             if (getParameterAsBoolean(PARAMETER_SORT_WEIGHTS)) {
-                weights.sort((getParameterAsInt(PARAMETER_SORT_DIRECTION) == SORT_ASCENDING)? AttributeWeights.INCREASING: AttributeWeights.DECREASING, AttributeWeights.ORIGINAL_WEIGHTS);
+                weights.sort(getParameterAsInt(PARAMETER_SORT_DIRECTION) == SORT_ASCENDING? AttributeWeights.INCREASING: AttributeWeights.DECREASING, AttributeWeights.ORIGINAL_WEIGHTS);
             }
             exampleSetOutput.deliver(exampleSet);
             weightsOutput.deliver(weights);

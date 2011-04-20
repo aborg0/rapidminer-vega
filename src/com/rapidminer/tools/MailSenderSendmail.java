@@ -34,31 +34,32 @@ import com.rapidminer.RapidMiner;
  */
 public class MailSenderSendmail implements MailSender {
 
-	public void sendEmail(String address, String subject, String content, Map<String,String> headers) throws Exception {
-		String command = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SENDMAIL_COMMAND);
-		if ((command == null) || command.isEmpty()) {
-			LogService.getRoot().warning("Must specify sendmail command to use sendmail.");
-		} else {					
-			LogService.getRoot().fine("Executing '" + command + "'.");
-			if ((headers != null) && (!headers.isEmpty())) {
-				LogService.getRoot().warning("Mail headers ignored for sendmail. Please use SMTP.");
-			}
-			Process sendmail = Runtime.getRuntime().exec(new String[] { command, address });
-			PrintStream out = null;
-			try {
-				out = new PrintStream(sendmail.getOutputStream());
-				out.println("Subject: " + subject);
-				out.println("From: RapidMiner");
-				out.println("To: " + address);
-				out.println();
-				out.println(content);
-			} catch (Exception e) {
-				throw e;
-			} finally {
-				if (out != null)
-					out.close();
-			}
-			Tools.waitForProcess(null, sendmail, command);
-		}
-	}
+    @Override
+    public void sendEmail(String address, String subject, String content, Map<String,String> headers) throws Exception {
+        String command = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SENDMAIL_COMMAND);
+        if (command == null || command.isEmpty()) {
+            LogService.getRoot().warning("Must specify sendmail command to use sendmail.");
+        } else {
+            LogService.getRoot().fine("Executing '" + command + "'.");
+            if (headers != null && !headers.isEmpty()) {
+                LogService.getRoot().warning("Mail headers ignored for sendmail. Please use SMTP.");
+            }
+            Process sendmail = Runtime.getRuntime().exec(new String[] { command, address });
+            PrintStream out = null;
+            try {
+                out = new PrintStream(sendmail.getOutputStream());
+                out.println("Subject: " + subject);
+                out.println("From: RapidMiner");
+                out.println("To: " + address);
+                out.println();
+                out.println(content);
+            } catch (Exception e) {
+                throw e;
+            } finally {
+                if (out != null)
+                    out.close();
+            }
+            Tools.waitForProcess(null, sendmail, command);
+        }
+    }
 }

@@ -34,6 +34,7 @@ import com.rapidminer.operator.ProcessStoppedException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.usagestats.OperatorStatisticsValue;
 import com.rapidminer.tools.usagestats.UsageStatistics;
@@ -48,110 +49,110 @@ import com.rapidminer.tools.usagestats.UsageStatistics;
  */
 public class ProcessThread extends Thread {// implements ProcessListener {
 
-	private Process process;
+    private Process process;
 
-	public ProcessThread(Process process) {
-		super("ProcessThread");
-		this.process = process;
-	}
+    public ProcessThread(Process process) {
+        super("ProcessThread");
+        this.process = process;
+    }
 
-	@Override
-	public void run() {
-		// this.process.getRootOperator().addProcessListener(this);
-		try {
-			IOContainer results = process.run();
-			beep("success");
-			process.getRootOperator().sendEmail(results, null);
-			RapidMinerGUI.getMainFrame().processEnded(process, results);
-		} catch (ProcessStoppedException ex) {
-			// beep("error");
-			process.getLogger().info(ex.getMessage());
-			// here the process ended method is not called ! let the thread finish the
-			// current operator and send no events to the main frame...
-			// also no beep...
-		} catch (Throwable e) {
-			// TODO: We shouldn't catch JVM crashes we can't fix anyway...
-			// } catch (Exception e) {
+    @Override
+    public void run() {
+        // this.process.getRootOperator().addProcessListener(this);
+        try {
+            IOContainer results = process.run();
+            beep("success");
+            process.getRootOperator().sendEmail(results, null);
+            RapidMinerGUI.getMainFrame().processEnded(process, results);
+        } catch (ProcessStoppedException ex) {
+            // beep("error");
+            process.getLogger().info(ex.getMessage());
+            // here the process ended method is not called ! let the thread finish the
+            // current operator and send no events to the main frame...
+            // also no beep...
+        } catch (Throwable e) {
+            // TODO: We shouldn't catch JVM crashes we can't fix anyway...
+            // } catch (Exception e) {
 
-			if (!(e instanceof OperatorException)) { // otherwise it was already counted
-				UsageStatistics.getInstance().count(process.getCurrentOperator(), OperatorStatisticsValue.FAILURE);
-				UsageStatistics.getInstance().count(process.getCurrentOperator(), OperatorStatisticsValue.RUNTIME_EXCEPTION);
-			}
+            if (!(e instanceof OperatorException)) { // otherwise it was already counted
+                UsageStatistics.getInstance().count(process.getCurrentOperator(), OperatorStatisticsValue.FAILURE);
+                UsageStatistics.getInstance().count(process.getCurrentOperator(), OperatorStatisticsValue.RUNTIME_EXCEPTION);
+            }
 
-			beep("error");
-			String debugProperty = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_DEBUGMODE);
-			boolean debugMode = Tools.booleanValue(debugProperty, false);
-			String message = e.getMessage();
-			if (!debugMode) {
-				if (e instanceof RuntimeException) {
-					if (e.getMessage() != null)
-						message = "operator cannot be executed (" + e.getMessage() + "). Check the log messages...";
-					else
-						message = "operator cannot be executed. Check the log messages...";
-				}
-			}
-			process.getLogger().log(Level.SEVERE, "Process failed: " + message, e);
-			process.getLogger().log(Level.SEVERE, "Here: " + process.getRootOperator().createMarkedProcessTree(10, "==>", process.getCurrentOperator()));
+            beep("error");
+            String debugProperty = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_DEBUGMODE);
+            boolean debugMode = Tools.booleanValue(debugProperty, false);
+            String message = e.getMessage();
+            if (!debugMode) {
+                if (e instanceof RuntimeException) {
+                    if (e.getMessage() != null)
+                        message = "operator cannot be executed (" + e.getMessage() + "). Check the log messages...";
+                    else
+                        message = "operator cannot be executed. Check the log messages...";
+                }
+            }
+            process.getLogger().log(Level.SEVERE, "Process failed: " + message, e);
+            process.getLogger().log(Level.SEVERE, "Here: " + process.getRootOperator().createMarkedProcessTree(10, "==>", process.getCurrentOperator()));
 
-			try {
-				process.getRootOperator().sendEmail(null, e);
-			} catch (UndefinedParameterError ex) {
-				// cannot happen
-				process.getLogger().log(Level.WARNING, "Problems during sending result mail: " + ex.getMessage(), ex);
-			}
+            try {
+                process.getRootOperator().sendEmail(null, e);
+            } catch (UndefinedParameterError ex) {
+                // cannot happen
+                process.getLogger().log(Level.WARNING, "Problems during sending result mail: " + ex.getMessage(), ex);
+            }
 
-			if (e instanceof OutOfMemoryError) { // out of memory --> give memory hint
-				SwingTools.showVerySimpleErrorMessage("proc_failed_out_of_mem");
-			} else if (e instanceof NoBugError) { // no bug? Show nice error screen (user error infos)...
-				if (e instanceof UserError) {
-					UserError userError = (UserError) e;
-					SwingTools.showFinalErrorMessage("process_failed_user_error", e, debugMode, userError.getMessage(), userError.getDetails());
-				} else {
-					SwingTools.showFinalErrorMessage("process_failed_simple", e, debugMode);
-				}
-			} else {
-				if (debugMode) {
-					SwingTools.showFinalErrorMessage("process_failed_simple", e, true);
-				} else {
-					// perform process check. No bug report if errors...
-					if ((e instanceof NullPointerException) || (e instanceof ArrayIndexOutOfBoundsException)) {
-						LogService.getRoot().log(Level.SEVERE, e.toString(), e);
-						SwingTools.showVerySimpleErrorMessage("proc_failed_without_obv_reason");
-					} else {
-						SwingTools.showSimpleErrorMessage("process_failed_simple", e, false);
-					}
-				}
-			}
-			RapidMinerGUI.getMainFrame().processEnded(this.process, null);
-		} finally {
-			// this.process.getRootOperator().removeProcessListener(this);
-			if (process.getProcessState() != Process.PROCESS_STATE_STOPPED) {
-				process.stop();
-			}
-			this.process = null;
-		}
-	}
+            if (e instanceof OutOfMemoryError) { // out of memory --> give memory hint
+                SwingTools.showVerySimpleErrorMessage("proc_failed_out_of_mem");
+            } else if (e instanceof NoBugError) { // no bug? Show nice error screen (user error infos)...
+                if (e instanceof UserError) {
+                    UserError userError = (UserError) e;
+                    SwingTools.showFinalErrorMessage("process_failed_user_error", e, debugMode, userError.getMessage(), userError.getDetails());
+                } else {
+                    SwingTools.showFinalErrorMessage("process_failed_simple", e, debugMode);
+                }
+            } else {
+                if (debugMode) {
+                    SwingTools.showFinalErrorMessage("process_failed_simple", e, true);
+                } else {
+                    // perform process check. No bug report if errors...
+                    if (e instanceof NullPointerException || e instanceof ArrayIndexOutOfBoundsException) {
+                        LogService.getRoot().log(Level.SEVERE, e.toString(), e);
+                        SwingTools.showVerySimpleErrorMessage("proc_failed_without_obv_reason");
+                    } else {
+                        SwingTools.showSimpleErrorMessage("process_failed_simple", e, false);
+                    }
+                }
+            }
+            RapidMinerGUI.getMainFrame().processEnded(this.process, null);
+        } finally {
+            // this.process.getRootOperator().removeProcessListener(this);
+            if (process.getProcessState() != Process.PROCESS_STATE_STOPPED) {
+                process.stop();
+            }
+            this.process = null;
+        }
+    }
 
-	public static void beep(String reason) {
-		if (Tools.booleanValue(System.getProperty("rapidminer.gui.beep." + reason), false)) {
-			java.awt.Toolkit.getDefaultToolkit().beep();
-		}
-	}
+    public static void beep(String reason) {
+        if (Tools.booleanValue(ParameterService.getParameterValue("rapidminer.gui.beep." + reason), false)) {
+            java.awt.Toolkit.getDefaultToolkit().beep();
+        }
+    }
 
-	public void stopProcess() {
-		if (process != null) {
-			this.process.stop();
-		}
-	}
+    public void stopProcess() {
+        if (process != null) {
+            this.process.stop();
+        }
+    }
 
-	public void pauseProcess() {
-		if (process != null) {
-			this.process.pause();
-		}
-	}
+    public void pauseProcess() {
+        if (process != null) {
+            this.process.pause();
+        }
+    }
 
-	@Override
-	public String toString() {
-		return "ProcessThread (" + process.getProcessLocation() + ")";
-	}
+    @Override
+    public String toString() {
+        return "ProcessThread (" + process.getProcessLocation() + ")";
+    }
 }

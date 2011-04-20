@@ -25,7 +25,6 @@ package com.rapidminer.parameter;
 import org.w3c.dom.Element;
 
 import com.rapidminer.io.process.XMLTools;
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.XMLException;
 
 /**
@@ -55,8 +54,8 @@ public class ParameterTypeStringCategory extends ParameterTypeSingle {
 
     private boolean editable = true;
 
-    public ParameterTypeStringCategory(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeStringCategory(Element element) throws XMLException {
+        super(element);
 
         editable = Boolean.valueOf(element.getAttribute(ATTRIBUTE_IS_EDITABLE));
         defaultValue = XMLTools.getTagContents(element, ELEMENT_DEFAULT);
@@ -122,12 +121,12 @@ public class ParameterTypeStringCategory extends ParameterTypeSingle {
                 values.append(", ");
             values.append(categories[i]);
         }
-        values.append((defaultValue != null) ? ("; default: '" + defaultValue + "'") : "");
+        values.append(defaultValue != null ? "; default: '" + defaultValue + "'" : "");
         return values.toString();
     }
 
     @Override
-    public void getDefinitionAsXML(Element typeElement) {
+    protected void writeDefinitionToXML(Element typeElement) {
         typeElement.setAttribute(ATTRIBUTE_IS_EDITABLE, editable + "");
         if (defaultValue != null)
             XMLTools.addTag(typeElement, ELEMENT_DEFAULT, defaultValue + "");

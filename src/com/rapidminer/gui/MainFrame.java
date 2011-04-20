@@ -139,6 +139,7 @@ import com.rapidminer.repository.gui.process.RemoteProcessViewer;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Observable;
 import com.rapidminer.tools.Observer;
+import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.plugin.Plugin;
 import com.rapidminer.tools.usagestats.UsageStatsTransmissionDialog;
@@ -236,28 +237,28 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
      * mainframe to ensure that the properties are set when the GUI is started.
      */
     static {
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_PLOTTER_MATRIXPLOT_SIZE, "The pixel size of each plot in matrix plots.", 1, Integer.MAX_VALUE, 200));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_PLOTTER_ROWS_MAXIMUM, "The maximum number of rows used for a plotter, using only a sample of this size if more rows are available.", 1, Integer.MAX_VALUE, PlotterPanel.DEFAULT_MAX_NUMBER_OF_DATA_POINTS));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_PLOTTER_LEGEND_CLASSLIMIT, "Limit number of displayed classes plotter legends. -1 for no limit.", -1, Integer.MAX_VALUE, 10));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeColor(PROPERTY_RAPIDMINER_GUI_PLOTTER_LEGEND_MINCOLOR, "The color for minimum values of the plotter legend.", java.awt.Color.blue));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeColor(PROPERTY_RAPIDMINER_GUI_PLOTTER_LEGEND_MAXCOLOR, "The color for maximum values of the plotter legend.", java.awt.Color.red));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_PLOTTER_COLORS_CLASSLIMIT, "Limit number of displayed classes for colorized plots. -1 for no limit.", -1, Integer.MAX_VALUE, 10));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_UNDOLIST_SIZE, "Maximum number of states in the undo list.", 1, Integer.MAX_VALUE, 10));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_ATTRIBUTEEDITOR_ROWLIMIT, "Maximum number of examples to use for the attribute editor. -1 for no limit.", -1, Integer.MAX_VALUE, 50));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_BEEP_SUCCESS, "Beep on process success?", false));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_BEEP_ERROR, "Beep on error?", false));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_BEEP_BREAKPOINT, "Beep when breakpoint reached?", false));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_ROWLIMIT, "Limit number of displayed rows in the message viewer. -1 for no limit.", -1, Integer.MAX_VALUE, 1000));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeColor(PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_NOTES, "The color for notes in the message viewer.", new java.awt.Color(51, 151, 51)));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeColor(PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_WARNINGS, "The color for warnings in the message viewer.", new java.awt.Color(51, 51, 255)));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeColor(PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_ERRORS, "The color for errors in the message viewer.", new java.awt.Color(255, 51, 204)));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeColor(PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_LOGSERVICE, "The color for the logging service indicator in the message viewer.", new java.awt.Color(184, 184, 184)));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_PROCESSINFO_SHOW, "Shows process info screen after loading?", true));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_SAVE_BEFORE_RUN, "Save process before running process?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_SAVE_ON_PROCESS_CREATION, "Save process when creating them?", false));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_AUTO_SWITCH_TO_RESULTVIEW, "Automatically switch to results perspective when results are created?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_RESULT_DISPLAY_TYPE, "Determines the result display style.", ResultDisplayTools.TYPE_NAMES, 0));
-        RapidMiner.registerRapidMinerProperty(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_LOG_LEVEL, "Minimum level of messages that are logged in the GUIs log view.", LoggingViewer.SELECTABLE_LEVEL_NAMES, LoggingViewer.DEFAULT_LEVEL_INDEX));
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_PLOTTER_MATRIXPLOT_SIZE, "The pixel size of each plot in matrix plots.", 1, Integer.MAX_VALUE, 200));
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_PLOTTER_ROWS_MAXIMUM, "The maximum number of rows used for a plotter, using only a sample of this size if more rows are available.", 1, Integer.MAX_VALUE, PlotterPanel.DEFAULT_MAX_NUMBER_OF_DATA_POINTS));
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_PLOTTER_LEGEND_CLASSLIMIT, "Limit number of displayed classes plotter legends. -1 for no limit.", -1, Integer.MAX_VALUE, 10));
+        ParameterService.registerParameter(new ParameterTypeColor(PROPERTY_RAPIDMINER_GUI_PLOTTER_LEGEND_MINCOLOR, "The color for minimum values of the plotter legend.", java.awt.Color.blue));
+        ParameterService.registerParameter(new ParameterTypeColor(PROPERTY_RAPIDMINER_GUI_PLOTTER_LEGEND_MAXCOLOR, "The color for maximum values of the plotter legend.", java.awt.Color.red));
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_PLOTTER_COLORS_CLASSLIMIT, "Limit number of displayed classes for colorized plots. -1 for no limit.", -1, Integer.MAX_VALUE, 10));
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_UNDOLIST_SIZE, "Maximum number of states in the undo list.", 1, Integer.MAX_VALUE, 10));
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_ATTRIBUTEEDITOR_ROWLIMIT, "Maximum number of examples to use for the attribute editor. -1 for no limit.", -1, Integer.MAX_VALUE, 50));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_BEEP_SUCCESS, "Beep on process success?", false));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_BEEP_ERROR, "Beep on error?", false));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_BEEP_BREAKPOINT, "Beep when breakpoint reached?", false));
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_ROWLIMIT, "Limit number of displayed rows in the message viewer. -1 for no limit.", -1, Integer.MAX_VALUE, 1000));
+        ParameterService.registerParameter(new ParameterTypeColor(PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_NOTES, "The color for notes in the message viewer.", new java.awt.Color(51, 151, 51)));
+        ParameterService.registerParameter(new ParameterTypeColor(PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_WARNINGS, "The color for warnings in the message viewer.", new java.awt.Color(51, 51, 255)));
+        ParameterService.registerParameter(new ParameterTypeColor(PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_ERRORS, "The color for errors in the message viewer.", new java.awt.Color(255, 51, 204)));
+        ParameterService.registerParameter(new ParameterTypeColor(PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_LOGSERVICE, "The color for the logging service indicator in the message viewer.", new java.awt.Color(184, 184, 184)));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_PROCESSINFO_SHOW, "Shows process info screen after loading?", true));
+        ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_SAVE_BEFORE_RUN, "Save process before running process?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
+        ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_SAVE_ON_PROCESS_CREATION, "Save process when creating them?", false));
+        ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_AUTO_SWITCH_TO_RESULTVIEW, "Automatically switch to results perspective when results are created?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
+        ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_RESULT_DISPLAY_TYPE, "Determines the result display style.", ResultDisplayTools.TYPE_NAMES, 0));
+        ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_LOG_LEVEL, "Minimum level of messages that are logged in the GUIs log view.", LoggingViewer.SELECTABLE_LEVEL_NAMES, LoggingViewer.DEFAULT_LEVEL_INDEX));
     }
 
     /** The title of the frame. */
@@ -481,7 +482,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     }
 
     public void validateProcess(boolean force) {
-        if (force || (process.getProcessState() != Process.PROCESS_STATE_RUNNING)) {
+        if (force || process.getProcessState() != Process.PROCESS_STATE_RUNNING) {
             metaDataUpdateQueue.validate(process, force);
         }
         fireProcessUpdated();
@@ -905,7 +906,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             stopProcess();
             setProcess(new Process(), true);
             addToUndoList();
-            if (!"false".equals(System.getProperty(PROPERTY_RAPIDMINER_GUI_SAVE_ON_PROCESS_CREATION))) {
+            if (!"false".equals(ParameterService.getParameterValue(PROPERTY_RAPIDMINER_GUI_SAVE_ON_PROCESS_CREATION))) {
                 SaveAction.save(getProcess());
             }
         }
@@ -915,7 +916,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     public void runProcess() {
         if (getProcessState() == Process.PROCESS_STATE_STOPPED) {
             // Run
-            if ((isChanged() || (getProcess().getProcessLocation() == null)) && !isTutorialMode()) {
+            if ((isChanged() || getProcess().getProcessLocation() == null) && !isTutorialMode()) {
                 if (DecisionRememberingConfirmDialog.confirmAction("save_before_run", PROPERTY_RAPIDMINER_GUI_SAVE_BEFORE_RUN)) {
                     SaveAction.save(getProcess());
                 }
@@ -1068,13 +1069,13 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         String currentStateXML = null;
         currentStateXML = this.process.getRootOperator().getXML(true);
         if (currentStateXML != null) {
-            if ((lastStateXML == null) || (!lastStateXML.equals(currentStateXML))) {
-                if (undoIndex < (undoList.size() - 1)) {
-                    while (undoList.size() > (undoIndex + 1))
+            if (lastStateXML == null || !lastStateXML.equals(currentStateXML)) {
+                if (undoIndex < undoList.size() - 1) {
+                    while (undoList.size() > undoIndex + 1)
                         undoList.removeLast();
                 }
                 undoList.add(currentStateXML);
-                String maxSizeProperty = System.getProperty(PROPERTY_RAPIDMINER_GUI_UNDOLIST_SIZE);
+                String maxSizeProperty = ParameterService.getParameterValue(PROPERTY_RAPIDMINER_GUI_UNDOLIST_SIZE);
                 int maxSize = 20;
                 try {
                     if (maxSizeProperty != null)
@@ -1088,12 +1089,12 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
                 enableUndoAction();
 
                 boolean oldValue = MainFrame.this.changed;
-                MainFrame.this.changed = (lastStateXML != null);
+                MainFrame.this.changed = lastStateXML != null;
 
                 if (!oldValue) {
                     setTitle();
                 }
-                if ((MainFrame.this.process.getProcessLocation() != null) && !tutorialMode) {
+                if (MainFrame.this.process.getProcessLocation() != null && !tutorialMode) {
                     MainFrame.this.SAVE_ACTION.setEnabled(true);
                 }
                 return true;
@@ -1145,7 +1146,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
                 // old state to the undo stack!
                 this.changed = true;
                 setTitle();
-                if ((this.process.getProcessLocation() != null) && !tutorialMode) {
+                if (this.process.getProcessLocation() != null && !tutorialMode) {
                     this.SAVE_ACTION.setEnabled(true);
                 }
             }
@@ -1228,10 +1229,10 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             List<UnknownParameterInformation> unknownParameters = process.getUnknownParameters();
             if (unknownParameters.size() > 0) {
                 new UnknownParametersInfoDialog(MainFrame.this, unknownParameters).setVisible(true);
-            } else if (showInfo && Tools.booleanValue(System.getProperty(PROPERTY_RAPIDMINER_GUI_PROCESSINFO_SHOW), true)) {
+            } else if (showInfo && Tools.booleanValue(ParameterService.getParameterValue(PROPERTY_RAPIDMINER_GUI_PROCESSINFO_SHOW), true)) {
                 // show process info?
                 final String text = MainFrame.this.process.getRootOperator().getUserDescription();
-                if ((text != null) && (text.length() != 0)) {
+                if (text != null && text.length() != 0) {
                     SwingUtilities.invokeLater(new Runnable() {
                         @Override
                         public void run() {
@@ -1390,7 +1391,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         }
         for (Operator op : currentlySelected) {
             Process selectedProcess = op.getProcess();
-            if ((selectedProcess == null) || (selectedProcess != process)) {
+            if (selectedProcess == null || selectedProcess != process) {
                 SwingTools.showVerySimpleErrorMessage("op_deleted", op.getName());
                 return;
             }

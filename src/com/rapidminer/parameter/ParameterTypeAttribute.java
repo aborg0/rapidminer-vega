@@ -28,7 +28,6 @@ import java.util.Vector;
 import org.w3c.dom.Element;
 
 import com.rapidminer.io.process.XMLTools;
-import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.MetaDataChangeListener;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
@@ -62,11 +61,11 @@ public class ParameterTypeAttribute extends ParameterTypeString {
 
     private int[] allowedValueTypes;
 
-    public ParameterTypeAttribute(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeAttribute(Element element) throws XMLException {
+        super(element);
 
         allowedValueTypes = XMLTools.getChildTagsContentAsIntArray(XMLTools.getChildElement(element, ELEMENT_ALLOWED_TYPES, true), ELEMENT_ALLOWED_TYPE);
-        operator.getInputPorts().getPortByName(element.getAttribute(ATTRIBUTE_INPUT_PORT));
+        //operator.getInputPorts().getPortByName(element.getAttribute(ATTRIBUTE_INPUT_PORT));
     }
 
     public ParameterTypeAttribute(final String key, String description, InputPort inPort) {
@@ -196,18 +195,17 @@ public class ParameterTypeAttribute extends ParameterTypeString {
         	metaData = metaDataProvider.getMetaData();
         }
 		return metaData;
-	}
-
+    }
 
     @Override
-    public void getDefinitionAsXML(Element typeElement) {
-        super.getDefinitionAsXML(typeElement);
+    protected void writeDefinitionToXML(Element typeElement) {
+        super.writeDefinitionToXML(typeElement);
 
         // TODO: What was this for?
         //typeElement.setAttribute(ATTRIBUTE_INPUT_PORT, inPort.getName());
         Element allowedTypesElement = XMLTools.addTag(typeElement, ELEMENT_ALLOWED_TYPES);
-        for (int i = 0; i < allowedValueTypes.length; i++) {
-            XMLTools.addTag(allowedTypesElement, ELEMENT_ALLOWED_TYPE, allowedValueTypes[i] + "");
+        for (int allowedValueType : allowedValueTypes) {
+            XMLTools.addTag(allowedTypesElement, ELEMENT_ALLOWED_TYPE, allowedValueType + "");
         }
     }
 }

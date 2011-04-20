@@ -90,103 +90,104 @@ import edu.uci.ics.jung.visualization.util.Animator;
 
 /**
  * The basic graph viewer component for graphs.
- *
+ * 
  * @author Ingo Mierswa
  */
-public class GraphViewer<V,E> extends JPanel implements Renderable {
-	
+public class GraphViewer<V, E> extends JPanel implements Renderable {
+
     private static final long serialVersionUID = -7501422172633548861L;
-    
+
     public static final int MARGIN = 10;
-    
+
     public static final Font EDGE_FONT = new Font("SansSerif", Font.PLAIN, 10);
-    
+
     public static final Font VERTEX_BOLD_FONT = new Font("SansSerif", Font.BOLD, 11);
 
     public static final Font VERTEX_PLAIN_FONT = new Font("SansSerif", Font.PLAIN, 11);
-    
+
     private static final String INSTRUCTIONS =
-        "<html>"+
-        "<h3>General Info:</h3>"+
-        "<ul>"+
-        "<li>Mousewheel scales the view</li>"+
-        "</ul>"+
-        "<h3>Transforming Mode:</h3>"+
-        "<ul>"+
-        "<li>Mouse1+drag pans the graph"+
-        "<li>Mouse1+Shift+drag rotates the graph"+
-        "<li>Mouse1+CTRL(or Command)+drag shears the graph"+
-        "</ul>"+
-        "<h3>Picking Mode:</h3>"+
-        "<ul>"+
-        "<li>Mouse1 on a node selects the node"+
-        "<li>Mouse1 elsewhere unselects all nodes"+
-        "<li>Mouse1+Shift on a node adds/removes node selection"+
-        "<li>Mouse1+drag on a node moves all selected nodes"+
-        "<li>Mouse1+drag elsewhere selects modes in a region"+
-        "<li>Mouse1+Shift+drag adds selection of modes in a new region"+
-        "<li>Mouse1+CTRL on a mode selects the mode and centers the display on it"+
-        "</ul>"+
+        "<html>" +
+        "<h3>General Info:</h3>" +
+        "<ul>" +
+        "<li>Mousewheel scales the view</li>" +
+        "</ul>" +
+        "<h3>Transforming Mode:</h3>" +
+        "<ul>" +
+        "<li>Mouse1+drag pans the graph" +
+        "<li>Mouse1+Shift+drag rotates the graph" +
+        "<li>Mouse1+CTRL(or Command)+drag shears the graph" +
+        "</ul>" +
+        "<h3>Picking Mode:</h3>" +
+        "<ul>" +
+        "<li>Mouse1 on a node selects the node" +
+        "<li>Mouse1 elsewhere unselects all nodes" +
+        "<li>Mouse1+Shift on a node adds/removes node selection" +
+        "<li>Mouse1+drag on a node moves all selected nodes" +
+        "<li>Mouse1+drag elsewhere selects modes in a region" +
+        "<li>Mouse1+Shift+drag adds selection of modes in a new region" +
+        "<li>Mouse1+CTRL on a mode selects the mode and centers the display on it" +
+        "</ul>" +
         "</html>";
-	
-    private final transient Action transformAction = new TransformingModeAction<V,E>(this, IconSize.SMALL);
-    private final transient Action pickingAction   = new PickingModeAction<V,E>(this, IconSize.SMALL);
-    
-    private VisualizationViewer<V,E> vv;
-    
-    private transient Layout<V,E> layout;
-    
+
+    private final transient Action transformAction = new TransformingModeAction<V, E>(this, IconSize.SMALL);
+    private final transient Action pickingAction = new PickingModeAction<V, E>(this, IconSize.SMALL);
+
+    private VisualizationViewer<V, E> vv;
+
+    private transient Layout<V, E> layout;
+
     private transient GraphCreator<V, E> graphCreator;
-    
+
     private LayoutSelection<V, E> layoutSelection;
-    
+
     private transient ScalingControl scaler = new CrossoverScalingControl();
-    
+
     private transient DefaultModalGraphMouse graphMouse;
-    
+
     private boolean showEdgeLabels = true;
-    
+
     private boolean showVertexLabels = true;
-        
+
     private transient JSplitPane objectViewerSplitPane;
-    
+
     private transient ModalGraphMouse.Mode currentMode = ModalGraphMouse.Mode.TRANSFORMING;
-    
-    public GraphViewer(final GraphCreator<V,E> graphCreator) {
-    	try {
-    		if (!RapidMiner.getExecutionMode().isHeadless()) {
-    			graphMouse = new DefaultModalGraphMouse(1/1.1f, 1.1f);
-    		}
-    	} catch (HeadlessException e) { }
-    	 
+
+    public GraphViewer(final GraphCreator<V, E> graphCreator) {
+        try {
+            if (!RapidMiner.getExecutionMode().isHeadless()) {
+                graphMouse = new DefaultModalGraphMouse(1 / 1.1f, 1.1f);
+            }
+        } catch (HeadlessException e) {
+        }
+
         this.graphCreator = graphCreator;
-        
-    	setLayout(new BorderLayout());
-        
-        Graph<V,E> graph = graphCreator.createGraph();
-        this.layoutSelection = new LayoutSelection<V,E>(this, graph);
+
+        setLayout(new BorderLayout());
+
+        Graph<V, E> graph = graphCreator.createGraph();
+        this.layoutSelection = new LayoutSelection<V, E>(this, graph);
         this.layout = new ISOMLayout<V, E>(graph);
-        vv =  new VisualizationViewer<V,E>(layout) {
+        vv = new VisualizationViewer<V, E>(layout) {
 
             private static final long serialVersionUID = 8247229781249216143L;
-            
+
             private boolean initialized = false;
 
             /** Necessary in order to re-change layout after first painting (starting position and size). */
             @Override
-			public void paint(Graphics g) {
+            public void paint(Graphics g) {
                 super.paint(g);
                 if (!initialized) {
                     initialized = true;
                     updateLayout();
                     if (objectViewerSplitPane != null) {
-                    	objectViewerSplitPane.setDividerLocation(0.9);
+                        objectViewerSplitPane.setDividerLocation(0.9);
                     }
                 }
             }
         };
         vv.setBackground(Color.white);
-        
+
         // === design ===
 
         // ## edge layout ##
@@ -194,177 +195,194 @@ public class GraphViewer<V,E> extends JPanel implements Renderable {
         int edgeShapeType = graphCreator.getEdgeShape();
         switch (edgeShapeType) {
         case GraphCreator.EDGE_SHAPE_LINE:
-            vv.getRenderContext().setEdgeShapeTransformer(new EdgeShape.Line<V, E>());	
-        	break;
+            vv.getRenderContext().setEdgeShapeTransformer(new EdgeShape.Line<V, E>());
+            break;
         case GraphCreator.EDGE_SHAPE_QUAD_CURVE:
-            vv.getRenderContext().setEdgeShapeTransformer(new EdgeShape.QuadCurve<V, E>());	
-        	break;
+            vv.getRenderContext().setEdgeShapeTransformer(new EdgeShape.QuadCurve<V, E>());
+            break;
         case GraphCreator.EDGE_SHAPE_CUBIC_CURVE:
-            vv.getRenderContext().setEdgeShapeTransformer(new EdgeShape.CubicCurve<V, E>());	
-        	break;
+            vv.getRenderContext().setEdgeShapeTransformer(new EdgeShape.CubicCurve<V, E>());
+            break;
         case GraphCreator.EDGE_SHAPE_BENT_LINE:
-            vv.getRenderContext().setEdgeShapeTransformer(new EdgeShape.BentLine<V, E>());	
-        	break;
+            vv.getRenderContext().setEdgeShapeTransformer(new EdgeShape.BentLine<V, E>());
+            break;
         case GraphCreator.EDGE_SHAPE_WEDGE:
-            vv.getRenderContext().setEdgeShapeTransformer(new EdgeShape.Wedge<V, E>(5));	
-        	break;
+            vv.getRenderContext().setEdgeShapeTransformer(new EdgeShape.Wedge<V, E>(5));
+            break;
         default:
-            vv.getRenderContext().setEdgeShapeTransformer(new EdgeShape.Line<V, E>());	
-        	break;
+            vv.getRenderContext().setEdgeShapeTransformer(new EdgeShape.Line<V, E>());
+            break;
         }
-        
+
         // EDGE FONT
         vv.getRenderContext().setEdgeFontTransformer(new Transformer<E, Font>() {
-			public Font transform(E arg0) {
-				return EDGE_FONT;
-			}
+            @Override
+            public Font transform(E arg0) {
+                return EDGE_FONT;
+            }
         });
-        
+
         // EDGE COLORS
         vv.getRenderContext().setEdgeDrawPaintTransformer(new Transformer<E, Paint>() {
-        	public Paint transform(E edge) {
-        		double edgeStrength = graphCreator.getEdgeStrength(edge);
-        		int value = (int)Math.max(140, Math.min(230, 230 - edgeStrength * 90));
-        		return new Color(value, value, value);
-        	}
+            @Override
+            public Paint transform(E edge) {
+                double edgeStrength = graphCreator.getEdgeStrength(edge);
+                int value = (int) Math.max(140, Math.min(230, 230 - edgeStrength * 90));
+                return new Color(value, value, value);
+            }
         });
         vv.getRenderContext().setArrowDrawPaintTransformer(new Transformer<E, Paint>() {
-        	public Paint transform(E edge) {
-        		double edgeStrength = graphCreator.getEdgeStrength(edge);
-        		int value = (int)Math.max(140, Math.min(230, 230 - edgeStrength * 90));
-        		return new Color(value, value, value).darker();
-        	}
+            @Override
+            public Paint transform(E edge) {
+                double edgeStrength = graphCreator.getEdgeStrength(edge);
+                int value = (int) Math.max(140, Math.min(230, 230 - edgeStrength * 90));
+                return new Color(value, value, value).darker();
+            }
         });
         vv.getRenderContext().setArrowFillPaintTransformer(new Transformer<E, Paint>() {
-        	public Paint transform(E edge) {
-        		double edgeStrength = graphCreator.getEdgeStrength(edge);
-        		int value = (int)Math.max(140, Math.min(230, 230 - edgeStrength * 90));
-        		return new Color(value, value, value);
-        	}
+            @Override
+            public Paint transform(E edge) {
+                double edgeStrength = graphCreator.getEdgeStrength(edge);
+                int value = (int) Math.max(140, Math.min(230, 230 - edgeStrength * 90));
+                return new Color(value, value, value);
+            }
         });
-		
+
         // EDGE LABEL POSITION
-        vv.getRenderContext().setEdgeLabelClosenessTransformer(new ConstantDirectionalEdgeValueTransformer<V,E>(0.5d, 0.5d));
+        vv.getRenderContext().setEdgeLabelClosenessTransformer(new ConstantDirectionalEdgeValueTransformer<V, E>(0.5d, 0.5d));
         int labelOffset = graphCreator.getLabelOffset();
         if (labelOffset >= 0)
             vv.getRenderContext().setLabelOffset(labelOffset);
-		
+
         // EDGE LABELS
         vv.getRenderContext().setEdgeLabelTransformer(new Transformer<E, String>() {
-			public String transform(E object) {
-				return graphCreator.getEdgeName(object);
-			}
+            @Override
+            public String transform(E object) {
+                return graphCreator.getEdgeName(object);
+            }
         });
         // EDGE LABEL RENDERER
         Renderer.EdgeLabel<V, E> edgeLabelRenderer = graphCreator.getEdgeLabelRenderer();
         if (edgeLabelRenderer != null)
-        	vv.getRenderer().setEdgeLabelRenderer(edgeLabelRenderer); // renderer...
+            vv.getRenderer().setEdgeLabelRenderer(edgeLabelRenderer); // renderer...
         vv.getRenderContext().setEdgeLabelRenderer(new EdgeLabelRenderer() { // ...context!
-        	
-        	private JLabel renderer = new JLabel();
-        	
-			public <T> Component getEdgeLabelRendererComponent(JComponent parent, Object value, Font font, boolean isSelected, T edge) {
-				this.renderer.setFont(font);
+
+            private JLabel renderer = new JLabel();
+
+            @Override
+            public <T> Component getEdgeLabelRendererComponent(JComponent parent, Object value, Font font, boolean isSelected, T edge) {
+                this.renderer.setFont(font);
                 if (graphCreator.isEdgeLabelDecorating()) {
                     this.renderer.setOpaque(true);
                     renderer.setBackground(Color.WHITE);
                     // use this for a more fancy look and feel
-                    //renderer.setBackground(SwingTools.TRANSPARENT_YELLOW);
-                    //this.renderer.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(SwingTools.DARK_BLUE), BorderFactory.createEmptyBorder(1,1,1,1)));
+                    // renderer.setBackground(SwingTools.TRANSPARENT_YELLOW);
+                    // this.renderer.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(SwingTools.DARK_BLUE),
+                    // BorderFactory.createEmptyBorder(1,1,1,1)));
                 }
-        		this.renderer.setText(value.toString());
-        		return this.renderer;
-			}
+                this.renderer.setText(value.toString());
+                return this.renderer;
+            }
 
             /** Let the graph model decide. */
-			public boolean isRotateEdgeLabels() {
-				return graphCreator.isRotatingEdgeLabels();
-			}
+            @Override
+            public boolean isRotateEdgeLabels() {
+                return graphCreator.isRotatingEdgeLabels();
+            }
 
             /** Does nothing. */
-			public void setRotateEdgeLabels(boolean rotate) {}
+            @Override
+            public void setRotateEdgeLabels(boolean rotate) {
+            }
         });
-        
+
         // ## vertex layout ##
-        
+
         // VERTEX FONT
         vv.getRenderContext().setVertexFontTransformer(new Transformer<V, Font>() {
-			public Font transform(V vertex) {
-				if (graphCreator.isBold(vertex))
-					return VERTEX_BOLD_FONT;
-				else
-					return VERTEX_PLAIN_FONT;
-			}
+            @Override
+            public Font transform(V vertex) {
+                if (graphCreator.isBold(vertex))
+                    return VERTEX_BOLD_FONT;
+                else
+                    return VERTEX_PLAIN_FONT;
+            }
         });
         // VERTEX NAME
         vv.getRenderContext().setVertexLabelTransformer(new Transformer<V, String>() {
-			public String transform(V object) {
-				return graphCreator.getVertexName(object);
-			}
+            @Override
+            public String transform(V object) {
+                return graphCreator.getVertexName(object);
+            }
         });
         // VERTEX FILL PAINT
         Transformer<V, Paint> paintTransformer = graphCreator.getVertexPaintTransformer(vv);
         if (paintTransformer == null) {
-        	paintTransformer = new Transformer<V, Paint>() {
-    			public Paint transform(V vertex) {
-    				if (vv.getPickedVertexState().isPicked(vertex))
-    					return SwingTools.LIGHT_YELLOW;
-    				else
-    					return SwingTools.LIGHT_BLUE;
-    			}
+            paintTransformer = new Transformer<V, Paint>() {
+                @Override
+                public Paint transform(V vertex) {
+                    if (vv.getPickedVertexState().isPicked(vertex))
+                        return SwingTools.LIGHT_YELLOW;
+                    else
+                        return SwingTools.LIGHT_BLUE;
+                }
             };
         }
         vv.getRenderContext().setVertexFillPaintTransformer(paintTransformer);
-        
+
         // VERTEX DRAW PAINT
         vv.getRenderContext().setVertexDrawPaintTransformer(new Transformer<V, Paint>() {
-			public Paint transform(V vertex) {
-				if (vv.getPickedVertexState().isPicked(vertex))
-					return SwingTools.DARKEST_YELLOW.darker();
-				else
-					return SwingTools.DARKEST_BLUE.darker();
-			}
+            @Override
+            public Paint transform(V vertex) {
+                if (vv.getPickedVertexState().isPicked(vertex))
+                    return SwingTools.DARKEST_YELLOW.darker();
+                else
+                    return SwingTools.DARKEST_BLUE.darker();
+            }
         });
         // VERTEX TOOL TIP
         this.vv.setVertexToolTipTransformer(new Transformer<V, String>() {
-			public String transform(V vertex) {
-				return graphCreator.getVertexToolTip(vertex);
-			}
+            @Override
+            public String transform(V vertex) {
+                return graphCreator.getVertexToolTip(vertex);
+            }
         });
         // VERTEX SHAPE
         vv.getRenderContext().setVertexShapeTransformer(new ExtendedVertexShapeTransformer<V>(graphCreator));
-        
+
         // VERTEX RENDERER
         Renderer.Vertex<V, E> vertexRenderer = graphCreator.getVertexRenderer();
         if (vertexRenderer != null)
-        	vv.getRenderer().setVertexRenderer(vertexRenderer);
-    	
+            vv.getRenderer().setVertexRenderer(vertexRenderer);
+
         // VERTEX LABEL RENDERER
         setDefaultLabelPosition();
         // custom renderer?
         Renderer.VertexLabel<V, E> customVertexLabelRenderer = graphCreator.getVertexLabelRenderer();
         if (customVertexLabelRenderer != null)
             vv.getRenderer().setVertexLabelRenderer(customVertexLabelRenderer);
-        
+
         // context
         vv.getRenderContext().setVertexLabelRenderer(new VertexLabelRenderer() {
-        	private JLabel label = new JLabel();
-			public <T> Component getVertexLabelRendererComponent(JComponent parent, Object object, Font font, boolean isSelection, T vertex) {
-				label.setFont(font);
-				if (object != null) {
-					label.setText(object.toString());
-				} else {
-					label.setText("");
-				}
-				return label;
-			}
-        	
+            private JLabel label = new JLabel();
+
+            @Override
+            public <T> Component getVertexLabelRendererComponent(JComponent parent, Object object, Font font, boolean isSelection, T vertex) {
+                label.setFont(font);
+                if (object != null) {
+                    label.setText(object.toString());
+                } else {
+                    label.setText("");
+                }
+                return label;
+            }
+
         });
-        
+
         // === end of design ===
 
         // === main panel ===
-        
+
         if (graphCreator.getObjectViewer() == null) {
             vv.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
             add(vv, BorderLayout.CENTER);
@@ -382,57 +400,64 @@ public class GraphViewer<V,E> extends JPanel implements Renderable {
                 add(vv, BorderLayout.CENTER);
             }
         }
-        
+
         // === control panel ===
-        
+
         Component controlPanel = createControlPanel();
         add(new ExtendedJScrollPane(controlPanel), BorderLayout.WEST);
-        
+
         this.showEdgeLabels = !graphCreator.showEdgeLabelsDefault();
         togglePaintEdgeLabels();
         this.showVertexLabels = !graphCreator.showVertexLabelsDefault();
         togglePaintVertexLabels();
-        
+
         this.layoutSelection.setLayout();
     }
-    
+
     public LayoutSelection<V, E> getLayoutSelection() {
-    	return this.layoutSelection;
+        return this.layoutSelection;
     }
-    
+
     private JComponent createControlPanel() {
-        // === mouse behaviour === 
-    	if (graphMouse != null) {
-    		vv.setGraphMouse(graphMouse);
-    		vv.addKeyListener(graphMouse.getModeKeyListener());
-    		graphMouse.setMode(ModalGraphMouse.Mode.TRANSFORMING);
-    	}
+        // === mouse behaviour ===
+        if (graphMouse != null) {
+            vv.setGraphMouse(graphMouse);
+            vv.addKeyListener(graphMouse.getModeKeyListener());
+            graphMouse.setMode(ModalGraphMouse.Mode.TRANSFORMING);
+        }
         transformAction.setEnabled(false);
         pickingAction.setEnabled(true);
-     
+
         vv.addGraphMouseListener(new GraphMouseListener<V>() {
-            public void graphClicked(V vertex, MouseEvent arg1) {}
-            public void graphPressed(V arg0, MouseEvent arg1) {}
+            @Override
+            public void graphClicked(V vertex, MouseEvent arg1) {
+            }
+
+            @Override
+            public void graphPressed(V arg0, MouseEvent arg1) {
+            }
+
+            @Override
             public void graphReleased(V vertex, MouseEvent arg1) {
-            	if (currentMode.equals(ModalGraphMouse.Mode.TRANSFORMING)) {
-            		if (graphCreator.getObjectViewer() != null) {
-            			vv.getPickedVertexState().clear();
-            			vv.getPickedVertexState().pick(vertex, true);
-            			graphCreator.getObjectViewer().showObject(graphCreator.getObject(vertex));
-            		}
-            	}
+                if (currentMode.equals(ModalGraphMouse.Mode.TRANSFORMING)) {
+                    if (graphCreator.getObjectViewer() != null) {
+                        vv.getPickedVertexState().clear();
+                        vv.getPickedVertexState().pick(vertex, true);
+                        graphCreator.getObjectViewer().showObject(graphCreator.getObject(vertex));
+                    }
+                }
             }
         });
-     
+
         JPanel controls = new JPanel();
         GridBagLayout gbLayout = new GridBagLayout();
         controls.setLayout(gbLayout);
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.BOTH;
-        c.insets = new Insets(4,4,4,4);
+        c.insets = new Insets(4, 4, 4, 4);
         c.weightx = 1;
         c.weighty = 0;
-        
+
         // zooming
         JToolBar zoomBar = new ExtendedJToolBar();
         zoomBar.setLayout(new FlowLayout(FlowLayout.CENTER));
@@ -442,8 +467,7 @@ public class GraphViewer<V,E> extends JPanel implements Renderable {
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbLayout.setConstraints(zoomBar, c);
         controls.add(zoomBar);
-        
-        
+
         // mode
         JToolBar modeBar = new ExtendedJToolBar();
         modeBar.setLayout(new FlowLayout(FlowLayout.CENTER));
@@ -454,34 +478,35 @@ public class GraphViewer<V,E> extends JPanel implements Renderable {
         gbLayout.setConstraints(modeBar, c);
         controls.add(modeBar);
 
-
         // layout selection
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbLayout.setConstraints(layoutSelection, c);
         controls.add(layoutSelection);
-        
+
         // show node labels
         JCheckBox nodeLabels = new JCheckBox("Node Labels", graphCreator.showVertexLabelsDefault());
         nodeLabels.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				togglePaintVertexLabels();
-			}
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                togglePaintVertexLabels();
+            }
         });
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbLayout.setConstraints(nodeLabels, c);
         controls.add(nodeLabels);
-        
+
         // show edge labels
         JCheckBox edgeLabels = new JCheckBox("Edge Labels", graphCreator.showEdgeLabelsDefault());
         edgeLabels.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				togglePaintEdgeLabels();
-			}
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                togglePaintEdgeLabels();
+            }
         });
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbLayout.setConstraints(edgeLabels, c);
         controls.add(edgeLabels);
-        
+
         // option components
         for (int i = 0; i < graphCreator.getNumberOfOptionComponents(); i++) {
             JComponent optionComponent = graphCreator.getOptionComponent(this, i);
@@ -491,24 +516,26 @@ public class GraphViewer<V,E> extends JPanel implements Renderable {
                 controls.add(optionComponent);
             }
         }
-        
+
         // save image
-		JButton imageButton = new JButton("Save Image...");
-		imageButton.setToolTipText("Saves an image of the current graph.");
-		imageButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				Component tosave = vv;
-				ExportDialog exportDialog = new ExportDialog("RapidMiner");
-				exportDialog.showExportDialog(GraphViewer.this, "Save Image...", tosave, "plot");
-			}
-		});
+        JButton imageButton = new JButton("Save Image...");
+        imageButton.setToolTipText("Saves an image of the current graph.");
+        imageButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Component tosave = vv;
+                ExportDialog exportDialog = new ExportDialog("RapidMiner");
+                exportDialog.showExportDialog(GraphViewer.this, "Save Image...", tosave, "plot");
+            }
+        });
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbLayout.setConstraints(imageButton, c);
         controls.add(imageButton);
-        
+
         // help
         JButton help = new JButton("Help");
         help.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 JOptionPane.showMessageDialog(vv, INSTRUCTIONS);
             }
@@ -516,206 +543,220 @@ public class GraphViewer<V,E> extends JPanel implements Renderable {
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbLayout.setConstraints(help, c);
         controls.add(help);
-        
+
         JPanel fillPanel = new JPanel();
         c.weighty = 1.0d;
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbLayout.setConstraints(fillPanel, c);
         controls.add(fillPanel);
-        
+
         return controls;
     }
-    
+
     public void updateLayout() {
         changeLayout(this.layout, this.layoutSelection.getAnimate(), 0, 0);
     }
-    
-    public void changeLayout(final Layout<V, E> newLayout, boolean animate, int desiredWidth, int desiredHeight) {
-    	MultiLayerTransformer transformer = vv.getRenderContext().getMultiLayerTransformer();
-    	double scale = transformer.getTransformer(Layer.VIEW).getScale();
-    	
-    	// set desired size
-    	if ((desiredWidth > 0) && (desiredHeight > 0)) {
-    		vv.setSize(desiredWidth, desiredHeight);
-    		try {
-    			newLayout.setSize(new Dimension(desiredWidth, desiredHeight));
-    		} catch (Exception e) {
-    			// do nothing - some layouts do not support setting of size
-    		}
-    	} else {
-    		//vv.setSize(600, 600);
-        	int layoutWidth  = (int)(vv.getWidth() / scale);
-        	int layoutHeight = (int)(vv.getHeight() / scale);
-        	try {
-        		newLayout.setSize(new Dimension(layoutWidth, layoutHeight));
-        	} catch (Exception e) {
-        		// do nothing - some layouts do not support setting of size
-        	}
-    	}
-    	
 
-        if (layout == null) {
-            // initial layout --> no transition possible!
-            vv.setGraphLayout(newLayout);
-        } else {
-            // No transition possible if no edges in graph!
-        	if (animate) {
-        		if (newLayout.getGraph().getEdgeCount() > 0 || newLayout.getGraph().getVertexCount() > 0) {	 
-        			try {
-        				LayoutTransition<V,E> lt = new LayoutTransition<V,E>(vv, layout, newLayout);
-        				Animator animator = new Animator(lt);
-        				animator.start();
-        			} catch (Throwable e) {
-        				// any error --> no transition possible!
-        				vv.setGraphLayout(newLayout);
-        			}
-        		}
-        	} else {
-        		vv.setGraphLayout(newLayout);
-        	}
-        }    
-        this.layout = newLayout;
-             
-        vv.scaleToLayout(this.scaler);
-        
-    	double viewX = transformer.getTransformer(Layer.VIEW).getTranslateX();
-    	double viewY = transformer.getTransformer(Layer.VIEW).getTranslateX();
-    	double scaleViewX = viewX * scale;
-    	double scaleViewY = viewY * scale;
-    	transformer.getTransformer(Layer.VIEW).translate(-scaleViewX, -scaleViewY);
-    	
-    	Thread changeToStaticThread = new Thread() {
-    		@Override
-			public void run() {
-    			try {
-					sleep(10000);
-				} catch (InterruptedException e) {
-					// do nothing
-				}
-				// change to static
-				// change to static
-				if (GraphViewer.this.layout.equals(newLayout)) { // still the same layout?
-	    			vv.setGraphLayout(new StaticLayout<V, E>(layout.getGraph(), layout));
-				}
-    		}
-    	};
-    	changeToStaticThread.start();
+    public void changeLayout(final Layout<V, E> newLayout, boolean animate, int desiredWidth, int desiredHeight) {
+        if (newLayout != null) {
+            MultiLayerTransformer transformer = vv.getRenderContext().getMultiLayerTransformer();
+            double scale = transformer.getTransformer(Layer.VIEW).getScale();
+
+            // set desired size
+            if ((desiredWidth > 0) && (desiredHeight > 0)) {
+                vv.setSize(desiredWidth, desiredHeight);
+                try {
+                    newLayout.setSize(new Dimension(desiredWidth, desiredHeight));
+                } catch (Exception e) {
+                    // do nothing - some layouts do not support setting of size
+                }
+            } else {
+                // vv.setSize(600, 600);
+                int layoutWidth = (int) (vv.getWidth() / scale);
+                int layoutHeight = (int) (vv.getHeight() / scale);
+                try {
+                    newLayout.setSize(new Dimension(layoutWidth, layoutHeight));
+                } catch (Exception e) {
+                    // do nothing - some layouts do not support setting of size
+                }
+            }
+
+            if (layout == null) {
+                // initial layout --> no transition possible!
+                vv.setGraphLayout(newLayout);
+            } else {
+                // No transition possible if no edges in graph!
+                if (animate) {
+                    if (newLayout.getGraph().getEdgeCount() > 0 || newLayout.getGraph().getVertexCount() > 0) {
+                        try {
+                            LayoutTransition<V, E> lt = new LayoutTransition<V, E>(vv, layout, newLayout);
+                            Animator animator = new Animator(lt);
+                            animator.start();
+                        } catch (Throwable e) {
+                            // any error --> no transition possible!
+                            vv.setGraphLayout(newLayout);
+                        }
+                    }
+                } else {
+                    vv.setGraphLayout(newLayout);
+                }
+            }
+            this.layout = newLayout;
+
+            vv.scaleToLayout(this.scaler);
+
+            double viewX = transformer.getTransformer(Layer.VIEW).getTranslateX();
+            double viewY = transformer.getTransformer(Layer.VIEW).getTranslateX();
+            double scaleViewX = viewX * scale;
+            double scaleViewY = viewY * scale;
+            transformer.getTransformer(Layer.VIEW).translate(-scaleViewX, -scaleViewY);
+
+            Thread changeToStaticThread = new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        sleep(10000);
+                    } catch (InterruptedException e) {
+                        // do nothing
+                    }
+                    // change to static
+                    // change to static
+                    if (GraphViewer.this.layout.equals(newLayout)) { // still the same layout?
+                        vv.setGraphLayout(new StaticLayout<V, E>(layout.getGraph(), layout));
+                    }
+                }
+            };
+            changeToStaticThread.start();
+        }
     }
-    
-    /** VertexLabel is not parameterized in Jung. In order to avoid to make all things
-     *  unchecked, the default label position setting is done in this method. */
+
+    /**
+     * VertexLabel is not parameterized in Jung. In order to avoid to make all things
+     * unchecked, the default label position setting is done in this method.
+     */
     private void setDefaultLabelPosition() {
         vv.getRenderer().getVertexLabelRenderer().setPosition(Renderer.VertexLabel.Position.CNTR);
     }
-    
+
     public void zoomIn() {
         scaler.scale(vv, 1.1f, vv.getCenter());
     }
-    
+
     public void zoomOut() {
-    	scaler.scale(vv, 1/1.1f, vv.getCenter());
+        scaler.scale(vv, 1 / 1.1f, vv.getCenter());
     }
-    
+
     public void changeMode(ModalGraphMouse.Mode mode) {
-    	if (graphMouse != null) {
-    		graphMouse.setMode(mode);
-    	}
-    	this.currentMode = mode;
-    	if (mode.equals(ModalGraphMouse.Mode.PICKING)) {
-    		pickingAction.setEnabled(false);
-    		transformAction.setEnabled(true);
-    	} else {
-    		pickingAction.setEnabled(true);
-    		transformAction.setEnabled(false);    		
-    	}
+        if (graphMouse != null) {
+            graphMouse.setMode(mode);
+        }
+        this.currentMode = mode;
+        if (mode.equals(ModalGraphMouse.Mode.PICKING)) {
+            pickingAction.setEnabled(false);
+            transformAction.setEnabled(true);
+        } else {
+            pickingAction.setEnabled(true);
+            transformAction.setEnabled(false);
+        }
     }
-    
+
     private void togglePaintEdgeLabels() {
-    	setPaintEdgeLabels(!showEdgeLabels);
+        setPaintEdgeLabels(!showEdgeLabels);
     }
-    
+
     public void setPaintEdgeLabels(boolean showEdgeLabels) {
-    	this.showEdgeLabels = showEdgeLabels;
-    	if (this.showEdgeLabels) {
-    		vv.getRenderContext().setEdgeLabelTransformer(new Transformer<E, String>() {
-    			public String transform(E object) {
-    				return graphCreator.getEdgeName(object);
-    			}
-    		});
-    	} else {
-    		vv.getRenderContext().setEdgeLabelTransformer(new Transformer<E, String>() {
-    			public String transform(E object) {
-    				return null;
-    			}
-    		});
-    	}
-    	vv.repaint();
+        this.showEdgeLabels = showEdgeLabels;
+        if (this.showEdgeLabels) {
+            vv.getRenderContext().setEdgeLabelTransformer(new Transformer<E, String>() {
+                @Override
+                public String transform(E object) {
+                    return graphCreator.getEdgeName(object);
+                }
+            });
+        } else {
+            vv.getRenderContext().setEdgeLabelTransformer(new Transformer<E, String>() {
+                @Override
+                public String transform(E object) {
+                    return null;
+                }
+            });
+        }
+        vv.repaint();
     }
-    
+
     private void togglePaintVertexLabels() {
-    	setPaintVertexLabels(!showVertexLabels);
+        setPaintVertexLabels(!showVertexLabels);
     }
-    
+
     public void setPaintVertexLabels(boolean showVertexLabels) {
-    	this.showVertexLabels = showVertexLabels;
-    	if (this.showVertexLabels) {
+        this.showVertexLabels = showVertexLabels;
+        if (this.showVertexLabels) {
             Renderer.Vertex<V, E> vertexRenderer = graphCreator.getVertexRenderer();
             if (vertexRenderer != null)
-            	vv.getRenderer().setVertexRenderer(vertexRenderer);
-    		vv.getRenderContext().setVertexShapeTransformer(new ExtendedVertexShapeTransformer<V>(graphCreator));
+                vv.getRenderer().setVertexRenderer(vertexRenderer);
+            vv.getRenderContext().setVertexShapeTransformer(new ExtendedVertexShapeTransformer<V>(graphCreator));
             vv.getRenderContext().setVertexLabelTransformer(new Transformer<V, String>() {
-    			public String transform(V object) {
-    				return graphCreator.getVertexName(object);
-    			}
+                @Override
+                public String transform(V object) {
+                    return graphCreator.getVertexName(object);
+                }
             });
-    	} else {
-    		vv.getRenderer().setVertexRenderer(new BasicVertexRenderer<V,E>());
-    		vv.getRenderContext().setVertexShapeTransformer(new BasicVertexShapeTransformer<V>());
+        } else {
+            vv.getRenderer().setVertexRenderer(new BasicVertexRenderer<V, E>());
+            vv.getRenderContext().setVertexShapeTransformer(new BasicVertexShapeTransformer<V>());
             vv.getRenderContext().setVertexLabelTransformer(new Transformer<V, String>() {
-    			public String transform(V object) {
-    				return null;
-    			}
+                @Override
+                public String transform(V object) {
+                    return null;
+                }
             });
-    	}
-    	vv.repaint();
+        }
+        vv.repaint();
     }
-    
+
     public GraphCreator<V, E> getGraphCreator() {
-    	return this.graphCreator;
+        return this.graphCreator;
     }
-    
+
     public Component getVisualizationComponent() {
-    	return vv;
+        return vv;
     }
-	
-    public void prepareRendering() {}
-    
-    public void finishRendering() {}
-    
-	public int getRenderHeight(int preferredHeight) {
-		int height = vv.getHeight();
-		if (height < 1) {
-			height = preferredHeight;
-		}
-		return height;
-	}
 
-	public int getRenderWidth(int preferredWidth) {
-		int width = vv.getWidth();
-		if (width < 1) {
-			width = preferredWidth;
-		}
-		return width;
-	}
+    @Override
+    public void prepareRendering() {
+    }
 
-	public void render(Graphics graphics, int width, int height) {
-		vv.setSize(width, height);
-		vv.setBorder(null);
-		changeLayout(this.layout, false, width, height);
-		vv.paint(graphics);
-	}
-	
-	public List<ParameterType> getParameterTypes() {
-		return new LinkedList<ParameterType>();
-	}
+    @Override
+    public void finishRendering() {
+    }
+
+    @Override
+    public int getRenderHeight(int preferredHeight) {
+        int height = vv.getHeight();
+        if (height < 1) {
+            height = preferredHeight;
+        }
+        return height;
+    }
+
+    @Override
+    public int getRenderWidth(int preferredWidth) {
+        int width = vv.getWidth();
+        if (width < 1) {
+            width = preferredWidth;
+        }
+        return width;
+    }
+
+    @Override
+    public void render(Graphics graphics, int width, int height) {
+        vv.setSize(width, height);
+        vv.setBorder(null);
+        changeLayout(this.layout, false, width, height);
+        vv.paint(graphics);
+    }
+
+    public List<ParameterType> getParameterTypes() {
+        return new LinkedList<ParameterType>();
+    }
 }

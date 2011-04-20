@@ -43,10 +43,9 @@ public class EqualOperatorVersionCondition extends ParameterCondition {
     private VersionNumber neededVersion;
     private Operator operator;
 
-    public EqualOperatorVersionCondition(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public EqualOperatorVersionCondition(Element element) throws XMLException {
+        super(element);
         neededVersion = new VersionNumber(XMLTools.getTagContents(element, ELEMENT_VERSION, true));
-        this.operator = operator;
     }
 
     public EqualOperatorVersionCondition(Operator operator, VersionNumber neededVersion) {
@@ -57,7 +56,15 @@ public class EqualOperatorVersionCondition extends ParameterCondition {
     }
 
     @Override
+    public void setOperator(Operator operator) {
+        this.operator = operator;
+        super.setOperator(operator);
+    }
+
+    @Override
     public boolean isConditionFullfilled() {
+        if (operator == null)
+            return true;
         return operator.getCompatibilityLevel().equals(neededVersion);
     }
 

@@ -68,6 +68,7 @@ import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.io.process.XMLTools;
+import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.ProgressListener;
@@ -105,7 +106,7 @@ public class UpdateManager {
                 if (desc.getPackageTypeName().equals("RAPIDMINER_PLUGIN")) {
                     ManagedExtension extension = ManagedExtension.getOrCreate(desc.getPackageId(), desc.getName(), desc.getLicenseName());
                     String baseVersion = extension.getLatestInstalledVersionBefore(desc.getVersion());
-                    incremental &= (baseVersion != null);
+                    incremental &= baseVersion != null;
                     URL url = UpdateManager.getUpdateServerURI(urlString +
                             (incremental ? "?baseVersion="+URLEncoder.encode(baseVersion, "UTF-8") : "")).toURL();
                     if (incremental) {
@@ -153,7 +154,7 @@ public class UpdateManager {
         } catch (IOException e) {
             throw new IOException(con.getResponseCode()+": "+con.getResponseMessage(), e);
         }
-        if ((lengthStr == null) || lengthStr.isEmpty()) {
+        if (lengthStr == null || lengthStr.isEmpty()) {
             LogService.getRoot().warning("Server did not send content length.");
             return urlIn;
         } else {
@@ -181,7 +182,7 @@ public class UpdateManager {
     }
 
     private void updateRapidMiner(InputStream openStream, String version) throws IOException {
-        File updateDir = new File(ParameterService.getRapidMinerHome(), "update");
+        File updateDir = new File(FileSystemService.getRapidMinerHome(), "update");
         if (!updateDir.exists()) {
             if (!updateDir.mkdir()) {
                 throw new IOException("Cannot create update directory. Please ensure you have administrator permissions.");
@@ -193,7 +194,7 @@ public class UpdateManager {
         File updateFile = new File(updateDir, "rmupdate-"+version+".jar");
         Tools.copyStreamSynchronously(openStream, new FileOutputStream(updateFile), true);
 
-        File ruInstall = new File(ParameterService.getRapidMinerHome(), "RUinstall");
+        File ruInstall = new File(FileSystemService.getRapidMinerHome(), "RUinstall");
         ZipFile zip = new ZipFile(updateFile);
         Enumeration<? extends ZipEntry> en = zip.entries();
         while (en.hasMoreElements()) {
@@ -212,7 +213,7 @@ public class UpdateManager {
             }
             File dest = new File(ruInstall, name);
             File parent = dest.getParentFile();
-            if ((parent != null) && !parent.exists()) {
+            if (parent != null && !parent.exists()) {
                 parent.mkdirs();
             }
             Tools.copyStreamSynchronously(zip.getInputStream(entry), new FileOutputStream(dest), true);
@@ -289,7 +290,7 @@ public class UpdateManager {
     }
 
     public static String getBaseUrl() {
-        String property = System.getProperty(PARAMETER_UPDATE_URL);
+        String property = ParameterService.getParameterValue(PARAMETER_UPDATE_URL);
         if (property == null) {
             return UPDATESERVICE_URL;
         } else {
@@ -298,7 +299,7 @@ public class UpdateManager {
     }
 
     public static URI getUpdateServerURI(String suffix) throws URISyntaxException {
-        String property = System.getProperty(PARAMETER_UPDATE_URL);
+        String property = ParameterService.getParameterValue(PARAMETER_UPDATE_URL);
         if (property == null) {
             return new URI(UPDATESERVICE_URL+suffix);
         } else {
@@ -307,14 +308,14 @@ public class UpdateManager {
     }
 
     public static boolean isIncrementalUpdate() {
-        return !"false".equals(System.getProperty(PARAMETER_UPDATE_INCREMENTALLY));
+        return !"false".equals(ParameterService.getParameterValue(PARAMETER_UPDATE_INCREMENTALLY));
     }
 
     private static UpdateService theService = null;
     private static URI lastUsedUri = null;
     public synchronized static UpdateService getService() throws MalformedURLException, URISyntaxException {
         URI uri = getUpdateServerURI("/UpdateServiceService?wsdl");
-        if ((theService == null) || ((lastUsedUri != null) && !lastUsedUri.equals(uri))) {
+        if (theService == null || lastUsedUri != null && !lastUsedUri.equals(uri)) {
             UpdateServiceService uss = new UpdateServiceService(uri.toURL(),
                     new QName("http://ws.update.deployment.rapid_i.com/", "UpdateServiceService"));
             theService = uss.getUpdateServicePort();
@@ -324,7 +325,7 @@ public class UpdateManager {
     }
 
     public static void saveLastUpdateCheckDate() {
-        File file = ParameterService.getUserConfigFile("updatecheck.date");
+        File file = FileSystemService.getUserConfigFile("updatecheck.date");
         PrintWriter out = null;
         try {
             out = new PrintWriter(new FileWriter(file));
@@ -339,7 +340,7 @@ public class UpdateManager {
     }
 
     private static Date loadLastUpdateCheckDate() {
-        File file = ParameterService.getUserConfigFile("updatecheck.date");
+        File file = FileSystemService.getUserConfigFile("updatecheck.date");
         if (!file.exists())
             return null;
 
@@ -369,7 +370,7 @@ public class UpdateManager {
     /** Checks whether the last update is at least 7 days ago, then checks whether there
      *  are any updates, and opens a dialog if desired by the user. */
     public static void checkForUpdates() {
-        String updateProperty = System.getProperty(RapidMinerGUI.PROPERTY_RAPIDMINER_GUI_UPDATE_CHECK);
+        String updateProperty = ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_RAPIDMINER_GUI_UPDATE_CHECK);
         if (Tools.booleanValue(updateProperty, true)) {
             if (Launcher.isDevelopmentBuild()) {
                 LogService.getRoot().config("This is a development build. Ignoring update check.");

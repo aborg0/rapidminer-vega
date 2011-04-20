@@ -27,58 +27,64 @@ import org.w3c.dom.Element;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.tools.GroupTree;
 
-/** Documentation for a {@link GroupTree}. 
+/** Documentation for a {@link GroupTree}.
  *  @author Simon Fischer
  *  */
 public class GroupDocumentation {
-	
-	private final String key;
-	private final String name;
-	private final String help;
-	
-	public GroupDocumentation(String key) {
-		this.key = key;
-		this.name = keyToUpperCase(key);
-		this.help = "The group "+name+"'.";
-	}
-	
-	GroupDocumentation(Element element) {
-		this.key = XMLTools.getTagContents(element, "key");
-		this.name = XMLTools.getTagContents(element, "name");
-		this.help = XMLTools.getTagContents(element, "help");
-	}
-	
-	public String getKey() {
-		return key;
-	}
-	
-	public String getName() {
-		return name;
-	}
-	
-	public String getHelp() {
-		return (help != null) ? help : ""; 
-	}
-	
-	@Override
-	public String toString() {
-		return key+": "+name;
-	}
 
-	public static String keyToUpperCase(String key) {
-		String name = key;
-		if (name.indexOf('.') >= 0) {
-			name = name.substring(name.lastIndexOf('.')+1);
-		}
-		name = name.replace('_', ' ');
-		char[] chars = name.toCharArray();
-		boolean makeUppercase = true;
-		for (int i = 0; i < chars.length; i++) {
-			if (makeUppercase) {
-				chars[i] = Character.toUpperCase(chars[i]);
-			}
-			makeUppercase = Character.isWhitespace(chars[i]);
-		}
-		return new String(chars);
-	}
+    private final String key;
+    private final String name;
+    private final String help;
+
+    public GroupDocumentation(String key) {
+        this.key = key;
+        this.name = keyToUpperCase(key);
+        this.help = "The group "+name+"'.";
+    }
+
+    public GroupDocumentation(String key, String name, String help) {
+        this.key = key;
+        this.name = name;
+        this.help = help;
+    }
+
+    GroupDocumentation(Element element) {
+        this.key = XMLTools.getTagContents(element, "key");
+        this.name = XMLTools.getTagContents(element, "name");
+        this.help = XMLTools.getTagContents(element, "help");
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getHelp() {
+        return (help != null) ? help : "";
+    }
+
+    @Override
+    public String toString() {
+        return key+": "+name;
+    }
+
+    public static String keyToUpperCase(String key) {
+        String name = key;
+        if (name.indexOf('.') >= 0) {
+            name = name.substring(name.lastIndexOf('.')+1);
+        }
+        name = name.replace('_', ' ');
+        char[] chars = name.toCharArray();
+        boolean makeUppercase = true;
+        for (int i = 0; i < chars.length; i++) {
+            if (makeUppercase) {
+                chars[i] = Character.toUpperCase(chars[i]);
+            }
+            makeUppercase = Character.isWhitespace(chars[i]);
+        }
+        return new String(chars);
+    }
 }

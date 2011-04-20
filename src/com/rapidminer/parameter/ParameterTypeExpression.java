@@ -24,7 +24,6 @@ package com.rapidminer.parameter;
 
 import org.w3c.dom.Element;
 
-import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.tools.XMLException;
@@ -46,10 +45,8 @@ public class ParameterTypeExpression extends ParameterTypeString {
 
     private transient InputPort inPort;
 
-    public ParameterTypeExpression(Operator operator, Element element) throws XMLException {
-        super(operator, element);
-
-        operator.getInputPorts().getPortByName(element.getAttribute(ATTRIBUTE_INPUT_PORT));
+    public ParameterTypeExpression(Element element) throws XMLException {
+        super(element);
     }
 
     /**
@@ -90,8 +87,8 @@ public class ParameterTypeExpression extends ParameterTypeString {
     }
 
     @Override
-    public void getDefinitionAsXML(Element typeElement) {
-        super.getDefinitionAsXML(typeElement);
+    protected void writeDefinitionToXML(Element typeElement) {
+        super.writeDefinitionToXML(typeElement);
 
         typeElement.setAttribute(ATTRIBUTE_INPUT_PORT, inPort.getName());
     }

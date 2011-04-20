@@ -35,8 +35,8 @@ import javax.swing.JButton;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
+import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.I18N;
-import com.rapidminer.tools.ParameterService;
 
 
 /**
@@ -49,62 +49,68 @@ import com.rapidminer.tools.ParameterService;
  */
 public class SettingsDialog extends ButtonDialog {
 
-	private static final long serialVersionUID = 6665295638614289994L;
+    private static final long serialVersionUID = 6665295638614289994L;
 
-	private final SettingsTabs tabs;
+    private final SettingsTabs tabs;
 
+    @Deprecated
     private final List<SettingsChangeListener> listeners = new LinkedList<SettingsChangeListener>();
 
-	public SettingsDialog() {
-		this(null);
-	}
-		
-	public SettingsDialog(String initialSelectedTab) {
-		super("settings", true);
-		tabs = new SettingsTabs(initialSelectedTab);
-		
-		// create buttons
-    	Collection<AbstractButton> buttons = new LinkedList<AbstractButton>();
-		buttons.add(new JButton(new ResourceAction("settings_apply") {		
-			private static final long serialVersionUID = 1L;
-			public void actionPerformed(ActionEvent e) {
-				tabs.applyProperties();
+    public SettingsDialog() {
+        this(null);
+    }
+
+    public SettingsDialog(String initialSelectedTab) {
+        super("settings", true);
+        tabs = new SettingsTabs(initialSelectedTab);
+
+        // create buttons
+        Collection<AbstractButton> buttons = new LinkedList<AbstractButton>();
+        buttons.add(new JButton(new ResourceAction("settings_apply") {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                tabs.applyProperties();
                 fireSettingsChanged();
                 setConfirmed(true);
-				dispose();
-			}
-		}));
-		buttons.add(new JButton(new ResourceAction("settings_save") {
-			private static final long serialVersionUID = 1L;
-			public void actionPerformed(ActionEvent e) {
-				try {
-					tabs.save();					
+                dispose();
+            }
+        }));
+        buttons.add(new JButton(new ResourceAction("settings_save") {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    tabs.save();
                     fireSettingsChanged();
                     setConfirmed(true);
-					dispose();
-				} catch (IOException ioe) {
-					SwingTools.showSimpleErrorMessage("cannot_save_properties", ioe);
-				}
-			}
-		}));
-		buttons.add(makeCancelButton());
-		layoutDefault(tabs, NORMAL, buttons);
-	}
+                    dispose();
+                } catch (IOException ioe) {
+                    SwingTools.showSimpleErrorMessage("cannot_save_properties", ioe);
+                }
+            }
+        }));
+        buttons.add(makeCancelButton());
+        layoutDefault(tabs, NORMAL, buttons);
+    }
 
-	@Override
-	public String getInfoText() {
-		return I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.settings.message",
-						   ParameterService.getUserConfigFile("rapidminerrc" + "." + System.getProperty("os.name")));
-	}
-        
+    @Override
+    public String getInfoText() {
+        return I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.settings.message",
+                FileSystemService.getUserConfigFile("rapidminerrc" + "." + System.getProperty("os.name")));
+    }
+
+    @Deprecated
     public void addSettingsChangedListener(SettingsChangeListener listener) {
         listeners.add(listener);
     }
 
+    @Deprecated
     public void removeSettingsChangedListener(SettingsChangeListener listener) {
         listeners.remove(listener);
     }
-    
+
+    @Deprecated
     protected void fireSettingsChanged() {
         Iterator<SettingsChangeListener> i = listeners.iterator();
         while (i.hasNext()) {

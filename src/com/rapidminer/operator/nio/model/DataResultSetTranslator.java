@@ -46,6 +46,7 @@ import com.rapidminer.operator.nio.ImportWizardUtils;
 import com.rapidminer.operator.nio.model.DataResultSet.ValueType;
 import com.rapidminer.operator.nio.model.ParsingError.ErrorCode;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.container.Pair;
 
@@ -339,7 +340,7 @@ public class DataResultSetTranslator {
     public void guessValueTypes(DataResultSetTranslationConfiguration configuration, DataResultSet dataResultSet, ProgressListener listener) throws OperatorException {
         int maxProbeRows;
         try {
-            maxProbeRows = Integer.parseInt(RapidMiner.getRapidMinerPropertyValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_MAX_TEST_ROWS));
+            maxProbeRows = Integer.parseInt(ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_MAX_TEST_ROWS));
         } catch (NumberFormatException e) {
             maxProbeRows = 100;
         }
@@ -395,7 +396,7 @@ public class DataResultSetTranslator {
                 listener.setCompleted(1 + currentRow);
 
             // skip rows with annotations
-            if ((currentRow > maxAnnotatedRow) || (configuration.getAnnotation(currentRow) == null)) {
+            if (currentRow > maxAnnotatedRow || configuration.getAnnotation(currentRow) == null) {
                 int numCols = dataResultSet.getNumberOfColumns();
                 // number of columns can change as we read the data set.
                 if (numCols > definedTypes.length) {
@@ -410,7 +411,7 @@ public class DataResultSetTranslator {
                 }
                 for (int column = 0; column < definedTypes.length; column++) {
                     // No more guessing necessary if guessed type is polynomial (this is the most general case)
-                    if ((definedTypes[column] == Ontology.POLYNOMINAL) || dataResultSet.isMissing(column)) {
+                    if (definedTypes[column] == Ontology.POLYNOMINAL || dataResultSet.isMissing(column)) {
                         continue;
                     }
 

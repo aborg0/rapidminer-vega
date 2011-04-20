@@ -24,7 +24,6 @@ package com.rapidminer.parameter;
 
 import org.w3c.dom.Element;
 
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.XMLException;
 
 
@@ -77,8 +76,8 @@ public class ParameterTypeValue extends ParameterTypeSingle {
     private static final String SEPERATOR_CHAR_REGEX = "\\.";
     private static final String SEPERATOR_CHAR = ".";
 
-    public ParameterTypeValue(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeValue(Element element) throws XMLException {
+        super(element);
         setOptional(false);
     }
 
@@ -141,14 +140,14 @@ public class ParameterTypeValue extends ParameterTypeSingle {
     }
 
     public static String transformOperatorValueSelection2String(OperatorValueSelection selection) {
-        String operator = (selection.operatorName != null ) ? selection.getOperator().replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR) : "";
+        String operator = selection.operatorName != null ? selection.getOperator().replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR) : "";
         operator = operator.replace(SEPERATOR_CHAR, ESCAPE_CHAR + SEPERATOR_CHAR);
-        String value = (selection.valueParameterName != null) ? selection.valueParameterName.replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR) : "";
+        String value = selection.valueParameterName != null ? selection.valueParameterName.replace(ESCAPE_CHAR, ESCAPE_CHAR + ESCAPE_CHAR) : "";
         value = value.replace(SEPERATOR_CHAR, ESCAPE_CHAR + SEPERATOR_CHAR);
-        return "operator"+ SEPERATOR_CHAR + operator + SEPERATOR_CHAR + ((selection.isValue)? "value" : "parameter")+ SEPERATOR_CHAR + value;
+        return "operator"+ SEPERATOR_CHAR + operator + SEPERATOR_CHAR + (selection.isValue? "value" : "parameter")+ SEPERATOR_CHAR + value;
     }
 
     @Override
-    public void getDefinitionAsXML(Element typeElement) {
+    protected void writeDefinitionToXML(Element typeElement) {
     }
 }

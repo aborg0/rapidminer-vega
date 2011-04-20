@@ -54,8 +54,9 @@ public class BugReport {
     private static final int BUFFER_SIZE = 1024;
 
 
-    private static void getProperties(String prefix, StringBuffer string) {
+    private static void getSystemProperties(String prefix, StringBuffer string) {
         string.append(prefix + " properties:" + Tools.getLineSeparator());
+
         Enumeration keys = System.getProperties().propertyNames();
         while (keys.hasMoreElements()) {
             String key = (String) keys.nextElement();
@@ -65,13 +66,21 @@ public class BugReport {
         }
     }
 
+    private static void getRapidMinerParameters(StringBuffer string) {
+        string.append("RapidMiner Parameters:" + Tools.getLineSeparator());
+
+        for (String key: ParameterService.getParameterKeys()) {
+            string.append("  " + key + "\t= " + ParameterService.getParameterValue(key) + Tools.getLineSeparator());
+        }
+    }
+
     public static String getProperties() {
         StringBuffer string = new StringBuffer();
         string.append("System properties:" + Tools.getLineSeparator());
         string.append("------------" + Tools.getLineSeparator() + Tools.getLineSeparator());
-        getProperties("os", string);
-        getProperties("java", string);
-        getProperties("rapidminer", string);
+        getSystemProperties("os", string);
+        getSystemProperties("java", string);
+        getRapidMinerParameters(string);
         return string.toString();
     }
 
@@ -84,8 +93,8 @@ public class BugReport {
             string.append("Message:\t" + throwable.getMessage() + Tools.getLineSeparator());
             string.append("Stack trace:"+ Tools.getLineSeparator());
             StackTraceElement[] ste = throwable.getStackTrace();
-            for (int i = 0; i < ste.length; i++) {
-                string.append("  " + ste[i] + Tools.getLineSeparator());
+            for (StackTraceElement element : ste) {
+                string.append("  " + element + Tools.getLineSeparator());
             }
             string.append(Tools.getLineSeparator());
 
@@ -115,8 +124,8 @@ public class BugReport {
         write("_properties.txt", "System properties, information about java version and operating system", getProperties(), zipOut);
         write("_exception.txt", "Exception stack trace", getStackTrace(exception), zipOut);
 
-        for (int i = 0; i < attachments.length; i++)
-            writeFile(attachments[i], zipOut);
+        for (File attachment : attachments)
+            writeFile(attachment, zipOut);
         zipOut.close();
     }
 
@@ -206,24 +215,24 @@ public class BugReport {
             }
             buffer.append(xmlProcess);
         }
-        
+
         if (attachSystemProps) {
             buffer.append(Tools.getLineSeparator());
             buffer.append(Tools.getLineSeparator());
             buffer.append(Tools.getLineSeparator());
             buffer.append(getProperties());
         }
-        
+
         buffer.append(Tools.getLineSeparator());
         buffer.append(Tools.getLineSeparator());
         buffer.append("RapidMiner: ");
         buffer.append(RapidMiner.getVersion());
         buffer.append(Tools.getLineSeparator());
         for (Plugin plugin : Plugin.getAllPlugins()) {
-        	buffer.append(plugin.getName());
-        	buffer.append(": ");
-        	buffer.append(plugin.getVersion());
-        	buffer.append(Tools.getLineSeparator());
+            buffer.append(plugin.getName());
+            buffer.append(": ");
+            buffer.append(plugin.getVersion());
+            buffer.append(Tools.getLineSeparator());
         }
 
         return buffer.toString();

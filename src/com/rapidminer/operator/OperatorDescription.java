@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -60,7 +61,7 @@ public class OperatorDescription implements Comparable<OperatorDescription> {
 
     private ImageIcon[] icons;
 
-    private final String fullyQualifiedGroupKey;
+    private String fullyQualifiedGroupKey;
 
     /**
      * @deprecated Only used for Weka
@@ -101,7 +102,7 @@ public class OperatorDescription implements Comparable<OperatorDescription> {
         NodeList children = element.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node child = children.item(i);
-            if ((child instanceof Element) && (((Element) child).getTagName().equals("replaces"))) {
+            if (child instanceof Element && ((Element) child).getTagName().equals("replaces")) {
                 setIsReplacementFor(((Element) child).getTextContent());
             }
         }
@@ -181,10 +182,10 @@ public class OperatorDescription implements Comparable<OperatorDescription> {
      */
     @Deprecated
     public OperatorDescription(String key, Class<? extends Operator> clazz, GroupTree groupTree, ClassLoader classLoader, String iconName, Plugin provider, OperatorDocBundle bundle) {
-		this(groupTree.getFullyQualifiedKey(), key, clazz, classLoader, iconName, provider);
-	}
+        this(groupTree.getFullyQualifiedKey(), key, clazz, classLoader, iconName, provider);
+    }
 
-	public String getName() {
+    public String getName() {
         return getOperatorDocumentation().getName();
     }
 
@@ -201,7 +202,12 @@ public class OperatorDescription implements Comparable<OperatorDescription> {
     }
 
     public String getLongDescriptionHTML() {
-        return getOperatorDocumentation().getDocumentation();
+        OperatorDocumentation operatorDocumentation = getOperatorDocumentation();
+        if (operatorDocumentation.getDocumentation() != null)
+            return operatorDocumentation.getDocumentation();
+        if (operatorDocumentation.getSynopsis() != null)
+            return operatorDocumentation.getSynopsis();
+        return "";
     }
 
     public OperatorDocumentation getOperatorDocumentation() {
@@ -261,7 +267,7 @@ public class OperatorDescription implements Comparable<OperatorDescription> {
     }
 
     public boolean isDeprecated() {
-        return (deprecationInfo != null);
+        return deprecationInfo != null;
     }
 
     public String getProviderName() {
@@ -322,19 +328,15 @@ public class OperatorDescription implements Comparable<OperatorDescription> {
         return this.getKey().hashCode();
     }
 
-    /** Creates a new operator based on the description. */
-    public Operator createOperatorInstance() throws OperatorCreationException {
+    /** Creates a new operator based on the description. Subclasses that want to
+     * overwrite the creation behavior should override */
+    public final Operator createOperatorInstance() throws OperatorCreationException {
         if (!isEnabled()) {
             throw new OperatorCreationException(OperatorCreationException.OPERATOR_DISABLED_ERROR, key + "(" + clazz.getName() + ")", null);
         }
         Operator operator = null;
         try {
-            java.lang.reflect.Constructor<? extends Operator> constructor = clazz.getConstructor(new Class[] { OperatorDescription.class });
-            operator = constructor.newInstance(new Object[] { this });
-            // necessary in order to allow parameter usage for Weka operators (dynamically created parameters)
-            if (this.getName().startsWith("W-")) {
-                operator.getParameterTypes();
-            }
+            operator = createOperatorInstanceByDescription(this);
         } catch (InstantiationException e) {
             throw new OperatorCreationException(OperatorCreationException.INSTANTIATION_ERROR, key + "(" + clazz.getName() + ")", e);
         } catch (IllegalAccessException e) {
@@ -346,6 +348,16 @@ public class OperatorDescription implements Comparable<OperatorDescription> {
         }
         OperatorService.invokeCreationHooks(operator);
         return operator;
+    }
+
+    /**
+     * This method creates the actual instance of the {@link Operator} defined by the
+     * given {@link OperatorDescription}.
+     * Subclasses might overwrite this method in order to change the creation behavior or way.
+     */
+    protected Operator createOperatorInstanceByDescription(OperatorDescription description) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, SecurityException, NoSuchMethodException {
+        java.lang.reflect.Constructor<? extends Operator> constructor = clazz.getConstructor(new Class[] { OperatorDescription.class });
+        return constructor.newInstance(new Object[] { description });
     }
 
     public void setIsReplacementFor(String opName) {
@@ -405,5 +417,9 @@ public class OperatorDescription implements Comparable<OperatorDescription> {
 
     public Plugin getProvider() {
         return provider;
+    }
+
+    protected void setFullyQualifiedGroupKey(String key) {
+        this.fullyQualifiedGroupKey = key;
     }
 }

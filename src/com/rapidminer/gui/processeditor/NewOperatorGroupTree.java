@@ -150,8 +150,8 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            System.setProperty(RapidMinerGUI.PROPERTY_AUTOWIRE_INPUT, Boolean.toString(autoWireInputsItem.isSelected()));
-            ParameterService.writePropertyIntoMainUserConfigFile(RapidMinerGUI.PROPERTY_AUTOWIRE_INPUT, Boolean.toString(autoWireInputsItem.isSelected()));
+            ParameterService.setParameterValue(RapidMinerGUI.PROPERTY_AUTOWIRE_INPUT, Boolean.toString(autoWireInputsItem.isSelected()));
+            ParameterService.saveParameters();
         }
     });
 
@@ -160,8 +160,8 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            System.setProperty(RapidMinerGUI.PROPERTY_AUTOWIRE_OUTPUT, Boolean.toString(autoWireOutputsItem.isSelected()));
-            ParameterService.writePropertyIntoMainUserConfigFile(RapidMinerGUI.PROPERTY_AUTOWIRE_OUTPUT, Boolean.toString(autoWireOutputsItem.isSelected()));
+            ParameterService.setParameterValue(RapidMinerGUI.PROPERTY_AUTOWIRE_OUTPUT, Boolean.toString(autoWireOutputsItem.isSelected()));
+            ParameterService.saveParameters();
         }
     });
 
@@ -172,8 +172,8 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
         setLayout(new BorderLayout());
 
         // TODO: Select checkboxes if system property changes (e.g. in preferences dialog)
-        autoWireInputsItem.setSelected("true".equals(System.getProperty(RapidMinerGUI.PROPERTY_AUTOWIRE_INPUT)));
-        autoWireOutputsItem.setSelected("true".equals(System.getProperty(RapidMinerGUI.PROPERTY_AUTOWIRE_OUTPUT)));
+        autoWireInputsItem.setSelected("true".equals(ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_AUTOWIRE_INPUT)));
+        autoWireOutputsItem.setSelected("true".equals(ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_AUTOWIRE_OUTPUT)));
 
         // operatorGroupTree.setRootVisible(true);
         operatorGroupTree.setShowsRootHandles(true);
@@ -382,7 +382,7 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
             int row = this.operatorGroupTree.getRowForPath(path);
             this.operatorGroupTree.expandRow(row);
             this.editor.setOperatorList(tree);
-        } else if ((tree.getSubGroups().size() == 1) && (tree.getOperatorDescriptions().size() == 0)) {
+        } else if (tree.getSubGroups().size() == 1 && tree.getOperatorDescriptions().size() == 0) {
             int row = this.operatorGroupTree.getRowForPath(path);
             this.operatorGroupTree.expandRow(row);
             GroupTree child = tree.getSubGroup(0);
@@ -437,7 +437,7 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
             return null;
         }
         Object selectedOperator = operatorGroupTree.getSelectionPath().getLastPathComponent();
-        if ((selectedOperator != null) && (selectedOperator instanceof OperatorDescription)) {
+        if (selectedOperator != null && selectedOperator instanceof OperatorDescription) {
             try {
                 return ((OperatorDescription) selectedOperator).createOperatorInstance();
             } catch (OperatorCreationException e) {
@@ -514,7 +514,7 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
             Object leaf = path.getLastPathComponent();
             if (leaf instanceof OperatorDescription) {
                 OperatorUsageStatistics operatorStatistics1 = UsageStatistics.getInstance().getOperatorStatistics(StatisticsScope.ALL_TIME, (OperatorDescription) leaf);
-                int usageCount1 = (operatorStatistics1 == null) ? 0 : operatorStatistics1.getStatistics(OperatorStatisticsValue.EXECUTION);
+                int usageCount1 = operatorStatistics1 == null ? 0 : operatorStatistics1.getStatistics(OperatorStatisticsValue.EXECUTION);
                 max = Math.max(max, usageCount1);
             }
         }

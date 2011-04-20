@@ -24,7 +24,6 @@ package com.rapidminer.parameter;
 
 import org.w3c.dom.Element;
 
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.XMLException;
 
 /**
@@ -36,8 +35,8 @@ public abstract class ParameterTypeNumber extends ParameterTypeSingle {
 
     private static final long serialVersionUID = 1733078666760192282L;
 
-    public ParameterTypeNumber(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeNumber(Element element) throws XMLException {
+        super(element);
     }
 
     public ParameterTypeNumber(String key, String description) {

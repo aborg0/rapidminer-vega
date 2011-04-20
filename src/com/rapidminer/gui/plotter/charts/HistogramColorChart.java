@@ -53,6 +53,7 @@ import com.rapidminer.datatable.DataTableRow;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.plotter.PlotterConfigurationModel;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.ParameterService;
 
 /**
  * This is the histogram color plotter based on JFreeCharts.
@@ -61,341 +62,341 @@ import com.rapidminer.tools.LogService;
  */
 public class HistogramColorChart extends HistogramChart {
 
-	private static final long serialVersionUID = 9140046811324105445L;
-	
-	public static final int MIN_BIN_NUMBER = 2;
-    
+    private static final long serialVersionUID = 9140046811324105445L;
+
+    public static final int MIN_BIN_NUMBER = 2;
+
     public static final int MAX_BIN_NUMBER = 100;
-    
+
     public static final int DEFAULT_BIN_NUMBER = 40;
 
     private HistogramDataset histogramDataset;
-	
-	private DefaultCategoryDataset categoryDataset = new DefaultCategoryDataset();
 
-	private boolean nominal = false;
-	
-	/** Indicates which column will be plotted. */
-	private int valueColumn = -1;
-	
-	/** Indicates which column should be used for the color definition. */
-	private int colorColumn = -1;
-	
-	private boolean absolute = false;
-	
-	public HistogramColorChart(PlotterConfigurationModel settings) {
-		super(settings);
-		
-	}
+    private DefaultCategoryDataset categoryDataset = new DefaultCategoryDataset();
 
-	public HistogramColorChart(PlotterConfigurationModel settings, DataTable dataTable) {
-		this(settings);
-		setDataTable(dataTable);
-	}
+    private boolean nominal = false;
 
-	@Override
-	public int getNumberOfAxes() {
-		return 1;
-	}
-	
-	@Override
-	public int getAxis(int axis) { 
-		return valueColumn; 
-	}
-	
-	@Override
-	public String getAxisName(int index) {
-		if (index == 0)
-			return "Histogram";
-		else
-			return "Unknown";
-	}
-	
-    @Override
-	public boolean isLogScale() {
-    	return this.logScale;
+    /** Indicates which column will be plotted. */
+    private int valueColumn = -1;
+
+    /** Indicates which column should be used for the color definition. */
+    private int colorColumn = -1;
+
+    private boolean absolute = false;
+
+    public HistogramColorChart(PlotterConfigurationModel settings) {
+        super(settings);
+
     }
-    
-    @Override
-	public void setAbsolute(boolean absolute) {
-    	this.absolute = absolute;
-    	updatePlotter();
+
+    public HistogramColorChart(PlotterConfigurationModel settings, DataTable dataTable) {
+        this(settings);
+        setDataTable(dataTable);
     }
-    
+
     @Override
-	public boolean isSupportingAbsoluteValues() {
-    	return true;
+    public int getNumberOfAxes() {
+        return 1;
     }
-    
+
     @Override
-	public void setAxis(int index, int dimension) {
+    public int getAxis(int axis) {
+        return valueColumn;
+    }
+
+    @Override
+    public String getAxisName(int index) {
+        if (index == 0)
+            return "Histogram";
+        else
+            return "Unknown";
+    }
+
+    @Override
+    public boolean isLogScale() {
+        return this.logScale;
+    }
+
+    @Override
+    public void setAbsolute(boolean absolute) {
+        this.absolute = absolute;
+        updatePlotter();
+    }
+
+    @Override
+    public boolean isSupportingAbsoluteValues() {
+        return true;
+    }
+
+    @Override
+    public void setAxis(int index, int dimension) {
         if (this.valueColumn != dimension) {
             this.valueColumn = dimension;
             updatePlotter();
         }
     }
-    
-	@Override
-	public void setPlotColumn(int index, boolean plot) {
-		colorColumn = index;
-		updatePlotter();
-	}
 
     @Override
-	public String getPlotName() {
+    public void setPlotColumn(int index, boolean plot) {
+        colorColumn = index;
+        updatePlotter();
+    }
+
+    @Override
+    public String getPlotName() {
         return "Color";
     }
-    
-	@Override
-	public String getPlotterName() {
-		return PlotterConfigurationModel.HISTOGRAM_PLOT_COLOR;
-	}
-    
-	@Override
-	public boolean getPlotColumn(int index) {
-		return index == colorColumn;
-	}
-	
-	@Override
-	public int getValuePlotSelectionType() {
-		return SINGLE_SELECTION;
-	}
-	
-	@Override
-	public void prepareData() {		
-		histogramDataset = new RapidHistogramDataset(isLogScale());
-		categoryDataset.clear();
-		
-		if ((colorColumn < 0) || (valueColumn < 0)) {
-			return;
-		}
 
-		if (dataTable.isNominal(colorColumn)) {
-			if (dataTable.isNominal(valueColumn)) {
-				this.nominal = true;
-				synchronized (dataTable) {
-					Map<String,Map<String, AtomicInteger>> categoryValues = new LinkedHashMap<String, Map<String, AtomicInteger>>();
-					for (int i = 0; i < this.dataTable.getNumberOfValues(colorColumn); i++) {
-						String key = this.dataTable.mapIndex(colorColumn, i);
-						Map<String, AtomicInteger> innerMap = new LinkedHashMap<String, AtomicInteger>();
-						for (int j = 0; j < this.dataTable.getNumberOfValues(valueColumn); j++) {
-							innerMap.put(this.dataTable.mapIndex(valueColumn, j), new AtomicInteger(0));
-						}
-						categoryValues.put(key, innerMap);
-					}
-					
-					Iterator<DataTableRow> j = dataTable.iterator();
-					while (j.hasNext()) {
-						DataTableRow row = j.next();
-						String colorString = this.dataTable.getValueAsString(row, colorColumn);
-						String valueString = this.dataTable.getValueAsString(row, valueColumn);
-						categoryValues.get(colorString).get(valueString).incrementAndGet();						
-					}
-					
-					for (String key : categoryValues.keySet()) {
-						for (String value : categoryValues.get(key).keySet()) {
-							int count = categoryValues.get(key).get(value).get();
-							categoryDataset.addValue(count, key, value);
-						}
-					}
-				}
-			} else {
-				this.nominal = false;
-				synchronized (dataTable) {
-					Map<String, List<Double>> classMap = new LinkedHashMap<String, List<Double>>();
-					for (int i = 0; i < this.dataTable.getNumberOfValues(colorColumn); i++) {
-						classMap.put(this.dataTable.mapIndex(colorColumn, i), new LinkedList<Double>());
-					}
-					Iterator<DataTableRow> i = dataTable.iterator();
-					while (i.hasNext()) {
-						DataTableRow row = i.next();
-						double value = row.getValue(valueColumn);
-						if (this.absolute)
-							value = Math.abs(value);
-						String colorValue = this.dataTable.getValueAsString(row, colorColumn);
-						List<Double> colorList = classMap.get(colorValue);
-						if (colorList != null)
-							colorList.add(value);
-					}
+    @Override
+    public String getPlotterName() {
+        return PlotterConfigurationModel.HISTOGRAM_PLOT_COLOR;
+    }
 
-					for (Entry<String, List<Double>> entry : classMap.entrySet()) {
-						List<Double> valueList = entry.getValue();
-						double[] values = new double[valueList.size()];
-						int index = 0;
-						for (double v : valueList) {
-							values[index++] = v;
-						}
-						histogramDataset.addSeries(entry.getKey(), values, this.binNumber);
-					}
-				}
-			}
-		}
-	}
+    @Override
+    public boolean getPlotColumn(int index) {
+        return index == colorColumn;
+    }
 
-	@Override
-	protected void updatePlotter() {
-		prepareData();
-		
-		String maxClassesProperty = System.getProperty(MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_COLORS_CLASSLIMIT);
-		int maxClasses = 20;
-		try {
-			if (maxClassesProperty != null)
-				maxClasses = Integer.parseInt(maxClassesProperty);
-		} catch (NumberFormatException e) {
-			LogService.getGlobal().log("Deviation plotter: cannot parse property 'rapidminer.gui.plotter.colors.classlimit', using maximal 20 different classes.", LogService.WARNING);
-		}
+    @Override
+    public int getValuePlotSelectionType() {
+        return SINGLE_SELECTION;
+    }
 
-		JFreeChart chart = null;
-		if (nominal) {
-			// ** nominal **
-			int categoryCount = this.categoryDataset.getRowCount();
-			boolean createLegend = categoryCount > 0 && categoryCount < maxClasses && this.drawLegend;
+    @Override
+    public void prepareData() {
+        histogramDataset = new RapidHistogramDataset(isLogScale());
+        categoryDataset.clear();
 
-			String domainName = valueColumn >= 0 ? this.dataTable.getColumnName(valueColumn) : "Value";
-			
-			chart = ChartFactory.createBarChart(
-					null,                      // title
-					domainName, 
-					"Frequency", 
-					categoryDataset, 
-					PlotOrientation.VERTICAL, 
-					createLegend, 
-					true,                     // tooltips
-					false);                   // urls
+        if (colorColumn < 0 || valueColumn < 0) {
+            return;
+        }
 
-			CategoryPlot plot = chart.getCategoryPlot();
-			plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
-			plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
-			plot.setBackgroundPaint(Color.WHITE);
-			plot.setForegroundAlpha(this.opaqueness);
+        if (dataTable.isNominal(colorColumn)) {
+            if (dataTable.isNominal(valueColumn)) {
+                this.nominal = true;
+                synchronized (dataTable) {
+                    Map<String,Map<String, AtomicInteger>> categoryValues = new LinkedHashMap<String, Map<String, AtomicInteger>>();
+                    for (int i = 0; i < this.dataTable.getNumberOfValues(colorColumn); i++) {
+                        String key = this.dataTable.mapIndex(colorColumn, i);
+                        Map<String, AtomicInteger> innerMap = new LinkedHashMap<String, AtomicInteger>();
+                        for (int j = 0; j < this.dataTable.getNumberOfValues(valueColumn); j++) {
+                            innerMap.put(this.dataTable.mapIndex(valueColumn, j), new AtomicInteger(0));
+                        }
+                        categoryValues.put(key, innerMap);
+                    }
 
-			BarRenderer renderer = new BarRenderer();
-			if (categoryDataset.getRowCount() == 1) {
-				renderer.setSeriesPaint(0, Color.RED);
-				renderer.setSeriesFillPaint(0, Color.RED);
-			} else {
-				for (int i = 0; i < categoryDataset.getRowCount(); i++) {
-					Color color = getColorProvider().getPointColor((double) i
-							/ (double) (categoryDataset.getRowCount() - 1));
-					renderer.setSeriesPaint(i, color);
-					renderer.setSeriesFillPaint(i, color);
-				}
-			}
-			renderer.setBarPainter(new RapidBarPainter());
-			renderer.setDrawBarOutline(true);
-			plot.setRenderer(renderer);
+                    Iterator<DataTableRow> j = dataTable.iterator();
+                    while (j.hasNext()) {
+                        DataTableRow row = j.next();
+                        String colorString = this.dataTable.getValueAsString(row, colorColumn);
+                        String valueString = this.dataTable.getValueAsString(row, valueColumn);
+                        categoryValues.get(colorString).get(valueString).incrementAndGet();
+                    }
 
-			plot.getRangeAxis().setLabelFont(LABEL_FONT_BOLD);
-			plot.getRangeAxis().setTickLabelFont(LABEL_FONT);
+                    for (String key : categoryValues.keySet()) {
+                        for (String value : categoryValues.get(key).keySet()) {
+                            int count = categoryValues.get(key).get(value).get();
+                            categoryDataset.addValue(count, key, value);
+                        }
+                    }
+                }
+            } else {
+                this.nominal = false;
+                synchronized (dataTable) {
+                    Map<String, List<Double>> classMap = new LinkedHashMap<String, List<Double>>();
+                    for (int i = 0; i < this.dataTable.getNumberOfValues(colorColumn); i++) {
+                        classMap.put(this.dataTable.mapIndex(colorColumn, i), new LinkedList<Double>());
+                    }
+                    Iterator<DataTableRow> i = dataTable.iterator();
+                    while (i.hasNext()) {
+                        DataTableRow row = i.next();
+                        double value = row.getValue(valueColumn);
+                        if (this.absolute)
+                            value = Math.abs(value);
+                        String colorValue = this.dataTable.getValueAsString(row, colorColumn);
+                        List<Double> colorList = classMap.get(colorValue);
+                        if (colorList != null)
+                            colorList.add(value);
+                    }
 
-			plot.getDomainAxis().setLabelFont(LABEL_FONT_BOLD);
-			plot.getDomainAxis().setTickLabelFont(LABEL_FONT);
-			
-			
-			
-			// rotate labels
-			if (isLabelRotating()) {
-				plot.getDomainAxis().setTickLabelsVisible(true);
-				plot.getDomainAxis().setCategoryLabelPositions(
-    					CategoryLabelPositions.createUpRotationLabelPositions(
-    							Math.PI / 2.0d));
-			}
-		} else {
-			// ** numerical **
-			int categoryCount = this.histogramDataset.getSeriesCount();
-			boolean createLegend = categoryCount > 0 && categoryCount < maxClasses && this.drawLegend;
-			
-			String domainName = valueColumn >= 0 ? this.dataTable.getColumnName(valueColumn) : "Value"; 
-			chart = ChartFactory.createHistogram(
-					null,                      // title
-					domainName, 
-					"Frequency", 
-					histogramDataset, 
-					PlotOrientation.VERTICAL, 
-					createLegend, 
-					true,                     // tooltips
-					false);                   // urls
+                    for (Entry<String, List<Double>> entry : classMap.entrySet()) {
+                        List<Double> valueList = entry.getValue();
+                        double[] values = new double[valueList.size()];
+                        int index = 0;
+                        for (double v : valueList) {
+                            values[index++] = v;
+                        }
+                        histogramDataset.addSeries(entry.getKey(), values, this.binNumber);
+                    }
+                }
+            }
+        }
+    }
 
-			XYPlot plot = chart.getXYPlot();
-			plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
-			plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
-			plot.setBackgroundPaint(Color.WHITE);
-			plot.setForegroundAlpha(this.opaqueness);
+    @Override
+    protected void updatePlotter() {
+        prepareData();
 
-			XYBarRenderer renderer = new XYBarRenderer();
-			if (histogramDataset.getSeriesCount() == 1) {
-				renderer.setSeriesPaint(0, Color.RED);
-				renderer.setSeriesFillPaint(0, Color.RED);
-			} else {
-				for (int i = 0; i < histogramDataset.getSeriesCount(); i++) {
-					Color color = getColorProvider().getPointColor((double) i
-							/ (double) (histogramDataset.getSeriesCount() - 1));
-					renderer.setSeriesPaint(i, color);
-					renderer.setSeriesFillPaint(i, color);
-				}
-			}
-			renderer.setBarPainter(new RapidXYBarPainter());
-			renderer.setDrawBarOutline(true);
-			plot.setRenderer(renderer);
+        String maxClassesProperty = ParameterService.getParameterValue(MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_COLORS_CLASSLIMIT);
+        int maxClasses = 20;
+        try {
+            if (maxClassesProperty != null)
+                maxClasses = Integer.parseInt(maxClassesProperty);
+        } catch (NumberFormatException e) {
+            LogService.getGlobal().log("Deviation plotter: cannot parse property 'rapidminer.gui.plotter.colors.classlimit', using maximal 20 different classes.", LogService.WARNING);
+        }
 
-			plot.getRangeAxis().setLabelFont(LABEL_FONT_BOLD);
-			plot.getRangeAxis().setTickLabelFont(LABEL_FONT);
+        JFreeChart chart = null;
+        if (nominal) {
+            // ** nominal **
+            int categoryCount = this.categoryDataset.getRowCount();
+            boolean createLegend = categoryCount > 0 && categoryCount < maxClasses && this.drawLegend;
 
-			plot.getDomainAxis().setLabelFont(LABEL_FONT_BOLD);
-			plot.getDomainAxis().setTickLabelFont(LABEL_FONT);
-			// range axis
-			Range range = getRangeForDimension(valueColumn);
-			if (range != null)
-				plot.getDomainAxis().setRange(range);
-			
-			// rotate labels
-			if (isLabelRotating()) {
-				plot.getDomainAxis().setTickLabelsVisible(true);
-				plot.getDomainAxis().setVerticalTickLabels(true);
-			}
-			
-			
-			if (histogramDataset.getSeriesCount() == 1) {
-				String key = histogramDataset.getSeriesKey(0).toString();
-				int index = this.dataTable.getColumnIndex(key);
-				if (index >= 0) {
-					if (this.dataTable.isNominal(index)) {
-						String[] values = new String[dataTable.getNumberOfValues(index)];
-						for (int i = 0; i < values.length; i++) {
-							values[i] = dataTable.mapIndex(index, i);
-						}
-						plot.setDomainAxis(new SymbolAxis(key, values));
-						
-						// rotate labels
-						if (isLabelRotating()) {
-							plot.getDomainAxis().setTickLabelsVisible(true);
-							plot.getDomainAxis().setVerticalTickLabels(true);
-						}
-					}
-				}
-			}
-		}
-		
-		// set the background color for the chart...
-		chart.setBackgroundPaint(Color.white);
+            String domainName = valueColumn >= 0 ? this.dataTable.getColumnName(valueColumn) : "Value";
 
-		// legend settings
-		LegendTitle legend = chart.getLegend();
-		if (legend != null) {
-			legend.setPosition(RectangleEdge.TOP);
-			legend.setFrame(BlockBorder.NONE);
-			legend.setHorizontalAlignment(HorizontalAlignment.LEFT);
-			legend.setItemFont(LABEL_FONT);
-		}
+            chart = ChartFactory.createBarChart(
+                    null,                      // title
+                    domainName,
+                    "Frequency",
+                    categoryDataset,
+                    PlotOrientation.VERTICAL,
+                    createLegend,
+                    true,                     // tooltips
+                    false);                   // urls
 
-		AbstractChartPanel panel = getPlotterPanel();
-		if (panel == null) {
-			panel = createPanel(chart);
-		} else {
-			panel.setChart(chart);
-		}
-		
-		// ATTENTION: WITHOUT THIS WE GET SEVERE MEMORY LEAKS!!!
-		panel.getChartRenderingInfo().setEntityCollection(null);
-	}
+            CategoryPlot plot = chart.getCategoryPlot();
+            plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
+            plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
+            plot.setBackgroundPaint(Color.WHITE);
+            plot.setForegroundAlpha(this.opaqueness);
+
+            BarRenderer renderer = new BarRenderer();
+            if (categoryDataset.getRowCount() == 1) {
+                renderer.setSeriesPaint(0, Color.RED);
+                renderer.setSeriesFillPaint(0, Color.RED);
+            } else {
+                for (int i = 0; i < categoryDataset.getRowCount(); i++) {
+                    Color color = getColorProvider().getPointColor((double) i
+                            / (double) (categoryDataset.getRowCount() - 1));
+                    renderer.setSeriesPaint(i, color);
+                    renderer.setSeriesFillPaint(i, color);
+                }
+            }
+            renderer.setBarPainter(new RapidBarPainter());
+            renderer.setDrawBarOutline(true);
+            plot.setRenderer(renderer);
+
+            plot.getRangeAxis().setLabelFont(LABEL_FONT_BOLD);
+            plot.getRangeAxis().setTickLabelFont(LABEL_FONT);
+
+            plot.getDomainAxis().setLabelFont(LABEL_FONT_BOLD);
+            plot.getDomainAxis().setTickLabelFont(LABEL_FONT);
+
+
+
+            // rotate labels
+            if (isLabelRotating()) {
+                plot.getDomainAxis().setTickLabelsVisible(true);
+                plot.getDomainAxis().setCategoryLabelPositions(
+                        CategoryLabelPositions.createUpRotationLabelPositions(
+                                Math.PI / 2.0d));
+            }
+        } else {
+            // ** numerical **
+            int categoryCount = this.histogramDataset.getSeriesCount();
+            boolean createLegend = categoryCount > 0 && categoryCount < maxClasses && this.drawLegend;
+
+            String domainName = valueColumn >= 0 ? this.dataTable.getColumnName(valueColumn) : "Value";
+            chart = ChartFactory.createHistogram(
+                    null,                      // title
+                    domainName,
+                    "Frequency",
+                    histogramDataset,
+                    PlotOrientation.VERTICAL,
+                    createLegend,
+                    true,                     // tooltips
+                    false);                   // urls
+
+            XYPlot plot = chart.getXYPlot();
+            plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
+            plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
+            plot.setBackgroundPaint(Color.WHITE);
+            plot.setForegroundAlpha(this.opaqueness);
+
+            XYBarRenderer renderer = new XYBarRenderer();
+            if (histogramDataset.getSeriesCount() == 1) {
+                renderer.setSeriesPaint(0, Color.RED);
+                renderer.setSeriesFillPaint(0, Color.RED);
+            } else {
+                for (int i = 0; i < histogramDataset.getSeriesCount(); i++) {
+                    Color color = getColorProvider().getPointColor((double) i
+                            / (double) (histogramDataset.getSeriesCount() - 1));
+                    renderer.setSeriesPaint(i, color);
+                    renderer.setSeriesFillPaint(i, color);
+                }
+            }
+            renderer.setBarPainter(new RapidXYBarPainter());
+            renderer.setDrawBarOutline(true);
+            plot.setRenderer(renderer);
+
+            plot.getRangeAxis().setLabelFont(LABEL_FONT_BOLD);
+            plot.getRangeAxis().setTickLabelFont(LABEL_FONT);
+
+            plot.getDomainAxis().setLabelFont(LABEL_FONT_BOLD);
+            plot.getDomainAxis().setTickLabelFont(LABEL_FONT);
+            // range axis
+            Range range = getRangeForDimension(valueColumn);
+            if (range != null)
+                plot.getDomainAxis().setRange(range);
+
+            // rotate labels
+            if (isLabelRotating()) {
+                plot.getDomainAxis().setTickLabelsVisible(true);
+                plot.getDomainAxis().setVerticalTickLabels(true);
+            }
+
+
+            if (histogramDataset.getSeriesCount() == 1) {
+                String key = histogramDataset.getSeriesKey(0).toString();
+                int index = this.dataTable.getColumnIndex(key);
+                if (index >= 0) {
+                    if (this.dataTable.isNominal(index)) {
+                        String[] values = new String[dataTable.getNumberOfValues(index)];
+                        for (int i = 0; i < values.length; i++) {
+                            values[i] = dataTable.mapIndex(index, i);
+                        }
+                        plot.setDomainAxis(new SymbolAxis(key, values));
+
+                        // rotate labels
+                        if (isLabelRotating()) {
+                            plot.getDomainAxis().setTickLabelsVisible(true);
+                            plot.getDomainAxis().setVerticalTickLabels(true);
+                        }
+                    }
+                }
+            }
+        }
+
+        // set the background color for the chart...
+        chart.setBackgroundPaint(Color.white);
+
+        // legend settings
+        LegendTitle legend = chart.getLegend();
+        if (legend != null) {
+            legend.setPosition(RectangleEdge.TOP);
+            legend.setFrame(BlockBorder.NONE);
+            legend.setHorizontalAlignment(HorizontalAlignment.LEFT);
+            legend.setItemFont(LABEL_FONT);
+        }
+
+        AbstractChartPanel panel = getPlotterPanel();
+        if (panel == null) {
+            panel = createPanel(chart);
+        } else {
+            panel.setChart(chart);
+        }
+
+        // ATTENTION: WITHOUT THIS WE GET SEVERE MEMORY LEAKS!!!
+        panel.getChartRenderingInfo().setEntityCollection(null);
+    }
 }

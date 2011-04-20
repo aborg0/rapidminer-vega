@@ -40,79 +40,80 @@ import com.rapidminer.tools.plugin.Plugin;
 /**
  * This service class can be used to deliver all building blocks, i.e. both predefined
  * and user defined building blocks.
- *  
+ * 
  *  @author Ingo Mierswa, Tobias Malbrecht
  */
 public class BuildingBlockService {
 
-	private static final String RESOURCE_BUILDINGBLOCK_FOLDER = "/com/rapidminer/resources/buildingblocks/";
-	private static final String RESOURCE_BUILDINGBLOCK_LIST = RESOURCE_BUILDINGBLOCK_FOLDER + "buildingblocks.txt";
+    private static final String RESOURCE_BUILDINGBLOCK_FOLDER = "/com/rapidminer/resources/buildingblocks/";
+    private static final String RESOURCE_BUILDINGBLOCK_LIST = RESOURCE_BUILDINGBLOCK_FOLDER + "buildingblocks.txt";
 
-	/** Returns a sorted list of all building blocks. */
-	public static List<BuildingBlock> getBuildingBlocks() {
-		List<BuildingBlock> buildingBlocks = getPredefinedBuildingBlocks();
-		buildingBlocks.addAll(getPluginBuildingBlocks());
-		buildingBlocks.addAll(getUserBuildingBlocks());
-		Collections.sort(buildingBlocks);
-		return buildingBlocks;
-	}
-	
-	/** Returns all user defined building blocks. The result is not sorted. */
-	public static List<BuildingBlock> getUserBuildingBlocks() {
-		File[] userDefinedBuildingBlockFiles = ParameterService.getUserRapidMinerDir().listFiles(new FileFilter() {
+    /** Returns a sorted list of all building blocks. */
+    public static List<BuildingBlock> getBuildingBlocks() {
+        List<BuildingBlock> buildingBlocks = getPredefinedBuildingBlocks();
+        buildingBlocks.addAll(getPluginBuildingBlocks());
+        buildingBlocks.addAll(getUserBuildingBlocks());
+        Collections.sort(buildingBlocks);
+        return buildingBlocks;
+    }
 
-			public boolean accept(File file) {
-				return file.getName().endsWith(".buildingblock");
-			}
-		});
+    /** Returns all user defined building blocks. The result is not sorted. */
+    public static List<BuildingBlock> getUserBuildingBlocks() {
+        File[] userDefinedBuildingBlockFiles = FileSystemService.getUserRapidMinerDir().listFiles(new FileFilter() {
 
-		List<BuildingBlock> buildingBlocks = new LinkedList<BuildingBlock>();
-		for (File file : userDefinedBuildingBlockFiles) {
-			try {
-				buildingBlocks.add(new BuildingBlock(file, BuildingBlock.USER_DEFINED));
-			} catch (InstantiationException e) {
-				LogService.getRoot().log(Level.WARNING, "Cannot load building block file '" + file + "': " + e.getMessage(), e);
-			}
-		}
-		return buildingBlocks;
-	}
+            @Override
+            public boolean accept(File file) {
+                return file.getName().endsWith(".buildingblock");
+            }
+        });
 
-	/** Returns all predefined building blocks. The result is not sorted. */
-	public static List<BuildingBlock> getPredefinedBuildingBlocks() {
-		InputStream bbListIn = BuildingBlockService.class.getResourceAsStream(RESOURCE_BUILDINGBLOCK_LIST);
-		if (bbListIn == null) {
-			LogService.getRoot().warning("Resource "+RESOURCE_BUILDINGBLOCK_LIST+" missing");
-			return Collections.emptyList();
-		}
-		String[] files = null;
-		try {
-			files = Tools.readTextFile(new InputStreamReader(bbListIn, "UTF-8")).split("[\\r\\n]+");
-		} catch (Exception e1) {
-			LogService.getRoot().log(Level.WARNING, "Cannot read resource "+RESOURCE_BUILDINGBLOCK_LIST+": "+e1 ,e1);
-			return Collections.emptyList();
-		}
-		List<BuildingBlock> buildingBlocks = new LinkedList<BuildingBlock>();
-		for (String resourceName : files) {
-			if ((resourceName == null) || resourceName.isEmpty()) {
-				continue;
-			}
-			try {
-				InputStream in = BuildingBlockService.class.getResourceAsStream(RESOURCE_BUILDINGBLOCK_FOLDER + resourceName);
-				buildingBlocks.add(new BuildingBlock(new BufferedReader(new InputStreamReader(in, "UTF-8")), BuildingBlock.PREDEFINED));
-			} catch (Exception e) {
-				LogService.getRoot().log(Level.WARNING, "Cannot load building block file '" + resourceName+ "': " + e.getMessage(), e);
-			}
-		}
-		return buildingBlocks;
-	}
-	
-	/** Returns all building blocks defined by plugins. */
-	public static List<BuildingBlock> getPluginBuildingBlocks() {
-		List<BuildingBlock> buildingBlocks = new LinkedList<BuildingBlock>();
-		Iterator<Plugin> p = Plugin.getAllPlugins().iterator();
-		while (p.hasNext()) {
-			buildingBlocks.addAll(p.next().getBuildingBlocks());
-		}
-		return buildingBlocks;
-	}
+        List<BuildingBlock> buildingBlocks = new LinkedList<BuildingBlock>();
+        for (File file : userDefinedBuildingBlockFiles) {
+            try {
+                buildingBlocks.add(new BuildingBlock(file, BuildingBlock.USER_DEFINED));
+            } catch (InstantiationException e) {
+                LogService.getRoot().log(Level.WARNING, "Cannot load building block file '" + file + "': " + e.getMessage(), e);
+            }
+        }
+        return buildingBlocks;
+    }
+
+    /** Returns all predefined building blocks. The result is not sorted. */
+    public static List<BuildingBlock> getPredefinedBuildingBlocks() {
+        InputStream bbListIn = BuildingBlockService.class.getResourceAsStream(RESOURCE_BUILDINGBLOCK_LIST);
+        if (bbListIn == null) {
+            LogService.getRoot().warning("Resource "+RESOURCE_BUILDINGBLOCK_LIST+" missing");
+            return Collections.emptyList();
+        }
+        String[] files = null;
+        try {
+            files = Tools.readTextFile(new InputStreamReader(bbListIn, "UTF-8")).split("[\\r\\n]+");
+        } catch (Exception e1) {
+            LogService.getRoot().log(Level.WARNING, "Cannot read resource "+RESOURCE_BUILDINGBLOCK_LIST+": "+e1 ,e1);
+            return Collections.emptyList();
+        }
+        List<BuildingBlock> buildingBlocks = new LinkedList<BuildingBlock>();
+        for (String resourceName : files) {
+            if ((resourceName == null) || resourceName.isEmpty()) {
+                continue;
+            }
+            try {
+                InputStream in = BuildingBlockService.class.getResourceAsStream(RESOURCE_BUILDINGBLOCK_FOLDER + resourceName);
+                buildingBlocks.add(new BuildingBlock(new BufferedReader(new InputStreamReader(in, "UTF-8")), BuildingBlock.PREDEFINED));
+            } catch (Exception e) {
+                LogService.getRoot().log(Level.WARNING, "Cannot load building block file '" + resourceName+ "': " + e.getMessage(), e);
+            }
+        }
+        return buildingBlocks;
+    }
+
+    /** Returns all building blocks defined by plugins. */
+    public static List<BuildingBlock> getPluginBuildingBlocks() {
+        List<BuildingBlock> buildingBlocks = new LinkedList<BuildingBlock>();
+        Iterator<Plugin> p = Plugin.getAllPlugins().iterator();
+        while (p.hasNext()) {
+            buildingBlocks.addAll(p.next().getBuildingBlocks());
+        }
+        return buildingBlocks;
+    }
 }

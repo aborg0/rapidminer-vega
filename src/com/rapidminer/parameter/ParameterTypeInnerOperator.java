@@ -24,7 +24,6 @@ package com.rapidminer.parameter;
 
 import org.w3c.dom.Element;
 
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.XMLException;
 
 /**
@@ -38,8 +37,8 @@ public class ParameterTypeInnerOperator extends ParameterTypeSingle {
 
     private static final long serialVersionUID = -8428679832770835634L;
 
-    public ParameterTypeInnerOperator(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeInnerOperator(Element element) throws XMLException {
+        super(element);
         setOptional(false);
     }
 
@@ -75,6 +74,6 @@ public class ParameterTypeInnerOperator extends ParameterTypeSingle {
     }
 
     @Override
-    public void getDefinitionAsXML(Element typeElement) {
+    protected void writeDefinitionToXML(Element typeElement) {
     }
 }

@@ -52,8 +52,8 @@ import com.rapidminer.repository.local.LocalRepository;
 import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.repository.resource.ResourceRepository;
 import com.rapidminer.tools.AbstractObservable;
+import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.LogService;
-import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.XMLException;
@@ -199,7 +199,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
     }
 
     private File getConfigFile() {
-        return ParameterService.getUserConfigFile("repositories.xml");
+        return FileSystemService.getUserConfigFile("repositories.xml");
     }
 
     /** Loads the XML configuration file.

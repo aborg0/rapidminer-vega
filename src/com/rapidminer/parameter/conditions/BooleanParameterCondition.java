@@ -25,7 +25,6 @@ package com.rapidminer.parameter.conditions;
 import org.w3c.dom.Element;
 
 import com.rapidminer.io.process.XMLTools;
-import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterHandler;
 import com.rapidminer.tools.XMLException;
 
@@ -40,8 +39,8 @@ public class BooleanParameterCondition extends ParameterCondition {
 
     private boolean conditionValue;
 
-    public BooleanParameterCondition(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public BooleanParameterCondition(Element element) throws XMLException {
+        super(element);
 
         conditionValue = Boolean.valueOf(XMLTools.getTagContents(element, ELEMENT_CONDITION_VALUE, true));
     }
@@ -53,7 +52,7 @@ public class BooleanParameterCondition extends ParameterCondition {
 
     @Override
     public boolean isConditionFullfilled() {
-        return (parameterHandler.getParameterAsBoolean(conditionParameter) == conditionValue);
+        return parameterHandler.getParameterAsBoolean(conditionParameter) == conditionValue;
     }
 
     @Override

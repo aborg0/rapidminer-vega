@@ -24,7 +24,6 @@ package com.rapidminer.parameter;
 
 import org.w3c.dom.Element;
 
-import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.XMLException;
@@ -42,8 +41,8 @@ public class ParameterTypeAttributes extends ParameterTypeAttribute {
 
     private static final long serialVersionUID = -4177652183651031337L;
 
-    public ParameterTypeAttributes(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeAttributes(Element element) throws XMLException {
+        super(element);
     }
 
     public ParameterTypeAttributes(final String key, String description, InputPort inPort) {

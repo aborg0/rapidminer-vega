@@ -25,7 +25,6 @@ package com.rapidminer.parameter;
 import org.w3c.dom.Element;
 
 import com.rapidminer.io.process.XMLTools;
-import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.XMLException;
 
 /**
@@ -49,8 +48,8 @@ public class ParameterTypeCategory extends ParameterTypeSingle {
 
     private String[] categories = new String[0];
 
-    public ParameterTypeCategory(Operator operator, Element element) throws XMLException {
-        super(operator, element);
+    public ParameterTypeCategory(Element element) throws XMLException {
+        super(element);
 
         defaultValue = Integer.parseInt(element.getAttribute(ATTRIBUTE_DEFAULT));
         categories = XMLTools.getChildTagsContentAsStringArray(XMLTools.getChildElement(element, ELEMENT_VALUES, true), ELEMENT_VALUE);
@@ -143,7 +142,7 @@ public class ParameterTypeCategory extends ParameterTypeSingle {
     }
 
     @Override
-    public void getDefinitionAsXML(Element typeElement) {
+    protected void writeDefinitionToXML(Element typeElement) {
         typeElement.setAttribute(ATTRIBUTE_DEFAULT, defaultValue + "");
 
         Element valuesElement = XMLTools.addTag(typeElement, ELEMENT_VALUES);

@@ -166,7 +166,7 @@ public class Tools {
     }
 
     public static int getPreferredTimeZoneIndex() {
-        String timeZoneString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_TIME_ZONE);
+        String timeZoneString = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_TIME_ZONE);
         int preferredTimeZone = SYSTEM_TIME_ZONE;
         try {
             if (timeZoneString != null)
@@ -228,7 +228,7 @@ public class Tools {
     public static String formatPercent(double value) {
         if (Double.isNaN(value))
             return "?";
-        String percentDigitsString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_PERCENT);
+        String percentDigitsString = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_PERCENT);
         int percentDigits = 2;
         try {
             if (percentDigitsString != null)
@@ -249,7 +249,7 @@ public class Tools {
             return "?";
         int numberDigits = 3;
         try {
-            String numberDigitsString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_NUMBERS);
+            String numberDigitsString = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_NUMBERS);
             numberDigits = Integer.parseInt(numberDigitsString);
         } catch (NumberFormatException e) {
         }
@@ -276,7 +276,7 @@ public class Tools {
         int numberDigits = numberOfDigits;
         if (numberDigits < 0) {
             try {
-                String numberDigitsString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_NUMBERS);
+                String numberDigitsString = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_NUMBERS);
                 numberDigits = Integer.parseInt(numberDigitsString);
             } catch (NumberFormatException e) {
                 numberDigits = 3;
@@ -295,7 +295,7 @@ public class Tools {
     public static String formatIntegerIfPossible(double value) {
         int numberDigits = 3;
         try {
-            String numberDigitsString = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_NUMBERS);
+            String numberDigitsString = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_NUMBERS);
             numberDigits = Integer.parseInt(numberDigitsString);
         } catch (NumberFormatException e) {
         }
@@ -360,13 +360,13 @@ public class Tools {
 
     /** Returns the name for an ordinal number. */
     public static String ordinalNumber(int n) {
-        if ((n % 10 == 1) && (n % 100 != 11)) {
+        if (n % 10 == 1 && n % 100 != 11) {
             return n + "st";
         }
-        if ((n % 10 == 2) && (n % 100 != 12)) {
+        if (n % 10 == 2 && n % 100 != 12) {
             return n + "nd";
         }
-        if ((n % 10 == 3) && (n % 100 != 13)) {
+        if (n % 10 == 3 && n % 100 != 13) {
             return n + "rd";
         }
         return n + "th";
@@ -395,12 +395,12 @@ public class Tools {
 
     /** Returns true if the d1 is greater than d2 and they are not equal. */
     public static boolean isGreater(double d1, double d2) {
-        return ((Double.compare(d1, d2) > 0) && isNotEqual(d1, d2)) || (Double.isNaN(d1) || Double.isNaN(d2));
+        return Double.compare(d1, d2) > 0 && isNotEqual(d1, d2) || Double.isNaN(d1) || Double.isNaN(d2);
     }
 
     /** Returns true if the d1 is greater than d1 or both are equal, or if one of the values is NaN */
     public static boolean isGreaterEqual(double d1, double d2) {
-        return (Double.compare(d1, d2) > 0) || isEqual(d1, d2) || (Double.isNaN(d1) || Double.isNaN(d2));
+        return Double.compare(d1, d2) > 0 || isEqual(d1, d2) || Double.isNaN(d1) || Double.isNaN(d2);
     }
 
     /** Returns true if the d1 is less than d2 and they are not equal. */
@@ -552,8 +552,8 @@ public class Tools {
 
         // try property setting
         if (result == null) {
-            String encoding = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_DEFAULT_ENCODING);
-            if ((encoding != null) && (encoding.trim().length() > 0)) {
+            String encoding = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_DEFAULT_ENCODING);
+            if (encoding != null && encoding.trim().length() > 0) {
                 if (RapidMiner.SYSTEM_ENCODING_NAME.equals(encoding)) {
                     result = Charset.defaultCharset();
                 } else {
@@ -705,13 +705,13 @@ public class Tools {
         if (string == null)
             return deflt;
         string = string.toLowerCase().trim();
-        for (int i = 0; i < TRUE_STRINGS.length; i++) {
-            if (TRUE_STRINGS[i].equals(string)) {
+        for (String element : TRUE_STRINGS) {
+            if (element.equals(string)) {
                 return true;
             }
         }
-        for (int i = 0; i < FALSE_STRINGS.length; i++) {
-            if (FALSE_STRINGS[i].equals(string)) {
+        for (String element : FALSE_STRINGS) {
+            if (element.equals(string)) {
                 return false;
             }
         }
@@ -724,15 +724,15 @@ public class Tools {
             while (clazz.getDeclaringClass() != null)
                 clazz = clazz.getDeclaringClass();
             String filename = clazz.getName().replace('.', File.separatorChar);
-            return ParameterService.getSourceFile(filename + ".java");
+            return FileSystemService.getSourceFile(filename + ".java");
         } catch (Throwable t) {
         }
         String filename = e.getClassName().replace('.', File.separatorChar);
-        return ParameterService.getSourceFile(filename + ".java");
+        return FileSystemService.getSourceFile(filename + ".java");
     }
 
     public static Process launchFileEditor(File file, int line) throws IOException {
-        String editor = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_EDITOR);
+        String editor = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_EDITOR);
         if (editor == null)
             throw new IOException("Property 'rapidminer.tools.editor' undefined.");
         editor = editor.replaceAll("%f", file.getAbsolutePath());
@@ -827,7 +827,7 @@ public class Tools {
             char currentChar = line.charAt(i);
             if (currentChar == quotingChar) {
                 boolean escaped = false;
-                if ((i != 0) && (lastChar == escapeChar)) {
+                if (i != 0 && lastChar == escapeChar) {
                     escaped = true;
                 }
 
@@ -875,7 +875,7 @@ public class Tools {
         boolean isSplitPart = true;
         int index = 0;
         for (String part : quotedSplits) {
-            if ((index > 0) || (part.trim().length() > 0)) { // skip first split if part is empty (coming from leading
+            if (index > 0 || part.trim().length() > 0) { // skip first split if part is empty (coming from leading
                 // quotes in the line)
                 if (isSplitPart) {
                     String[] separatedParts = separatorPattern.split(part, -1); // ATTENTION: a negative Limit is very
@@ -885,11 +885,11 @@ public class Tools {
                         String currentPart = separatedParts[s].trim();
                         if (currentPart.length() == 0) { // part is empty -- missing if in the middle or at line start
                             // or end
-                            if ((s == 0) && (index == 0)) {
+                            if (s == 0 && index == 0) {
                                 result.add(currentPart);
-                            } else if ((s == separatedParts.length - 1) && (index == quotedSplits.size() - 1)) {
+                            } else if (s == separatedParts.length - 1 && index == quotedSplits.size() - 1) {
                                 result.add(currentPart);
-                            } else if ((s > 0) && (s < separatedParts.length - 1)) {
+                            } else if (s > 0 && s < separatedParts.length - 1) {
                                 result.add(currentPart);
                             }
                         } else {
@@ -946,7 +946,7 @@ public class Tools {
             }
             if (start >= 0) {
                 StringBuffer current = new StringBuffer();
-                while ((end < 0) && (i < splittedTokens.length)) {
+                while (end < 0 && i < splittedTokens.length) {
                     if (splittedTokens[i].endsWith(quoteString)) {
                         end = i;
                         break;
@@ -1005,16 +1005,16 @@ public class Tools {
         }
         ;
 
-        if ((tokenizer.ttype == '\'') || (tokenizer.ttype == '"')) {
+        if (tokenizer.ttype == '\'' || tokenizer.ttype == '"') {
             tokenizer.ttype = StreamTokenizer.TT_WORD;
-        } else if ((tokenizer.ttype == StreamTokenizer.TT_WORD) && (tokenizer.sval.equals("?"))) {
+        } else if (tokenizer.ttype == StreamTokenizer.TT_WORD && tokenizer.sval.equals("?")) {
             tokenizer.ttype = '?';
         }
     }
 
     /** Delivers the next token and checks if its the end of line. */
     public static void getLastToken(StreamTokenizer tokenizer, boolean endOfFileOk) throws IOException {
-        if ((tokenizer.nextToken() != StreamTokenizer.TT_EOL) && ((tokenizer.ttype != StreamTokenizer.TT_EOF) || !endOfFileOk)) {
+        if (tokenizer.nextToken() != StreamTokenizer.TT_EOL && (tokenizer.ttype != StreamTokenizer.TT_EOF || !endOfFileOk)) {
             throw new IOException("expected the end of the line " + tokenizer.lineno());
         }
     }
@@ -1027,9 +1027,9 @@ public class Tools {
 
         if (tokenizer.ttype == StreamTokenizer.TT_EOF) {
             throw new IOException("unexpected end of file in line " + tokenizer.lineno());
-        } else if ((tokenizer.ttype == '\'') || (tokenizer.ttype == '"')) {
+        } else if (tokenizer.ttype == '\'' || tokenizer.ttype == '"') {
             tokenizer.ttype = StreamTokenizer.TT_WORD;
-        } else if ((tokenizer.ttype == StreamTokenizer.TT_WORD) && (tokenizer.sval.equals("?"))) {
+        } else if (tokenizer.ttype == StreamTokenizer.TT_WORD && tokenizer.sval.equals("?")) {
             tokenizer.ttype = '?';
         }
     }
@@ -1075,8 +1075,8 @@ public class Tools {
             }
 
             String[] files = srcPath.list();
-            for (int i = 0; i < files.length; i++) {
-                copy(new File(srcPath, files[i]), new File(dstPath, files[i]));
+            for (String file : files) {
+                copy(new File(srcPath, file), new File(dstPath, file));
             }
         } else {
             if (srcPath.exists()) {
@@ -1142,7 +1142,7 @@ public class Tools {
                 out.close();
             }
         } finally {
-            if (closeOutputStream && (out != null)) {
+            if (closeOutputStream && out != null) {
                 try {
                     out.close();
                 } catch (IOException ex) {
@@ -1203,7 +1203,7 @@ public class Tools {
         if (quotient > 0) {
             return getExcelColumnName(quotient - 1) + alphabet[index % 26].toString();
         } else {
-            return alphabet[(index) % 26].toString();
+            return alphabet[index % 26].toString();
         }
     }
 
@@ -1368,8 +1368,8 @@ public class Tools {
             if (unit >= Tools.MEMORY_UNITS.length - 1)
                 break;
         }
-        if ((result < 10) && (unit > 0)) {
-            return result + "." + (10 * rest / 1024) + " " + Tools.MEMORY_UNITS[unit];
+        if (result < 10 && unit > 0) {
+            return result + "." + 10 * rest / 1024 + " " + Tools.MEMORY_UNITS[unit];
         } else {
             return result + " " + Tools.MEMORY_UNITS[unit];
         }
@@ -1522,7 +1522,7 @@ public class Tools {
     public static boolean equals(Object o1, Object o2) {
         if (o1 != null)
             return o1.equals(o2);
-        if ((o1 == null) && (o2 == null))
+        if (o1 == null && o2 == null)
             return true;
         return false;
     }
