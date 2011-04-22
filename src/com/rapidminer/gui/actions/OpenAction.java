@@ -32,6 +32,7 @@ import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.operator.ResultObject;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.MalformedRepositoryLocationException;
@@ -39,7 +40,6 @@ import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryLocationChooser;
-import com.rapidminer.repository.gui.RepositoryTree;
 import com.rapidminer.tools.XMLException;
 
 
@@ -62,14 +62,40 @@ public class OpenAction extends ResourceAction {
 		open();
 	}
 		
+	/** Loads the data held by the given entry (in the background) and opens it as a result. */
+	public static void showAsResult(final IOObjectEntry data) {
+		final ProgressThread downloadProgressThread = new ProgressThread("download_from_repository") {
+			public void run() {
+				try {
+					ResultObject result = (ResultObject)data.retrieveData(this.getProgressListener());
+					result.setSource(data.getLocation().toString());
+					RapidMinerGUI.getMainFrame().getResultDisplay().showResult(result);
+				} catch (Exception e1) {
+					SwingTools.showSimpleErrorMessage("cannot_fetch_data_from_repository", e1);
+				}
+			}
+		};
+		downloadProgressThread.start();
+	}
+
 	public static void open() {
 		if (RapidMinerGUI.getMainFrame().close()) {
-			String location = RepositoryLocationChooser.selectLocation(null, null, RapidMinerGUI.getMainFrame(), true, false);
-			if (location != null) {
+			String locationString = RepositoryLocationChooser.selectLocation(null, null, RapidMinerGUI.getMainFrame(), true, false);			
+			if (locationString != null) {
 				try {
-					open(new RepositoryProcessLocation(new RepositoryLocation(location)), true);
+					RepositoryLocation location = new RepositoryLocation(locationString);
+					Entry entry = location.locateEntry();
+					if (entry instanceof ProcessEntry) {
+						open(new RepositoryProcessLocation(location), true);
+					} else if (entry instanceof IOObjectEntry) {
+						showAsResult((IOObjectEntry) entry);
+					} else {
+						SwingTools.showVerySimpleErrorMessage("no_data_or_process");	
+					}
 				} catch (MalformedRepositoryLocationException e) {
-					SwingTools.showSimpleErrorMessage("while_loading", e, location, e.getMessage());
+					SwingTools.showSimpleErrorMessage("while_loading", e, locationString, e.getMessage());
+				} catch (RepositoryException e) {
+					SwingTools.showSimpleErrorMessage("while_loading", e, locationString, e.getMessage());
 				}
 			}			
 		}
@@ -111,7 +137,7 @@ public class OpenAction extends ResourceAction {
 			if (entry instanceof ProcessEntry) {
 				open(new RepositoryProcessLocation(location), false);
 			} else if (entry instanceof IOObjectEntry){
-				RepositoryTree.showAsResult((IOObjectEntry) entry);
+				OpenAction.showAsResult((IOObjectEntry) entry);
 			} else {
 				throw new RepositoryException("Cannot open entries of type "+entry.getType()+".");	
 			}

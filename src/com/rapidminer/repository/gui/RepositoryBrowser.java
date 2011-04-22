@@ -36,6 +36,7 @@ import javax.swing.JToolBar;
 
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.actions.OpenAction;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ExtendedJToolBar;
 import com.rapidminer.gui.tools.ResourceAction;
@@ -77,7 +78,7 @@ public class RepositoryBrowser extends JPanel implements Dockable {
 				if (entry instanceof ProcessEntry) {
 					RepositoryTree.openProcess((ProcessEntry)entry);												
 				} else if (entry instanceof IOObjectEntry) {
-					RepositoryTree.showAsResult((IOObjectEntry) entry);
+					OpenAction.showAsResult((IOObjectEntry) entry);
 				}				
 			}
 		});

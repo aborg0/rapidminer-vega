@@ -64,7 +64,6 @@ import com.rapidminer.repository.Repository;
 import com.rapidminer.repository.RepositoryConstants;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
-import com.rapidminer.repository.gui.RepositoryTree;
 import com.rapidminer.repository.gui.ToolTipProviderHelper;
 import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.tools.I18N;
@@ -158,7 +157,7 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 								proResponse.getProcessLocation());
 						RepositoryLocation ioLoc = new RepositoryLocation(procLoc.parent(), ((OutputLocation)selection).getLocation());
 
-						RepositoryTree.showAsResult((IOObjectEntry)ioLoc.locateEntry());
+						OpenAction.showAsResult((IOObjectEntry)ioLoc.locateEntry());
 					} catch (Exception e1) {
 						SwingTools.showSimpleErrorMessage("cannot_fetch_data_from_repository", e1);
 					}					

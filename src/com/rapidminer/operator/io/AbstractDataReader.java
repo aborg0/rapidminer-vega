@@ -1315,7 +1315,6 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
          * 
          * @return
          */
-        @SuppressWarnings("unused")
         public int getRow() {
             return rowNumber;
         }
@@ -1325,12 +1324,10 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
          * 
          * @return
          */
-        @SuppressWarnings("unused")
         public int getRowLenght() {
             return rowLenght;
         }
 
-        @SuppressWarnings("unused")
         public int getExpectedRowLenght() {
             return expectedRowLenght;
         }

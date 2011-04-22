@@ -32,8 +32,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -68,263 +70,284 @@ import com.rapidminer.tools.ParameterService;
  */
 public class RepositoryLocationChooser extends JPanel {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    private final RepositoryTree tree;
+	private final RepositoryTree tree;
 
-    private final JTextField locationField = new JTextField(30);
+	private final JTextField locationField = new JTextField(30);
 
-    private final RepositoryLocation resolveRelativeTo;
+	private final RepositoryLocation resolveRelativeTo;
 
-    private JCheckBox resolveBox;
+	private JCheckBox resolveBox;
 
-    private final LinkedList<ChangeListener> listeners = new LinkedList<ChangeListener>();
+	private final List<ChangeListener> listeners = new LinkedList<ChangeListener>();
 
-    private final JLabel resultLabel = new JLabel();
+	private final JLabel resultLabel = new JLabel();
 
-    public RepositoryLocationChooser(RepositoryLocation resolveRelativeTo, String initialValue) {
-        this(null, resolveRelativeTo, initialValue);
-    }
+	/** The entry the user last clicked on. (Not the selected entry, this is also influenced by the text field.) */
+	private Entry currentEntry;
 
-    public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue) {
-        if (initialValue != null) {
-            try {
-                RepositoryLocation repositoryLocation = new RepositoryLocation(resolveRelativeTo, initialValue);
-                locationField.setText(repositoryLocation.getName());
-                resultLabel.setText(repositoryLocation.toString());
-            } catch (Exception e) {
-            }
-        }
-        this.resolveRelativeTo = resolveRelativeTo;
-        tree = new RepositoryTree(owner);
+	private boolean folderSelected;
+	
+	private static class RepositoryLocationChooserDialog extends ButtonDialog {
+		private static final long serialVersionUID = -726540444296013310L;
 
-        if (initialValue != null) {
-            if (tree.expandIfExists(resolveRelativeTo, initialValue)) {
-                locationField.setText("");
-            }
-        }
-        tree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
-            @Override
-            public void valueChanged(TreeSelectionEvent e) {
-                if (e.getPath() != null) {
-                    Entry entry = (Entry) e.getPath().getLastPathComponent();
-                    if (!(entry instanceof Folder)) {
-                        locationField.setText(entry.getLocation().getName());
-                    }
-                    updateResult();
-                }
-                for (ChangeListener l : listeners) {
-                    l.stateChanged(new ChangeEvent(this));
-                }
-            }
-        });
-        locationField.addKeyListener(new KeyListener() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-            }
+		private RepositoryLocationChooser chooser = null;
+		private String userSelection = null;
+		
+		public RepositoryLocationChooserDialog(RepositoryLocation resolveRelativeTo, String initialValue, final boolean selectEntries, final boolean selectFolder) {
+			super("repository_chooser", true);
+			final JButton okButton = makeOkButton();
+			chooser = new RepositoryLocationChooser(this, resolveRelativeTo, initialValue);
+			chooser.tree.addRepositorySelectionListener(new RepositorySelectionListener() {
+				@Override
+				public void repositoryLocationSelected(RepositorySelectionEvent e) {
+					// called on double click
+					Entry entry = e.getEntry();
+					System.out.println("SELECTED: "+entry);
+					if (selectEntries && entry instanceof DataEntry) {
+						userSelection = entry.getLocation().toString();
+						dispose();
+					}
+				}
+			});	
+			chooser.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					okButton.setEnabled(chooser.hasSelection() && (selectFolder || !chooser.folderSelected));
+				}
+			});
+			okButton.setEnabled(chooser.hasSelection() && (selectFolder || !chooser.folderSelected));
+			layoutDefault(chooser, NORMAL, okButton, makeCancelButton());
+		}
 
-            @Override
-            public void keyReleased(KeyEvent e) {
-                for (ChangeListener l : listeners) {
-                    l.stateChanged(new ChangeEvent(this));
-                }
-                updateResult();
-            }
+		@Override
+		protected void ok() {
+			try {
+				chooser.getRepositoryLocation();
+				super.ok();
+			} catch (MalformedRepositoryLocationException e) {
+				SwingTools.showSimpleErrorMessage("malformed_repository_location", e, e.getMessage());
+			}
+		}
+	}
 
-            @Override
-            public void keyTyped(KeyEvent e) {
-                TreePath selectionPath = tree.getSelectionPath();
-                if (selectionPath != null) {
-                    Entry selectedEntry = (Entry) selectionPath.getLastPathComponent();
-                    if (!(selectedEntry instanceof Folder)) {
-                        tree.setSelectionPath(selectionPath.getParentPath());
-                    }
-                }
-            }
-        });
 
-        setLayout(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
-        c.insets = new Insets(0, 0, 0, 0);
-        c.fill = GridBagConstraints.BOTH;
-        c.weightx = 1;
-        c.weighty = 1;
-        c.anchor = GridBagConstraints.FIRST_LINE_START;
-        c.gridwidth = GridBagConstraints.REMAINDER;
+//	public RepositoryLocationChooser(RepositoryLocation resolveRelativeTo, String initialValue) {
+//		this(null, resolveRelativeTo, initialValue);
+//	}
 
-        JScrollPane treePane = new ExtendedJScrollPane(tree);
-        treePane.setBorder(ButtonDialog.createBorder());
-        add(treePane, c);
+	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue) {
+		if (initialValue != null) {
+			try {
+				RepositoryLocation repositoryLocation = new RepositoryLocation(resolveRelativeTo, initialValue);
+				locationField.setText(repositoryLocation.getName());
+				resultLabel.setText(repositoryLocation.toString());
+			} catch (Exception e) {
+			}
+		}
+		this.resolveRelativeTo = resolveRelativeTo;
+		tree = new RepositoryTree(owner);
 
-        c.insets = new Insets(ButtonDialog.GAP, 0, 0, ButtonDialog.GAP);
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.weightx = 0;
-        c.weighty = 0;
-        c.gridwidth = GridBagConstraints.RELATIVE;
-        c.weightx = 0;
-        JLabel label = new ResourceLabel("repository_chooser.entry_name");
-        label.setLabelFor(locationField);
-        add(label, c);
+		if (initialValue != null) {
+			if (tree.expandIfExists(resolveRelativeTo, initialValue)) {
+				locationField.setText("");
+			}
+		}
+		tree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
 
-        c.weightx = 1;
-        c.insets = new Insets(ButtonDialog.GAP, 0, 0, 0);
-        c.weightx = 1;
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        add(locationField, c);
+			@Override
+			public void valueChanged(TreeSelectionEvent e) {
+				if (e.getPath() != null) {
+					currentEntry = (Entry) e.getPath().getLastPathComponent();
+					if (!(currentEntry instanceof Folder)) {
+						locationField.setText(currentEntry.getLocation().getName());
+					}
+					updateResult();
+				}
+			}
+		});
+		locationField.addKeyListener(new KeyListener() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+			}
 
-        c.gridwidth = GridBagConstraints.RELATIVE;
-        c.weightx = 0;
-        c.insets = new Insets(ButtonDialog.GAP, 0, 0, ButtonDialog.GAP);
-        add(new ResourceLabel("repository_chooser.location"), c);
-        c.weightx = 1;
-        c.insets = new Insets(ButtonDialog.GAP, 0, 0, 0);
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        add(resultLabel, c);
+			@Override
+			public void keyReleased(KeyEvent e) {
+				updateResult();
+			}
 
-        if (resolveRelativeTo != null) {
-            resolveBox = new JCheckBox(new ResourceActionAdapter("repository_chooser.resolve", resolveRelativeTo.getAbsoluteLocation()));
-            resolveBox.setSelected(ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_RESOLVE_RELATIVE_REPOSITORY_LOCATIONS).equals("true"));
-            add(resolveBox, c);
-            resolveBox.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    updateResult();
-                }
-            });
-        }
-    }
+			@Override
+			public void keyTyped(KeyEvent e) {
+				TreePath selectionPath = tree.getSelectionPath();
+				if (selectionPath != null) {
+					Entry selectedEntry = (Entry) selectionPath.getLastPathComponent();
+					if (!(selectedEntry instanceof Folder)) {
+						tree.setSelectionPath(selectionPath.getParentPath());
+					}
+				}
+			}
+		});
 
-    public String getRepositoryLocation() throws MalformedRepositoryLocationException {
-        if (tree.getSelectionPath() != null) {
-            Entry selectedEntry = (Entry) tree.getSelectionPath().getLastPathComponent();
-            RepositoryLocation selectedLocation = selectedEntry.getLocation();
-            if (selectedEntry instanceof Folder) {
-                selectedLocation = new RepositoryLocation(selectedLocation, locationField.getText());
-            }
-            if (RepositoryLocationChooser.this.resolveRelativeTo != null && resolveBox.isSelected()) {
-                return selectedLocation.makeRelative(RepositoryLocationChooser.this.resolveRelativeTo);
-            } else {
-                return selectedLocation.getAbsoluteLocation();
-            }
-        } else {
-            return locationField.getText();
-        }
-    }
+		setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.insets = new Insets(0, 0, 0, 0);
+		c.fill = GridBagConstraints.BOTH;
+		c.weightx = 1;
+		c.weighty = 1;
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		c.gridwidth = GridBagConstraints.REMAINDER;
 
-    /** Returns true iff the user entered a valid, non-empty repository location. */
-    public boolean hasSelection() {
-        if (locationField.getText().isEmpty()) {
-            return false;
-        } else {
-            try {
-                getRepositoryLocation();
-                return true;
-            } catch (MalformedRepositoryLocationException e) {
-                LogService.getRoot().warning("Malformed repository location: " + e);
-                return false;
-            }
-        }
-    }
+		JScrollPane treePane = new ExtendedJScrollPane(tree);
+		treePane.setBorder(ButtonDialog.createBorder());
+		add(treePane, c);
 
-    public boolean resolveRelative() {
-        return resolveBox.isSelected();
-    }
+		c.insets = new Insets(ButtonDialog.GAP, 0, 0, ButtonDialog.GAP);
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 0;
+		c.weighty = 0;
+		c.gridwidth = GridBagConstraints.RELATIVE;
+		c.weightx = 0;
+		JLabel label = new ResourceLabel("repository_chooser.entry_name");
+		label.setLabelFor(locationField);
+		add(label, c);
 
-    public void addChangeListener(ChangeListener l) {
-        listeners.add(l);
-    }
+		c.weightx = 1;
+		c.insets = new Insets(ButtonDialog.GAP, 0, 0, 0);
+		c.weightx = 1;
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		add(locationField, c);
 
-    public void removeChangeListener(ChangeListener l) {
-        listeners.remove(l);
-    }
+		c.gridwidth = GridBagConstraints.RELATIVE;
+		c.weightx = 0;
+		c.insets = new Insets(ButtonDialog.GAP, 0, 0, ButtonDialog.GAP);
+		add(new ResourceLabel("repository_chooser.location"), c);
+		c.weightx = 1;
+		c.insets = new Insets(ButtonDialog.GAP, 0, 0, 0);
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		add(resultLabel, c);
 
-    /**
-     * This will open a window to select a repository entry that is an entry or returns
-     * null if the user aborts the operation.
-     */
-    public static String selectEntry(RepositoryLocation resolveRelativeTo, Component c) {
-        return selectLocation(resolveRelativeTo, null, c, true, false);
-    }
+		if (resolveRelativeTo != null) {
+			resolveBox = new JCheckBox(new ResourceActionAdapter("repository_chooser.resolve", resolveRelativeTo.getAbsoluteLocation()));
+			resolveBox.setSelected(ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_RESOLVE_RELATIVE_REPOSITORY_LOCATIONS).equals("true"));
+			add(resolveBox, c);
+			resolveBox.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					updateResult();
+				}
+			});
+		}
+	}
 
-    /**
-     * This will open a window to select a repository entry that is a folder or null if
-     * the user chooses to abort.
-     */
-    public static String selectFolder(RepositoryLocation resolveRelativeTo, Component c) {
-        return selectLocation(resolveRelativeTo, null, c, false, true);
-    }
+	public String getRepositoryLocation() throws MalformedRepositoryLocationException {
+		if (tree.getSelectionPath() != null) {
+			Entry selectedEntry = (Entry) tree.getSelectionPath().getLastPathComponent();
+			RepositoryLocation selectedLocation = selectedEntry.getLocation();
+			if (selectedEntry instanceof Folder) {
+				selectedLocation = new RepositoryLocation(selectedLocation, locationField.getText());
+			}
+			if (RepositoryLocationChooser.this.resolveRelativeTo != null && resolveBox.isSelected()) {
+				return selectedLocation.makeRelative(RepositoryLocationChooser.this.resolveRelativeTo);
+			} else {
+				return selectedLocation.getAbsoluteLocation();
+			}
+		} else {
+			return locationField.getText();
+		}
+	}
 
-    public static String selectLocation(RepositoryLocation resolveRelativeTo, Component c) {
-        return selectLocation(resolveRelativeTo, null, c, true, true);
-    }
+	/** Returns true iff the user entered a valid, non-empty repository location. */
+	public boolean hasSelection() {
+		if (locationField.getText().isEmpty()) {
+			return false;
+		} else {
+			try {
+				getRepositoryLocation();
+				return true;
+			} catch (MalformedRepositoryLocationException e) {
+				LogService.getRoot().warning("Malformed repository location: " + e);
+				return false;
+			}
+		}
+	}
 
-    public static String selectLocation(RepositoryLocation resolveRelativeTo, String initialValue, Component c, final boolean selectEntries, final boolean selectFolder) {
-        final String result[] = new String[1];
-        class RepositoryLocationChooserDialog extends ButtonDialog {
-            private static final long serialVersionUID = -726540444296013310L;
+	public boolean resolveRelative() {
+		return resolveBox.isSelected();
+	}
 
-            private RepositoryLocationChooser chooser = null;
+	public void addChangeListener(ChangeListener l) {
+		listeners.add(l);
+	}
 
-            public RepositoryLocationChooserDialog(RepositoryLocation resolveRelativeTo, String initialValue) {
-                super("repository_chooser", true);
-                chooser = new RepositoryLocationChooser(this, resolveRelativeTo, initialValue);
-                chooser.tree.addRepositorySelectionListener(new RepositorySelectionListener() {
-                    @Override
-                    public void repositoryLocationSelected(RepositorySelectionEvent e) {
-                        Entry entry = e.getEntry();
-                        if (selectFolder && entry instanceof Folder || selectEntries && entry instanceof DataEntry) {
-                            result[0] = entry.getLocation().toString();
-                            dispose();
-                        }
-                    }
-                });
-                layoutDefault(chooser, NORMAL, makeOkButton(), makeCancelButton());
-            }
+	public void removeChangeListener(ChangeListener l) {
+		listeners.remove(l);
+	}
 
-            @Override
-            protected void ok() {
-                try {
-                    chooser.getRepositoryLocation();
-                    super.ok();
-                } catch (MalformedRepositoryLocationException e) {
-                    SwingTools.showSimpleErrorMessage("malformed_repository_location", e, e.getMessage());
-                }
-            }
-        }
-        final RepositoryLocationChooserDialog dialog = new RepositoryLocationChooserDialog(resolveRelativeTo, initialValue);
-        dialog.setVisible(true);
+	/**
+	 * This will open a window to select a repository entry that is an entry or returns
+	 * null if the user aborts the operation.
+	 */
+	public static String selectEntry(RepositoryLocation resolveRelativeTo, Component c) {
+		return selectLocation(resolveRelativeTo, null, c, true, false);
+	}
 
-        if (result[0] != null) {
-            return result[0];
-        }
-        if (dialog.wasConfirmed()) {
-            if (resolveRelativeTo != null) {
-                ParameterService.setParameterValue(RapidMinerGUI.PROPERTY_RESOLVE_RELATIVE_REPOSITORY_LOCATIONS, dialog.chooser.resolveRelative() ? "true" : "false");
-                ParameterService.saveParameters();
-            }
-            String text;
-            try {
-                text = dialog.chooser.getRepositoryLocation();
-            } catch (MalformedRepositoryLocationException e) {
-                // this should not happen since the dialog would not have disposed without an error message.
-                throw new RuntimeException(e);
-            }
-            if (text.length() > 0) {
-                return text;
-            } else {
-                return null;
-            }
-        } else {
-            return null;
-        }
-    }
+	/**
+	 * This will open a window to select a repository entry that is a folder or null if
+	 * the user chooses to abort.
+	 */
+	public static String selectFolder(RepositoryLocation resolveRelativeTo, Component c) {
+		return selectLocation(resolveRelativeTo, null, c, false, true);
+	}
 
-    private void updateResult() {
-        try {
-            String repositoryLocation = getRepositoryLocation();
-            resultLabel.setText(repositoryLocation);
-        } catch (MalformedRepositoryLocationException e) {
-            LogService.getRoot().log(Level.WARNING, "Malformed location: " + e, e);
-        }
-    }
+	public static String selectLocation(RepositoryLocation resolveRelativeTo, Component c) {
+		return selectLocation(resolveRelativeTo, null, c, true, true);
+	}
+
+	public static String selectLocation(RepositoryLocation resolveRelativeTo, String initialValue, Component c, final boolean selectEntries, final boolean selectFolder) {
+		final RepositoryLocationChooserDialog dialog = new RepositoryLocationChooserDialog(resolveRelativeTo, initialValue, selectEntries, selectFolder);
+		dialog.setVisible(true);
+
+		// if user has used double click to submit
+		if (dialog.userSelection != null) {
+			return dialog.userSelection;
+		}
+		if (dialog.wasConfirmed()) {
+			if (resolveRelativeTo != null) {
+				ParameterService.setParameterValue(RapidMinerGUI.PROPERTY_RESOLVE_RELATIVE_REPOSITORY_LOCATIONS, dialog.chooser.resolveRelative() ? "true" : "false");
+				ParameterService.saveParameters();
+			}
+			String text;
+			try {
+				text = dialog.chooser.getRepositoryLocation();
+			} catch (MalformedRepositoryLocationException e) {
+				// this should not happen since the dialog would not have disposed without an error message.
+				throw new RuntimeException(e);
+			}
+			if (text.length() > 0) {
+				return text;
+			} else {
+				return null;
+			}
+		} else {
+			return null;
+		}
+	}
+
+	private void updateResult() {
+		try {
+			String repositoryLocation = getRepositoryLocation();
+			resultLabel.setText(repositoryLocation);
+		} catch (MalformedRepositoryLocationException e) {
+			LogService.getRoot().log(Level.WARNING, "Malformed location: " + e, e);
+		}
+		if ((currentEntry instanceof Folder) && locationField.getText().isEmpty()) {
+			this.folderSelected = true;
+		} else {
+			this.folderSelected = false;
+		}
+		for (ChangeListener l : listeners) {
+			l.stateChanged(new ChangeEvent(this));
+		}
+	}
 }

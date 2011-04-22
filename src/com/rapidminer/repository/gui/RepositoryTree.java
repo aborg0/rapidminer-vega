@@ -69,7 +69,6 @@ import com.rapidminer.gui.tools.components.ToolTipWindow;
 import com.rapidminer.gui.tools.components.ToolTipWindow.TipProvider;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DataImportWizard;
-import com.rapidminer.operator.ResultObject;
 import com.rapidminer.repository.DataEntry;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
@@ -154,7 +153,7 @@ public class RepositoryTree extends JTree {
 		@Override
 		public void actionPerformed(DataEntry data) {
 			if (data instanceof IOObjectEntry) {
-				showAsResult((IOObjectEntry) data);
+				OpenAction.showAsResult((IOObjectEntry) data);
 			} else if (data instanceof ProcessEntry) {
 				openProcess((ProcessEntry) data);
 			}
@@ -213,16 +212,21 @@ public class RepositoryTree extends JTree {
 		
 		private void storeInFolder(final Folder folder) {
 			final String name = SwingTools.showInputDialog("store_process", "");
-			try {
-				if (folder.containsEntry(name)) {
-					SwingTools.showVerySimpleErrorMessage("repository_entry_already_exists", name);
+			if (name != null) {
+				if (name.isEmpty()) {
+					SwingTools.showVerySimpleErrorMessage("please_enter_non_empty_name");
 					return;
 				}
-			} catch (RepositoryException e1) {
-				SwingTools.showSimpleErrorMessage("cannot_store_process_in_repository", e1, name);
-				return;
-			}
-			if (name != null) {
+				try {
+					if (folder.containsEntry(name)) {
+						SwingTools.showVerySimpleErrorMessage("repository_entry_already_exists", name);
+						return;
+					}
+				} catch (RepositoryException e1) {
+					SwingTools.showSimpleErrorMessage("cannot_store_process_in_repository", e1, name);
+					return;
+				}
+
 				ProgressThread storeProgressThread = new ProgressThread("store_process") {
 					public void run() {
 						getProgressListener().setTotal(100);
@@ -722,22 +726,6 @@ public class RepositoryTree extends JTree {
 			}
 		};
 		openProgressThread.start();
-	}
-	
-	/** Loads the data held by the given entry (in the background) and opens it as a result. */
-	public static void showAsResult(final IOObjectEntry data) {
-		final ProgressThread downloadProgressThread = new ProgressThread("download_from_repository") {
-			public void run() {
-				try {
-					ResultObject result = (ResultObject)data.retrieveData(this.getProgressListener());
-					result.setSource(data.getLocation().toString());
-					RapidMinerGUI.getMainFrame().getResultDisplay().showResult(result);
-				} catch (Exception e1) {
-					SwingTools.showSimpleErrorMessage("cannot_fetch_data_from_repository", e1);
-				}
-			}
-		};
-		downloadProgressThread.start();
 	}
 	
 	private Entry getSelectedEntry() {

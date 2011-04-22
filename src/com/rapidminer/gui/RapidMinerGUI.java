@@ -502,6 +502,6 @@ public class RapidMinerGUI extends RapidMiner {
             openLocation = args[0];
         }
         RapidMiner.setInputHandler(new GUIInputHandler());
-        new RapidMinerGUI().run(openLocation);
+        new RapidMinerGUI().run(openLocation);        
     }
 }
