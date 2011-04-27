@@ -54,6 +54,7 @@ import javax.swing.JSeparator;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
 
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
@@ -361,10 +362,9 @@ public class BugZillaAssistant extends ButtonDialog {
         mailPanel.add(addSysPropsCheckBox, c);
 
         c.gridx = 2;
-        c.weightx = 1;
+        c.weightx = 0.75;
         mailPanel.add(new JLabel(), c);
 
-        c.weightx = 0.9;
         c.gridwidth = 3;
         c.fill = GridBagConstraints.BOTH;
         c.gridx = 0;
@@ -399,40 +399,41 @@ public class BugZillaAssistant extends ButtonDialog {
         c.gridy = 4;
         c.weighty = 1;
         mailPanel.add(descriptionPane, c);
-        //TODO: Add again when BugZilla version 4.x is used which supports attachements
-        //		c.insets = new Insets(GAP, 0, 0, 0);
-        //		c.gridx = 1;
-        //		c.weightx = 0.1;
-        //		c.weighty = 1;
-        //		c.gridwidth = GridBagConstraints.REMAINDER;
-        //		attachments.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        //		JScrollPane attachmentPane = new JScrollPane(attachments);
-        //		attachmentPane.setBorder(createBorder());
-        //		attachmentPane.setPreferredSize(new Dimension(150, 400));
-        //		mailPanel.add(attachmentPane, c);
+        
+        c.insets = new Insets(GAP, 0, 0, 0);
+		c.gridx = 3;
+		c.gridy = 0;
+		c.gridheight = 5;
+		c.weightx = 0.25;
+		c.weighty = 1;
+		attachments.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		JScrollPane attachmentPane = new JScrollPane(attachments);
+		attachmentPane.setBorder(createBorder());
+		attachmentPane.setPreferredSize(new Dimension(150, 400));
+		mailPanel.add(attachmentPane, c);
         panel.add(mailPanel);
 
-        //		buttons.add(new JButton(new ResourceAction("send_bugreport.add_file") {
-        //			private static final long serialVersionUID = 5152169309271935854L;
-        //
-        //			@Override
-        //			public void actionPerformed(ActionEvent e) {
-        //				File file = SwingTools.chooseFile(null, null, true, null, null);
-        //				if (file != null) {
-        //					((DefaultListModel) attachments.getModel()).addElement(file);
-        //				}
-        //			}
-        //
-        //		}));
-        //		buttons.add(new JButton(new ResourceAction("send_bugreport.remove_file") {
-        //			private static final long serialVersionUID = 5353693430346577972L;
-        //
-        //			public void actionPerformed(ActionEvent e) {
-        //				if (attachments.getSelectedIndex() >= 0) {
-        //					((DefaultListModel) attachments.getModel()).remove(attachments.getSelectedIndex());
-        //				}
-        //			}
-        //		}));
+        buttons.add(new JButton(new ResourceAction("send_bugreport.add_file") {
+			private static final long serialVersionUID = 5152169309271935854L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				File file = SwingTools.chooseFile(null, null, true, null, null);
+				if (file != null) {
+					((DefaultListModel) attachments.getModel()).addElement(file);
+				}
+			}
+
+		}));
+		buttons.add(new JButton(new ResourceAction("send_bugreport.remove_file") {
+			private static final long serialVersionUID = 5353693430346577972L;
+
+			public void actionPerformed(ActionEvent e) {
+				if (attachments.getSelectedIndex() >= 0) {
+					((DefaultListModel) attachments.getModel()).remove(attachments.getSelectedIndex());
+				}
+			}
+		}));
         JButton infoButton = new JButton(new ResourceAction("send_bugreport.info") {
             private static final long serialVersionUID = 2135052418891516027L;
 
@@ -501,10 +502,9 @@ public class BugZillaAssistant extends ButtonDialog {
                     XmlRpcClient client = XmlRpcHandler.login(XmlRpcHandler.BUGZILLA_URL, email, pawo);
 
                     BugReport.createBugZillaReport(client, exception, summaryField.getText().trim(),
-                            BugReport.createCompleteBugDescription(descriptionField.getText().trim(), exception, addProcessCheckBox.isSelected(), addSysPropsCheckBox.isSelected()),
-                            String.valueOf(compBox.getSelectedItem()), version, String.valueOf(severityBox.getSelectedItem()),
+                            descriptionField.getText().trim(), String.valueOf(compBox.getSelectedItem()), version, String.valueOf(severityBox.getSelectedItem()),
                             String.valueOf(platformBox.getSelectedItem()), String.valueOf(osBox.getSelectedItem()), RapidMinerGUI.getMainFrame().getProcess(),
-                            RapidMinerGUI.getMainFrame().getMessageViewer().getLogMessage(), attachments, addProcessCheckBox.isSelected(), addSysPropsCheckBox.isSelected());
+                            RapidMinerGUI.getMainFrame().getMessageViewer().getLogMessage(), "bla", attachments, addProcessCheckBox.isSelected(), addSysPropsCheckBox.isSelected());
                     SwingTools.showMessageDialog("bugreport_successful");
                     dispose();
                 } catch(XmlRpcException e1) {

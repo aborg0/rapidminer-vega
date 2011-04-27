@@ -233,6 +233,13 @@ public class ExtendedErrorDialog extends ButtonDialog {
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                	// in case of UserError, ask if the user really wants to send a bugreport
+                	// because it's likely not a bug
+                	if (error instanceof UserError) {
+                		if (SwingTools.showConfirmDialog("send_bugreport.confirm", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.NO_OPTION) {
+            				return;
+            			}
+                	}
                     new ProgressThread("connect_to_bugzilla", false) {
                         @Override
                         public void run() {
