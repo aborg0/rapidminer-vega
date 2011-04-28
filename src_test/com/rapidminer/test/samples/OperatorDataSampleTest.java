@@ -32,7 +32,7 @@ import com.rapidminer.Process;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.MissingIOObjectException;
-import com.rapidminer.test.TestUtils;
+import com.rapidminer.test.TestContext;
 import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.LogService;
 
@@ -70,7 +70,7 @@ public abstract class OperatorDataSampleTest extends TestCase {
 
     public static Test suite() throws Exception{
         //initializes Rapidminer first before any test is run
-        TestUtils.initRapidMiner();
+        TestContext.get().initRapidMiner();
         LogService.getGlobal().setVerbosityLevel(LogService.OFF);
 
         TestSuite suite = new TestSuite("Sample test");

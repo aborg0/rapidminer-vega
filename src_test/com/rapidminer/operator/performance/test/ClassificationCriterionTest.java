@@ -50,7 +50,7 @@ import com.rapidminer.tools.att.AttributeSet;
  * @author Simon Fischer, Ingo Mierswa
  *          ingomierswa Exp $
  */
-public class ClassificationCriterionTest extends CriterionTestCase {
+public class ClassificationCriterionTest extends AbstractCriterionTestCase {
 
 	@Test
 	public void testClassificationError() throws Exception {

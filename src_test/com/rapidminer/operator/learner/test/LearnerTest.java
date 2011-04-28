@@ -20,7 +20,7 @@ import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.learner.Learner;
 import com.rapidminer.operator.learner.functions.kernel.RVMLearner;
-import com.rapidminer.test.TestUtils;
+import com.rapidminer.test.TestContext;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorService;
 
@@ -43,7 +43,7 @@ public class LearnerTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		TestUtils.initRapidMiner();
+		TestContext.get().initRapidMiner();
 	}
 
 	@Override

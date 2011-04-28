@@ -20,6 +20,7 @@ import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
+import com.rapidminer.test.TestContext;
 import com.rapidminer.test.TestUtils;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
@@ -73,7 +74,7 @@ public class DatabaseWriteTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		TestUtils.initRapidMiner(); // for read database operator
+		TestContext.get().initRapidMiner(); // for read database operator
 		final Entry entry = new RepositoryLocation(TEST_DATA_LOCATION).locateEntry();
 		this.exampleSet = (ExampleSet) ((IOObjectEntry)entry).retrieveData(null);
 	}

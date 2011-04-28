@@ -37,7 +37,7 @@ import com.rapidminer.operator.performance.PerformanceCriterion;
  * @author Simon Fischer, Ingo Mierswa
  *          ingomierswa Exp $
  */
-public  class EstimatedCriterionTest extends CriterionTestCase {
+public  class EstimatedCriterionTest extends AbstractCriterionTestCase {
 
 	private EstimatedPerformance performance10x08, performance20x04;
 

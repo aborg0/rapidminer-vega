@@ -37,7 +37,7 @@ import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.MissingIOObjectException;
 import com.rapidminer.repository.RepositoryLocation;
-import com.rapidminer.test.TestUtils;
+import com.rapidminer.test.TestContext;
 import com.rapidminer.tools.LogService;
 
 /**
@@ -62,7 +62,7 @@ public abstract class SampleTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		TestUtils.initRapidMiner();
+		TestContext.get().initRapidMiner();
 	}
 	
 	public void sampleTest() throws Exception {

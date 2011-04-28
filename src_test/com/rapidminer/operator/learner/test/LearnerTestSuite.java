@@ -12,7 +12,7 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.learner.Learner;
 import com.rapidminer.operator.learner.functions.SeeminglyUnrelatedRegressionOperator;
 import com.rapidminer.operator.learner.functions.neuralnet.SimpleNeuralNetLearner;
-import com.rapidminer.test.TestUtils;
+import com.rapidminer.test.TestContext;
 import com.rapidminer.tools.OperatorService;
 
 /** Creates all learners using the {@link OperatorService} and constructs input example sets
@@ -28,7 +28,7 @@ public class LearnerTestSuite extends TestCase {
 		SKIP_CLASSES.add(SimpleNeuralNetLearner.class);
 	}
 	public static Test suite() {
-		TestUtils.initRapidMiner();
+		TestContext.get().initRapidMiner();
 		TestSuite suite = new TestSuite("Learner test suite");
 		for (String key : OperatorService.getOperatorKeys()) {
 			OperatorDescription opDesc = OperatorService.getOperatorDescription(key);

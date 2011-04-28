@@ -125,6 +125,10 @@ public class BugZillaAssistant extends ButtonDialog {
     private XmlRpcClient rpcClient = null;
 
     private final String descriptionText = I18N.getMessage(I18N.getGUIBundle(), getKey() + ".description.text");
+    
+    private String email;
+    
+    private char[] pawo;
 
     private final JTextArea descriptionField = new JTextArea(descriptionText, 5, 20);
 
@@ -454,11 +458,11 @@ public class BugZillaAssistant extends ButtonDialog {
             public void actionPerformed(ActionEvent e) {
 
                 // check fields
-                String email = loginName.getText().trim();
-                char[] pawo = loginPassword.getPassword();
+                email = loginName.getText().trim();
+                pawo = loginPassword.getPassword();
                 String summary = summaryField.getText().trim();
                 String description = descriptionField.getText().trim();
-                String version = RapidMiner.getShortVersion();
+                final String version = RapidMiner.getShortVersion();
                 if ( !useAnonymousLogin.isSelected()) {
                     if (email.length() <= 0) {
                         SwingTools.showVerySimpleErrorMessage("enter_email");
@@ -491,33 +495,46 @@ public class BugZillaAssistant extends ButtonDialog {
                     SwingTools.showVerySimpleErrorMessage("enter_description");
                     return;
                 }
-                // create bugreport
+                // create bugreport in own progess thread (cancel not allowed)
                 submitButton.setEnabled(false);
-                try {
-                    ListModel model = attachments.getModel();
-                    File[] attachments = new File[model.getSize()];
-                    for (int i = 0; i < attachments.length; i++) {
-                        attachments[i] = (File) model.getElementAt(i);
+                new ProgressThread("send_report_to_bugzilla", false) {
+            		
+                    @Override
+                    public void run() {
+                    	try {
+                    		getProgressListener().setTotal(100);
+                    		ListModel model = attachments.getModel();
+                            File[] attachments = new File[model.getSize()];
+                            for (int i = 0; i < attachments.length; i++) {
+                                attachments[i] = (File) model.getElementAt(i);
+                            }
+                            getProgressListener().setCompleted(20);
+                            
+                            XmlRpcClient client = XmlRpcHandler.login(XmlRpcHandler.BUGZILLA_URL, email, pawo);
+                            getProgressListener().setCompleted(40);
+                            
+                            BugReport.createBugZillaReport(client, exception, summaryField.getText().trim(),
+                                    descriptionField.getText().trim(), String.valueOf(compBox.getSelectedItem()), version, String.valueOf(severityBox.getSelectedItem()),
+                                    String.valueOf(platformBox.getSelectedItem()), String.valueOf(osBox.getSelectedItem()), RapidMinerGUI.getMainFrame().getProcess(),
+                                    RapidMinerGUI.getMainFrame().getMessageViewer().getLogMessage(), "bla", attachments, addProcessCheckBox.isSelected(), addSysPropsCheckBox.isSelected());
+                            
+                            getProgressListener().setCompleted(100);
+                            SwingTools.showMessageDialog("bugreport_successful");
+                            dispose();
+                    	} catch(XmlRpcException e1) {
+                            SwingTools.showVerySimpleErrorMessage("bugreport_xmlrpc_error", e1.getLocalizedMessage());
+                        } catch (Exception e2) {
+                            LogService.getRoot().warning(e2.getLocalizedMessage());
+                            SwingTools.showVerySimpleErrorMessage("bugreport_creation_failed");
+                        } finally {
+                        	getProgressListener().complete();
+                            for (int i=0; i<pawo.length; i++) {
+                                pawo[i] = 0;
+                            }
+                            submitButton.setEnabled(true);
+                        }
                     }
-                    XmlRpcClient client = XmlRpcHandler.login(XmlRpcHandler.BUGZILLA_URL, email, pawo);
-
-                    BugReport.createBugZillaReport(client, exception, summaryField.getText().trim(),
-                            descriptionField.getText().trim(), String.valueOf(compBox.getSelectedItem()), version, String.valueOf(severityBox.getSelectedItem()),
-                            String.valueOf(platformBox.getSelectedItem()), String.valueOf(osBox.getSelectedItem()), RapidMinerGUI.getMainFrame().getProcess(),
-                            RapidMinerGUI.getMainFrame().getMessageViewer().getLogMessage(), "bla", attachments, addProcessCheckBox.isSelected(), addSysPropsCheckBox.isSelected());
-                    SwingTools.showMessageDialog("bugreport_successful");
-                    dispose();
-                } catch(XmlRpcException e1) {
-                    SwingTools.showVerySimpleErrorMessage("bugreport_xmlrpc_error", e1.getLocalizedMessage());
-                } catch (Exception e2) {
-                    LogService.getRoot().warning(e2.getLocalizedMessage());
-                    SwingTools.showVerySimpleErrorMessage("bugreport_creation_failed");
-                } finally {
-                    for (int i=0; i<pawo.length; i++) {
-                        pawo[i] = 0;
-                    }
-                    submitButton.setEnabled(true);
-                }
+            	}.start();
             }
         });
         buttons.add(submitButton);

@@ -554,7 +554,10 @@
 
 	<target name="test" depends="test.compile">
 		<junit>
-			<sysproperty key="rapidminer.test.resolvedir" value="${junit.tests.dir}" />
+			<sysproperty key="rapidminer.test.repository.url" value="${rapidminer.test.repository.url}" />
+			<sysproperty key="rapidminer.test.repository.location" value="${rapidminer.test.repository.location}" />
+			<sysproperty key="rapidminer.test.repository.user" value="${rapidminer.test.repository.user}" />
+			<sysproperty key="rapidminer.test.repository.password" value="${rapidminer.test.repository.password}" />
 			<classpath refid="classpath.test" />
 			<formatter type="xml" usefile="true"/>
 			<test name="com.rapidminer.test.AllTests" todir="${junit.reports}"/>

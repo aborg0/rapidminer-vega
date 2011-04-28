@@ -289,6 +289,21 @@ public class BugReport {
         
         // append the user description
         buffer.append(userDescription);
+        
+        // append RapidMiner and plugin versions
+        buffer.append(Tools.getLineSeparator());
+        buffer.append(Tools.getLineSeparator());
+        buffer.append("RapidMiner: ");
+        buffer.append(RapidMiner.getVersion());
+        buffer.append(Tools.getLineSeparator());
+        for (Plugin plugin : Plugin.getAllPlugins()) {
+        	buffer.append(plugin.getName());
+        	buffer.append(": ");
+        	buffer.append(plugin.getVersion());
+        	buffer.append(Tools.getLineSeparator());
+        }
+        
+        // append stack trace
         buffer.append(Tools.getLineSeparator());
         buffer.append(Tools.getLineSeparator());
         buffer.append(Tools.getLineSeparator());
@@ -322,19 +337,6 @@ public class BugReport {
             buffer.append(Tools.getLineSeparator());
             buffer.append(Tools.getLineSeparator());
             buffer.append(getProperties());
-        }
-
-        // attach RapidMiner and plugin versions
-        buffer.append(Tools.getLineSeparator());
-        buffer.append(Tools.getLineSeparator());
-        buffer.append("RapidMiner: ");
-        buffer.append(RapidMiner.getVersion());
-        buffer.append(Tools.getLineSeparator());
-        for (Plugin plugin : Plugin.getAllPlugins()) {
-        	buffer.append(plugin.getName());
-        	buffer.append(": ");
-        	buffer.append(plugin.getVersion());
-        	buffer.append(Tools.getLineSeparator());
         }
 
         return buffer.toString();

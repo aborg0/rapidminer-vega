@@ -1,37 +1,17 @@
 package com.rapidminer.test;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 
 import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
 
-import com.rapidminer.Process;
-import com.rapidminer.ProcessLocation;
-import com.rapidminer.RapidMiner;
-import com.rapidminer.RapidMiner.ExecutionMode;
-import com.rapidminer.RepositoryProcessLocation;
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.NominalMapping;
-import com.rapidminer.operator.IOContainer;
-import com.rapidminer.operator.IOObject;
-import com.rapidminer.operator.OperatorException;
-import com.rapidminer.repository.IOObjectEntry;
-import com.rapidminer.repository.MalformedRepositoryLocationException;
-import com.rapidminer.repository.RepositoryException;
-import com.rapidminer.repository.RepositoryLocation;
-import com.rapidminer.repository.RepositoryManager;
-import com.rapidminer.repository.local.LocalRepository;
-import com.rapidminer.tools.FileSystemService;
-import com.rapidminer.tools.XMLException;
 
 /**
  * 
@@ -39,53 +19,6 @@ import com.rapidminer.tools.XMLException;
  * 
  */
 public class TestUtils {
-
-    private static final String TEST_REPOSITORY_NAME = "_TestRepository";
-    private static boolean initialized = false;
-    private static String PROPERTY_TEST_RESOLVE_DIRECTORY = "rapidminer.test.resolvedir";;
-
-    public static void initRapidMiner() {
-        if (!initialized) {
-            File testConfigFile = FileSystemService.getUserConfigFile("test.properties");
-            if (testConfigFile.exists()) {
-                Properties testProps = new Properties();
-                FileInputStream in;
-                try {
-                    in = new FileInputStream(testConfigFile);
-                    testProps.load(in);
-                    in.close();
-                } catch (IOException e) {
-                    throw new RuntimeException("Failed to read " + testConfigFile);
-                }
-                String resolvedir = testProps.getProperty(PROPERTY_TEST_RESOLVE_DIRECTORY);
-                if (resolvedir != null) {
-                    System.setProperty(PROPERTY_TEST_RESOLVE_DIRECTORY, resolvedir);
-                }
-            }
-
-            String resolvedir = System.getProperty(PROPERTY_TEST_RESOLVE_DIRECTORY);
-            if (resolvedir == null) {
-                throw new RuntimeException("In order to run tests, please define system property rapidminer.test.resolvedir in your run configuration to point to the test repository on rapid share (R&D/TestCases/) or create file " + testConfigFile + ".");
-            }
-
-            RapidMiner.setExecutionMode(ExecutionMode.TEST);
-            RapidMiner.init();
-
-            try {
-                LocalRepository repos = new LocalRepository(TEST_REPOSITORY_NAME, new File(resolvedir + File.separatorChar + "Repository")) {
-                    @Override
-                    public boolean shouldSave() {
-                        return false;
-                    }
-                };
-                RepositoryManager.getInstance(null).addRepository(repos);
-            } catch (RepositoryException e) {
-                throw new RuntimeException("Failed to intialize test repository");
-            }
-
-            initialized = true;
-        }
-    }
 
     public static void assertEqualsNaN(String message, double expected, double actual) {
         if (Double.isNaN(expected)) {
@@ -169,20 +102,20 @@ public class TestUtils {
         }
     }
 
-    public static IOContainer executeProcessFromTestRepository(String relativeRepositoryLocation) throws IOException, XMLException, OperatorException {
-        ProcessLocation loc = new RepositoryProcessLocation(new RepositoryLocation(
-                RepositoryLocation.REPOSITORY_PREFIX + TEST_REPOSITORY_NAME +
-                relativeRepositoryLocation));
-        Process process = loc.load(null);
-        return process.run();
-    }
-
-    public static IOObject getIOObjectFromTestRepository(String relativeObjectLocation) throws MalformedRepositoryLocationException, RepositoryException {
-        RepositoryLocation loc = new RepositoryLocation(
-                RepositoryLocation.REPOSITORY_PREFIX + TEST_REPOSITORY_NAME +
-                relativeObjectLocation);
-        return ((IOObjectEntry) loc.locateEntry()).retrieveData(null);
-    }
+//    public static IOContainer executeProcessFromTestRepository(String relativeRepositoryLocation) throws IOException, XMLException, OperatorException {
+//        ProcessLocation loc = new RepositoryProcessLocation(new RepositoryLocation(
+//                RepositoryLocation.REPOSITORY_PREFIX + TEST_REPOSITORY_NAME +
+//                relativeRepositoryLocation));
+//        Process process = loc.load(null);
+//        return process.run();
+//    }
+//
+//    public static IOObject getIOObjectFromTestRepository(String relativeObjectLocation) throws MalformedRepositoryLocationException, RepositoryException {
+//        RepositoryLocation loc = new RepositoryLocation(
+//                RepositoryLocation.REPOSITORY_PREFIX + TEST_REPOSITORY_NAME +
+//                relativeObjectLocation);
+//        return ((IOObjectEntry) loc.locateEntry()).retrieveData(null);
+//    }
 
     public static void assertArrayEquals(Object[] expected, Object[] actual) {
         if (expected == null) {
@@ -198,3 +131,4 @@ public class TestUtils {
         }
     }
 }
+

@@ -29,6 +29,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.Locale;
 
 import javax.swing.AbstractButton;
 import javax.swing.DefaultListModel;
@@ -56,6 +57,7 @@ import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.LinkButton;
+import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.Tools;
@@ -76,6 +78,8 @@ public class ExtendedErrorDialog extends ButtonDialog {
     private static final int SIZE = ButtonDialog.DEFAULT_SIZE;
 
     private final JButton editButton = new JButton("Edit");
+    
+    private JButton sendReport;
 
     private Throwable error;
 
@@ -228,7 +232,7 @@ public class ExtendedErrorDialog extends ButtonDialog {
 
         }
         if (isBug) {
-            buttons.add(new JButton(new ResourceAction("send_bugreport") {
+        	sendReport = new JButton(new ResourceAction("send_bugreport") {
                 private static final long serialVersionUID = 1L;
 
                 @Override
@@ -240,9 +244,11 @@ public class ExtendedErrorDialog extends ButtonDialog {
             				return;
             			}
                 	}
+                	// create bug report window and connect to BugZilla
                     new ProgressThread("connect_to_bugzilla", false) {
                         @Override
                         public void run() {
+                        	sendReport.setEnabled(false);
                             final BugZillaAssistant bugAst;
                             getProgressListener().setTotal(100);
                             getProgressListener().setCompleted(10);
@@ -260,11 +266,20 @@ public class ExtendedErrorDialog extends ButtonDialog {
                                     pw[i] = 0;
                                 }
                                 getProgressListener().complete();
+                                sendReport.setEnabled(true);
                             }
                             if (!isCancelled()) {
                                 SwingUtilities.invokeLater(new Runnable() {
                                     @Override
                                     public void run() {
+                                    	// if operator from import group is present, ask the user to include the data in the bug report
+                                    	for (Operator op : RapidMinerGUI.getMainFrame().getProcess().getAllOperators()) {
+                                    		if (op.getOperatorDescription().getGroup().toLowerCase(Locale.ENGLISH).contains("import") ||
+                                    				op.getName().toLowerCase(Locale.ENGLISH).equals("retrieve")) {
+                                    			SwingTools.showMessageDialog("send_bugreport.import_operator_message");
+                                    			break;
+                                    		}
+                                    	}
                                         bugAst.setVisible(true);
                                     }
                                 });
@@ -274,7 +289,8 @@ public class ExtendedErrorDialog extends ButtonDialog {
                         }
                     }.start();
                 }
-            }));
+            });
+        	buttons.add(sendReport);
         }
 
         buttons.add(makeCloseButton());

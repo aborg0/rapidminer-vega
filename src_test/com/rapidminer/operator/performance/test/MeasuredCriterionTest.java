@@ -51,7 +51,7 @@ import com.rapidminer.tools.att.AttributeSet;
  * @author Simon Fischer, Ingo Mierswa
  *          ingomierswa Exp $
  */
-public class MeasuredCriterionTest extends CriterionTestCase {
+public class MeasuredCriterionTest extends AbstractCriterionTestCase {
 
 	private ExampleSet exampleSet1, exampleSet2;
 

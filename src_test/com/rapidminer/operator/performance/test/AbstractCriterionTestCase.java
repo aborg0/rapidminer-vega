@@ -34,7 +34,7 @@ import com.rapidminer.operator.performance.PerformanceCriterion;
  * @author Simon Fischer
  *          Exp $
  */
-public abstract class CriterionTestCase {
+public abstract class AbstractCriterionTestCase {
 
 	public static void assertAllValuesEqual(String message, PerformanceCriterion expected, PerformanceCriterion actual) {
 		message += " " + expected.getName();
