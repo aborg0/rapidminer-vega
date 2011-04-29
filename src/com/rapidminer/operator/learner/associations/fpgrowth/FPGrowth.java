@@ -435,11 +435,11 @@ public class FPGrowth extends Operator {
 		type.setExpert(false);
 		types.add(type);
 		type = new ParameterTypeInt(PARAMETER_MIN_NUMBER_OF_ITEMSETS, "Indicates the minimum number of itemsets which should be determined if the corresponding parameter is activated.", 0, Integer.MAX_VALUE, 100);
-		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_FIND_MIN_NUMBER_OF_ITEMSETS, true, false));
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_FIND_MIN_NUMBER_OF_ITEMSETS, true, true));
 		type.setExpert(false);
 		types.add(type);
 		type = new ParameterTypeInt(PARAMETER_MAX_REDUCTION_STEPS, "This determines how many times the operator lowers min support to find the minimal number of item sets. Each time the minimal support is lowered by 20 percent.", 2, Integer.MAX_VALUE, 15);
-		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_FIND_MIN_NUMBER_OF_ITEMSETS, false, false));
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_FIND_MIN_NUMBER_OF_ITEMSETS, false, true));
 		type.setExpert(true);
 		types.add(type);
 
