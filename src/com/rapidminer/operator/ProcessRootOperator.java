@@ -231,13 +231,13 @@ public final class ProcessRootOperator extends OperatorChain {
 
     /** Counts the step and notifies all process listeners. */
     public void processStartedOperator(Operator op) {
-        for(ProcessListener listener: listenerList)
+        for(ProcessListener listener: getListenerListCopy())
             listener.processStartedOperator(this.process, op);
     }
 
     /** Counts the step and notifies all process listeners. */
     public void processFinishedOperator(Operator op) {
-        for(ProcessListener listener : listenerList)
+        for(ProcessListener listener : getListenerListCopy())
             listener.processFinishedOperator(this.process, op);
     }
 
@@ -248,7 +248,7 @@ public final class ProcessRootOperator extends OperatorChain {
     @Override
     public void processFinished() throws OperatorException {
         super.processFinished();
-        Iterator i = listenerList.iterator();
+        Iterator i = getListenerListCopy().iterator();
         while (i.hasNext()) {
             ((ProcessListener) i.next()).processEnded(this.process);
         }
