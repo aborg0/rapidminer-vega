@@ -375,6 +375,14 @@ public class UsageStatistics {
         this.failedToday = true;
         this.nextTransmission = new Date(lastReset.getTime() + TRANSMISSION_INTERVAL);
     }
+    
+    /**
+     * Returns the user key for this session.
+     * @return the user key
+     */
+    public String getUserKey() {
+    	return randomKey;
+    }
 
     /** Returns the date at which the next transmission should be scheduled. */
     public Date getNextTransmission() {
