@@ -22,7 +22,7 @@
  */
 package com.rapidminer.example.test;
 
-import static com.rapidminer.test.TestUtils.assertEqualsNaN;
+import static com.rapidminer.test.utils.RapidAssert.assertEqualsNaN;
 
 import org.junit.After;
 import org.junit.Before;

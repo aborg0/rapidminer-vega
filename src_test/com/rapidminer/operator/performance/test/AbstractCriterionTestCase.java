@@ -22,7 +22,7 @@
  */
 package com.rapidminer.operator.performance.test;
 
-import static com.rapidminer.test.TestUtils.assertEqualsNaN;
+import static com.rapidminer.test.utils.RapidAssert.assertEqualsNaN;
 import static junit.framework.Assert.assertEquals;
 
 import com.rapidminer.operator.performance.PerformanceCriterion;

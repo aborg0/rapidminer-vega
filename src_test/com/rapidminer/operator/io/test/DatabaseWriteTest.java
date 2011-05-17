@@ -21,7 +21,7 @@ import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.test.TestContext;
-import com.rapidminer.test.TestUtils;
+import com.rapidminer.test.utils.RapidAssert;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
 
@@ -207,6 +207,6 @@ public class DatabaseWriteTest {
 		readOp.setParameter(DatabaseHandler.PARAMETER_TABLE_NAME, TABLE_NAME);
 		ExampleSet result = readOp.read();
 		
-		TestUtils.assertEquals("example set", exampleSet, result, -1);
+		RapidAssert.assertEquals("example set", exampleSet, result, -1);
 	}	
 }
