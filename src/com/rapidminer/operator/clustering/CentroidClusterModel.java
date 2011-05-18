@@ -109,7 +109,7 @@ public class CentroidClusterModel extends ClusterModel {
 
 	}
 	public String[] getAttributeNames() {
-		return dimensionNames.toArray(new String[0]);
+		return dimensionNames.toArray(new String[dimensionNames.size()]);
 	}
 
 	/**

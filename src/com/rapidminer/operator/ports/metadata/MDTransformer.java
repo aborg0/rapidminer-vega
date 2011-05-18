@@ -58,7 +58,7 @@ public class MDTransformer {
 				rule.transformMD();
 			} catch (Exception e) {
 				operator.getLogger().log(Level.WARNING, "Error during meta data transformation: "+e, e);
-				operator.addError(new SimpleProcessSetupError(Severity.WARNING, operator.getPortOwner(), "exception_transforming_metadata", e.toString()));
+				operator.addError(new SimpleProcessSetupError(Severity.WARNING, operator.getPortOwner(), "exception_transforming_metadata", e.toString()));			
 			}
 		}
 	}

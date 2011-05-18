@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.rapidminer.BreakpointListener;
 import com.rapidminer.Process;
 import com.rapidminer.RepositoryProcessLocation;
 import com.rapidminer.operator.IOContainer;
@@ -85,6 +86,9 @@ public class ProcessEmbeddingOperator extends Operator {
 	/** Determines whether meta data is propagated through the included process. */
 	public static final String PARAMETER_PROPAGATE_METADATA_RECURSIVELY = "propagate_metadata_recursively";
 
+	/** If true, {@link #cachedProcess} will be used in {@link #loadIncludedProcess()}. */
+	public static final String PARAMETER_CACHE_PROCESS = "cache_process";
+	
 	public static final String PARAMETER_MACROS = "macros";
 	
 	public static final String PARAMETER_MACRO_NAME = "macro_name";
@@ -93,7 +97,7 @@ public class ProcessEmbeddingOperator extends Operator {
 	
 	
 	private Process cachedProcess;
-	
+		
 	private ProcessSetupError cachedError = null;
 
 	public ProcessEmbeddingOperator(OperatorDescription description) {
@@ -191,6 +195,10 @@ public class ProcessEmbeddingOperator extends Operator {
 	}
 
 	private Process loadIncludedProcess() throws UndefinedParameterError, UserError, RepositoryException {
+		boolean useCache = getParameterAsBoolean(PARAMETER_CACHE_PROCESS);
+		if (useCache && cachedProcess != null) {
+			return cachedProcess;
+		}
 		RepositoryLocation location = getParameterAsRepositoryLocation(PARAMETER_PROCESS_FILE);
 		Entry entry = location.locateEntry();
 		if (entry == null) {
@@ -200,10 +208,19 @@ public class ProcessEmbeddingOperator extends Operator {
 			try {
 				process = new RepositoryProcessLocation(location).load(null);
 				process.setRepositoryAccessor(getProcess().getRepositoryAccessor());
+				
+				for (Operator op : process.getRootOperator().getAllInnerOperators()) {
+					op.setBreakpoint(BreakpointListener.BREAKPOINT_AFTER, false);
+					op.setBreakpoint(BreakpointListener.BREAKPOINT_BEFORE, false);
+				}
+
 			} catch (IOException e) {
 				throw new UserError(this, 302, location, e.getMessage());
 			} catch (XMLException e) {
 				throw new UserError(this, 401, e.getMessage());
+			}			
+			if (useCache) {
+				cachedProcess = process;
 			}
 			return process;
 		} else {
@@ -235,6 +252,7 @@ public class ProcessEmbeddingOperator extends Operator {
 		types.add(new ParameterTypeRepositoryLocation(PARAMETER_PROCESS_FILE, "The process location which should be encapsulated by this operator", false));
 		types.add(new ParameterTypeBoolean(PARAMETER_USE_INPUT, "Indicates if the operator input should be used as input of the process", false));
 		types.add(new ParameterTypeBoolean(PARAMETER_PROPAGATE_METADATA_RECURSIVELY, "Determines whether meta data is propagated through the included process.", false));
+		types.add(new ParameterTypeBoolean(PARAMETER_CACHE_PROCESS, "If checked, the process will not be loaded during execution.", false));
 		
 		types.add(new ParameterTypeList(PARAMETER_MACROS, "Defines macros for this sub-process.", new ParameterTypeString(PARAMETER_MACRO_NAME, "The name of the macro.", false), new ParameterTypeString(PARAMETER_MACRO_VALUE, "The value of the macro.", false), true));
 		

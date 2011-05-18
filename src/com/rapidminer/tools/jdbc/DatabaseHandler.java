@@ -1100,7 +1100,7 @@ public class DatabaseHandler {
                 statement.execute(sql);
             }
         }
-        logger.info("Query executed.");
+        logger.fine("Query executed.");
         if (!isQuery) {
             statement.close();
         }

@@ -802,7 +802,9 @@ public class Plugin {
     }
 
     public static void initPluginSplashTexts(SplashScreen splashScreen) {
-        callPluginInitMethods("initSplashTexts", new Class[] { SplashScreen.class }, new Object[] { splashScreen }, false);
+    	if (!RapidMiner.getExecutionMode().isHeadless()) {
+    		callPluginInitMethods("initSplashTexts", new Class[] { SplashScreen.class }, new Object[] { splashScreen }, false);
+    	}
     }
 
     public static void initAboutTexts(Properties properties) {

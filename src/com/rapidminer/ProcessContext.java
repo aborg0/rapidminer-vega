@@ -105,7 +105,15 @@ public class ProcessContext extends AbstractObservable<ProcessContext> implement
         return macros;
     }
 
+    /** Adds a macro to the list or sets an existing one. */
     public void addMacro(Pair<String, String> macro) {
+    	for (Pair<String, String> existingMacro : this.macros) {
+    		if (existingMacro.getFirst().equals(macro.getFirst())) {
+    			// overwrite existing
+    			existingMacro.setSecond(macro.getSecond());
+    			return;
+    		}
+    	}
         this.macros.add(macro);
         fireUpdate(this);
     }
