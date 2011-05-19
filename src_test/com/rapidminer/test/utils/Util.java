@@ -31,7 +31,7 @@ public class Util {
 			
 		Map<Integer, IOObject> results = new HashMap<Integer, IOObject>();
 		
-		Folder folder = process.getRepositoryLocation().locateEntry().getContainingFolder();
+		Folder folder = (Folder) process.getRepositoryLocation().parent().locateEntry();
 		
 		for( DataEntry entry : folder.getDataEntries() ) {
 			if( entry instanceof IOObjectEntry ) {

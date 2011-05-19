@@ -13,6 +13,11 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.NominalMapping;
 import com.rapidminer.operator.IOObject;
+import com.rapidminer.operator.performance.PerformanceCriterion;
+import com.rapidminer.operator.performance.PerformanceVector;
+import com.rapidminer.operator.visualization.dependencies.NumericalMatrix;
+import com.rapidminer.tools.math.Averagable;
+import com.rapidminer.tools.math.AverageVector;
 
 /**
  * Extension for JUnit's Assert for testing RapidMiner objects.
@@ -116,7 +121,131 @@ public class RapidAssert extends Assert {
             row++;
         }
     }
+    
+    /**
+     * Test two numerical matrices for equality. This contains tests about the number of columns and rows, as well as column&row names and if
+     * the matrices are marked as symmetrical and if every value within the matrix is equal.
+     *  
+	 * @param message		message to display if an error occurs
+	 * @param expected		expected matrix
+	 * @param actual		actual matrix
+     */
+    public static void assertEquals(String message, NumericalMatrix expected, NumericalMatrix actual) {
+    	
+    	int expNrOfCols = expected.getNumberOfColumns();
+    	int actNrOfCols = actual.getNumberOfColumns();
+    	assertEquals(message + " (column number is not equal)", expNrOfCols, actNrOfCols);
+    	
+    	int expNrOfRows = expected.getNumberOfRows();
+    	int actNrOfRows = actual.getNumberOfRows();
+    	assertEquals(message + " (row number is not equal)", expNrOfRows, actNrOfRows);
+    	
+    	int cols = expNrOfCols; 
+    	int rows = expNrOfRows;
+    	
+    	for( int col=0; col<cols; col++ ) {
+    		String expectedColName = expected.getColumnName(col);
+    		String actualColName = actual.getColumnName(col);
+    		assertEquals(message + " (column name at index "+col+" is not equal)", expectedColName, actualColName );
+    	}
+    	
+    	for( int row=0; row<rows; row++ ) {
+    		String expectedRowName = expected.getRowName(row);
+    		String actualRowName = actual.getRowName(row);
+    		assertEquals(message + " (row name at index "+row+" is not equal)", expectedRowName, actualRowName );
+    	}
+    	
+    	assertEquals(message + " (matrix symmetry is not equal)", expected.isSymmetrical(), actual.isSymmetrical());
+    	
+    	for( int row=0; row<rows; row++ ) {
+    		for( int col=0; col<cols; col++ ) {
+    			
+    			double expectedVal = expected.getValue(row, col);
+    			double actualVal = actual.getValue(row, col);
+    			assertEquals(message + " (value at row "+row+" and column "+col+" is not equal)", expectedVal, actualVal );
+    			
+    		}
+    	}
+    	
+    }
+    
+    /**
+     * Tests the two average vectors for equality by testing the size and each averagable.
+     * 
+	 * @param message		message to display if an error occurs
+	 * @param expected		expected vector
+	 * @param actual		actual vector
+     */
+    public static void assertEquals(String message, AverageVector expected, AverageVector actual) {
+    	int expSize = expected.getSize();
+    	int actSize = actual.getSize();
+    	assertEquals(message + " (size of the average vector is not equal)", expSize, actSize);
+    	int size = expSize;
 
+    	for( int i=0; i<size; i++ ) {
+    		RapidAssert.assertEquals(message, expected.getAveragable(i), actual.getAveragable(i));
+    	}
+    }
+    
+    /**
+     * Tests the two performance vectors for equality by testing the size, the criteria names, the main criterion and each criterion.
+     * 
+	 * @param message		message to display if an error occurs
+	 * @param expected		expected vector
+	 * @param actual		actual vector
+     */
+    public static void assertEquals(String message, PerformanceVector expected, PerformanceVector actual) {
+    	int expSize = expected.getSize();
+    	int actSize = actual.getSize();
+    	assertEquals(message + " (size of the performance vector is not equal)", expSize, actSize);
+    	int size = expSize;
+    	
+    	RapidAssert.assertArrayEquals(message, expected.getCriteriaNames(), actual.getCriteriaNames());
+    	RapidAssert.assertEquals(message, expected.getMainCriterion(), actual.getMainCriterion());
+    	
+    	for( int i=0; i<size; i++ ) {
+    		RapidAssert.assertEquals(message, expected.getCriterion(i), actual.getCriterion(i));
+    	}
+    }
+    
+    
+    /**
+     * Tests for equality by testing all averages, standard deviation and variances.
+     * 
+	 * @param message		message to display if an error occurs
+	 * @param expected		expected averagable
+	 * @param actual		actual averagable
+     */
+    public static void assertEquals(String message, Averagable expected, Averagable actual) {
+    	
+    	assertEquals(message + " (average is not equal)", expected.getAverage(), actual.getAverage());
+    	assertEquals(message + " (makro average is not equal)", expected.getMakroAverage(), actual.getMakroAverage());
+    	assertEquals(message + " (mikro average is not equal)", expected.getMikroAverage(), actual.getMikroAverage());
+    	assertEquals(message + " (average count is not equal)", expected.getAverageCount(), actual.getAverageCount());
+    	assertEquals(message + " (makro standard deviation is not equal)", expected.getMakroStandardDeviation(), actual.getMakroStandardDeviation());
+    	assertEquals(message + " (mikro standard deviation is not equal)", expected.getMikroStandardDeviation(), actual.getMikroStandardDeviation());
+    	assertEquals(message + " (standard deviation is not equal)", expected.getStandardDeviation(), actual.getStandardDeviation());
+    	assertEquals(message + " (makro variance is not equal)", expected.getMakroVariance(), actual.getMakroVariance());
+    	assertEquals(message + " (mikro variance is not equal)", expected.getMikroVariance(), actual.getMikroVariance());
+    	assertEquals(message + " (variance is not equal)", expected.getVariance(), actual.getVariance());
+    	
+    }
+
+    /**
+	 * Tests for equality by testing all averages, standard deviation and variances, as well as the fitness, max fitness 
+	 * and example count.
+	 *  
+	 * @param message		message to display if an error occurs
+	 * @param expected		expected criterion
+	 * @param actual		actual criterion
+     */
+    public static void assertEquals(String message, PerformanceCriterion expected, PerformanceCriterion actual) {
+    	RapidAssert.assertEquals(message , (Averagable)expected, (Averagable)actual);
+    	assertEquals(message + " (fitness is not equal)", expected.getFitness(), actual.getFitness());
+    	assertEquals(message + " (max fitness is not equal)", expected.getMaxFitness(), actual.getMaxFitness());
+    	assertEquals(message + " (example count is not equal)", expected.getExampleCount(), actual.getExampleCount());
+    }
+    
     /**
      * Tests the two examples by testing the value of the examples for every given attribute. 
      * This method is sensitive to the attribute ordering.
@@ -170,18 +299,29 @@ public class RapidAssert extends Assert {
      * @param expected	array with expected objects
      * @param actual	array with actual objects
      */
-    public static void assertArrayEquals(Object[] expected, Object[] actual) {
+    public static void assertArrayEquals(String message, Object[] expected, Object[] actual) {
         if (expected == null) {
             junit.framework.Assert.assertEquals((Object) null, actual);
             return;
         }
         if (actual == null) {
-            throw new AssertionFailedError("Expected " + expected.toString() + " , but is null.");
+            throw new AssertionFailedError(message + " (expected " + expected.toString() + " , but is null)");
         }
-        junit.framework.Assert.assertEquals("Array length", expected.length, actual.length);
+        junit.framework.Assert.assertEquals(message + " (array length is not equal)", expected.length, actual.length);
         for (int i = 0; i < expected.length; i++) {
-            junit.framework.Assert.assertEquals(expected[i], actual[i]);
+            junit.framework.Assert.assertEquals(message, expected[i], actual[i]);
         }
+    }
+    
+    /**
+     * Tests all objects in the array.
+     * 
+	 * @param message		message to display if an error occurs
+     * @param expected	array with expected objects
+     * @param actual	array with actual objects
+     */
+    public static void assertArrayEquals(Object[] expected, Object[] actual) {
+    	assertArrayEquals("", expected, actual);
     }
     
     /**
@@ -204,10 +344,20 @@ public class RapidAssert extends Assert {
 
 			if( expectedIOO instanceof ExampleSet && actualIOO instanceof ExampleSet )
 				RapidAssert.assertEquals("ExampleSets are not equal", (ExampleSet)expectedIOO, (ExampleSet)actualIOO, -1);
+			
+			if( expectedIOO instanceof NumericalMatrix && actualIOO instanceof NumericalMatrix )
+				RapidAssert.assertEquals("Numerical matrices are not equal", (NumericalMatrix) expectedIOO, (NumericalMatrix) actualIOO);
+			
+			if( expectedIOO instanceof PerformanceVector && actualIOO instanceof PerformanceVector )
+				RapidAssert.assertEquals("Performance vectors are not equal", (PerformanceVector) expectedIOO, (PerformanceVector) actualIOO);
+			else if( expectedIOO instanceof AverageVector && actualIOO instanceof AverageVector ) 
+				RapidAssert.assertEquals("Average vectors are not equals", (AverageVector) expectedIOO, (AverageVector) actualIOO);
+				
 
 		}
 		
 	}
 	
 }
+
 
