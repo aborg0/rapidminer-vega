@@ -45,58 +45,58 @@ import com.rapidminer.tools.RandomGenerator;
 public class RandomSelection extends AbstractFeatureSelection {
 
 
-	public static final String PARAMETER_USE_FIXED_NUMBER_OF_ATTRIBUTES = "use_fixed_number_of_attributes";
-	public static final String PARAMETER_NUMBER_OF_ATTRIBUTES = "number_of_attributes";
+    public static final String PARAMETER_USE_FIXED_NUMBER_OF_ATTRIBUTES = "use_fixed_number_of_attributes";
+    public static final String PARAMETER_NUMBER_OF_ATTRIBUTES = "number_of_attributes";
 
-	public RandomSelection(OperatorDescription description) {
-		super(description);
-	}
+    public RandomSelection(OperatorDescription description) {
+        super(description);
+    }
 
-	@Override
-	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {		 
-		ExampleSet result = (ExampleSet)exampleSet.clone();
+    @Override
+    public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
+        ExampleSet result = (ExampleSet)exampleSet.clone();
 
-		RandomGenerator random = RandomGenerator.getRandomGenerator(this);
-		int number = 0;
-		if (getParameterAsBoolean(PARAMETER_USE_FIXED_NUMBER_OF_ATTRIBUTES))
-			number = getParameterAsInt(PARAMETER_NUMBER_OF_ATTRIBUTES);
-		else { 
-			number = random.nextIntInRange(1, result.getAttributes().size() + 1);
-			if (number > result.getAttributes().size())
-				throw new UserError(this, 125, number, result.getAttributes().size());
-		}
+        RandomGenerator random = RandomGenerator.getRandomGenerator(this);
+        int number = 0;
+        if (getParameterAsBoolean(PARAMETER_USE_FIXED_NUMBER_OF_ATTRIBUTES))
+            number = getParameterAsInt(PARAMETER_NUMBER_OF_ATTRIBUTES);
+        else {
+            number = random.nextIntInRange(1, result.getAttributes().size() + 1);
+            if (number > result.getAttributes().size())
+                throw new UserError(this, 125, number, result.getAttributes().size());
+        }
 
-		while (result.getAttributes().size() > number) {
-			int toDeleteIndex = random.nextIntInRange(0, result.getAttributes().size()) - 1;
-			Attribute toDeleteAttribute = null;
-			int counter = 0;
-			for (Attribute attribute : result.getAttributes()) {
-				if (counter >= toDeleteIndex) {
-					toDeleteAttribute = attribute;
-					break;
-				}
-				counter++;
-			}
-			if (toDeleteAttribute != null) {
-				result.getAttributes().remove(toDeleteAttribute);
-			}
-		}
+        while (result.getAttributes().size() > number) {
+            int toDeleteIndex = random.nextIntInRange(0, result.getAttributes().size());
+            Attribute toDeleteAttribute = null;
+            int counter = 0;
+            for (Attribute attribute : result.getAttributes()) {
+                if (counter >= toDeleteIndex) {
+                    toDeleteAttribute = attribute;
+                    break;
+                }
+                counter++;
+            }
+            if (toDeleteAttribute != null) {
+                result.getAttributes().remove(toDeleteAttribute);
+            }
+        }
 
-		return result;
-	}
+        return result;
+    }
 
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		List<ParameterType> types = super.getParameterTypes();
-		ParameterType type = new ParameterTypeBoolean(PARAMETER_USE_FIXED_NUMBER_OF_ATTRIBUTES, "Indicates if a fixed number of attributes should be selected.", false); 
-		type.setExpert(false);
-		types.add(type);
+    @Override
+    public List<ParameterType> getParameterTypes() {
+        List<ParameterType> types = super.getParameterTypes();
+        ParameterType type = new ParameterTypeBoolean(PARAMETER_USE_FIXED_NUMBER_OF_ATTRIBUTES, "Indicates if a fixed number of attributes should be selected.", false);
+        type.setExpert(false);
+        types.add(type);
 
-		type = new ParameterTypeInt(PARAMETER_NUMBER_OF_ATTRIBUTES, "The number of attributes which should be randomly selected.", 1, Integer.MAX_VALUE, 1);
-		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_FIXED_NUMBER_OF_ATTRIBUTES, true, true));
-		type.setExpert(false);
-		types.add(type);
-		types.addAll(RandomGenerator.getRandomGeneratorParameters(this));
-		return types;
-	}
+        type = new ParameterTypeInt(PARAMETER_NUMBER_OF_ATTRIBUTES, "The number of attributes which should be randomly selected.", 1, Integer.MAX_VALUE, 1);
+        type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_FIXED_NUMBER_OF_ATTRIBUTES, true, true));
+        type.setExpert(false);
+        types.add(type);
+        types.addAll(RandomGenerator.getRandomGeneratorParameters(this));
+        return types;
+    }
 }
