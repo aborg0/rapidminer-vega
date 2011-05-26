@@ -104,7 +104,6 @@ public class RepositoryLocationChooser extends JPanel {
 				public void repositoryLocationSelected(RepositorySelectionEvent e) {
 					// called on double click
 					Entry entry = e.getEntry();
-					System.out.println("SELECTED: "+entry);
 					if (selectEntries && entry instanceof DataEntry) {
 						userSelection = entry.getLocation().toString();
 						dispose();
