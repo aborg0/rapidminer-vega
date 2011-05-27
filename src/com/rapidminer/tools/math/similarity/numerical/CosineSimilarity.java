@@ -53,7 +53,8 @@ public class CosineSimilarity extends SimilarityMeasure {
 		if ((sum1 > 0) && (sum2 > 0)) {
 			double result = sum / (Math.sqrt(sum1) * Math.sqrt(sum2));
 			// result can be > 1 (or -1) due to rounding errors for equal vectors, but must be between -1 and 1
-			return Math.min(Math.max(result, -1d), 1d); 
+			return Math.min(Math.max(result, -1d), 1d);
+			//return result;
 		} else if (sum1 == 0 && sum2 == 0) {
 			return 1d;
 		} else {

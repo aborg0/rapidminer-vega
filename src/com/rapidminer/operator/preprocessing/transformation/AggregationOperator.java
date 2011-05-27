@@ -248,6 +248,7 @@ public class AggregationOperator extends AbstractDataProcessing {
                 exampleSet = toNominalOperator.apply(exampleSet);
             } catch (OperatorCreationException e) {
                 // might work if attributes already nominal. Otherwise UserError will be thrown below.
+            	// TODO (Simon): Huh?
             }
 
             Attribute[] groupByAttributes = getAttributesArrayFromRegex(exampleSet.getAttributes(), groupByAttributesRegex);
@@ -294,6 +295,7 @@ public class AggregationOperator extends AbstractDataProcessing {
                     }
                 }
 
+                // TODO (Simon): Isn't this loop rather pointless? Why do we iterate over functionSet
                 // compute aggregation function values
                 for (int i = 0; i < functionSet.size(); i++) {
                     ValueSet[] distinctValues = distinctValueSet.get(i);
@@ -360,6 +362,7 @@ public class AggregationOperator extends AbstractDataProcessing {
             resultTable = new MemoryExampleTable(resultAttributes);
 
             // fill data table
+            // TODO (Simon): Again pointless loop. We should iterate only over non-null entries
             for (int i = 0; i < functionSet.size(); i++) {
                 double data[] = new double[groupByAttributes.length + numberOfAggregations];
                 int[] indices = functionSet.getIndices(i);

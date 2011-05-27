@@ -24,27 +24,8 @@ import javax.xml.namespace.QName;
 @XmlRegistry
 public class ObjectFactory {
 
-    private final static QName _GetPackageInfoResponse_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getPackageInfoResponse");
-    private final static QName _GetRapidMinerExtensionForOperatorPrefixResponse_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getRapidMinerExtensionForOperatorPrefixResponse");
-    private final static QName _GetLicenseText_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getLicenseText");
-    private final static QName _GetMirrorsResponse_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getMirrorsResponse");
-    private final static QName _GetDownloadURL_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getDownloadURL");
-    private final static QName _GetDownloadURLResponse_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getDownloadURLResponse");
-    private final static QName _UpdateServiceException_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "UpdateServiceException");
-    private final static QName _GetLatestVersionResponse_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getLatestVersionResponse");
-    private final static QName _GetMirrors_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getMirrors");
-    private final static QName _GetAvailableVersions_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getAvailableVersions");
-    private final static QName _AnyUpdatesSince_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "anyUpdatesSince");
-    private final static QName _GetAvailableVersionsResponse_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getAvailableVersionsResponse");
-    private final static QName _GetExtensions_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getExtensions");
-    private final static QName _GetExtensionsResponse_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getExtensionsResponse");
-    private final static QName _GetLatestVersion_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getLatestVersion");
-    private final static QName _GetPackageInfo_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getPackageInfo");
-    private final static QName _GetMessageOfTheDayResponse_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getMessageOfTheDayResponse");
-    private final static QName _AnyUpdatesSinceResponse_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "anyUpdatesSinceResponse");
-    private final static QName _GetLicenseTextResponse_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getLicenseTextResponse");
-    private final static QName _GetRapidMinerExtensionForOperatorPrefix_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getRapidMinerExtensionForOperatorPrefix");
-    private final static QName _GetMessageOfTheDay_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getMessageOfTheDay");
+    private final static QName _GetBookmarkedProducts_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getBookmarkedProducts");
+    private final static QName _GetBookmarkedProductsResponse_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getBookmarkedProductsResponse");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: com.rapidminer.deployment.client.wsimport
@@ -54,368 +35,37 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link GetRapidMinerExtensionForOperatorPrefixResponse }
+     * Create an instance of {@link GetBookmarkedProducts }
      * 
      */
-    public GetRapidMinerExtensionForOperatorPrefixResponse createGetRapidMinerExtensionForOperatorPrefixResponse() {
-        return new GetRapidMinerExtensionForOperatorPrefixResponse();
+    public GetBookmarkedProducts createGetBookmarkedProducts() {
+        return new GetBookmarkedProducts();
     }
 
     /**
-     * Create an instance of {@link AnyUpdatesSinceResponse }
+     * Create an instance of {@link GetBookmarkedProductsResponse }
      * 
      */
-    public AnyUpdatesSinceResponse createAnyUpdatesSinceResponse() {
-        return new AnyUpdatesSinceResponse();
+    public GetBookmarkedProductsResponse createGetBookmarkedProductsResponse() {
+        return new GetBookmarkedProductsResponse();
     }
 
     /**
-     * Create an instance of {@link GetLicenseTextResponse }
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetBookmarkedProducts }{@code >}}
      * 
      */
-    public GetLicenseTextResponse createGetLicenseTextResponse() {
-        return new GetLicenseTextResponse();
+    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getBookmarkedProducts")
+    public JAXBElement<GetBookmarkedProducts> createGetBookmarkedProducts(GetBookmarkedProducts value) {
+        return new JAXBElement<GetBookmarkedProducts>(_GetBookmarkedProducts_QNAME, GetBookmarkedProducts.class, null, value);
     }
 
     /**
-     * Create an instance of {@link PackageDescriptor }
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetBookmarkedProductsResponse }{@code >}}
      * 
      */
-    public PackageDescriptor createPackageDescriptor() {
-        return new PackageDescriptor();
-    }
-
-    /**
-     * Create an instance of {@link GetMirrors }
-     * 
-     */
-    public GetMirrors createGetMirrors() {
-        return new GetMirrors();
-    }
-
-    /**
-     * Create an instance of {@link GetMessageOfTheDayResponse }
-     * 
-     */
-    public GetMessageOfTheDayResponse createGetMessageOfTheDayResponse() {
-        return new GetMessageOfTheDayResponse();
-    }
-
-    /**
-     * Create an instance of {@link GetLatestVersionResponse }
-     * 
-     */
-    public GetLatestVersionResponse createGetLatestVersionResponse() {
-        return new GetLatestVersionResponse();
-    }
-
-    /**
-     * Create an instance of {@link GetDownloadURL }
-     * 
-     */
-    public GetDownloadURL createGetDownloadURL() {
-        return new GetDownloadURL();
-    }
-
-    /**
-     * Create an instance of {@link GetAvailableVersions }
-     * 
-     */
-    public GetAvailableVersions createGetAvailableVersions() {
-        return new GetAvailableVersions();
-    }
-
-    /**
-     * Create an instance of {@link GetLicenseText }
-     * 
-     */
-    public GetLicenseText createGetLicenseText() {
-        return new GetLicenseText();
-    }
-
-    /**
-     * Create an instance of {@link GetRapidMinerExtensionForOperatorPrefix }
-     * 
-     */
-    public GetRapidMinerExtensionForOperatorPrefix createGetRapidMinerExtensionForOperatorPrefix() {
-        return new GetRapidMinerExtensionForOperatorPrefix();
-    }
-
-    /**
-     * Create an instance of {@link GetPackageInfo }
-     * 
-     */
-    public GetPackageInfo createGetPackageInfo() {
-        return new GetPackageInfo();
-    }
-
-    /**
-     * Create an instance of {@link GetAvailableVersionsResponse }
-     * 
-     */
-    public GetAvailableVersionsResponse createGetAvailableVersionsResponse() {
-        return new GetAvailableVersionsResponse();
-    }
-
-    /**
-     * Create an instance of {@link GetDownloadURLResponse }
-     * 
-     */
-    public GetDownloadURLResponse createGetDownloadURLResponse() {
-        return new GetDownloadURLResponse();
-    }
-
-    /**
-     * Create an instance of {@link GetPackageInfoResponse }
-     * 
-     */
-    public GetPackageInfoResponse createGetPackageInfoResponse() {
-        return new GetPackageInfoResponse();
-    }
-
-    /**
-     * Create an instance of {@link UpdateServiceException }
-     * 
-     */
-    public UpdateServiceException createUpdateServiceException() {
-        return new UpdateServiceException();
-    }
-
-    /**
-     * Create an instance of {@link GetMessageOfTheDay }
-     * 
-     */
-    public GetMessageOfTheDay createGetMessageOfTheDay() {
-        return new GetMessageOfTheDay();
-    }
-
-    /**
-     * Create an instance of {@link GetExtensionsResponse }
-     * 
-     */
-    public GetExtensionsResponse createGetExtensionsResponse() {
-        return new GetExtensionsResponse();
-    }
-
-    /**
-     * Create an instance of {@link GetLatestVersion }
-     * 
-     */
-    public GetLatestVersion createGetLatestVersion() {
-        return new GetLatestVersion();
-    }
-
-    /**
-     * Create an instance of {@link GetMirrorsResponse }
-     * 
-     */
-    public GetMirrorsResponse createGetMirrorsResponse() {
-        return new GetMirrorsResponse();
-    }
-
-    /**
-     * Create an instance of {@link AnyUpdatesSince }
-     * 
-     */
-    public AnyUpdatesSince createAnyUpdatesSince() {
-        return new AnyUpdatesSince();
-    }
-
-    /**
-     * Create an instance of {@link GetExtensions }
-     * 
-     */
-    public GetExtensions createGetExtensions() {
-        return new GetExtensions();
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetPackageInfoResponse }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getPackageInfoResponse")
-    public JAXBElement<GetPackageInfoResponse> createGetPackageInfoResponse(GetPackageInfoResponse value) {
-        return new JAXBElement<GetPackageInfoResponse>(_GetPackageInfoResponse_QNAME, GetPackageInfoResponse.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetRapidMinerExtensionForOperatorPrefixResponse }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getRapidMinerExtensionForOperatorPrefixResponse")
-    public JAXBElement<GetRapidMinerExtensionForOperatorPrefixResponse> createGetRapidMinerExtensionForOperatorPrefixResponse(GetRapidMinerExtensionForOperatorPrefixResponse value) {
-        return new JAXBElement<GetRapidMinerExtensionForOperatorPrefixResponse>(_GetRapidMinerExtensionForOperatorPrefixResponse_QNAME, GetRapidMinerExtensionForOperatorPrefixResponse.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetLicenseText }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getLicenseText")
-    public JAXBElement<GetLicenseText> createGetLicenseText(GetLicenseText value) {
-        return new JAXBElement<GetLicenseText>(_GetLicenseText_QNAME, GetLicenseText.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetMirrorsResponse }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getMirrorsResponse")
-    public JAXBElement<GetMirrorsResponse> createGetMirrorsResponse(GetMirrorsResponse value) {
-        return new JAXBElement<GetMirrorsResponse>(_GetMirrorsResponse_QNAME, GetMirrorsResponse.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetDownloadURL }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getDownloadURL")
-    public JAXBElement<GetDownloadURL> createGetDownloadURL(GetDownloadURL value) {
-        return new JAXBElement<GetDownloadURL>(_GetDownloadURL_QNAME, GetDownloadURL.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetDownloadURLResponse }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getDownloadURLResponse")
-    public JAXBElement<GetDownloadURLResponse> createGetDownloadURLResponse(GetDownloadURLResponse value) {
-        return new JAXBElement<GetDownloadURLResponse>(_GetDownloadURLResponse_QNAME, GetDownloadURLResponse.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link UpdateServiceException }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "UpdateServiceException")
-    public JAXBElement<UpdateServiceException> createUpdateServiceException(UpdateServiceException value) {
-        return new JAXBElement<UpdateServiceException>(_UpdateServiceException_QNAME, UpdateServiceException.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetLatestVersionResponse }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getLatestVersionResponse")
-    public JAXBElement<GetLatestVersionResponse> createGetLatestVersionResponse(GetLatestVersionResponse value) {
-        return new JAXBElement<GetLatestVersionResponse>(_GetLatestVersionResponse_QNAME, GetLatestVersionResponse.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetMirrors }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getMirrors")
-    public JAXBElement<GetMirrors> createGetMirrors(GetMirrors value) {
-        return new JAXBElement<GetMirrors>(_GetMirrors_QNAME, GetMirrors.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetAvailableVersions }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getAvailableVersions")
-    public JAXBElement<GetAvailableVersions> createGetAvailableVersions(GetAvailableVersions value) {
-        return new JAXBElement<GetAvailableVersions>(_GetAvailableVersions_QNAME, GetAvailableVersions.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link AnyUpdatesSince }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "anyUpdatesSince")
-    public JAXBElement<AnyUpdatesSince> createAnyUpdatesSince(AnyUpdatesSince value) {
-        return new JAXBElement<AnyUpdatesSince>(_AnyUpdatesSince_QNAME, AnyUpdatesSince.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetAvailableVersionsResponse }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getAvailableVersionsResponse")
-    public JAXBElement<GetAvailableVersionsResponse> createGetAvailableVersionsResponse(GetAvailableVersionsResponse value) {
-        return new JAXBElement<GetAvailableVersionsResponse>(_GetAvailableVersionsResponse_QNAME, GetAvailableVersionsResponse.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetExtensions }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getExtensions")
-    public JAXBElement<GetExtensions> createGetExtensions(GetExtensions value) {
-        return new JAXBElement<GetExtensions>(_GetExtensions_QNAME, GetExtensions.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetExtensionsResponse }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getExtensionsResponse")
-    public JAXBElement<GetExtensionsResponse> createGetExtensionsResponse(GetExtensionsResponse value) {
-        return new JAXBElement<GetExtensionsResponse>(_GetExtensionsResponse_QNAME, GetExtensionsResponse.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetLatestVersion }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getLatestVersion")
-    public JAXBElement<GetLatestVersion> createGetLatestVersion(GetLatestVersion value) {
-        return new JAXBElement<GetLatestVersion>(_GetLatestVersion_QNAME, GetLatestVersion.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetPackageInfo }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getPackageInfo")
-    public JAXBElement<GetPackageInfo> createGetPackageInfo(GetPackageInfo value) {
-        return new JAXBElement<GetPackageInfo>(_GetPackageInfo_QNAME, GetPackageInfo.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetMessageOfTheDayResponse }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getMessageOfTheDayResponse")
-    public JAXBElement<GetMessageOfTheDayResponse> createGetMessageOfTheDayResponse(GetMessageOfTheDayResponse value) {
-        return new JAXBElement<GetMessageOfTheDayResponse>(_GetMessageOfTheDayResponse_QNAME, GetMessageOfTheDayResponse.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link AnyUpdatesSinceResponse }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "anyUpdatesSinceResponse")
-    public JAXBElement<AnyUpdatesSinceResponse> createAnyUpdatesSinceResponse(AnyUpdatesSinceResponse value) {
-        return new JAXBElement<AnyUpdatesSinceResponse>(_AnyUpdatesSinceResponse_QNAME, AnyUpdatesSinceResponse.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetLicenseTextResponse }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getLicenseTextResponse")
-    public JAXBElement<GetLicenseTextResponse> createGetLicenseTextResponse(GetLicenseTextResponse value) {
-        return new JAXBElement<GetLicenseTextResponse>(_GetLicenseTextResponse_QNAME, GetLicenseTextResponse.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetRapidMinerExtensionForOperatorPrefix }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getRapidMinerExtensionForOperatorPrefix")
-    public JAXBElement<GetRapidMinerExtensionForOperatorPrefix> createGetRapidMinerExtensionForOperatorPrefix(GetRapidMinerExtensionForOperatorPrefix value) {
-        return new JAXBElement<GetRapidMinerExtensionForOperatorPrefix>(_GetRapidMinerExtensionForOperatorPrefix_QNAME, GetRapidMinerExtensionForOperatorPrefix.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetMessageOfTheDay }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getMessageOfTheDay")
-    public JAXBElement<GetMessageOfTheDay> createGetMessageOfTheDay(GetMessageOfTheDay value) {
-        return new JAXBElement<GetMessageOfTheDay>(_GetMessageOfTheDay_QNAME, GetMessageOfTheDay.class, null, value);
+    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getBookmarkedProductsResponse")
+    public JAXBElement<GetBookmarkedProductsResponse> createGetBookmarkedProductsResponse(GetBookmarkedProductsResponse value) {
+        return new JAXBElement<GetBookmarkedProductsResponse>(_GetBookmarkedProductsResponse_QNAME, GetBookmarkedProductsResponse.class, null, value);
     }
 
 }

@@ -42,6 +42,7 @@ import java.util.Set;
 
 import javax.swing.AbstractButton;
 import javax.swing.AbstractListModel;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -53,6 +54,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import com.rapidminer.RapidMiner;
+import com.rapidminer.deployment.client.wsimport.AccountService;
+import com.rapidminer.deployment.client.wsimport.AccountServiceService;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
@@ -106,6 +109,14 @@ public class UpdateListPanel extends JPanel {
 		public void actionPerformed(ActionEvent arg0) {
 			toggleSelection();
 		}
+	});
+	
+	private final JButton fetchFromAccountButton = new JButton(new ResourceAction("update.fetch_bookmarks") {
+		private static final long serialVersionUID = 1L;
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			fetchBookmarks();
+		}		
 	});
 
 	private final PackageListModel listModel = new PackageListModel();
@@ -198,6 +209,10 @@ public class UpdateListPanel extends JPanel {
 		return installButton;
 	}
 
+	public AbstractButton getFetchFromAccountButton() {
+		return fetchFromAccountButton;
+	}
+
 	private String toString(PackageDescriptor descriptor) {
 		StringBuilder b = new StringBuilder("<html>");
 		b.append("<h2>").append(descriptor.getName() + "</h2>");
@@ -219,6 +234,7 @@ public class UpdateListPanel extends JPanel {
 				}
 			}
 		}
+		b.append("<br/><p><a href=\""+UpdateManager.getBaseUrl()+"/faces/product_details.xhtml?productId="+descriptor.getPackageId()+"\">Extension homepage</a></p>");
 		b.append("</html>");
 		return b.toString();
 	}
@@ -328,5 +344,43 @@ public class UpdateListPanel extends JPanel {
 	 */
 	public boolean isPurchased(PackageDescriptor desc) {
 		return purchasedPackages.contains(desc.getPackageId());
+	}
+	
+	/**
+	 *  Connects to rapidupdate.de to fetch the bookmarks and automatically select them.
+	 */
+	public void fetchBookmarks() {
+		List<String> bookmarks;
+		try {
+			AccountServiceService ass = new AccountServiceService();
+			AccountService accountService = ass.getAccountServicePort();
+			bookmarks = accountService.getBookmarkedProducts("rapidminer");
+		} catch (Exception e) {
+			SwingTools.showSimpleErrorMessage("error_during_update", e);
+			return;
+		}
+
+		for (PackageDescriptor desc : descriptors) {
+			if (bookmarks.contains(desc.getPackageId())) {
+				ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
+				final boolean upToDate;
+				if (ext == null) {
+					upToDate = false;
+				} else {
+					String installed = ext.getLatestInstalledVersion();
+					if (installed != null) {
+						upToDate = installed.compareTo(desc.getVersion()) >= 0;
+					} else {
+						upToDate = false;
+					}
+				}
+				if (!upToDate) {
+					selectionMap.put(desc, true);
+					resolveDependencies(desc);
+				}
+				continue;
+			}
+		}
+		updateList.repaint();
 	}
 }

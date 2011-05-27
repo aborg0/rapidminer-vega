@@ -59,6 +59,8 @@ import javax.xml.namespace.QName;
 import com.rapid_i.Launcher;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.RapidMiner.ExecutionMode;
+import com.rapidminer.deployment.client.wsimport.AccountService;
+import com.rapidminer.deployment.client.wsimport.AccountServiceService;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.deployment.client.wsimport.UpdateService;
 import com.rapidminer.deployment.client.wsimport.UpdateServiceException_Exception;
@@ -322,6 +324,13 @@ public class UpdateManager {
         }
         lastUsedUri = uri;
         return theService;
+    }
+
+    public synchronized static AccountService getAccountService() throws MalformedURLException, URISyntaxException {
+        URI uri = getUpdateServerURI("/AccountService?wsdl");
+        AccountServiceService ass = new AccountServiceService(uri.toURL(),
+        		new QName("http://ws.update.deployment.rapid_i.com/", "AccountServiceService"));
+        return ass.getAccountServicePort();
     }
 
     public static void saveLastUpdateCheckDate() {

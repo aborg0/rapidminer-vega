@@ -100,7 +100,7 @@ public class UpdateDialog extends ButtonDialog {
 		super("update");
 		this.service = service;
 		ulp = new UpdateListPanel(this, descriptors, preselectedExtensions);
-		layoutDefault(ulp, ulp.getInstallButton(), makeOkButton("update.install"), makeCloseButton());
+		layoutDefault(ulp, ulp.getFetchFromAccountButton(), ulp.getInstallButton(), makeOkButton("update.install"), makeCloseButton());
 	}
 
 	public static void showUpdateDialog(final String... preselectedExtensions) {
@@ -108,9 +108,9 @@ public class UpdateDialog extends ButtonDialog {
 			public void run() {
 				getProgressListener().setTotal(100);
 				getProgressListener().setCompleted(10);
-				UpdateService serviceTmp;
+				final UpdateService service;
 				try {
-					serviceTmp = UpdateManager.getService();
+					service = UpdateManager.getService();
 				} catch (Exception e) {
 					SwingTools.showSimpleErrorMessage("failed_update_server", e, UpdateManager.getBaseUrl());
 					getProgressListener().complete();
@@ -118,7 +118,7 @@ public class UpdateDialog extends ButtonDialog {
 				} finally {
 					getProgressListener().complete();
 				}
-				final UpdateService service = serviceTmp;
+				//final UpdateService service = serviceTmp;
 				try {
 					getProgressListener().setCompleted(20);
 

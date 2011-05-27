@@ -37,10 +37,10 @@ public class MultidimensionalArraySet<E> {
 	/** The underlying single dimension array. */
 	private E[] array;
 	
-	/**
-	 * The dimensions of the multidimensional array.
-	 */
-	private int[] dimensions;
+//	/**
+//	 * The dimensions of the multidimensional array.
+//	 */
+//	private int[] dimensions;
 	
 	/**
 	 * The number of combinations that is possible with specifying
@@ -56,7 +56,7 @@ public class MultidimensionalArraySet<E> {
 	 */
 	@SuppressWarnings("unchecked")
 	public MultidimensionalArraySet(int[] dimensions) {
-		this.dimensions = dimensions;
+//		this.dimensions = dimensions;
 		int splits = dimensions.length;
 		
 		int numberOfCombinations = 1;
@@ -121,12 +121,12 @@ public class MultidimensionalArraySet<E> {
 	 * @param indices the indices
 	 * @return the corresponding index
 	 */
-	public int getIndex(int[] indices) {
+	private int getIndex(int[] indices) {
 		return sumProduct(indices, combinations);
 	}
 
 	/**
-	 * Computs the multidimensional indices corresponding to a single
+	 * Computes the multidimensional indices corresponding to a single
 	 * dimension array index.
 	 * 
 	 * @param index the index
@@ -151,15 +151,15 @@ public class MultidimensionalArraySet<E> {
 		return array.length;
 	}
 	
-	/**
-	 * Returns an int array holding the dimensions of the
-	 * multidimensional array.
-	 * 
-	 * @return dimensions
-	 */
-	public int[] getDimensions() {
-		return dimensions;
-	}
+//	/**
+//	 * Returns an int array holding the dimensions of the
+//	 * multidimensional array.
+//	 * 
+//	 * @return dimensions
+//	 */
+//	public int[] getDimensions() {
+//		return dimensions;
+//	}
 	
 	/**
 	 * Calculates the sum product of two int arrays. Used for the calculation

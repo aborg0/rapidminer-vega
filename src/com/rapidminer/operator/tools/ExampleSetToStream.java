@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -456,7 +457,10 @@ public class ExampleSetToStream {
 	}
 	
 	/** Reads a single row from the stream. */
-	public void readRow(DataInputStream in, double[] data, ColumnType[] columnTypes, boolean sparse) throws IOException {
+	public void readRow(DataInputStream in, 
+			double[] data, 
+			ColumnType[] columnTypes, 
+			boolean sparse) throws IOException {
 		if (sparse) {				
 			while (true) {
 				int index = in.readInt();
@@ -467,6 +471,9 @@ public class ExampleSetToStream {
 				}
 			}				
 		} else {
+			// TODO: Use default value rather than 0. We should precompute 
+			// a populated array, copy it over "data", and add the non-default values
+			Arrays.fill(data, 0);
 			for (int attIndex = 0; attIndex < columnTypes.length; attIndex++) {
 				data[attIndex] = readDatum(in, columnTypes[attIndex]);
 			}
