@@ -23,6 +23,7 @@
 package com.rapidminer.gui.dialog;
 
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -33,6 +34,10 @@ import java.awt.event.FocusEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -66,6 +71,7 @@ import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
+import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.tools.BugReport;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
@@ -491,10 +497,45 @@ public class BugZillaAssistant extends ButtonDialog {
                     SwingTools.showVerySimpleErrorMessage("enter_summary");
                     return;
                 }
+                // more than a single word for a descriptive summary required!
+                String[] splitResult = summary.trim().split("\\s");
+                if (splitResult.length < 2) {
+                	SwingTools.showVerySimpleErrorMessage("enter_descriptive_summary");
+                    return;
+        		}
                 if (description.length() <= 0 || description.equals(descriptionText)) {
                     SwingTools.showVerySimpleErrorMessage("enter_description");
                     return;
                 }
+                
+                // all checks passed, bug report would be created right now, however we want the user
+                // to check his browser for similar/duplicate bugs by opening the bugzilla search page with
+                // given parameters
+                try {
+                	if(Desktop.isDesktopSupported()) {
+                		Desktop desktop = Desktop.getDesktop();
+                		if(desktop.isSupported(Desktop.Action.BROWSE)) {
+                			String bugzillaSearchString = 
+                				"http://bugs.rapid-i.com/buglist.cgi?field0-0-0=attach_data.thedata&type0-0-1=allwordssubstr&field0-0-1=longdesc&query_format=advanced&bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&value0-0-1=" +
+                				exception.getMessage() +
+                				"&type0-0-0=allwordssubstr&value0-0-0=" +
+                				exception.getMessage();
+                			URL bugzillaURL = new URL(bugzillaSearchString);
+                			URI bugzillaURI = new URI(bugzillaURL.getProtocol(), bugzillaURL.getHost(), bugzillaURL.getPath(), bugzillaURL.getQuery(), null);
+                			desktop.browse(bugzillaURI);
+                			int returnVal = SwingTools.showConfirmDialog("send_bugreport.check_browser_for_duplicates", ConfirmDialog.YES_NO_OPTION);
+                			// user clicked no, don't submit
+                			if (returnVal == ConfirmDialog.NO_OPTION) {
+                				return;
+                			}
+                		}
+                	}
+                } catch (URISyntaxException e1) {
+                	// should not occur (famous last comment)
+                } catch (IOException e1) {
+                	// we can't change it, so ignore it
+                }
+                
                 // create bugreport in own progess thread (cancel not allowed)
                 submitButton.setEnabled(false);
                 new ProgressThread("send_report_to_bugzilla", false) {

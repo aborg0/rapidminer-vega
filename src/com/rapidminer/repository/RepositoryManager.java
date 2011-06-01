@@ -24,6 +24,8 @@ package com.rapidminer.repository;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
@@ -414,7 +416,10 @@ public class RepositoryManager extends AbstractObservable<Repository> {
             BlobEntry blob = (BlobEntry) entry;
             BlobEntry target = destination.createBlobEntry(newName);
             try {
-                Tools.copyStreamSynchronously(blob.openInputStream(), target.openOutputStream(blob.getMimeType()), true);
+            	InputStream in = blob.openInputStream();
+                String mimeType = blob.getMimeType();				
+				OutputStream out = target.openOutputStream(mimeType);
+				Tools.copyStreamSynchronously(in, out, true);
                 if (listener != null) {
                     listener.setCompleted(maxProgress);
                 }

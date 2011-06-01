@@ -89,7 +89,9 @@ public class BlobImportWizard extends AbstractWizard {
 							String name = file.getName().toLowerCase();
 							if (name.endsWith(".htm") || name.endsWith(".html")) {
 								mimeType = "text/html";
-							} else if (name.endsWith(".txt")) {
+							} else if (name.endsWith(".css")) {
+								mimeType = "text/css";
+							} else if (name.endsWith(".txt")) {								
 								mimeType = "text/plain";
 							} else if (name.endsWith(".pdf")) {
 								mimeType = "application/pdf";

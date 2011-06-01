@@ -40,10 +40,13 @@ import com.rapidminer.tools.LogService;
  */
 public class RemoteBlobEntry extends RemoteDataEntry implements BlobEntry {
 
-	private String mimeType;
+	/**
+	 * TODO: Retrieve from Web service
+	 */
+	private String mimeType = "application/octet-stream";
 
 	RemoteBlobEntry(EntryResponse response, RemoteFolder container, RemoteRepository repository) {
-		super(response, container, repository);		
+		super(response, container, repository);
 	}
 	
 	@Override
@@ -59,6 +62,7 @@ public class RemoteBlobEntry extends RemoteDataEntry implements BlobEntry {
 			conn.setDoOutput(false);
 			conn.setDoInput(true);
 			try {
+				mimeType = conn.getContentType();
 				return conn.getInputStream();
 			} catch (IOException e) {
 				throw new RepositoryException("Cannot download object: " + conn.getResponseCode()+": "+conn.getResponseMessage(), e);	
