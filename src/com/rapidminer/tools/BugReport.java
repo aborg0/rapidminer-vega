@@ -145,7 +145,7 @@ public class BugReport {
      */
     public static void createBugZillaReport(XmlRpcClient client, Throwable exception, String userSummary,
             String completeDescription, String component, String version, String severity, String platform,
-            String os, Process process, String logMessage, String properties, File[] attachments, boolean attachProcess, boolean attachSystemProps) throws Exception {
+            String os, Process process, String logMessage, File[] attachments, boolean attachProcess, boolean attachSystemProps) throws Exception {
         // create temp files with all the data we need
     	
     	// attach process if user agreed via checkbox
