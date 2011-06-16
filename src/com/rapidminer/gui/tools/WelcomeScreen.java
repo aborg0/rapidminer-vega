@@ -47,6 +47,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
@@ -240,7 +241,18 @@ public final class WelcomeScreen extends JPanel implements Dockable {
 					newsPane.setPage(new URL("http://news.rapidminer.com/"));
 				} catch (IOException e2) {
 					LogService.getRoot().log(Level.INFO, "Cannot download news: "+e2, e2);
-					newsPane.setText("<html><body><h1>RapidMiner News</h1><p>Cannot download news. Internet connection may be down. If your Internet connection is up, please check your proxy settings in the <a href=\""+RMUrlHandler.PREFERENCES_URL+"\">preferences</a> under \"System\"."+PROXY_HELP+"</body></html>");
+					
+					// JEditorPane.setText("") should be thread-safe, but forum report suggests it may not be.
+					// No harm in actually making it 100% swing deadlock safe, therefore using SingUtilities.invokeLater()
+					SwingUtilities.invokeLater(new Runnable() {
+
+						@Override
+						public void run() {
+							newsPane.setText("<html><body><h1>RapidMiner News</h1><p>Cannot download news. Internet connection may be down. If your Internet connection is up, please check your proxy settings in the <a href=\""+RMUrlHandler.PREFERENCES_URL+"\">preferences</a> under \"System\"."+PROXY_HELP+"</body></html>");
+						}
+						
+					});
+					
 //					newsPane = new ExtendedHTMLJEditorPane("text/html", "<html><body><h1>RapidMiner News</h1><p>Cannot download news. Internet connection may be down. If your Internet connection is up, please check your proxy settings in the preferences.</body></html>");
 				}				
 			}
