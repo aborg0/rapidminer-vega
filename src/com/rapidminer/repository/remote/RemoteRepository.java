@@ -494,7 +494,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	/** Returns the URI to which a browser can be pointed to browse a given entry. */
 	public URI getURIForResource(String path) {
 		try {
-			return getBaseUrl().toURI().resolve("RA/faces/restricted/browse.xhtml?location=" + URLEncoder.encode(path, "UTF-8"));
+			return getBaseUrl().toURI().resolve("/RA/faces/restricted/browse.xhtml?location=" + URLEncoder.encode(path, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);
 		} catch (URISyntaxException e) {
