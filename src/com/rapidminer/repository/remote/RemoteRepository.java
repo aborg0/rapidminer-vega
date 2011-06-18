@@ -128,7 +128,12 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 			@Override
 			public String getName() {
-				return "Repository authenticator.";
+				return "Repository authenticator";
+			}
+			
+			@Override
+			public String toString() {
+				return getName();
 			}
 		});
 	}

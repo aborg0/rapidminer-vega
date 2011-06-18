@@ -93,6 +93,11 @@ public class UpdateDialog extends ButtonDialog {
 			public String getName() {
 				return "UpdateService authenticator.";
 			}
+			
+			@Override
+			public String toString() {
+				return getName();
+			}
 		});
 	}
 
