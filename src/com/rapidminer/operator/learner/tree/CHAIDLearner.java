@@ -39,7 +39,7 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.tools.OperatorService;
 
 /**
- * The CHAID decision tree learner works like the 
+ * The CHAID decision tree learner works like the
  * {@link com.rapidminer.operator.learner.tree.DecisionTreeLearner}
  * with one exception: it used a chi squared based criterion
  * instead of the information gain or gain ratio criteria.
@@ -48,106 +48,101 @@ import com.rapidminer.tools.OperatorService;
  */
 public class CHAIDLearner extends DecisionTreeLearner {
 
-	public CHAIDLearner(OperatorDescription description) {
-		super(description);
-	}
-	
-	@Override
-	protected Criterion createCriterion(double minimalGain) throws OperatorException {
-		return new Criterion() {
-			@Override
-			public double getIncrementalBenefit() {
-				throw new UnsupportedOperationException("Incremental calculation not supported.");
-			}
+    public CHAIDLearner(OperatorDescription description) {
+        super(description);
+    }
 
-			@Override
-			public double getNominalBenefit(ExampleSet exampleSet, Attribute attribute) throws OperatorException {
-				exampleSet = (ExampleSet) exampleSet.clone();
-				exampleSet.getAttributes().clearRegular();
-				exampleSet.getAttributes().addRegular(attribute);
-				getLogger().info("Calc benefit for: "+exampleSet);
-				ChiSquaredWeighting weightOp = null;
-				try {
-					weightOp = OperatorService.createOperator(ChiSquaredWeighting.class);
-				} catch (OperatorCreationException e) {
-					throw new OperatorException("Cannot create chi squared calculation operator.", e);
-				}
-				AttributeWeights weights = weightOp.doWork(exampleSet);
-				getLogger().info("Weights are: "+weights);
-				for (String w : weights.getAttributeNames()) {
-					getLogger().info("W("+w+")="+weights.getWeight(w));
-				}
-			    return weights.getWeight(attribute.getName());				
-			}
+    @Override
+    protected Criterion createCriterion(double minimalGain) throws OperatorException {
+        return new Criterion() {
+            @Override
+            public double getIncrementalBenefit() {
+                throw new UnsupportedOperationException("Incremental calculation not supported.");
+            }
 
-			@Override
-			public double getNumericalBenefit(ExampleSet exampleSet, Attribute attribute, double splitValue) {
-				throw new UnsupportedOperationException("Numerical attributes not supported.");
-			}
+            @Override
+            public double getNominalBenefit(ExampleSet exampleSet, Attribute attribute) throws OperatorException {
+                exampleSet = (ExampleSet) exampleSet.clone();
+                exampleSet.getAttributes().clearRegular();
+                exampleSet.getAttributes().addRegular(attribute);
+                ChiSquaredWeighting weightOp = null;
+                try {
+                    weightOp = OperatorService.createOperator(ChiSquaredWeighting.class);
+                } catch (OperatorCreationException e) {
+                    throw new OperatorException("Cannot create chi squared calculation operator.", e);
+                }
+                AttributeWeights weights = weightOp.doWork(exampleSet);
+                return weights.getWeight(attribute.getName());
+            }
 
-			@Override
-			public void startIncrementalCalculation(ExampleSet exampleSet) {
-				throw new UnsupportedOperationException("Incremental calculation not supported.");
-			}
+            @Override
+            public double getNumericalBenefit(ExampleSet exampleSet, Attribute attribute, double splitValue) {
+                throw new UnsupportedOperationException("Numerical attributes not supported.");
+            }
 
-			@Override
-			public boolean supportsIncrementalCalculation() {
-				return false;
-			}
+            @Override
+            public void startIncrementalCalculation(ExampleSet exampleSet) {
+                throw new UnsupportedOperationException("Incremental calculation not supported.");
+            }
 
-			@Override
-			public void swapExample(Example example) {
-				throw new UnsupportedOperationException("Incremental calculation not supported.");				
-			}
+            @Override
+            public boolean supportsIncrementalCalculation() {
+                return false;
+            }
 
-			@Override
-			public double getBenefit(double[][] weightCounts) {
-				throw new UnsupportedOperationException("Method not supported.");
-			}			
-		};
-	}
+            @Override
+            public void swapExample(Example example) {
+                throw new UnsupportedOperationException("Incremental calculation not supported.");
+            }
+
+            @Override
+            public double getBenefit(double[][] weightCounts) {
+                throw new UnsupportedOperationException("Method not supported.");
+            }
+        };
+    }
 
     /** This method calculates the benefit of the given attribute. This implementation
      *  utilizes the defined {@link Criterion}. Subclasses might want to override this
      *  method in order to calculate the benefit in other ways. */
     protected Benefit calculateBenefit(ExampleSet trainingSet, Attribute attribute) throws OperatorException {
-    	ChiSquaredWeighting weightOp = null;
-		try {
-			weightOp = OperatorService.createOperator(ChiSquaredWeighting.class);
-		} catch (OperatorCreationException e) {
-			getLogger().warning("Cannot create chi squared calculation operator.");
-			return null;
-		}
-		
-		double weight = Double.NaN;
-		if (weightOp != null) {			
-			AttributeWeights weights = weightOp.doWork(trainingSet);				
-	    	weight = weights.getWeight(attribute.getName());
-		}
+        ChiSquaredWeighting weightOp = null;
+        try {
+            weightOp = OperatorService.createOperator(ChiSquaredWeighting.class);
+        } catch (OperatorCreationException e) {
+            getLogger().warning("Cannot create chi squared calculation operator.");
+            return null;
+        }
 
-		if (!Double.isNaN(weight)) {
-			return new Benefit(weight, attribute);
-		} else {
-			return null;
-		}
+        double weight = Double.NaN;
+        if (weightOp != null) {
+            AttributeWeights weights = weightOp.doWork(trainingSet);
+            weight = weights.getWeight(attribute.getName());
+        }
+
+        if (!Double.isNaN(weight)) {
+            return new Benefit(weight, attribute);
+        } else {
+            return null;
+        }
     }
-    
+
     @Override
-	public List<ParameterType> getParameterTypes() {
+    public List<ParameterType> getParameterTypes() {
         List<ParameterType> types = super.getParameterTypes();
         // remove criterion selection
         Iterator<ParameterType> i = types.iterator();
         while (i.hasNext()) {
-        	if (i.next().getKey().equals(PARAMETER_CRITERION))
-        		i.remove();
+            if (i.next().getKey().equals(PARAMETER_CRITERION))
+                i.remove();
         }
         return types;
-    } 
-    
+    }
+
     @Override
     public boolean supportsCapability(OperatorCapability capability) {
-    	if (capability == OperatorCapability.NUMERICAL_ATTRIBUTES)
-    		return false;
-    	return super.supportsCapability(capability);
+        if (capability == OperatorCapability.NUMERICAL_ATTRIBUTES)
+            return false;
+        return super.supportsCapability(capability);
     }
 }

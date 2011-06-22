@@ -22,22 +22,33 @@
  */
 package com.rapidminer.operator.learner.tree;
 
+import java.util.Iterator;
+
 import com.rapidminer.example.Attribute;
+import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
-import com.rapidminer.example.Statistics;
 
 /**
- * This criterion terminates if only one single label is left. 
+ * This criterion terminates if only one single label is left.
  * 
  * @author Sebastian Land, Ingo Mierswa
  */
 public class SingleLabelTermination implements Terminator {
 
     public SingleLabelTermination() {}
-    
+
+    @Override
     public boolean shouldStop(ExampleSet exampleSet, int depth) {
         Attribute label = exampleSet.getAttributes().getLabel();
-        exampleSet.recalculateAttributeStatistics(label);
-        return exampleSet.size() == exampleSet.getStatistics(label, Statistics.COUNT, label.getMapping().mapIndex((int)exampleSet.getStatistics(label, Statistics.MODE)));
-    }    
+        Iterator<Example> iterator = exampleSet.iterator();
+        if (label != null && iterator.hasNext()) {
+            double singleValue = iterator.next().getValue(label);
+            while (iterator.hasNext()) {
+                if (iterator.next().getValue(label) != singleValue) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }
