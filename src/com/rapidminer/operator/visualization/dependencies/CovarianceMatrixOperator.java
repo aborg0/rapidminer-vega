@@ -79,7 +79,7 @@ public class CovarianceMatrixOperator extends Operator {
         boolean[] isNominal = new boolean[columnNames.length];
         int counter = 0;
         for (Attribute attribute : exampleSet.getAttributes()) {
-            columnNames[counter++] = attribute.getName();
+            columnNames[counter] = attribute.getName();
             if (attribute.isNominal())
                 isNominal[counter] = true;
             counter++;
