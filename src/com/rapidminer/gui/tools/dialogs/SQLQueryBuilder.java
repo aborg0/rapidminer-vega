@@ -47,10 +47,7 @@ import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.SQLEditor;
 import com.rapidminer.gui.tools.SwingTools;
-import com.rapidminer.gui.tools.syntax.DefaultInputHandler;
-import com.rapidminer.gui.tools.syntax.InputHandler;
 import com.rapidminer.tools.ParameterService;
-import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
@@ -73,19 +70,8 @@ public class SQLQueryBuilder extends ButtonDialog {
     /** The text area with the where clause. */
     private final JTextArea whereTextArea = new JTextArea(4, 15);
 
-    /** The text area with the where clause. */
+    /** The text area with the sql query */
     private final SQLEditor sqlQueryTextArea = new SQLEditor();
-    {
-        InputHandler inputHandler = new DefaultInputHandler() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                fireStateChanged();
-                super.keyReleased(e);
-            }
-        };
-        inputHandler.addDefaultKeyBindings();
-        sqlQueryTextArea.setInputHandler(inputHandler);
-    }
 
     /** All attribute names for the available tables. */
     private final Map<String, List<ColumnIdentifier>> attributeNameMap = new LinkedHashMap<String, List<ColumnIdentifier>>();
@@ -166,7 +152,7 @@ public class SQLQueryBuilder extends ButtonDialog {
         // SQL statement field
         c.weighty = 1.0d;
         sqlQueryTextArea.setBorder(createTitledBorder("SQL Query"));
-        panel.add(sqlQueryTextArea, c);
+        panel.add(new ExtendedJScrollPane(sqlQueryTextArea), c);
 
         return panel;
     }
@@ -237,7 +223,7 @@ public class SQLQueryBuilder extends ButtonDialog {
         }
 
         // FROM
-        result.append(Tools.getLineSeparator() + "FROM ");
+        result.append("\nFROM ");
         boolean first = true;
         for (Object o : tableSelection) {
             if (first) {
@@ -252,7 +238,7 @@ public class SQLQueryBuilder extends ButtonDialog {
         // WHERE
         String whereText = whereTextArea.getText().trim();
         if (whereText.length() > 0) {
-            result.append(Tools.getLineSeparator() + "WHERE " + whereText);
+            result.append("\nWHERE " + whereText);
         }
         sqlQueryTextArea.setText(result.toString());
     }

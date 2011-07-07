@@ -22,26 +22,28 @@
  */
 package com.rapidminer.gui.tools;
 
-import com.rapidminer.gui.tools.syntax.JEditTextArea;
-import com.rapidminer.gui.tools.syntax.TSQLTokenMarker;
-import com.rapidminer.gui.tools.syntax.TextAreaDefaults;
+import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+
+import com.rapidminer.parameter.TextType;
 
 /** A generic SQL editor.
  * 
  *  @author Ingo Mierswa
  */
-public class SQLEditor extends JEditTextArea {
+public class SQLEditor extends RSyntaxTextArea {
 
-	private static final long serialVersionUID = 6062150929521199578L;
+    private static final long serialVersionUID = 6062150929521199578L;
 
-	public SQLEditor() {
-        super(getDefaults());
-        setTokenMarker(new TSQLTokenMarker());
-    }
-    
-    private static TextAreaDefaults getDefaults() {
-        TextAreaDefaults defaultSettings = TextAreaDefaults.getDefaults();
-        defaultSettings.styles = SwingTools.getSyntaxStyles();
-        return defaultSettings;
+
+
+    public SQLEditor() {
+        super(new RSyntaxDocument(TextType.SQL.getSyntaxIdentifier()));
+        setAnimateBracketMatching(true);
+        setAutoIndentEnabled(true);
+        setAutoscrolls(true);
+
+        requestFocusInWindow();
+
     }
 }
