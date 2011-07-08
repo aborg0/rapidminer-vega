@@ -292,7 +292,6 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 
     public final transient Action IMPORT_CSV_FILE_ACTION = new ResourceAction("import_csv_file") {
         private static final long serialVersionUID = 4632580631996166900L;
-
         @Override
         public void actionPerformed(ActionEvent e) {
             // CSVImportWizard wizard = new CSVImportWizard("import_csv_file");
@@ -305,11 +304,10 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
                 throw new RuntimeException("Failed to create wizard.", e1);
             }
         }
-
     };
+    
     public final transient Action IMPORT_EXCEL_FILE_ACTION = new ResourceAction("import_excel_sheet") {
         private static final long serialVersionUID = 975782163819088729L;
-
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
@@ -319,10 +317,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
                 // should not happen if operator == null
                 throw new RuntimeException("Failed to create wizard.", e1);
             }
-            // ExcelImportWizard wizard = new ExcelImportWizard("import_excel_sheet");
-            // wizard.setVisible(true);
         }
-
     };
     public final transient Action IMPORT_ACCESS_FILE_ACTION = new ResourceAction("import_access_table") {
         private static final long serialVersionUID = 3725652002686421768L;

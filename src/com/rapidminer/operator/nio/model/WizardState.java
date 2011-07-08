@@ -25,6 +25,7 @@ package com.rapidminer.operator.nio.model;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.nio.ImportWizardUtils;
+import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ProgressListener;
 
@@ -40,6 +41,8 @@ public class WizardState {
 	private final DataResultSetFactory dataResultSetFactory;
 	private final AbstractDataResultSetReader operator;
 	private final int maxRows = ImportWizardUtils.getPreviewLength();
+	
+	private RepositoryLocation selectedLocation;
 	
 	public WizardState(AbstractDataResultSetReader operator, DataResultSetFactory dataResultSetFactory) {
 		super();
@@ -73,5 +76,13 @@ public class WizardState {
 
 	public AbstractDataResultSetReader getOperator() {
 		return operator;
+	}
+
+	public void setSelectedLocation(RepositoryLocation selectedLocation) {
+		this.selectedLocation = selectedLocation;
+	}
+
+	public RepositoryLocation getSelectedLocation() {
+		return selectedLocation;
 	}
 }

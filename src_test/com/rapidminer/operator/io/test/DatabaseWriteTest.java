@@ -12,6 +12,9 @@ import org.junit.Test;
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
+import com.rapidminer.example.table.AttributeFactory;
+import com.rapidminer.example.table.DoubleArrayDataRow;
+import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.io.DatabaseDataReader;
@@ -22,6 +25,7 @@ import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.test.TestContext;
 import com.rapidminer.test.utils.RapidAssert;
+import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
 
@@ -36,8 +40,11 @@ public class DatabaseWriteTest {
 	private static final String TEST_DATA_LOCATION = "//Samples/data/Labor-Negotiations";
 	private static final String TEST_REPOS_DATE_LOCATION = "//Samples/data/";
 	
+	/** The labor negotiations data set. */
+	private ExampleSet laborNegotiationsExampleSet;
 	
-	private ExampleSet exampleSet;
+	/** Data set containing with infinite values. */
+	private ExampleSet infinityExampleSet;
 
 	private static class DatabaseRef {
 		private final String url, user, password;
@@ -76,10 +83,18 @@ public class DatabaseWriteTest {
 	public void setUp() throws Exception {
 		TestContext.get().initRapidMiner(); // for read database operator
 		final Entry entry = new RepositoryLocation(TEST_DATA_LOCATION).locateEntry();
-		this.exampleSet = (ExampleSet) ((IOObjectEntry)entry).retrieveData(null);
+		this.laborNegotiationsExampleSet = (ExampleSet) ((IOObjectEntry)entry).retrieveData(null);
+		
+		Attribute pos = AttributeFactory.createAttribute("pos", Ontology.NUMERICAL);
+		Attribute neg = AttributeFactory.createAttribute("neg", Ontology.NUMERICAL);
+		Attribute nan = AttributeFactory.createAttribute("nan", Ontology.NUMERICAL);
+		Attribute one = AttributeFactory.createAttribute("one", Ontology.NUMERICAL);
+		MemoryExampleTable table = new MemoryExampleTable(pos, neg, nan, one);
+		table.addDataRow(new DoubleArrayDataRow(new double[] {Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN, 1d}));
+		infinityExampleSet = table.createExampleSet();
 	}
 	
-	@Test@Ignore
+	@Test//@Ignore
 	public void testCreateTableMicrosoftSQLServer() throws SQLException, OperatorException, ClassNotFoundException, OperatorCreationException {
 		testCreateTable(DB_SQL_SERVER);
 	}
@@ -89,7 +104,7 @@ public class DatabaseWriteTest {
 		testCreateTable(DB_MY_SQL);
 	}
 
-	@Test@Ignore
+	@Test
 	public void testCreateTableOracle() throws SQLException, OperatorException, ClassNotFoundException, OperatorCreationException {
 		testCreateTable(DB_ORACLE);
 	}
@@ -107,15 +122,16 @@ public class DatabaseWriteTest {
 		writer.setParameter(DatabaseHandler.PARAMETER_DATABASE_URL, DB_MY_SQL.getUrl());
 		writer.setParameter(DatabaseHandler.PARAMETER_USERNAME, DB_MY_SQL.getUser());
 		writer.setParameter(DatabaseHandler.PARAMETER_PASSWORD, DB_MY_SQL.getPassword());
-		writer.setParameter(DatabaseHandler.PARAMETER_TABLE_NAME, "LaborNegotiationOp");
 		writer.setParameter(DatabaseExampleSetWriter.PARAMETER_OVERWRITE_MODE, DatabaseHandler.OVERWRITE_MODES[DatabaseHandler.OVERWRITE_MODE_OVERWRITE]);
-		writer.write(exampleSet);
+		
+		writer.setParameter(DatabaseHandler.PARAMETER_TABLE_NAME, "LaborNegotiationOp");
+		writer.write(laborNegotiationsExampleSet);
 	}
 	
 	@Test
 	public void testWriteOperatorGetGeneratedKeys() throws OperatorCreationException, OperatorException {
 		String testTableName = "test_get_gen_keys_back";
-		// Delete exiosting entries
+		// Delete existing entries
 		DatabaseHandler handler;
 		try {
 			handler = DatabaseHandler.getConnectedDatabaseHandler(DB_MY_SQL.getUrl(), DB_MY_SQL.getUser(), DB_MY_SQL.getPassword());
@@ -183,20 +199,32 @@ public class DatabaseWriteTest {
 		reader.setParameter(DatabaseHandler.PARAMETER_DATABASE_URL, DB_MY_SQL.getUrl());
 		reader.setParameter(DatabaseHandler.PARAMETER_USERNAME, DB_MY_SQL.getUser());
 		reader.setParameter(DatabaseHandler.PARAMETER_PASSWORD, DB_MY_SQL.getPassword());
-		reader.setParameter(DatabaseHandler.PARAMETER_TABLE_NAME, "LaborNegotiationOp");
 		reader.setParameter(DatabaseHandler.PARAMETER_DEFINE_QUERY, DatabaseHandler.QUERY_MODES[DatabaseHandler.QUERY_TABLE]);
+		reader.setParameter(DatabaseHandler.PARAMETER_TABLE_NAME, "LaborNegotiationOp");
 		ExampleSet exampleSet = reader.read();
 		assertEquals(40, exampleSet.size());
-		assertEquals(17, exampleSet.getAttributes().size());		
+		assertEquals(17, exampleSet.getAttributes().size());
+		RapidAssert.assertEquals("labor negotiations", exampleSet, laborNegotiationsExampleSet, -1);
 	}
 
 	private void testCreateTable(DatabaseRef connection) throws SQLException, OperatorException, ClassNotFoundException, OperatorCreationException {
+		testCreateTable(connection, laborNegotiationsExampleSet, "labor");
+		//testCreateTable(connection, infinityExampleSet, "infinity");
+	}
+	
+	private void testCreateTable(DatabaseRef connection, ExampleSet testSet, String testSetName) throws SQLException, OperatorException, ClassNotFoundException, OperatorCreationException {
 		final String driverClass = connection.getDriverClass();
 		if (driverClass != null) {
 			Class.forName(driverClass);
 		}
 		DatabaseHandler handler = DatabaseHandler.getConnectedDatabaseHandler(connection.getUrl(), connection.getUser(), connection.getPassword());
-		handler.createTable(exampleSet, TABLE_NAME, DatabaseHandler.OVERWRITE_MODE_OVERWRITE, true, -1);
+		String tableName = TABLE_NAME+"_"+testSetName;
+		
+		try {
+			handler.dropTable(tableName);
+		} catch (SQLException e) {}
+		//statement.executeUpdate(statementCreator.makeDropStatement(tableName));		
+		handler.createTable(testSet, tableName, DatabaseHandler.OVERWRITE_MODE_OVERWRITE, true, -1);
 		
 		DatabaseDataReader readOp = OperatorService.createOperator(DatabaseDataReader.class);
 		readOp.setParameter(DatabaseHandler.PARAMETER_DEFINE_CONNECTION, DatabaseHandler.CONNECTION_MODES[DatabaseHandler.CONNECTION_MODE_URL]);
@@ -204,9 +232,9 @@ public class DatabaseWriteTest {
 		readOp.setParameter(DatabaseHandler.PARAMETER_USERNAME, connection.getUser());
 		readOp.setParameter(DatabaseHandler.PARAMETER_PASSWORD, connection.getPassword());
 		readOp.setParameter(DatabaseHandler.PARAMETER_DEFINE_QUERY, DatabaseHandler.QUERY_MODES[DatabaseHandler.QUERY_TABLE]);
-		readOp.setParameter(DatabaseHandler.PARAMETER_TABLE_NAME, TABLE_NAME);
+		readOp.setParameter(DatabaseHandler.PARAMETER_TABLE_NAME, tableName);
 		ExampleSet result = readOp.read();
 		
-		RapidAssert.assertEquals("example set", exampleSet, result, -1);
+		RapidAssert.assertEquals(testSetName, testSet, result, -1);
 	}	
 }

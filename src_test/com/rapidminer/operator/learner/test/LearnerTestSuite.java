@@ -31,6 +31,9 @@ public class LearnerTestSuite extends TestCase {
 		TestContext.get().initRapidMiner();
 		TestSuite suite = new TestSuite("Learner test suite");
 		for (String key : OperatorService.getOperatorKeys()) {
+			if (key.startsWith("weka:")) {
+				continue;
+			}
 			OperatorDescription opDesc = OperatorService.getOperatorDescription(key);
 			if (Learner.class.isAssignableFrom(opDesc.getOperatorClass()) &&
 					!OperatorChain.class.isAssignableFrom(opDesc.getOperatorClass()) &&
