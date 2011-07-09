@@ -273,11 +273,13 @@ public class ExtendedErrorDialog extends ButtonDialog {
                                     @Override
                                     public void run() {
                                     	// if operator from import group is present, ask the user to include the data in the bug report
-                                    	for (Operator op : RapidMinerGUI.getMainFrame().getProcess().getAllOperators()) {
-                                    		if (op.getOperatorDescription().getGroup().toLowerCase(Locale.ENGLISH).contains("import") ||
-                                    				op.getName().toLowerCase(Locale.ENGLISH).equals("retrieve")) {
-                                    			SwingTools.showMessageDialog("send_bugreport.import_operator_message");
-                                    			break;
+                                    	if (RapidMinerGUI.getMainFrame() != null && RapidMinerGUI.getMainFrame().getProcess() != null) {
+                                    		for (Operator op : RapidMinerGUI.getMainFrame().getProcess().getAllOperators()) {
+                                    			if (op.getOperatorDescription().getGroup().toLowerCase(Locale.ENGLISH).contains("import") ||
+                                    					op.getName().toLowerCase(Locale.ENGLISH).equals("retrieve")) {
+                                    				SwingTools.showMessageDialog("send_bugreport.import_operator_message");
+                                    				break;
+                                    			}
                                     		}
                                     	}
                                         bugAst.setVisible(true);
