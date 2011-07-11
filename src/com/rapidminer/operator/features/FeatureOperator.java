@@ -200,7 +200,7 @@ public abstract class FeatureOperator extends OperatorChain {
 				}
 			}
 		});
-		addValue(new ValueString("feature_names", "The names of the used features in the current iteration.") {
+		addValue(new ValueString("feature_names", "The names of the features of the best individual so far.") {
 			@Override
 			public String getStringValue() {
 				if (population == null)

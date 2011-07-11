@@ -25,8 +25,8 @@ package com.rapidminer.tools.math.function;
 import com.rapidminer.tools.Ontology;
 
 /**
- * This is an enumeration for possible unknown values. This is used to determin, of which
- * type an returned unknow actually is.
+ * This is an enumeration for possible unknown values. This is used to determine, of which
+ * type an returned unknown actually is.
  * 
  * @author Sebastian Land
  */

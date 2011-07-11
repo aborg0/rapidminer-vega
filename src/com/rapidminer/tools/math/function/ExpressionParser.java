@@ -60,6 +60,10 @@ import com.rapidminer.tools.LoggingHandler;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.math.function.expressions.Average;
+import com.rapidminer.tools.math.function.expressions.BitwiseAnd;
+import com.rapidminer.tools.math.function.expressions.BitwiseNot;
+import com.rapidminer.tools.math.function.expressions.BitwiseOr;
+import com.rapidminer.tools.math.function.expressions.BitwiseXor;
 import com.rapidminer.tools.math.function.expressions.Constant;
 import com.rapidminer.tools.math.function.expressions.LogarithmDualis;
 import com.rapidminer.tools.math.function.expressions.Maximum;
@@ -245,6 +249,10 @@ import com.rapidminer.tools.math.function.expressions.text.UpperCase;
  * <li>Sum of k Numbers: sum(x,y,z...)</li>
  * <li>Binomial Coefficients: binom(n, i)</li>
  * <li>Check for Missing: missing(x)</li>
+ * <li>Bitwise OR: bit_or(x, y)</li>
+ * <li>Bitwise AND: bit_and(x, y)</li>
+ * <li>Bitwise XOR: bit_xor(x, y)</li>
+ * <li>Bitwise NOT: bit_not(x)</li>
  * </ul>
  * </p>
  * 
@@ -540,6 +548,10 @@ public class ExpressionParser {
         miscellaneousFunctions.add(new FunctionDescription("binom()", "Binomial", "Calculates the binomial coefficients; example: binom(5, 2)", 2));
         miscellaneousFunctions
         .add(new FunctionDescription("missing()", "Missing", "Checks if the given number is missing; example: missing(att1)", 1));
+        miscellaneousFunctions.add(new FunctionDescription("bit_or()", "Bitwise OR", "Calculate the bitwise OR of two integer arguments; example: bit_or(att1, att2)", 2));
+        miscellaneousFunctions.add(new FunctionDescription("bit_and()", "Bitwise AND", "Calculate the bitwise AND of two integer arguments; example: bit_and(att2, att3)", 2));
+        miscellaneousFunctions.add(new FunctionDescription("bit_xor()", "Bitwise XOR", "Calculate the bitwise XOR of two integer arguments; example: bit_xor(att1, att3)", 2));
+        miscellaneousFunctions.add(new FunctionDescription("bit_not()", "Bitwise NOT", "Calculate the bitwise NOT of the integer argument; example: bit_not(att2)", 1));
         FUNCTIONS.put(FUNCTION_GROUPS[7], miscellaneousFunctions);
     }
 
@@ -569,6 +581,10 @@ public class ExpressionParser {
         parser.addFunction("ld", new LogarithmDualis());
         parser.addFunction("sgn", new Signum());
         parser.addFunction("missing", new Missing());
+        parser.addFunction("bit_or", new BitwiseOr());
+        parser.addFunction("bit_and", new BitwiseAnd());
+        parser.addFunction("bit_xor", new BitwiseXor());
+        parser.addFunction("bit_not", new BitwiseNot());
 
         // text functions
         parser.addFunction("parse", new ParseNumber());
@@ -648,6 +664,7 @@ public class ExpressionParser {
         if (useStandardConstants)
             parser.addStandardConstants();
 
+        
         addCustomFunctions(parser);
         addCustomConstants(parser);
 
