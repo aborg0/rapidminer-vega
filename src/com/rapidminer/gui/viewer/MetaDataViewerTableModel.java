@@ -22,6 +22,7 @@
  */
 package com.rapidminer.gui.viewer;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -126,14 +127,29 @@ public class MetaDataViewerTableModel extends AbstractTableModel {
 
     public void calculateStatistics() {
         exampleSet.recalculateAllAttributeStatistics();
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                setShowColumn(MetaDataViewerTableModel.STATISTICS_AVERAGE, true);
-                setShowColumn(MetaDataViewerTableModel.STATISTICS_RANGE, true);
-                setShowColumn(MetaDataViewerTableModel.STATISTICS_UNKNOWN, true);
-            }
-        });
+
+        // make sure this is called from the EDT
+        if (SwingUtilities.isEventDispatchThread()) {
+        	setShowColumn(MetaDataViewerTableModel.STATISTICS_AVERAGE, true);
+        	setShowColumn(MetaDataViewerTableModel.STATISTICS_RANGE, true);
+        	setShowColumn(MetaDataViewerTableModel.STATISTICS_UNKNOWN, true);
+        } else {
+        	try {
+        		SwingUtilities.invokeAndWait(new Runnable() {
+        			@Override
+        			public void run() {
+        				setShowColumn(MetaDataViewerTableModel.STATISTICS_AVERAGE, true);
+        				setShowColumn(MetaDataViewerTableModel.STATISTICS_RANGE, true);
+        				setShowColumn(MetaDataViewerTableModel.STATISTICS_UNKNOWN, true);
+        			}
+        		});
+        	} catch (InterruptedException e) {
+        		e.printStackTrace();
+        	} catch (InvocationTargetException e) {
+        		e.printStackTrace();
+        	}
+        }
+
     }
 
     public void setShowColumn(int index, boolean show) {
