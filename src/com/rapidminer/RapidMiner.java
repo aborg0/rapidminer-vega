@@ -113,7 +113,7 @@ public class RapidMiner {
         /** RM is running within Java Web Start. */
         WEBSTART(false, true, true, true),
         /** We are executing unit tests. */
-        TEST(true, false, false, true);
+        TEST(true, true, false, true);
 
         private final boolean isHeadless;
         private final boolean canAccessFilesystem;

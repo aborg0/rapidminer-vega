@@ -696,6 +696,11 @@ public class SwingTools {
         return chooseFile(parent, i18nKey, file, open, onlyDirs, extension == null ? null : new String[] { extension },
                 extensionDescription == null ? null : new String[] { extensionDescription });
     }
+    
+    public static File chooseFile(Component parent, String i18nKey, File file, boolean open, boolean onlyDirs, String extension, String extensionDescription, boolean acceptAllFiles) {
+        return chooseFile(parent, i18nKey, file, open, onlyDirs, extension == null ? null : new String[] { extension },
+                extensionDescription == null ? null : new String[] { extensionDescription }, acceptAllFiles);
+    }
 
     /** Returns the user selected file. */
     public static File chooseFile(Component parent, File file, boolean open, boolean onlyDirs, String[] extensions, String[] extensionDescriptions) {
@@ -710,7 +715,18 @@ public class SwingTools {
                 filters[i] = new SimpleFileFilter(extensionDescriptions[i] + " (*." + extensions[i] + ")", "." + extensions[i]);
             }
         }
-        return chooseFile(parent, i18nKey, file, open, onlyDirs, filters);
+        return chooseFile(parent, i18nKey, file, open, onlyDirs, filters, true);
+    }
+    
+    public static File chooseFile(Component parent, String i18nKey, File file, boolean open, boolean onlyDirs, String[] extensions, String[] extensionDescriptions, boolean acceptAllFiles) {
+        FileFilter[] filters = null;
+        if (extensions != null) {
+            filters = new FileFilter[extensions.length];
+            for (int i = 0; i < extensions.length; i++) {
+                filters[i] = new SimpleFileFilter(extensionDescriptions[i] + " (*." + extensions[i] + ")", "." + extensions[i]);
+            }
+        }
+        return chooseFile(parent, i18nKey, file, open, onlyDirs, filters, acceptAllFiles);
     }
 
     /**
@@ -726,11 +742,12 @@ public class SwingTools {
      * @param fileFilters
      *            List of FileFilters to use
      */
-    private static File chooseFile(Component parent, String i18nKey, File file, boolean open, boolean onlyDirs, FileFilter[] fileFilters) {
+    private static File chooseFile(Component parent, String i18nKey, File file, boolean open, boolean onlyDirs, FileFilter[] fileFilters, boolean acceptAllFiles) {
         if (parent == null)
             parent = RapidMinerGUI.getMainFrame();
         String key = "file_chooser." + (i18nKey != null ? i18nKey : open ? (onlyDirs ? "open_directory" : "open") : "save");
         JFileChooser fileChooser = createFileChooser(key, file, onlyDirs, fileFilters);
+        fileChooser.setAcceptAllFileFilterUsed(acceptAllFiles);
         int returnValue = open ? fileChooser.showOpenDialog(parent) : fileChooser.showSaveDialog(parent);
         switch (returnValue) {
         case JFileChooser.APPROVE_OPTION:

@@ -558,7 +558,8 @@
 			<sysproperty key="rapidminer.test.repository.location" value="${rapidminer.test.repository.location}" />
 			<sysproperty key="rapidminer.test.repository.user" value="${rapidminer.test.repository.user}" />
 			<sysproperty key="rapidminer.test.repository.password" value="${rapidminer.test.repository.password}" />
-			<sysproperty key="rapidminer.home" value="${rapidminer.test.home}" />
+			<sysproperty key="rapidminer.config.dir" value="${rapidminer.test.config.dir}" />
+			<sysproperty key="java.util.logging.config.file" value="${java.util.logging.config.file}" />
 			<classpath refid="classpath.test" />
 			<formatter type="xml" usefile="true"/>
 			<test name="com.rapidminer.test.AllTests" todir="${junit.reports}"/>

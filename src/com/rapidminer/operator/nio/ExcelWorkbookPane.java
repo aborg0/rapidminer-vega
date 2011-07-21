@@ -187,12 +187,16 @@ public class ExcelWorkbookPane extends JPanel {
 		if (sheetIndex < sheetsPane.getTabCount()) {
 			sheetsPane.setSelectedIndex(sheetIndex);
 			tables[sheetIndex].clearSelection();
-			tables[sheetIndex].setColumnSelectionInterval(
-					Math.max(selection.getColumnIndexStart(), 0),
-					Math.min(selection.getColumnIndexEnd(), tables[sheetIndex].getColumnCount() - 1));
-			tables[sheetIndex].setRowSelectionInterval(
-					Math.max(selection.getRowIndexStart(), 0),
-					Math.min(selection.getRowIndexEnd(), tables[sheetIndex].getRowCount() - 1));
+			boolean noColumns = tables[sheetIndex].getColumnCount() == 0;
+			boolean noRows = tables[sheetIndex].getRowCount() == 0;
+			if (!noRows && !noColumns) {
+				tables[sheetIndex].setColumnSelectionInterval(
+						Math.max(selection.getColumnIndexStart(), 0),
+						Math.min(selection.getColumnIndexEnd(), noColumns ? 0 : tables[sheetIndex].getColumnCount() - 1));			
+				tables[sheetIndex].setRowSelectionInterval(
+						Math.max(selection.getRowIndexStart(), 0),
+						Math.min(selection.getRowIndexEnd(), noRows ? 0 : tables[sheetIndex].getRowCount() - 1));
+			}
 
 		}
 	}
