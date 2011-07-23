@@ -118,7 +118,13 @@ public abstract class AbstractExampleSetJoin extends Operator {
     
     @Override
 	public void doWork() throws OperatorException {
-        // please note the order of calls: the second data generator in the tree will be the first delivered
+       
+    	/* FIXME The comment below is wrong, actually it is 
+           ExampleSet es1 = leftInput.getData();
+           ExampleSet es2 = rightInput.getData();
+           This is not fixed, since all existing rapidminer processes were using the wrong order.
+    	*/
+    	 // please note the order of calls: the second data generator in the tree will be the first delivered
         ExampleSet es2 = leftInput.getData();
         ExampleSet es1 = rightInput.getData();
         if (this.isIdNeeded()) {
