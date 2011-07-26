@@ -76,7 +76,7 @@ public abstract class AbstractPort extends AbstractObservable<Port> implements P
 	public final <T extends IOObject> T getData() throws UserError {
 		T data = this.<T>getDataOrNull();
 		if (data == null) {
-			throw new UserError(getPorts().getOwner().getOperator(), 149, getSpec());
+			throw new UserError(getPorts().getOwner().getOperator(), 149, getSpec() + (isConnected() ? " (connected)" : " (disconnected)"));
 		} else {
 			return data;
 		}		
@@ -92,7 +92,7 @@ public abstract class AbstractPort extends AbstractObservable<Port> implements P
 	}
 	
 	public final <T extends IOObject> T getData(Class<T> desiredClass) throws UserError {
-		IOObject data = getAnyDataOrNull();
+		IOObject data = getData();
 		if (desiredClass.isAssignableFrom(data.getClass())) {
 			return desiredClass.cast(data);
 		} else { 

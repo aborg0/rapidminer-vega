@@ -150,7 +150,7 @@ public class StatementCreator {
 	 * @param defaultVarcharLength
 	 * @throws SQLException
 	 */
-	public String makeTableCreator(Attributes attributes, String tableName, int defaultVarcharLength) throws SQLException {
+	public String makeTableCreator(Attributes attributes, TableName tableName, int defaultVarcharLength) throws SQLException {
 		this.defaultVarCharLength = defaultVarcharLength;
 		// define all attribute names and types
 		StringBuilder b = new StringBuilder();
@@ -178,6 +178,14 @@ public class StatementCreator {
 		return b.toString();
 	}
 
+	public String makeIdentifier(TableName tableName) {
+		if (tableName.getSchema() != null) {
+			return makeIdentifier(tableName.getSchema()) + "." + makeIdentifier(tableName.getTableName());
+		} else {
+			return makeIdentifier(tableName.getTableName());
+		}
+	}
+	
 	/** Quotes and escapes the given name such that it can be used as an SQL table or column identifier. */
 	public String makeIdentifier(String identifier) {
 		// if (isLegalIdentifier(identifier)) {
@@ -212,7 +220,7 @@ public class StatementCreator {
 	 * Creates an SQL INSERT statement for filling attributes into a table. This can be used to make a prepared
 	 * statement where the i-th parameter is mapped to the i-th attribute in the example set.
 	 */
-	public String makeInsertStatement(String tableName, ExampleSet exampleSet) throws SQLException {
+	public String makeInsertStatement(TableName tableName, ExampleSet exampleSet) throws SQLException {
 		StringBuffer b = new StringBuffer("INSERT INTO ");
 		b.append(makeIdentifier(tableName));
 		b.append(" (");
@@ -337,8 +345,12 @@ public class StatementCreator {
 	 * @param tableName
 	 * @return
 	 */
-	public String makeDropStatement(String tableName) {
+	public String makeDropStatement(TableName tableName) {
 		return "DROP TABLE " + makeIdentifier(tableName);
+	}
+
+	public String makeDropStatement(String tableName) {
+		return makeDropStatement(new TableName(tableName));
 	}
 
 	/**
@@ -347,8 +359,12 @@ public class StatementCreator {
 	 * @param tableName
 	 * @return
 	 */
-	public String makeDeleteStatement(String tableName) {
+	public String makeDeleteStatement(TableName tableName) {
 		return "DELETE FROM " + makeIdentifier(tableName);
+	}
+
+	public String makeDeleteStatement(String tableName) {
+		return makeDeleteStatement(new TableName(tableName));
 	}
 
 	/** SELECT * */

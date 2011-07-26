@@ -28,6 +28,7 @@ import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
+import com.rapidminer.tools.jdbc.TableName;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 
 /** Converts a reference to a table in a database to an {@link IOObject}, e.g. an example set.
@@ -38,10 +39,10 @@ import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 public interface DBConnectionToIOObjectConverter {
 
 	/** Retrieves the actual data and returns it. */
-	public IOObject convert(ConnectionEntry connection, String tableName) throws OperatorException;
+	public IOObject convert(ConnectionEntry connection, TableName tableName) throws OperatorException;
 	
 	/** Returns meta data describing the entry. */
-	public MetaData convertMetaData(ConnectionEntry connection, String tableName, List<ColumnIdentifier> columns);
+	public MetaData convertMetaData(ConnectionEntry connection, TableName tableName, List<ColumnIdentifier> columns);
 
 	/** Returns a suffix to be appended to entries in the repository tree to identify the converter. */
 	public String getSuffix();

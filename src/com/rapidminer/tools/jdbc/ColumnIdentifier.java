@@ -30,14 +30,14 @@ package com.rapidminer.tools.jdbc;
  */
 public class ColumnIdentifier {
 
-	private final String tableName;
+	private final TableName tableName;
 	private final String columnName;
 	private final int sqlType;
 	private final String sqlTypeName;
 
 	private DatabaseHandler databaseHandler;
 	
-	public ColumnIdentifier(DatabaseHandler databaseHandler, String tableName, String columnName, int sqlType, String sqlTypeName) {
+	public ColumnIdentifier(DatabaseHandler databaseHandler, TableName tableName, String columnName, int sqlType, String sqlTypeName) {
 		this.tableName = tableName;
 		this.columnName = columnName;
 		this.databaseHandler = databaseHandler;
@@ -45,7 +45,7 @@ public class ColumnIdentifier {
 		this.sqlTypeName = sqlTypeName;
 	}
 	
-	public String getTableName() {
+	public TableName getTableName() {
 		return this.tableName;
 	}
 	

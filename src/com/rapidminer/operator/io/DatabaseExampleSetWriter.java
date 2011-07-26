@@ -102,7 +102,7 @@ public class DatabaseExampleSetWriter extends AbstractExampleSetWriter implement
 			if (getParameterAsBoolean(PARAMETER_GET_GENERATED_PRIMARY_KEYS)){
 				exampleSet  = (ExampleSet)exampleSet.clone();
 			}
-			databaseHandler.createTable(exampleSet, getParameterAsString(DatabaseHandler.PARAMETER_TABLE_NAME),
+			databaseHandler.createTable(exampleSet, DatabaseHandler.getSelectedTableName(this),
 					getParameterAsInt(PARAMETER_OVERWRITE_MODE), getApplyCount() == 1,
 					getParameterAsBoolean(PARAMETER_SET_DEFAULT_VARCHAR_LENGTH) ? getParameterAsInt(PARAMETER_DEFAULT_VARCHAR_LENGTH) : -1,
 					getParameterAsBoolean(PARAMETER_GET_GENERATED_PRIMARY_KEYS),

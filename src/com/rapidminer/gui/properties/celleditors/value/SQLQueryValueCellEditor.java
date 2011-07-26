@@ -25,6 +25,7 @@ package com.rapidminer.gui.properties.celleditors.value;
 import java.awt.Component;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.util.logging.Level;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.JButton;
@@ -32,11 +33,11 @@ import javax.swing.JTable;
 
 import com.rapidminer.gui.properties.PropertyDialog;
 import com.rapidminer.gui.tools.ResourceAction;
-import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.SQLQueryBuilder;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterTypeSQLQuery;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 import com.rapidminer.tools.jdbc.connection.ConnectionProvider;
@@ -64,8 +65,11 @@ public class SQLQueryValueCellEditor extends AbstractCellEditor implements Prope
 				try {
 					handler = DatabaseHandler.getConnectedDatabaseHandler(operator);
 				} catch (Exception e2) {
-					SwingTools.showSimpleErrorMessage("db_connection_failed_simple", e2, e2.getMessage());
-					return;
+					LogService.getRoot().log(Level.WARNING, "Failed to connect to database: "+e2);
+					// we can continue without a db handler
+					handler = null;
+					//SwingTools.showSimpleErrorMessage("db_connection_failed_simple", e2, e2.getMessage());
+					//return;
 				}
 				final SQLQueryBuilder queryBuilder = new SQLQueryBuilder(handler);
 				class SQLQueryPropertyDialog extends PropertyDialog {

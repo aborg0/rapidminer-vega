@@ -50,6 +50,7 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
+import com.rapidminer.tools.jdbc.TableName;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 
 
@@ -74,7 +75,7 @@ public class SQLQueryBuilder extends ButtonDialog {
     private final SQLEditor sqlQueryTextArea = new SQLEditor();
 
     /** All attribute names for the available tables. */
-    private final Map<String, List<ColumnIdentifier>> attributeNameMap = new LinkedHashMap<String, List<ColumnIdentifier>>();
+    private final Map<TableName, List<ColumnIdentifier>> attributeNameMap = new LinkedHashMap<TableName, List<ColumnIdentifier>>();
 
     private DatabaseHandler databaseHandler;
 
@@ -85,10 +86,14 @@ public class SQLQueryBuilder extends ButtonDialog {
 
     public void setConnectionEntry(ConnectionEntry entry) {
         try {
-            this.databaseHandler = DatabaseHandler.getConnectedDatabaseHandler(entry);
-            if (!"false".equals(ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_FETCH_DATA_BASE_TABLES_NAMES))){
-                retrieveTableAndAttributeNames();
-            }
+        	if (entry == null) {
+        		this.databaseHandler = null;
+        	} else {
+        		this.databaseHandler = DatabaseHandler.getConnectedDatabaseHandler(entry);
+        		if (!"false".equals(ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_FETCH_DATA_BASE_TABLES_NAMES))){
+        			retrieveTableAndAttributeNames();
+        		}
+        	}
         } catch (SQLException e) {
             SwingTools.showSimpleErrorMessage("db_connection_failed_url", e, entry.getURL());
             this.databaseHandler = null;
@@ -161,7 +166,7 @@ public class SQLQueryBuilder extends ButtonDialog {
         List<ColumnIdentifier> allColumnIdentifiers = new LinkedList<ColumnIdentifier>();
         Object[] selection = tableList.getSelectedValues();
         for (Object o : selection) {
-            String tableName = (String)o;
+        	TableName tableName = (TableName)o;
             List<ColumnIdentifier> attributeNames = this.attributeNameMap.get(tableName);
             if (attributeNames != null) {
                 Iterator<ColumnIdentifier> i = attributeNames.iterator();
@@ -231,7 +236,7 @@ public class SQLQueryBuilder extends ButtonDialog {
             } else {
                 result.append(", ");
             }
-            String tableName = (String)o;
+            TableName tableName = (TableName)o;
             result.append(databaseHandler.getStatementCreator().makeIdentifier(tableName));
         }
 
@@ -254,7 +259,7 @@ public class SQLQueryBuilder extends ButtonDialog {
                         // retrieve data
                         attributeNameMap.clear();
                         if (databaseHandler != null) {
-                            Map<String, List<ColumnIdentifier>> newAttributeMap;
+                            Map<TableName, List<ColumnIdentifier>> newAttributeMap;
                             try {
                                 newAttributeMap = databaseHandler.getAllTableMetaData(getProgressListener(), 10, 100, true);
                                 attributeNameMap.putAll(newAttributeMap);
@@ -264,7 +269,7 @@ public class SQLQueryBuilder extends ButtonDialog {
                         }
 
                         // set table name list data
-                        final String[] allNames = new String[attributeNameMap.size()];
+                        final TableName[] allNames = new TableName[attributeNameMap.size()];
                         attributeNameMap.keySet().toArray(allNames);
                         SwingUtilities.invokeLater(new Runnable() {
                             @Override

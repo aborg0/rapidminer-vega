@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.logging.Level;
 
 import javax.swing.AbstractButton;
 import javax.swing.AbstractListModel;
@@ -57,11 +58,13 @@ import com.rapidminer.RapidMiner;
 import com.rapidminer.deployment.client.wsimport.AccountService;
 import com.rapidminer.deployment.client.wsimport.AccountServiceService;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
+import com.rapidminer.deployment.client.wsimport.UpdateService;
 import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.plugin.Dependency;
 
@@ -88,6 +91,11 @@ public class UpdateListPanel extends JPanel {
 		private void update(PackageDescriptor descr) {
 			int index = descriptors.indexOf(descr);
 			fireContentsChanged(this, index, index);
+		}
+		
+		private void add(PackageDescriptor desc) {
+			descriptors.add(desc);
+			fireIntervalAdded(this, descriptors.size()-1, descriptors.size()-1);
 		}
 	}
 
@@ -350,6 +358,7 @@ public class UpdateListPanel extends JPanel {
 	 *  Connects to rapidupdate.de to fetch the bookmarks and automatically select them.
 	 */
 	public void fetchBookmarks() {
+		// TODO: Do in progress thread
 		List<String> bookmarks;
 		try {
 			AccountServiceService ass = new AccountServiceService();
@@ -360,8 +369,30 @@ public class UpdateListPanel extends JPanel {
 			return;
 		}
 
+		Map<String,PackageDescriptor> packDescById = new HashMap<String,PackageDescriptor>();
 		for (PackageDescriptor desc : descriptors) {
-			if (bookmarks.contains(desc.getPackageId())) {
+			packDescById.put(desc.getPackageId(), desc);
+		}
+		//for (PackageDescriptor desc : descriptors) {
+		for (String bookmarkedId : bookmarks) {
+			PackageDescriptor desc = packDescById.get(bookmarkedId);
+			//if (bookmarks.contains(desc.getPackageId())) {
+			LogService.getRoot().log(Level.INFO, "Looking up "+bookmarkedId);
+			if (desc == null) {
+				LogService.getRoot().log(Level.INFO, "Bookmarked package "+bookmarkedId+" was unlisted. Fetching now.");
+				String rmPlatform = "ANY"; //Launcher.getPlatform();
+				try {
+					UpdateService updateService = UpdateManager.getService();
+					String latestRMVersion = updateService.getLatestVersion(bookmarkedId, rmPlatform);
+					desc = updateService.getPackageInfo(bookmarkedId, latestRMVersion, rmPlatform);
+					packDescById.put(desc.getPackageId(), desc);
+					listModel.add(desc);
+				} catch (Exception e) {
+					SwingTools.showSimpleErrorMessage("error_during_update", e);
+					return;
+				}
+			}
+			if (desc != null) {
 				ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
 				final boolean upToDate;
 				if (ext == null) {

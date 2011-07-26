@@ -46,19 +46,29 @@ import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeDatabaseSchema;
 import com.rapidminer.parameter.ParameterTypeDatabaseTable;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
+import com.rapidminer.tools.jdbc.TableName;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 import com.rapidminer.tools.jdbc.connection.ConnectionProvider;
 
-/**
+/** Displays a combo box with table names. Can work in two operation {@link Mode}s, one displaying
+ *  table names, and one displaying schema names.
+ * 
+ * 
  * @author Tobias Malbrecht
  */
 public class DatabaseTableValueCellEditor extends AbstractCellEditor implements PropertyValueCellEditor {
 
 	private static final long serialVersionUID = -771727412083431607L;
+
+	private enum Mode {
+		TABLE, SCHEMA
+	};
+	private Mode mode;
 
 	class DatabaseTableComboBoxModel extends AbstractListModel implements ComboBoxModel, Serializable {
 		private static final long serialVersionUID = -2984664300141879731L;
@@ -94,10 +104,25 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 								getProgressListener().setCompleted(20);
 
 								if (handler != null) {
-									Map<String, List<ColumnIdentifier>> tableMap;
+									Map<TableName, List<ColumnIdentifier>> tableMap;
 									try {
 										tableMap = handler.getAllTableMetaData(getProgressListener(), 20, 90, false);
-										list.addAll(tableMap.keySet());
+										for (TableName tn : tableMap.keySet()) {
+											switch (DatabaseTableValueCellEditor.this.mode) {
+											case TABLE:
+												list.add(tn.getTableName());
+												break;
+											case SCHEMA:
+												if (!list.contains(tn.getSchema())) {
+													list.add(tn.getSchema());
+												}
+												break;
+											default:
+												throw new RuntimeException("Illegal mode: "+DatabaseTableValueCellEditor.this.mode);
+											}
+											
+										}
+										//list.addAll(tableMap.keySet());
 										getProgressListener().setCompleted(90);
 									} catch (SQLException e) {
 										LogService.getRoot().log(Level.WARNING, "Failed to fetch database tables: "+e, e);
@@ -212,8 +237,15 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 
 	private ConnectionProvider connectionProvider;
 
+	public DatabaseTableValueCellEditor(final ParameterTypeDatabaseSchema type) {
+		this.type = type;
+		this.mode = Mode.SCHEMA;
+		comboBox.setToolTipText(type.getDescription());		
+	}
+	
 	public DatabaseTableValueCellEditor(final ParameterTypeDatabaseTable type) {
 		this.type = type;
+		this.mode = Mode.TABLE;
 		comboBox.setToolTipText(type.getDescription());
 	}
 

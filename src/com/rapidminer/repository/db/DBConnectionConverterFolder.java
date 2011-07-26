@@ -43,6 +43,7 @@ import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
+import com.rapidminer.tools.jdbc.TableName;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 
 /** Represents all tables in a single {@link ConnectionEntry} converted to {@link IOObject}s
@@ -57,7 +58,7 @@ public class DBConnectionConverterFolder implements Folder {
 	private final DBConnectionToIOObjectConverter converter;
 	private final DBRepository repository;
 	private final DBConnectionFolder parent;
-	private final Map<String, List<ColumnIdentifier>> allTableMetaData;
+	private final Map<TableName, List<ColumnIdentifier>> allTableMetaData;
 	
 	private List<DataEntry> entries;	
 	
@@ -65,7 +66,7 @@ public class DBConnectionConverterFolder implements Folder {
 			DBConnectionFolder parent,
 			ConnectionEntry dbConEntry, 
 			DBConnectionToIOObjectConverter converter,
-			Map<String, List<ColumnIdentifier>> allTableMetaData) throws RepositoryException {
+			Map<TableName, List<ColumnIdentifier>> allTableMetaData) throws RepositoryException {
 		this.repository = dbRepository;
 		this.parent = parent;
 		this.entry = dbConEntry;
@@ -192,7 +193,7 @@ public class DBConnectionConverterFolder implements Folder {
 	private void ensureLoaded() throws RepositoryException {
 		if (entries == null) {
 			entries = new LinkedList<DataEntry>();
-			for (Entry<String, List<ColumnIdentifier>> tableEntry : allTableMetaData.entrySet()) {
+			for (Entry<TableName, List<ColumnIdentifier>> tableEntry : allTableMetaData.entrySet()) {
 				entries.add(new DBConnectionEntry(this, converter, tableEntry.getKey(), tableEntry.getValue()));
 			}
 		}		

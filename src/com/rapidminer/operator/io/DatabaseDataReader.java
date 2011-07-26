@@ -61,6 +61,7 @@ import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
 import com.rapidminer.tools.jdbc.StatementCreator;
+import com.rapidminer.tools.jdbc.TableName;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 import com.rapidminer.tools.jdbc.connection.ConnectionProvider;
 
@@ -142,7 +143,7 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
             DatabaseHandler databaseHandler = DatabaseHandler.getConnectedDatabaseHandler(this);
             switch (getParameterAsInt(DatabaseHandler.PARAMETER_DEFINE_QUERY)) {
             case DatabaseHandler.QUERY_TABLE:
-                List<ColumnIdentifier> columns = databaseHandler.getAllColumnNames(getParameterAsString(DatabaseHandler.PARAMETER_TABLE_NAME), databaseHandler.getConnection().getMetaData());
+                List<ColumnIdentifier> columns = databaseHandler.getAllColumnNames(DatabaseHandler.getSelectedTableName(this), databaseHandler.getConnection().getMetaData());
                 for (ColumnIdentifier column : columns) {
                     metaData.addAttribute(new AttributeMetaData(column.getColumnName(),
                             DatabaseHandler.getRapidMinerTypeIndex(column.getSqlType())));
@@ -305,7 +306,8 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
             }
         }
         case DatabaseHandler.QUERY_TABLE:
-            final String tableName = getParameterAsString(DatabaseHandler.PARAMETER_TABLE_NAME);
+        	TableName tableName = DatabaseHandler.getSelectedTableName(this);
+            //final String tableName = getParameterAsString(DatabaseHandler.PARAMETER_TABLE_NAME);
             return "SELECT * FROM " + sc.makeIdentifier(tableName);
         }
         return null;

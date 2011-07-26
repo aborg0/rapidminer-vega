@@ -81,6 +81,7 @@ import com.rapidminer.parameter.ParameterTypeChar;
 import com.rapidminer.parameter.ParameterTypeColor;
 import com.rapidminer.parameter.ParameterTypeConfiguration;
 import com.rapidminer.parameter.ParameterTypeDatabaseConnection;
+import com.rapidminer.parameter.ParameterTypeDatabaseSchema;
 import com.rapidminer.parameter.ParameterTypeDatabaseTable;
 import com.rapidminer.parameter.ParameterTypeDateFormat;
 import com.rapidminer.parameter.ParameterTypeDouble;
@@ -154,6 +155,7 @@ public abstract class PropertyPanel extends JPanel {
 		registerPropertyValueCellEditor(ParameterTypeDateFormat.class, DateFormatValueCellEditor.class);
 		registerPropertyValueCellEditor(ParameterTypeSQLQuery.class, SQLQueryValueCellEditor.class);
 		registerPropertyValueCellEditor(ParameterTypeDatabaseTable.class, DatabaseTableValueCellEditor.class);
+		registerPropertyValueCellEditor(ParameterTypeDatabaseSchema.class, DatabaseTableValueCellEditor.class);
 	}
 
 	

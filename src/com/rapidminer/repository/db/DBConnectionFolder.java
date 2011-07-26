@@ -46,6 +46,7 @@ import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
+import com.rapidminer.tools.jdbc.TableName;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 import com.rapidminer.tools.jdbc.connection.FieldConnectionEntry;
 
@@ -190,7 +191,7 @@ public class DBConnectionFolder implements Folder {
 			DatabaseHandler handler = null;
 			try {
 				handler = DatabaseHandler.getConnectedDatabaseHandler(entry);
-				Map<String, List<ColumnIdentifier>> allTableMetaData = handler.getAllTableMetaData();				
+				Map<TableName, List<ColumnIdentifier>> allTableMetaData = handler.getAllTableMetaData();				
 				for (DBConnectionToIOObjectConverter converter : repository.getConverters()) {
 					folders.add(new DBConnectionConverterFolder(repository, this, entry, converter, allTableMetaData)); 
 				}

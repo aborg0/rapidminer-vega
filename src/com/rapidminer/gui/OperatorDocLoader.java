@@ -106,7 +106,7 @@ import com.rapidminer.tools.xml.XHTMLEntityResolver;
 public class OperatorDocLoader {
     private static final long serialVersionUID = 1L;
 
-    private static final String HOST_NAME = "http://www.rapid-i.com";
+    //private static final String HOST_NAME = "http://www.rapid-i.com";
     private static final String WIKI_PREFIX_FOR_IMAGES = "http://www.rapid-i.com";;
     private static final String WIKI_PREFIX_FOR_OPERATORS = "http://rapid-i.com/wiki/index.php?title=";
 
@@ -235,9 +235,9 @@ public class OperatorDocLoader {
             try {
                 document = documentBuilder.parse(url.openStream());
             } catch (IOException e) {
-                logger.severe("Could not open " + url.toExternalForm() + ": " + e.getMessage());
+                logger.warning("Could not open " + url.toExternalForm() + ": " + e.getMessage());
             } catch (SAXException e) {
-                logger.severe("Could not parse operator documentation: " + e.getMessage());
+                logger.warning("Could not parse operator documentation: " + e.getMessage());
             }
 
             int i = 0;

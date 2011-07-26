@@ -35,6 +35,7 @@ import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
+import com.rapidminer.tools.jdbc.TableName;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 
 /** Simply converts the table to an {@link ExampleSet}.
@@ -45,7 +46,7 @@ import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 public class StandardDBConnectionToIOObjectConverter implements DBConnectionToIOObjectConverter {
 
 	@Override
-	public IOObject convert(ConnectionEntry connection, String tableName) throws OperatorException {
+	public IOObject convert(ConnectionEntry connection, TableName tableName) throws OperatorException {
 		DatabaseDataReader reader;
 		try {
 			reader = OperatorService.createOperator(DatabaseDataReader.class);
@@ -54,14 +55,18 @@ public class StandardDBConnectionToIOObjectConverter implements DBConnectionToIO
 		}
 		reader.setParameter(DatabaseHandler.PARAMETER_CONNECTION, connection.getName());
 		reader.setParameter(DatabaseHandler.PARAMETER_DEFINE_CONNECTION, DatabaseHandler.CONNECTION_MODES[DatabaseHandler.CONNECTION_MODE_PREDEFINED]);
-		reader.setParameter(DatabaseHandler.PARAMETER_TABLE_NAME, tableName);
+		reader.setParameter(DatabaseHandler.PARAMETER_TABLE_NAME, tableName.getTableName());
+		if (tableName.getSchema() != null) {
+			reader.setParameter(DatabaseHandler.PARAMETER_USE_DEFAULT_SCHEMA, String.valueOf(false));
+			reader.setParameter(DatabaseHandler.PARAMETER_SCHEMA_NAME, tableName.getSchema());
+		}
 		reader.setParameter(DatabaseHandler.PARAMETER_DEFINE_QUERY, DatabaseHandler.QUERY_MODES[DatabaseHandler.QUERY_TABLE]);
 
 		return reader.read();
 	}
 
 	@Override
-	public MetaData convertMetaData(ConnectionEntry connection, String tableName, List<ColumnIdentifier> columns) {
+	public MetaData convertMetaData(ConnectionEntry connection, TableName tableName, List<ColumnIdentifier> columns) {
 		ExampleSetMetaData metaData = new ExampleSetMetaData();
 		for (ColumnIdentifier column : columns) {
 			metaData.addAttribute(new AttributeMetaData(column.getColumnName(), 

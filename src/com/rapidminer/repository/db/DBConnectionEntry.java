@@ -39,6 +39,7 @@ import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
+import com.rapidminer.tools.jdbc.TableName;
 
 /**
  * Entry representing an Database Connection.
@@ -48,16 +49,16 @@ import com.rapidminer.tools.jdbc.ColumnIdentifier;
  */
 public class DBConnectionEntry implements IOObjectEntry {
 
-	private String tableName;
+	private TableName tableName;
 	private DBConnectionConverterFolder folder;
 	private MetaData metaData;
 	private DBConnectionToIOObjectConverter converter;
 	
-	public DBConnectionEntry(DBConnectionConverterFolder parent, DBConnectionToIOObjectConverter converter, String name, List<ColumnIdentifier> columns) {
+	public DBConnectionEntry(DBConnectionConverterFolder parent, DBConnectionToIOObjectConverter converter, TableName tableName, List<ColumnIdentifier> columns) {
 		this.folder = parent;
 		this.converter = converter;
-		this.tableName = name;
-		metaData = converter.convertMetaData(folder.getConnectionEntry(), name, columns);
+		this.tableName = tableName;
+		metaData = converter.convertMetaData(folder.getConnectionEntry(), tableName, columns);
 	}
 
 	@Override
@@ -77,7 +78,7 @@ public class DBConnectionEntry implements IOObjectEntry {
 
 	@Override
 	public String getName() {	
-		return tableName;
+		return tableName.toString();
 	}
 
 	@Override
