@@ -22,7 +22,7 @@
  */
 package com.rapidminer.tools;
 
-import java.lang.ref.WeakReference;
+import java.lang.ref.SoftReference;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -40,39 +40,39 @@ import com.rapidminer.gui.ExampleVisualizer;
  */
 public class ObjectVisualizerService {
 
-	private static final DummyObjectVisualizer DUMMY_VISUALIZER = new DummyObjectVisualizer();
+    private static final DummyObjectVisualizer DUMMY_VISUALIZER = new DummyObjectVisualizer();
 
-	private static final Map<Object, WeakReference<ObjectVisualizer>> visualizerMap = new WeakHashMap<Object, WeakReference<ObjectVisualizer>>();
+    private static final Map<Object, SoftReference<ObjectVisualizer>> visualizerMap = new WeakHashMap<Object, SoftReference<ObjectVisualizer>>();
 
-	/**
-	 * This method adds the given visualizer for the target object. Please not that only one visualizer per object is
-	 * allowed. The subsequent added visualizer will overwrite the first.
-	 * 
-	 * The targets will be remembered using a weak reference, so that they don't pose a memory leak: If the object isn't
-	 * referenced anywhere else, it will be deleted.
-	 */
-	public static void addObjectVisualizer(Object target, ObjectVisualizer visualizer) {
-		visualizerMap.put(target, new WeakReference<ObjectVisualizer>(visualizer));
-	}
+    /**
+     * This method adds the given visualizer for the target object. Please not that only one visualizer per object is
+     * allowed. The subsequent added visualizer will overwrite the first.
+     * 
+     * The targets will be remembered using a weak reference, so that they don't pose a memory leak: If the object isn't
+     * referenced anywhere else, it will be deleted.
+     */
+    public static void addObjectVisualizer(Object target, ObjectVisualizer visualizer) {
+        visualizerMap.put(target, new SoftReference<ObjectVisualizer>(visualizer));
+    }
 
-	/**
-	 * Returns the object visualizer registered for this targetObject. If the targetObject is of type ExampleSet and
-	 * there's no special visualizer registered, it will return an new ExampleVisualizer.
-	 */
-	public static ObjectVisualizer getVisualizerForObject(Object targetObject) {
-		ObjectVisualizer capableVisualizer = null;
-		WeakReference<ObjectVisualizer> visualizerReference = visualizerMap.get(targetObject);
-		if (visualizerReference != null) {
-			capableVisualizer = visualizerReference.get();
-		}
-		if (capableVisualizer == null) {
-			if (targetObject instanceof ExampleSet) {
-				ObjectVisualizer visualizer = new ExampleVisualizer((ExampleSet) targetObject);
-				addObjectVisualizer(targetObject, visualizer);
-				return visualizer;
-			}
-			return DUMMY_VISUALIZER;
-		}
-		return capableVisualizer;
-	}
+    /**
+     * Returns the object visualizer registered for this targetObject. If the targetObject is of type ExampleSet and
+     * there's no special visualizer registered, it will return an new ExampleVisualizer.
+     */
+    public static ObjectVisualizer getVisualizerForObject(Object targetObject) {
+        ObjectVisualizer capableVisualizer = null;
+        SoftReference<ObjectVisualizer> visualizerReference = visualizerMap.get(targetObject);
+        if (visualizerReference != null) {
+            capableVisualizer = visualizerReference.get();
+        }
+        if (capableVisualizer == null) {
+            if (targetObject instanceof ExampleSet) {
+                ObjectVisualizer visualizer = new ExampleVisualizer((ExampleSet) targetObject);
+                addObjectVisualizer(targetObject, visualizer);
+                return visualizer;
+            }
+            return DUMMY_VISUALIZER;
+        }
+        return capableVisualizer;
+    }
 }

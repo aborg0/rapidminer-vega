@@ -1044,13 +1044,6 @@ public class DatabaseHandler {
             types.add(type);
         }
 
-        type = new ParameterTypeDatabaseTable(PARAMETER_TABLE_NAME, "A database table.");
-        if (!tableOnly) {
-            type.registerDependencyCondition(new EqualTypeCondition(handler, PARAMETER_DEFINE_QUERY, QUERY_MODES, true, QUERY_TABLE));
-        }
-        type.setExpert(false);
-        types.add(type);
-
         type = new ParameterTypeBoolean(PARAMETER_USE_DEFAULT_SCHEMA, "If checked, the user's default schema will be used.", true);
         if (!tableOnly) {
         	type.registerDependencyCondition(new EqualTypeCondition(handler, PARAMETER_DEFINE_QUERY, QUERY_MODES, true, QUERY_TABLE));
@@ -1062,6 +1055,14 @@ public class DatabaseHandler {
         type.registerDependencyCondition(new BooleanParameterCondition(handler, PARAMETER_USE_DEFAULT_SCHEMA, true, false));
         type.setExpert(true);
         types.add(type);
+
+        type = new ParameterTypeDatabaseTable(PARAMETER_TABLE_NAME, "A database table.");
+        if (!tableOnly) {
+            type.registerDependencyCondition(new EqualTypeCondition(handler, PARAMETER_DEFINE_QUERY, QUERY_MODES, true, QUERY_TABLE));
+        }
+        type.setExpert(false);
+        types.add(type);
+
 
         return types;
     }

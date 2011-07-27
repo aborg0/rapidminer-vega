@@ -48,7 +48,9 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeDatabaseSchema;
 import com.rapidminer.parameter.ParameterTypeDatabaseTable;
+import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
 import com.rapidminer.tools.jdbc.TableName;
@@ -74,6 +76,8 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 		private static final long serialVersionUID = -2984664300141879731L;
 
 		private String lastURL = null;
+		
+		private String lastSelectedSchema = null;		
 
 		private LinkedList<Object> list = new LinkedList<Object>();
 
@@ -81,9 +85,28 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 
 		public boolean updateModel() {
 			final Object selected = getValue();
+			boolean schemaChanged = false;
+			if (mode == Mode.TABLE) {
+				String selectedSchema = null;
+				if (DatabaseTableValueCellEditor.this.operator != null) {
+					if (!DatabaseTableValueCellEditor.this.operator.getParameterAsBoolean(DatabaseHandler.PARAMETER_USE_DEFAULT_SCHEMA)) {
+						try {
+							selectedSchema = DatabaseTableValueCellEditor.this.operator.getParameterAsString(DatabaseHandler.PARAMETER_SCHEMA_NAME);
+							if ((selectedSchema != null) && selectedSchema.isEmpty()) {
+								selectedSchema = null;
+							}
+						} catch (UndefinedParameterError e) {
+							selectedSchema = null;
+						}
+					}
+				}			
+				schemaChanged = !Tools.equals(selectedSchema, lastSelectedSchema);
+				lastSelectedSchema = selectedSchema;				
+			}
+			
 			if (connectionProvider != null) {
 				final ConnectionEntry entry = connectionProvider.getConnectionEntry();
-				if (entry != null && (lastURL == null || !lastURL.equals(entry.getURL()))) {
+				if (entry != null && (schemaChanged || (lastURL == null) || !lastURL.equals(entry.getURL()))) {
 					lastURL = entry.getURL();
 					ProgressThread t = new ProgressThread("fetching_database_tables") { 
 						@Override
@@ -110,6 +133,11 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 										for (TableName tn : tableMap.keySet()) {
 											switch (DatabaseTableValueCellEditor.this.mode) {
 											case TABLE:
+												if (lastSelectedSchema != null) {
+													if (!lastSelectedSchema.equals(tn.getSchema())) {
+														continue;
+													}
+												}
 												list.add(tn.getTableName());
 												break;
 											case SCHEMA:

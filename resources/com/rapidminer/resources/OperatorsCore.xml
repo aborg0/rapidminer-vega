@@ -1542,7 +1542,7 @@
             <icon>calculator.png</icon>
             <operator>
                <key>aggregate</key>
-               <class>com.rapidminer.operator.preprocessing.transformation.AggregationOperator
+               <class>com.rapidminer.operator.preprocessing.transformation.aggregation.AggregationOperator
                </class>
                <replaces>Aggregation</replaces>
             </operator>
