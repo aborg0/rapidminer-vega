@@ -23,7 +23,6 @@
 package com.rapidminer.operator.preprocessing.transformation.aggregation;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -33,6 +32,23 @@ import com.rapidminer.example.table.DoubleArrayDataRow;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 
+/**
+ * This is an abstract class for all {@link AggregationFunction}s, that can be selected to
+ * aggregate values of a certain group.
+ * Each {@link AggregationFunction} must be able to provide a certain {@link Aggregator}, that
+ * will count the examples of one single group and compute the aggregated value. So for example the {@link MeanAggregationFunction}
+ * provides an {@link MeanAggregator}, that will calculate the mean on all examples delivered to him.
+ * 
+ * The list of the names of all available functions can be queried from the static method {@link #getAvailableAggregationFunctionNames()}.
+ * With a name one can call the static method {@link #createAggregationFunction(String, Attribute)} to
+ * create a certain aggregator for the actual counting.
+ * 
+ * Additional functions can be registered by calling {@link #registerNewAggregationFunction(String, Class)} from
+ * extensions, preferable during their initialization. Please notice that there will be no warning prior process execution
+ * if the extension is missing but the usage of it's function is still configured.
+ *
+ * @author Sebastian Land
+ */
 public abstract class AggregationFunction {
 
     public static final String FUNCTION_SEPARATOR_OPEN = "(";
@@ -42,6 +58,7 @@ public abstract class AggregationFunction {
     static {
         AGGREATION_FUNCTIONS.put("sum", SumAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("median", MedianAggregationFunction.class);
+        AGGREATION_FUNCTIONS.put("average", MeanAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("variance", VarianceAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("standard_deviation", StandardDeviationAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("count (without missings)", CountAggregationFunction.class);
@@ -106,23 +123,14 @@ public abstract class AggregationFunction {
      */
     public static final AggregationFunction createAggregationFunction(String name, Attribute sourceAttribute) throws OperatorException {
         Class<? extends AggregationFunction> aggregationFunctionClass = AGGREATION_FUNCTIONS.get(name);
+        if (aggregationFunctionClass == null)
+            throw new UserError(null, "aggregation.illegal_function_name", name);
         try {
             Constructor<? extends AggregationFunction> constructor = aggregationFunctionClass.getConstructor(Attribute.class, boolean.class);
             return constructor.newInstance(sourceAttribute, false);
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            throw new RuntimeException("All implementations of AggregationFunction need to have a constructor accepting an Attribute and boolean. Other reasons for this error may be class loader problems.", e);
         }
-        throw new UserError(null, 101); //TODO
     }
 
     /**
@@ -148,5 +156,12 @@ public abstract class AggregationFunction {
         }
 
         return names;
+    }
+
+    /**
+     * With this method extensions might register additional aggregation functions if needed.
+     */
+    public static void registerNewAggregationFunction(String name, Class<? extends AggregationFunction> clazz) {
+        AGGREATION_FUNCTIONS.put(name, clazz);
     }
 }

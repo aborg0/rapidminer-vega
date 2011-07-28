@@ -37,9 +37,15 @@ public class ProductAggregator extends NumericalAggregator {
     }
 
     @Override
+    public void count(double value, double weight) {
+        product *= Math.pow(value, weight);
+    }
+
+    @Override
     public void count(double value) {
         product *= value;
     }
+
 
     @Override
     public double getValue() {

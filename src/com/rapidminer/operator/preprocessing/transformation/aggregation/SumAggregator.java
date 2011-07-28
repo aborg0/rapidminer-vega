@@ -36,6 +36,11 @@ public class SumAggregator extends NumericalAggregator {
     }
 
     @Override
+    public void count(double value, double weight) {
+        sum += value * weight;
+    }
+
+    @Override
     public void count(double value) {
         sum += value;
     }

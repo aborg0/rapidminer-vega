@@ -35,24 +35,29 @@ import com.rapidminer.example.table.DataRow;
 public class LeastOccurringAggregator implements Aggregator {
 
     private Attribute sourceAttribute;
-    private int[] frequencies;
+    private double[] frequencies;
 
     public LeastOccurringAggregator(AggregationFunction function) {
         this.sourceAttribute = function.getSourceAttribute();
-        frequencies = new int[sourceAttribute.getMapping().size()];
+        frequencies = new double[sourceAttribute.getMapping().size()];
     }
 
     @Override
     public void count(Example example) {
+        count(example, 1d);
+    }
+
+    @Override
+    public void count(Example example, double weight) {
         double value = example.getValue(sourceAttribute);
         if (!Double.isNaN(value))
-            frequencies[(int) value]++;
+            frequencies[(int) value] += weight;
     }
 
     @Override
     public void set(Attribute attribute, DataRow row) {
         int minIndex = -1;
-        int minFrequency = Integer.MAX_VALUE;
+        double minFrequency = Double.POSITIVE_INFINITY;
         for (int i = 0; i < frequencies.length; i++) {
             if (frequencies[i] > 0 && frequencies[i] < minFrequency) {
                 minIndex = i;

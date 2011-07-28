@@ -35,7 +35,7 @@ import com.rapidminer.example.table.DataRow;
 public class CountAggregator implements Aggregator {
 
     private Attribute sourceAttribute;
-    private int count = 0;
+    private double count = 0;
 
 
     public CountAggregator(AggregationFunction function) {
@@ -49,6 +49,15 @@ public class CountAggregator implements Aggregator {
             count++;
         }
     }
+
+    @Override
+    public void count(Example example, double weight) {
+        double value = example.getValue(sourceAttribute);
+        if (!Double.isNaN(value)) {
+            count+= weight;
+        }
+    }
+
 
     @Override
     public void set(Attribute attribute, DataRow row) {

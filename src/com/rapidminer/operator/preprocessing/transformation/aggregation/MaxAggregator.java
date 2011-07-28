@@ -46,10 +46,20 @@ public class MaxAggregator extends NumericalAggregator {
     }
 
     @Override
+    protected void count(double value, double weight) {
+        hasValue = true;
+        if (max < value) {  // NaN would always return false: Implicit NaN check
+            max = value;
+        }
+    }
+
+    @Override
     public double getValue() {
         if (hasValue)
             return max;
         else
             return Double.NaN;
     }
+
+
 }

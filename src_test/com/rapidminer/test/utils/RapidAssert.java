@@ -331,31 +331,47 @@ public class RapidAssert extends Assert {
 	 * @param actual		actual value
      */
 	public static void assertEquals( List<IOObject> expected, List<IOObject> actual ) {
-		
-		assertEquals("Number of connected output ports in the process is not equal with the number of ioobjects contained in the same folder with the format 'processname-expected-port-1', 'processname-expected-port-2', ...", 
-				expected.size(), actual.size());
-		
+		assertSize(expected, actual);
+
 		Iterator<IOObject> expectedIter = expected.iterator();
 		Iterator<IOObject> actualIter = actual.iterator();
 		
 		while( expectedIter.hasNext() && actualIter.hasNext() )  {
 			IOObject expectedIOO = expectedIter.next();
 			IOObject actualIOO = actualIter.next();
-
-			if( expectedIOO instanceof ExampleSet && actualIOO instanceof ExampleSet )
-				RapidAssert.assertEquals("ExampleSets are not equal", (ExampleSet)expectedIOO, (ExampleSet)actualIOO, -1);
-			
-			if( expectedIOO instanceof NumericalMatrix && actualIOO instanceof NumericalMatrix )
-				RapidAssert.assertEquals("Numerical matrices are not equal", (NumericalMatrix) expectedIOO, (NumericalMatrix) actualIOO);
-			
-			if( expectedIOO instanceof PerformanceVector && actualIOO instanceof PerformanceVector )
-				RapidAssert.assertEquals("Performance vectors are not equal", (PerformanceVector) expectedIOO, (PerformanceVector) actualIOO);
-			else if( expectedIOO instanceof AverageVector && actualIOO instanceof AverageVector ) 
-				RapidAssert.assertEquals("Average vectors are not equals", (AverageVector) expectedIOO, (AverageVector) actualIOO);
-				
-
+			assertEquals(expectedIOO, actualIOO);
 		}
 		
+	}
+
+	/**
+	 * Tests if both lists of IOObjects have the same size.
+	 * 
+	 * @param expected
+	 * @param actual
+	 */
+	public static void assertSize( List<IOObject> expected, List<IOObject> actual ) {
+		assertEquals("Number of connected output ports in the process is not equal with the number of ioobjects contained in the same folder with the format 'processname-expected-port-1', 'processname-expected-port-2', ...", 
+				expected.size(), actual.size());
+	}
+	
+	/**
+	 * Tests if the two IOObjects are equal.
+	 * 
+	 * @param expectedIOO
+	 * @param actualIOO
+	 */
+	public static void assertEquals(IOObject expectedIOO, IOObject actualIOO) {
+		if( expectedIOO instanceof ExampleSet && actualIOO instanceof ExampleSet )
+			RapidAssert.assertEquals("ExampleSets are not equal", (ExampleSet)expectedIOO, (ExampleSet)actualIOO, -1);
+		
+		if( expectedIOO instanceof NumericalMatrix && actualIOO instanceof NumericalMatrix )
+			RapidAssert.assertEquals("Numerical matrices are not equal", (NumericalMatrix) expectedIOO, (NumericalMatrix) actualIOO);
+		
+		if( expectedIOO instanceof PerformanceVector && actualIOO instanceof PerformanceVector )
+			RapidAssert.assertEquals("Performance vectors are not equal", (PerformanceVector) expectedIOO, (PerformanceVector) actualIOO);
+		else if( expectedIOO instanceof AverageVector && actualIOO instanceof AverageVector ) 
+			RapidAssert.assertEquals("Average vectors are not equals", (AverageVector) expectedIOO, (AverageVector) actualIOO);
 	}
 	
 }

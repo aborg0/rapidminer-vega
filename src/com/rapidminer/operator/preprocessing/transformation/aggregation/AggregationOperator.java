@@ -44,6 +44,7 @@ import com.rapidminer.example.table.DoubleArrayDataRow;
 import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
@@ -59,6 +60,7 @@ import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeStringCategory;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
+import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
@@ -164,6 +166,17 @@ public class AggregationOperator extends AbstractDataProcessing {
         }
 
         /**
+         * This will count the given examples for all registered {@link Aggregator}s with the given weight.
+         * If there's no weight attribute available, it is preferable to use the {@link #count(Example)} method,
+         * as it might be more efficiently implemented.
+         */
+        public void count(Example example, double weight) {
+            for (Aggregator aggregator : aggregators) {
+                aggregator.count(example, weight);
+            }
+        }
+
+        /**
          * This simply returns the list of all aggregators. They may be used for setting values within
          * the respective data row of the created example set.
          */
@@ -175,20 +188,18 @@ public class AggregationOperator extends AbstractDataProcessing {
     public static final String PARAMETER_USE_DEFAULT_AGGREGATION = "use_default_aggregation";
     public static final String PARAMETER_DEFAULT_AGGREGATION_FUNCTION = "default_aggregation_function";
     public static final String PARAMETER_AGGREGATION_ATTRIBUTES = "aggregation_attributes";
-
     public static final String PARAMETER_AGGREGATION_FUNCTIONS = "aggregation_functions";
-
     public static final String PARAMETER_GROUP_BY_ATTRIBUTES = "group_by_attributes";
-
     public static final String PARAMETER_ONLY_DISTINCT = "only_distinct";
-
     public static final String PARAMETER_IGNORE_MISSINGS = "ignore_missings";
+    public static final String PARAMETER_ALL_COMBINATIONS = "count_all_combinations";
 
+    /* These two only remain for compatibility */
     public static final String GENERIC_GROUP_NAME = "group";
-
     public static final String GENERIC_ALL_NAME = "all";
 
-    public static final String PARAMETER_ALL_COMBINATIONS = "count_all_combinations";
+    /* Later from this version, no group attribute will be created if no attributes for groups were selected */
+    private static final OperatorVersion VERSION_GROUP_ALL_REMOVED = new OperatorVersion(5, 1, 6);
 
     private final AttributeSubsetSelector attributeSelector = new AttributeSubsetSelector(this, getExampleSetInputPort());
 
@@ -249,9 +260,10 @@ public class AggregationOperator extends AbstractDataProcessing {
         // creating data structures for building aggregates
         List<AggregationFunction> aggregationFunctions = createAggreationFunctions(exampleSet);
 
-        // getting attributes that define groups
+        // getting attributes that define groups and weights
         Attribute[] groupAttributes = getMatchingAttributes(exampleSet.getAttributes(), getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES));
-
+        Attribute weightAttribute = exampleSet.getAttributes().getWeight();
+        boolean useWeights = weightAttribute != null;
 
         // running over exampleSet and aggregate data of each example
         AggregationTreeNode rootNode = new AggregationTreeNode();
@@ -282,7 +294,10 @@ public class AggregationOperator extends AbstractDataProcessing {
                 }
             }
             // now count current example
-            leafNode.count(example);
+            if (!useWeights)
+                leafNode.count(example);
+            else
+                leafNode.count(example, example.getValue(weightAttribute));
         }
 
         // now derive new example set from aggregated values
@@ -299,7 +314,8 @@ public class AggregationOperator extends AbstractDataProcessing {
             i++;
         }
 
-        MemoryExampleTable table = new MemoryExampleTable(newAttributes);
+        // creating example table
+        MemoryExampleTable table = new MemoryExampleTable(newAttributes);;
         DataRowFactory factory = new DataRowFactory(DataRowFactory.TYPE_DOUBLE_ARRAY, '.');
         double[] dataOfUpperLevels = new double[groupAttributes.length];
 
@@ -309,6 +325,20 @@ public class AggregationOperator extends AbstractDataProcessing {
         } else {
             // just enter values from single leaf node
             parseLeaf(leafNode, dataOfUpperLevels, table, factory, newAttributes, aggregationFunctions);
+        }
+
+        // postprocessing for remaining compatibility: Old versions automatically added group "all". Must remain this way for old operator version
+        if (groupAttributes.length == 0 && getCompatibilityLevel().isAtMost(VERSION_GROUP_ALL_REMOVED)) {
+            Attribute resultGroupAttribute = AttributeFactory.createAttribute(GENERIC_GROUP_NAME, Ontology.NOMINAL);
+            table.addAttribute(resultGroupAttribute);
+            table.getDataRow(0).set(resultGroupAttribute, resultGroupAttribute.getMapping().mapString(GENERIC_ALL_NAME));
+
+            ExampleSet resultSet = table.createExampleSet();
+            for (Attribute attribute: newAttributes) {
+                resultSet.getAttributes().remove(attribute);
+                resultSet.getAttributes().addRegular(attribute);
+            }
+            return resultSet;
         }
 
         return table.createExampleSet();
@@ -453,6 +483,11 @@ public class AggregationOperator extends AbstractDataProcessing {
         types.add(type);
         types.add(new ParameterTypeBoolean(PARAMETER_IGNORE_MISSINGS, "Indicates if missings should be ignored and aggregation should be based only on existing values or not. In the latter case the aggregated value will be missing in the presence of missing values.", true));
         return types;
+    }
+
+    @Override
+    public OperatorVersion[] getIncompatibleVersionChanges() {
+        return new OperatorVersion[] { VERSION_GROUP_ALL_REMOVED };
     }
 
     @Override

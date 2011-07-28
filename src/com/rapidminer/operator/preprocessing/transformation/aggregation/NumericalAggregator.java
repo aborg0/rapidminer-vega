@@ -55,13 +55,36 @@ public abstract class NumericalAggregator implements Aggregator {
         }
     }
 
+    @Override
+    public final void count(Example example, double weight) {
+        // check whether we have to count at all
+        if (!isMissing || ignoreMissings) {
+            double value = example.getValue(sourceAttribute);
+            if (isMissing && !ignoreMissings || Double.isNaN(value)) {
+                isMissing = true;
+            } else {
+                count(value, weight);
+            }
+        }
+    }
     /**
      * This method will count the given numerical value. This method will not be called in
      * cases, where the examples value for the given source Attribute is unknown.
      * Subclasses of this class will in this cases return either NaN if ignoreMissings is false,
      * or will return the value as if the examples with the missing aren't present at all.
+     * 
+     * Please see {@link #count(double, double)} for taking weights into account. You may not mix both methods
+     * within one aggregation run, as subclasses might implement more memory efficient data structures
+     * when not using weights.
      */
     protected abstract void count(double value);
+
+    /**
+     * Same as {@link #count(double)}, but taking the weight into account. You may not mix both methods
+     * within one aggregation run, as subclasses might implement more memory efficient data structures
+     * when not using weights.
+     */
+    protected abstract void count(double value, double weight);
 
     @Override
     public final void set(Attribute attribute, DataRow row) {

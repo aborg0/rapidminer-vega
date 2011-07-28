@@ -42,7 +42,13 @@ public class LogProductAggregator extends NumericalAggregator {
     }
 
     @Override
+    protected void count(double value, double weight) {
+        logSum += weight * Math.log(value);
+    }
+
+    @Override
     public double getValue() {
         return logSum;
     }
+
 }

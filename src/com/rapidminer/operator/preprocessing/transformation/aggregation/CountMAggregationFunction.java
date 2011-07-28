@@ -34,7 +34,7 @@ import com.rapidminer.example.table.DoubleArrayDataRow;
  */
 public class CountMAggregationFunction extends NumericalAggregationFunction {
 
-    public static final String FUNCTION_COUNT_M = "countM";
+    public static final String FUNCTION_COUNT_M = "count";
 
     public CountMAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings) {
         super(sourceAttribute, ignoreMissings, FUNCTION_COUNT_M, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE);

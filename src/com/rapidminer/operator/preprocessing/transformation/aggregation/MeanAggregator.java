@@ -31,7 +31,7 @@ package com.rapidminer.operator.preprocessing.transformation.aggregation;
 public class MeanAggregator extends NumericalAggregator {
 
     private double sum = 0;
-    private int count = 0;
+    private double totalWeight = 0;
 
     public MeanAggregator(AggregationFunction function) {
         super(function);
@@ -40,11 +40,17 @@ public class MeanAggregator extends NumericalAggregator {
     @Override
     public void count(double value) {
         sum += value;
-        count++;
+        totalWeight++;
+    }
+
+    @Override
+    public void count(double value, double weight) {
+        sum += value * weight;
+        totalWeight += weight;
     }
 
     @Override
     public double getValue() {
-        return sum / count;
+        return sum / totalWeight;
     }
 }

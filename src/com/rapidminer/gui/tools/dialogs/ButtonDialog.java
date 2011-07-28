@@ -354,7 +354,9 @@ public class ButtonDialog extends JDialog {
 	protected JPanel makeButtonPanel(AbstractButton ... buttons) {
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, GAP, GAP));
 		for (AbstractButton button : buttons) {
-			buttonPanel.add(button);
+			if (button != null) {
+				buttonPanel.add(button);
+			}
 		}
 		return buttonPanel;
 	}

@@ -56,7 +56,6 @@ import javax.swing.event.ListSelectionListener;
 
 import com.rapidminer.RapidMiner;
 import com.rapidminer.deployment.client.wsimport.AccountService;
-import com.rapidminer.deployment.client.wsimport.AccountServiceService;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.deployment.client.wsimport.UpdateService;
 import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
@@ -361,11 +360,10 @@ public class UpdateListPanel extends JPanel {
 		// TODO: Do in progress thread
 		List<String> bookmarks;
 		try {
-			AccountServiceService ass = new AccountServiceService();
-			AccountService accountService = ass.getAccountServicePort();
+			AccountService accountService = UpdateManager.getAccountService();
 			bookmarks = accountService.getBookmarkedProducts("rapidminer");
 		} catch (Exception e) {
-			SwingTools.showSimpleErrorMessage("error_during_update", e);
+			SwingTools.showSimpleErrorMessage("error_accessing_marketplace_account", e, e.toString());
 			return;
 		}
 
@@ -414,4 +412,10 @@ public class UpdateListPanel extends JPanel {
 		}
 		updateList.repaint();
 	}
+
+//	public static AccountService getAccountService() {
+//		AccountServiceService ass = new AccountServiceService();
+//		AccountService accountService = ass.getAccountServicePort();
+//		return accountService;
+//	}
 }

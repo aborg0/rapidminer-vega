@@ -37,7 +37,6 @@ public class CountMAggregator implements Aggregator {
     private int count = 0;
     private boolean ignoreMissings;
 
-
     public CountMAggregator(AggregationFunction function) {
         this.sourceAttribute = function.getSourceAttribute();
         ignoreMissings = function.isIgnoringMissings();
@@ -50,6 +49,16 @@ public class CountMAggregator implements Aggregator {
         else {
             if (!Double.isNaN(example.getValue(sourceAttribute)))
                 count++;
+        }
+    }
+
+    @Override
+    public void count(Example example, double weight) {
+        if (!ignoreMissings)
+            count += weight;
+        else {
+            if (!Double.isNaN(example.getValue(sourceAttribute)))
+                count += weight;
         }
     }
 

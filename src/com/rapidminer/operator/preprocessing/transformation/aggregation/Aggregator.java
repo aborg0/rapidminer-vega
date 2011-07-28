@@ -35,7 +35,14 @@ public interface Aggregator {
     public void count(Example example);
 
     /**
+     * This does the same as {@link #count(Example)}, but will take the weight of
+     * the current example into account.
+     */
+    public void count(Example example, double weight);
+
+    /**
      * This will set the result value into the data row onto the position of the given attribute.
      */
     public void set(Attribute attribute, DataRow row);
+
 }

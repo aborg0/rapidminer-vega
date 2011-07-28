@@ -33,7 +33,7 @@ public class VarianceAggregator extends NumericalAggregator {
     private double valueSum = 0d;
     private double squaredValueSum = 0d;
     private double totalWeightSum = 0d;
-    private int count = 0;
+    private double count = 0;
 
     public VarianceAggregator(AggregationFunction function) {
         super(function);
@@ -41,7 +41,14 @@ public class VarianceAggregator extends NumericalAggregator {
 
     @Override
     public void count(double value) {
-        double weight = 1d;
+        valueSum += value;
+        squaredValueSum += value * value;
+        totalWeightSum++;
+        count++;
+    }
+
+    @Override
+    public void count(double value, double weight) {
         valueSum += weight * value;
         squaredValueSum += weight * value * value;
         totalWeightSum += weight;

@@ -46,6 +46,14 @@ public class MinAggregator extends NumericalAggregator {
     }
 
     @Override
+    public void count(double value, double weight) {
+        hasValue = true;
+        if (min > value) {  // NaN would always return false: Implicit NaN check
+            min = value;
+        }
+    }
+
+    @Override
     public double getValue() {
         if (hasValue)
             return min;

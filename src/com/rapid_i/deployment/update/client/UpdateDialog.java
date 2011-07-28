@@ -105,7 +105,7 @@ public class UpdateDialog extends ButtonDialog {
 		super("update");
 		this.service = service;
 		ulp = new UpdateListPanel(this, descriptors, preselectedExtensions);
-		layoutDefault(ulp, ulp.getFetchFromAccountButton(), ulp.getInstallButton(), makeOkButton("update.install"), makeCloseButton());
+		layoutDefault(ulp,	ulp.getFetchFromAccountButton(), ulp.getInstallButton(), makeOkButton("update.install"), makeCloseButton());
 	}
 
 	public static void showUpdateDialog(final String... preselectedExtensions) {
