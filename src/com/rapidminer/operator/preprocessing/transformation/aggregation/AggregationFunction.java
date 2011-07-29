@@ -61,8 +61,9 @@ public abstract class AggregationFunction {
         AGGREATION_FUNCTIONS.put("average", MeanAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("variance", VarianceAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("standard_deviation", StandardDeviationAggregationFunction.class);
-        AGGREATION_FUNCTIONS.put("count (without missings)", CountAggregationFunction.class);
-        AGGREATION_FUNCTIONS.put("count", CountMAggregationFunction.class);
+        AGGREATION_FUNCTIONS.put("count (ignoring missings)", CountIgnoringMissingsAggregationFunction.class);
+        AGGREATION_FUNCTIONS.put("count (including missings)", CountIncludingMissingsAggregationFunction.class);
+        AGGREATION_FUNCTIONS.put("count", CountAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("minimum", MinAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("maximum", MaxAggregationFunction.class);
 
@@ -76,11 +77,13 @@ public abstract class AggregationFunction {
     }
 
     private Attribute sourceAttribute;
-    private boolean ignoreMissings;
+    private boolean isIgnoringMissings;
+    private boolean isCountingOnlyDistinct;
 
-    public AggregationFunction(Attribute sourceAttribute, boolean ignoreMissings) {
+    public AggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDistinct) {
         this.sourceAttribute = sourceAttribute;
-        this.ignoreMissings = ignoreMissings;
+        this.isIgnoringMissings = ignoreMissings;
+        this.isCountingOnlyDistinct = countOnlyDistinct;
     }
 
     /**
@@ -108,7 +111,16 @@ public abstract class AggregationFunction {
      * just turn to be NaN.
      */
     public boolean isIgnoringMissings() {
-        return ignoreMissings;
+        return isIgnoringMissings;
+    }
+
+
+    /**
+     * This determines, if values are counted only once, if occurring more than once. Please note
+     * that will increase the memory load drastically on numerical attributes.
+     */
+    public boolean isCountingOnlyDistinct() {
+        return isCountingOnlyDistinct;
     }
 
     /**
@@ -121,13 +133,13 @@ public abstract class AggregationFunction {
      * This will create the {@link AggregationFunction} with the given name for the given
      * source Attribute. This method might return
      */
-    public static final AggregationFunction createAggregationFunction(String name, Attribute sourceAttribute) throws OperatorException {
+    public static final AggregationFunction createAggregationFunction(String name, Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDistinct) throws OperatorException {
         Class<? extends AggregationFunction> aggregationFunctionClass = AGGREATION_FUNCTIONS.get(name);
         if (aggregationFunctionClass == null)
             throw new UserError(null, "aggregation.illegal_function_name", name);
         try {
-            Constructor<? extends AggregationFunction> constructor = aggregationFunctionClass.getConstructor(Attribute.class, boolean.class);
-            return constructor.newInstance(sourceAttribute, false);
+            Constructor<? extends AggregationFunction> constructor = aggregationFunctionClass.getConstructor(Attribute.class, boolean.class, boolean.class);
+            return constructor.newInstance(sourceAttribute, ignoreMissings, countOnlyDistinct);
         } catch (Exception e) {
             throw new RuntimeException("All implementations of AggregationFunction need to have a constructor accepting an Attribute and boolean. Other reasons for this error may be class loader problems.", e);
         }
@@ -164,4 +176,5 @@ public abstract class AggregationFunction {
     public static void registerNewAggregationFunction(String name, Class<? extends AggregationFunction> clazz) {
         AGGREATION_FUNCTIONS.put(name, clazz);
     }
+
 }

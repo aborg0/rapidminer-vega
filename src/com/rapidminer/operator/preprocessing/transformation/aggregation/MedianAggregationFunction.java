@@ -34,12 +34,12 @@ public class MedianAggregationFunction extends NumericalAggregationFunction {
 
     public static final String FUNCTION_MEDIAN = "median";
 
-    public MedianAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings) {
-        super(sourceAttribute, ignoreMissings, FUNCTION_MEDIAN, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE);
+    public MedianAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct) {
+        super(sourceAttribute, ignoreMissings, countOnlyDisctinct, FUNCTION_MEDIAN, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE);
     }
 
-    public MedianAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, String functionName, String separatorOpen, String separatorClose) {
-        super(sourceAttribute, ignoreMissings, functionName, separatorOpen, separatorClose);
+    public MedianAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct, String functionName, String separatorOpen, String separatorClose) {
+        super(sourceAttribute, ignoreMissings, countOnlyDisctinct, functionName, separatorOpen, separatorClose);
     }
 
     @Override

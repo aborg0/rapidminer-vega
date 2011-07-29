@@ -22,6 +22,8 @@
  */
 package com.rapidminer.operator.preprocessing.transformation.aggregation;
 
+import java.util.HashSet;
+
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.table.DataRow;
@@ -29,6 +31,7 @@ import com.rapidminer.example.table.DataRow;
 /**
  * This is an implementation of a Aggregator for numerical attributes. It takes over
  * the handling of missing values.
+ * 
  * @author Sebastian Land
  */
 public abstract class NumericalAggregator implements Aggregator {
@@ -36,10 +39,15 @@ public abstract class NumericalAggregator implements Aggregator {
     private Attribute sourceAttribute;
     private boolean ignoreMissings;
     private boolean isMissing = false;
+    private boolean isCountingOnlyDistinct = false;
+    private HashSet<Double> distinctValueSet = null;
 
     public NumericalAggregator(AggregationFunction function) {
         this.sourceAttribute = function.getSourceAttribute();
         this.ignoreMissings = function.isIgnoringMissings();
+        this.isCountingOnlyDistinct = function.isCountingOnlyDistinct();
+        if (isCountingOnlyDistinct)
+            distinctValueSet = new HashSet<Double>();
     }
 
     @Override
@@ -50,7 +58,9 @@ public abstract class NumericalAggregator implements Aggregator {
             if (isMissing && !ignoreMissings || Double.isNaN(value)) {
                 isMissing = true;
             } else {
-                count(value);
+                if (!isCountingOnlyDistinct || distinctValueSet.add(value)) {
+                    count(value);
+                }
             }
         }
     }
@@ -63,10 +73,13 @@ public abstract class NumericalAggregator implements Aggregator {
             if (isMissing && !ignoreMissings || Double.isNaN(value)) {
                 isMissing = true;
             } else {
-                count(value, weight);
+                if (!isCountingOnlyDistinct || distinctValueSet.add(value)) {
+                    count(value, weight);
+                }
             }
         }
     }
+
     /**
      * This method will count the given numerical value. This method will not be called in
      * cases, where the examples value for the given source Attribute is unknown.

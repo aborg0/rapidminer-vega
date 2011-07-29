@@ -334,7 +334,7 @@ public class AggregationOperator extends AbstractDataProcessing {
             table.getDataRow(0).set(resultGroupAttribute, resultGroupAttribute.getMapping().mapString(GENERIC_ALL_NAME));
 
             ExampleSet resultSet = table.createExampleSet();
-            for (Attribute attribute: newAttributes) {
+            for (Attribute attribute : newAttributes) {
                 resultSet.getAttributes().remove(attribute);
                 resultSet.getAttributes().addRegular(attribute);
             }
@@ -421,6 +421,10 @@ public class AggregationOperator extends AbstractDataProcessing {
     }
 
     private List<AggregationFunction> createAggreationFunctions(ExampleSet exampleSet) throws OperatorException {
+        // load global switches
+        boolean ignoreMissings = getParameterAsBoolean(PARAMETER_IGNORE_MISSINGS);
+        boolean countOnlyDistinct = getParameterAsBoolean(PARAMETER_ONLY_DISTINCT);
+
         // creating data structures for building aggregates
         List<AggregationFunction> aggregationFunctions = new LinkedList<AggregationFunction>();
 
@@ -432,7 +436,7 @@ public class AggregationOperator extends AbstractDataProcessing {
             if (attribute == null) {
                 throw new UserError(this, "aggregation.aggregation_attribute_not_present", aggregationFunctionPair[0]);
             }
-            AggregationFunction function = AggregationFunction.createAggregationFunction(aggregationFunctionPair[1], attribute);
+            AggregationFunction function = AggregationFunction.createAggregationFunction(aggregationFunctionPair[1], attribute, ignoreMissings, countOnlyDistinct);
             if (!function.isCompatible()) {
                 throw new UserError(this, "aggregation.incompatible_attribute_type", attribute.getName(), aggregationFunctionPair[1]);
             }
@@ -446,7 +450,7 @@ public class AggregationOperator extends AbstractDataProcessing {
             String defaultAggregationFunctionName = getParameterAsString(PARAMETER_DEFAULT_AGGREGATION_FUNCTION);
             for (Attribute attribute : exampleSet.getAttributes()) {
                 if (!explicitlyAggregatedAttributes.contains(attribute)) {
-                    AggregationFunction function = AggregationFunction.createAggregationFunction(defaultAggregationFunctionName, attribute);
+                    AggregationFunction function = AggregationFunction.createAggregationFunction(defaultAggregationFunctionName, attribute, ignoreMissings, countOnlyDistinct);
                     if (function.isCompatible()) {
                         aggregationFunctions.add(function);
                     }

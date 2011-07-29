@@ -28,20 +28,20 @@ import com.rapidminer.example.table.DoubleArrayDataRow;
 /**
  * This class implements the Count Aggregation function. This will calculate the
  * number of examples within a group. Examples with a missing value in the attribute won't be counted. To count all
- * of them use the {@link CountMAggregationFunction}.
+ * of them use the {@link CountIncludingMissingsAggregationFunction}.
  * TODO: Needs to be checked whether this is same as in old operator.
  * @author Sebastian Land
  */
 public class CountAggregationFunction extends NumericalAggregationFunction {
 
-    public static final String FUNCTION_COUNT = "countM";
+    public static final String FUNCTION_COUNT = "count";
 
-    public CountAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings) {
-        super(sourceAttribute, ignoreMissings, FUNCTION_COUNT, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE);
+    public CountAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct) {
+        super(sourceAttribute, ignoreMissings, countOnlyDisctinct, FUNCTION_COUNT, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE);
     }
 
-    public CountAggregationFunction(Attribute sourceAttribute,  boolean ignoreMissings, String functionName, String separatorOpen, String separatorClose) {
-        super(sourceAttribute, ignoreMissings, functionName, separatorOpen, separatorClose);
+    public CountAggregationFunction(Attribute sourceAttribute,  boolean ignoreMissings, boolean countOnlyDisctinct, String functionName, String separatorOpen, String separatorClose) {
+        super(sourceAttribute, ignoreMissings, countOnlyDisctinct, functionName, separatorOpen, separatorClose);
     }
 
     @Override

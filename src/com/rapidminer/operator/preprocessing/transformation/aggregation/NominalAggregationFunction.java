@@ -36,8 +36,8 @@ public abstract class NominalAggregationFunction extends AggregationFunction {
 
     private Attribute targetAttribute;
 
-    public NominalAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, String functionName, String separatorOpen, String separatorClose) {
-        super(sourceAttribute, ignoreMissings);
+    public NominalAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct, String functionName, String separatorOpen, String separatorClose) {
+        super(sourceAttribute, ignoreMissings, countOnlyDisctinct);
         if (sourceAttribute.isNominal()) {
             this.targetAttribute = AttributeFactory.createAttribute(functionName + separatorOpen + getSourceAttribute().getName() + separatorClose, getSourceAttribute().getValueType());
             this.targetAttribute.setMapping((NominalMapping) sourceAttribute.getMapping().clone());

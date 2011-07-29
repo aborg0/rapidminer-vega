@@ -24,6 +24,7 @@ package com.rapidminer.operator.preprocessing.transformation.aggregation;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.table.AttributeFactory;
+import com.rapidminer.tools.Ontology;
 
 /**
  * This class implements the Sum Aggregation function. This will calculate the
@@ -35,9 +36,9 @@ public abstract class NumericalAggregationFunction extends AggregationFunction {
 
     private Attribute targetAttribute;
 
-    public NumericalAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, String functionName, String separatorOpen, String separatorClose) {
-        super(sourceAttribute, ignoreMissings);
-        this.targetAttribute = AttributeFactory.createAttribute(functionName + separatorOpen + getSourceAttribute().getName() + separatorClose, getSourceAttribute().getValueType());
+    public NumericalAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct,  String functionName, String separatorOpen, String separatorClose) {
+        super(sourceAttribute, ignoreMissings, countOnlyDisctinct);
+        this.targetAttribute = AttributeFactory.createAttribute(functionName + separatorOpen + getSourceAttribute().getName() + separatorClose, Ontology.REAL);
     }
 
     @Override

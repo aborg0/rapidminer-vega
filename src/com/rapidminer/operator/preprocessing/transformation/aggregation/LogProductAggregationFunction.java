@@ -38,12 +38,12 @@ public class LogProductAggregationFunction extends NumericalAggregationFunction 
 
     public static final String FUNCTION_LOG_PRODUCT = "logProduct";
 
-    public LogProductAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings) {
-        super(sourceAttribute, ignoreMissings, FUNCTION_LOG_PRODUCT, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE);
+    public LogProductAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct) {
+        super(sourceAttribute, ignoreMissings, countOnlyDisctinct, FUNCTION_LOG_PRODUCT, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE);
     }
 
-    public LogProductAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, String functionName, String separatorOpen, String separatorClose) {
-        super(sourceAttribute, ignoreMissings, functionName, separatorOpen, separatorClose);
+    public LogProductAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct, String functionName, String separatorOpen, String separatorClose) {
+        super(sourceAttribute, ignoreMissings, countOnlyDisctinct, functionName, separatorOpen, separatorClose);
     }
 
     @Override

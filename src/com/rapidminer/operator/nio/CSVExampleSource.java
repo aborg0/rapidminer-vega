@@ -60,77 +60,76 @@ import com.rapidminer.tools.StrictDecimalFormat;
  * @author Ingo Mierswa, Tobias Malbrecht, Sebastian Loh, Sebastian Land, Simon Fischer
  */
 public class CSVExampleSource extends AbstractDataResultSetReader {
-	
-	public static final String PARAMETER_CSV_FILE = "csv_file";	
-	public static final String PARAMETER_TRIM_LINES = "trim_lines";
-	public static final String PARAMETER_SKIP_COMMENTS = "skip_comments";
-	public static final String PARAMETER_COMMENT_CHARS = "comment_characters";
-	public static final String PARAMETER_USE_QUOTES = "use_quotes";
-	public static final String PARAMETER_QUOTES_CHARACTER = "quotes_character";
-	public static final String PARAMETER_COLUMN_SEPARATORS = "column_separators";
-	public static final String PARAMETER_ESCAPE_CHARACTER = "escape_character_for_quotes";
 
-	static {
-		AbstractReader.registerReaderDescription(new ReaderDescription("csv", CSVExampleSource.class, PARAMETER_CSV_FILE));
-	}
-	
-	
-	public CSVExampleSource(OperatorDescription description) {
-		super(description);
-	}
+    public static final String PARAMETER_CSV_FILE = "csv_file";
+    public static final String PARAMETER_TRIM_LINES = "trim_lines";
+    public static final String PARAMETER_SKIP_COMMENTS = "skip_comments";
+    public static final String PARAMETER_COMMENT_CHARS = "comment_characters";
+    public static final String PARAMETER_USE_QUOTES = "use_quotes";
+    public static final String PARAMETER_QUOTES_CHARACTER = "quotes_character";
+    public static final String PARAMETER_COLUMN_SEPARATORS = "column_separators";
+    public static final String PARAMETER_ESCAPE_CHARACTER = "escape_character_for_quotes";
 
-	@Override
-	protected DataResultSetFactory getDataResultSetFactory() throws OperatorException {
-		return new CSVResultSetConfiguration(this);
-	}
+    static {
+        AbstractReader.registerReaderDescription(new ReaderDescription("csv", CSVExampleSource.class, PARAMETER_CSV_FILE));
+    }
 
-	@Override
-	protected NumberFormat getNumberFormat() throws OperatorException {
-		return StrictDecimalFormat.getInstance(this, true);
-	}
 
-	@Override
-	protected boolean supportsEncoding() {
-		return true;
-	}
-	
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		LinkedList<ParameterType> types = new LinkedList<ParameterType>();
-				
-		ParameterType type = new ParameterTypeConfiguration(CSVExampleSourceConfigurationWizardCreator.class, this);
-		type.setExpert(false);
-		types.add(type);
-		types.add(new ParameterTypeFile(PARAMETER_CSV_FILE, "Name of the file to read the data from.", "csv", false));
+    public CSVExampleSource(OperatorDescription description) {
+        super(description);
+    }
 
-		//types.addAll(Encoding.getParameterTypes(this));
-		
-		// Separator
-		types.add(new ParameterTypeString(PARAMETER_COLUMN_SEPARATORS, "Column separators for data files (regular expression)", ";", false));
-		types.add(new ParameterTypeBoolean(PARAMETER_TRIM_LINES,
-				"Indicates if lines should be trimmed (empty spaces are removed at the beginning and the end) before the column split is performed. This option might be problematic if TABs are used as a seperator.",
-				false));
-		// Quotes
-		types.add(new ParameterTypeBoolean(PARAMETER_USE_QUOTES, "Indicates if quotes should be regarded.", true, false));
-		type = new ParameterTypeChar(PARAMETER_QUOTES_CHARACTER, "The quotes character.", LineParser.DEFAULT_QUOTE_CHARACTER, false);
-		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_QUOTES, false, true));
-		types.add(type);
-		type = new ParameterTypeChar(PARAMETER_ESCAPE_CHARACTER, "The charcter that is used to escape quotes", LineParser.DEFAULT_QUOTE_ESCAPE_CHARACTER, true);
-		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_QUOTES, false, true));
-		types.add(type);
+    @Override
+    protected DataResultSetFactory getDataResultSetFactory() throws OperatorException {
+        return new CSVResultSetConfiguration(this);
+    }
 
-		// Comments
-		types.add(new ParameterTypeBoolean(PARAMETER_SKIP_COMMENTS, "Indicates if a comment character should be used.", false, false));
-		type = new ParameterTypeString(PARAMETER_COMMENT_CHARS, "Lines beginning with these characters are ignored.", "#", false);
-		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_SKIP_COMMENTS, false, true));
-		types.add(type);
-		
-		// Numberformats
-		types.addAll(StrictDecimalFormat.getParameterTypes(this, true));
-		types.addAll(DateParser.getParameterTypes(this));
-		
-		types.addAll(super.getParameterTypes());
-		
-		return types;
-	}
+    @Override
+    protected NumberFormat getNumberFormat() throws OperatorException {
+        return StrictDecimalFormat.getInstance(this, true);
+    }
+
+    @Override
+    protected boolean supportsEncoding() {
+        return true;
+    }
+
+    @Override
+    public List<ParameterType> getParameterTypes() {
+        LinkedList<ParameterType> types = new LinkedList<ParameterType>();
+
+        ParameterType type = new ParameterTypeConfiguration(CSVExampleSourceConfigurationWizardCreator.class, this);
+        type.setExpert(false);
+        types.add(type);
+        types.add(new ParameterTypeFile(PARAMETER_CSV_FILE, "Name of the file to read the data from.", "csv", false));
+
+        //types.addAll(Encoding.getParameterTypes(this));
+
+        // Separator
+        types.add(new ParameterTypeString(PARAMETER_COLUMN_SEPARATORS, "Column separators for data files (regular expression)", ";", false));
+        types.add(new ParameterTypeBoolean(PARAMETER_TRIM_LINES,
+                "Indicates if lines should be trimmed (empty spaces are removed at the beginning and the end) before the column split is performed. This option might be problematic if TABs are used as a seperator.",
+                false));
+        // Quotes
+        types.add(new ParameterTypeBoolean(PARAMETER_USE_QUOTES, "Indicates if quotes should be regarded.", true, false));
+        type = new ParameterTypeChar(PARAMETER_QUOTES_CHARACTER, "The quotes character.", LineParser.DEFAULT_QUOTE_CHARACTER, false);
+        type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_QUOTES, false, true));
+        types.add(type);
+        type = new ParameterTypeChar(PARAMETER_ESCAPE_CHARACTER, "The charcter that is used to escape quotes", LineParser.DEFAULT_QUOTE_ESCAPE_CHARACTER, true);
+        type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_QUOTES, false, true));
+        types.add(type);
+
+        // Comments
+        types.add(new ParameterTypeBoolean(PARAMETER_SKIP_COMMENTS, "Indicates if a comment character should be used.", false, false));
+        type = new ParameterTypeString(PARAMETER_COMMENT_CHARS, "Lines beginning with these characters are ignored.", "#", false);
+        type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_SKIP_COMMENTS, false, true));
+        types.add(type);
+
+        // Numberformats
+        types.addAll(StrictDecimalFormat.getParameterTypes(this, true));
+        types.addAll(DateParser.getParameterTypes(this));
+
+        types.addAll(super.getParameterTypes());
+        return types;
+    }
 }

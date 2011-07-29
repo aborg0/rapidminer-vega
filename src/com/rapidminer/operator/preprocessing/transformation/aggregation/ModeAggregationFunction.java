@@ -36,12 +36,12 @@ public class ModeAggregationFunction extends AggregationFunction {
     public static final String FUNCTION_MODE = "mode";
     private Attribute targetAttribute;
 
-    public ModeAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings) {
-        this(sourceAttribute, ignoreMissings, FUNCTION_MODE, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE);
+    public ModeAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct) {
+        this(sourceAttribute, ignoreMissings, countOnlyDisctinct, FUNCTION_MODE, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE);
     }
 
-    public ModeAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, String functionName, String separatorOpen, String separatorClose) {
-        super(sourceAttribute, ignoreMissings);
+    public ModeAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings,boolean countOnlyDisctinct,  String functionName, String separatorOpen, String separatorClose) {
+        super(sourceAttribute, ignoreMissings, countOnlyDisctinct);
         this.targetAttribute = AttributeFactory.createAttribute(FUNCTION_MODE + FUNCTION_SEPARATOR_OPEN + getSourceAttribute().getName() + FUNCTION_SEPARATOR_CLOSE, getSourceAttribute().getValueType());
         if (sourceAttribute.isNominal())
             this.targetAttribute.setMapping((NominalMapping) sourceAttribute.getMapping().clone());

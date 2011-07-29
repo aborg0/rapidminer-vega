@@ -34,12 +34,12 @@ public class MeanAggregationFunction extends NumericalAggregationFunction {
 
     public static final String FUNCTION_AVERAGE = "average";
 
-    public MeanAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings) {
-        super(sourceAttribute, ignoreMissings, FUNCTION_AVERAGE, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE);
+    public MeanAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct) {
+        super(sourceAttribute, ignoreMissings, countOnlyDisctinct, FUNCTION_AVERAGE, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE);
     }
 
-    public MeanAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, String functionName, String separatorOpen, String separatorClose) {
-        super(sourceAttribute, ignoreMissings, functionName, separatorOpen, separatorClose);
+    public MeanAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct, String functionName, String separatorOpen, String separatorClose) {
+        super(sourceAttribute, ignoreMissings, countOnlyDisctinct, functionName, separatorOpen, separatorClose);
     }
 
     @Override

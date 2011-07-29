@@ -264,17 +264,17 @@ public class OperatorService {
                             }
                         }
                     } catch (ClassNotFoundException e) {
-                        LogService.getRoot().log(Level.WARNING, "Cannot load operator class: " + e, e);
+                        LogService.getRoot().log(Level.WARNING, "Cannot create operator description: " + provider.getExtensionId() + ":" + XMLTools.getTagContents(childElement, "key", false), e);
                     } catch (NoClassDefFoundError e) {
-                        LogService.getRoot().log(Level.WARNING, "Cannot load operator class: " + e, e);
+                        LogService.getRoot().log(Level.WARNING, "Cannot create operator description: " + provider.getExtensionId() + ":" + XMLTools.getTagContents(childElement, "key", false), e);
                     } catch (Exception e) {
-                        LogService.getRoot().log(Level.WARNING, "Failed to register operator: " + e, e);
+                        LogService.getRoot().log(Level.WARNING, "Failed to register operator: " + provider.getExtensionId() + ":" + XMLTools.getTagContents(childElement, "key", false), e);
                     } catch (AbstractMethodError e) {
-                        LogService.getRoot().log(Level.WARNING, "Failed to register operator: " + e, e);
+                        LogService.getRoot().log(Level.WARNING, "Failed to register operator: " + provider.getExtensionId() + ":" + XMLTools.getTagContents(childElement, "key", false), e);
                     } catch (Throwable e) {
                         // Yes, this is evil. However, it is the only way we can prevent errors due to
                         // incompatible RapidMiner / extension updates
-                        LogService.getRoot().log(Level.SEVERE, "Failed to register operator: " + e, e);
+                        LogService.getRoot().log(Level.SEVERE, "Failed to register operator: " + provider.getExtensionId() + ":" + XMLTools.getTagContents(childElement, "key", false), e);
                     }
                 } else if (childElement.getTagName().equals("factory")) {
                     String factoryClassName = childElement.getTextContent();

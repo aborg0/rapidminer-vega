@@ -26,30 +26,36 @@ import com.rapidminer.example.Attribute;
 import com.rapidminer.example.table.DoubleArrayDataRow;
 
 /**
- * This class implements the Product Aggregation function. This will calculate the
- * product of a source attribute for each group.
- * 
+ * This class implements the Count Aggregation function. This will calculate the
+ * number of examples within a group. Examples with a missing value in the attribute won't be counted. To count all
+ * of them use the CountMAggreagationFunction.
+ * TODO: Needs to be checked whether this is same as in old operator.
  * @author Sebastian Land
  */
-public class ProductAggregationFunction extends NumericalAggregationFunction {
+public class CountIncludingMissingsAggregationFunction extends NumericalAggregationFunction {
 
-    public static final String FUNCTION_PRODUCT = "product";
+    public static final String FUNCTION_COUNT = "countWithMissings";
 
-    public ProductAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct) {
-        super(sourceAttribute, ignoreMissings, countOnlyDisctinct, FUNCTION_PRODUCT, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE);
+    public CountIncludingMissingsAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct) {
+        super(sourceAttribute, ignoreMissings, countOnlyDisctinct, FUNCTION_COUNT, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE);
     }
 
-    public ProductAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct, String functionName, String separatorOpen, String separatorClose) {
+    public CountIncludingMissingsAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct, String functionName, String separatorOpen, String separatorClose) {
         super(sourceAttribute, ignoreMissings, countOnlyDisctinct, functionName, separatorOpen, separatorClose);
     }
 
     @Override
     public Aggregator createAggregator() {
-        return new ProductAggregator(this);
+        return new CountIncludingMissingsAggregator(this);
+    }
+
+    @Override
+    public boolean isCompatible() {
+        return true;
     }
 
     @Override
     public void setDefault(Attribute attribute, DoubleArrayDataRow row) {
-        row.set(attribute, 1);
+        row.set(attribute, 0);
     }
 }

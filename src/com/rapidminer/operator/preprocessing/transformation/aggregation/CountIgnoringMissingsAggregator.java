@@ -22,45 +22,51 @@
  */
 package com.rapidminer.operator.preprocessing.transformation.aggregation;
 
+import java.util.HashSet;
+
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.table.DataRow;
 
 /**
- * This is an {@link Aggregator} for the {@link CountMAggregationFunction}
+ * This is an {@link Aggregator} for the {@link CountAggregationFunction}
+ * It counts all non-NaN values.
  * 
  * @author Sebastian Land
  */
-public class CountMAggregator implements Aggregator {
+public class CountIgnoringMissingsAggregator implements Aggregator {
 
     private Attribute sourceAttribute;
-    private int count = 0;
-    private boolean ignoreMissings;
+    private double count = 0;
 
-    public CountMAggregator(AggregationFunction function) {
+    private boolean isCountingOnlyDistinct = false;
+    private HashSet<Double> valuesOccured = null;
+
+    public CountIgnoringMissingsAggregator(AggregationFunction function) {
         this.sourceAttribute = function.getSourceAttribute();
-        ignoreMissings = function.isIgnoringMissings();
+        this.isCountingOnlyDistinct = function.isCountingOnlyDistinct();
+        if (isCountingOnlyDistinct)
+            valuesOccured = new HashSet<Double>();
     }
 
     @Override
     public void count(Example example) {
-        if (!ignoreMissings)
-            count++;
-        else {
-            if (!Double.isNaN(example.getValue(sourceAttribute)))
+        double value = example.getValue(sourceAttribute);
+        if (!Double.isNaN(value)) {
+            if (!isCountingOnlyDistinct || valuesOccured.add(value))
                 count++;
         }
     }
 
     @Override
     public void count(Example example, double weight) {
-        if (!ignoreMissings)
-            count += weight;
-        else {
-            if (!Double.isNaN(example.getValue(sourceAttribute)))
-                count += weight;
+        double value = example.getValue(sourceAttribute);
+        if (!Double.isNaN(value)) {
+            if (!isCountingOnlyDistinct || valuesOccured.add(value))
+                count+= weight;
         }
     }
+
 
     @Override
     public void set(Attribute attribute, DataRow row) {

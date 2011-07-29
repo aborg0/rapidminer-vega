@@ -29,50 +29,52 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.table.DataRow;
 
 /**
- * This is an {@link Aggregator} for the {@link CountAggregationFunction}
- * It counts all non-NaN values.
+ * This is an {@link Aggregator} for the {@link CountIncludingMissingsAggregationFunction} It counts all examples, if not ignoreMissing is true.
+ * Anyway, if only distinct values are counted, Missings are ignored.
  * 
  * @author Sebastian Land
  */
-public class CountAggregator implements Aggregator {
+public class CountIncludingMissingsAggregator implements Aggregator {
 
     private Attribute sourceAttribute;
-    private double count = 0;
-    private boolean isIgnoringMissings = false;
+    private int count = 0;
+    private boolean ignoreMissings;
 
     private boolean isCountingOnlyDistinct = false;
     private HashSet<Double> valuesOccured = null;
 
-    public CountAggregator(AggregationFunction function) {
+    public CountIncludingMissingsAggregator(AggregationFunction function) {
         this.sourceAttribute = function.getSourceAttribute();
-        this.isIgnoringMissings = function.isIgnoringMissings();
+        ignoreMissings = function.isIgnoringMissings();
         this.isCountingOnlyDistinct = function.isCountingOnlyDistinct();
         if (isCountingOnlyDistinct)
             valuesOccured = new HashSet<Double>();
+
     }
 
     @Override
     public void count(Example example) {
-        double value = example.getValue(sourceAttribute);
-        if (!Double.isNaN(value)) {
-            if (!isCountingOnlyDistinct || valuesOccured.add(value))
-                count++;
-        } else if (!isIgnoringMissings) {
-            count = Double.NaN;
+        if (!ignoreMissings && !isCountingOnlyDistinct)
+            count++;
+        else {
+            double value = example.getValue(sourceAttribute);
+            if (!Double.isNaN(value))
+                if (!isCountingOnlyDistinct || valuesOccured.add(value))
+                    count++;
         }
     }
 
     @Override
     public void count(Example example, double weight) {
-        double value = example.getValue(sourceAttribute);
-        if (!Double.isNaN(value)) {
-            if (!isCountingOnlyDistinct || valuesOccured.add(value))
-                count+= weight;
-        } else if (!isIgnoringMissings) {
-            count = Double.NaN;
+        if (!ignoreMissings && !isCountingOnlyDistinct)
+            count += weight;
+        else {
+            double value = example.getValue(sourceAttribute);
+            if (!Double.isNaN(value))
+                if (!isCountingOnlyDistinct || valuesOccured.add(value))
+                    count += weight;
         }
     }
-
 
     @Override
     public void set(Attribute attribute, DataRow row) {

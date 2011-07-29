@@ -156,7 +156,7 @@ public class AggregationOperator extends AbstractDataProcessing {
                 resultMD.addAttribute(new AttributeMetaData(defaultFunction + "(" + amd.getName() + ")", getResultType(defaultFunction, amd)));
             }
         }
-        
+
         // add aggregated attributes of list
         List<String[]> parameterList = this.getParameterList(PARAMETER_AGGREGATION_ATTRIBUTES);
         for (String[] function : parameterList) {
@@ -236,7 +236,7 @@ public class AggregationOperator extends AbstractDataProcessing {
          * We have to check whether parameter is set and not empty,
          * because RegexpAttributeFilter needs parameter set and not empty. Otherwise a UserError is thrown.
          */
-        if (isParameterSet(PARAMETER_GROUP_BY_ATTRIBUTES) && (!getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES).isEmpty())) {
+        if (isParameterSet(PARAMETER_GROUP_BY_ATTRIBUTES) && !getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES).isEmpty()) {
             String groupByAttributesRegex = getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES);
 
             // make attributes nominal
@@ -248,7 +248,7 @@ public class AggregationOperator extends AbstractDataProcessing {
                 exampleSet = toNominalOperator.apply(exampleSet);
             } catch (OperatorCreationException e) {
                 // might work if attributes already nominal. Otherwise UserError will be thrown below.
-            	// TODO (Simon): Huh?
+                // TODO (Simon): Huh?
             }
 
             Attribute[] groupByAttributes = getAttributesArrayFromRegex(exampleSet.getAttributes(), groupByAttributesRegex);

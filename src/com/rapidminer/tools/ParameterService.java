@@ -30,7 +30,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,6 +37,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -93,7 +93,7 @@ public class ParameterService {
 
     private static boolean intialized = false;
     private static final List<ParameterChangeListener> PARAMETER_LISTENERS = new LinkedList<ParameterChangeListener>();
-    private static final HashMap<String, Parameter> PARAMETER_MAP = new HashMap<String, Parameter>();
+    private static final Map<String, Parameter> PARAMETER_MAP = new TreeMap<String, Parameter>();
     private static final List<ParameterWriter> PARAMETER_WRITERS = new LinkedList<ParameterWriter>();
 
     static {
@@ -195,7 +195,8 @@ public class ParameterService {
      */
     public static void setParameterValue(String key, String value) {
         // this might be removed later. It remains only for compatibility
-        System.setProperty(key, value);
+        if (System.getProperty(key) == null)
+            System.setProperty(key, value);
 
         // setting parameter
         Parameter parameter = PARAMETER_MAP.get(key);
@@ -405,7 +406,7 @@ public class ParameterService {
         Properties properties = new Properties();
         for (Entry<String, Parameter> entry : PARAMETER_MAP.entrySet()) {
             Parameter parameter = entry.getValue();
-            if (parameter.isDefined() && parameter.getValue() != null) {
+            if (parameter.getValue() != null) {
                 properties.put(entry.getKey(), parameter.getValue());
             }
         }

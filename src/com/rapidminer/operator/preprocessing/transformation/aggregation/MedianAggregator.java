@@ -156,15 +156,15 @@ public class MedianAggregator extends NumericalAggregator {
                     }
                 }
             }
-            // decide whether we will go to left or right: Median is in larger part
-            boolean useLeft = weightLeft + cutWeightLeft > weightRight + cutWeightRight;
-
             // check whether we can abort as we have found the median element
             int difference = Math.abs(cutWeightLeft + weightLeft - cutWeightRight - weightRight);
             if (difference <= weightEqual // the pivot element is the median value
                     || allValues.length == 1) {
                 break;
             }
+
+            // decide whether we will go to left or right: Median is in larger part
+            boolean useLeft = weightLeft + cutWeightLeft > weightRight + cutWeightRight;
 
             // copy respective values
             double[] newValues = new double[useLeft ? countLeft : countRight];
@@ -190,9 +190,9 @@ public class MedianAggregator extends NumericalAggregator {
             allValues = newValues;
             pivotValue = allValues[allValues.length / 2];
             if (useLeft) {
-                cutWeightRight += weightRight;
+                cutWeightRight += weightRight + weightEqual;
             } else {
-                cutWeightLeft += weightLeft;
+                cutWeightLeft += weightLeft + weightEqual;
             }
             countLeft = 0;
             countRight = 0;
