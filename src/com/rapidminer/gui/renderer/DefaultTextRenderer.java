@@ -56,25 +56,13 @@ public class DefaultTextRenderer extends NonGraphicalRenderer {
 
 		if (renderable instanceof ResultObject) {
 			ResultObject result = (ResultObject)renderable;
-			String str = toHTML(result.toResultString());
+			String str = Tools.escapeHTML(result.toResultString());
 			resultText.setText("<html><h1>" + result.getName() + "</h1><pre>" + str + "</pre></html>");			
 		} else {
-			String str = toHTML(renderable.toString());
+			String str = Tools.escapeHTML(renderable.toString());
 			resultText.setText("<html><h1>" + renderable.getClass().getSimpleName() + "</h1><pre>" + str + "</pre></html>");
 		}
 		return new ExtendedJScrollPane(resultText);
-	}
-
-	/**
-	 * Encodes the given String as HTML. Only linebreaks and less then and
-	 * greater than will be encoded.
-	 */
-	private String toHTML(String string) {
-		String str = string;
-		str = str.replaceAll(">", "&gt;");
-		str = str.replaceAll("<", "&lt;");
-		str = str.replaceAll(Tools.getLineSeparator(), "<br>");
-		return str;
 	}
 
 	@Override

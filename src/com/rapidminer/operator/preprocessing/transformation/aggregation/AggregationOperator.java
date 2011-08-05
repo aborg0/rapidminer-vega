@@ -24,6 +24,7 @@ package com.rapidminer.operator.preprocessing.transformation.aggregation;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -137,7 +138,9 @@ public class AggregationOperator extends AbstractDataProcessing {
         public Collection<? extends Object> getValues() {
             if (childrenMap != null)
                 return childrenMap.keySet();
-            return leafMap.keySet();
+            if (leafMap != null)
+                return leafMap.keySet();
+            return Collections.emptyList();
         }
     }
 

@@ -105,7 +105,7 @@ public abstract class PreprocessingOperator extends AbstractDataProcessing {
 	 *  If this operator modifies a single one, amd itself should be modified as a side effect
 	 *  and null should be returned. Note: If an empty collection is returned, amd will be removed,
 	 *  but no new attribute will be added. 
-	 * @param emd TODO*/
+     **/
 	protected abstract Collection<AttributeMetaData> modifyAttributeMetaData(ExampleSetMetaData emd, AttributeMetaData amd) throws UndefinedParameterError ;
 
 	public abstract PreprocessingModel createPreprocessingModel(ExampleSet exampleSet) throws OperatorException;

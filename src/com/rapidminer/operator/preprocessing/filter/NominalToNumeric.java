@@ -22,28 +22,36 @@
  */
 package com.rapidminer.operator.preprocessing.filter;
 
+import java.io.ObjectStreamException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import com.rapidminer.example.Attribute;
-import com.rapidminer.example.AttributeRole;
-import com.rapidminer.example.Attributes;
-import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
-import com.rapidminer.example.SimpleAttributes;
-import com.rapidminer.example.table.AttributeFactory;
-import com.rapidminer.example.table.ViewAttribute;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
+import com.rapidminer.operator.ports.metadata.SetRelation;
 import com.rapidminer.operator.preprocessing.PreprocessingModel;
 import com.rapidminer.operator.preprocessing.PreprocessingOperator;
+import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeAttribute;
+import com.rapidminer.parameter.ParameterTypeBoolean;
+import com.rapidminer.parameter.ParameterTypeCategory;
+import com.rapidminer.parameter.ParameterTypeList;
+import com.rapidminer.parameter.ParameterTypeString;
+import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
+import com.rapidminer.tools.container.Pair;
 import com.rapidminer.tools.math.container.Range;
 
 
@@ -55,9 +63,12 @@ import com.rapidminer.tools.math.container.Range;
  * 
  * For nominal attributes one of the following calculations will be done:
  * <ul>
- * <li>Dichotomization, i.e. one new attribute for each value of the nominal
- * attribute. The new attribute which corresponds to the actual nominal value
- * gets value 1 and all other attributes gets value 0.</li>
+ * <li>Dichotomization, i.e. dummy coding or effect coding: one new attribute 
+ * for each but one value of the nominal attribute. The new attribute which 
+ * corresponds to the actual nominal value gets value 1 and all other 
+ * attributes gets value 0.</li>
+ * If the nominal value is the one for which no attribute is being created,
+ * all other target attributes are set to 0 (dummy coding) or -1 (effect coding).
  * <li>Alternatively the values of nominal attributes can be seen as equally
  * ranked, therefore the nominal attribute will simply be turned into a real
  * valued attribute, the old values results in equidistant real values.</li>
@@ -67,116 +78,284 @@ import com.rapidminer.tools.math.container.Range;
  * more appropriate values based on the ranking between the ordinal values may
  * be included.
  * 
- * @author Ingo Mierswa, Sebastian Land
+ * @author Ingo Mierswa, Sebastian Land, Marius Helf
  */
 public class NominalToNumeric extends PreprocessingOperator {
-
-	private static class NominalToNumericModel extends PreprocessingModel {
-
+	
+	/**
+	 * This inner class is just a stub which delegates serialization to the
+	 * full implementation which now resides in its own file. This stub is
+	 * necessary to be able to read models which have been saved with an older
+	 * version of RapidMiner, where the full class had been implemented at
+	 * this location. The class has been extracted in RM 5.1.009.
+	 *  
+	 * @see com.rapidminer.operator.preprocessing.filter.NominalToNumericModel
+	 * @author Marius Helf
+	 */
+	@Deprecated
+	public static class NominalToNumericModel extends com.rapidminer.operator.preprocessing.filter.NominalToNumericModel {
 		private static final long serialVersionUID = -4203775081616082145L;
 
-		protected NominalToNumericModel(ExampleSet exampleSet) {
-			super(exampleSet);
+		protected NominalToNumericModel(ExampleSet exampleSet, int codingType) {
+			super(exampleSet, codingType);
 		}
 
-		@Override
-		public ExampleSet applyOnData(ExampleSet exampleSet) throws OperatorException {
-			// selecting transformation attributes and creating new numeric attributes
-			LinkedList<Attribute> nominalAttributes = new LinkedList<Attribute>();
-			LinkedList<Attribute> transformedAttributes = new LinkedList<Attribute>();
-			for (Attribute attribute : exampleSet.getAttributes()) {
-				if (!attribute.isNumerical()) {
-					nominalAttributes.add(attribute);
-					// creating new attributes for nominal attributes
-					transformedAttributes.add(AttributeFactory.createAttribute(attribute.getName(), Ontology.NUMERICAL));
-				}
-			}
-
-			// ensuring capacity in ExampleTable
-			exampleSet.getExampleTable().addAttributes(transformedAttributes);
-
-			// copying values
-			for (Example example: exampleSet) {
-				Iterator<Attribute> target = transformedAttributes.iterator();
-				for (Attribute attribute: nominalAttributes) {
-					example.setValue(target.next(), example.getValue(attribute));
-				}
-			}
-
-			// removing nominal attributes from example Set
-			Attributes attributes = exampleSet.getAttributes();
-			for(Attribute attribute: exampleSet.getAttributes()) {
-				if (!attribute.isNumerical())
-					attributes.replace(attribute, transformedAttributes.poll());
-			}
-			return exampleSet;
+		private Object readResolve() throws ObjectStreamException {
+			return new com.rapidminer.operator.preprocessing.filter.NominalToNumericModel(getTrainingHeader(), INTEGERS_CODING);
 		}
-
-		public Attributes getTargetAttributes(ExampleSet parentSet) {
-			SimpleAttributes attributes = new SimpleAttributes();
-			// add special attributes to new attributes
-			Iterator<AttributeRole> specialRoles = parentSet.getAttributes().specialAttributes();
-			while (specialRoles.hasNext()) {
-				attributes.add(specialRoles.next());
-			}
-
-			// add regular attributes
-			Iterator<AttributeRole> i = parentSet.getAttributes().allAttributeRoles();
-			while (i.hasNext()) {
-				AttributeRole attributeRole = i.next();
-				if (!attributeRole.isSpecial()) {
-					Attribute attribute = attributeRole.getAttribute();
-					if (!attribute.isNumerical()) {
-						attributes.addRegular(new ViewAttribute(this, attribute, attribute.getName(), Ontology.INTEGER, null));
-					} else {
-						attributes.add(attributeRole);
-					}
-				}
-			}
-			return attributes;
-		}
-
-		public double getValue(Attribute targetAttribute, double value) {
-			return value;
-		}
-
-		@Override
-		public String getName() {
-			return "Nominal2Numerical Model";
-		}
-
-
 	}
+	
+	
+	public static final String PARAMETER_CODING_TYPE = "coding_type";
+	public static final String PARAMETER_COMPARISON_GROUP = "comparison_group";
+	public static final String PARAMETER_USE_UNDERSCORE_IN_NAME = "use_underscore_in_name";
+	public static final String PARAMETER_COMPARISON_GROUPS = "comparison_groups";
+	public static final String PARAMETER_ATTRIBUTE_FOR_COMPARISON_GROUP = "comparison_group_attribute";
+
+	public static final int DUMMY_CODING = 0;
+	public static final int EFFECT_CODING = 1;
+	public static final int INTEGERS_CODING = 2;
+	
+	public static final String[] ENCODING_TYPES = new String[] {"dummy coding", "effect coding", "unique integers"};		
+	
+	public static final int UNDERSCORE_NAMING_SCHEME = 0;
+	public static final int EQUAL_SIGN_NAMING_SCHEME = 1;
 
 	public NominalToNumeric(OperatorDescription description) {
 		super(description);
 	}
+	
+	/**
+	 * Returns a Map from attribute name to value string containing the values the user entered
+	 * for parameter PARAMETER_COMPARISON_GROUPS
+	 */
+	private Map<String,String> getUserEnteredComparisonGroups() throws UndefinedParameterError {
+		List<String[]> userValues = getParameterList(PARAMETER_COMPARISON_GROUPS);
+		Map<String,String> userValueMap = new LinkedHashMap<String,String>();
+		for( String[] tuple : userValues ) {
+			userValueMap.put(tuple[0], tuple[1]);
+		}
+		return userValueMap;		
+	}
 
 	@Override
-	protected Collection<AttributeMetaData> modifyAttributeMetaData(ExampleSetMetaData emd, AttributeMetaData amd) {
-		int mappingSize = amd.getValueSet().size();
-		amd.setType(Ontology.NUMERICAL);
-		amd.setValueRange(new Range(0, mappingSize - 1), amd.getValueSetRelation());
-		return Collections.singleton(amd);
+	protected Collection<AttributeMetaData> modifyAttributeMetaData(ExampleSetMetaData emd, AttributeMetaData amd) throws UndefinedParameterError {
+		int codingType = getParameterAsInt(PARAMETER_CODING_TYPE);
+		if ( codingType == INTEGERS_CODING ) {
+			// integer coding
+			int mappingSize = amd.getValueSet().size();
+			amd.setType(Ontology.NUMERICAL);
+			amd.setValueRange(new Range(0, mappingSize - 1), amd.getValueSetRelation());
+			return Collections.singleton(amd);
+		} else {	// dummy coding, effect coding
+			Collection<AttributeMetaData> newAttribs = new LinkedList<AttributeMetaData>();
+			Map<String,String> attributeToComparisonGroupMap = getUserEnteredComparisonGroups();
+			String comparisonGroup = attributeToComparisonGroupMap.get(amd.getName());
+			for ( String value : amd.getValueSet() ) {
+				if ( !value.equals(comparisonGroup) ) {
+					AttributeMetaData newAttrib = new AttributeMetaData( getTargetAttributeName( amd.getName(), value, getParameterAsBoolean(PARAMETER_USE_UNDERSCORE_IN_NAME) ), Ontology.INTEGER );
+					double lowerBound = 0;
+					if ( codingType == EFFECT_CODING ) {
+						lowerBound = -1;
+					}
+					newAttrib.setValueRange(new Range(lowerBound, 1), SetRelation.EQUAL );
+					newAttribs.add(newAttrib);
+				}
+			}
+			return newAttribs;
+		}
+	}
+	
+	
+	/**
+	 * Constructs the name of the target attribute for the current naming scheme and the given source attribute and the value string.
+	 */
+	protected static String getTargetAttributeName( String sourceAttributeName, String value, boolean useUnderscore )
+	{
+		if ( useUnderscore ) {
+			return sourceAttributeName + "_" + value;
+		} else  {
+			return sourceAttributeName + " = " + value;
+		}
+	}
+
+	
+	/**
+	 * Creates the a map from target attribute names to the value (internal string mapping), for
+	 * which the attribute becomes 1. Use this function for dummy coding.   
+	 */
+	private Map<String,Double> getAttributeTo1ValueMap(ExampleSet exampleSet) throws OperatorException {
+		Map<String,Double> attributeTo1ValueMap = new LinkedHashMap<String, Double>();
+
+		// get nominal attributes from exampleSet
+		LinkedList<Attribute> nominalAttributes = new LinkedList<Attribute>();
+		for (Attribute attribute : exampleSet.getAttributes()) {
+			if (!attribute.isNumerical()) {
+				nominalAttributes.add(attribute);
+			}
+		}
+		
+		boolean useUnderscore = getParameterAsBoolean(PARAMETER_USE_UNDERSCORE_IN_NAME);
+		Map<String,Double> sourceAttributeToComparisonGroupMap = getSourceAttributeToComparisonGroupMap(exampleSet);
+		
+		for ( Attribute nominalAttribute : nominalAttributes ) {
+			double comparisonGroupValue = sourceAttributeToComparisonGroupMap.get(nominalAttribute.getName());
+			// creating new attributes for nominal attributes			
+			for ( int currentValue = 0; currentValue < nominalAttribute.getMapping().size(); ++currentValue ) {
+				if ( currentValue != comparisonGroupValue ) {
+					attributeTo1ValueMap.put( 
+							getTargetAttributeName(nominalAttribute.getName(), nominalAttribute.getMapping().mapIndex(currentValue), useUnderscore), 
+							(double)currentValue );
+				}
+			}
+		}
+		return attributeTo1ValueMap;
+	}
+
+	/**
+	 * Creates the a map from target attribute names to a pair of the value (internal string mapping), for
+	 * which the attribute becomes 1 (first value of the pair) and for which it becomes -1 (second value). 
+	 * Use this function for effect coding.   
+	 */
+	private Map<String,Pair<Double,Double>> getAttributeToValuesMap(ExampleSet exampleSet) throws OperatorException {
+		Map<String,Pair<Double,Double>> attributeToComparisonGroupValueMap = new LinkedHashMap<String, Pair<Double,Double>>();
+		
+		// get nominal attributes from exampleSet
+		LinkedList<Attribute> nominalAttributes = new LinkedList<Attribute>();
+		for (Attribute attribute : exampleSet.getAttributes()) {
+			if (!attribute.isNumerical()) {
+				nominalAttributes.add(attribute);
+			}
+		}
+		
+		boolean useUnderscore = getParameterAsBoolean(PARAMETER_USE_UNDERSCORE_IN_NAME);
+		Map<String,Double> sourceAttributeToComparisonGroupValueMap = getSourceAttributeToComparisonGroupMap(exampleSet);
+
+		for ( Attribute nominalAttribute : nominalAttributes ) {
+			double comparisonGroup = sourceAttributeToComparisonGroupValueMap.get(nominalAttribute.getName());
+			for (int currentValue = 0; currentValue < nominalAttribute.getMapping().size(); ++currentValue) {
+				if (currentValue != sourceAttributeToComparisonGroupValueMap.get(nominalAttribute.getName())) {
+					attributeToComparisonGroupValueMap.put( 
+							getTargetAttributeName(nominalAttribute.getName(), nominalAttribute.getMapping().mapIndex(currentValue), useUnderscore), 
+							new Pair<Double,Double>((double)currentValue, comparisonGroup) );
+				}
+			}
+		}
+		return attributeToComparisonGroupValueMap;
+	}
+	
+	/**
+	 * Returns a map from source attribute name to the value (internal string mapping) 
+	 * of the comparison group of this attribute.
+	 */
+	private Map<String, Double> getSourceAttributeToComparisonGroupMap(ExampleSet exampleSet) throws OperatorException {
+		Map<String, Double> sourceAttributeToComparisonGroupMap = new LinkedHashMap<String, Double>();
+		
+		// check if the user set a comparison group for all selected attributes 
+		List<String[]> attributesComparisonGroups = getParameterList(PARAMETER_COMPARISON_GROUPS);
+		for ( Attribute attribute : exampleSet.getAttributes() ) {
+			if ( !attribute.isNumerical() ) {
+				String attributeName = attribute.getName();
+
+				// search for this attribute in user input
+				boolean found = false;
+				for(String[] attributeComparisonGroup : attributesComparisonGroups) {
+					if ( attributeComparisonGroup[0].equals(attributeName) ) {
+						if (found) {
+							throw new UserError(this, "nominal_to_numerical.duplicate_comparison_group", attributeName); 	// duplicate entry 
+						}
+						found = true;
+
+						String comparisonGroup = attributeComparisonGroup[1];
+						double comparisonGroupValue = attribute.getMapping().getIndex(comparisonGroup);
+						// now check if the supplied value exists in the mapping
+						if (comparisonGroupValue < 0) {
+							throw new UserError(this, "nominal_to_numerical.illegal_comparison_group", attributeName, attributeComparisonGroup[1]);	// illegal value
+						}
+						
+						// store comparison group in map:
+						sourceAttributeToComparisonGroupMap.put(attributeName, comparisonGroupValue);
+					}
+				}
+				
+				// check if the attribute has been found at all
+				if (!found) {
+					throw new UserError(this, "nominal_to_numerical.illegal_comparison_group", attributeName, "<undefined>");	// no value
+				}
+			}
+		}
+		
+		return sourceAttributeToComparisonGroupMap;
 	}
 
 	@Override
 	public PreprocessingModel createPreprocessingModel(ExampleSet exampleSet) throws OperatorException {
-		return new NominalToNumericModel(exampleSet);
+		
+		
+		int codingType = getParameterAsInt(PARAMETER_CODING_TYPE);
+		if ( codingType == INTEGERS_CODING ) {
+			return new com.rapidminer.operator.preprocessing.filter.NominalToNumericModel(exampleSet, codingType);
+		} else if ( codingType == DUMMY_CODING ) {
+			Map<String,Double> sourceAttributeToComparisonGroupMap = getSourceAttributeToComparisonGroupMap(exampleSet);
+			Map<String,Double> attributeTo1ValueMap = getAttributeTo1ValueMap(exampleSet);
+			return new com.rapidminer.operator.preprocessing.filter.NominalToNumericModel(
+					exampleSet, 
+					codingType, 
+					getParameterAsBoolean(PARAMETER_USE_UNDERSCORE_IN_NAME), 
+					sourceAttributeToComparisonGroupMap, 
+					attributeTo1ValueMap,
+					null);
+		} else if ( codingType == EFFECT_CODING ) {
+			Map<String,Double> sourceAttributeToComparisonGroupMap = getSourceAttributeToComparisonGroupMap(exampleSet);
+			Map<String,Pair<Double,Double>> attributeToValuesMap = getAttributeToValuesMap(exampleSet);			
+			return new com.rapidminer.operator.preprocessing.filter.NominalToNumericModel(
+					exampleSet, 
+					codingType, 
+					getParameterAsBoolean(PARAMETER_USE_UNDERSCORE_IN_NAME), 
+					sourceAttributeToComparisonGroupMap, 
+					null, 
+					attributeToValuesMap);
+		} else {
+			assert(false); // unsupported coding
+			return null;
+		}
 	}
 
 	@Override
 	public Class<? extends PreprocessingModel> getPreprocessingModelClass() {
-		return NominalToNumericModel.class;
+		return com.rapidminer.operator.preprocessing.filter.NominalToNumericModel.class;
 	}
 	
 	@Override
 	protected int[] getFilterValueTypes() {
-		return new int[] { Ontology.NOMINAL, Ontology.NOMINAL  };
+		return new int[] { Ontology.NOMINAL};
 	}
 	
 	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), NominalToNumeric.class, attributeSelector);
+	}
+	
+	@Override
+	public List<ParameterType> getParameterTypes() {
+		List<ParameterType> types = super.getParameterTypes();
+		
+
+		types.add(new ParameterTypeCategory(PARAMETER_CODING_TYPE, "The coding of the numerical attributes.", ENCODING_TYPES, INTEGERS_CODING, false));
+		ParameterType type = new ParameterTypeList(PARAMETER_COMPARISON_GROUPS, "The value which becomes the comparison group.", 
+				new ParameterTypeAttribute(PARAMETER_ATTRIBUTE_FOR_COMPARISON_GROUP, "The attribute for which the comparison group is set.", getExampleSetInputPort(), Ontology.NOMINAL), 
+				new ParameterTypeString(PARAMETER_COMPARISON_GROUP, "The value which is used as comparison group (default: last value).", true, false ));
+		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_CODING_TYPE, ENCODING_TYPES, true, EFFECT_CODING, DUMMY_CODING ));		
+		types.add( type );		
+		
+		type = new ParameterTypeBoolean(
+				PARAMETER_USE_UNDERSCORE_IN_NAME, 
+				"Indicates if underscores should be used in the new attribute names instead of empty spaces and '='. Although the resulting names are harder to read for humans it might be more appropriate to use these if the data should be written into a database system.", 
+				false, 
+				true);
+		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_CODING_TYPE, ENCODING_TYPES, true, EFFECT_CODING, DUMMY_CODING));
+		types.add(type);
+
+		return types;
 	}
 }
