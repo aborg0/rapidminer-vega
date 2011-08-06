@@ -23,6 +23,7 @@
 package com.rapidminer.operator.preprocessing.filter;
 
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,7 @@ import com.rapidminer.example.table.ViewAttribute;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.preprocessing.PreprocessingModel;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.container.Pair;
 
 /**
@@ -67,6 +69,14 @@ class NominalToNumericModel extends PreprocessingModel {
 		 * maps source attributes to their comparison group.
 		 */
 		private Map<String,Double> sourceAttributeToComparisonGroupMap = null;
+		
+		/**
+		 * maps source attributes to the comparison group string.
+		 * Only used with dummy/effect coding.
+		 * 
+		 * This map is *only* used for displaying the model (i.e. in toResultString()). 
+		 */
+		private Map<String,String> sourceAttributeToComparisonGroupStringsMap = null;
 		
 		
 		/**
@@ -101,7 +111,22 @@ class NominalToNumericModel extends PreprocessingModel {
 			this.useUnderscoreInName = useUnderscoreInName;
 			this.sourceAttributeToComparisonGroupMap = sourceAttributeToComparisonGroupMap;
 			this.attributeTo1ValueMap = attributeTo1ValueMap;
-			this.attributeToValuesMap = attributeToValuesMap; 			
+			this.attributeToValuesMap = attributeToValuesMap;
+			
+			
+			if (codingType == NominalToNumeric.DUMMY_CODING || codingType == NominalToNumeric.EFFECT_CODING) {
+				// store comparison group strings for display
+				assert(sourceAttributeToComparisonGroupMap != null); // must not be null for dummy/effect coding
+				
+				sourceAttributeToComparisonGroupStringsMap = new LinkedHashMap<String, String>();
+				for ( Map.Entry<String, Double> entry : sourceAttributeToComparisonGroupMap.entrySet() ) {
+					String attributeName = entry.getKey();
+					double comparisonGroup = entry.getValue();
+					Attribute attribute = exampleSet.getAttributes().get(attributeName);
+					String comparisonGroupString = attribute.getMapping().mapIndex((int)comparisonGroup);
+					sourceAttributeToComparisonGroupStringsMap.put(attributeName, comparisonGroupString);
+				}
+			}
 		}
 
 		@Override
@@ -282,5 +307,37 @@ class NominalToNumericModel extends PreprocessingModel {
 			return "Nominal2Numerical Model";
 		}
 
-
+	    @Override
+	    public String toResultString() {
+	    	// TODO codingType, Integer-Mapping, Comparison Groups, useUnderscores
+	    	
+	        StringBuilder builder = new StringBuilder();
+	        Attributes trainAttributes = getTrainingHeader().getAttributes();
+	        builder.append(getName()+ Tools.getLineSeparators(2));
+	        String codingTypeString = "";
+	        switch(codingType) {
+	        case NominalToNumeric.INTEGERS_CODING:
+	        	codingTypeString = "unique integers";
+	        	break;
+	        case NominalToNumeric.DUMMY_CODING:
+	        	codingTypeString = "dummy coding";
+	        	break;
+	        case NominalToNumeric.EFFECT_CODING:
+	        	codingTypeString = "effect coding";
+	        	break;
+	        }
+	        builder.append("Coding Type: " +  codingTypeString + Tools.getLineSeparator());
+	        if ( codingType == NominalToNumeric.INTEGERS_CODING ) {
+		        builder.append("Model covering " + trainAttributes.size() + " attributes:" + Tools.getLineSeparator());
+		        for (Attribute attribute: trainAttributes) {
+		            builder.append(" - " + attribute.getName() + Tools.getLineSeparator());
+		        }
+	        } else {
+		        builder.append("Model covering " + trainAttributes.size() + " attributes (with comparison group):" + Tools.getLineSeparator());
+		        for (Attribute attribute: trainAttributes) {
+		            builder.append(" - " + attribute.getName() + " ('" + sourceAttributeToComparisonGroupStringsMap.get(attribute.getName()) + "')" + Tools.getLineSeparator());
+		        }
+	        }
+	        return builder.toString();
+	    }
 	}

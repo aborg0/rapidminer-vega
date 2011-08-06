@@ -344,7 +344,7 @@ public class NominalToNumeric extends PreprocessingOperator {
 		types.add(new ParameterTypeCategory(PARAMETER_CODING_TYPE, "The coding of the numerical attributes.", ENCODING_TYPES, INTEGERS_CODING, false));
 		ParameterType type = new ParameterTypeList(PARAMETER_COMPARISON_GROUPS, "The value which becomes the comparison group.", 
 				new ParameterTypeAttribute(PARAMETER_ATTRIBUTE_FOR_COMPARISON_GROUP, "The attribute for which the comparison group is set.", getExampleSetInputPort(), Ontology.NOMINAL), 
-				new ParameterTypeString(PARAMETER_COMPARISON_GROUP, "The value which is used as comparison group (default: last value).", true, false ));
+				new ParameterTypeString(PARAMETER_COMPARISON_GROUP, "The value which is used as comparison group.", true, false ));
 		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_CODING_TYPE, ENCODING_TYPES, true, EFFECT_CODING, DUMMY_CODING ));		
 		types.add( type );		
 		

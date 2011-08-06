@@ -22,6 +22,8 @@
  */
 package com.rapidminer.operator.performance.cost;
 
+import java.util.Map;
+
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.operator.performance.MeasuredPerformance;
@@ -36,61 +38,84 @@ import com.rapidminer.tools.math.Averagable;
  */
 public class ClassificationCostCriterion extends MeasuredPerformance {
 
-	private static final long serialVersionUID = -7466139591781285005L;
+    private static final long serialVersionUID = -7466139591781285005L;
 
-	private double[][] costMatrix;
-	private double exampleCount; 
-	private double costs;
-	Attribute label;
-	Attribute predictedLabel;
-	
-	public ClassificationCostCriterion(double[][] costMatrix, Attribute label, Attribute predictedLabel) {
-		this.costMatrix = costMatrix;
-		this.label = label;
-		this.predictedLabel = predictedLabel;
-		exampleCount = 0;
-		costs = 0;
-	}
-	
-	@Override
-	public String getDescription() {
-		return "This Criterion delievers the misclassificationCosts";
-	}
+    private double[][] costMatrix;
+    private double exampleCount;
+    private double costs;
+    Attribute label;
+    Attribute predictedLabel;
+    private Map<String, Integer> classOrderMap = null;
 
-	@Override
-	public String getName() {
-		return "Misclassificationcosts";
-	}
+    /**
+     * This constructor is for counting with the order respective to the internal nominal mapping.
+     * It is recommended to explicitly define the classOrder and use the {@link #ClassificationCostCriterion(double[][], Map, Attribute, Attribute)}
+     * constructor instead.
+     */
+    public ClassificationCostCriterion(double[][] costMatrix, Attribute label, Attribute predictedLabel) {
+        this(costMatrix, null, label, predictedLabel);
+    }
 
-	@Override
-	public void countExample(Example example) {
-		exampleCount ++;
-		costs += costMatrix[(int)example.getValue(predictedLabel)][(int)example.getValue(label)];
-	}
+    /**
+     * Constructor to explicitly define the order of class names. Please take into account that the cost matrix
+     * must have the same dimensions as the classorderMap has size and each interger between 0 and size-1 must
+     * occur once in the classOrderMap.
+     */
+    public ClassificationCostCriterion(double[][] costMatrix, Map<String, Integer> classOrderMap, Attribute label, Attribute predictedLabel) {
+        assert costMatrix.length == classOrderMap.size();
+        this.classOrderMap = classOrderMap;
+        this.costMatrix = costMatrix;
+        this.label = label;
+        this.predictedLabel = predictedLabel;
+        exampleCount = 0;
+        costs = 0;
+    }
 
-	@Override
-	public double getExampleCount() {
-		return exampleCount;
-		}
+    @Override
+    public String getDescription() {
+        return "This Criterion delievers the misclassificationCosts";
+    }
 
-	@Override
-	public double getFitness() {
-		return -costs;
-	}
+    @Override
+    public String getName() {
+        return "Misclassificationcosts";
+    }
 
-	@Override
-	protected void buildSingleAverage(Averagable averagable) {
-	}
+    @Override
+    public void countExample(Example example) {
+        exampleCount ++;
+        if (classOrderMap == null) {
+            costs += costMatrix[(int)example.getValue(predictedLabel)][(int)example.getValue(label)];
+        } else {
+            int predictedLabelIndex = classOrderMap.get(example.getNominalValue(predictedLabel));
+            int labelIndex = classOrderMap.get(example.getNominalValue(label));
+            costs += costMatrix[predictedLabelIndex][labelIndex];
+        }
+    }
 
-	@Override
-	public double getMikroAverage() {
-		return costs / exampleCount;
-	}
+    @Override
+    public double getExampleCount() {
+        return exampleCount;
+    }
 
-	@Override
-	public double getMikroVariance() {
-		return 0;
-	}
+    @Override
+    public double getFitness() {
+        return -costs;
+    }
+
+    @Override
+    protected void buildSingleAverage(Averagable averagable) {
+    }
+
+    @Override
+    public double getMikroAverage() {
+        return costs / exampleCount;
+    }
+
+    @Override
+    public double getMikroVariance() {
+        return 0;
+    }
 
 
 }
