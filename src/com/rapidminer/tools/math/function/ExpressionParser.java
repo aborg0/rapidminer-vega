@@ -58,6 +58,7 @@ import com.rapidminer.operator.ports.metadata.SetRelation;
 import com.rapidminer.operator.preprocessing.filter.ChangeAttributeName;
 import com.rapidminer.tools.LoggingHandler;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.RandomGenerator;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.math.function.expressions.Average;
 import com.rapidminer.tools.math.function.expressions.BitwiseAnd;
@@ -785,7 +786,7 @@ public class ExpressionParser {
 
         // check for errors
         if (parser.hasError()) {
-            throw new GenerationException(function + ": " + parser.getErrorInfo());
+        	throw new GenerationException("Offending attribute: '" + name + "', Expression: '" + function + "', Error: '" + parser.getErrorInfo() + "'");
         }
 
         // derive all used variables
@@ -830,31 +831,45 @@ public class ExpressionParser {
         }
 
         if (parser.hasError()) {
-            throw new GenerationException(parser.getErrorInfo());
+        	throw new GenerationException("Offending attribute: '" + name + "', Expression: '" + function + "', Error: '" + parser.getErrorInfo() + "'");
         }
 
         // create the new attribute from the delivered type
         Object result = parser.getValueAsObject();
 
         if (parser.hasError()) {
-            throw new GenerationException(parser.getErrorInfo());
+        	throw new GenerationException("Offending attribute: '" + name + "', Expression: '" + function + "', Error: '" + parser.getErrorInfo() + "'");
         }
+        
+        
 
         Attribute newAttribute = null;
+        // if != null this needs to be overriden
+        Attribute existingAttribute = exampleSet.getAttributes().get(name);
+        StringBuffer appendix = new StringBuffer();
+        String targetName = name;
+        if (existingAttribute != null) {
+        	// append a random string to the attribute's name until it's a unique attribute name
+        	do {
+        		appendix.append(RandomGenerator.getGlobalRandomGenerator().nextString(5));
+        	} while (exampleSet.getAttributes().get(name + appendix.toString()) != null);
+        	name = name + appendix.toString();
+        }
+        
         if (result instanceof Boolean || result == UnknownValue.UNKNOWN_BOOLEAN) {
-            newAttribute = AttributeFactory.createAttribute(name, Ontology.BINOMINAL);
-            newAttribute.getMapping().mapString("false");
-            newAttribute.getMapping().mapString("true");
+        	newAttribute = AttributeFactory.createAttribute(name, Ontology.BINOMINAL);
+        	newAttribute.getMapping().mapString("false");
+        	newAttribute.getMapping().mapString("true");
         } else if (result instanceof Number) {
-            newAttribute = AttributeFactory.createAttribute(name, Ontology.REAL);
+        	newAttribute = AttributeFactory.createAttribute(name, Ontology.REAL);
         } else if (result instanceof Complex) {
-            newAttribute = AttributeFactory.createAttribute(name, Ontology.REAL);
+        	newAttribute = AttributeFactory.createAttribute(name, Ontology.REAL);
         } else if (result instanceof Date || result == UnknownValue.UNKNOWN_DATE) {
-            newAttribute = AttributeFactory.createAttribute(name, Ontology.DATE_TIME);
+        	newAttribute = AttributeFactory.createAttribute(name, Ontology.DATE_TIME);
         } else if (result instanceof Calendar || result == UnknownValue.UNKNOWN_DATE) {
-            newAttribute = AttributeFactory.createAttribute(name, Ontology.DATE_TIME);
+        	newAttribute = AttributeFactory.createAttribute(name, Ontology.DATE_TIME);
         } else {
-            newAttribute = AttributeFactory.createAttribute(name, Ontology.NOMINAL);
+        	newAttribute = AttributeFactory.createAttribute(name, Ontology.NOMINAL);
         }
 
         // set construction description
@@ -896,7 +911,7 @@ public class ExpressionParser {
 
             // check for errors
             if (parser.hasError()) {
-                throw new GenerationException(parser.getErrorInfo());
+            	throw new GenerationException("Offending attribute: '" + name + "', Expression: '" + function + "', Error: '" + parser.getErrorInfo() + "'");
             }
 
             // store result
@@ -920,6 +935,19 @@ public class ExpressionParser {
                 example.setValue(newAttribute, newAttribute.getMapping().mapString(result.toString()));
             }
         }
+        
+        // remove existing attribute (if necessary)
+        if (existingAttribute != null) {
+        	/* FIXME: The following line cannot be used, as the attribute might
+        	* occur in other example sets, or other attribute instances might use the same 
+        	* ExampleTable's column.
+        	* 
+        	* exampleSet.getExampleTable().removeAttribute(existingAttribute);
+        	*/
+        	exampleSet.getAttributes().remove(existingAttribute);
+        	newAttribute.setName(targetName);
+        }
+        
         return newAttribute;
     }
 

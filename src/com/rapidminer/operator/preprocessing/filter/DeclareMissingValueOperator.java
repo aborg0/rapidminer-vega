@@ -22,7 +22,14 @@
  */
 package com.rapidminer.operator.preprocessing.filter;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import org.nfunk.jep.SymbolTable;
+import org.nfunk.jep.Variable;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Attributes;
@@ -42,11 +49,14 @@ import com.rapidminer.operator.tools.AttributeSubsetSelector;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeDouble;
+import com.rapidminer.parameter.ParameterTypeExpression;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
+import com.rapidminer.tools.math.function.ExpressionParser;
+import com.rapidminer.tools.math.function.UnknownValue;
 
 /**
  * Allows the declaration of a missing value (nominal or numeric) on a selected subset. The given value 
@@ -62,6 +72,9 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 	/** parameter to set the missing value for nominal type*/
 	public static final String PARAMETER_MISSING_VALUE_NOMINAL = "nominal_value";
 	
+	/** parameter to set the epxression */
+	public static final String PARAMETER_MISSING_VALUE_EXPRESSION = "expression_value";
+	
 	/** parameter to set the missing value type (numeric or nominal) */
 	public static final String PARAMETER_MODE = "mode";
 	
@@ -74,12 +87,20 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 	/** constant for PARAMETER_VALUE_TYPE */
 	private static final String NOMINAL = "nominal";
 	
+	/** constant for PARAMETER_VALUE_TYPE */
+	private static final String EXPRESSION = "expression";
+	
 	/** value types to choose from in {@link #PARAMETER_MODE}*/
-	private static final String[] VALUE_TYPES = new String[]{NUMERIC, NOMINAL};
+	private static final String[] VALUE_TYPES = new String[]{NUMERIC, NOMINAL, EXPRESSION};
+	
+	/** the ExpressionParser instance */
+	private static ExpressionParser expParser;
 	
 	
 	public DeclareMissingValueOperator(OperatorDescription description) {
 		super(description);
+		expParser = new ExpressionParser(true);
+		expParser.getParser().setAllowUndeclared(true);
 	}
 
 	@Override
@@ -105,8 +126,7 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 						default:
 							continue;
 						}
-					}
-					if (mode.equals(NOMINAL)) {
+					} else if (mode.equals(NOMINAL)) {
 						switch(amd.getValueType()) {
 						case Ontology.NOMINAL:
 						case Ontology.STRING:
@@ -119,6 +139,9 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 						default:
 							continue;
 						}
+					} else if (mode.equals(EXPRESSION)) {
+						// expression can be on all types so always true
+						parameterAttributeTypeExistsInSubset = true;
 					}
 				}
 				if (!parameterAttributeTypeExistsInSubset) {
@@ -144,14 +167,108 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 		ExampleSet subset = subsetSelector.getSubset(exampleSet, false);
 		Attributes attributes = subset.getAttributes();
 		String mode = getParameterAsString(PARAMETER_MODE);
+		
+		// handle EXPRESSION mode
+		if (mode.equals(EXPRESSION)) 
+		{
+			// parse expression
+			expParser.getParser().parseExpression(getParameterAsString(PARAMETER_MISSING_VALUE_EXPRESSION));
+			// error after parsing?
+			if (expParser.getParser().hasError()) {
+		        throw new OperatorException(expParser.getParser().getErrorInfo());
+			}
+			
+			SymbolTable symbolTable = expParser.getParser().getSymbolTable();
+			Map<String, Attribute> name2attributes = new HashMap<String, Attribute>();
+	        for (Object variableObj : symbolTable.values()) {
+	            Variable variable = (Variable) variableObj;// symbolTable.getVar(variableName.toString());
+	            if (!variable.isConstant()) {
+	                Attribute attribute = exampleSet.getAttributes().get(variable.getName());
+	                if (attribute == null) {
+	                    throw new OperatorException("No such attribute: '" + variable.getName() + "'");
+	                } else {
+	                    name2attributes.put(variable.getName(), attribute);
+	                    // retrieve test example with real values (needed to
+	                    // compliance checking!)
+	                    if (exampleSet.size() > 0) {
+	                        Example example = exampleSet.iterator().next();
+	                        if (attribute.isNominal()) {
+	                            if (Double.isNaN(example.getValue(attribute))) {
+	                            	expParser.getParser().addVariable(attribute.getName(), UnknownValue.UNKNOWN_NOMINAL); // ExpressionParserConstants.MISSING_VALUE);
+	                            } else {
+	                            	expParser.getParser().addVariable(attribute.getName(), example.getValueAsString(attribute));
+	                            }
+	                        } else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
+	                            Calendar cal = Calendar.getInstance();
+	                            cal.setTime(new Date((long) example.getValue(attribute)));
+	                            expParser.getParser().addVariable(attribute.getName(), cal);
+	                        } else {
+	                        	expParser.getParser().addVariable(attribute.getName(), example.getValue(attribute));
+	                        }
+	                    } else {
+	                        // nothing will be done later: no compliance to data
+	                        // must be met
+	                        if (attribute.isNominal()) {
+	                        	expParser.getParser().addVariable(attribute.getName(), UnknownValue.UNKNOWN_NOMINAL);
+	                        } else {
+	                        	expParser.getParser().addVariable(attribute.getName(), Double.NaN);
+	                        }
+	                    }
+	                }
+	            }
+	        }
+	        
+	        for (Example example : subset) {
+				// handle expression mode
+				if (mode.equals(EXPRESSION)) {
+					for (Map.Entry<String, Attribute> entry : name2attributes.entrySet()) {
+						String variableName = entry.getKey();
+						Attribute attribute = entry.getValue();
+						double value = example.getValue(attribute);
+						if (attribute.isNominal()) {
+							if (Double.isNaN(value)) {
+								expParser.getParser().setVarValue(variableName, UnknownValue.UNKNOWN_NOMINAL);
+							} else {
+								expParser.getParser().setVarValue(variableName, example.getValueAsString(attribute));
+							}
+						} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
+							if (Double.isNaN(value)) {
+								expParser.getParser().setVarValue(variableName, UnknownValue.UNKNOWN_DATE);
+							} else {
+								Calendar cal = Calendar.getInstance();
+								cal.setTime(new Date((long) value));
+								expParser.getParser().setVarValue(variableName, cal);
+							}
+						} else {
+							expParser.getParser().setVarValue(variableName, value);
+						}
+					}
+					
+					for (Attribute attribute : attributes) {
+						
+						Object result = expParser.getParser().getValueAsObject();
+						if (!(result instanceof Boolean)) {
+							//throw new OperatorException("expression does not evaluate to boolean!");
+						} else {
+							Boolean resultBoolean = (Boolean)result;
+							// change to missing on true evaluation
+							if (resultBoolean) {
+								example.setValue(attribute, Double.NaN);
+							}
+						}
+					}
+				}
+	        }
+		}
+		
+		// handle NUMERIC and NOMINAL modes
 		for (Example example : subset) {
 			for (Attribute attribute : attributes) {
 				if (mode.equals(NUMERIC)) {
 					if (example.getValue(attribute) == getParameterAsDouble(PARAMETER_MISSING_VALUE_NUMERIC)) {
 						example.setValue(attribute, Double.NaN);
 					}
-				}
-				if (mode.equals(NOMINAL)) {
+				} else if (mode.equals(NOMINAL)) {
 					if (example.getNominalValue(attribute).equals(getParameterAsString(PARAMETER_MISSING_VALUE_NOMINAL))) {
 						example.setValue(attribute, Double.NaN);
 					}
@@ -179,6 +296,11 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 		
 		type = new ParameterTypeString(PARAMETER_MISSING_VALUE_NOMINAL, "This parameter defines the missing nominal value", true, false);
 		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_MODE, VALUE_TYPES, true, 1));
+		type.setExpert(false);
+		parameters.add(type);
+		
+		type = new ParameterTypeExpression(PARAMETER_MISSING_VALUE_EXPRESSION, "This parameter defines the expression which if true equals the missing value", getInputPort(), true, false);
+		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_MODE, VALUE_TYPES, true, 2));
 		type.setExpert(false);
 		parameters.add(type);
 		

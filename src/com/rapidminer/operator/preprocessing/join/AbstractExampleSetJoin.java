@@ -46,6 +46,7 @@ import com.rapidminer.operator.ports.metadata.ExampleSetUnionRule;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.container.Pair;
 
 
 /**
@@ -63,8 +64,11 @@ import com.rapidminer.tools.Ontology;
  */
 public abstract class AbstractExampleSetJoin extends Operator {
 
-	private InputPort leftInput = getInputPorts().createPort("left");
-	private InputPort rightInput = getInputPorts().createPort("right");
+	protected static final String LEFT_EXAMPLE_SET_INPUT = "left";
+	protected static final String RIGHT_EXAMPLE_SET_INPUT = "right";
+	
+	private InputPort leftInput = getInputPorts().createPort(LEFT_EXAMPLE_SET_INPUT);
+	private InputPort rightInput = getInputPorts().createPort(RIGHT_EXAMPLE_SET_INPUT);
 	private OutputPort joinOutput = getOutputPorts().createPort("join");
 	
 	/** The parameter name for &quot;Indicates if double attributes should be removed or renamed&quot; */
@@ -144,29 +148,35 @@ public abstract class AbstractExampleSetJoin extends Operator {
             }
         }
         
+        Set<Pair<Integer,Attribute>> excludedAttributes = getExcludedAtttributes(es1, es2);
+        
         // regular attributes
         List<AttributeSource> originalAttributeSources = new LinkedList<AttributeSource>();
         List<Attribute> unionAttributeList = new LinkedList<Attribute>();
         for (Attribute attribute : es1.getAttributes()) {
-            originalAttributeSources.add(new AttributeSource(AttributeSource.FIRST_SOURCE, attribute));
-            unionAttributeList.add((Attribute) attribute.clone());
+        	if (!excludedAttributes.contains(new Pair<Integer,Attribute>(AttributeSource.FIRST_SOURCE, attribute))) {
+	            originalAttributeSources.add(new AttributeSource(AttributeSource.FIRST_SOURCE, attribute));
+	            unionAttributeList.add((Attribute) attribute.clone());
+        	}
         }
         
         for (Attribute attribute : es2.getAttributes()) {
-            Attribute cloneAttribute = (Attribute) attribute.clone();
-            if (containsAttribute(unionAttributeList, attribute)) { // in list...
-                if (!getParameterAsBoolean(PARAMETER_REMOVE_DOUBLE_ATTRIBUTES)) { // ... but should not be removed --> rename
-                    originalAttributeSources.add(new AttributeSource(AttributeSource.SECOND_SOURCE, attribute));
-                    cloneAttribute.setName(cloneAttribute.getName() + "_from_ES2");
-                    if (containsAttribute(unionAttributeList, cloneAttribute)) {
-                        cloneAttribute.setName(cloneAttribute.getName() + "_from_ES2");
-                    }
-                    unionAttributeList.add(cloneAttribute);
-                } // else do nothing, i.e. remove
-            } else { // not in list --> add
-                originalAttributeSources.add(new AttributeSource(AttributeSource.SECOND_SOURCE, attribute));
-                unionAttributeList.add(cloneAttribute);
-            }
+        	if (!excludedAttributes.contains(new Pair<Integer,Attribute>(AttributeSource.SECOND_SOURCE, attribute))) {
+	            Attribute cloneAttribute = (Attribute) attribute.clone();
+	            if (containsAttribute(unionAttributeList, attribute)) { // in list...
+	                if (!getParameterAsBoolean(PARAMETER_REMOVE_DOUBLE_ATTRIBUTES)) { // ... but should not be removed --> rename
+	                    originalAttributeSources.add(new AttributeSource(AttributeSource.SECOND_SOURCE, attribute));
+	                    cloneAttribute.setName(cloneAttribute.getName() + "_from_ES2");
+	                    if (containsAttribute(unionAttributeList, cloneAttribute)) {
+	                        cloneAttribute.setName(cloneAttribute.getName() + "_from_ES2");
+	                    }
+	                    unionAttributeList.add(cloneAttribute);
+	                } // else do nothing, i.e. remove
+	            } else { // not in list --> add
+	                originalAttributeSources.add(new AttributeSource(AttributeSource.SECOND_SOURCE, attribute));
+	                unionAttributeList.add(cloneAttribute);
+	            }
+        	}
         }
 
         // special attributes
@@ -209,6 +219,14 @@ public abstract class AbstractExampleSetJoin extends Operator {
     }
 
     /**
+     * Returns a set of original attributes which will not be copied to the output example set.
+     * The default implementation returns an empty set. 
+     */
+    protected Set<Pair<Integer,Attribute>> getExcludedAtttributes(ExampleSet es1, ExampleSet es2) throws OperatorException {
+    	return new HashSet<Pair<Integer,Attribute>>();
+    }
+
+	/**
      * Returns true if the list already contains an attribute with the given name. The method contains from List cannot be used since the equals method of Attribute also checks for the same table
      * index which is not applicable here.
      */
@@ -220,6 +238,7 @@ public abstract class AbstractExampleSetJoin extends Operator {
         }
         return false;
     }
+    
 
     @Override
 	public List<ParameterType> getParameterTypes() {
