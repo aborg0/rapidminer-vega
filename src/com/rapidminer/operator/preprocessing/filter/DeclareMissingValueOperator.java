@@ -22,14 +22,8 @@
  */
 package com.rapidminer.operator.preprocessing.filter;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.nfunk.jep.SymbolTable;
-import org.nfunk.jep.Variable;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Attributes;
@@ -56,7 +50,6 @@ import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.math.function.ExpressionParser;
-import com.rapidminer.tools.math.function.UnknownValue;
 
 /**
  * Allows the declaration of a missing value (nominal or numeric) on a selected subset. The given value 
@@ -169,8 +162,7 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 		String mode = getParameterAsString(PARAMETER_MODE);
 		
 		// handle EXPRESSION mode
-		if (mode.equals(EXPRESSION)) 
-		{
+		if (mode.equals(EXPRESSION)) {
 			// parse expression
 			expParser.getParser().parseExpression(getParameterAsString(PARAMETER_MISSING_VALUE_EXPRESSION));
 			// error after parsing?
@@ -178,86 +170,26 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 		        throw new OperatorException(expParser.getParser().getErrorInfo());
 			}
 			
-			SymbolTable symbolTable = expParser.getParser().getSymbolTable();
-			Map<String, Attribute> name2attributes = new HashMap<String, Attribute>();
-	        for (Object variableObj : symbolTable.values()) {
-	            Variable variable = (Variable) variableObj;// symbolTable.getVar(variableName.toString());
-	            if (!variable.isConstant()) {
-	                Attribute attribute = exampleSet.getAttributes().get(variable.getName());
-	                if (attribute == null) {
-	                    throw new OperatorException("No such attribute: '" + variable.getName() + "'");
-	                } else {
-	                    name2attributes.put(variable.getName(), attribute);
-	                    // retrieve test example with real values (needed to
-	                    // compliance checking!)
-	                    if (exampleSet.size() > 0) {
-	                        Example example = exampleSet.iterator().next();
-	                        if (attribute.isNominal()) {
-	                            if (Double.isNaN(example.getValue(attribute))) {
-	                            	expParser.getParser().addVariable(attribute.getName(), UnknownValue.UNKNOWN_NOMINAL); // ExpressionParserConstants.MISSING_VALUE);
-	                            } else {
-	                            	expParser.getParser().addVariable(attribute.getName(), example.getValueAsString(attribute));
-	                            }
-	                        } else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
-	                            Calendar cal = Calendar.getInstance();
-	                            cal.setTime(new Date((long) example.getValue(attribute)));
-	                            expParser.getParser().addVariable(attribute.getName(), cal);
-	                        } else {
-	                        	expParser.getParser().addVariable(attribute.getName(), example.getValue(attribute));
-	                        }
-	                    } else {
-	                        // nothing will be done later: no compliance to data
-	                        // must be met
-	                        if (attribute.isNominal()) {
-	                        	expParser.getParser().addVariable(attribute.getName(), UnknownValue.UNKNOWN_NOMINAL);
-	                        } else {
-	                        	expParser.getParser().addVariable(attribute.getName(), Double.NaN);
-	                        }
-	                    }
-	                }
-	            }
-	        }
+			// let the parser know the attributes
+	        Map<String, Attribute> name2attributes = ExpressionParser.deriveVariablesFromExampleSet(expParser.getParser(), exampleSet);
 	        
 	        for (Example example : subset) {
-				// handle expression mode
-				if (mode.equals(EXPRESSION)) {
-					for (Map.Entry<String, Attribute> entry : name2attributes.entrySet()) {
-						String variableName = entry.getKey();
-						Attribute attribute = entry.getValue();
-						double value = example.getValue(attribute);
-						if (attribute.isNominal()) {
-							if (Double.isNaN(value)) {
-								expParser.getParser().setVarValue(variableName, UnknownValue.UNKNOWN_NOMINAL);
-							} else {
-								expParser.getParser().setVarValue(variableName, example.getValueAsString(attribute));
-							}
-						} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
-							if (Double.isNaN(value)) {
-								expParser.getParser().setVarValue(variableName, UnknownValue.UNKNOWN_DATE);
-							} else {
-								Calendar cal = Calendar.getInstance();
-								cal.setTime(new Date((long) value));
-								expParser.getParser().setVarValue(variableName, cal);
-							}
-						} else {
-							expParser.getParser().setVarValue(variableName, value);
-						}
-					}
-					
-					for (Attribute attribute : attributes) {
-						
-						Object result = expParser.getParser().getValueAsObject();
-						if (!(result instanceof Boolean)) {
-							//throw new OperatorException("expression does not evaluate to boolean!");
-						} else {
-							Boolean resultBoolean = (Boolean)result;
-							// change to missing on true evaluation
-							if (resultBoolean) {
-								example.setValue(attribute, Double.NaN);
-							}
-						}
-					}
-				}
+	        	// assign values to the variables
+	        	ExpressionParser.assignVariableValuesFromExample(expParser.getParser(), example, name2attributes);
+
+	        	for (Attribute attribute : attributes) {
+
+	        		Object result = expParser.getParser().getValueAsObject();
+	        		if (!(result instanceof Boolean)) {
+	        			//throw new OperatorException("expression does not evaluate to boolean!");
+	        		} else {
+	        			Boolean resultBoolean = (Boolean)result;
+	        			// change to missing on true evaluation
+	        			if (resultBoolean) {
+	        				example.setValue(attribute, Double.NaN);
+	        			}
+	        		}
+	        	}
 	        }
 		}
 		

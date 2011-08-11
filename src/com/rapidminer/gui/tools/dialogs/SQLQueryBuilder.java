@@ -53,10 +53,15 @@ import com.rapidminer.tools.jdbc.DatabaseHandler;
 import com.rapidminer.tools.jdbc.TableName;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 
-
 /**
+ * This is an convenience GUI dialog for building SQL Queries. It allows to select one of the existing tables
+ * and existing columns within the selected table if a database connection is present. Otherwise the gui components
+ * for the selection won't be shown.
+ * This uses a simple caching mechanism to first only retrieve the names of tables and as soon as a table is selected the columns
+ * are retrieved. This avoids fetching columns of all tables, even if not necessary. Otherwise very large databases with many or
+ * complex tables (and views) would slow down the hole machine.
  * 
- * @author Tobias Malbrecht
+ * @author Tobias Malbrecht, Simon Fischer, Sebastian Land
  */
 public class SQLQueryBuilder extends ButtonDialog {
 
@@ -86,14 +91,14 @@ public class SQLQueryBuilder extends ButtonDialog {
 
     public void setConnectionEntry(ConnectionEntry entry) {
         try {
-        	if (entry == null) {
-        		this.databaseHandler = null;
-        	} else {
-        		this.databaseHandler = DatabaseHandler.getConnectedDatabaseHandler(entry);
-        		if (!"false".equals(ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_FETCH_DATA_BASE_TABLES_NAMES))){
-        			retrieveTableAndAttributeNames();
-        		}
-        	}
+            if (entry == null) {
+                this.databaseHandler = null;
+            } else {
+                this.databaseHandler = DatabaseHandler.getConnectedDatabaseHandler(entry);
+                if (!"false".equals(ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_FETCH_DATA_BASE_TABLES_NAMES))) {
+                    retrieveTableNames();
+                }
+            }
         } catch (SQLException e) {
             SwingTools.showSimpleErrorMessage("db_connection_failed_url", e, entry.getURL());
             this.databaseHandler = null;
@@ -137,9 +142,13 @@ public class SQLQueryBuilder extends ButtonDialog {
 
             whereTextArea.addKeyListener(new KeyListener() {
                 @Override
-                public void keyTyped(KeyEvent e) {}
+                public void keyTyped(KeyEvent e) {
+                }
+
                 @Override
-                public void keyPressed(KeyEvent e) {}
+                public void keyPressed(KeyEvent e) {
+                }
+
                 @Override
                 public void keyReleased(KeyEvent e) {
                     updateSQLQuery();
@@ -166,9 +175,14 @@ public class SQLQueryBuilder extends ButtonDialog {
         List<ColumnIdentifier> allColumnIdentifiers = new LinkedList<ColumnIdentifier>();
         Object[] selection = tableList.getSelectedValues();
         for (Object o : selection) {
-        	TableName tableName = (TableName)o;
+            TableName tableName = (TableName) o;
             List<ColumnIdentifier> attributeNames = this.attributeNameMap.get(tableName);
-            if (attributeNames != null) {
+            // check whether we already know the attributes of this table. If not: retrieve them and set them asynchronously
+            if (attributeNames == null || attributeNames.isEmpty()) {
+                retrieveColumnNames(tableName);
+            }
+            // show the names
+            if (attributeNames != null && !attributeNames.isEmpty()) {
                 Iterator<ColumnIdentifier> i = attributeNames.iterator();
                 while (i.hasNext()) {
                     ColumnIdentifier currentIdentifier = i.next();
@@ -220,7 +234,7 @@ public class SQLQueryBuilder extends ButtonDialog {
             } else {
                 boolean first = true;
                 for (Object o : attributeSelection) {
-                    ColumnIdentifier identifier = (ColumnIdentifier)o;
+                    ColumnIdentifier identifier = (ColumnIdentifier) o;
                     appendAttributeName(result, identifier, first, singleTable);
                     first = false;
                 }
@@ -236,7 +250,7 @@ public class SQLQueryBuilder extends ButtonDialog {
             } else {
                 result.append(", ");
             }
-            TableName tableName = (TableName)o;
+            TableName tableName = (TableName) o;
             result.append(databaseHandler.getStatementCreator().makeIdentifier(tableName));
         }
 
@@ -248,7 +262,39 @@ public class SQLQueryBuilder extends ButtonDialog {
         sqlQueryTextArea.setText(result.toString());
     }
 
-    private void retrieveTableAndAttributeNames() throws SQLException {
+    /**
+     * This method will retrieve the column Names of the given table and will cause an
+     * update of the gui later on.
+     */
+    private void retrieveColumnNames(final TableName tableName) {
+        if (databaseHandler != null) {
+            ProgressThread retrieveTablesThread = new ProgressThread("fetching_database_tables") {
+                @Override
+                public void run() {
+                    getProgressListener().setTotal(100);
+                    getProgressListener().setCompleted(10);
+                    try {
+                        List<ColumnIdentifier> attributeNames = databaseHandler.getAllColumnNames(tableName, databaseHandler.getConnection().getMetaData());
+                        attributeNameMap.put(tableName, attributeNames);
+                        SwingUtilities.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                updateAttributeNames();
+                            }
+                        });
+                    } catch (SQLException e) {
+                        // don't do anything: Convenient method does not work
+                    }
+                }
+            };
+            retrieveTablesThread.start();
+        }
+    }
+
+    /**
+     * This will load the names of all available tables and will then update the gui.
+     */
+    private void retrieveTableNames() throws SQLException {
         if (databaseHandler != null) {
             ProgressThread retrieveTablesThread = new ProgressThread("fetching_database_tables") {
                 @Override
@@ -261,7 +307,7 @@ public class SQLQueryBuilder extends ButtonDialog {
                         if (databaseHandler != null) {
                             Map<TableName, List<ColumnIdentifier>> newAttributeMap;
                             try {
-                                newAttributeMap = databaseHandler.getAllTableMetaData(getProgressListener(), 10, 100, true);
+                                newAttributeMap = databaseHandler.getAllTableMetaData(getProgressListener(), 10, 100, false);
                                 attributeNameMap.putAll(newAttributeMap);
                             } catch (SQLException e) {
                                 SwingTools.showSimpleErrorMessage("db_connection_failed_simple", e, e.getMessage());
@@ -281,11 +327,11 @@ public class SQLQueryBuilder extends ButtonDialog {
                     } finally {
                         getProgressListener().complete();
                         // disconnect
-                        //	                    try {
-                        //							databaseHandler.disconnect();
-                        //						} catch (SQLException e) {
-                        //							SwingTools.showSimpleErrorMessage("db_connection_failed_simple", e, e.getMessage());
-                        //						}
+                        // try {
+                        // databaseHandler.disconnect();
+                        // } catch (SQLException e) {
+                        // SwingTools.showSimpleErrorMessage("db_connection_failed_simple", e, e.getMessage());
+                        // }
                     }
                 }
             };

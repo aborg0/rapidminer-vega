@@ -789,46 +789,8 @@ public class ExpressionParser {
         	throw new GenerationException("Offending attribute: '" + name + "', Expression: '" + function + "', Error: '" + parser.getErrorInfo() + "'");
         }
 
-        // derive all used variables
-        SymbolTable symbolTable = parser.getSymbolTable();
-        Map<String, Attribute> name2attributes = new HashMap<String, Attribute>();
-        for (Object variableObj : symbolTable.values()) {
-            Variable variable = (Variable) variableObj;// symbolTable.getVar(variableName.toString());
-            if (!variable.isConstant()) {
-                Attribute attribute = exampleSet.getAttributes().get(variable.getName());
-                if (attribute == null) {
-                    throw new GenerationException("No such attribute: '" + variable.getName() + "'");
-                } else {
-                    name2attributes.put(variable.getName(), attribute);
-                    // retrieve test example with real values (needed to
-                    // compliance checking!)
-                    if (exampleSet.size() > 0) {
-                        Example example = exampleSet.iterator().next();
-                        if (attribute.isNominal()) {
-                            if (Double.isNaN(example.getValue(attribute))) {
-                                parser.addVariable(attribute.getName(), UnknownValue.UNKNOWN_NOMINAL); // ExpressionParserConstants.MISSING_VALUE);
-                            } else {
-                                parser.addVariable(attribute.getName(), example.getValueAsString(attribute));
-                            }
-                        } else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
-                            Calendar cal = Calendar.getInstance();
-                            cal.setTime(new Date((long) example.getValue(attribute)));
-                            parser.addVariable(attribute.getName(), cal);
-                        } else {
-                            parser.addVariable(attribute.getName(), example.getValue(attribute));
-                        }
-                    } else {
-                        // nothing will be done later: no compliance to data
-                        // must be met
-                        if (attribute.isNominal()) {
-                            parser.addVariable(attribute.getName(), UnknownValue.UNKNOWN_NOMINAL);
-                        } else {
-                            parser.addVariable(attribute.getName(), Double.NaN);
-                        }
-                    }
-                }
-            }
-        }
+        // let the parser know the attributes
+        Map<String, Attribute> name2attributes = deriveVariablesFromExampleSet(parser, exampleSet);
 
         if (parser.hasError()) {
         	throw new GenerationException("Offending attribute: '" + name + "', Expression: '" + function + "', Error: '" + parser.getErrorInfo() + "'");
@@ -882,29 +844,8 @@ public class ExpressionParser {
         // create attribute of correct type and all values
         for (Example example : exampleSet) {
 
-            // assign variable values
-            for (Map.Entry<String, Attribute> entry : name2attributes.entrySet()) {
-                String variableName = entry.getKey();
-                Attribute attribute = entry.getValue();
-                double value = example.getValue(attribute);
-                if (attribute.isNominal()) {
-                    if (Double.isNaN(value)) {
-                        parser.setVarValue(variableName, UnknownValue.UNKNOWN_NOMINAL);
-                    } else {
-                        parser.setVarValue(variableName, example.getValueAsString(attribute));
-                    }
-                } else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
-                    if (Double.isNaN(value)) {
-                        parser.setVarValue(variableName, UnknownValue.UNKNOWN_DATE);
-                    } else {
-                        Calendar cal = Calendar.getInstance();
-                        cal.setTime(new Date((long) value));
-                        parser.setVarValue(variableName, cal);
-                    }
-                } else {
-                    parser.setVarValue(variableName, value);
-                }
-            }
+        	// assign values to the variables
+        	assignVariableValuesFromExample(parser, example, name2attributes);
 
             // calculate result
             result = parser.getValueAsObject();
@@ -949,6 +890,90 @@ public class ExpressionParser {
         }
         
         return newAttribute;
+    }
+    
+    /**
+     * Make the exampleSet's attributes available to the parser as variables.
+     * Returns a map which is used by {@link #assignVariableValuesFromExample(JEP, Example, Map)}.
+     * @param parser
+     * @param exampleSet
+     * @return
+     * @throws GenerationException
+     */
+    public static Map<String, Attribute> deriveVariablesFromExampleSet(JEP parser, ExampleSet exampleSet) throws GenerationException {
+    	// derive all used variables
+        SymbolTable symbolTable = parser.getSymbolTable();
+        Map<String, Attribute> name2attributes = new HashMap<String, Attribute>();
+        for (Object variableObj : symbolTable.values()) {
+            Variable variable = (Variable) variableObj;// symbolTable.getVar(variableName.toString());
+            if (!variable.isConstant()) {
+                Attribute attribute = exampleSet.getAttributes().get(variable.getName());
+                if (attribute == null) {
+                    throw new GenerationException("No such attribute: '" + variable.getName() + "'");
+                } else {
+                    name2attributes.put(variable.getName(), attribute);
+                    // retrieve test example with real values (needed to
+                    // compliance checking!)
+                    if (exampleSet.size() > 0) {
+                        Example example = exampleSet.iterator().next();
+                        if (attribute.isNominal()) {
+                            if (Double.isNaN(example.getValue(attribute))) {
+                                parser.addVariable(attribute.getName(), UnknownValue.UNKNOWN_NOMINAL); // ExpressionParserConstants.MISSING_VALUE);
+                            } else {
+                                parser.addVariable(attribute.getName(), example.getValueAsString(attribute));
+                            }
+                        } else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
+                            Calendar cal = Calendar.getInstance();
+                            cal.setTime(new Date((long) example.getValue(attribute)));
+                            parser.addVariable(attribute.getName(), cal);
+                        } else {
+                            parser.addVariable(attribute.getName(), example.getValue(attribute));
+                        }
+                    } else {
+                        // nothing will be done later: no compliance to data
+                        // must be met
+                        if (attribute.isNominal()) {
+                            parser.addVariable(attribute.getName(), UnknownValue.UNKNOWN_NOMINAL);
+                        } else {
+                            parser.addVariable(attribute.getName(), Double.NaN);
+                        }
+                    }
+                }
+            }
+        }
+        return name2attributes;
+    }
+    
+    /**
+     * Make the variable values from the example available to the parser.
+     * @param parser
+     * @param example
+     * @param name2attributes
+     */
+    public static void assignVariableValuesFromExample(JEP parser, Example example, Map<String, Attribute> name2attributes) {
+    	// assign variable values
+        for (Map.Entry<String, Attribute> entry : name2attributes.entrySet()) {
+            String variableName = entry.getKey();
+            Attribute attribute = entry.getValue();
+            double value = example.getValue(attribute);
+            if (attribute.isNominal()) {
+                if (Double.isNaN(value)) {
+                    parser.setVarValue(variableName, UnknownValue.UNKNOWN_NOMINAL);
+                } else {
+                    parser.setVarValue(variableName, example.getValueAsString(attribute));
+                }
+            } else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
+                if (Double.isNaN(value)) {
+                    parser.setVarValue(variableName, UnknownValue.UNKNOWN_DATE);
+                } else {
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(new Date((long) value));
+                    parser.setVarValue(variableName, cal);
+                }
+            } else {
+                parser.setVarValue(variableName, value);
+            }
+        }
     }
 
     public JEP getParser() {
