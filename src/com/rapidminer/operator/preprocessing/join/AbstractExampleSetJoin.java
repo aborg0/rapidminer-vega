@@ -38,6 +38,7 @@ import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
@@ -64,6 +65,8 @@ import com.rapidminer.tools.container.Pair;
  */
 public abstract class AbstractExampleSetJoin extends Operator {
 
+	public static final OperatorVersion VERSION_SWAPPED_INPUT_PORTS = new OperatorVersion(5,1,8);
+	
 	protected static final String LEFT_EXAMPLE_SET_INPUT = "left";
 	protected static final String RIGHT_EXAMPLE_SET_INPUT = "right";
 	
@@ -122,15 +125,21 @@ public abstract class AbstractExampleSetJoin extends Operator {
     
     @Override
 	public void doWork() throws OperatorException {
-       
-    	/* FIXME The comment below is wrong, actually it is 
-           ExampleSet es1 = leftInput.getData();
-           ExampleSet es2 = rightInput.getData();
-           This is not fixed, since all existing rapidminer processes were using the wrong order.
-    	*/
-    	 // please note the order of calls: the second data generator in the tree will be the first delivered
-        ExampleSet es2 = leftInput.getData();
-        ExampleSet es1 = rightInput.getData();
+
+    	ExampleSet es1;
+    	ExampleSet es2;
+    	if (getCompatibilityLevel().isAtMost(VERSION_SWAPPED_INPUT_PORTS)) {
+    		/* please note the order of calls: As a result from the transformation from process tree to process flow
+    		 * this error was introduced. We introduced an incompatibly version change to overcome this.
+    		 */
+    		es2 = leftInput.getData();
+            es1 = rightInput.getData();
+    	} else {
+    		/* This is the correct order used by all operators that using a more current version than VERSION_SWAPPED_INPUT_PORTS */
+    		es1 = leftInput.getData();
+            es2 = rightInput.getData();
+    	}
+        
         if (this.isIdNeeded()) {
             Attribute id1 = es1.getAttributes().getId();
             Attribute id2 = es2.getAttributes().getId();
@@ -239,6 +248,10 @@ public abstract class AbstractExampleSetJoin extends Operator {
         return false;
     }
     
+    @Override
+    public OperatorVersion[] getIncompatibleVersionChanges() {
+    	return new OperatorVersion[] {VERSION_SWAPPED_INPUT_PORTS};
+    }
 
     @Override
 	public List<ParameterType> getParameterTypes() {
