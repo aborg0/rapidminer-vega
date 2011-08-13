@@ -25,20 +25,18 @@ package com.rapidminer.repository.gui;
 import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.Point;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -56,267 +54,121 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
-import com.rapidminer.Process;
 import com.rapidminer.RepositoryProcessLocation;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.actions.OpenAction;
 import com.rapidminer.gui.dnd.TransferableOperator;
-import com.rapidminer.gui.operatortree.actions.CutCopyPasteAction;
 import com.rapidminer.gui.tools.ProgressThread;
-import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.ToolTipWindow;
 import com.rapidminer.gui.tools.components.ToolTipWindow.TipProvider;
-import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DataImportWizard;
 import com.rapidminer.repository.DataEntry;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
-import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.Repository;
+import com.rapidminer.repository.RepositoryActionConditionImpl;
+import com.rapidminer.repository.RepositoryActionCondition;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.repository.gui.actions.AbstractRepositoryAction;
+import com.rapidminer.repository.gui.actions.ConfigureRepositoryAction;
+import com.rapidminer.repository.gui.actions.CopyEntryRepositoryAction;
+import com.rapidminer.repository.gui.actions.CopyLocationAction;
+import com.rapidminer.repository.gui.actions.CreateFolderAction;
+import com.rapidminer.repository.gui.actions.DeleteAction;
+import com.rapidminer.repository.gui.actions.OpenEntryAction;
+import com.rapidminer.repository.gui.actions.PasteEntryRepositoryAction;
+import com.rapidminer.repository.gui.actions.RefreshAction;
+import com.rapidminer.repository.gui.actions.RenameAction;
+import com.rapidminer.repository.gui.actions.StoreProcessAction;
 import com.rapidminer.tools.LogService;
 
 
 /**
  * A tree displaying repository contents.
+ * <p>
+ * To add new actions to the popup menu, call {@link #addRepositoryAction(Class, RepositoryActionCondition, Class, boolean, boolean)} or {@link #addRepositoryAction(Class, RepositoryActionCondition, boolean, boolean)}.
+ * Be sure to follow its instructions carefully.
  *
- * @author Simon Fischer, Tobias Malbrecht
+ * @author Simon Fischer, Tobias Malbrecht, Marco Boeck
  */
 public class RepositoryTree extends JTree {
 
-	private static final long serialVersionUID = -6613576606220873341L;
-
 	/**
-	 * Abstract superclass of actions that are executed on subclasses of {@link Entry}.
-	 * Automatically enables/disables itself.
+	 * Holds the RepositoryAction entries.
+	 *
 	 */
-	private abstract class AbstractRepositoryAction<T extends Entry> extends ResourceAction {
+	private static class RepositoryActionEntry {
 		
-		private static final long serialVersionUID = 7980472544436850356L;
-
-		private final Class<T> requiredSelectionType;
-		private final boolean needsWriteAccess;
+		private Class<? extends AbstractRepositoryAction> actionClass;
 		
-		private AbstractRepositoryAction(Class<T> requiredSelectionType, boolean needsWriteAccess, String i18nKey) {
-			super(true, i18nKey);			
-			this.requiredSelectionType = requiredSelectionType;
-			this.needsWriteAccess = needsWriteAccess;
-			setEnabled(false);
-		}
-
-		@Override
-		protected void update(boolean[] conditions) {
-			// we have our own mechanism to enable/disable actions,
-			// so ignore ConditionalAction mechanism
+		private RepositoryActionCondition condition;
+		
+		private boolean hasSeparatorBefore;
+		
+		private boolean hasSeparatorAfter;
+		
+		
+		public RepositoryActionEntry(Class<? extends AbstractRepositoryAction> actionClass, RepositoryActionCondition condition, boolean hasSeparatorBefore, boolean hasSeparatorAfter) {
+			this.actionClass = actionClass;
+			this.condition = condition;
+			this.hasSeparatorAfter = hasSeparatorAfter;
+			this.hasSeparatorBefore = hasSeparatorBefore;
 		}
 		
-		protected void enable() {
-			Entry entry = getSelectedEntry();
-			setEnabled((entry != null) && requiredSelectionType.isInstance(entry) && (!needsWriteAccess || !entry.isReadOnly()));
+		public boolean hasSeperatorBefore() {
+			return hasSeparatorBefore;
 		}
 		
-		public void actionPerformed(ActionEvent e) {
-			actionPerformed(requiredSelectionType.cast(getSelectedEntry()));
+		public boolean hasSeperatorAfter() {
+			return hasSeparatorAfter;
 		}
 		
-		public abstract void actionPerformed(T cast);
+		public RepositoryActionCondition getRepositoryActionCondition() {
+			return condition;
+		}
+		
+		public Class<? extends AbstractRepositoryAction> getRepositoryActionClass() {
+			return actionClass;
+		}
 	}
+	
+	public final AbstractRepositoryAction<Repository> CONFIGURE_ACTION = new ConfigureRepositoryAction(this);
+	
+	public final AbstractRepositoryAction<Entry> RENAME_ACTION = new RenameAction(this);
 
-	public final AbstractRepositoryAction<Repository> CONFIGURE_ACTION = new AbstractRepositoryAction<Repository>(Repository.class, false, "configure_repository") {			
-		private static final long serialVersionUID = 1L;		
-		@Override
-		public void actionPerformed(Repository repository) {
-			new RepositoryConfigurationDialog(repository).setVisible(true);
-		}
-	};
-
-	public final AbstractRepositoryAction<Entry> COPY_LOCATION_ACTION = new AbstractRepositoryAction<Entry>(Entry.class, false, "repository_copy_location") {
-		private static final long serialVersionUID = 1L;
-		@Override
-		public void actionPerformed(Entry e) {
-			String value = e.getLocation().toString();
-			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-			clipboard.setContents(new StringSelection(value), new ClipboardOwner() {				
-				@Override
-				public void lostOwnership(Clipboard clipboard, Transferable contents) { }
-			});
-		}			
-	};
+	public final AbstractRepositoryAction<Entry> DELETE_ACTION = new DeleteAction(this);
 	
-	public final AbstractRepositoryAction<DataEntry> OPEN_ACTION = new AbstractRepositoryAction<DataEntry>(DataEntry.class, false, "open_repository_entry") {			
-		private static final long serialVersionUID = 1L;
-		
-		@Override
-		public void actionPerformed(DataEntry data) {
-			if (data instanceof IOObjectEntry) {
-				OpenAction.showAsResult((IOObjectEntry) data);
-			} else if (data instanceof ProcessEntry) {
-				openProcess((ProcessEntry) data);
-			}
-		}									
-	};
+	public final AbstractRepositoryAction<DataEntry> OPEN_ACTION = new OpenEntryAction(this);
 	
-	public final AbstractRepositoryAction<Folder> REFRESH_ACTION = new AbstractRepositoryAction<Folder>(Folder.class, false, "repository_refresh_folder") {			
-		private static final long serialVersionUID = 1L;				
-		@Override
-		public void actionPerformed(final Folder folder) {					
-			ProgressThread openProgressThread = new ProgressThread("refreshing") {
-				public void run() {
-					try {
-						folder.refresh();
-					} catch (Exception e) {
-						SwingTools.showSimpleErrorMessage("cannot_refresh_folder", e);
-					}
-				}
-			};
-			openProgressThread.start();														
-		}					
-	};
+	public final AbstractRepositoryAction<Folder> REFRESH_ACTION = new RefreshAction(this);
 	
-	public final AbstractRepositoryAction<Folder> CREATE_FOLDER_ACTION = new AbstractRepositoryAction<Folder>(Folder.class, true, "repository_create_folder") {			
-		private static final long serialVersionUID = 1L;				
-		@Override
-		public void actionPerformed(final Folder folder) {				
-			ProgressThread openProgressThread = new ProgressThread("create_folder") {
-				public void run() {			
-					String name = SwingTools.showInputDialog("repository.new_folder", "");
-					if (name != null) {
-						try {
-							folder.createFolder(name);
-						} catch (Exception e) {
-							SwingTools.showSimpleErrorMessage("cannot_create_folder", e, name);
-						}
-					}
-				}
-			};
-			openProgressThread.start();														
-		}					
-	};
+	public final AbstractRepositoryAction<Folder> CREATE_FOLDER_ACTION = new CreateFolderAction(this);
 	
-	public final AbstractRepositoryAction<Entry> STORE_PROCESS_ACTION = new AbstractRepositoryAction<Entry>(Entry.class, true, "repository_store_process") {
-		private static final long serialVersionUID = 1252342138665768477L;
-
-		@Override
-		public void actionPerformed(Entry entry) {
-			if (entry instanceof Folder) {
-				storeInFolder(Folder.class.cast(entry));
-			}
-			if (entry instanceof ProcessEntry) {
-				overwriteProcess(ProcessEntry.class.cast(entry));
-			}
-		}
-		
-		private void storeInFolder(final Folder folder) {
-			final String name = SwingTools.showInputDialog("store_process", "");
-			if (name != null) {
-				if (name.isEmpty()) {
-					SwingTools.showVerySimpleErrorMessage("please_enter_non_empty_name");
-					return;
-				}
-				try {
-					if (folder.containsEntry(name)) {
-						SwingTools.showVerySimpleErrorMessage("repository_entry_already_exists", name);
-						return;
-					}
-				} catch (RepositoryException e1) {
-					SwingTools.showSimpleErrorMessage("cannot_store_process_in_repository", e1, name);
-					return;
-				}
-
-				ProgressThread storeProgressThread = new ProgressThread("store_process") {
-					public void run() {
-						getProgressListener().setTotal(100);
-						try {
-							getProgressListener().setCompleted(10);
-							Process process = RapidMinerGUI.getMainFrame().getProcess();
-							process.setProcessLocation(new RepositoryProcessLocation(new RepositoryLocation(folder.getLocation(), name)));
-							folder.createProcessEntry(name, process.getRootOperator().getXML(false));
-							expandPath(getSelectionPath());
-						} catch (Exception e) {
-							SwingTools.showSimpleErrorMessage("cannot_store_process_in_repository", e, name);
-						} finally {
-							getProgressListener().setCompleted(10);
-							getProgressListener().complete();
-						}
-					}
-				};					
-				storeProgressThread.start();
-			}
-		}
-		
-		private void overwriteProcess(final ProcessEntry processEntry) {
-			if (SwingTools.showConfirmDialog("overwrite", ConfirmDialog.YES_NO_OPTION, processEntry.getLocation()) == ConfirmDialog.YES_OPTION) {
-				ProgressThread storeProgressThread = new ProgressThread("store_process") {
-					@Override
-					public void run() {
-						getProgressListener().setTotal(100);
-						getProgressListener().setCompleted(10);
-						try {								
-							Process process = RapidMinerGUI.getMainFrame().getProcess();
-							process.setProcessLocation(new RepositoryProcessLocation(processEntry.getLocation()));
-							processEntry.storeXML(process.getRootOperator().getXML(false));
-						} catch (Exception e) {
-							SwingTools.showSimpleErrorMessage("cannot_store_process_in_repository", e, processEntry.getName());								
-						} finally {
-							getProgressListener().setCompleted(100);
-							getProgressListener().complete();
-						}
-					}						
-				};
-				storeProgressThread.start();
-			}
-		}
-		
-		@Override
-		protected void enable() {
-			Entry entry = getSelectedEntry();
-			setEnabled((Folder.class.isInstance(entry) || ProcessEntry.class.isInstance(entry)));
-		}
-	};
-	
-	private final AbstractRepositoryAction<Entry> RENAME_ACTION = new AbstractRepositoryAction<Entry>(Entry.class, true, "repository_rename_entry") {
-		private static final long serialVersionUID = 9154545892241244065L;
-
-		@Override
-		public void actionPerformed(Entry entry) {
-			String name = SwingTools.showInputDialog("file_chooser.rename", entry.getName(), entry.getName());
-			if (name != null) {
-				boolean success = false;
-				try {
-					success = entry.rename(name);
-				} catch (Exception e) {
-					SwingTools.showSimpleErrorMessage("cannot_rename_entry", e, entry.getName(), name);
-				}
-				if (!success) {
-					SwingTools.showVerySimpleErrorMessage("cannot_rename_entry", entry.getName(), name);
-				}
-			}
-		}
-		
-	};
-
-	public final AbstractRepositoryAction<Entry> DELETE_ACTION = new AbstractRepositoryAction<Entry>(Entry.class, true, "repository_delete_entry") {
-		private static final long serialVersionUID = 1L;
-		@Override
-		public void actionPerformed(Entry entry) {
-			if (SwingTools.showConfirmDialog("file_chooser.delete", ConfirmDialog.YES_NO_OPTION, entry.getName()) == ConfirmDialog.YES_OPTION) {
-				try {
-					entry.delete();
-				} catch (Exception e1) {
-					SwingTools.showSimpleErrorMessage("cannot_delete_entry", e1);
-				}
-			}
-		}								
-	};
-	
-	
-	private final Collection<AbstractRepositoryAction<?>> allActions = new LinkedList<AbstractRepositoryAction<?>>();
+	private List<AbstractRepositoryAction> listToEnable = new LinkedList<AbstractRepositoryAction>();
 
 	private EventListenerList listenerList = new EventListenerList();
+	
+	
+	private static final long serialVersionUID = -6613576606220873341L;
+	
+	private static final List<RepositoryActionEntry> REPOSITORY_ACTIONS = new LinkedList<RepositoryTree.RepositoryActionEntry>();
+	
+	{
+		addRepositoryAction(OpenEntryAction.class, new RepositoryActionConditionImpl(new Class<?>[]{ DataEntry.class }, new Class<?>[]{}), false, false);
+		addRepositoryAction(StoreProcessAction.class, new RepositoryActionConditionImpl(new Class<?>[]{ ProcessEntry.class, Folder.class }, new Class<?>[]{}), false, false);
+		addRepositoryAction(RenameAction.class, new RepositoryActionConditionImpl(new Class<?>[]{ Entry.class }, new Class<?>[]{}), false, false);
+		addRepositoryAction(CreateFolderAction.class, new RepositoryActionConditionImpl(new Class<?>[]{ Folder.class }, new Class<?>[]{}), false, false);
+		addRepositoryAction(CopyEntryRepositoryAction.class, new RepositoryActionConditionImpl(new Class<?>[]{}, new Class<?>[]{}), true, false);
+		addRepositoryAction(PasteEntryRepositoryAction.class, new RepositoryActionConditionImpl(new Class<?>[]{}, new Class<?>[]{}), false, false);
+		addRepositoryAction(CopyLocationAction.class, new RepositoryActionConditionImpl(new Class<?>[]{}, new Class<?>[]{}), false, false);
+		addRepositoryAction(DeleteAction.class, new RepositoryActionConditionImpl(new Class<?>[]{ Entry.class }, new Class<?>[]{}), false, false);
+		addRepositoryAction(RefreshAction.class, new RepositoryActionConditionImpl(new Class<?>[]{ Folder.class }, new Class<?>[]{}), true, false);
+	}
+	
 	
 	public RepositoryTree() {
 		this(null);
@@ -324,15 +176,15 @@ public class RepositoryTree extends JTree {
 	
 	public RepositoryTree(Dialog owner) {
 		super(new RepositoryTreeModel(RepositoryManager.getInstance(null)));
-
-		allActions.add(OPEN_ACTION);
-		allActions.add(STORE_PROCESS_ACTION);
-		allActions.add(RENAME_ACTION);
-		allActions.add(DELETE_ACTION);
-		allActions.add(CREATE_FOLDER_ACTION);
-		allActions.add(REFRESH_ACTION);
-		allActions.add(COPY_LOCATION_ACTION);
-		allActions.add(CONFIGURE_ACTION);
+		
+		// these actions are a) needed for the action map or b) needed by other classes for toolbars etc
+		listToEnable.add(CONFIGURE_ACTION);
+		listToEnable.add(DELETE_ACTION);
+		listToEnable.add(RENAME_ACTION);
+		listToEnable.add(REFRESH_ACTION);
+		listToEnable.add(OPEN_ACTION);
+		listToEnable.add(CREATE_FOLDER_ACTION);
+		
 		RENAME_ACTION.addToActionMap(this, WHEN_FOCUSED);
 		DELETE_ACTION.addToActionMap(this, WHEN_FOCUSED);
 		REFRESH_ACTION.addToActionMap(this, WHEN_FOCUSED);
@@ -522,7 +374,7 @@ public class RepositoryTree extends JTree {
 //				}
 //			}        	
 //        });
-     
+        
         getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {			
 			@Override
 			public void valueChanged(TreeSelectionEvent e) {
@@ -576,6 +428,12 @@ public class RepositoryTree extends JTree {
 				}
 			}
 		}, this);
+	}
+	
+	public void enableActions() {
+		for (AbstractRepositoryAction action : listToEnable) {
+			action.enable();
+		}
 	}
 	
 	public void addRepositorySelectionListener(RepositorySelectionListener listener) {
@@ -635,12 +493,6 @@ public class RepositoryTree extends JTree {
 		return false;		
 		//loc = loc.parent();
 	}
-	
-	public void enableActions() {
-		for (AbstractRepositoryAction<?> action : allActions) {
-			action.enable();
-		}
-	}
 
 	private void showPopup(MouseEvent e) {
 		TreePath path = getSelectionPath();
@@ -654,32 +506,20 @@ public class RepositoryTree extends JTree {
 				menu.add(CONFIGURE_ACTION);
 			}
 		}
-		if (selected instanceof DataEntry) {
-			menu.add(OPEN_ACTION);
-		}
-		if (selected instanceof ProcessEntry ||
-			selected instanceof Folder) {
-			menu.add(STORE_PROCESS_ACTION);
-		}
-		if (selected instanceof Entry) {
-			menu.add(RENAME_ACTION);			
-		}
-		if (selected instanceof Folder) {
-			menu.add(CREATE_FOLDER_ACTION);			
-		}
-		//menu.add(CutCopyPasteAction.CUT_ACTION);
 		
-		menu.addSeparator();
-		menu.add(CutCopyPasteAction.COPY_ACTION);
-		menu.add(CutCopyPasteAction.PASTE_ACTION);		
-		menu.add(COPY_LOCATION_ACTION);
+		// can support multiple selections, not needed right now
+		List<Entry> entryList = new ArrayList<Entry>(1);
 		if (selected instanceof Entry) {
-			menu.add(DELETE_ACTION);
+			entryList.add((Entry)selected);
 		}
-
-		if (selected instanceof Folder) {
-			menu.addSeparator();
-			menu.add(REFRESH_ACTION);
+		List<Action> actionList = createContextMenuActions(this, entryList);
+		// go through ordered list of actions and add them
+		for (Action action : actionList) {
+			if (action == null) {
+				menu.addSeparator();
+			} else {
+				menu.add(action);
+			}
 		}
 		
 		if (selected instanceof Entry) {
@@ -728,7 +568,7 @@ public class RepositoryTree extends JTree {
 		openProgressThread.start();
 	}
 	
-	private Entry getSelectedEntry() {
+	public Entry getSelectedEntry() {
 		TreePath path = getSelectionPath();
 		if (path == null) {
 			return null;
@@ -742,6 +582,120 @@ public class RepositoryTree extends JTree {
 	}
 	
 	public Collection<AbstractRepositoryAction<?>> getAllActions() {
-		return allActions;
+		List<AbstractRepositoryAction<?>> listOfAbstractRepositoryActions = new LinkedList<AbstractRepositoryAction<?>>();
+		for (Action action : createContextMenuActions(this, new LinkedList<Entry>())) {
+			if (action instanceof AbstractRepositoryAction<?>) {
+				listOfAbstractRepositoryActions.add((AbstractRepositoryAction<?>)action);
+			}
+		}
+		return listOfAbstractRepositoryActions;
+	}
+	
+	
+	/**
+	 * Appends the given {@link AbstractRepositoryAction} extending class to the popup menu actions.
+	 * <p>The class <b>MUST</b> have one public constructor taking only a RepositoryTree.
+	 * </br>Example: public MyNewRepoAction(RepositoryTree tree) { ... }
+	 * </br>Otherwise creating the action via reflection will fail.
+	 * 
+	 * @param actionClass the class extending {@link AbstractRepositoryAction}
+	 * @param condition the {@link RepositoryActionCondition} which determines on which selected entries the action will be visible.
+	 * @param hasSeparatorBefore if true, a separator will be added before the action
+	 * @param hasSeparatorAfter if true, a separator will be added after the action
+	 * @return true if the action was successfully added; false otherwise
+	 */
+	public static void addRepositoryAction(Class<? extends AbstractRepositoryAction> actionClass, RepositoryActionCondition condition, boolean hasSeparatorBefore, boolean hasSeparatorAfter) {
+		addRepositoryAction(actionClass, condition, null, hasSeparatorBefore, hasSeparatorAfter);
+	}
+	
+	/**
+	 * Adds the given {@link AbstractRepositoryAction} extending class to the popup menu actions at the given index.
+	 * <p>The class <b>MUST</b> have one public constructor taking only a RepositoryTree.
+	 * </br>Example: public MyNewRepoAction(RepositoryTree tree) { ... }
+	 * </br>Otherwise creating the action via reflection will fail.
+	 * 
+	 * @param actionClass the class extending {@link AbstractRepositoryAction}
+	 * @param condition the {@link RepositoryActionCondition} which determines on which selected entries the action will be visible.
+	 * @param insertAfterThisAction the class of the action after which the new action should be inserted. Set to {@code null} to append the action at the end.
+	 * @param hasSeparatorBefore if true, a separator will be added before the action
+	 * @param hasSeparatorAfter if true, a separator will be added after the action
+	 * @return true if the action was successfully added; false otherwise
+	 */
+	public static void addRepositoryAction(Class<? extends AbstractRepositoryAction> actionClass, RepositoryActionCondition condition, Class<? extends Action> insertAfterThisAction, boolean hasSeparatorBefore, boolean hasSeparatorAfter) {
+		if (actionClass == null || condition == null) {
+			throw new IllegalArgumentException("actionClass and condition must not be null!");
+		}
+		
+		RepositoryActionEntry newEntry = new RepositoryActionEntry(actionClass, condition, hasSeparatorBefore, hasSeparatorAfter);
+		if (insertAfterThisAction == null) {
+			REPOSITORY_ACTIONS.add(newEntry);
+		} else {
+			// searching for class to insert after
+			boolean inserted = false;
+			int i = 0;
+			for (RepositoryActionEntry entry : REPOSITORY_ACTIONS) {
+				Class<? extends Action> existingAction = entry.getRepositoryActionClass();
+				if (existingAction.equals(insertAfterThisAction)) {
+					REPOSITORY_ACTIONS.add(i + 1, newEntry);
+					inserted = true;
+					break;
+				}
+				i++;
+			}
+			
+			// if reference couldn't be found: just add as last
+			if(!inserted)
+				REPOSITORY_ACTIONS.add(newEntry);
+		}
+	}
+	
+	/**
+	 * Removes the given action from the popup menu actions.
+	 * @param actionClass the class of the {@link AbstractRepositoryAction} to remove
+	 */
+	public static void removeRepositoryAction(Class<? extends AbstractRepositoryAction> actionClass) {
+		Iterator<RepositoryActionEntry> iterator = REPOSITORY_ACTIONS.iterator();
+		
+		while (iterator.hasNext()) {
+			if (iterator.next().getRepositoryActionClass().equals(actionClass)) {
+				iterator.remove();
+			}
+		}
+	}
+	
+	/**
+	 * This method returns a list of actions shown in the context menu if the given {@link RepositoryActionCondition} is true.
+	 * Contains {@code null} elements for each separator.
+	 * This method is called by each {@link RepositoryTree} instance during construction time and
+	 * creates instances via reflection of all registered acionts.
+	 * See {@link #addRepositoryAction(Class, RepositoryActionCondition, Class, boolean, boolean)} to add actions.
+	 */
+	private static List<Action> createContextMenuActions(RepositoryTree repositoryTree, List<Entry> entryList) {
+		List<Action> listOfActions = new LinkedList<Action>();
+		boolean lastWasSeparator = true;
+		
+		for (RepositoryActionEntry entry: REPOSITORY_ACTIONS) {
+			try {
+				if (entry.getRepositoryActionCondition().evaluateCondition(entryList)) {
+					if (!lastWasSeparator && entry.hasSeperatorBefore()) {
+						// add null element which means a separator will be added in the menu
+						listOfActions.add(null);
+					}
+					Constructor constructor = entry.getRepositoryActionClass().getConstructor(new Class[]{ RepositoryTree.class });
+					AbstractRepositoryAction createdAction = (AbstractRepositoryAction)constructor.newInstance(repositoryTree);
+					createdAction.enable();
+					listOfActions.add(createdAction);
+					if (entry.hasSeperatorAfter()) {
+						listOfActions.add(null);
+						lastWasSeparator = true;
+					} else {
+						lastWasSeparator = false;
+					}
+				}
+			} catch (Exception e) {
+				LogService.getGlobal().log("could not create repository action: " + entry.getRepositoryActionClass(), LogService.ERROR);
+			}
+		}
+		return listOfActions;
 	}
 }

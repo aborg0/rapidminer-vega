@@ -48,7 +48,9 @@ import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
+import com.rapidminer.parameter.conditions.OrParameterCondition;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.container.Pair;
@@ -107,6 +109,7 @@ public class NominalToNumeric extends PreprocessingOperator {
 	
 	
 	public static final String PARAMETER_CODING_TYPE = "coding_type";
+	public static final String PARAMETER_USE_COMPARISON_GROUPS = "use_comparison_groups";
 	public static final String PARAMETER_COMPARISON_GROUP = "comparison_group";
 	public static final String PARAMETER_USE_UNDERSCORE_IN_NAME = "use_underscore_in_name";
 	public static final String PARAMETER_COMPARISON_GROUPS = "comparison_groups";
@@ -151,8 +154,9 @@ public class NominalToNumeric extends PreprocessingOperator {
 			Collection<AttributeMetaData> newAttribs = new LinkedList<AttributeMetaData>();
 			Map<String,String> attributeToComparisonGroupMap = getUserEnteredComparisonGroups();
 			String comparisonGroup = attributeToComparisonGroupMap.get(amd.getName());
+			boolean useComparisonGroups = getParameterAsBoolean(PARAMETER_USE_COMPARISON_GROUPS);
 			for ( String value : amd.getValueSet() ) {
-				if ( !value.equals(comparisonGroup) ) {
+				if ( !((useComparisonGroups || codingType == EFFECT_CODING) && value.equals(comparisonGroup)) ) {
 					AttributeMetaData newAttrib = new AttributeMetaData( getTargetAttributeName( amd.getName(), value, getParameterAsBoolean(PARAMETER_USE_UNDERSCORE_IN_NAME) ), Ontology.INTEGER );
 					double lowerBound = 0;
 					if ( codingType == EFFECT_CODING ) {
@@ -182,7 +186,7 @@ public class NominalToNumeric extends PreprocessingOperator {
 	
 	/**
 	 * Creates the a map from target attribute names to the value (internal string mapping), for
-	 * which the attribute becomes 1. Use this function for dummy coding.   
+	 * which the attribute becomes 1. Use this function (only) for dummy coding.   
 	 */
 	private Map<String,Double> getAttributeTo1ValueMap(ExampleSet exampleSet) throws OperatorException {
 		Map<String,Double> attributeTo1ValueMap = new LinkedHashMap<String, Double>();
@@ -196,13 +200,20 @@ public class NominalToNumeric extends PreprocessingOperator {
 		}
 		
 		boolean useUnderscore = getParameterAsBoolean(PARAMETER_USE_UNDERSCORE_IN_NAME);
-		Map<String,Double> sourceAttributeToComparisonGroupMap = getSourceAttributeToComparisonGroupMap(exampleSet);
+		boolean useComparisonGroups = getParameterAsBoolean(PARAMETER_USE_COMPARISON_GROUPS);
+		Map<String,Double> sourceAttributeToComparisonGroupMap = null;
+		if (useComparisonGroups) {
+			sourceAttributeToComparisonGroupMap = getSourceAttributeToComparisonGroupMap(exampleSet);
+		}
 		
 		for ( Attribute nominalAttribute : nominalAttributes ) {
-			double comparisonGroupValue = sourceAttributeToComparisonGroupMap.get(nominalAttribute.getName());
+			double comparisonGroupValue = -1;
+			if (useComparisonGroups) {
+				comparisonGroupValue = sourceAttributeToComparisonGroupMap.get(nominalAttribute.getName());
+			}
 			// creating new attributes for nominal attributes			
 			for ( int currentValue = 0; currentValue < nominalAttribute.getMapping().size(); ++currentValue ) {
-				if ( currentValue != comparisonGroupValue ) {
+				if (  !useComparisonGroups || (currentValue != comparisonGroupValue) ) {
 					attributeTo1ValueMap.put( 
 							getTargetAttributeName(nominalAttribute.getName(), nominalAttribute.getMapping().mapIndex(currentValue), useUnderscore), 
 							(double)currentValue );
@@ -229,12 +240,14 @@ public class NominalToNumeric extends PreprocessingOperator {
 		}
 		
 		boolean useUnderscore = getParameterAsBoolean(PARAMETER_USE_UNDERSCORE_IN_NAME);
+		boolean useComparisonGroups = getParameterAsBoolean(PARAMETER_USE_COMPARISON_GROUPS);
+		int codingType = getParameterAsInt(PARAMETER_CODING_TYPE);
 		Map<String,Double> sourceAttributeToComparisonGroupValueMap = getSourceAttributeToComparisonGroupMap(exampleSet);
 
 		for ( Attribute nominalAttribute : nominalAttributes ) {
 			double comparisonGroup = sourceAttributeToComparisonGroupValueMap.get(nominalAttribute.getName());
 			for (int currentValue = 0; currentValue < nominalAttribute.getMapping().size(); ++currentValue) {
-				if (currentValue != sourceAttributeToComparisonGroupValueMap.get(nominalAttribute.getName())) {
+				if ((codingType == DUMMY_CODING && !useComparisonGroups) || (currentValue != sourceAttributeToComparisonGroupValueMap.get(nominalAttribute.getName()))) {
 					attributeToComparisonGroupValueMap.put( 
 							getTargetAttributeName(nominalAttribute.getName(), nominalAttribute.getMapping().mapIndex(currentValue), useUnderscore), 
 							new Pair<Double,Double>((double)currentValue, comparisonGroup) );
@@ -296,7 +309,10 @@ public class NominalToNumeric extends PreprocessingOperator {
 		if ( codingType == INTEGERS_CODING ) {
 			return new com.rapidminer.operator.preprocessing.filter.NominalToNumericModel(exampleSet, codingType);
 		} else if ( codingType == DUMMY_CODING ) {
-			Map<String,Double> sourceAttributeToComparisonGroupMap = getSourceAttributeToComparisonGroupMap(exampleSet);
+			Map<String,Double> sourceAttributeToComparisonGroupMap = null;
+			if (getParameterAsBoolean(PARAMETER_USE_COMPARISON_GROUPS)) {
+					sourceAttributeToComparisonGroupMap = getSourceAttributeToComparisonGroupMap(exampleSet);
+			};
 			Map<String,Double> attributeTo1ValueMap = getAttributeTo1ValueMap(exampleSet);
 			return new com.rapidminer.operator.preprocessing.filter.NominalToNumericModel(
 					exampleSet, 
@@ -304,7 +320,8 @@ public class NominalToNumeric extends PreprocessingOperator {
 					getParameterAsBoolean(PARAMETER_USE_UNDERSCORE_IN_NAME), 
 					sourceAttributeToComparisonGroupMap, 
 					attributeTo1ValueMap,
-					null);
+					null,
+					getParameterAsBoolean(PARAMETER_USE_COMPARISON_GROUPS));
 		} else if ( codingType == EFFECT_CODING ) {
 			Map<String,Double> sourceAttributeToComparisonGroupMap = getSourceAttributeToComparisonGroupMap(exampleSet);
 			Map<String,Pair<Double,Double>> attributeToValuesMap = getAttributeToValuesMap(exampleSet);			
@@ -314,7 +331,8 @@ public class NominalToNumeric extends PreprocessingOperator {
 					getParameterAsBoolean(PARAMETER_USE_UNDERSCORE_IN_NAME), 
 					sourceAttributeToComparisonGroupMap, 
 					null, 
-					attributeToValuesMap);
+					attributeToValuesMap,
+					getParameterAsBoolean(PARAMETER_USE_COMPARISON_GROUPS));
 		} else {
 			assert(false); // unsupported coding
 			return null;
@@ -342,11 +360,29 @@ public class NominalToNumeric extends PreprocessingOperator {
 		
 
 		types.add(new ParameterTypeCategory(PARAMETER_CODING_TYPE, "The coding of the numerical attributes.", ENCODING_TYPES, INTEGERS_CODING, false));
-		ParameterType type = new ParameterTypeList(PARAMETER_COMPARISON_GROUPS, "The value which becomes the comparison group.", 
+
+		ParameterType type;
+		
+		type = new ParameterTypeBoolean(
+				PARAMETER_USE_COMPARISON_GROUPS,
+				"If checked, for each selected attribute in the input set a value has to be specified as comparsion group, which will not appear in the final result set. If not checked, all values of the selected attributes will result in an indicator attribute in the result example set. ",
+				false,
+				false);
+		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_CODING_TYPE, ENCODING_TYPES, true, DUMMY_CODING));
+		types.add(type);
+
+		
+		type = new ParameterTypeList(PARAMETER_COMPARISON_GROUPS, "The value which becomes the comparison group.", 
 				new ParameterTypeAttribute(PARAMETER_ATTRIBUTE_FOR_COMPARISON_GROUP, "The attribute for which the comparison group is set.", getExampleSetInputPort(), Ontology.NOMINAL), 
 				new ParameterTypeString(PARAMETER_COMPARISON_GROUP, "The value which is used as comparison group.", true, false ));
-		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_CODING_TYPE, ENCODING_TYPES, true, EFFECT_CODING, DUMMY_CODING ));		
-		types.add( type );		
+		type.setExpert(false);
+		type.registerDependencyCondition(new OrParameterCondition(
+				this, 
+				true,
+				new BooleanParameterCondition(this, PARAMETER_USE_COMPARISON_GROUPS, true, true),
+				new EqualTypeCondition(this, PARAMETER_CODING_TYPE, ENCODING_TYPES, true, EFFECT_CODING)));
+		types.add(type);
+		
 		
 		type = new ParameterTypeBoolean(
 				PARAMETER_USE_UNDERSCORE_IN_NAME, 

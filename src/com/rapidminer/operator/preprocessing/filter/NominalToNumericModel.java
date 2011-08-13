@@ -87,6 +87,9 @@ class NominalToNumericModel extends PreprocessingModel {
 		 */
 		private boolean useUnderscoreInName = false;
 		
+		
+		private boolean useComparisonGroups = false;
+		
 		/**
 		 * Constructs a new model. Use this ctor to create a model for value encoding.
 		 * @param exampleSet
@@ -106,15 +109,24 @@ class NominalToNumericModel extends PreprocessingModel {
 		 * @param attributeTo1ValueMap @see NominalToNumericModel#attributeTo1ValueMap. Must be non-null for dummy coding, should be null for effect coding. @see NominalToNumeric#getAttributeTo1ValueMap
 		 * @param attributeToValuesMap @see NominalToNumericModel#attributeToValuesMap. Must be non-null for effect coding, should be null for dummy coding. @see NominalToNumeric#getAttributeToValuesMap
 		 */
-		protected NominalToNumericModel(ExampleSet exampleSet, int codingType, boolean useUnderscoreInName, Map<String,Double> sourceAttributeToComparisonGroupMap, Map<String,Double> attributeTo1ValueMap, Map<String, Pair<Double,Double>> attributeToValuesMap) {
+		protected NominalToNumericModel(
+				ExampleSet exampleSet, 
+				int codingType, 
+				boolean useUnderscoreInName, 
+				Map<String,Double> sourceAttributeToComparisonGroupMap, 
+				Map<String,Double> attributeTo1ValueMap, 
+				Map<String, 
+				Pair<Double,Double>> attributeToValuesMap,
+				boolean useComparisonGroups) {
 			this(exampleSet, codingType);
 			this.useUnderscoreInName = useUnderscoreInName;
 			this.sourceAttributeToComparisonGroupMap = sourceAttributeToComparisonGroupMap;
 			this.attributeTo1ValueMap = attributeTo1ValueMap;
 			this.attributeToValuesMap = attributeToValuesMap;
+			this.useComparisonGroups = useComparisonGroups;
 			
 			
-			if (codingType == NominalToNumeric.DUMMY_CODING || codingType == NominalToNumeric.EFFECT_CODING) {
+			if ((codingType == NominalToNumeric.DUMMY_CODING && useComparisonGroups)|| codingType == NominalToNumeric.EFFECT_CODING) {
 				// store comparison group strings for display
 				assert(sourceAttributeToComparisonGroupMap != null); // must not be null for dummy/effect coding
 				
@@ -150,9 +162,13 @@ class NominalToNumericModel extends PreprocessingModel {
 		 */
 		private List<String> getTargetAttributesFromSourceAttribute(Attribute sourceAttribute) {
 			List<String> targetNames = new LinkedList<String>();
-			double comparisonGroup = sourceAttributeToComparisonGroupMap.get( sourceAttribute.getName() );
+			double comparisonGroup = -1;
+			if ( (codingType == NominalToNumeric.DUMMY_CODING && useComparisonGroups) || (codingType == NominalToNumeric.EFFECT_CODING) ) {
+				comparisonGroup = sourceAttributeToComparisonGroupMap.get( sourceAttribute.getName() );
+			}			
+			
 			for ( int currentValue = 0; currentValue < sourceAttribute.getMapping().size(); ++currentValue ) {
-				if ( currentValue != comparisonGroup ) {
+				if ( (codingType == NominalToNumeric.DUMMY_CODING && !useComparisonGroups) || (currentValue != comparisonGroup) ) {
 					targetNames.add( NominalToNumeric.getTargetAttributeName(sourceAttribute.getName(), sourceAttribute.getMapping().mapIndex(currentValue), useUnderscoreInName) );
 				}
 			}
