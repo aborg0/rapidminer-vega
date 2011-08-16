@@ -25,6 +25,7 @@ package com.rapidminer.operator.preprocessing.filter;
 import java.util.List;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
@@ -96,7 +97,6 @@ public class AddNominalValue extends AbstractDataProcessing {
 			Attribute newAttribute = AttributeFactory.createAttribute(Ontology.NOMINAL);
 			ExampleTable table = exampleSet.getExampleTable();
 			table.addAttribute(newAttribute);
-			exampleSet.getAttributes().addRegular(newAttribute);
 
 			NominalMapping originalMapping = attribute.getMapping();
 			NominalMapping newMapping = newAttribute.getMapping();
@@ -109,8 +109,15 @@ public class AddNominalValue extends AbstractDataProcessing {
 				example.setValue(newAttribute, example.getValue(attribute));
 			}
 
+			exampleSet.getAttributes().addRegular(newAttribute);
+			AttributeRole role = exampleSet.getAttributes().getRole(attribute); 
+
 			exampleSet.getAttributes().remove(attribute);
-			newAttribute.setName(attribute.getName());			
+			
+			newAttribute.setName(attribute.getName());
+			if (role.isSpecial()) {
+				exampleSet.getAttributes().setSpecialAttribute(newAttribute, role.getSpecialName());
+			}
 		}  else {
 			attribute.getMapping().mapString(newValue);
 		}
