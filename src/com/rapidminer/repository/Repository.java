@@ -42,6 +42,9 @@ public interface Repository extends Folder {
 
     /** Returns some user readable information about the state of this repository. */
     public String getState();
+    
+    /** Returns the icon name for the repository. */
+    public String getIconName();
 
     /** Returns a piece of XML to store the repository in a configuration file. */
     public Element createXML(Document doc);

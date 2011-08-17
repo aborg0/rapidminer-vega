@@ -84,6 +84,7 @@ public class MailUtilities {
 
             if (mailSender != null) {
                 mailSender.sendEmail(address, subject, content, headers);
+                LogService.getRoot().info("Sent mail to "+address+" with subject "+subject);
             }
         } catch (Exception e) {
             LogService.getGlobal().log("Cannot send mail to " + address + ": " + e, LogService.ERROR);
@@ -91,6 +92,6 @@ public class MailUtilities {
     }
 
     public static Session makeSession() {
-        return mailFactory .makeSession();
+        return mailFactory.makeSession();
     }
 }

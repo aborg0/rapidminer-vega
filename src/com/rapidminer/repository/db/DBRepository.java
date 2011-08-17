@@ -47,6 +47,7 @@ import com.rapidminer.repository.RepositoryListener;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.repository.gui.RepositoryConfigurationPanel;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.jdbc.connection.DatabaseConnectionService;
 import com.rapidminer.tools.jdbc.connection.FieldConnectionEntry;
@@ -203,6 +204,11 @@ public class DBRepository implements Repository {
 	@Override
 	public String getState() {
 		return null;
+	}
+	
+	@Override
+	public String getIconName() {
+		return I18N.getMessage(I18N.getGUIBundle(), "gui.repository.db.icon");
 	}
 
 	@Override

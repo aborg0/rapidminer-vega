@@ -41,6 +41,7 @@ import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.repository.gui.LocalRepositoryPanel;
 import com.rapidminer.repository.gui.RepositoryConfigurationPanel;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
 
@@ -143,6 +144,11 @@ public class LocalRepository extends SimpleFolder implements Repository {
 	@Override
 	public String getState() {
 		return null;
+	}
+	
+	@Override
+	public String getIconName() {
+		return I18N.getMessage(I18N.getGUIBundle(), "gui.repository.local.icon");
 	}
 
 	@Override

@@ -43,6 +43,7 @@ import java.util.logging.Level;
 import javax.swing.Action;
 import javax.swing.event.EventListenerList;
 import javax.xml.namespace.QName;
+import javax.xml.ws.BindingProvider;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -71,6 +72,7 @@ import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.repository.gui.RemoteRepositoryPanel;
 import com.rapidminer.repository.gui.RepositoryConfigurationPanel;
 import com.rapidminer.tools.GlobalAuthenticator;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
 import com.rapidminer.tools.cipher.CipherException;
@@ -288,6 +290,11 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	public String getState() {
 		return (offline ? "offline" : (repositoryService != null ? "connected" : "disconnected"));
 	}
+	
+	@Override
+	public String getIconName() {
+		return I18N.getMessage(I18N.getGUIBundle(), "gui.repository.remote.icon");
+	}
 
 	@Override
 	public String toString() {
@@ -328,6 +335,9 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			try {
 				RepositoryService_Service serviceService = new RepositoryService_Service(getRepositoryServiceWSDLUrl(), new QName("http://service.web.rapidanalytics.de/", "RepositoryService"));
 				repositoryService = serviceService.getRepositoryServicePort();
+				
+				setCredentials((BindingProvider)repositoryService);
+				 
 				offline = false;
 			} catch (Exception e) {
 				offline = true;
@@ -339,6 +349,13 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		return repositoryService;
 	}
 
+	private void setCredentials(BindingProvider bp) {
+		if (password != null) {
+			bp.getRequestContext().put(BindingProvider.USERNAME_PROPERTY, getUsername());
+			bp.getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, new String(password));
+		}
+	}
+
 	public ProcessService getProcessService() throws RepositoryException {
 		// if (offline) {
 		// throw new RepositoryException("Repository "+getName()+" is offline. Connect first.");
@@ -347,6 +364,9 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			try {
 				ProcessService_Service serviceService = new ProcessService_Service(getProcessServiceWSDLUrl(), new QName("http://service.web.rapidanalytics.de/", "ProcessService"));
 				processService = serviceService.getProcessServicePort();
+				
+				setCredentials((BindingProvider)processService);
+
 				offline = false;
 			} catch (Exception e) {
 				offline = true;

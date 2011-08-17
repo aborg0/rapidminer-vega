@@ -190,6 +190,8 @@ public class FieldConnectionEntry extends ConnectionEntry {
 		this.dynamic = dynamic;
 	}
 
+	/** Returns whether this entry was dynamically created and should not be stored
+	 *  in the user-defined configuration file. */
 	@Override
 	public boolean isDynamic() {
 		return dynamic;

@@ -36,6 +36,7 @@ import com.rapidminer.repository.RepositoryListener;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.repository.gui.RepositoryConfigurationPanel;
+import com.rapidminer.tools.I18N;
 
 /** Repository backed by Java resources. Folders must contain a "CONTENTS" file, otherwise
  *  the contents cannot be scanned.
@@ -83,6 +84,11 @@ public class ResourceRepository extends ResourceFolder implements Repository {
 	@Override
 	public String getState() {
 		return null;
+	}
+	
+	@Override
+	public String getIconName() {
+		return I18N.getMessage(I18N.getGUIBundle(), "gui.repository.resource.icon");
 	}
 
 	@Override

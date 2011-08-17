@@ -33,7 +33,7 @@ import com.rapidminer.repository.gui.actions.AbstractRepositoryAction;
  * @author Marco Boeck
  * 
  */
-public class RepositoryActionConditionImpl implements RepositoryActionCondition {
+public class RepositoryActionConditionImplStandard implements RepositoryActionCondition {
 
 	/** selection must be of one of the types listed here */
 	private final List<Class<?>> requiredSelectionTypeList;
@@ -47,7 +47,7 @@ public class RepositoryActionConditionImpl implements RepositoryActionCondition 
 	 * @param requiredSelectionTypeList a list with {@link Entry} types. Each selected {@link Entry} must be of one of the types on the list or the condition is not met.
 	 * @param requiredSelectionRepositoryTypeList a list with {@link Repository} types. Each selected {@link Entry} must be of the types on the list or the condition is not met.
 	 */
-	public RepositoryActionConditionImpl(List<Class<?>> requiredSelectionTypeList, List<Class<?>> requiredSelectionRepositoryTypeList) {
+	public RepositoryActionConditionImplStandard(List<Class<?>> requiredSelectionTypeList, List<Class<?>> requiredSelectionRepositoryTypeList) {
 		if (requiredSelectionTypeList == null || requiredSelectionRepositoryTypeList == null) {
 			throw new IllegalArgumentException("lists must not be null!");
 		}
@@ -60,7 +60,7 @@ public class RepositoryActionConditionImpl implements RepositoryActionCondition 
 	 * @param requiredSelectionTypeList a list with {@link Entry} types. Each selected {@link Entry} must be of one of the types on the list or the condition is not met.
 	 * @param requiredSelectionRepositoryTypeList a list with {@link Repository} types. Each selected {@link Entry} must be of the types on the list or the condition is not met.
 	 */
-	public RepositoryActionConditionImpl(Class<?>[] requiredSelectionTypes, Class<?>[] requiredSelectionRepositoryTypes) {
+	public RepositoryActionConditionImplStandard(Class<?>[] requiredSelectionTypes, Class<?>[] requiredSelectionRepositoryTypes) {
 		if (requiredSelectionTypes == null || requiredSelectionRepositoryTypes == null) {
 			throw new IllegalArgumentException("arrays must not be null!");
 		}

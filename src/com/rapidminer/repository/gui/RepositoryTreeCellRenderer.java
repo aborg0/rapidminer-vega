@@ -25,6 +25,8 @@ package com.rapidminer.repository.gui;
 import java.awt.Component;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.Icon;
 import javax.swing.JLabel;
@@ -48,7 +50,6 @@ public class RepositoryTreeCellRenderer extends DefaultTreeCellRenderer {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final Icon ICON_SERVER        = SwingTools.createIcon("16/server.png");
 	private static final Icon ICON_FOLDER_OPEN   = SwingTools.createIcon("16/folder.png");
 	private static final Icon ICON_FOLDER_CLOSED = SwingTools.createIcon("16/folder_closed.png");
 	private static final Icon ICON_FOLDER_LOCKED = SwingTools.createIcon("16/folder_lock.png");
@@ -58,6 +59,9 @@ public class RepositoryTreeCellRenderer extends DefaultTreeCellRenderer {
 	private static final Icon ICON_TEXT          = SwingTools.createIcon("16/text.png");
 	private static final Icon ICON_TABLE          = SwingTools.createIcon("16/table2.png");
 	private static final Icon ICON_IMAGE         = SwingTools.createIcon("16/photo_landscape2.png");
+	
+	/** stores the icons for all repository implementations */
+	private static Map<String, Icon> ICON_REPOSITORY_MAP = new HashMap<String, Icon>();
 
 	private static final DateFormat DATE_FORMAT = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 	
@@ -66,30 +70,43 @@ public class RepositoryTreeCellRenderer extends DefaultTreeCellRenderer {
 		JLabel label = (JLabel)super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
 		if (value instanceof Entry) {
 			Entry entry = (Entry) value;
-			String state = "";
+			
+			StringBuilder labelText = new StringBuilder();
+			labelText.append("<html>").append(entry.getName());
+			
+			StringBuilder state = new StringBuilder();
 			if (entry instanceof Repository) {
 				String reposState = ((Repository)entry).getState();
 				if (reposState != null) {
-					state += reposState + " &ndash; ";
+					state.append(reposState).append(" &ndash; ");
 				}
 			}
-			state += entry.getOwner();
+			if (entry.getOwner() != null) {
+				state.append(entry.getOwner());
+			}
 			if (entry instanceof DataEntry) {
-				state += "  &ndash; v"+((DataEntry)entry).getRevision();
+				state.append("  &ndash; v").append(((DataEntry)entry).getRevision());
 				long date = ((DataEntry)entry).getDate();
 				if (date >= 0) {
-					state += ", " + DATE_FORMAT.format(new Date(date));
+					state.append(", ").append(DATE_FORMAT.format(new Date(date)));
 				}
 				long size = ((DataEntry) entry).getSize();
 				if (size >= 0) {
-					state += " &ndash; " + Tools.formatBytes(size);
+					state.append(" &ndash; ").append(Tools.formatBytes(size));
 				}
-			} 
+			}			
+			if (state.length() > 0) {
+				labelText.append(" <small style=\"color:gray\">(").append(state).append(")</small>");
+			}
 			
-			 
-			label.setText("<html>" + entry.getName() + " <small style=\"color:gray\">(" + state + ")</small></html>");
+			labelText.append("</html>");
+			label.setText(labelText.toString());
 			if (entry instanceof Repository) {
-				label.setIcon(ICON_SERVER);
+				Repository repo = (Repository)entry;
+				if (ICON_REPOSITORY_MAP.get(repo.getIconName()) == null) {
+					ICON_REPOSITORY_MAP.put(repo.getIconName(), SwingTools.createIcon("16/" + repo.getIconName()));
+				}
+				label.setIcon(ICON_REPOSITORY_MAP.get(repo.getIconName()));
 			} else if (entry.getType().equals(Folder.TYPE_NAME)) {
 				if (entry.isReadOnly()) {
 					label.setIcon(ICON_FOLDER_LOCKED);

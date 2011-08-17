@@ -67,9 +67,9 @@ import com.rapidminer.repository.DataEntry;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.ProcessEntry;
-import com.rapidminer.repository.Repository;
-import com.rapidminer.repository.RepositoryActionConditionImpl;
 import com.rapidminer.repository.RepositoryActionCondition;
+import com.rapidminer.repository.RepositoryActionConditionImplConfigRepository;
+import com.rapidminer.repository.RepositoryActionConditionImplStandard;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
@@ -136,8 +136,6 @@ public class RepositoryTree extends JTree {
 		}
 	}
 	
-	public final AbstractRepositoryAction<Repository> CONFIGURE_ACTION = new ConfigureRepositoryAction(this);
-	
 	public final AbstractRepositoryAction<Entry> RENAME_ACTION = new RenameAction(this);
 
 	public final AbstractRepositoryAction<Entry> DELETE_ACTION = new DeleteAction(this);
@@ -157,16 +155,17 @@ public class RepositoryTree extends JTree {
 	
 	private static final List<RepositoryActionEntry> REPOSITORY_ACTIONS = new LinkedList<RepositoryTree.RepositoryActionEntry>();
 	
-	{
-		addRepositoryAction(OpenEntryAction.class, new RepositoryActionConditionImpl(new Class<?>[]{ DataEntry.class }, new Class<?>[]{}), false, false);
-		addRepositoryAction(StoreProcessAction.class, new RepositoryActionConditionImpl(new Class<?>[]{ ProcessEntry.class, Folder.class }, new Class<?>[]{}), false, false);
-		addRepositoryAction(RenameAction.class, new RepositoryActionConditionImpl(new Class<?>[]{ Entry.class }, new Class<?>[]{}), false, false);
-		addRepositoryAction(CreateFolderAction.class, new RepositoryActionConditionImpl(new Class<?>[]{ Folder.class }, new Class<?>[]{}), false, false);
-		addRepositoryAction(CopyEntryRepositoryAction.class, new RepositoryActionConditionImpl(new Class<?>[]{}, new Class<?>[]{}), true, false);
-		addRepositoryAction(PasteEntryRepositoryAction.class, new RepositoryActionConditionImpl(new Class<?>[]{}, new Class<?>[]{}), false, false);
-		addRepositoryAction(CopyLocationAction.class, new RepositoryActionConditionImpl(new Class<?>[]{}, new Class<?>[]{}), false, false);
-		addRepositoryAction(DeleteAction.class, new RepositoryActionConditionImpl(new Class<?>[]{ Entry.class }, new Class<?>[]{}), false, false);
-		addRepositoryAction(RefreshAction.class, new RepositoryActionConditionImpl(new Class<?>[]{ Folder.class }, new Class<?>[]{}), true, false);
+	static {
+		addRepositoryAction(ConfigureRepositoryAction.class, new RepositoryActionConditionImplConfigRepository(), false, true);
+		addRepositoryAction(OpenEntryAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ DataEntry.class }, new Class<?>[]{}), false, false);
+		addRepositoryAction(StoreProcessAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ ProcessEntry.class, Folder.class }, new Class<?>[]{}), false, false);
+		addRepositoryAction(RenameAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ Entry.class }, new Class<?>[]{}), false, false);
+		addRepositoryAction(CreateFolderAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ Folder.class }, new Class<?>[]{}), false, false);
+		addRepositoryAction(CopyEntryRepositoryAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{}, new Class<?>[]{}), true, false);
+		addRepositoryAction(PasteEntryRepositoryAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{}, new Class<?>[]{}), false, false);
+		addRepositoryAction(CopyLocationAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{}, new Class<?>[]{}), false, false);
+		addRepositoryAction(DeleteAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ Entry.class }, new Class<?>[]{}), false, false);
+		addRepositoryAction(RefreshAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ Folder.class }, new Class<?>[]{}), true, false);
 	}
 	
 	
@@ -178,7 +177,6 @@ public class RepositoryTree extends JTree {
 		super(new RepositoryTreeModel(RepositoryManager.getInstance(null)));
 		
 		// these actions are a) needed for the action map or b) needed by other classes for toolbars etc
-		listToEnable.add(CONFIGURE_ACTION);
 		listToEnable.add(DELETE_ACTION);
 		listToEnable.add(RENAME_ACTION);
 		listToEnable.add(REFRESH_ACTION);
@@ -501,11 +499,6 @@ public class RepositoryTree extends JTree {
 		}
 		Object selected = path.getLastPathComponent();
 		JPopupMenu menu = new JPopupMenu();
-		if (selected instanceof Repository) {
-			if (((Repository) selected).isConfigurable()) {
-				menu.add(CONFIGURE_ACTION);
-			}
-		}
 		
 		// can support multiple selections, not needed right now
 		List<Entry> entryList = new ArrayList<Entry>(1);
@@ -522,6 +515,7 @@ public class RepositoryTree extends JTree {
 			}
 		}
 		
+		// append custom actions if there are any
 		if (selected instanceof Entry) {
 			Collection<Action> customActions = ((Entry) selected).getCustomActions();
 			if ((customActions != null) && !customActions.isEmpty()) {
