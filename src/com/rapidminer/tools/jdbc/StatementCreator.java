@@ -303,6 +303,9 @@ public class StatementCreator {
 			}
 			if (si.getTypeName().toLowerCase().startsWith("varchar")) {
 				if (defaultVarCharLength != -1 && defaultVarCharLength < maxLength) {
+					// won't happen as an SQLException is thrown earlier in this case
+					b.append("(").append(maxLength).append(")");
+				} else if (defaultVarCharLength != -1 && maxLength < defaultVarCharLength) {
 					b.append("(").append(defaultVarCharLength).append(")");
 				} else {
 					b.append("(").append(maxLength).append(")");

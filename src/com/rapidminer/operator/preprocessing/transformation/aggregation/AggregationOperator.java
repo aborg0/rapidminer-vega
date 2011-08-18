@@ -318,7 +318,8 @@ public class AggregationOperator extends AbstractDataProcessing {
         }
 
         // creating example table
-        MemoryExampleTable table = new MemoryExampleTable(newAttributes);;
+        MemoryExampleTable table = new MemoryExampleTable(newAttributes);
+        ;
         DataRowFactory factory = new DataRowFactory(DataRowFactory.TYPE_DOUBLE_ARRAY, '.');
         double[] dataOfUpperLevels = new double[groupAttributes.length];
 
@@ -330,7 +331,8 @@ public class AggregationOperator extends AbstractDataProcessing {
             parseLeaf(leafNode, dataOfUpperLevels, table, factory, newAttributes, aggregationFunctions);
         }
 
-        // postprocessing for remaining compatibility: Old versions automatically added group "all". Must remain this way for old operator version
+        // postprocessing for remaining compatibility: Old versions automatically added group "all". Must remain this way for old operator
+        // version
         if (groupAttributes.length == 0 && getCompatibilityLevel().isAtMost(VERSION_GROUP_ALL_REMOVED)) {
             Attribute resultGroupAttribute = AttributeFactory.createAttribute(GENERIC_GROUP_NAME, Ontology.NOMINAL);
             table.addAttribute(resultGroupAttribute);
@@ -394,9 +396,14 @@ public class AggregationOperator extends AbstractDataProcessing {
 
             }
         } else if (currentAttribute.isNumerical()) {
-            for (Entry<Object, AggregationTreeNode> value : node.getChilds()) {
-                dataOfUpperLevels[groupLevel] = (Double) value.getKey();
-                parseTree(value.getValue(), groupAttributes, dataOfUpperLevels, groupLevel + 1, table, factory, newAttributes, isCountingAllCombinations, aggregationFunctions);
+            for (Object numericalValue : node.getValues()) {
+                dataOfUpperLevels[groupLevel] = (Double) numericalValue;
+                if (groupLevel + 1 < groupAttributes.length) {
+                    parseTree(node.getOrCreateChild(numericalValue), groupAttributes, dataOfUpperLevels, groupLevel + 1, table, factory, newAttributes, isCountingAllCombinations, aggregationFunctions);
+                } else {
+                    // if not, insert values from aggregation functions
+                    parseLeaf(node.getLeaf(numericalValue), dataOfUpperLevels, table, factory, newAttributes, aggregationFunctions);
+                }
             }
         }
     }

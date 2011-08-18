@@ -3,6 +3,8 @@ package com.rapidminer.test.utils;
 import java.util.Iterator;
 import java.util.List;
 
+import org.junit.ComparisonFailure;
+
 import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
 
@@ -13,6 +15,7 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.NominalMapping;
 import com.rapidminer.operator.IOObject;
+import com.rapidminer.operator.IOObjectCollection;
 import com.rapidminer.operator.performance.PerformanceCriterion;
 import com.rapidminer.operator.performance.PerformanceVector;
 import com.rapidminer.operator.visualization.dependencies.NumericalMatrix;
@@ -325,12 +328,23 @@ public class RapidAssert extends Assert {
     }
     
     /**
+     * Tests the collection of ioobjects
+     * 
+     * @param expected
+     * @param actual
+     */
+    public static void assertEquals(String message, IOObjectCollection<IOObject> expected, IOObjectCollection<IOObject> actual) {
+    	assertEquals("Number of IOObjects in collections are not equal", expected.size(), actual.size());
+    	RapidAssert.assertEquals(message, expected.getObjects(), actual.getObjects());
+    }
+    
+    /**
      * Tests if both list of ioobjects are equal.
      * 
 	 * @param expected		expected value
 	 * @param actual		actual value
      */
-	public static void assertEquals( List<IOObject> expected, List<IOObject> actual ) {
+	public static void assertEquals( String message, List<IOObject> expected, List<IOObject> actual ) {
 		assertSize(expected, actual);
 
 		Iterator<IOObject> expectedIter = expected.iterator();
@@ -339,9 +353,19 @@ public class RapidAssert extends Assert {
 		while( expectedIter.hasNext() && actualIter.hasNext() )  {
 			IOObject expectedIOO = expectedIter.next();
 			IOObject actualIOO = actualIter.next();
-			assertEquals(expectedIOO, actualIOO);
+			assertEquals(message, expectedIOO, actualIOO);
 		}
 		
+	}
+	
+    /**
+     * Tests if both list of ioobjects are equal.
+     * 
+	 * @param expected		expected value
+	 * @param actual		actual value
+     */
+	public static void assertEquals( List<IOObject> expected, List<IOObject> actual ) {
+		RapidAssert.assertEquals("", expected, actual);		
 	}
 
 	/**
@@ -362,16 +386,40 @@ public class RapidAssert extends Assert {
 	 * @param actualIOO
 	 */
 	public static void assertEquals(IOObject expectedIOO, IOObject actualIOO) {
+		RapidAssert.assertEquals("", expectedIOO, actualIOO);
+	}
+	
+	/**
+	 * Tests if the two IOObjects are equal and appends the given message.
+	 * 
+	 * @param expectedIOO
+	 * @param actualIOO
+	 */
+	public static void assertEquals(String message, IOObject expectedIOO, IOObject actualIOO) {
+		
 		if( expectedIOO instanceof ExampleSet && actualIOO instanceof ExampleSet )
-			RapidAssert.assertEquals("ExampleSets are not equal", (ExampleSet)expectedIOO, (ExampleSet)actualIOO, -1);
+			RapidAssert.assertEquals(message + "ExampleSets are not equal", (ExampleSet)expectedIOO, (ExampleSet)actualIOO, -1);
 		
-		if( expectedIOO instanceof NumericalMatrix && actualIOO instanceof NumericalMatrix )
-			RapidAssert.assertEquals("Numerical matrices are not equal", (NumericalMatrix) expectedIOO, (NumericalMatrix) actualIOO);
+		else if( expectedIOO instanceof NumericalMatrix && actualIOO instanceof NumericalMatrix )
+			RapidAssert.assertEquals(message + "Numerical matrices are not equal", (NumericalMatrix) expectedIOO, (NumericalMatrix) actualIOO);
 		
-		if( expectedIOO instanceof PerformanceVector && actualIOO instanceof PerformanceVector )
-			RapidAssert.assertEquals("Performance vectors are not equal", (PerformanceVector) expectedIOO, (PerformanceVector) actualIOO);
+		else if( expectedIOO instanceof IOObjectCollection ) {
+			@SuppressWarnings("unchecked")
+			IOObjectCollection<IOObject> expectedCollection = (IOObjectCollection<IOObject>)expectedIOO;
+			@SuppressWarnings("unchecked")
+			IOObjectCollection<IOObject> actualCollection = (IOObjectCollection<IOObject>)actualIOO;
+			RapidAssert.assertEquals(message + "Collection of IOObjects are not equal: ", expectedCollection, actualCollection);
+		}
+		
+		else if( expectedIOO instanceof PerformanceVector && actualIOO instanceof PerformanceVector )
+			RapidAssert.assertEquals(message + "Performance vectors are not equal", (PerformanceVector) expectedIOO, (PerformanceVector) actualIOO);
 		else if( expectedIOO instanceof AverageVector && actualIOO instanceof AverageVector ) 
-			RapidAssert.assertEquals("Average vectors are not equals", (AverageVector) expectedIOO, (AverageVector) actualIOO);
+			RapidAssert.assertEquals(message + "Average vectors are not equals", (AverageVector) expectedIOO, (AverageVector) actualIOO);
+		
+		else {
+			throw new ComparisonFailure("Comparison of the two given IOObject classes is not supported yet", expectedIOO.toString(), actualIOO.toString());
+		}
+		
 	}
 	
 }
