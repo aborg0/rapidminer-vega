@@ -68,7 +68,7 @@ public class SaveAction extends ResourceAction {
 			RapidMinerGUI.useProcessFile(process);
 			RapidMinerGUI.getMainFrame().processHasBeenSaved();
 		} catch (IOException ex) {
-			SwingTools.showSimpleErrorMessage("cannot_save_process", ex);
+			SwingTools.showSimpleErrorMessage("cannot_save_process", ex, process.getProcessLocation(), ex.getMessage());
 		}
 	}
 	

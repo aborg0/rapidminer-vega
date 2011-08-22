@@ -225,12 +225,12 @@ public abstract class AbstractPerformanceEvaluator extends Operator implements C
     public PerformanceVector doWork(ExampleSet exampleSet) throws  OperatorException {
         exampleSetInput.receive(exampleSet);
         doWork();
-        return performanceOutput.getData();
+        return performanceOutput.getData(PerformanceVector.class);
     }
 
     @Override
     public void doWork() throws OperatorException {
-        ExampleSet testSet = exampleSetInput.getData();
+        ExampleSet testSet = exampleSetInput.getData(ExampleSet.class);
         checkCompatibility(testSet);
         init(testSet);
         PerformanceVector inputPerformance = performanceInput.getDataOrNull();

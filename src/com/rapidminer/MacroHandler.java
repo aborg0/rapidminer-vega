@@ -62,6 +62,12 @@ public class MacroHandler {
         return macroMap.keySet().iterator();
     }
 
+    /**
+     * Adds a macro to this MacroHandler. If a macro with this
+     * name is already present, it will be overwritten.
+     * @param macro The name of the macro.
+     * @param value The new value of the macro.
+     */
     public void addMacro(String macro, String value) {
         this.macroMap.put(macro, value);
     }

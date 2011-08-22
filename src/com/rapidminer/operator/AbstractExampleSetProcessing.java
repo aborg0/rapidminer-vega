@@ -92,7 +92,7 @@ public abstract class AbstractExampleSetProcessing extends Operator {
 
 	@Override
 	public final void doWork() throws OperatorException {
-		ExampleSet inputExampleSet = exampleSetInput.getData();
+		ExampleSet inputExampleSet = exampleSetInput.getData(ExampleSet.class);
 		ExampleSet applySet = null;
 		// check for needed copy of original exampleset
 		if (originalOutput.isConnected() && writesIntoExistingData()) {

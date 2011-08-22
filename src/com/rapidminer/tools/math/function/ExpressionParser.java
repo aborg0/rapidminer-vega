@@ -48,6 +48,7 @@ import org.xml.sax.SAXException;
 import com.rapidminer.MacroHandler;
 import com.rapidminer.Process;
 import com.rapidminer.example.Attribute;
+import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
@@ -885,8 +886,11 @@ public class ExpressionParser {
         	* 
         	* exampleSet.getExampleTable().removeAttribute(existingAttribute);
         	*/
+        	AttributeRole oldRole = exampleSet.getAttributes().getRole(existingAttribute);
         	exampleSet.getAttributes().remove(existingAttribute);
         	newAttribute.setName(targetName);
+        	// restore role from old attribute to new attribute
+        	exampleSet.getAttributes().setSpecialAttribute(newAttribute, oldRole.getSpecialName());
         }
         
         return newAttribute;

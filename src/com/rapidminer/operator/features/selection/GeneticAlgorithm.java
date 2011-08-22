@@ -151,15 +151,22 @@ public class GeneticAlgorithm extends AbstractGeneticAlgorithm {
 			useExactNumber = true;
 			exactNumber = getParameterAsInt(PARAMETER_EXACT_NUMBER_OF_ATTRIBUTES);
 			logNote("Using exact number of features for feature selection (" + exactNumber + "), ignoring possibly defined range for the number of features and / or input attribute weights.");
+			if (exactNumber > numberOfAttributes) {
+				throw new UserError(this, 125, numberOfAttributes, exactNumber);
+			}
 		} else {
 			minNumber = getParameterAsInt(PARAMETER_MIN_NUMBER_OF_ATTRIBUTES);
 			if (getParameterAsBoolean(PARAMETER_RESTRICT_NUMBER)) {
 				maxNumber = getParameterAsInt(PARAMETER_MAX_NUMBER_OF_ATTRIBUTES);
 				restrictMaxNumber = true;
-			} else
+				if (minNumber > maxNumber) {
+					throw new UserError(this, 210, PARAMETER_MAX_NUMBER_OF_ATTRIBUTES, PARAMETER_MIN_NUMBER_OF_ATTRIBUTES);
+				}
+			} else {
 				maxNumber = numberOfAttributes;
-			if (minNumber > maxNumber) {
-				throw new UserError(this, 210, PARAMETER_MAX_NUMBER_OF_ATTRIBUTES, PARAMETER_MIN_NUMBER_OF_ATTRIBUTES);
+			}
+			if (minNumber > numberOfAttributes) {
+				throw new UserError(this, 125, numberOfAttributes, minNumber);
 			}
 		}
 

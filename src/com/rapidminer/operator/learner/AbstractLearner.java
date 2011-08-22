@@ -107,7 +107,7 @@ public abstract class AbstractLearner extends Operator implements Learner {
     public Model doWork(ExampleSet exampleSet) throws OperatorException {
         exampleSetInput.receive(exampleSet);
         doWork();
-        return modelOutput.getData();
+        return modelOutput.getData(Model.class);
     }
 
     /** Returns the weights (if computed, after one of the doWork()} methods has been called.
@@ -132,7 +132,7 @@ public abstract class AbstractLearner extends Operator implements Learner {
      */
     @Override
     public void doWork() throws OperatorException {
-        ExampleSet exampleSet = exampleSetInput.getData();
+        ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
         // some checks
         if (exampleSet.getAttributes().getLabel() == null) {

@@ -141,7 +141,7 @@ public class Tools {
 			}
 			outputPort.deliver(performance);				
 		} else {
-			AverageVector average = outputPort.getData();
+			AverageVector average = outputPort.getData(AverageVector.class);
 			if (!average.getClass().isInstance(performance)) {
 				// this cannot happen
 				throw new RuntimeException("Average vector mismatch!");

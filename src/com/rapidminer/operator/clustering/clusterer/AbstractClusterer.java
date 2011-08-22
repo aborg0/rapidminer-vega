@@ -91,7 +91,7 @@ public abstract class AbstractClusterer extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet input = exampleSetInput.getData();
+		ExampleSet input = exampleSetInput.getData(ExampleSet.class);
 		ClusterModel clusterModel = generateClusterModel(input);
 		
 		// registering visualizer

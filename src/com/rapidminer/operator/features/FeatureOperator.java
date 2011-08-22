@@ -302,7 +302,7 @@ public abstract class FeatureOperator extends OperatorChain {
 		this.random = RandomGenerator.getRandomGenerator(this);
 		this.maximalFitness = getParameterAsDouble(PARAMETER_MAXIMAL_FITNESS);
 
-		ExampleSet es = exampleSetInput.getData();
+		ExampleSet es = exampleSetInput.getData(ExampleSet.class);
 		// creating population evaluator
 		this.populationEvaluator = getPopulationEvaluator(es);
 

@@ -119,7 +119,7 @@ public abstract class AbstractMetaLearner extends OperatorChain implements Learn
      */
     @Override
     public void doWork() throws OperatorException {
-        ExampleSet exampleSet = exampleSetInput.getData();
+        ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
         // some checks
         if (exampleSet.getAttributes().getLabel() == null) {
@@ -146,7 +146,7 @@ public abstract class AbstractMetaLearner extends OperatorChain implements Learn
     protected Model applyInnerLearner(ExampleSet exampleSet) throws OperatorException {
         innerExampleSource.deliver(exampleSet);
         executeInnerLearner();
-        return (Model)innerModelSink.getData();
+        return (Model)innerModelSink.getData(Model.class);
     }
 
     protected void executeInnerLearner() throws OperatorException {

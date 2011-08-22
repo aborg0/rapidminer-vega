@@ -22,6 +22,8 @@
  */
 package com.rapidminer.operator.meta;
 
+import java.util.List;
+
 import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorDescription;
@@ -30,11 +32,20 @@ import com.rapidminer.operator.ValueDouble;
 import com.rapidminer.operator.ports.CollectingPortPairExtender;
 import com.rapidminer.operator.ports.PortPairExtender;
 import com.rapidminer.operator.ports.metadata.SubprocessTransformRule;
+import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeBoolean;
+import com.rapidminer.parameter.ParameterTypeInt;
+import com.rapidminer.parameter.ParameterTypeString;
+import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 /**
  * 
  * @author Sebastian Land
  */
 public abstract class AbstractIteratingOperatorChain extends OperatorChain {
+	public static final String PARAMETER_SET_MACRO = "set_iteration_macro";
+	public static final String PARAMETER_MACRO_NAME = "macro_name";
+	public static final String PARAMETER_MACRO_START_VALUE = "macro_start_value";
+
 
 	private final PortPairExtender inputPortPairExtender = new PortPairExtender("input", getInputPorts(), getSubprocess(0).getInnerSources());
 	private final CollectingPortPairExtender outExtender = new CollectingPortPairExtender("output", getSubprocess(0).getInnerSinks(), getOutputPorts());
@@ -62,8 +73,19 @@ public abstract class AbstractIteratingOperatorChain extends OperatorChain {
 	@Override
 	public void doWork() throws OperatorException {		
 		outExtender.reset();
-		this.currentIteration = 0;
+		String iterationMacroName = null;
+		int macroIterationOffset = 0;
+		boolean setIterationMacro = getParameterAsBoolean(PARAMETER_SET_MACRO);
+		if (setIterationMacro) {
+			iterationMacroName = getParameterAsString(PARAMETER_MACRO_NAME);
+			macroIterationOffset = getParameterAsInt(PARAMETER_MACRO_START_VALUE);
+		}
+		this.currentIteration = 0;		
 		while (!shouldStop(getSubprocess(0).getInnerSinks().createIOContainer(false))) {
+			if (setIterationMacro) {
+				String iterationString = Integer.toString(currentIteration + macroIterationOffset);
+				getProcess().getMacroHandler().addMacro(iterationMacroName, iterationString);
+			}
 			getLogger().fine("Starting iteration "+(currentIteration+1));
 			inputPortPairExtender.passDataThrough();
 			getSubprocess(0).execute();			
@@ -79,5 +101,22 @@ public abstract class AbstractIteratingOperatorChain extends OperatorChain {
 	}
 	
 	abstract boolean shouldStop(IOContainer iterationResults) throws OperatorException;
+	
+	@Override
+	public List<ParameterType> getParameterTypes() {
+		List<ParameterType> types = super.getParameterTypes();
+		
+		ParameterType type;
+		type = new ParameterTypeBoolean(PARAMETER_SET_MACRO, "Selects if in each iteration a macro with the current iteration number is set.", false, true);
+		types.add(type);
+		type = new ParameterTypeString(PARAMETER_MACRO_NAME, "The name of the iteration macro.", "iteration", true);
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_SET_MACRO, true, true));
+		types.add(type);
+		type = new ParameterTypeInt(PARAMETER_MACRO_START_VALUE, "The number which is set for the macro in the first iteration.", Integer.MIN_VALUE, Integer.MAX_VALUE, 1, true);
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_SET_MACRO, true, true));
+		types.add(type);
+		
+		return types;
+	}
 
 }

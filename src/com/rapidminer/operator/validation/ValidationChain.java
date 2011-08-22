@@ -269,7 +269,7 @@ public abstract class ValidationChain extends OperatorChain implements Capabilit
 
     @Override
     public void doWork() throws OperatorException {
-        ExampleSet eSet = trainingSetInput.getData();
+        ExampleSet eSet = trainingSetInput.getData(ExampleSet.class);
         estimatePerformance(eSet);
 
         // Generate complete model, if desired

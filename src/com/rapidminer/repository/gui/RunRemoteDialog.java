@@ -29,6 +29,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
@@ -131,7 +133,7 @@ public class RunRemoteDialog extends ButtonDialog {
 				
 		startBox.setSelected(false);
 		endBox.setSelected(false);
-
+		
 		ProcessLocation processLocation = process.getProcessLocation();
 		if ((processLocation != null) && (processLocation instanceof RepositoryProcessLocation)) {			
 			processField.setText(((RepositoryProcessLocation) processLocation).getRepositoryLocation().getPath());
@@ -167,6 +169,22 @@ public class RunRemoteDialog extends ButtonDialog {
 		}, true);
 		
 		JPanel schedulePanel = makeSchedulePanel();
+
+		// copy context
+//		List<String> inputRepositoryLocations = new LinkedList<String>();
+//		inputRepositoryLocations.addAll(process.getContext().getInputRepositoryLocations());
+//		context.setInputRepositoryLocations(inputRepositoryLocations);
+//		
+//		List<String> outputRepositoryLocations = new LinkedList<String>();
+//		outputRepositoryLocations.addAll(process.getContext().getOutputRepositoryLocations());
+//		context.setOutputRepositoryLocations(outputRepositoryLocations);
+//
+//		List<Pair<String, String>> macros = new LinkedList<Pair<String,String>>();
+//		for (Pair<String,String> macro : process.getContext().getMacros()) {
+//			macros.add(new Pair<String,String>(macro.getFirst(),macro.getSecond()));
+//		}
+//		context.setMacros(macros);
+
 		ProcessContextEditor contextPanel = new ProcessContextEditor(process, context);
 		tabs.addTabI18N("schedule", schedulePanel);
 		tabs.addTabI18N("context", contextPanel);
@@ -371,7 +389,7 @@ public class RunRemoteDialog extends ButtonDialog {
 			for (Pair<String, String> macro : context.getMacros()) {
 				final MacroDefinition macroDef = new MacroDefinition();
 				macroDef.setKey(macro.getFirst());
-				macroDef.setKey(macro.getSecond());
+				macroDef.setValue(macro.getSecond());
 				pcWrapper.getMacros().add(macroDef);	
 			}
 			

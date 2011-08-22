@@ -34,8 +34,8 @@ import com.rapidminer.tools.Ontology;
  * This precondition can be used, if a single attribute must be contained in the example set.
  * Three properties of the attribute might be given: Name, Type and Role. Type and Role are
  * optional.
- * If the attributeName depends on a parameter and is known only during runtime,
- * it might be added overwriting the getName method. 
+ * The attribute name is not given explicitly, instead a parameter name of an operator is given,
+ * from which the attribute name is retrieved during runtime.
  * 
  * @author Sebastian Land
  *

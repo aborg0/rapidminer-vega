@@ -63,7 +63,7 @@ public class SaveAsAction extends ResourceAction {
 			initial = process.getRepositoryLocation().toString();
 		}
 		String loc = RepositoryLocationChooser.selectLocation(null, initial, RapidMinerGUI.getMainFrame(), true, false);
-		if (loc!= null) {
+		if (loc != null) {
 			try {
 				RepositoryLocation location = new RepositoryLocation(loc);
 				Entry entry = location.locateEntry();
@@ -74,9 +74,9 @@ public class SaveAsAction extends ResourceAction {
 				}
 				process.setProcessLocation(new RepositoryProcessLocation(location));
 			} catch (MalformedRepositoryLocationException e) {
-				SwingTools.showSimpleErrorMessage("cannot_save_process", e);
+				SwingTools.showSimpleErrorMessage("cannot_save_process", e, loc, e.getMessage());
 			} catch (RepositoryException e) {
-				SwingTools.showSimpleErrorMessage("cannot_save_process", e);
+				SwingTools.showSimpleErrorMessage("cannot_save_process", e, loc, e.getMessage());
 			}
 			SaveAction.save(process);
 		}

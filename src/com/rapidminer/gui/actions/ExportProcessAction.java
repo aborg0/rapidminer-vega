@@ -56,7 +56,7 @@ public class ExportProcessAction extends ResourceAction {
 		try {
 			new FileProcessLocation(file).store(RapidMinerGUI.getMainFrame().getProcess(), null);
 		} catch (IOException e1) {
-			SwingTools.showSimpleErrorMessage("cannot_save_process", e1);
+			SwingTools.showSimpleErrorMessage("cannot_save_process", e1, RapidMinerGUI.getMainFrame().getProcess().getProcessLocation(), e1.getMessage());
 		}		
 	}
 

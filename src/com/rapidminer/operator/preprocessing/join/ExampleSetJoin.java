@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.DoubleArrayDataRow;
@@ -38,13 +39,17 @@ import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ProcessStoppedException;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
+import com.rapidminer.operator.ports.metadata.ExampleSetPrecondition;
+import com.rapidminer.operator.ports.metadata.ParameterConditionedPrecondition;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
+import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.container.Pair;
 
@@ -106,6 +111,9 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 
 	public ExampleSetJoin(OperatorDescription description) {
 		super(description);
+		
+    	getLeftInput().addPrecondition(new ParameterConditionedPrecondition(getLeftInput(),  new ExampleSetPrecondition(getLeftInput(), Ontology.ATTRIBUTE_VALUE, Attributes.ID_NAME), this, PARAMETER_USE_ID, "true"));
+    	getRightInput().addPrecondition(new ParameterConditionedPrecondition(getRightInput(),  new ExampleSetPrecondition(getRightInput(), Ontology.ATTRIBUTE_VALUE, Attributes.ID_NAME), this, PARAMETER_USE_ID, "true"));
 	}
 
 	@Override
@@ -149,9 +157,27 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 			int numKeyAttributes = parKeyAttributes.size();
 			keyAttributes = new Pair<Attribute[], Attribute[]>(new Attribute[numKeyAttributes], new Attribute[numKeyAttributes]);
 			int i = 0;
+			
+			// iterate user input
 			for (String[] attributePair : parKeyAttributes) {
+				// map user input to actual Attribute objects:
 				Attribute leftAttribute = leftExampleSet.getAttributes().get(attributePair[0]);
 				Attribute rightAttribute = rightExampleSet.getAttributes().get(attributePair[1]);
+				
+				// check if attributes could be found:
+				if (leftAttribute == null) {
+					throw new UserError(this, "join.illegal_key_attribute", attributePair[0], "left", attributePair[1], "right");
+				} else if (rightAttribute == null) {
+					throw new UserError(this, "join.illegal_key_attribute", attributePair[1], "right", attributePair[0], "left");
+				}
+				
+				// check for incompatible types
+	            if (!Ontology.ATTRIBUTE_VALUE_TYPE.isA(leftAttribute.getValueType(), rightAttribute.getValueType()) 
+	            	    && !Ontology.ATTRIBUTE_VALUE_TYPE.isA(rightAttribute.getValueType(), leftAttribute.getValueType()) ){
+					throw new UserError(this, "join.illegal_key_attribute", attributePair[1], "right", attributePair[0], "left");
+	            }
+				
+	            // add attributes to list
 				keyAttributes.getFirst()[i] = leftAttribute;
 				keyAttributes.getSecond()[i] = rightAttribute;
 				++i;
@@ -409,7 +435,9 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 			if (valueMapping != null) {
 				// remap keyValues to match values of other attributes:
 				for (int i = 0; i < keyValues.length; ++i) {
-					keyValues[i] = valueMapping.get(keyAttributes[i]).get(keyValues[i]);
+					if (keyAttributes[i].isNominal()) {
+						keyValues[i] = valueMapping.get(keyAttributes[i]).get(keyValues[i]);
+					}
 				}
 			}
 			

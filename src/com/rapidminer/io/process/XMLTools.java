@@ -35,9 +35,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -391,24 +391,28 @@ public class XMLTools {
         if (date == null) {
             return null;
         }
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(date.getTime());
+//        Calendar calendar = Calendar.getInstance();
+//        calendar.setTimeInMillis(date.getTime());
         DatatypeFactory datatypeFactory;
         try {
             datatypeFactory = DatatypeFactory.newInstance();
         } catch (DatatypeConfigurationException e) {
             throw new RuntimeException("Failed to create XMLGregorianCalendar: " + e, e);
         }
-        XMLGregorianCalendar xmlGregorianCalendar = datatypeFactory.newXMLGregorianCalendar();
-        xmlGregorianCalendar.setYear(calendar.get(Calendar.YEAR));
-        xmlGregorianCalendar.setMonth(calendar.get(Calendar.MONTH) + 1);
-        xmlGregorianCalendar.setDay(calendar.get(Calendar.DAY_OF_MONTH));
-        xmlGregorianCalendar.setHour(calendar.get(Calendar.HOUR_OF_DAY));
-        xmlGregorianCalendar.setMinute(calendar.get(Calendar.MINUTE));
-        xmlGregorianCalendar.setSecond(calendar.get(Calendar.SECOND));
-        xmlGregorianCalendar.setMillisecond(calendar.get(Calendar.MILLISECOND));
-        // xmlGregorianCalendar.setTimezone(calendar.get(((Calendar.DST_OFFSET)+calendar.get(Calendar.ZONE_OFFSET))/(60*1000)));
-        return xmlGregorianCalendar;
+        GregorianCalendar c = new GregorianCalendar();
+        c.setTime(date);
+        return datatypeFactory.newXMLGregorianCalendar(c);
+//
+//        XMLGregorianCalendar xmlGregorianCalendar = datatypeFactory.newXMLGregorianCalendar();
+//        xmlGregorianCalendar.setYear(calendar.get(Calendar.YEAR));
+//        xmlGregorianCalendar.setMonth(calendar.get(Calendar.MONTH) + 1);
+//        xmlGregorianCalendar.setDay(calendar.get(Calendar.DAY_OF_MONTH));
+//        xmlGregorianCalendar.setHour(calendar.get(Calendar.HOUR_OF_DAY));
+//        xmlGregorianCalendar.setMinute(calendar.get(Calendar.MINUTE));
+//        xmlGregorianCalendar.setSecond(calendar.get(Calendar.SECOND));
+//        xmlGregorianCalendar.setMillisecond(calendar.get(Calendar.MILLISECOND));
+//        // xmlGregorianCalendar.setTimezone(calendar.get(((Calendar.DST_OFFSET)+calendar.get(Calendar.ZONE_OFFSET))/(60*1000)));
+//        return xmlGregorianCalendar;
     }
 
     /**

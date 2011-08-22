@@ -32,7 +32,6 @@ import java.util.Set;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.AttributeRole;
-import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.Operator;
@@ -104,20 +103,25 @@ public abstract class AbstractExampleSetJoin extends Operator {
 
     public AbstractExampleSetJoin(OperatorDescription description) {
         super(description);
-        if (isIdNeeded()) {
-        	leftInput.addPrecondition(new ExampleSetPrecondition(leftInput, Ontology.ATTRIBUTE_VALUE, Attributes.ID_NAME));
-        	rightInput.addPrecondition(new ExampleSetPrecondition(rightInput, Ontology.ATTRIBUTE_VALUE, Attributes.ID_NAME));
-        } else {
-        	leftInput.addPrecondition(new ExampleSetPrecondition(leftInput));
-        	rightInput.addPrecondition(new ExampleSetPrecondition(rightInput));
-        }
-        getTransformer().addRule(new ExampleSetUnionRule(rightInput, leftInput, joinOutput, "_from_ES2") {
+        leftInput.addPrecondition(new ExampleSetPrecondition(leftInput));
+    	rightInput.addPrecondition(new ExampleSetPrecondition(rightInput));
+
+    	getTransformer().addRule(new ExampleSetUnionRule(rightInput, leftInput, joinOutput, "_from_ES2") {
         	 @Override
         	 protected String getPrefix() {
         		 return getParameterAsBoolean(PARAMETER_REMOVE_DOUBLE_ATTRIBUTES) ? null : "_from_ES2";
         	 }
         });
     }
+    
+	protected InputPort getLeftInput() {
+		return leftInput;
+	}
+
+	protected InputPort getRightInput() {
+		return rightInput;
+	}
+
 
     protected abstract MemoryExampleTable joinData(ExampleSet es1, ExampleSet es2, List<AttributeSource> originalAttributeSources, List<Attribute> unionAttributeList) throws OperatorException;
 

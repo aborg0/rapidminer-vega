@@ -613,15 +613,15 @@ public class SwingTools {
      * @param displayExceptionMessage	indicates if the exception message will be displayed in the dialog or just in the detailed panel
      * @param arguments					additional arguments for the internationalized message, which replace <code>{0}</code>, <code>{1}</code>, etcpp.
      */
-    public static void showSimpleErrorMessage(final String key, final String errorMessage, final boolean displayExceptionMessage, final Object... arguments ) {
+    public static void showSimpleErrorMessage(final String key, final String errorMessage, final Object... arguments ) {
         if (SwingUtilities.isEventDispatchThread()) {
-            ExtendedErrorDialog dialog = new ExtendedErrorDialog(key, errorMessage, displayExceptionMessage, arguments);
+            ExtendedErrorDialog dialog = new ExtendedErrorDialog(key, errorMessage, arguments);
             dialog.setVisible(true);
         } else {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    ExtendedErrorDialog dialog = new ExtendedErrorDialog(key, errorMessage, displayExceptionMessage, arguments);
+                    ExtendedErrorDialog dialog = new ExtendedErrorDialog(key, errorMessage, arguments);
                     dialog.setVisible(true);
                 }
             });
@@ -633,18 +633,18 @@ public class SwingTools {
         }
     }
 
-    /**
-     * This is the normal method which could be used by GUI classes for errors caused by
-     * some exception (e.g. IO issues). Of course these error message methods should never be
-     * invoked by operators or similar.
-     * 
-     * @param key						the I18n-key which will be used to display the internationalized message
-     * @param errorMessage				the error message associated to this message
-     * @param arguments					additional arguments for the internationalized message, which replace <code>{0}</code>, <code>{1}</code>, etcpp.
-     */
-    public static void showSimpleErrorMessage(final String key, final String errorMessage, final Object... arguments ) {
-        showSimpleErrorMessage(key, errorMessage, false, arguments);
-    }
+//    /**
+//     * This is the normal method which could be used by GUI classes for errors caused by
+//     * some exception (e.g. IO issues). Of course these error message methods should never be
+//     * invoked by operators or similar.
+//     * 
+//     * @param key						the I18n-key which will be used to display the internationalized message
+//     * @param errorMessage				the error message associated to this message
+//     * @param arguments					additional arguments for the internationalized message, which replace <code>{0}</code>, <code>{1}</code>, etcpp.
+//     */
+//    public static void showSimpleErrorMessage(final String key, final String errorMessage, final Object... arguments ) {
+//        showSimpleErrorMessage(key, errorMessage, false, arguments);
+//    }
 
     /**
      * Shows the final error message dialog. This dialog also allows to send a bug report if

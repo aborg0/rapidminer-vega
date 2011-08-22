@@ -44,7 +44,11 @@ public class LinkButton extends ExtendedHTMLJEditorPane {
 	private static final long serialVersionUID = 1L;
 
 	public LinkButton(final Action action) {
-		super("text/html", (String)action.getValue(Action.NAME));
+		this(action, false);
+	}
+	
+	public LinkButton(final Action action, boolean addLinkTag) {
+		super("text/html", (addLinkTag ? "<a href=\"#\">" : "") + (String)action.getValue(Action.NAME) + (addLinkTag ? "</a>" : ""));
 		setToolTipText((String) action.getValue(Action.SHORT_DESCRIPTION));
 		installDefaultStylesheet();
 		setEditable(false);

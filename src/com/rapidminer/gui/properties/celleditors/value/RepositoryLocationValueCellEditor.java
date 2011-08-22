@@ -69,14 +69,7 @@ public class RepositoryLocationValueCellEditor extends AbstractCellEditor implem
 				fireEditingStopped();
 			}			
 		});
-		textField.addFocusListener(new FocusListener() {
-			@Override
-			public void focusLost(FocusEvent e) {
-				fireEditingStopped();
-			}			
-			@Override public void focusGained(FocusEvent e) { }
-		});
-
+		
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
 		c.weightx = 1;
@@ -84,11 +77,13 @@ public class RepositoryLocationValueCellEditor extends AbstractCellEditor implem
 		c.gridwidth = GridBagConstraints.RELATIVE;
 		panel.add(textField, c);
 		
-		JButton button = new JButton(new ResourceAction(true, "repository_select_location") {
+		final JButton button = new JButton(new ResourceAction(true, "repository_select_location") {
 			private static final long serialVersionUID = 1L;
 			{
 				putValue(NAME, null);
 			}
+			
+			@Override
 			public void actionPerformed(ActionEvent e) {
 			    com.rapidminer.Process process = (RepositoryLocationValueCellEditor.this.operator != null) ? RepositoryLocationValueCellEditor.this.operator.getProcess() : null;
 			    RepositoryLocation processLocation = null;
@@ -113,13 +108,29 @@ public class RepositoryLocationValueCellEditor extends AbstractCellEditor implem
 					textField.setText(locationName);
 				}
 				fireEditingStopped();
-
 			}
 		});
 		button.setMargin(new Insets(0, 0, 0, 0));
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		c.weightx = 0;
 		panel.add(button, c);
+		
+		textField.addFocusListener(new FocusListener() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				// fire only if the focus didn't move to the button. If this check
+				// would not be included, fireEditingStopped() would remove the 
+				// table from this RepositoryLocationValeCellEditor's listenerList,
+				// and thus the call to fireEditingStopped() in the event handler of 
+				// the button would be without effect, and thus the user's choice
+				// in the RepositoryBrowser dialog would be dismissed.
+				if (e.getOppositeComponent() != button) {
+					fireEditingStopped();
+				}
+			}			
+			@Override public void focusGained(FocusEvent e) { }
+		});
+
 	}
 	
 	@Override

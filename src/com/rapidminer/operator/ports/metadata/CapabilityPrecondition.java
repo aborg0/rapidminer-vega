@@ -111,16 +111,18 @@ public class CapabilityPrecondition extends ExampleSetPrecondition {
         if (!capabilityProvider.supportsCapability(OperatorCapability.MISSING_VALUES)) {
             if (metaData.getAllAttributes() != null)
                 for (AttributeMetaData amd: metaData.getAllAttributes()) {
-                    if (amd.containsMissingValues() == MetaDataInfo.YES) {
-                        createLearnerError(OperatorCapability.MISSING_VALUES.getDescription(),
-                                Collections.singletonList(new OperatorInsertionQuickFix("insert_missing_value_replenishment", new String[0], 1, getInputPort()) {
-                                    @Override
-                                    public Operator createOperator() throws OperatorCreationException {
-                                        return OperatorService.createOperator(MissingValueReplenishment.class);
-                                    }
-                                }));
-                        break;
-                    }
+                	if (!amd.isSpecial() || Attributes.LABEL_NAME.equals(amd.getRole())) {
+                		if (amd.containsMissingValues() == MetaDataInfo.YES) {
+                			createLearnerError(OperatorCapability.MISSING_VALUES.getDescription(),
+                					Collections.singletonList(new OperatorInsertionQuickFix("insert_missing_value_replenishment", new String[0], 1, getInputPort()) {
+                						@Override
+                						public Operator createOperator() throws OperatorCreationException {
+                							return OperatorService.createOperator(MissingValueReplenishment.class);
+                						}
+                					}));
+                			break;
+                		}
+                	}
                 }
         }
     }
