@@ -27,6 +27,7 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -39,6 +40,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 
+import com.rapidminer.Process;
 import com.rapidminer.ProcessContext;
 import com.rapidminer.gui.properties.celleditors.value.RepositoryLocationValueCellEditor;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
@@ -50,6 +52,7 @@ import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.Port;
 import com.rapidminer.operator.ports.Ports;
 import com.rapidminer.parameter.ParameterTypeRepositoryLocation;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Observable;
 import com.rapidminer.tools.Observer;
 
@@ -95,6 +98,7 @@ class RepositoryLocationsEditor<T extends Ports> extends JPanel {
 		}
 
 		private void updateEditorsAndRenderers() {
+			LogService.getRoot().log(Level.WARNING, "update");
 			if (editors != null) {
 				editors.clear();
 				int numberOfRows = table.getModel().getRowCount();
@@ -260,6 +264,8 @@ class RepositoryLocationsEditor<T extends Ports> extends JPanel {
 	};
 	private T ports;
 
+	private com.rapidminer.Process process;
+
 	RepositoryLocationsEditor(boolean input, String i18nKey, String prefix) {
 		this.prefix = prefix;
 		this.model = new RepositoryLocationTableModel(input);
@@ -295,10 +301,13 @@ class RepositoryLocationsEditor<T extends Ports> extends JPanel {
 	}
 
 	private RepositoryLocationValueCellEditor createEditor(int index) {
-		return new RepositoryLocationValueCellEditor(new ParameterTypeRepositoryLocation(prefix + " " + (index + 1), prefix + " " + (index+1), true));
+		RepositoryLocationValueCellEditor editor = new RepositoryLocationValueCellEditor(new ParameterTypeRepositoryLocation(prefix + " " + (index + 1), prefix + " " + (index+1), true));
+		editor.setOperator(process.getRootOperator());
+		return editor;
 	}
 
-	@SuppressWarnings("unchecked") void setData(ProcessContext context, T ports) {
+	@SuppressWarnings("unchecked") void setData(ProcessContext context, Process process, T ports) {
+		this.process = process;
 		if (this.ports != null) {
 			this.ports.removeObserver(portObserver);
 		}			
@@ -307,6 +316,11 @@ class RepositoryLocationsEditor<T extends Ports> extends JPanel {
 		if (this.ports != null) {
 			this.ports.addObserver(portObserver, true);
 		}
+		
+//		for (RepositoryLocationValueCellEditor editor : editors) {
+//			
+//		}
+		
 		model.setContext(context);
 		adaptModelToPorts();
 	}

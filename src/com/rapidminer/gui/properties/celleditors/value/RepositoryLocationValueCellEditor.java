@@ -93,6 +93,9 @@ public class RepositoryLocationValueCellEditor extends AbstractCellEditor implem
 			    		processLocation = processLocation.parent();
 			    	}
 			    }
+			    
+			    
+			    
 				String locationName = RepositoryLocationChooser.selectLocation(processLocation, textField.getText(), panel, true, false);
 //				if (locationName != null) {
 //					if ((operator != null) && (operator.getProcess() != null)) {
@@ -110,6 +113,25 @@ public class RepositoryLocationValueCellEditor extends AbstractCellEditor implem
 				fireEditingStopped();
 			}
 		});
+		button.addFocusListener(new FocusListener() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				// fire only if the focus didn't move to the textField. If this check
+				// would not be included, fireEditingStopped() would remove the 
+				// table from this RepositoryLocationValeCellEditor's listenerList,
+				// and thus the call to fireEditingStopped() in the event handler of 
+				// the textField would be without effect, and thus the user's choice
+				// would be dismissed.
+				// Additionally, the event is only fired if the focus loss is permamently,
+				// i.e. it is not fired if the user e.g. just switched to another window.
+				// Otherwise any changes made after switching back to rapidminer would
+				// not be saved for the same reasons as stated above.
+				if (e.getOppositeComponent() != textField && !e.isTemporary()) {
+					fireEditingStopped();
+				}
+			}			
+			@Override public void focusGained(FocusEvent e) { }
+		});
 		button.setMargin(new Insets(0, 0, 0, 0));
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		c.weightx = 0;
@@ -124,7 +146,11 @@ public class RepositoryLocationValueCellEditor extends AbstractCellEditor implem
 				// and thus the call to fireEditingStopped() in the event handler of 
 				// the button would be without effect, and thus the user's choice
 				// in the RepositoryBrowser dialog would be dismissed.
-				if (e.getOppositeComponent() != button) {
+				// Additionally, the event is only fired if the focus loss is permamently,
+				// i.e. it is not fired if the user e.g. just switched to another window.
+				// Otherwise any changes made after switching back to rapidminer would
+				// not be saved for the same reasons as stated above.
+				if (e.getOppositeComponent() != button && !e.isTemporary()) {
 					fireEditingStopped();
 				}
 			}			

@@ -85,8 +85,8 @@ public class ProcessContextEditor extends JPanel {
 		}
 		macroEditor.setContext(context);
 		if (context != null) {
-			inputEditor.setData(context, process.getRootOperator().getSubprocess(0).getInnerSources());
-			outputEditor.setData(context, process.getRootOperator().getSubprocess(0).getInnerSinks());
+			inputEditor.setData(context, process, process.getRootOperator().getSubprocess(0).getInnerSources());
+			outputEditor.setData(context, process, process.getRootOperator().getSubprocess(0).getInnerSinks());
 		}
 	}
 }
