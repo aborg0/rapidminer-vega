@@ -388,7 +388,17 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 				
 				// now use correct key attribute
 				if (id >= 0) {
-					unionDataRow[attributeIndex] = rightExample.getValue(rightKeyAttributes[id]);
+					if (leftKeyAttributes[id].isNominal()) {
+						// consider different mapping in left and right attribute
+						Attribute rightAttribute = rightKeyAttributes[id];
+						Attribute leftAttribute = leftKeyAttributes[id];
+						int rightIndex = (int)rightExample.getValue(rightAttribute);
+						String valueAsString = rightAttribute.getMapping().mapIndex(rightIndex);
+						int leftIndex = leftAttribute.getMapping().mapString(valueAsString);
+						unionDataRow[attributeIndex] = leftIndex;
+					} else {
+						unionDataRow[attributeIndex] = rightExample.getValue(rightKeyAttributes[id]);
+					}
 				} else {
 					unionDataRow[attributeIndex] = Double.NaN;
 				}
@@ -404,7 +414,7 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 	 * Maps all values of the keyAttributes which occur in exampleSet to a list of matching examples.
 	 * @param exampleSet The example set for whose key attributes the mapping is created 
 	 * @param keyAttributes the attributes which resemble the key attributes
-	 * @param matchKeyAttributes if not null, the values of nominal attributes are mapped to match the mapping of these attributes prior to adding them to the map 
+	 * @param matchKeyAttributes if not null, the values of nominal keyAttributes are mapped to match the mapping of these attributes prior to adding them to the map 
 	 * @return
 	 */
 	private Map<DoubleArrayWrapper, List<Example>> createKeyMapping(ExampleSet exampleSet, Attribute[] keyAttributes, Attribute[] matchKeyAttributes) {

@@ -27,7 +27,6 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -52,7 +51,6 @@ import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.Port;
 import com.rapidminer.operator.ports.Ports;
 import com.rapidminer.parameter.ParameterTypeRepositoryLocation;
-import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Observable;
 import com.rapidminer.tools.Observer;
 
@@ -98,7 +96,6 @@ class RepositoryLocationsEditor<T extends Ports> extends JPanel {
 		}
 
 		private void updateEditorsAndRenderers() {
-			LogService.getRoot().log(Level.WARNING, "update");
 			if (editors != null) {
 				editors.clear();
 				int numberOfRows = table.getModel().getRowCount();
