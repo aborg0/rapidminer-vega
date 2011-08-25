@@ -82,6 +82,10 @@ public class ProcessEmbeddingOperator extends Operator {
 
 	/** The parameter name for &quot;Indicates if the operator input should be used as input of the process&quot; */
 	public static final String PARAMETER_USE_INPUT = "use_input";
+	
+	/** The parameter name for &quot;Indicates if the operator output should be stored to a repository if the 
+	 * context of the embedded process defines output locations&quot; */
+	public static final String PARAMETER_STORE_OUTPUT = "store_output";
 
 	/** Determines whether meta data is propagated through the included process. */
 	public static final String PARAMETER_PROPAGATE_METADATA_RECURSIVELY = "propagate_metadata_recursively";
@@ -186,9 +190,9 @@ public class ProcessEmbeddingOperator extends Operator {
 		// run process
 		IOContainer result = null;
 		if (getParameterAsBoolean(PARAMETER_USE_INPUT)) {			
-			result = process.run(new IOContainer(inputExtender.getData(false)),LogService.UNKNOWN_LEVEL, true, macroMap);
+			result = process.run(new IOContainer(inputExtender.getData(false)),LogService.UNKNOWN_LEVEL, macroMap, getParameterAsBoolean(PARAMETER_STORE_OUTPUT));
 		} else {
-			result = process.run(new IOContainer(),LogService.UNKNOWN_LEVEL, true, macroMap);
+			result = process.run(new IOContainer(),LogService.UNKNOWN_LEVEL, macroMap, getParameterAsBoolean(PARAMETER_STORE_OUTPUT));
 		}
 		
 		outputExtender.deliver(Arrays.asList(result.getIOObjects()));
@@ -251,6 +255,7 @@ public class ProcessEmbeddingOperator extends Operator {
 		
 		types.add(new ParameterTypeRepositoryLocation(PARAMETER_PROCESS_FILE, "The process location which should be encapsulated by this operator", false));
 		types.add(new ParameterTypeBoolean(PARAMETER_USE_INPUT, "Indicates if the operator input should be used as input of the process", false));
+		types.add(new ParameterTypeBoolean(PARAMETER_STORE_OUTPUT, "Indicates if the operator output should be stored (if the context of the embedded process defines output locations).", true));
 		types.add(new ParameterTypeBoolean(PARAMETER_PROPAGATE_METADATA_RECURSIVELY, "Determines whether meta data is propagated through the included process.", false));
 		types.add(new ParameterTypeBoolean(PARAMETER_CACHE_PROCESS, "If checked, the process will not be loaded during execution.", false));
 		

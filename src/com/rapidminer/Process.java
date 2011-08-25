@@ -689,14 +689,18 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
         getLogger().fine("Process initialised.");
     }
 
-    /** Loads results from the repository if specified in the {@link ProcessContext}. */
-    protected void loadInitialData() throws UserError {
+    /** Loads results from the repository if specified in the {@link ProcessContext}.
+     * @param firstPort Specifies the first port which is read from the ProcessContext. This
+     * 		enables the possibility to skip ports for which input is already specified via
+     * 		the input parameter of the run() method.
+     */
+    protected void loadInitialData(int firstPort) throws UserError {
         ProcessContext context = getContext();
         if (context.getInputRepositoryLocations().isEmpty()) {
             return;
         }
-        getLogger().info("Loading initial data.");
-        for (int i = 0; i < context.getInputRepositoryLocations().size(); i++) {
+        getLogger().info("Loading initial data" + (firstPort>0?(" (starting at port " + (firstPort+1) + ")"):"") +".");
+        for (int i = firstPort; i < context.getInputRepositoryLocations().size(); i++) {
             String location = context.getInputRepositoryLocations().get(i);
             if (location == null || location.length() == 0) {
                 getLogger().fine("Input #" + (i + 1) + " not specified.");
@@ -834,17 +838,26 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
         return run(input, logVerbosity, macroMap);
 
     }
+    
+    public final IOContainer run(IOContainer input, int logVerbosity, Map<String, String> macroMap) throws OperatorException {
+    	return run(input, logVerbosity, macroMap, true);
+    }
+
 
     /**
-     * Starts the process with the given input. The process uses the given log verbosity. The boolean flag indicates if
-     * some static initializations should be cleaned before the process is started. This should usually be true but it
-     * might be useful to set this to false if, for example, several process runs uses the same object visualizer which
-     * would have been cleaned otherwise.
+     * Starts the process with the given input. The process uses the given log verbosity.
      * 
-     * Since the macros are cleaned then as well it is not possible to set macros to a process but with the given
-     * macroMap of this method.
+     * If input is not null, it is delivered to the input ports of the process. If it is null or empty,
+     * the input is read instead from the locations specified in the {@link ProcessContext}.
+     * 
+     * If input contains less IOObjects than are specified in the context, the remaining ones are
+     * read according to the context.
+     * 
+     * @param storeOutput Specifies if the output of the process should be saved. This is useful, if you
+     * 		embed a process using the Execute Process operator, and do not want to store the output as specified
+     * 		by the process context.
      */
-    public final IOContainer run(IOContainer input, int logVerbosity, Map<String, String> macroMap) throws OperatorException {
+    public final IOContainer run(IOContainer input, int logVerbosity, Map<String, String> macroMap, boolean storeOutput) throws OperatorException {
         // fetching process name for logging
         String name = null;
         if (getProcessLocation() != null) {
@@ -876,16 +889,6 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
         setProcessState(PROCESS_STATE_RUNNING);
         prepareRun(logVerbosity);
 
-        loadInitialData();
-
-        // macros
-        applyContextMacros();
-        if (macroMap != null) {
-            for (Map.Entry<String, String> entry : macroMap.entrySet()) {
-                getMacroHandler().addMacro(entry.getKey(), entry.getValue());
-            }
-        }
-
         long start = System.currentTimeMillis();
         if (name != null)
             getLogger().info("Process " + name + " starts");
@@ -894,6 +897,22 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
         getLogger().fine("Process:" + Tools.getLineSeparator() + getRootOperator().createProcessTree(3));
 
         rootOperator.processStarts();
+        
+        // load data as specified in process context
+        int firstInput = 0;
+        if (input != null) {
+        	firstInput = input.getIOObjects().length;
+        }
+    	loadInitialData(firstInput);
+
+        // macros
+        applyContextMacros();
+        if (macroMap != null) {
+            for (Map.Entry<String, String> entry : macroMap.entrySet()) {
+                getMacroHandler().addMacro(entry.getKey(), entry.getValue());
+            }
+        }
+        
         try {
             UsageStatistics.getInstance().count(this, OperatorStatisticsValue.EXECUTION);
             if (input != null) {
@@ -901,7 +920,9 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
             }
             rootOperator.execute();
 
-            saveResults();
+            if (storeOutput) {
+            	saveResults();
+            }
             IOContainer result = rootOperator.getResults();
             long end = System.currentTimeMillis();
 

@@ -100,7 +100,7 @@ public class RepeatUntilOperatorChain extends AbstractIteratingOperatorChain {
 	@Override
 	public void doWork() throws OperatorException {
 		stoptime = Long.MAX_VALUE;
-		if (!getParameterAsBoolean(PARAMETER_LIMIT_TIME)) 
+		if (getParameterAsBoolean(PARAMETER_LIMIT_TIME)) 
 			stoptime = System.currentTimeMillis() + 60L * 1000 * getParameterAsInt(PARAMETER_TIMEOUT);
 
 		fitness = Double.NEGATIVE_INFINITY;
@@ -206,7 +206,7 @@ public class RepeatUntilOperatorChain extends AbstractIteratingOperatorChain {
 		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_LIMIT_TIME, true, true));
 		type.setExpert(true);
 		types.add(type);
-		type = new ParameterTypeCategory(PARAMETER_PERFORMANCE_CHANGE, "Stop when performance of inner chain behaves like this.", COMPARISONS, NONE);
+		type = new ParameterTypeCategory(PARAMETER_PERFORMANCE_CHANGE, "Stop when performance of inner chain behaves like this. 'none' means to ignore any performance changes.", COMPARISONS, NONE);
 		type.setExpert(false);
 		types.add(type);
 		type = new ParameterTypeBoolean(PARAMETER_CONDITION_BEFORE, "Evaluate condition before inner chain is applied (true) or after?", true);

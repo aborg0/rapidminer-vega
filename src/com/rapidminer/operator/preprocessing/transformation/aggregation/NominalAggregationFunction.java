@@ -24,11 +24,12 @@ package com.rapidminer.operator.preprocessing.transformation.aggregation;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.table.AttributeFactory;
-import com.rapidminer.example.table.NominalMapping;
+import com.rapidminer.tools.Ontology;
 
 /**
  * This class implements an abstract superclass for all Nominal aggregation functions,
- * that will not affect the mapping of the target attribute (containing only the same values)
+ * the new attribute will have an empty mapping. All subclasses must take care to modify
+ * the mapping accordingly, if adding new nominal values.
  * 
  * @author Sebastian Land
  */
@@ -39,8 +40,7 @@ public abstract class NominalAggregationFunction extends AggregationFunction {
     public NominalAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct, String functionName, String separatorOpen, String separatorClose) {
         super(sourceAttribute, ignoreMissings, countOnlyDisctinct);
         if (sourceAttribute.isNominal()) {
-            this.targetAttribute = AttributeFactory.createAttribute(functionName + separatorOpen + getSourceAttribute().getName() + separatorClose, getSourceAttribute().getValueType());
-            this.targetAttribute.setMapping((NominalMapping) sourceAttribute.getMapping().clone());
+            this.targetAttribute = AttributeFactory.createAttribute(functionName + separatorOpen + getSourceAttribute().getName() + separatorClose, Ontology.POLYNOMINAL);
         }
     }
 

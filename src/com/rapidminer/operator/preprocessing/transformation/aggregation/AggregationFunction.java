@@ -23,6 +23,7 @@
 package com.rapidminer.operator.preprocessing.transformation.aggregation;
 
 import java.lang.reflect.Constructor;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -30,7 +31,12 @@ import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.DoubleArrayDataRow;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.ports.InputPort;
+import com.rapidminer.operator.ports.metadata.AttributeMetaData;
+import com.rapidminer.operator.ports.metadata.SimpleMetaDataError;
+import com.rapidminer.tools.Ontology;
 
 /**
  * This is an abstract class for all {@link AggregationFunction}s, that can be selected to
@@ -74,6 +80,28 @@ public abstract class AggregationFunction {
         AGGREATION_FUNCTIONS.put("mode", ModeAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("least", LeastAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("least (only occurring)", LeastOccurringAggregationFunction.class);
+    }
+
+    public static final Map<String, AggregationFunctionMetaDataProvider> AGGREGATION_FUNCTIONS_META_DATA_PROVIDER = new HashMap<String, AggregationFunctionMetaDataProvider>();
+    static {
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("sum", new DefaultAggregationFunctionMetaDataProvider("sum", SumAggregationFunction.FUNCTION_SUM, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, Ontology.NUMERICAL, Ontology.REAL));
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("median", new DefaultAggregationFunctionMetaDataProvider("median", MedianAggregationFunction.FUNCTION_MEDIAN, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, Ontology.NUMERICAL, Ontology.REAL));
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("average", new DefaultAggregationFunctionMetaDataProvider("average", MeanAggregationFunction.FUNCTION_AVERAGE, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, Ontology.NUMERICAL, Ontology.REAL));
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("variance", new DefaultAggregationFunctionMetaDataProvider("variance", VarianceAggregationFunction.FUNCTION_VARIANCE, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, Ontology.NUMERICAL, Ontology.REAL));
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("standard_deviation", new DefaultAggregationFunctionMetaDataProvider("standard_deviation", StandardDeviationAggregationFunction.FUNCTION_STANDARD_DEVIATION, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, Ontology.NUMERICAL, Ontology.REAL));
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("count (ignoring missings)", new DefaultAggregationFunctionMetaDataProvider("count (ignoring missings)", CountIgnoringMissingsAggregationFunction.FUNCTION_COUNT, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, Ontology.ATTRIBUTE_VALUE, Ontology.REAL));
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("count (including missings)", new DefaultAggregationFunctionMetaDataProvider("count (including missings)", CountIncludingMissingsAggregationFunction.FUNCTION_COUNT, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, Ontology.ATTRIBUTE_VALUE, Ontology.REAL));
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("count", new DefaultAggregationFunctionMetaDataProvider("count", CountAggregationFunction.FUNCTION_COUNT, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, Ontology.ATTRIBUTE_VALUE, Ontology.REAL));
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("minimum", new DefaultAggregationFunctionMetaDataProvider("minimum", MinAggregationFunction.FUNCTION_MIN, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, Ontology.NUMERICAL, Ontology.REAL));
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("maximum", new DefaultAggregationFunctionMetaDataProvider("maximum", MaxAggregationFunction.FUNCTION_MAX, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, Ontology.NUMERICAL, Ontology.REAL));
+
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("log product", new DefaultAggregationFunctionMetaDataProvider("log product", LogProductAggregationFunction.FUNCTION_LOG_PRODUCT, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, Ontology.NUMERICAL, Ontology.REAL));
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("product", new DefaultAggregationFunctionMetaDataProvider("product", ProductAggregationFunction.FUNCTION_PRODUCT, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, Ontology.NUMERICAL, Ontology.REAL));
+
+        // Nominal Aggregations
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("mode", new DefaultAggregationFunctionMetaDataProvider("mode", ModeAggregationFunction.FUNCTION_MODE, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, Ontology.ATTRIBUTE_VALUE));
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("least", new DefaultAggregationFunctionMetaDataProvider("least", LeastAggregationFunction.FUNCTION_LEAST, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, Ontology.NOMINAL, Ontology.POLYNOMINAL));
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("least (only occurring)", new DefaultAggregationFunctionMetaDataProvider("least (only occurring)", LeastOccurringAggregationFunction.FUNCTION_LEAST_OCCURRING, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, Ontology.NOMINAL, Ontology.POLYNOMINAL));
     }
 
     private Attribute sourceAttribute;
@@ -130,6 +158,16 @@ public abstract class AggregationFunction {
     public abstract boolean isCompatible();
 
     /**
+     * This method will fill in the default value of this aggregation function. It has to
+     * maintain the mapping, if the function is nominal.
+     * The default value will be a NaN. Every subclass that wants to change this, has to override
+     * this method.
+     */
+    public void setDefault(Attribute attribute, DoubleArrayDataRow row) {
+        row.set(attribute, Double.NaN);
+    }
+
+    /**
      * This will create the {@link AggregationFunction} with the given name for the given
      * source Attribute. This method might return
      */
@@ -146,13 +184,20 @@ public abstract class AggregationFunction {
     }
 
     /**
-     * This method will fill in the default value of this aggregation function. It has to
-     * maintain the mapping, if the function is nominal.
-     * The default value will be a NaN. Every subclass that wants to change this, has to override
-     * this method.
+     * This method can be called in order to get the target attribute meta data after the
+     * aggregation functions have been applied.
+     * This method can register errors on the given InputPort, if there's an illegal state. If
+     * the state makes applying an {@link AggregationFunction} impossible, this method will return null!
      */
-    public void setDefault(Attribute attribute, DoubleArrayDataRow row) {
-        row.set(attribute, Double.NaN);
+    public static final AttributeMetaData getAttributeMetaData(String aggregationFunctionName, AttributeMetaData sourceAttributeMetaData, InputPort inputPort) {
+        AggregationFunctionMetaDataProvider metaDataProvider = AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.get(aggregationFunctionName);
+        if (metaDataProvider != null) {
+            return metaDataProvider.getTargetAttributeMetaData(sourceAttributeMetaData, inputPort);
+        } else {
+            // register error about unknown aggregation function
+            inputPort.addError(new SimpleMetaDataError(Severity.ERROR, inputPort, "aggregation.unknown_aggregation_function", aggregationFunctionName));
+            return null;
+        }
     }
 
     /**
@@ -173,8 +218,9 @@ public abstract class AggregationFunction {
     /**
      * With this method extensions might register additional aggregation functions if needed.
      */
-    public static void registerNewAggregationFunction(String name, Class<? extends AggregationFunction> clazz) {
+    public static void registerNewAggregationFunction(String name, Class<? extends AggregationFunction> clazz, AggregationFunctionMetaDataProvider metaDataProvider) {
         AGGREATION_FUNCTIONS.put(name, clazz);
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put(name, metaDataProvider);
     }
 
 }

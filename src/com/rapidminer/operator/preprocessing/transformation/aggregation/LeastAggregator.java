@@ -66,7 +66,7 @@ public class LeastAggregator implements Aggregator {
         }
         // if any counter was greater 0, set result to maximum
         if (minIndex > -1)
-            row.set(attribute, minIndex);
+            row.set(attribute, attribute.getMapping().mapString(sourceAttribute.getMapping().mapIndex(minIndex)));
         else
             row.set(attribute, Double.NaN);
     }

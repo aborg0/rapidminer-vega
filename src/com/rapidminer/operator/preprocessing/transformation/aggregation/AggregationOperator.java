@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -43,15 +44,24 @@ import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.example.table.DataRowFactory;
 import com.rapidminer.example.table.DoubleArrayDataRow;
 import com.rapidminer.example.table.MemoryExampleTable;
+import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.OperatorVersion;
+import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
+import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
+import com.rapidminer.operator.ports.metadata.MDInteger;
 import com.rapidminer.operator.ports.metadata.MetaData;
+import com.rapidminer.operator.ports.metadata.SetRelation;
+import com.rapidminer.operator.ports.metadata.SimpleMetaDataError;
 import com.rapidminer.operator.preprocessing.AbstractDataProcessing;
 import com.rapidminer.operator.preprocessing.filter.ExampleFilter;
+import com.rapidminer.operator.preprocessing.filter.NumericToNominal;
+import com.rapidminer.operator.preprocessing.filter.NumericToPolynominal;
+import com.rapidminer.operator.preprocessing.filter.attributes.RegexpAttributeFilter;
 import com.rapidminer.operator.tools.AttributeSubsetSelector;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttribute;
@@ -63,6 +73,7 @@ import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
+import com.rapidminer.tools.OperatorService;
 
 /**
  * <p>
@@ -201,8 +212,11 @@ public class AggregationOperator extends AbstractDataProcessing {
     public static final String GENERIC_GROUP_NAME = "group";
     public static final String GENERIC_ALL_NAME = "all";
 
-    /* Later from this version, no group attribute will be created if no attributes for groups were selected */
-    private static final OperatorVersion VERSION_GROUP_ALL_REMOVED = new OperatorVersion(5, 1, 6);
+    /*
+     * Later from this version, no group attribute will be created if no attributes for groups were selected.
+     * Also after this numerical attributes used for grouping will not be transformed into nominal attributes anymore.
+     */
+    private static final OperatorVersion VERSION_5_1_6 = new OperatorVersion(5, 1, 6);
 
     private final AttributeSubsetSelector attributeSelector = new AttributeSubsetSelector(this, getExampleSetInputPort());
 
@@ -213,48 +227,68 @@ public class AggregationOperator extends AbstractDataProcessing {
     @Override
     protected MetaData modifyMetaData(ExampleSetMetaData metaData) throws UndefinedParameterError {
         ExampleSetMetaData resultMD = metaData.clone();
-        // resultMD.clear();
-        //
-        // // add group by attributes
-        // if (isParameterSet(PARAMETER_GROUP_BY_ATTRIBUTES) && !getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES).isEmpty()) {
-        // String attributeRegex = getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES);
-        // Pattern pattern = Pattern.compile(attributeRegex);
-        //
-        // for (AttributeMetaData amd : metaData.getAllAttributes()) {
-        // if (pattern.matcher(amd.getName()).matches()) {
-        // if (amd.isNumerical()) { // converting type to mimic NumericalToPolynomial used below
-        // amd.setType(Ontology.NOMINAL);
-        // amd.setValueSet(Collections.<String> emptySet(), SetRelation.SUPERSET);
-        // }
-        // resultMD.addAttribute(amd);
-        // }
-        // }
-        // resultMD.getNumberOfExamples().reduceByUnknownAmount();
-        // } else {
-        // AttributeMetaData allGroup = new AttributeMetaData(GENERIC_GROUP_NAME, Ontology.NOMINAL);
-        // Set<String> values = new TreeSet<String>();
-        // values.add(GENERIC_ALL_NAME);
-        // allGroup.setValueSet(values, SetRelation.EQUAL);
-        // resultMD.addAttribute(allGroup);
-        // resultMD.setNumberOfExamples(new MDInteger(1));
-        // }
-        //
-        // // add aggregated attributes of default aggregation
-        // if (getParameterAsBoolean(PARAMETER_USE_DEFAULT_AGGREGATION)) {
-        // String defaultFunction = getParameterAsString(PARAMETER_DEFAULT_AGGREGATION_FUNCTION);
-        // ExampleSetMetaData metaDataSubset = attributeSelector.getMetaDataSubset(metaData, false);
-        // for (AttributeMetaData amd : metaDataSubset.getAllAttributes()) {
-        // resultMD.addAttribute(new AttributeMetaData(defaultFunction + "(" + amd.getName() + ")", getResultType(defaultFunction, amd)));
-        // }
-        // }
-        //
-        // // add aggregated attributes of list
-        // List<String[]> parameterList = this.getParameterList(PARAMETER_AGGREGATION_ATTRIBUTES);
-        // for (String[] function : parameterList) {
-        // AttributeMetaData amd = metaData.getAttributeByName(function[0]);
-        // if (amd != null)
-        // resultMD.addAttribute(new AttributeMetaData(function[1] + "(" + function[0] + ")", getResultType(function[1], amd)));
-        // }
+        resultMD.clear();
+
+        // add group by attributes
+        if (isParameterSet(PARAMETER_GROUP_BY_ATTRIBUTES) && !getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES).isEmpty()) {
+            String attributeRegex = getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES);
+            Pattern pattern = Pattern.compile(attributeRegex);
+
+            for (AttributeMetaData amd : metaData.getAllAttributes()) {
+                if (pattern.matcher(amd.getName()).matches()) {
+                    if (amd.isNumerical() && getCompatibilityLevel().isAtMost(VERSION_5_1_6)) { // converting type to mimic
+                        // NumericalToPolynomial used below
+                        amd.setType(Ontology.NOMINAL);
+                        amd.setValueSet(Collections.<String> emptySet(), SetRelation.SUPERSET);
+                    }
+                    resultMD.addAttribute(amd);
+                }
+            }
+            resultMD.getNumberOfExamples().reduceByUnknownAmount();
+        }
+        if (resultMD.getAllAttributes().isEmpty() && getCompatibilityLevel().isAtMost(VERSION_5_1_6)) {
+            AttributeMetaData allGroup = new AttributeMetaData(GENERIC_GROUP_NAME, Ontology.NOMINAL);
+            Set<String> values = new TreeSet<String>();
+            values.add(GENERIC_ALL_NAME);
+            allGroup.setValueSet(values, SetRelation.EQUAL);
+            resultMD.addAttribute(allGroup);
+            resultMD.setNumberOfExamples(new MDInteger(1));
+        }
+
+        // add aggregated attributes of default aggregation: They will apply only to those attribute not mentioned explicitly
+        List<String[]> parameterList = this.getParameterList(PARAMETER_AGGREGATION_ATTRIBUTES);
+        HashSet<String> explicitDefinedAttributes = new HashSet<String>();
+        for (String[] function : parameterList) {
+            explicitDefinedAttributes.add(function[0]);
+        }
+        if (getParameterAsBoolean(PARAMETER_USE_DEFAULT_AGGREGATION)) {
+            String defaultFunction = getParameterAsString(PARAMETER_DEFAULT_AGGREGATION_FUNCTION);
+            ExampleSetMetaData metaDataSubset = attributeSelector.getMetaDataSubset(metaData, false);
+            for (AttributeMetaData amd : metaDataSubset.getAllAttributes()) {
+                if (!explicitDefinedAttributes.contains(amd.getName())) {
+                    AttributeMetaData newAMD = AggregationFunction.getAttributeMetaData(defaultFunction, amd, getExampleSetInputPort());
+                    if (newAMD != null)
+                        resultMD.addAttribute(newAMD);
+                }
+            }
+        }
+
+        // add explicitly defined attributes of list
+        for (String[] function : parameterList) {
+            AttributeMetaData amd = metaData.getAttributeByName(function[0]);
+            if (amd != null) {
+                AttributeMetaData newMD = AggregationFunction.getAttributeMetaData(function[1], amd, getExampleSetInputPort());
+                if (newMD != null)
+                    resultMD.addAttribute(newMD);
+            } else {
+                // in this case we should register a warning, but continue anyway in cases we don't have the correct set available
+                getExampleSetInputPort().addError(new SimpleMetaDataError(Severity.WARNING, getExampleSetInputPort(), "aggregation.attribute_unknown", function[0]));
+                AttributeMetaData newAMD = AggregationFunction.getAttributeMetaData(function[1], new AttributeMetaData(function[0], Ontology.ATTRIBUTE_VALUE), getExampleSetInputPort());
+                if (newAMD != null)
+                    resultMD.addAttribute(newAMD);
+            }
+        }
+
         return resultMD;
     }
 
@@ -333,19 +367,34 @@ public class AggregationOperator extends AbstractDataProcessing {
 
         // postprocessing for remaining compatibility: Old versions automatically added group "all". Must remain this way for old operator
         // version
-        if (groupAttributes.length == 0 && getCompatibilityLevel().isAtMost(VERSION_GROUP_ALL_REMOVED)) {
-            Attribute resultGroupAttribute = AttributeFactory.createAttribute(GENERIC_GROUP_NAME, Ontology.NOMINAL);
-            table.addAttribute(resultGroupAttribute);
-            table.getDataRow(0).set(resultGroupAttribute, resultGroupAttribute.getMapping().mapString(GENERIC_ALL_NAME));
+        if (getCompatibilityLevel().isAtMost(VERSION_5_1_6)) {
+            if (groupAttributes.length == 0) {
+                Attribute resultGroupAttribute = AttributeFactory.createAttribute(GENERIC_GROUP_NAME, Ontology.NOMINAL);
+                table.addAttribute(resultGroupAttribute);
+                table.getDataRow(0).set(resultGroupAttribute, resultGroupAttribute.getMapping().mapString(GENERIC_ALL_NAME));
 
-            ExampleSet resultSet = table.createExampleSet();
-            for (Attribute attribute : newAttributes) {
-                resultSet.getAttributes().remove(attribute);
-                resultSet.getAttributes().addRegular(attribute);
+                ExampleSet resultSet = table.createExampleSet();
+                for (Attribute attribute : newAttributes) {
+                    resultSet.getAttributes().remove(attribute);
+                    resultSet.getAttributes().addRegular(attribute);
+                }
+                return resultSet;
+            } else {
+                // make attributes nominal
+                try {
+                    NumericToNominal toNominalOperator = OperatorService.createOperator(NumericToPolynominal.class);
+                    toNominalOperator.setParameter(AttributeSubsetSelector.PARAMETER_FILTER_TYPE, AttributeSubsetSelector.CONDITION_REGULAR_EXPRESSION + "");
+                    toNominalOperator.setParameter(RegexpAttributeFilter.PARAMETER_REGULAR_EXPRESSION, getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES));
+                    toNominalOperator.setParameter(AttributeSubsetSelector.PARAMETER_INCLUDE_SPECIAL_ATTRIBUTES, "true");
+                    return toNominalOperator.apply(table.createExampleSet());
+                } catch (OperatorCreationException e) {
+                    // otherwise compatibility could not be ensured
+                    return table.createExampleSet();
+                }
             }
-            return resultSet;
         }
 
+        // for recent verrsion table is correct: Deliver example set
         return table.createExampleSet();
     }
 
@@ -501,7 +550,7 @@ public class AggregationOperator extends AbstractDataProcessing {
 
     @Override
     public OperatorVersion[] getIncompatibleVersionChanges() {
-        return new OperatorVersion[] { VERSION_GROUP_ALL_REMOVED };
+        return new OperatorVersion[] { VERSION_5_1_6 };
     }
 
     @Override

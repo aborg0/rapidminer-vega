@@ -75,6 +75,7 @@ import com.rapidminer.tools.math.function.aggregation.AbstractAggregationFunctio
 import com.rapidminer.tools.math.function.aggregation.AggregationFunction;
 
 /**
+ * 
  * <p>
  * This operator creates a new example set from the input example set showing the results of arbitrary aggregation functions (as SUM, COUNT
  * etc. known from SQL). Before the values of different rows are aggregated into a new row the rows might be grouped by the values of a
@@ -84,9 +85,11 @@ import com.rapidminer.tools.math.function.aggregation.AggregationFunction;
  * <p>
  * Please note that the known HAVING clause from SQL can be simulated by an additional {@link ExampleFilter} operator following this one.
  * </p>
+ * This class has been replaced by the {@link com.rapidminer.operator.preprocessing.transformation.aggregation.AggregationOperator} Operator.
  * 
  * @author Tobias Malbrecht, Ingo Mierswa, Sebastian Land
  */
+@Deprecated
 public class AggregationOperator extends AbstractDataProcessing {
 
     private static class AggregationAttribute {
