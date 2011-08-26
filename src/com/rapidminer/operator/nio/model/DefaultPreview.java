@@ -31,11 +31,13 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.nio.ImportWizardUtils;
 import com.rapidminer.tools.ProgressListener;
 
-/** Data container and table model for previews. Reads a few lines from a
- *  {@link DataResultSet} to display them.
+/**
+ * Data container and table model for previews. Reads a few lines from a {@link DataResultSet} to display them.
+ * This should be only used in case where no more efficient implementation for
+ * the TableModel is available.
  * 
  * @author Simon Fischer
- *
+ * 
  */
 public class DefaultPreview extends AbstractTableModel {
 
@@ -57,7 +59,7 @@ public class DefaultPreview extends AbstractTableModel {
         }
         List<String[]> dataList = new LinkedList<String[]>();
         resultSet.reset(listener);
-        while (resultSet.hasNext() && (dataList.size() < previewSize)) {
+        while (resultSet.hasNext() && dataList.size() < previewSize) {
             resultSet.next(listener);
             String[] row = new String[resultSet.getNumberOfColumns()];
             for (int i = 0; i < row.length; i++) {
@@ -91,7 +93,7 @@ public class DefaultPreview extends AbstractTableModel {
         if (columnNames != null) {
             return columnNames.length;
         } else {
-            if ((data != null) && (data.length > 0)) {
+            if (data != null && data.length > 0) {
                 return data[0].length;
             } else {
                 return 1;

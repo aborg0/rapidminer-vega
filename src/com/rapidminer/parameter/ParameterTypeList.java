@@ -203,7 +203,10 @@ public class ParameterTypeList extends CombinedParameterType {
     @SuppressWarnings("unchecked")
     @Override
     public String toString(Object value) {
-        return transformList2String((List<String[]>) value);
+        if (value instanceof String)
+            return transformList2String(transformString2List(value.toString()));
+        else
+            return transformList2String((List<String[]>) value);
     }
 
     public static String transformList2String(List<String[]> parameterList) {

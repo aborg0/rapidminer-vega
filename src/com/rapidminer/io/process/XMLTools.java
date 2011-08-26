@@ -40,7 +40,9 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -203,15 +205,27 @@ public class XMLTools {
     }
 
     public static void stream(Document document, OutputStream out, Charset encoding) throws XMLException {
+        stream(new DOMSource(document), out, encoding);
+    }
+
+    public static void stream(DOMSource source, OutputStream out, Charset encoding) throws XMLException {
         // we wrap this in a Writer to fix a Java bug
         // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6296446
         if (encoding == null) {
             encoding = Charset.forName("UTF-8");
         }
-        stream(document, new StreamResult(new OutputStreamWriter(out, encoding)), encoding);
+        stream(source, new StreamResult(new OutputStreamWriter(out, encoding)), encoding);
     }
 
     public static void stream(Document document, Result result, Charset encoding) throws XMLException {
+        stream(new DOMSource(document), result, encoding);
+    }
+
+    public static void stream(DOMSource source, Result result, Charset encoding) throws XMLException {
+        stream(source, result, encoding, null);
+    }
+
+    public static void stream(DOMSource source, Result result, Charset encoding, Properties outputProperties) throws XMLException {
         Transformer transformer;
         try {
             TransformerFactory tf = TransformerFactory.newInstance();
@@ -222,6 +236,9 @@ public class XMLTools {
             }
             transformer = tf.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            if (outputProperties != null)
+                transformer.setOutputProperties(outputProperties);
+
             if (encoding != null) {
                 transformer.setOutputProperty(OutputKeys.ENCODING, encoding.name());
             }
@@ -231,7 +248,7 @@ public class XMLTools {
             throw new XMLException("Cannot transform XML: " + e, e);
         }
         try {
-            transformer.transform(new DOMSource(document), result);
+            transformer.transform(source, result);
         } catch (TransformerException e) {
             throw new XMLException("Cannot transform XML: " + e, e);
         }
@@ -499,6 +516,7 @@ public class XMLTools {
     /**
      * This is the same as {@link #getChildElement(Element, String, boolean)}, but its always
      * obligatory to have the child element.
+     * 
      * @throws XMLException
      */
     public static Element getUniqueChildElement(Element father, String tagName) throws XMLException {
@@ -563,7 +581,7 @@ public class XMLTools {
         Collection<Element> valueElements = XMLTools.getChildElements(father, childElementName);
         String[] values = new String[valueElements.size()];
         int i = 0;
-        for (Element valueElement: valueElements) {
+        for (Element valueElement : valueElements) {
             values[i] = valueElement.getTextContent();
             i++;
         }
@@ -573,13 +591,14 @@ public class XMLTools {
 
     /**
      * Returns the contents of the inner tags with the given name as int array.
+     * 
      * @throws XMLException
      */
     public static int[] getChildTagsContentAsIntArray(Element father, String childElementName) throws XMLException {
         Collection<Element> valueElements = XMLTools.getChildElements(father, childElementName);
         int[] values = new int[valueElements.size()];
         int i = 0;
-        for (Element valueElement: valueElements) {
+        for (Element valueElement : valueElements) {
             try {
                 values[i] = Integer.valueOf(valueElement.getTextContent().trim());
             } catch (NumberFormatException e) {
@@ -589,5 +608,37 @@ public class XMLTools {
         }
 
         return values;
+    }
+
+    /**
+     * This method will get a XPath expression matching all elements given.
+     * This works by following this algorithm:
+     * 1. Check whether the last element is of same type
+     *   Yes:
+     *     if paths of elements are of same structure, keep it, but remove counters where necessary
+     *     if not,
+     */
+    public static String getXPath(Document document, Element...elements) {
+        Map<String, List<Element>> elementTypeElementsMap = new HashMap<String, List<Element>>();
+        for (Element element: elements) {
+            List<Element> typeElements = elementTypeElementsMap.get(element.getTagName());
+            if (typeElements == null) {
+                typeElements = new LinkedList<Element>();
+                elementTypeElementsMap.put(element.getTagName(), typeElements);
+            }
+            typeElements.add(element);
+        }
+
+
+        // for each single type of element build single longest common path of all elements
+
+
+        Element[] parentElements = new Element[elements.length];
+
+        for (int i = 0; i < elements.length; i++) {
+            parentElements[i] = (Element) elements[i].getParentNode();
+        }
+
+        return "";
     }
 }

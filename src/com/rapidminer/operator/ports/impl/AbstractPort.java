@@ -40,166 +40,169 @@ import com.rapidminer.tools.AbstractObservable;
 
 /** Implemented by keeping a weak reference to the data that can be cleared at any time
  *  by the garbage collector.
- *  
+ * 
  *  In addition to the week reference, this class also keeps
  *  a hard reference to the data, freeing it when calling {@link #freeMemory()}.
- *  
+ * 
  * @author Simon Fischer
  *
  */
 public abstract class AbstractPort extends AbstractObservable<Port> implements Port  {
 
-	private final List<MetaDataError> errorList = new LinkedList<MetaDataError>();
-	private final Ports<? extends Port> ports;
+    private final List<MetaDataError> errorList = new LinkedList<MetaDataError>();
+    private final Ports<? extends Port> ports;
 
-	private String name;
-	
-	private SoftReference<IOObject> weakDataReference;
+    private String name;
 
-	private IOObject hardDataReference;
+    private SoftReference<IOObject> weakDataReference;
 
-	private final boolean simulatesStack;
-	private boolean locked = false;
-	
-	protected AbstractPort(Ports<? extends Port> owner, String name, boolean simulatesStack) {
-		this.name = name;
-		this.ports = owner;
-		this.simulatesStack = simulatesStack;
-	}
-	
-	protected final void setData(IOObject object) {
-		this.weakDataReference = new SoftReference<IOObject>(object);
-		this.hardDataReference = object;
-	}
-	
-	@Override
-	public final <T extends IOObject> T getData() throws UserError {
-		T data = this.<T>getDataOrNull();
-		if (data == null) {
-			throw new UserError(getPorts().getOwner().getOperator(), 149, getSpec() + (isConnected() ? " (connected)" : " (disconnected)"));
-		} else {
-			return data;
-		}		
-	}
-	
-	@Override
-	public final IOObject getAnyDataOrNull() {
-		if (hardDataReference != null) {
-			return hardDataReference;
-		} else {
-			return (this.weakDataReference != null) ? this.weakDataReference.get() : null;
-		}
-	}
-	
-	public final <T extends IOObject> T getData(Class<T> desiredClass) throws UserError {
-		IOObject data = getData();
-		if (desiredClass.isAssignableFrom(data.getClass())) {
-			return desiredClass.cast(data);
-		} else { 
-			throw new UserError(getPorts().getOwner().getOperator(), 156, RendererService.getName(data.getClass()), this.getName(), RendererService.getName(desiredClass));
-		}
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Override
-	public final <T extends IOObject> T getDataOrNull() throws UserError {
-		IOObject data = getAnyDataOrNull();		
-		try {
-			return (T)data;
-		} catch (ClassCastException e) {
-			throw new UserError(getPorts().getOwner().getOperator(), 150, data.getClass().getSimpleName());
-		}
-	}
+    private IOObject hardDataReference;
 
-	@Override
-	public final String getName() {
-		return name;
-	}
-	
-	@Override
-	public String toString() {
-		return getSpec();
-	}
-	
-	@Override
-	public Ports<? extends Port> getPorts() {
-		return ports;
-	}
-	
-	@Override
-	public String getShortName() {
-		if (name.length() > 3) {
-			return name.substring(0, 3);
-		} else {
-			return name;
-		}		
-	}
+    private final boolean simulatesStack;
+    private boolean locked = false;
 
-	/** Don't use this method. Use {@link Ports#renamePort(Port,String)}. */
-	protected void setName(String newName) {
-		this.name = newName;		
-	}
-	
-	@Override
-	public void addError(MetaDataError metaDataError) {
-		errorList.add(metaDataError);
-	}
+    protected AbstractPort(Ports<? extends Port> owner, String name, boolean simulatesStack) {
+        this.name = name;
+        this.ports = owner;
+        this.simulatesStack = simulatesStack;
+    }
 
-	@Override
-	public Collection<MetaDataError> getErrors() {
-		return Collections.unmodifiableCollection(errorList);
-	}
-	
-	@Override
-	public void clear(int clearFlags) {
-		if ((clearFlags & CLEAR_META_DATA_ERRORS) > 0) {
-			this.errorList.clear();
-		}
-		if ((clearFlags & CLEAR_DATA) > 0) {
-			this.weakDataReference = null;
-			this.hardDataReference = null;
-		}
-	}
-	
-	@Override
-	public List<QuickFix> collectQuickFixes() {
-		List<QuickFix> fixes = new LinkedList<QuickFix>();
-		for (MetaDataError error : getErrors()) {
-			fixes.addAll(error.getQuickFixes());
-		}
-		Collections.sort(fixes);
-		return fixes;
-	}
+    protected final void setData(IOObject object) {
+        this.weakDataReference = new SoftReference<IOObject>(object);
+        this.hardDataReference = object;
+    }
 
-	public String getSpec() {
-		if (getPorts() != null) {
-			return getPorts().getOwner().getOperator().getName() + "." + getName();
-		} else {
-			return "DUMMY."+getName();
-		}
-	}
-	
-	@Override
-	public boolean simulatesStack() {
-		return simulatesStack;
-	}
-	
-	public boolean isLocked()  {
-		return locked;
-	}
-	
-	public void unlock()  {
-		this.locked = false;
-	}
-	
-	@Override
-	public void lock() {
-		this.locked = true;
-	}
-	
-	/** Releases of the hard reference. */
-	@Override
-	public void freeMemory() {
-		this.hardDataReference = null;
-	}
+    @Override
+    public final <T extends IOObject> T getData() throws UserError {
+        T data = this.<T>getDataOrNull();
+        if (data == null) {
+            throw new UserError(getPorts().getOwner().getOperator(), 149, getSpec() + (isConnected() ? " (connected)" : " (disconnected)"));
+        } else {
+            return data;
+        }
+    }
+
+    @Override
+    public final IOObject getAnyDataOrNull() {
+        if (hardDataReference != null) {
+            return hardDataReference;
+        } else {
+            return this.weakDataReference != null ? this.weakDataReference.get() : null;
+        }
+    }
+
+    @Override
+    public final <T extends IOObject> T getData(Class<T> desiredClass) throws UserError {
+        IOObject data = getData();
+        if (desiredClass.isAssignableFrom(data.getClass())) {
+            return desiredClass.cast(data);
+        } else {
+            throw new UserError(getPorts().getOwner().getOperator(), 156, RendererService.getName(data.getClass()), this.getName(), RendererService.getName(desiredClass));
+        }
+    }
+
+    @Override
+    public final <T extends IOObject> T getDataOrNull() throws UserError {
+        IOObject data = getAnyDataOrNull();
+        try {
+            return (T) data;
+        } catch (ClassCastException e) {
+            throw new UserError(getPorts().getOwner().getOperator(), 150, data.getClass().getSimpleName());
+        }
+    }
+
+    @Override
+    public final String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return getSpec();
+    }
+
+    @Override
+    public Ports<? extends Port> getPorts() {
+        return ports;
+    }
+
+    @Override
+    public String getShortName() {
+        if (name.length() > 3) {
+            return name.substring(0, 3);
+        } else {
+            return name;
+        }
+    }
+
+    /** Don't use this method. Use {@link Ports#renamePort(Port,String)}. */
+    protected void setName(String newName) {
+        this.name = newName;
+    }
+
+    @Override
+    public void addError(MetaDataError metaDataError) {
+        errorList.add(metaDataError);
+    }
+
+    @Override
+    public Collection<MetaDataError> getErrors() {
+        return Collections.unmodifiableCollection(errorList);
+    }
+
+    @Override
+    public void clear(int clearFlags) {
+        if ((clearFlags & CLEAR_META_DATA_ERRORS) > 0) {
+            this.errorList.clear();
+        }
+        if ((clearFlags & CLEAR_DATA) > 0) {
+            this.weakDataReference = null;
+            this.hardDataReference = null;
+        }
+    }
+
+    @Override
+    public List<QuickFix> collectQuickFixes() {
+        List<QuickFix> fixes = new LinkedList<QuickFix>();
+        for (MetaDataError error : getErrors()) {
+            fixes.addAll(error.getQuickFixes());
+        }
+        Collections.sort(fixes);
+        return fixes;
+    }
+
+    @Override
+    public String getSpec() {
+        if (getPorts() != null) {
+            return getPorts().getOwner().getOperator().getName() + "." + getName();
+        } else {
+            return "DUMMY."+getName();
+        }
+    }
+
+    @Override
+    public boolean simulatesStack() {
+        return simulatesStack;
+    }
+
+    @Override
+    public boolean isLocked()  {
+        return locked;
+    }
+
+    @Override
+    public void unlock()  {
+        this.locked = false;
+    }
+
+    @Override
+    public void lock() {
+        this.locked = true;
+    }
+
+    /** Releases of the hard reference. */
+    @Override
+    public void freeMemory() {
+        this.hardDataReference = null;
+    }
 }

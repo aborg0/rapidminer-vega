@@ -26,31 +26,43 @@ import java.util.Collections;
 import java.util.List;
 
 import com.rapidminer.operator.SimpleProcessSetupError;
+import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.Port;
 import com.rapidminer.operator.ports.quickfix.QuickFix;
 
-/** 
+/**
+ * An Error that can be registered to an {@link InputPort} to show up in the GUI. This
+ * errors are created during the MetaDataTransformation of a process and should give the
+ * use the ability to find errors and problems before executing the process.
+ * 
  * @author Simon Fischer
- *
  */
 public class SimpleMetaDataError extends SimpleProcessSetupError implements MetaDataError {
 
-	private Port port;
+    private Port port;
 
-	public SimpleMetaDataError(Severity severity, Port port, String i18nKey, Object ... i18nArgs) {
-		this(severity, port, Collections.<QuickFix>emptyList(), i18nKey, i18nArgs);
-	}
+    /**
+     * Constructor for an error. Please note, that the i18nKey will be appended to "metadata.error." to form the final
+     * key.
+     */
+    public SimpleMetaDataError(Severity severity, Port port, String i18nKey, Object ... i18nArgs) {
+        this(severity, port, Collections.<QuickFix>emptyList(), i18nKey, i18nArgs);
+    }
 
-	public SimpleMetaDataError(Severity severity, Port port, List<? extends QuickFix> fixes, String i18nKey, Object ... args) {
-		super(severity, port == null ? null : port.getPorts().getOwner(), fixes, true, "metadata.error." + i18nKey, args);
-		this.port = port;
-	}
+    /**
+     * Constructor for an error. Please note, that the i18nKey will be appended to "metadata.error." to form the final
+     * key.
+     */
+    public SimpleMetaDataError(Severity severity, Port port, List<? extends QuickFix> fixes, String i18nKey, Object ... args) {
+        super(severity, port == null ? null : port.getPorts().getOwner(), fixes, true, "metadata.error." + i18nKey, args);
+        this.port = port;
+    }
 
 
-	@Override
-	public Port getPort() {
-		return port;
-	}
+    @Override
+    public Port getPort() {
+        return port;
+    }
 }
 
 

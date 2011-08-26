@@ -30,27 +30,33 @@ import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.tools.ProgressListener;
 
 /**
+ * This is the interface for the factories of {@link DataResultSet}s.
+ * They usually store information needed to create the result set like for
+ * example resource identifiers, queries and so on.
+ * From that, they construct the result set.
  * 
- * @author Simon Fischer
- *
+ * @author Sebastian Land, Simon Fischer
  */
 public interface DataResultSetFactory {
 
-	/** Creates a result set. Make sure to call {@link #close()} after using this method. */
-	public DataResultSet makeDataResultSet(Operator operator) throws OperatorException;
+    /** Creates a result set. Make sure to call {@link #close()} after using this method. */
+    public DataResultSet makeDataResultSet(Operator operator) throws OperatorException;
 
-	public TableModel makePreviewTableModel(ProgressListener listener) throws OperatorException, ParseException;
+    /**
+     * This method has to return a table model that can be used for showing a preview.
+     */
+    public TableModel makePreviewTableModel(ProgressListener listener) throws OperatorException, ParseException;
 
-	/** Returns the human readable name of the resource read (most often, this will be a file or URL). */
-	public String getResourceName();
+    /** Returns the human readable name of the resource read (most often, this will be a file or URL). */
+    public String getResourceName();
 
-	/** Makes initial meta data. Only the number of rows should be filled in here. All other information
-	 *  will later be added by {@link DataResultSetTranslationConfiguration}*/
-	public ExampleSetMetaData makeMetaData();
+    /** Makes initial meta data. Only the number of rows should be filled in here. All other information
+     *  will later be added by {@link DataResultSetTranslationConfiguration}*/
+    public ExampleSetMetaData makeMetaData();
 
-	/** Sets the configuration parameters in the given reader operator. */
-	public void setParameters(AbstractDataResultSetReader reader);
+    /** Sets the configuration parameters in the given reader operator. */
+    public void setParameters(AbstractDataResultSetReader reader);
 
-	/** Closes all resources associated with this factory. */
-	public void close();
+    /** Closes all resources associated with this factory. */
+    public void close();
 }
