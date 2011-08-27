@@ -78,8 +78,8 @@ public class ModelApplier extends Operator {
 	 */
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet inputExampleSet = exampleSetInput.getData();
-		Model model = modelInput.getData();
+		ExampleSet inputExampleSet = exampleSetInput.getData(ExampleSet.class);
+		Model model = modelInput.getData(Model.class);
 
 		log("Set parameters for " + model.getClass().getName());
 		List<String[]> modelParameters = getParameterList(PARAMETER_APPLICATION_PARAMETERS);

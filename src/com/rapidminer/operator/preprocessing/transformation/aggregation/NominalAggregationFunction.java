@@ -50,7 +50,7 @@ public abstract class NominalAggregationFunction extends AggregationFunction {
     }
 
     @Override
-    public boolean isCompatible() {
+    public final boolean isCompatible() {
         return getSourceAttribute().isNominal();
     }
 

@@ -152,7 +152,15 @@ public class DataResultSetTranslationConfiguration {
                 metaDataSettings = Collections.emptyList();
             }
 
-            columnMetaData = new ColumnMetaData[metaDataSettings.size()];
+            // find largest used column index
+            int maxUsedColumnIndex = -1;
+            for (String[] metaDataDefinition : metaDataSettings) {
+            	int columnIndex= Integer.parseInt(metaDataDefinition[0]);
+            	maxUsedColumnIndex = Math.max(maxUsedColumnIndex, columnIndex);
+            }
+            // initialize with values from settings
+            //columnMetaData = new ColumnMetaData[metaDataSettings.size()];
+            columnMetaData = new ColumnMetaData[maxUsedColumnIndex+1];            
             for (String[] metaDataDefinition : metaDataSettings) {
                 int currentColumn = Integer.parseInt(metaDataDefinition[0]);
                 String[] metaDataDefintionValues = ParameterTypeTupel.transformString2Tupel(metaDataDefinition[1]);
@@ -172,7 +180,12 @@ public class DataResultSetTranslationConfiguration {
                     }
                 }
             }
-
+            // replace those which were not specified in the list by an empty ColumnMetaData (so it is at least not null)
+            for (int i = 0; i < columnMetaData.length; i++) {
+            	if (columnMetaData[i] == null) {
+            		columnMetaData[i] = new ColumnMetaData();
+            	}
+            }
             setFaultTolerant(readerOperator.getParameterAsBoolean(AbstractDataResultSetReader.PARAMETER_ERROR_TOLERANT));
         }
     }

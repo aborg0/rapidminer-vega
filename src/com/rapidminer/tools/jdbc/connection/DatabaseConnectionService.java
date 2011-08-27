@@ -25,9 +25,8 @@ package com.rapidminer.tools.jdbc.connection;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.nio.charset.Charset;
 import java.security.Key;
 import java.sql.SQLException;
 import java.util.Collection;
@@ -45,6 +44,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.rapidminer.io.Base64;
+import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
@@ -64,26 +64,46 @@ import com.rapidminer.tools.jdbc.DatabaseService;
 public class DatabaseConnectionService {
 
     public static final String PROPERTY_CONNECTIONS_FILE = "connections";
+    
+    public static final String PROPERTY_CONNECTIONS_FILE_XML = "connections.xml";
 
     private static List<FieldConnectionEntry> connections = new LinkedList<FieldConnectionEntry>();
 
     private static DatabaseHandler handler = null;
 
     public static void init() {
-        File connectionsFile = getConnectionsFile();
-        if (!connectionsFile.exists()) {
+        File connectionsFile = getOldConnectionsFile();
+        File xmlConnectionsFile = getXMLConnectionsFile();
+        if (!xmlConnectionsFile.exists() && !connectionsFile.exists()) {
+        	// both files do not exist, create the new xml format file
             try {
-                connectionsFile.createNewFile();
+            	xmlConnectionsFile.createNewFile();
+            	writeXMLConnectionsEntries(getConnectionEntries(), xmlConnectionsFile);
             } catch (IOException ex) {
                 // do nothing
             }
-        } else {
+        } else if (!xmlConnectionsFile.exists() && connectionsFile.exists()) {
+        	// only the old text format exists, read it and save as new xml format so next time only the new xml format exists
             connections = readConnectionEntries(connectionsFile);
+            writeXMLConnectionsEntries(getConnectionEntries(), xmlConnectionsFile);
+            connectionsFile.delete();
+        } else {
+        	try {
+        		Document document = XMLTools.parse(xmlConnectionsFile);
+        		Element jdbcElement = document.getDocumentElement();
+        		connections = new LinkedList<FieldConnectionEntry>(parseEntries(jdbcElement));
+        	} catch (Exception e) {
+        		LogService.getRoot().log(Level.WARNING, "Failed to read database connections file: "+e, e);
+        	}
         }
     }
 
-    private static File getConnectionsFile() {
+    private static File getOldConnectionsFile() {
         return FileSystemService.getUserConfigFile(PROPERTY_CONNECTIONS_FILE);
+    }
+    
+    private static File getXMLConnectionsFile() {
+    	return FileSystemService.getUserConfigFile(PROPERTY_CONNECTIONS_FILE_XML);
     }
 
     public static Collection<FieldConnectionEntry> getConnectionEntries() {
@@ -126,6 +146,7 @@ public class DatabaseConnectionService {
     //		}
     //	}
 
+    @Deprecated
     public static List<FieldConnectionEntry> readConnectionEntries(File connectionEntriesFile) {
         LinkedList<FieldConnectionEntry> connectionEntries = new LinkedList<FieldConnectionEntry>();
         BufferedReader in = null;
@@ -165,52 +186,24 @@ public class DatabaseConnectionService {
 
 
     public static void writeConnectionEntries(Collection<FieldConnectionEntry> connectionEntries) {
-        File connectionEntriesFile = getConnectionsFile();
-        PrintWriter out;
-
-        try {
-            out = new PrintWriter(new FileWriter(connectionEntriesFile));
-            writeConnectionEntries(connectionEntries, out);
-        } catch (Exception e) {
-            LogService.getRoot().log(Level.WARNING, "Failed to write database connections file: "+e, e);
-        }
+        File connectionEntriesFile = getXMLConnectionsFile();
+        writeXMLConnectionsEntries(connectionEntries, connectionEntriesFile);
     }
-
-    public static void writeConnectionEntries(Collection<FieldConnectionEntry> connectionEntries, PrintWriter out) {
-        try {
-            // searching number of not dynamic entries to store it's number
-            int numberOfEntries = 0;
-            for (FieldConnectionEntry entry : connectionEntries) {
-                if (!entry.isDynamic())
-                    numberOfEntries++;
-            }
-            out.println(numberOfEntries);
-
-            // outputting each single non dynamic entry
-            for (FieldConnectionEntry entry : connectionEntries) {
-                if (!entry.isDynamic()) {
-                    out.println(entry.getName());
-                    out.println(entry.getProperties().getName());
-                    out.println(entry.getHost());
-                    out.println(entry.getPort());
-                    out.println(entry.getDatabase());
-                    out.println(entry.getUser());
-                    String encrypted;
-                    try {
-                        encrypted = CipherTools.encrypt(new String(entry.getPassword()));
-                    } catch (CipherException e) {
-                        LogService.getRoot().log(Level.WARNING, "Failed to write database connections file: "+e, e);
-                        encrypted = null;
-                    }
-                    out.println(encrypted);
-                }
-            }
-            out.close();
-        } finally {
-            if (out != null) {
-                out.close();
-            }
-        }
+    
+    public static void writeXMLConnectionsEntries(Collection<FieldConnectionEntry> connectionEntries, File connectionEntriesFile) {
+    	Key key;
+    	try {
+			key = KeyGeneratorTool.getUserKey();
+		} catch (IOException e) {
+			LogService.getRoot().log(Level.WARNING, "Cannot retrieve key, probably no one was created: "+e, e);
+			return;
+		}
+		
+		try {
+			XMLTools.stream(toXML(connectionEntries, key, null, false), connectionEntriesFile, Charset.forName("UTF-8"));
+		} catch (Exception e) {
+			LogService.getRoot().log(Level.WARNING, "Failed to write database connections file: "+e, e);
+		}
     }
 
     /**
@@ -219,13 +212,21 @@ public class DatabaseConnectionService {
      * 
      */
     public static Document toXML(Collection<FieldConnectionEntry> connectionEntries, Key key, String replacementForLocalhost) throws ParserConfigurationException, DOMException, CipherException {
-        Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        return toXML(connectionEntries, key, replacementForLocalhost, true);
+    }
+    
+    public static Document toXML(Collection<FieldConnectionEntry> connectionEntries, Key key, String replacementForLocalhost, boolean includeDynamic) throws ParserConfigurationException, DOMException, CipherException {
+    	Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
         Element root = doc.createElement("jdbc-entries");
         String base64key = Base64.encodeBytes(key.getEncoded());
         root.setAttribute("key", base64key);
         doc.appendChild(root);
         for (FieldConnectionEntry entry : connectionEntries) {
-            root.appendChild(entry.toXML(doc, key, replacementForLocalhost));
+        	if (!includeDynamic && entry.getRepository() != null) {
+        		// do nothing in this case
+        	} else {
+        		root.appendChild(entry.toXML(doc, key, replacementForLocalhost));
+        	}
         }
         return doc;
     }

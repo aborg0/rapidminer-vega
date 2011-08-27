@@ -52,4 +52,15 @@ public class SumAggregationFunction extends NumericalAggregationFunction {
     public void setDefault(Attribute attribute, DoubleArrayDataRow row) {
         row.set(attribute, 0);
     }
+    
+	@Override
+	protected int getTargetValueType(int sourceValueType) {
+		return sourceValueType;
+	}
+
+    @Override
+    public boolean isCompatible() {
+        return getSourceAttribute().isNumerical();
+    }
+
 }

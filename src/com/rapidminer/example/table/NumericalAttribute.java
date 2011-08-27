@@ -52,7 +52,7 @@ public class NumericalAttribute extends AbstractAttribute {
 	 * Creates a simple attribute which is not part of a series and does not
 	 * provide a unit string.
 	 */
-	/* pp */ NumericalAttribute(String name) {
+	protected NumericalAttribute(String name) {
 		this(name, Ontology.NUMERICAL);
 	}
 

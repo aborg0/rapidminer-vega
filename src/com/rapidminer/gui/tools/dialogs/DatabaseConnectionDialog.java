@@ -34,9 +34,14 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedList;
+import java.util.Properties;
 
 import javax.swing.AbstractButton;
 import javax.swing.Action;
@@ -52,6 +57,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
+import javax.swing.border.EtchedBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -63,6 +69,7 @@ import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.FixedWidthLabel;
 import com.rapidminer.tools.I18N;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.jdbc.DatabaseService;
 import com.rapidminer.tools.jdbc.JDBCProperties;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
@@ -70,8 +77,9 @@ import com.rapidminer.tools.jdbc.connection.DatabaseConnectionService;
 import com.rapidminer.tools.jdbc.connection.FieldConnectionEntry;
 
 /**
+ * In this dialog, the user can manage all Database connections, including creation, editing and deletion of connections.
  * 
- * @author Tobias Malbrecht
+ * @author Tobias Malbrecht, Marco Boeck
  */
 public class DatabaseConnectionDialog extends ButtonDialog {
 	private static final long serialVersionUID = -2046390670591412166L;
@@ -91,7 +99,28 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 	private static final Color TEXT_NON_SELECTED_COLOR = UIManager.getColor("Tree.textForeground");
 	
 	private final FilterableListModel model = new FilterableListModel();
+	
 	{
+		Comparator<Object> comparator = new Comparator<Object>() {
+
+			@Override
+			public int compare(Object o1, Object o2) {
+				if (!(o1 instanceof ConnectionEntry) || !(o2 instanceof ConnectionEntry)) {
+					return o1.toString().compareTo(o2.toString());
+				}
+				// sort lexicographically, but make sure read only connections are listed below all normal connections
+				ConnectionEntry co1 = (ConnectionEntry)o1;
+				ConnectionEntry co2 = (ConnectionEntry)o2;
+				if (co1.isReadOnly() && !co2.isReadOnly()) {
+					return 1;
+				} else if (!co1.isReadOnly() && co2.isReadOnly()) {
+					return -1;
+				} else {
+					return co1.toString().compareTo(co2.toString());
+				}
+			}
+		};
+		model.setComparator(comparator);
 		for (ConnectionEntry entry : DatabaseConnectionService.getConnectionEntries()) {
 			model.addElement(entry);
 		}
@@ -103,6 +132,7 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 			private static final long serialVersionUID = 4616183160018529751L;
 			
 			private final Icon entryIcon = SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.manage_db_connections.connection_entry.icon"));
+			private final Icon entryReadOnlyIcon = SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.manage_db_connections.connection_readonly_entry.icon"));
 
 			@Override
 			public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -114,10 +144,14 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 				}
 				if (value instanceof FieldConnectionEntry) {
 					FieldConnectionEntry entry = (FieldConnectionEntry) value;
-					String readOnly = (entry.isReadOnly()) ? "*":"";
-					label.setText("<html>" + entry.getName() + readOnly + " <small>(" + entry.getProperties().getName() + "; " + entry.getHost() + ":" + entry.getPort() + ")</small></html>");
+					String remoteRepo = (entry.getRepository() != null) ? "<br/>Taken from: " + entry.getRepository() : "";
+					label.setText("<html>" + entry.getName() + " <small>(" + entry.getProperties().getName() + "; " + entry.getHost() + ":" + entry.getPort() + ")" + remoteRepo + "</small></html>");
 					label.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
-					label.setIcon(entryIcon);
+					if (entry.isReadOnly()) {
+						label.setIcon(entryReadOnlyIcon);
+					} else {
+						label.setIcon(entryIcon);
+					}
 				}
 				return label;
 			}
@@ -135,6 +169,7 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 			public void valueChanged(ListSelectionEvent e) {
 				boolean selected = connectionList.getSelectedValue() != null;
 				OPEN_CONNECTION_ACTION.setEnabled(selected);
+				CLONE_CONNECTION_ACTION.setEnabled(selected);
 				
 				// open delete only if not read only
 				if (selected) {
@@ -161,7 +196,7 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 	
 	private final JTextField urlField = new JTextField(12);
 	
-	private final JLabel testLabel = new FixedWidthLabel(280, TEXT_CONNECTION_STATUS_UNKNOWN, ICON_CONNECTION_STATUS_UNKNOWN);
+	private final JLabel testLabel = new FixedWidthLabel(180, TEXT_CONNECTION_STATUS_UNKNOWN, ICON_CONNECTION_STATUS_UNKNOWN);
 	
 	{
 		urlField.setEditable(false);
@@ -220,22 +255,32 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 				userTextField.setEditable(!entry.isReadOnly());
 				passwordField.setEditable(!entry.isReadOnly());
 				
-				// disabling save action if needed
+				// disabling actions if needed
 				SAVE_CONNECTION_ACTION.setEnabled(!entry.isReadOnly());
+				SHOW_ADVANCED_PROPERTIES.setEnabled(!entry.isReadOnly());
 				
 				// updating URL
 				updateURL(entry);
+				
+				// do not use the real entry, otherwise properties (not jdbc properties) will be set on the real one even without saving
+				// using this clone is possible because equals is overwritten and just compares all values
+				currentlyEditedEntry = new FieldConnectionEntry(entry.getName(), entry.getProperties(), entry.getHost(), entry.getPort(), entry.getDatabase(), entry.getUser(), entry.getPassword());
+				currentlyEditedEntry.setConnectionProperties(entry.getConnectionProperties());
 			}
 		}
 	};
 	
-	private final Action SAVE_CONNECTION_ACTION = new ResourceAction("manage_db_connections.save") {
+	protected final Action SAVE_CONNECTION_ACTION = new ResourceAction("manage_db_connections.save") {
 		private static final long serialVersionUID = -8477647509533859436L;
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			FieldConnectionEntry entry = checkFields(true);
+			final FieldConnectionEntry entry = checkFields(true);
 			if (entry != null) {
+				// no longer clones the entry, but instead modifies the selected one (as one would expect)
+				// clone moved to CLONE_CONNECTION_ACTION
+
+				// check if entry with same name already exists
 				ConnectionEntry sameNameEntry = null;
 				for (int i = 0; i < model.getSize(); i++) {
 					ConnectionEntry compareEntry = (ConnectionEntry) model.getElementAt(i);
@@ -244,50 +289,98 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 						break;
 					}
 				}
-				if (sameNameEntry == null) {
+				if (sameNameEntry == null || (sameNameEntry != null && sameNameEntry.equals(currentlyEditedEntry))) {
+					// unique name, overwrite currently edited entry if applicable
+					if (currentlyEditedEntry != null) {
+						DatabaseConnectionService.deleteConnectionEntry(currentlyEditedEntry);
+						model.removeElement(currentlyEditedEntry);
+					}
 					model.addElement(entry);
 					DatabaseConnectionService.addConnectionEntry(entry);
+					connectionList.clearSelection();
+					connectionList.setSelectedValue(entry, true);
+					OPEN_CONNECTION_ACTION.actionPerformed(null);
 				} else {
+					// name already in use by another connection, ask for overwrite and then remove the overwritten entry
 					if (SwingTools.showConfirmDialog("manage_db_connections.overwrite", ConfirmDialog.YES_NO_OPTION, entry.getName()) == ConfirmDialog.YES_OPTION) {
 						DatabaseConnectionService.deleteConnectionEntry(sameNameEntry);
 						model.removeElement(sameNameEntry);
+						if (currentlyEditedEntry != null) {
+							DatabaseConnectionService.deleteConnectionEntry(currentlyEditedEntry);
+							model.removeElement(currentlyEditedEntry);
+						}
 						model.addElement(entry);
 						DatabaseConnectionService.addConnectionEntry(entry);
+						connectionList.clearSelection();
+						connectionList.setSelectedValue(entry, true);
+						OPEN_CONNECTION_ACTION.actionPerformed(null);
 					}
 				}
+				
+			}
+		}
+	};
+	
+	private final Action CLONE_CONNECTION_ACTION = new ResourceAction("manage_db_connections.clone") {
+		private static final long serialVersionUID = -6286464201049577441L;
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			Object value = connectionList.getSelectedValue();
+			if (value instanceof FieldConnectionEntry) {
+				FieldConnectionEntry selectedEntry = (FieldConnectionEntry) value;
+				
+				String alias = "Copy of " + selectedEntry.getName();
+				boolean unique = false;
+				int copyIndex = 0;
+				do {
+					for (int i = 0; i < model.getSize(); i++) {
+						unique = true;
+						ConnectionEntry compareEntry = (ConnectionEntry) model.getElementAt(i);
+						if (compareEntry.getName().equals(alias)) {
+							unique = false;
+							copyIndex++;
+							alias = "Copy(" + copyIndex + ") of " + selectedEntry.getName();
+							break;
+						}
+					}
+					
+				} while(!unique);
+				final FieldConnectionEntry newEntry = new FieldConnectionEntry(alias, selectedEntry.getProperties(), selectedEntry.getHost(),selectedEntry.getPort(), selectedEntry.getDatabase(), selectedEntry.getUser(), selectedEntry.getPassword());
+				newEntry.setConnectionProperties(selectedEntry.getConnectionProperties());
+				model.addElement(newEntry);
+				DatabaseConnectionService.addConnectionEntry(newEntry);
+				connectionList.setSelectedValue(newEntry, true);
+				OPEN_CONNECTION_ACTION.actionPerformed(null);
 			}
 		}
 	};
 	
 	private final Action NEW_CONNECTION_ACTION = new ResourceAction("manage_db_connections.new") {
-		private static final long serialVersionUID = -6286464201049577441L;
+		private static final long serialVersionUID = 7979548709619302219L;
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			// resetting fields
-			databaseTypeComboBox.setSelectedIndex(0);
-			aliasTextField.setText("");
-			hostTextField.setText("");
-			portTextField.setText("");
-			databaseTextField.setText("");
-			userTextField.setText("");
-			passwordField.setText("");
-			
-			// enabling fields
-			aliasTextField.setEditable(true);
-			databaseTypeComboBox.setEnabled(true);
-			hostTextField.setEditable(true);
-			portTextField.setEditable(true);
-			databaseTextField.setEditable(true);
-			userTextField.setEditable(true);
-			passwordField.setEditable(true);
-			
-			
-			SAVE_CONNECTION_ACTION.setEnabled(true);
-			
-			// setting defaults
-			updateDefaults();
-			updateURL(null);
+			String alias = "New connection";
+			boolean unique = false;
+			int appendIndex = 1;
+			do {
+				for (int i = 0; i < model.getSize(); i++) {
+					unique = true;
+					ConnectionEntry compareEntry = (ConnectionEntry) model.getElementAt(i);
+					if (compareEntry.getName().equals(alias + appendIndex)) {
+						unique = false;
+						appendIndex++;
+						break;
+					}
+				}
+				// do as often as needed until we have a unique name (model must have elements otherwise we have an infinite loop
+			} while(!unique && model.getSize() > 0);
+			final FieldConnectionEntry newEntry = new FieldConnectionEntry(alias + appendIndex, getJDBCProperties(), "localhost", getJDBCProperties().getDefaultPort(), "", "", "".toCharArray());
+			model.addElement(newEntry);
+			DatabaseConnectionService.addConnectionEntry(newEntry);
+			connectionList.setSelectedValue(newEntry, true);
+			OPEN_CONNECTION_ACTION.actionPerformed(null);
 		}
 	};
 	
@@ -319,6 +412,10 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 						connectionList.getSelectionModel().addSelectionInterval(index, index);
 					}
 				}
+			}
+			if (connectionList.getModel().getSize() > 0) {
+				connectionList.setSelectedIndex(0);
+				OPEN_CONNECTION_ACTION.actionPerformed(null);
 			}
 		}
 	};
@@ -359,9 +456,38 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 		}
 	};
 	
+	private final Action SHOW_ADVANCED_PROPERTIES = new ResourceAction("manage_db_connections.advanced") {
+		private static final long serialVersionUID = 7641194296960014681L;
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			// no db connection exists
+			if (currentlyEditedEntry == null) {
+				return;
+			}
+			// get the properties of the selected driver (not the jdbc properties)
+			DriverPropertyInfo[] propInfo = getPropertyInfos();
+			if (propInfo == null) {
+				SwingTools.showSimpleErrorMessage("db_driver_not_found", "", String.valueOf(databaseTypeComboBox.getSelectedItem()));
+				return;
+			}
+			DatabaseAdvancedConnectionDialog advancedDiag = new DatabaseAdvancedConnectionDialog("db_connection_advanced", propInfo, currentlyEditedEntry.getConnectionProperties());
+			advancedDiag.setVisible(true);
+			Properties connectionProperties = advancedDiag.getConnectionProperties();
+			if (connectionProperties != null) {
+				currentlyEditedEntry.setConnectionProperties(connectionProperties);
+			}
+		}
+		
+	};
+	
+	/** this is a clone of the entry which is currently being edited */
+	private FieldConnectionEntry currentlyEditedEntry = null;
+	
 	{
 		OPEN_CONNECTION_ACTION.setEnabled(false);
 		DELETE_CONNECTION_ACTION.setEnabled(false);
+		CLONE_CONNECTION_ACTION.setEnabled(false);
 	}
 		
 	public DatabaseConnectionDialog(String i18nKey, Object ... i18nArgs) {
@@ -370,11 +496,10 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 	
 	public Collection<AbstractButton> makeButtons() {
 		Collection<AbstractButton> list = new LinkedList<AbstractButton>();
-		list.add(new JButton(OPEN_CONNECTION_ACTION));
 		list.add(new JButton(SAVE_CONNECTION_ACTION));
 		list.add(new JButton(NEW_CONNECTION_ACTION));
+		list.add(new JButton(CLONE_CONNECTION_ACTION));
 		list.add(new JButton(DELETE_CONNECTION_ACTION));
-		list.add(new JButton(TEST_CONNECTION_ACTION));
 		return list;
 	}
 	
@@ -382,69 +507,158 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 		JPanel panel = new JPanel(new GridBagLayout());
 		panel.setBorder(createTitledBorder(I18N.getMessage(I18N.getGUIBundle(), "gui.border.manage_db_connections.details")));
 		GridBagConstraints c = new GridBagConstraints();
-
+		
+		
+		c.gridx = 0;
+		c.gridy = 0;
 		c.weightx = 1;
 		c.weighty = 0;
 		c.fill = GridBagConstraints.HORIZONTAL;
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		
 		c.insets = new Insets(0, GAP, 0, GAP);
 		panel.add(new ResourceLabel("manage_db_connections.name"), c);
+		
+		c.gridx = 1;
+		c.gridy = 0;
+		c.weightx = 0;
+		c.gridwidth = 2;
+		c.gridheight = 2;
+		c.fill = GridBagConstraints.NONE;
+		panel.add(new JButton(SHOW_ADVANCED_PROPERTIES), c);
+		
+		c.gridx = 0;
+		c.gridy = 1;
 		c.insets = new Insets(0, GAP, GAP, GAP);
+		c.gridwidth = 1;
+		c.gridheight = 1;
+		c.fill = GridBagConstraints.HORIZONTAL;
 		panel.add(aliasTextField, c);
 		
+		c.gridx = 0;
+		c.gridy = 2;
 		c.weightx = 1;
+		c.gridwidth = 3;
 		c.insets = new Insets(GAP, GAP, 0, GAP);
 		panel.add(new ResourceLabel("manage_db_connections.system"), c);
+		
+		c.gridx = 0;
+		c.gridy = 3;
 		c.insets = new Insets(0, GAP, 0, GAP);
 		panel.add(databaseTypeComboBox, c);
 
-		c.weightx = 0.8;
-		c.gridwidth = GridBagConstraints.RELATIVE;
+		c.gridx = 0;
+		c.gridy = 4;
+		c.weightx = 1;
+		c.gridwidth = 2;
 		c.insets = new Insets(GAP, GAP, 0, GAP);
 		panel.add(new ResourceLabel("manage_db_connections.host"), c);
 		
-		c.weightx = 0.2;
-		c.gridwidth = GridBagConstraints.REMAINDER;
+		c.gridx = 2;
+		c.gridy = 4;
+		c.gridwidth = 1;
+		c.weightx = 0;
 		panel.add(new ResourceLabel("manage_db_connections.port"), c);
 
-		c.weightx = 0.8;
-		c.gridwidth = GridBagConstraints.RELATIVE;
+		c.gridx = 0;
+		c.gridy = 5;
+		c.weightx = 1;
+		c.gridwidth = 2;
 		c.insets = new Insets(0, GAP, 0, GAP);
 		panel.add(hostTextField, c);
 		
-		c.weightx = 0.2;
-		c.gridwidth = GridBagConstraints.REMAINDER;
+		c.gridx = 2;
+		c.gridy = 5;
+		c.gridwidth = 1;
+		c.weightx = 0;
 		panel.add(portTextField, c);
 
+		c.gridx = 0;
+		c.gridy = 6;
 		c.weightx = 1;
 		c.insets = new Insets(GAP, GAP, 0, GAP);
+		c.gridwidth = 3;
 		panel.add(new ResourceLabel("manage_db_connections.database"), c);
+		
+		c.gridx = 0;
+		c.gridy = 7;
 		c.insets = new Insets(0, GAP, 0, GAP);
 		panel.add(databaseTextField, c);
 
+		c.gridx = 0;
+		c.gridy = 8;
 		c.insets = new Insets(GAP, GAP, 0, GAP);
 		panel.add(new ResourceLabel("manage_db_connections.user"), c);
+		
+		c.gridx = 0;
+		c.gridy = 9;
 		c.insets = new Insets(0, GAP, 0, GAP);
 		panel.add(userTextField, c);
 
+		c.gridx = 0;
+		c.gridy = 10;
 		c.insets = new Insets(GAP, GAP, 0, GAP);
 		panel.add(new ResourceLabel("manage_db_connections.password"), c);
+		
+		c.gridx = 0;
+		c.gridy = 11;
 		c.insets = new Insets(0, GAP, GAP, GAP);
 		panel.add(passwordField, c);
 		
+		c.gridx = 0;
+		c.gridy = 12;
 		c.insets = new Insets(GAP, GAP, 0, GAP);
 		panel.add(new ResourceLabel("manage_db_connections.url"), c);
+		
+		c.gridx = 0;
+		c.gridy = 13;
 		c.insets = new Insets(0, GAP, GAP, GAP);
 		panel.add(urlField, c);
-
+		
+		// adds the connection info label on a panel which is put in a scrollpane
+		JPanel scrollPanel = new JPanel();
+		scrollPanel.setLayout(new GridBagLayout());
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.weightx = 1;
+		gbc.weighty = 1;
+		gbc.insets = new Insets(GAP, GAP, GAP, GAP);
+		scrollPanel.add(testLabel, gbc);
+		ExtendedJScrollPane ejsp = new ExtendedJScrollPane(scrollPanel);
+		ejsp.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
+		
+		c.gridx = 0;
+		c.gridy = 14;
+		c.gridwidth = 2;
+		c.gridheight = 2;
+		c.weightx = 1;
 		c.weighty = 1;
-		c.insets = new Insets(0, 2 * GAP, GAP, GAP);
-		panel.add(testLabel, c);
+		c.fill = GridBagConstraints.BOTH;
+		c.insets = new Insets(GAP, 2 * GAP, GAP, GAP);
+		panel.add(ejsp, c);
+		
+		c.gridx = 2;
+		c.gridy = 14;
+		c.weightx = 0;
+		c.gridwidth = 1;
+		c.gridheight = 1;
+		c.fill = GridBagConstraints.NONE;
+		c.anchor = GridBagConstraints.CENTER;
+		panel.add(new JButton(TEST_CONNECTION_ACTION), c);
+		
 		
 		updateDefaults();
 		updateURL(null);
 		return panel;
+	}
+	
+	@Override
+	public void setVisible(boolean b) {
+		if (connectionList.getModel().getSize() > 0) {
+			connectionList.setSelectedIndex(0);
+		}
+		OPEN_CONNECTION_ACTION.actionPerformed(null);
+		super.setVisible(b);
 	}
 	
 	public JPanel makeConnectionManagementPanel() {
@@ -456,19 +670,49 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 		return panel;
 	}
 		
-	private JDBCProperties getProperties() {
+	private JDBCProperties getJDBCProperties() {
 		return DatabaseService.getJDBCProperties((String) databaseTypeComboBox.getSelectedItem());
+	}
+	
+	/**
+	 * Returns the driver properties or null if there has been an error.
+	 * @return
+	 */
+	private DriverPropertyInfo[] getPropertyInfos() {
+		try {
+			String host = hostTextField.getText();
+			if (host == null || "".equals(host)) {
+				host = "192.168.0.0";
+			}
+			String port = portTextField.getText();
+			if (port == null || "".equals(port)) {
+				port = "1234";
+			}
+			String db = databaseTextField.getText();
+			if (db == null || "".equals(db)) {
+				db = "test";
+			}
+			String driverURL = FieldConnectionEntry.createURL(getJDBCProperties(), host, port, db);
+			Driver driver = DriverManager.getDriver(driverURL);
+			
+			// add properties to driver
+			Properties givenProperties = currentlyEditedEntry.getConnectionProperties();
+			return driver.getPropertyInfo(driverURL, givenProperties);
+		} catch (SQLException e) {
+			LogService.getGlobal().log("Could not load jdbc driver properties.", LogService.ERROR);
+			return null;
+		}
 	}
 
 	private void updateDefaults() {
-		portTextField.setText(getProperties().getDefaultPort());
+		portTextField.setText(getJDBCProperties().getDefaultPort());
 	}
 	
 	private void updateURL(FieldConnectionEntry entry) {
 		if (entry != null && entry.isReadOnly()) {
 			urlField.setText(entry.getURL());
 		} else {
-			urlField.setText(FieldConnectionEntry.createURL(getProperties(), hostTextField.getText(), portTextField.getText(), databaseTextField.getText()));
+			urlField.setText(FieldConnectionEntry.createURL(getJDBCProperties(), hostTextField.getText(), portTextField.getText(), databaseTextField.getText()));
 		}
 		testLabel.setText(TEXT_CONNECTION_STATUS_UNKNOWN);
 		testLabel.setIcon(ICON_CONNECTION_STATUS_UNKNOWN);
@@ -505,7 +749,11 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 //		}
 		String user = userTextField.getText();
 		char[] password = passwordField.getPassword();
-		return new FieldConnectionEntry(alias, getProperties(), host, port, database, user, password);
+		
+		// we need to use the connection properties from the current entry
+		FieldConnectionEntry entry = new FieldConnectionEntry(alias, getJDBCProperties(), host, port, database, user, password);
+		entry.setConnectionProperties(currentlyEditedEntry.getConnectionProperties());
+		return entry;
 	}
 	
 	public FieldConnectionEntry getConnectionEntry(boolean save) {
@@ -518,7 +766,7 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 			return null;
 		}
 		String port = portTextField.getText();
-		if (host == null) { // || "".equals(port)) {
+		if (port == null) { // || "".equals(port)) {
 			port = "";
 		}
 		String database = databaseTextField.getText();
@@ -530,7 +778,7 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 //		}
 		String user = userTextField.getText();
 		char[] password = passwordField.getPassword();
-		return new FieldConnectionEntry(alias, getProperties(), host, port, database, user, password);
+		return new FieldConnectionEntry(alias, getJDBCProperties(), host, port, database, user, password);
 	}
 
 //	private boolean isEntryModified() {

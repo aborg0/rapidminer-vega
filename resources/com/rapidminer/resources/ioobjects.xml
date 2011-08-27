@@ -119,6 +119,16 @@
     <!--  Models -->
     
     <ioobject
+        name="Model"
+        class="com.rapidminer.operator.Model"
+        reportable="false"
+        icon="lightbulb.png"
+        >
+        <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
+    </ioobject>    
+    
+    <ioobject
         name="Voting Model"
         class="com.rapidminer.operator.learner.lazy.AttributeBasedVotingModel"
         reportable="true"

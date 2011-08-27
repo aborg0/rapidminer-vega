@@ -23,6 +23,7 @@
 package com.rapidminer.operator.preprocessing.transformation.aggregation;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.tools.Ontology;
 
 /**
  * This class implements the Standard Deviation Aggregation function. This will calculate the
@@ -46,4 +47,15 @@ public class StandardDeviationAggregationFunction extends NumericalAggregationFu
     public Aggregator createAggregator() {
         return new StandardDeviationAggregator(this);
     }
+    
+	@Override
+	protected int getTargetValueType(int sourceValueType) {
+		return Ontology.REAL;
+	}
+
+    @Override
+    public boolean isCompatible() {
+        return getSourceAttribute().isNumerical();
+    }
+
 }

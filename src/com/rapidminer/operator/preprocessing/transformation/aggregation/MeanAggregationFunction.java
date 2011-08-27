@@ -23,6 +23,7 @@
 package com.rapidminer.operator.preprocessing.transformation.aggregation;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.tools.Ontology;
 
 /**
  * This class implements the Mean Aggregation function. This will calculate the
@@ -46,4 +47,15 @@ public class MeanAggregationFunction extends NumericalAggregationFunction {
     public Aggregator createAggregator() {
         return new MeanAggregator(this);
     }
+    
+	@Override
+	protected int getTargetValueType(int sourceValueType) {
+		return Ontology.ATTRIBUTE_VALUE_TYPE.isA(sourceValueType, Ontology.DATE_TIME) ? Ontology.DATE_TIME : Ontology.REAL;
+	}
+
+    @Override
+    public boolean isCompatible() {
+        return getSourceAttribute().isNumerical() || Ontology.ATTRIBUTE_VALUE_TYPE.isA(getSourceAttribute().getValueType(), Ontology.DATE_TIME);
+    }
+
 }

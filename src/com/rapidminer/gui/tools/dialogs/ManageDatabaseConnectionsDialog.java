@@ -22,13 +22,22 @@
  */
 package com.rapidminer.gui.tools.dialogs;
 
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Collection;
 
 import javax.swing.AbstractButton;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 /**
+ * Dialog to manage Database connections. See {@link DatabaseConnectionDialog}
  * 
- * @author Tobias Malbrecht
+ * @author Tobias Malbrecht, Marco Boeck
  */
 public class ManageDatabaseConnectionsDialog extends DatabaseConnectionDialog {
 	private static final long serialVersionUID = -1314039924713463923L;
@@ -36,8 +45,47 @@ public class ManageDatabaseConnectionsDialog extends DatabaseConnectionDialog {
 	public ManageDatabaseConnectionsDialog() {
 		super("manage_db_connections");
 		Collection<AbstractButton> buttons = makeButtons();
-		buttons.add(makeOkButton());
-		buttons.add(makeCancelButton());
-		layoutDefault(makeConnectionManagementPanel(), NORMAL, buttons);
+		JButton okButton = makeOkButton();
+		// add own ActionListener so save action can be called before dialog is disposed
+		okButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				SAVE_CONNECTION_ACTION.actionPerformed(null);
+			}
+		});
+		
+		JPanel allButtonPanel = new JPanel(new GridBagLayout());
+		GridBagConstraints gbc = new GridBagConstraints();
+		JPanel entryButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, GAP, GAP));
+		for (AbstractButton button : buttons) {
+			if (button != null) {
+				entryButtonPanel.add(button);
+			}
+		}
+		
+		JPanel generalButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, GAP, GAP));
+		generalButtonPanel.add(okButton);
+		generalButtonPanel.add(makeCancelButton());
+		
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.weightx = 0;
+		allButtonPanel.add(entryButtonPanel, gbc);
+		
+		gbc.gridx = 1;
+		gbc.gridy = 0;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.weightx = 1;
+		allButtonPanel.add(new JLabel(), gbc);
+		
+		gbc.gridx = 2;
+		gbc.gridy = 0;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.weightx = 0;
+		allButtonPanel.add(generalButtonPanel, gbc);
+		
+		layoutDefault(makeConnectionManagementPanel(), allButtonPanel, LARGE);
 	}
 }

@@ -23,6 +23,7 @@
 package com.rapidminer.operator.preprocessing.transformation.aggregation;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.tools.Ontology;
 
 /**
  * This class implements the Min Aggregation function. This will calculate the
@@ -46,4 +47,15 @@ public class MinAggregationFunction extends NumericalAggregationFunction {
     public Aggregator createAggregator() {
         return new MinAggregator(this);
     }
+    
+	@Override
+	protected int getTargetValueType(int sourceValueType) {
+		return sourceValueType;
+	}
+
+    @Override
+    public boolean isCompatible() {
+        return getSourceAttribute().isNumerical() || Ontology.ATTRIBUTE_VALUE_TYPE.isA(getSourceAttribute().getValueType(), Ontology.DATE_TIME);
+    }
+
 }

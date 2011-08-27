@@ -37,37 +37,64 @@ import com.rapidminer.tools.Ontology;
 public class DefaultAggregationFunctionMetaDataProvider implements AggregationFunctionMetaDataProvider {
 
     private boolean copyValueType = false;
-    private int matchingValueType;
+    private int matchingValueTypes[];
     private int resultValueType;
     private String aggregationFunctionName;
     private String functionName;
     private String separatorOpen;
     private String separatorClose;
 
-    public DefaultAggregationFunctionMetaDataProvider(String aggregationFunctionName, String functionName, String separatorOpen, String separatorClose, int matchingValueType) {
-        this(aggregationFunctionName, functionName, separatorOpen, separatorClose, matchingValueType, 0);
+    public DefaultAggregationFunctionMetaDataProvider(String aggregationFunctionName, String functionName, String separatorOpen, String separatorClose, int matchingValueTypes[]) {
+        this(aggregationFunctionName, functionName, separatorOpen, separatorClose, matchingValueTypes, 0);
         this.copyValueType = true;
     }
 
-    public DefaultAggregationFunctionMetaDataProvider(String aggregationFunctionName, String functionName, String separatorOpen, String separatorClose, int matchingValueType, int resultValueType) {
+    public DefaultAggregationFunctionMetaDataProvider(String aggregationFunctionName, String functionName, String separatorOpen, String separatorClose, int matchingValueTypes[], int resultValueType) {
         this.aggregationFunctionName = aggregationFunctionName;
         this.functionName = functionName;
         this.separatorClose = separatorClose;
         this.separatorOpen = separatorOpen;
-        this.matchingValueType = matchingValueType;
+        this.matchingValueTypes = matchingValueTypes;
         this.resultValueType = resultValueType;
     }
 
     @Override
     public AttributeMetaData getTargetAttributeMetaData(AttributeMetaData sourceAttribute, InputPort port) {
-        if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(sourceAttribute.getValueType(), matchingValueType) || sourceAttribute.getValueType() == Ontology.ATTRIBUTE_VALUE) {
+    	boolean matches = false;
+    	for (int type : matchingValueTypes) {
+    		matches |= Ontology.ATTRIBUTE_VALUE_TYPE.isA(sourceAttribute.getValueType(), type);
+    	}
+        if (matches || sourceAttribute.getValueType() == Ontology.ATTRIBUTE_VALUE) {
             if (copyValueType)
                 return new AttributeMetaData(functionName + separatorOpen + sourceAttribute.getName() + separatorClose, sourceAttribute.getValueType());
             else
                 return new AttributeMetaData(functionName + separatorOpen + sourceAttribute.getName() + separatorClose, resultValueType);
         } else {
             // not matching type: Return null and register error
-            port.addError(new SimpleMetaDataError(Severity.ERROR, port, "aggregation.incompatible_value_type", sourceAttribute.getName(), aggregationFunctionName, Ontology.VALUE_TYPE_NAMES[sourceAttribute.getValueType()], Ontology.VALUE_TYPE_NAMES[matchingValueType]));
+        	if (matchingValueTypes.length == 1) {
+        		port.addError(new SimpleMetaDataError(Severity.ERROR, port, "aggregation.incompatible_value_type", 
+        				sourceAttribute.getName(), 
+        				aggregationFunctionName, 
+        				Ontology.VALUE_TYPE_NAMES[sourceAttribute.getValueType()], 
+        				Ontology.VALUE_TYPE_NAMES[matchingValueTypes[0]]));
+        	} else {
+        		boolean first = true;
+        		StringBuilder b = new StringBuilder();
+        		for (int i = 0; i < matchingValueTypes.length-1; i++) {
+        			if (first) {
+        				first = false;
+        			} else {
+        				b.append(", ");
+        			}
+        			b.append(Ontology.VALUE_TYPE_NAMES[matchingValueTypes[i]]);
+        		}
+        		port.addError(new SimpleMetaDataError(Severity.ERROR, port, "aggregation.incompatible_value_type_multiple", 
+        				sourceAttribute.getName(), 
+        				aggregationFunctionName, 
+        				Ontology.VALUE_TYPE_NAMES[sourceAttribute.getValueType()],
+        				b.toString(),
+        				Ontology.VALUE_TYPE_NAMES[matchingValueTypes[matchingValueTypes.length - 1]]));
+        	}
             return null;
         }
     }

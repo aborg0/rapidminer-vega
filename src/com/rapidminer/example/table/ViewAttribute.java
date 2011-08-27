@@ -51,7 +51,7 @@ public class ViewAttribute extends AbstractAttribute {
 
 	private Attribute parent;
 
-	/* pp */ ViewAttribute(ViewAttribute other) {
+	protected ViewAttribute(ViewAttribute other) {
 		super(other);
 		if (other.mapping != null)
 			this.mapping = (NominalMapping) other.mapping.clone();

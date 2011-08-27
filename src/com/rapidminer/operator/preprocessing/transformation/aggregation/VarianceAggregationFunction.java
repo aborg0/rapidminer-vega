@@ -23,6 +23,7 @@
 package com.rapidminer.operator.preprocessing.transformation.aggregation;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.tools.Ontology;
 
 /**
  * This class implements the Variance Aggregation function. This will calculate the
@@ -46,4 +47,15 @@ public class VarianceAggregationFunction extends NumericalAggregationFunction {
     public Aggregator createAggregator() {
         return new VarianceAggregator(this);
     }
+    
+	@Override
+	protected int getTargetValueType(int sourceValueType) {
+		return Ontology.REAL;
+	}
+
+    @Override
+    public boolean isCompatible() {
+        return getSourceAttribute().isNumerical();
+    }
+
 }

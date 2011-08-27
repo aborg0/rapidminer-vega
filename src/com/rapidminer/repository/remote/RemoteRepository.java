@@ -579,7 +579,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		Document doc = XMLTools.parse(xmlURL.openStream());
 		final Collection<FieldConnectionEntry> result = DatabaseConnectionService.parseEntries(doc.getDocumentElement());
 		for (FieldConnectionEntry entry : result) {
-			entry.setDynamic(true);
+			entry.setRepository(getAlias());
 		}
 		return result;
 	}

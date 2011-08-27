@@ -44,7 +44,7 @@ public class DateAttribute extends AbstractAttribute {
 	 * Creates a simple attribute which is not part of a series and does not
 	 * provide a unit string.
 	 */
-	/* pp */ DateAttribute(String name) {
+	protected DateAttribute(String name) {
 		this(name, Ontology.DATE);
 	}
 
@@ -52,7 +52,7 @@ public class DateAttribute extends AbstractAttribute {
 	 * Creates a simple attribute which is not part of a series and does not
 	 * provide a unit string.
 	 */
-	/* pp */ DateAttribute(String name, int valueType) {
+	protected DateAttribute(String name, int valueType) {
 		super(name, valueType);
 		registerStatistics(new MinMaxStatistics());
         registerStatistics(new UnknownStatistics());

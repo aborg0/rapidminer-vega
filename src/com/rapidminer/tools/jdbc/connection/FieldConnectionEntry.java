@@ -23,11 +23,13 @@
 package com.rapidminer.tools.jdbc.connection;
 
 import java.security.Key;
+import java.util.Properties;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.rapidminer.io.process.XMLTools;
+import com.rapidminer.tools.XMLException;
 import com.rapidminer.tools.cipher.CipherException;
 import com.rapidminer.tools.cipher.CipherTools;
 import com.rapidminer.tools.jdbc.DatabaseService;
@@ -47,8 +49,12 @@ public class FieldConnectionEntry extends ConnectionEntry {
 	private String port;
 
 	private String database;
+	
+	/** the connection properties (not the JDBCProperties) */
+	private Properties connectionProperties;
 
-	private boolean dynamic = false;
+	/** the name of the repository where this connection comes from or null if it's not a repository connection */
+	private String repository = null;
 
 	public String getPort() {
 		return port;
@@ -73,6 +79,30 @@ public class FieldConnectionEntry extends ConnectionEntry {
 
 	public void setUser(String user) {
 		this.user = user;
+	}
+	
+	/**
+	 * Sets the additional connection properties (not the jdbc properties).
+	 * @param connectionProperties
+	 */
+	public void setConnectionProperties(Properties connectionProperties) {
+		Properties newProps = new Properties();
+		for (Object key : connectionProperties.keySet()) {
+			newProps.put(key, connectionProperties.get(key));
+		}
+		this.connectionProperties = newProps;
+	}
+	
+	/**
+	 * Gets the additional connection properties (not the jdbc properties).
+	 * @return
+	 */
+	public Properties getConnectionProperties() {
+		Properties newProps = new Properties();
+		for (Object key : connectionProperties.keySet()) {
+			newProps.put(key, connectionProperties.get(key));
+		}
+		return newProps;
 	}
 
 	@Override
@@ -99,6 +129,7 @@ public class FieldConnectionEntry extends ConnectionEntry {
 		this.database = database;
 		this.user = user;
 		this.password = password;
+		this.connectionProperties = new Properties();
 	}
 
 	@Override
@@ -170,6 +201,16 @@ public class FieldConnectionEntry extends ConnectionEntry {
 		XMLTools.setTagContents(element, "database", database);
 		XMLTools.setTagContents(element, "user", user);
 		XMLTools.setTagContents(element, "password", CipherTools.encrypt(new String(password), key));
+		
+		// add connection properties
+		Element propertiesElement = doc.createElement("properties");
+		element.appendChild(propertiesElement);
+		for (Object propKey : connectionProperties.keySet()) {
+			Element singlePropElement = doc.createElement(String.valueOf(propKey));
+			singlePropElement.setTextContent(String.valueOf(connectionProperties.get(propKey)));
+			propertiesElement.appendChild(singlePropElement);
+		}
+		
 		return element;
 	}
 
@@ -184,16 +225,35 @@ public class FieldConnectionEntry extends ConnectionEntry {
 		if (system != null) {
 			properties = DatabaseService.getJDBCProperties(system);
 		}
+		try {
+			Element propertiesElement = XMLTools.getChildElement(element, "properties", true);
+			Properties props = new Properties();
+			for (Element singlePropElement : XMLTools.getChildElements(propertiesElement)) {
+				props.put(singlePropElement.getTagName(), singlePropElement.getTextContent());
+			}
+			this.connectionProperties = props;
+		} catch (XMLException e) {
+			// old connections may not yet have properties element
+			this.connectionProperties = new Properties();
+		}
 	}
-
-	public void setDynamic(boolean dynamic) {
-		this.dynamic = dynamic;
+	
+	public void setRepository(String repository) {
+		this.repository = repository;
 	}
-
-	/** Returns whether this entry was dynamically created and should not be stored
-	 *  in the user-defined configuration file. */
+	
 	@Override
-	public boolean isDynamic() {
-		return dynamic;
+	public String getRepository() {
+		return repository;
+	}
+	
+	@Override
+	public boolean isReadOnly() {
+		// read only if it's a connection created by a RapidAnalytics remote repository
+		if (repository != null) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 }

@@ -24,6 +24,7 @@ package com.rapidminer.operator.preprocessing.transformation.aggregation;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.table.DoubleArrayDataRow;
+import com.rapidminer.tools.Ontology;
 
 /**
  * This class implements the Log Product Aggregation function. This will calculate the
@@ -54,5 +55,15 @@ public class LogProductAggregationFunction extends NumericalAggregationFunction 
     @Override
     public void setDefault(Attribute attribute, DoubleArrayDataRow row) {
         row.set(attribute, 0);
+    }
+    
+	@Override
+	protected int getTargetValueType(int sourceValueType) {
+		return Ontology.REAL;
+	}
+
+    @Override
+    public boolean isCompatible() {
+        return getSourceAttribute().isNumerical();
     }
 }

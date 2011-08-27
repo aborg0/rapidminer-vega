@@ -168,6 +168,10 @@ public class FilterableListModel extends AbstractListModel implements FilterList
 		fireContentsChanged(this, 0, filteredList.size() - 1);
 	}
 	
+	public void setComparator(Comparator<Object> comparator) {
+		this.comparator = comparator;
+	}
+	
 	public void removeCondition(FilterCondition c) {
 		conditions.remove(c);
 		filteredList.clear();
