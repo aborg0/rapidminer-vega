@@ -34,6 +34,8 @@ import com.rapidminer.tools.Tools;
 
 /** Returns values backed by an operned excel workbook.
  * 
+ *  Note: This model used to be created in {@link ExcelResultSetConfiguration#makePreviewTableModel(com.rapidminer.tools.ProgressListener),
+ *  but this lead to problems because effects like empty columns or rows (e.g. {@link ExcelResultSet#emptyColumns) were not respected.}
  * @author Simon Fischer
  *
  */

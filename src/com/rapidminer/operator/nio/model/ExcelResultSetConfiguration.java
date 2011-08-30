@@ -22,7 +22,8 @@
  */
 package com.rapidminer.operator.nio.model;
 
-import static com.rapidminer.operator.nio.ExcelExampleSource.*;
+import static com.rapidminer.operator.nio.ExcelExampleSource.PARAMETER_EXCEL_FILE;
+import static com.rapidminer.operator.nio.ExcelExampleSource.PARAMETER_SHEET_NUMBER;
 
 import java.io.File;
 import java.io.IOException;
@@ -184,17 +185,27 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 		return new ExcelResultSet(operator, this);
 	}
 
+	/** See class comment on {@link ExcelSheetTableModel} for a comment why that class is not used here.
+	 *  In fact we are using a {@link DefaultPreview} here as well. */
 	@Override
 	public TableModel makePreviewTableModel(ProgressListener listener) throws OperatorException {
-		try {
-			return new ExcelSheetTableModel(this);
-		} catch (IndexOutOfBoundsException e) {
-			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
-		} catch (BiffException e) {
-			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
-		} catch (IOException e) {
+        final DataResultSet resultSet = makeDataResultSet(null);
+        //this.errors = ((CSVResultSet) resultSet).getErrors();
+        try {
+			return new DefaultPreview(resultSet, listener);
+		} catch (ParseException e) {
 			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
 		}
+//
+//		try {
+//			return new ExcelSheetTableModel(this);
+//		} catch (IndexOutOfBoundsException e) {
+//			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
+//		} catch (BiffException e) {
+//			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
+//		} catch (IOException e) {
+//			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
+//		}
 	}
 
 	public void closeWorkbook() {

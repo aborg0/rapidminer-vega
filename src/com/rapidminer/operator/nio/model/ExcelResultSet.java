@@ -154,29 +154,6 @@ public class ExcelResultSet implements DataResultSet {
 				}
 			}
 		}
-
-		// // annotations
-		// Annotations[] annotations = new Annotations[numberOfAttributes];
-		// int columnCounter = 0;
-		// for (int c = columnOffset; c < totalNumberOfColumns; c++) {
-		// if (!emptyColumns[c]) {
-		// annotations[columnCounter] = new Annotations();
-		// for (String annotationKey : configuration.getAnnotations()) {
-		// if (!ExcelExampleSource.ANNOTATION_NAME.equals(annotationKey)) {
-		// Cell cell = sheet.getCell(c, rowOffset + configuration.getAnnotationLine(annotationKey));
-		// annotations[columnCounter].put(annotationKey, cell.getContents());
-		// }
-		// }
-		// columnCounter++;
-		// }
-		// }
-
-		// setting annotation row to ignore
-		// for (String annotationKey : configuration.getAnnotations()) {
-		// if (!ExcelExampleSource.ANNOTATION_NAME.equals(annotationKey)) {
-		// emptyRows[configuration.getAnnotationLine(annotationKey)] = true;
-		// }
-		// }
 	}
 
 	@Override

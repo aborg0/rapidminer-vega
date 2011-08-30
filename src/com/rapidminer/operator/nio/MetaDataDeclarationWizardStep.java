@@ -63,6 +63,7 @@ import com.rapidminer.gui.tools.table.EditableTableHeader;
 import com.rapidminer.gui.tools.table.EditableTableHeaderColumn;
 import com.rapidminer.gui.viewer.DataTableViewerTableModel;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.nio.model.ColumnMetaData;
 import com.rapidminer.operator.nio.model.DataResultSet;
 import com.rapidminer.operator.nio.model.ParsingError;
 import com.rapidminer.operator.nio.model.WizardState;
@@ -259,7 +260,11 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
                     int nameIndex = state.getTranslationConfiguration().getNameRow();
                     if (nameIndex != -1) {
                         for (int i = 0; i < dataPreview.getColumnCount(); i++) {
-                            state.getTranslationConfiguration().getColumnMetaData(i).setUserDefinedAttributeName((String) dataPreview.getValueAt(nameIndex, i));
+                            ColumnMetaData columnMetaData = state.getTranslationConfiguration().getColumnMetaData(i);
+                            final String foundName = (String) dataPreview.getValueAt(nameIndex, i);
+                            if ((foundName != null) && !foundName.isEmpty()) {
+                            	columnMetaData.setUserDefinedAttributeName(foundName);
+                            }
                         }
                     }
                 } catch (Exception e) {

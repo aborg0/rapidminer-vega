@@ -215,7 +215,7 @@ public class DataResultSetTranslator {
                 continue;
             }
             String userDefinedName = cmd.getUserDefinedAttributeName();
-            if (userDefinedName != null)
+            if ((userDefinedName != null) && !userDefinedName.isEmpty())
                 attribute.setName(userDefinedName);
             String roleId = cmd.getRole();
             if (!Attributes.ATTRIBUTE_NAME.equals(roleId))
