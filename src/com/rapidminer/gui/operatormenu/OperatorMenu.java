@@ -32,7 +32,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 import com.rapidminer.gui.tools.ResourceMenu;
-import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorCreationException;
@@ -105,7 +104,7 @@ public abstract class OperatorMenu extends ResourceMenu implements OperatorServi
                 } catch (OperatorCreationException e1) {
                     // do nothing
                 }
-                item.setToolTipText(SwingTools.transformToolTipText(toolTipText.toString()));
+                item.setToolTipText("<html><div style=\"width:300px\">"+toolTipText.toString()+"</div></html>");
                 item.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {

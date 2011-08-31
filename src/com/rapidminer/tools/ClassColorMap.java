@@ -39,9 +39,9 @@ public class ClassColorMap extends ParentResolvingMap<Class,Color>{
 	}
 
 	@Override
-	public Class parseKey(String key) {
+	public Class parseKey(String key, ClassLoader classLoader) {
 		try {
-			return Class.forName(key);
+			return Class.forName(key, true, classLoader);
 		} catch (ClassNotFoundException e) {
 			LogService.getGlobal().logError("Unknwon IO class: "+key);
 			return null;		
@@ -49,7 +49,7 @@ public class ClassColorMap extends ParentResolvingMap<Class,Color>{
 	}
 
 	@Override
-	public Color parseValue(String value) {
+	public Color parseValue(String value, ClassLoader classLoader) {
 		return Color.decode(value.trim());
 	}
 

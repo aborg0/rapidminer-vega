@@ -39,12 +39,12 @@ public class ProgressReportingInputStream extends InputStream {
 	private ProgressListener listener;
 	private int showMin;
 	private int showMax;	
-	private int streamLength;
+	private long streamLength;
 
-	private int readBytes = 0;
+	private long readBytes = 0;
 	private int lastReportedValue = Integer.MIN_VALUE;
 
-	public ProgressReportingInputStream(InputStream in,	ProgressListener listener, int minProgress, int maxProgress, int streamLength) {
+	public ProgressReportingInputStream(InputStream in,	ProgressListener listener, int minProgress, int maxProgress, long streamLength) {
 		this.parent = in;
 		this.listener = listener;
 		this.showMin = minProgress;
@@ -76,7 +76,7 @@ public class ProgressReportingInputStream extends InputStream {
 	private void report(int increment) {
 		if (increment > 0) {
 			readBytes += increment;
-			int completed = showMin + (showMax-showMin) * readBytes / streamLength;
+			int completed = (int)((long)showMin + (((long)showMax-(long)showMin) * readBytes) / streamLength);
 			if (completed != lastReportedValue) {
 				if (listener != null) {
 					listener.setCompleted(completed);

@@ -752,7 +752,10 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 		
 		// we need to use the connection properties from the current entry
 		FieldConnectionEntry entry = new FieldConnectionEntry(alias, getJDBCProperties(), host, port, database, user, password);
-		entry.setConnectionProperties(currentlyEditedEntry.getConnectionProperties());
+		// only add properties if the entry exists
+		if (currentlyEditedEntry != null) {
+			entry.setConnectionProperties(currentlyEditedEntry.getConnectionProperties());
+		}
 		return entry;
 	}
 	

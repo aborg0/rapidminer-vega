@@ -153,7 +153,9 @@ import com.rapidminer.tools.patterns.Visitor;
  */
 public abstract class Operator extends AbstractObservable<Operator> implements ConfigurationListener, PreviewListener, LoggingHandler, ParameterHandler, ResourceConsumer {
 
-    private static final OperatorVersion[] EMPTY_OPERATOR_VERSIONS_ARRAY = new OperatorVersion[0];
+    private static final boolean CPU_TIME_SUPPORTED = ManagementFactory.getThreadMXBean().isThreadCpuTimeSupported();
+
+	private static final OperatorVersion[] EMPTY_OPERATOR_VERSIONS_ARRAY = new OperatorVersion[0];
 
     /** Indicates if before / within / after this operator a breakpoint is set. */
     private boolean breakPoint[] = new boolean[BreakpointListener.BREAKPOINT_POS_NAME.length];
@@ -269,7 +271,7 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
         addValue(new ValueDouble("cpu-time", "The cpu time elapsed since this operator started.", false) {
             @Override
             public double getDoubleValue() {
-                return ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId()) - startCpuTime;
+                return getThreadCpuTime() - startCpuTime;
             }
         });
         addValue(new ValueDouble("execution-time", "The execution time of this operator.", false) {
@@ -795,7 +797,7 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 
             applyCountAtLastExecution = applyCount.incrementAndGet();
             startTime = loopStartTime = System.currentTimeMillis();
-            startCpuTime = ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId());
+            startCpuTime = getThreadCpuTime();
             if (process != null) {
                 process.setCurrentOperator(this);
                 process.getRootOperator().processStartedOperator(this);
@@ -840,7 +842,7 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
             } finally {
                 isRunning  = false;
                 endTime = System.currentTimeMillis();
-                endCpuTime = ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId());
+                endCpuTime = getThreadCpuTime();
                 // set source to the output
                 for (OutputPort outputPort : getOutputPorts().getAllPorts()) {
                     IOObject ioObject = outputPort.getDataOrNull();
@@ -2278,4 +2280,12 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
     public void walk(Visitor<Operator> visitor) {
         visitor.visit(this);
     }
+
+    /** Returns the current CPU time if supported, or the current system time otherwise. */
+	private static long getThreadCpuTime() {
+		return CPU_TIME_SUPPORTED ?
+				ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId()) :
+				System.currentTimeMillis() * 1000000l;
+	}
+
 }

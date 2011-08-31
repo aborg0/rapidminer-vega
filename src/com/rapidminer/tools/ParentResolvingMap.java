@@ -50,18 +50,18 @@ public abstract class ParentResolvingMap<K,V> extends AbstractMap<K,V> implement
 				if (propKey.startsWith(prefix) && (propKey.endsWith(suffix))) {
 					String keyString = propKey.substring(prefix.length());
 					keyString = keyString.substring(0, keyString.length() - suffix.length());
-					K mapKey = parseKey(keyString);
-					V value = parseValue(groupProps.getProperty(propKey));					
+					K mapKey = parseKey(keyString, classLoader);
+					V value = parseValue(groupProps.getProperty(propKey), classLoader);					
 					delegate.put(mapKey, value);
 				}
 			}
 		}
 	}
 
-	public abstract V parseValue(String value);
-	public abstract K parseKey(String key);
-	public abstract K getParent(K child);
-	public abstract V getDefault();
+	protected abstract V parseValue(String value, ClassLoader classLoader);
+	protected abstract K parseKey(String key, ClassLoader classLoader);
+	protected abstract K getParent(K child);
+	protected abstract V getDefault();
 	
 	@Override
 	@SuppressWarnings("unchecked")

@@ -32,8 +32,10 @@ import java.awt.event.MouseEvent;
 import java.sql.DriverPropertyInfo;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.swing.AbstractButton;
@@ -145,6 +147,15 @@ public class DatabaseAdvancedConnectionDialog extends ButtonDialog {
 		public String getComboValue(int row) {
 			return propInfo[row].value;
 		}
+		
+		/**
+		 * Returns the tooltip for the given row.
+		 * @param row
+		 * @return
+		 */
+		public String getTooltip(int row) {
+			return propInfo[row].description;
+		}
 
 		@Override
 		public Object getValueAt(int rowIndex, int columnIndex) {
@@ -232,40 +243,60 @@ public class DatabaseAdvancedConnectionDialog extends ButtonDialog {
 				box.setSelectedItem(((DriverPropertyInfoTableModel)table.getModel()).getComboValue(table.convertRowIndexToModel(row)));
 				return box;
 			} else {
-				return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+				Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+				// add tooltips for key column
+				if (component instanceof DefaultTableCellRenderer && table.convertColumnIndexToModel(column) == 0) {
+					String tooltip = ((DriverPropertyInfoTableModel)table.getModel()).getTooltip(table.convertRowIndexToModel(row));
+					tooltip = "<html><div width = 300px>" + tooltip + "</div></html>";
+					((DefaultTableCellRenderer)component).setToolTipText(tooltip);
+				}
+				return component;
 			}
 		}
 	}
 	
-	/** the JTable displaying the propertie */
+	/** the JTable displaying the properties */
 	private JTable table;
 	
 	private int returnValue = ConfirmDialog.CANCEL_OPTION;
 	
 	
+	/**
+	 * Creates a new advanced connection properties dialog.
+	 * @param i18nKey
+	 * @param propertyInfos the propertyInfo[] array as returned by the driver
+	 * @param currentProperties the currently set properties
+	 * @param i18nArgs
+	 */
 	public DatabaseAdvancedConnectionDialog(String i18nKey, DriverPropertyInfo[] propertyInfos, Properties currentProperties, Object ... i18nArgs) {
 		super(i18nKey, true, i18nArgs);
 		setupGUI(propertyInfos, currentProperties);
 	}
 	
 	
-	private void setupGUI(DriverPropertyInfo[] propInfo, Properties currentProperties) {
+	private void setupGUI(final DriverPropertyInfo[] propInfo, final Properties currentProperties) {
 		table = new JTable(new DriverPropertyInfoTableModel(propInfo, currentProperties)) {
 			private static final long serialVersionUID = 1L;
 			
-			/** the JComboBox used to display the choices */
-			JComboBox box = new JComboBox();
+			/** a map containing the JComboBoxes for each row where one is needed */
+			private Map<Integer, JComboBox> mapOfBoxes = new HashMap<Integer, JComboBox>(propInfo.length);;
 
 			@Override
 			public TableCellEditor getCellEditor(int row, int col) {
 				if (getModel().getValueAt(convertRowIndexToModel(row), convertColumnIndexToModel(col)) instanceof String[]) {
-//					JComboBox box = new JComboBox((String[])getModel().getValueAt(convertRowIndexToModel(row), convertColumnIndexToModel(col)));
-					box.setModel(new DefaultComboBoxModel((String[])getModel().getValueAt(convertRowIndexToModel(row), convertColumnIndexToModel(col))));
+					// this needs a JComboBox as editor
+					JComboBox box = mapOfBoxes.get(convertRowIndexToModel(row));
+					if (box == null) {
+						mapOfBoxes.put(convertRowIndexToModel(row), new JComboBox((String[])getModel().getValueAt(convertRowIndexToModel(row), convertColumnIndexToModel(col))));
+						box = mapOfBoxes.get(convertRowIndexToModel(row));
+					}
 					box.setSelectedItem(((DriverPropertyInfoTableModel)table.getModel()).getComboValue(table.convertRowIndexToModel(row)));
 					return new DefaultCellEditor(box);
 				} else if (getModel().getValueAt(convertRowIndexToModel(row), convertColumnIndexToModel(col)) instanceof Boolean) {
+					// override checkbox
 					return getDefaultEditor(Boolean.class);
 				} else {
+					// normal string text editor
 					return getDefaultEditor(String.class);
 				}
 			}
@@ -276,7 +307,7 @@ public class DatabaseAdvancedConnectionDialog extends ButtonDialog {
 					private static final long serialVersionUID = 1L;
 
 					public String getToolTipText(MouseEvent e) {
-						// add our table header tool tips.
+						// add table header tooltips
 		                Point p = e.getPoint();
 		                int index = columnModel.getColumnIndexAtX(p.x);
 		                int realIndex = columnModel.getColumn(index).getModelIndex();

@@ -42,12 +42,12 @@ public class StringColorMap extends ParentResolvingMap<String,Color> {
 	}
 
 	@Override
-	public String parseKey(String key) {
+	public String parseKey(String key, ClassLoader classLoader) {
 		return key;
 	}
 
 	@Override
-	public Color parseValue(String value) {
+	public Color parseValue(String value, ClassLoader classLoader) {
 		return Color.decode(value.trim());		
 	}
 

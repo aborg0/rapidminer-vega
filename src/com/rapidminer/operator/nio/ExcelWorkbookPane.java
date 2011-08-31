@@ -136,7 +136,7 @@ public class ExcelWorkbookPane extends JPanel {
 
 				// loading workbook if necessary
 				try {
-					final Workbook finalWorkbook = configuration.getWorkbook();
+					final Workbook finalWorkbook = configuration.getWorkbook(getProgressListener());
 
 					// now add everything to gui
 					SwingUtilities.invokeLater(new Runnable() {

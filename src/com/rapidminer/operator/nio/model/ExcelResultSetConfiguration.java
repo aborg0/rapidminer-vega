@@ -26,13 +26,16 @@ import static com.rapidminer.operator.nio.ExcelExampleSource.PARAMETER_EXCEL_FIL
 import static com.rapidminer.operator.nio.ExcelExampleSource.PARAMETER_SHEET_NUMBER;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.swing.table.TableModel;
 
 import jxl.Workbook;
 import jxl.read.biff.BiffException;
 
+import com.rapid_i.deployment.update.client.ProgressReportingInputStream;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
@@ -112,10 +115,20 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	 * @throws IOException
 	 * @throws BiffException
 	 */
-	public Workbook getWorkbook() throws BiffException, IOException {
+	public Workbook getWorkbook(ProgressListener listener) throws BiffException, IOException {
 		if (preOpenedWorkbook == null) {
 			File file = getFile();
-			preOpenedWorkbook = Workbook.getWorkbook(file);
+			InputStream in = new ProgressReportingInputStream(new FileInputStream(file), listener, 10, 90, file.length());
+			//preOpenedWorkbook = Workbook.getWorkbook(file);
+			preOpenedWorkbook = Workbook.getWorkbook(in);
+		}
+		return preOpenedWorkbook;
+	}
+
+	public Workbook getWorkbook() throws BiffException, IOException {
+		if (preOpenedWorkbook == null) {
+			File file = getFile();			
+			preOpenedWorkbook = Workbook.getWorkbook(file);			
 		}
 		return preOpenedWorkbook;
 	}
