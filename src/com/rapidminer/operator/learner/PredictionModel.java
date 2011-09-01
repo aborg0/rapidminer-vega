@@ -75,6 +75,7 @@ public abstract class PredictionModel extends AbstractModel {
 		Attribute predictedLabel = createPredictionAttributes(mappedExampleSet, getLabel());
 		ExampleSet result = performPrediction(mappedExampleSet, predictedLabel);
 		
+		// Copy in order to avoid RemappedExampleSets wrapped around each other accumulating over time
 		copyPredictedLabel(result, exampleSet);
 		
         return exampleSet;

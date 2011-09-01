@@ -29,6 +29,7 @@ import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.set.SplittedExampleSet;
+import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Model;
 import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorChain;
@@ -156,7 +157,8 @@ public class XVPrediction extends OperatorChain implements CapabilityProvider {
         log("Starting " + number + "-fold cross validation prediction");
 
         // creating predicted label
-        Attribute predictedLabel = PredictionModel.createPredictedLabel(inputSet, inputSet.getAttributes().getLabel());
+        ExampleSet resultSet = (ExampleSet) inputSet.clone();
+        Attribute predictedLabel = PredictionModel.createPredictedLabel(resultSet, inputSet.getAttributes().getLabel());
         Collection<String> predictedLabelValues = null;
         if (predictedLabel.isNominal())
             predictedLabelValues = predictedLabel.getMapping().getValues();
@@ -172,28 +174,28 @@ public class XVPrediction extends OperatorChain implements CapabilityProvider {
             // IOContainer learnResult = getLearner().apply(new IOContainer(new IOObject[] { splittedSet }));
 
             splittedSet.selectSingleSubset(iteration);
-            applyProcessExampleSource.deliver(splittedSet);
+            applyProcessExampleSource.deliver((IOObject) splittedSet);
             throughExtender.passDataThrough();
             applyProcessModelSource.deliver(trainingProcessModelSink.getData());
             getSubprocess(1).execute();
-
+            
             ExampleSet predictedSet = applyProcessExampleInnerSink.getData();
-
             for (int i = 0; i < splittedSet.size(); i++) {
                 Example predictedExample = predictedSet.getExample(i);
                 // setting label in inputSet
-                Example inputExample = inputSet.getExample(splittedSet.getActualParentIndex(i));
-                inputExample.setValue(predictedLabel, predictedExample.getPredictedLabel());
+                Example resultExample = resultSet.getExample(splittedSet.getActualParentIndex(i));
+                resultExample.setValue(predictedLabel, predictedExample.getPredictedLabel());
                 if (predictedLabel.isNominal()) {
                     for (String s : predictedLabelValues) {
-                        inputExample.setConfidence(s, predictedExample.getConfidence(s));
+                        resultExample.setConfidence(s, predictedExample.getConfidence(s));
                     }
                 }
             }
+            //PredictionModel.removePredictedLabel(predictedSet);
             inApplyLoop();
         }
 
-        exampleSetOutput.deliver(inputSet);
+        exampleSetOutput.deliver(resultSet);
     }
 
     protected MDInteger getTestSetSize(MDInteger originalSize) throws UndefinedParameterError {
