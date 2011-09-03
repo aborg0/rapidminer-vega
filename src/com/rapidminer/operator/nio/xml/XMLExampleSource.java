@@ -101,19 +101,16 @@ public class XMLExampleSource extends AbstractDataResultSetReader {
                 new ParameterTypeString(PARAMETER_XPATH_FOR_ATTRIBUTE, "This XPath expression will be evaluated agains each match to the XPath expression for examples to derive values for this attribute. Each line in this list forms one attribute in the resulting ExampleSet."), false));
 
         types.add(new ParameterTypeBoolean(PARAMETER_USE_NAMESPACES, "If not checked namespaces in the XML document will be completely ignored. This might make formulating XPath expressions easier, but elements with the same name might collide if separated by namespace.", true));
-
-        type = new ParameterTypeBoolean(PARAMETER_USE_DEFAULT_NAMESPACE, "If checkedyou can specify an namespace uri that will be used when no namespace is specified in the XPath expression.", true);
-        type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_NAMESPACES, false, true));
-        types.add(type);
-        type = new ParameterTypeString(PARAMETER_DEFAULT_NAMESPACE, "This is the default namespace that will be assumed for all elements in the XPath expression that have no explict namespace mentioned.", false);
-        type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_NAMESPACES, false, true));
-        types.add(type);
-
-
         type = new ParameterTypeList(PARAMETER_NAMESPACES, "Specifies pairs of identifier and namespace for use in XPath queries. The namespace for (x)html is bound automatically to the identifier h.",
                 new ParameterTypeString(PARAMETER_NAMESPACE_ID, "The id of this namespace. With this id the namespace can be referred to in the XPath expression."),
                 new ParameterTypeString(PARAMETER_NAMESPACE, "The namespace to which the id should be bound.", false));
         type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_NAMESPACES, false, true));
+        types.add(type);
+        type = new ParameterTypeBoolean(PARAMETER_USE_DEFAULT_NAMESPACE, "If checkedyou can specify an namespace uri that will be used when no namespace is specified in the XPath expression.", true);
+        type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_NAMESPACES, false, true));
+        types.add(type);
+        type = new ParameterTypeString(PARAMETER_DEFAULT_NAMESPACE, "This is the default namespace that will be assumed for all elements in the XPath expression that have no explict namespace mentioned.", true);
+        type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_DEFAULT_NAMESPACE, false, true));
         types.add(type);
 
         // Numberformats

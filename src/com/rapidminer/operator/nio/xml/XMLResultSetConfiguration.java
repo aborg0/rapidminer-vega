@@ -68,12 +68,17 @@ import com.rapidminer.tools.ProgressListener;
 public class XMLResultSetConfiguration implements DataResultSetFactory {
 
     private String fileName;
+    
+    /**
+     * Maps ids to namespaces.
+     */
     private Map<String, String> namespaceMap;
     private String exampleXPath;
     private List<String> attributeXPaths;
     private boolean isNamespaceAware;
     private String defaultNamespaceURI;
-    private Document prefetchedDocument;
+
+	private Document prefetchedDocument;
 
     /**
      * This creates a completely empty configuration
@@ -82,6 +87,11 @@ public class XMLResultSetConfiguration implements DataResultSetFactory {
         namespaceMap = new HashMap<String, String>();
     }
 
+    public void setDefaultNamespaceURI(String defaultNamespaceURI) {
+    	this.defaultNamespaceURI = defaultNamespaceURI;
+    }
+    
+    
     /**
      * This constructor will read all the needed parameters from the given operator.
      */
@@ -150,6 +160,12 @@ public class XMLResultSetConfiguration implements DataResultSetFactory {
         operator.setParameter(PARAMETER_FILE, fileName);
         operator.setParameter(PARAMETER_XPATH_FOR_EXAMPLES, exampleXPath);
         operator.setParameter(PARAMETER_USE_NAMESPACES, Boolean.toString(isNamespaceAware));
+        operator.setParameter(PARAMETER_USE_DEFAULT_NAMESPACE, Boolean.toString(getDefaultNamespaceURI() != null));
+        if (getDefaultNamespaceURI() != null) {
+        	// leave unchanged if user did not select a namespace.
+        	// this parameter is not used anyway then, since PARAMETER_USE_DEFAULT_NAMESPACE is null in this case. 
+        	operator.setParameter(PARAMETER_DEFAULT_NAMESPACE, getDefaultNamespaceURI());
+        }
 
         List<String[]> list = new LinkedList<String[]>();
         for (Map.Entry<String, String> entry : namespaceMap.entrySet()) {
@@ -177,11 +193,19 @@ public class XMLResultSetConfiguration implements DataResultSetFactory {
         return exampleXPath;
     }
 
-    /**
+    public void setExampleXPath(String exampleXPath) {
+		this.exampleXPath = exampleXPath;
+	}
+
+	/**
      * This method must return the XPath expressions in order
      */
     public List<String> getAttributeXPaths() {
         return attributeXPaths;
+    }
+    
+    public void setAttributeXPaths(List<String> attributeXPaths) {
+    	this.attributeXPaths = attributeXPaths;
     }
 
     /**
@@ -245,4 +269,8 @@ public class XMLResultSetConfiguration implements DataResultSetFactory {
     public String getDefaultNamespaceURI() {
         return defaultNamespaceURI;
     }
+
+	public void setNamespacesMap(Map<String, String> idNamespaceMap) {
+		this.namespaceMap = idNamespaceMap;
+	}
 }

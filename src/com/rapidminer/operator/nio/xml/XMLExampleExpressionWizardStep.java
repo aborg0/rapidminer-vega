@@ -28,51 +28,42 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.ActionEvent;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
-import javax.swing.AbstractListModel;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
-import javax.swing.JTree;
 import javax.swing.ListCellRenderer;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreePath;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ExtendedJTextField;
 import com.rapidminer.gui.tools.ExtendedJTextField.TextChangeListener;
+import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
@@ -80,13 +71,14 @@ import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.XMLException;
+import com.rapidminer.tools.container.Pair;
 import com.rapidminer.tools.io.Encoding;
 
 /**
  * This step allows to enter an XPath expression whose
  * matches will be used as examples.
  * 
- * @author Sebastian Land
+ * @author Sebastian Land, Marius Helf
  */
 public class XMLExampleExpressionWizardStep extends WizardStep {
 
@@ -95,169 +87,45 @@ public class XMLExampleExpressionWizardStep extends WizardStep {
         XML_PROPERTIES.setProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
     }
 
-    private class XMLTreeModel implements TreeModel {
-
-        private LinkedList<TreeModelListener> listeners = new LinkedList<TreeModelListener>();
-        private Document document;
-
-        public XMLTreeModel(Document document) {
-            this.document = document;
-        }
-
-        @Override
-        public Object getRoot() {
-            return document.getDocumentElement();
-        }
-
-        @Override
-        public Object getChild(Object parent, int index) {
-            Element element = (Element) parent;
-            NodeList childNodes = element.getChildNodes();
-            int elementIndex = 0;
-            for (int i = 0; i < childNodes.getLength(); i++) {
-                if (childNodes.item(i) instanceof Element) {
-                    if (elementIndex == index)
-                        return childNodes.item(i);
-                    else
-                        elementIndex++;
-                }
-            }
-            return null;
-        }
-
-        @Override
-        public int getChildCount(Object parent) {
-            Element element = (Element) parent;
-            NodeList childNodes = element.getChildNodes();
-            int elementIndex = 0;
-            for (int i = 0; i < childNodes.getLength(); i++) {
-                if (childNodes.item(i) instanceof Element) {
-                    elementIndex++;
-                }
-            }
-            return elementIndex;
-        }
-
-        @Override
-        public boolean isLeaf(Object node) {
-            return getChildCount(node) == 0;
-        }
-
-        @Override
-        public void valueForPathChanged(TreePath path, Object newValue) {
-            // firing event to all listener
-            for (TreeModelListener listener : listeners) {
-                listener.treeNodesChanged(new TreeModelEvent(this, path));
-            }
-        }
-
-        @Override
-        public int getIndexOfChild(Object parent, Object child) {
-            Element element = (Element) parent;
-            NodeList childNodes = element.getChildNodes();
-            int elementIndex = 0;
-            for (int i = 0; i < childNodes.getLength(); i++) {
-                if (childNodes.item(i) instanceof Element) {
-                    if (child == childNodes.item(i))
-                        return elementIndex;
-                    elementIndex++;
-                }
-            }
-            return -1;
-        }
-
-        @Override
-        public void addTreeModelListener(TreeModelListener l) {
-            listeners.add(l);
-        }
-
-        @Override
-        public void removeTreeModelListener(TreeModelListener l) {
-            listeners.remove(l);
-        }
-    }
-
-    private class XPathMatchesListModel extends AbstractListModel {
-        private static final long serialVersionUID = 5596412058073512745L;
-        private Document document;
-        private XPath xpath;
-        private NodeList exampleNodes;
-
-        public XPathMatchesListModel(Document document) {
-            this.document = document;
-            this.xpath = XPathFactory.newInstance().newXPath();
-        }
-
-        public void setXPathExpression(String expression) {
-            XPathExpression exampleExpression = null;
-            try {
-                exampleExpression = xpath.compile(expression);
-            } catch (XPathExpressionException e1) {
-                errorLabel.setText(I18N.getGUILabel("xml_reader.wizard.illegal_xpath", e1));
-                errorLabel.setForeground(Color.RED);
-            }
-            if (exampleExpression != null) {
-                try {
-                    int oldSize = getSize();
-                    exampleNodes = (NodeList) exampleExpression.evaluate(document, XPathConstants.NODESET);
-                    fireContentsChanged(this, 0, Math.min(oldSize, exampleNodes.getLength()));
-                    if (oldSize > exampleNodes.getLength()) {
-                        fireIntervalRemoved(this, exampleNodes.getLength(), oldSize - 1);
-                    } else if (oldSize < exampleNodes.getLength()) {
-                        fireIntervalAdded(this, oldSize, exampleNodes.getLength() - 1);
-                    }
-                    errorLabel.setText(I18N.getGUILabel("xml_reader.wizard.xpath_result", exampleNodes.getLength()));
-                    errorLabel.setForeground(Color.BLACK);
-                } catch (XPathExpressionException e) {
-                    errorLabel.setText(I18N.getGUILabel("xml_reader.wizard.illegal_xpath", e));
-                    errorLabel.setForeground(Color.RED);
-                    exampleNodes = null;
-                }
-            } else {
-                exampleNodes = null;
-            }
-        }
-
-        @Override
-        public int getSize() {
-            if (exampleNodes == null)
-                return 0;
-            return exampleNodes.getLength();
-        }
-
-        @Override
-        public Object getElementAt(int index) {
-            return exampleNodes.item(index);
-        }
-
-    }
-
+    
+    
+    /**
+     * A model which contains rows of element names, attribute names and attribute values.
+     * 
+     * @author Sebastian Land, Marius Helf
+     *
+     */
     private class AttributeTableModel extends AbstractTableModel {
         private static final long serialVersionUID = 1L;
-        private static final int NAME_COLUMN = 0;
-        private static final int VALUE_COLUMN = 1;
+        
+        private static final int ELEMENT_COLUMN = 0;
+        private static final int ATTRIBUTE_COLUMN = 1;
+        private static final int VALUE_COLUMN = 2;
+        private static final int COLUMN_COUNT = 3;
 
-        private NamedNodeMap attributes;
+        private List<XMLDomHelper.AttributeNamespaceValue> attributes = new LinkedList<XMLDomHelper.AttributeNamespaceValue>();
 
         @Override
         public int getRowCount() {
             if (attributes != null)
-                return attributes.getLength();
+                return attributes.size();
             return 0;
         }
 
         @Override
         public int getColumnCount() {
-            return 2;
+            return COLUMN_COUNT;
         }
 
         @Override
         public String getColumnName(int column) {
             switch (column) {
-            case NAME_COLUMN:
-                return "attribute";
+            case ELEMENT_COLUMN:
+            	return I18N.getGUILabel("importwizard.xml.example_expression.attribute_table.element_column_header");
+            case ATTRIBUTE_COLUMN:
+            	return I18N.getGUILabel("importwizard.xml.example_expression.attribute_table.attribute_column_header");
             case VALUE_COLUMN:
-                return "value";
+            	return I18N.getGUILabel("importwizard.xml.example_expression.attribute_table.value_column_header");
             }
             return "";
         }
@@ -265,32 +133,51 @@ public class XMLExampleExpressionWizardStep extends WizardStep {
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
             switch (columnIndex) {
-            case NAME_COLUMN:
-                return attributes.item(rowIndex).getNodeName();
+            case ATTRIBUTE_COLUMN:
+            	String namespace = attributes.get(rowIndex).getNamespace();
+            	String name = attributes.get(rowIndex).getName();
+            	name = (namespace!=null)?configuration.getNamespaceId(namespace)+":"+name:name;
+                return name;
             case VALUE_COLUMN:
-                return attributes.item(rowIndex).getNodeValue();
+                return attributes.get(rowIndex).getValue();
+            case ELEMENT_COLUMN:
+                return attributes.get(rowIndex).getElement();
             }
             return null;
         }
 
-        public void setElement(Element element) {
-            this.attributes = element.getAttributes();
-            fireTableDataChanged();
-        }
-
+		public void setAttributes(Set<XMLDomHelper.AttributeNamespaceValue> allAttributes) {
+			attributes.clear();
+			attributes.addAll(allAttributes);
+			fireTableDataChanged();
+		}
     }
 
     private XMLResultSetConfiguration configuration;
 
     private JPanel component = new JPanel(new GridBagLayout());
     private XMLTreeModel xmlTreeModel;
-    private JTree xmlTree = new JTree();
+    private XMLTreeView xmlTreeView = new XMLTreeView(new HashMap<String,String>());
     private AttributeTableModel attributeTableModel = new AttributeTableModel();
     private JTable attributeTable = new JTable(attributeTableModel);
     private JList matchesList = new JList();
-    private JLabel errorLabel = new JLabel();
+    /**
+     * A label which displays the status of the current XPath entered/selected by the user.
+     */
+    JLabel errorLabel = new JLabel();
+    
+    
+    /**
+     * A model which provides the XML code of all elements which match the current selected XPath.
+     */
     private XPathMatchesListModel matchesListModel;
+    
+    /**
+     * User editable field for displaying/entering the current XPath.  
+     */
     private ExtendedJTextField expressionField = new ExtendedJTextField();
+
+	private JButton applyButton;
 
     /**
      * There must be a configuration given, but might be empty.
@@ -311,91 +198,101 @@ public class XMLExampleExpressionWizardStep extends WizardStep {
             leftBarConstraints.weightx = 1;
             leftBarConstraints.weighty = 0.7;
             leftBarConstraints.gridwidth = GridBagConstraints.REMAINDER;
-            leftBarPanel.add(new ExtendedJScrollPane(xmlTree), leftBarConstraints);
+            leftBarPanel.add(new ExtendedJScrollPane(xmlTreeView), leftBarConstraints);
             leftBarConstraints.weighty = 0.3;
-            leftBarConstraints.insets = new Insets(5, 5, 0, 5);
+            leftBarConstraints.insets = new Insets(5, 5, 5, 5);
             leftBarPanel.add(new ExtendedJScrollPane(attributeTable), leftBarConstraints);
+            leftBarConstraints.weighty = 0;
+            leftBarConstraints.insets = new Insets(5, 5, 0, 5);
+            applyButton = new JButton();
+            applyButton.setAction(new ResourceAction("importwizard.xml.example_expression.apply_selection") {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					String xpath = getXPathFromSelection();
+					expressionField.setText(xpath);
+				}
+			});
+            applyButton.setEnabled(false);
+            leftBarPanel.add(applyButton, leftBarConstraints);
         }
+        JPanel rightBarPanel = new JPanel(new GridBagLayout());
+        {
+        	GridBagConstraints rightBarConstraints = new GridBagConstraints();
+        	rightBarConstraints.insets = new Insets(0, 5, 0, 5);
+        	rightBarConstraints.weightx = 1;
+        	rightBarConstraints.weighty = 0;
+        	rightBarConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        	rightBarConstraints.fill = GridBagConstraints.BOTH;
+        	JLabel matchesLabel = new JLabel(I18N.getGUILabel("importwizard.xml.example_expression.matches_label", "100"));
+        	rightBarPanel.add(matchesLabel, rightBarConstraints);
+        	rightBarConstraints.weighty = 1;
+            rightBarConstraints.insets = new Insets(5, 5, 5, 5);
+            rightBarPanel.add(new ExtendedJScrollPane(matchesList), rightBarConstraints);
+        }
+        
         GridBagConstraints c = new GridBagConstraints();
         c.insets = new Insets(5, 5, 5, 5);
         c.fill = GridBagConstraints.BOTH;
         c.weighty = 1d;
         c.weightx = 0.3d;
         component.add(leftBarPanel, c);
-
+        
         c.gridwidth = GridBagConstraints.REMAINDER;
-        c.weightx = 0.7d;
-        component.add(new ExtendedJScrollPane(matchesList), c);
+        c.weightx = .7;
+        component.add(rightBarPanel, c);
 
         c.weightx = 1d;
         c.weighty = 0d;
 
         errorLabel.setForeground(Color.RED);
-        errorLabel.setText(" asds");
         c.weighty = 0;
         component.add(errorLabel, c);
-        component.add(new ExtendedJScrollPane(expressionField), c);
+        component.add(expressionField, c);
 
         // listener
         expressionField.getModel().addTextChangeListener(new TextChangeListener() {
             @Override
             public void informTextChanged(String newValue) {
-                if (matchesListModel != null)
+                if (matchesListModel != null) {
                     matchesListModel.setXPathExpression(newValue);
+                }
+                fireStateChanged();
             }
         });
 
-        xmlTree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
+        xmlTreeView.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
+            /**
+             * Whenever the selection changes, the attributeTableModel is updated to contain only
+             * those attributes which have the same names and values in all selected Elements. 
+             * 
+             * @see javax.swing.event.TreeSelectionListener#valueChanged(javax.swing.event.TreeSelectionEvent)
+             */
             @Override
             public void valueChanged(TreeSelectionEvent e) {
-                Element element = (Element) e.getNewLeadSelectionPath().getLastPathComponent();
-                if (element != null) {
-                    attributeTableModel.setElement(element);
-                }
-            }
-        });
-
-        xmlTree.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    TreePath path = xmlTree.getClosestPathForLocation(e.getX(), e.getY());
-                    if (path != null) {
-                        StringBuilder builder = new StringBuilder();
-                        for (Object pathObject: path.getPath()) {
-                            Element element = (Element) pathObject;
-                            builder.append("/");
-
-                            // treating namespace if necessary
-                            String namespaceURI = element.getNamespaceURI();
-                            if (namespaceURI != null) {
-                                // if default namespace uri: Don't do anything
-                                if (!namespaceURI.equals(configuration.getDefaultNamespaceURI())) {
-                                    String namespaceId = configuration.getNamespaceId(namespaceURI);
-                                    if (namespaceId == null) {
-                                        // set error as namespace hasn't been configured
-                                    } else {
-                                        builder.append(namespaceId);
-                                        builder.append(":");
-                                    }
-                                }
-                            }
-
-                            // appending element name
-                            builder.append(element.getTagName());
-                        }
-
-                        // now set text to textmodel of editfield
-                        expressionField.setText(builder.toString());
-                        expressionField.setText(builder.toString());
-                    }
-                }
+            	Set<Element> elements = xmlTreeView.getElementsFromSelection();
+            	List<Pair<String,String>> commonAncestors = XMLDomHelper.getCommonAncestorNames(elements);
+            	int ancestorCount = commonAncestors.size();
+            	Set<Element> ancestorsAtCurrentLevel = elements;
+        		Set<XMLDomHelper.AttributeNamespaceValue> allAttributes = new HashSet<XMLDomHelper.AttributeNamespaceValue>();
+            	for (int i = ancestorCount-1; i >= 0; --i) {
+            		Set<XMLDomHelper.AttributeNamespaceValue> currentLevelAttributes = XMLDomHelper.getCommonAttributes(ancestorsAtCurrentLevel);
+            		for(XMLDomHelper.AttributeNamespaceValue attribute : currentLevelAttributes) {
+            			String elementName = commonAncestors.get(i).getSecond();
+            			elementName = getXPathFromElementList(commonAncestors.subList(0, i+1));
+            			attribute.setElement(elementName);
+            		}
+            		allAttributes.addAll(currentLevelAttributes);
+            		ancestorsAtCurrentLevel = XMLDomHelper.getDirectAncestors(ancestorsAtCurrentLevel);
+            	}
+            	attributeTableModel.setAttributes(allAttributes);
+            	applyButton.setEnabled(!elements.isEmpty());
             }
         });
 
         // configure renderer
         matchesList.setCellRenderer(new ListCellRenderer() {
-            private static final long serialVersionUID = 1L;
             private JTextArea area = new JTextArea();
             private JPanel wraperPanel = new JPanel(new GridLayout(1, 1));
             private JPanel emptyPanel = new JPanel();
@@ -421,42 +318,106 @@ public class XMLExampleExpressionWizardStep extends WizardStep {
                 }
             }
         });
-        xmlTree.setCellRenderer(new DefaultTreeCellRenderer() {
-            private static final long serialVersionUID = 1L;
-            private JPanel emptyPanel = new JPanel();
-
-            @Override
-            public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-                if (value instanceof Element) {
-                    StringBuilder builder = new StringBuilder();
-                    builder.append("<");
-                    Element element = (Element) value;
-                    builder.append(element.getTagName());
-                    builder.append(">");
-
-                    JLabel treeCellRendererComponent = (JLabel) super.getTreeCellRendererComponent(tree, builder.toString(), selected, expanded, leaf, row, hasFocus);
-                    treeCellRendererComponent.setIcon(null);
-
-                    return treeCellRendererComponent;
-                }
-                // this should not happen, as the model only shows elements
-                return emptyPanel;
-            }
-        });
     }
+    
+    
 
-    @Override
+    
+    /**
+     * Returns an XPath which resembles the user's selection in both the xml tree and the 
+     * attribute table. 
+     */
+    private String getXPathFromSelection() {
+    	List<Pair<String,String>> commonAncestors = XMLDomHelper.getCommonAncestorNames(xmlTreeView.getElementsFromSelection());
+    	
+    	int[] selectedAttributeRows = attributeTable.getSelectedRows();
+    	
+    	// map element names to attribute value xpaths
+    	Map<String,String> elementToAttributeValues = new HashMap<String, String>();
+    	for (int rowIndex : selectedAttributeRows) {
+    		String elementName = (String)attributeTableModel.getValueAt(rowIndex, AttributeTableModel.ELEMENT_COLUMN);
+    		String attributeName = (String)attributeTableModel.getValueAt(rowIndex, AttributeTableModel.ATTRIBUTE_COLUMN);
+    		String attributeValue = (String)attributeTableModel.getValueAt(rowIndex, AttributeTableModel.VALUE_COLUMN);
+    		StringBuilder builder = new StringBuilder();
+    		String currentXPath = elementToAttributeValues.get(elementName);
+    		if (currentXPath != null) {
+    			builder.append(currentXPath);
+    		}
+    		builder.append("[@");
+    		builder.append(attributeName);
+    		builder.append("=\"");
+    		builder.append(attributeValue);
+    		builder.append("\"]");
+			elementToAttributeValues.put(elementName, builder.toString());
+    	}
+    	
+    	int i = 0;
+		StringBuilder builder = new StringBuilder();
+		if (!commonAncestors.isEmpty()) {
+			builder.append("/");
+	    	for (Pair<String,String > ancestor : commonAncestors) {
+	    		++i;
+	    		String xPathWoAttributes = getXPathFromElementList(commonAncestors.subList(0, i));
+	    		String xPathForAttributes = elementToAttributeValues.get(xPathWoAttributes);
+	    		builder.append("/");
+	    		if (ancestor.getFirst() != null) {
+	    			builder.append(configuration.getNamespaceId(ancestor.getFirst()));
+	    			builder.append(":");
+	    		}
+	    		builder.append(ancestor.getSecond());
+	    		if (xPathForAttributes != null) {
+	    			builder.append(xPathForAttributes);
+	    		}
+	    	}
+		}
+		return builder.toString();
+	}
+
+	/**
+	 * Creates an XPath expression from the given element names.
+	 * @param elementNames A list of {@link Pair}s with first==elementNamespace and second==elementName. 
+	 */
+	private String getXPathFromElementList(List<Pair<String, String>> elementNames) {
+		StringBuilder sb = new StringBuilder();
+    	if (!elementNames.isEmpty()) {
+    		sb.append("/");
+    	}
+    	for (Pair<String,String> element : elementNames) {
+    		sb.append("/");
+    		if (element.getFirst() != null) {
+    			sb.append(configuration.getNamespaceId(element.getFirst()));
+    			sb.append(":");
+    		}
+    		sb.append(element.getSecond());
+    	}
+		return sb.toString();
+	}
+
+	@Override
     protected boolean performEnteringAction(WizardStepDirection direction) {
         try {
-            xmlTreeModel = new XMLTreeModel(configuration.getDocumentObjectModel());
-            xmlTree.setModel(xmlTreeModel);
-            matchesListModel = new XPathMatchesListModel(configuration.getDocumentObjectModel());
+            xmlTreeModel = new XMLTreeModel(configuration.getDocumentObjectModel().getDocumentElement(), false);
+            xmlTreeView.setNamespacesMap(configuration.getNamespacesMap());
+            xmlTreeView.setModel(xmlTreeModel);
+            matchesListModel = new XPathMatchesListModel(configuration.getDocumentObjectModel(), configuration.getNamespacesMap(), configuration.getDefaultNamespaceURI(), 100);
+            matchesListModel.addListener(new XPathMatchesListModel.XPathMatchesResultListener() {
+    			@Override
+    			public void informStateChange(String message, boolean error) {
+    				errorLabel.setText(message);
+    				if (error) {
+    					errorLabel.setForeground(Color.RED);
+    				} else {
+    					errorLabel.setForeground(Color.BLACK);
+    				}
+    			}
+    		});
             matchesList.setModel(matchesListModel);
             if (configuration.getExampleXPath() != null)
-                expressionField.getModel().setValue(configuration.getExampleXPath());
+                expressionField.setText(configuration.getExampleXPath());
             else
-                expressionField.getModel().setValue("asds");
+                expressionField.setText("");
         } catch (OperatorException e) {
+        	errorLabel.setForeground(Color.RED);
             errorLabel.setText(I18N.getGUILabel("xml_reader.wizard.cannot_load_dom", e));
         }
         return true;
@@ -464,7 +425,8 @@ public class XMLExampleExpressionWizardStep extends WizardStep {
 
     @Override
     protected boolean performLeavingAction(WizardStepDirection direction) {
-        return true;
+    	configuration.setExampleXPath(expressionField.getText());
+    	return true;
     }
 
     @Override
@@ -474,7 +436,7 @@ public class XMLExampleExpressionWizardStep extends WizardStep {
 
     @Override
     protected boolean canProceed() {
-        return true;
+    	 return matchesListModel != null && matchesListModel.getSize() > 0;
     }
 
     @Override

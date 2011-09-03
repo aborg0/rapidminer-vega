@@ -22,13 +22,13 @@
  */
 package com.rapidminer.gui.tools;
 
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  * This extends the usual text field with a model, that will reflect the changes
@@ -41,7 +41,8 @@ public class ExtendedJTextField extends JTextField {
 
     public static interface TextChangeListener {
         /**
-         * This method will be called, whenever the content of the textfield changes.
+         * This method will be called, whenever the content of the textfield changes,
+         * no matter if the changed happened by user input or programmatically.
          */
         public void informTextChanged(String newValue);
     }
@@ -68,18 +69,33 @@ public class ExtendedJTextField extends JTextField {
          */
         /*pp*/ void registerOnComponent(final ExtendedJTextField component) {
             component.setText(value);
-            component.addKeyListener(new KeyAdapter() {
-                @Override
-                public void keyTyped(KeyEvent e) {
+            // use a document listener instead of a KeyListener to react also on
+            // programmatical changes
+            component.getDocument().addDocumentListener(new DocumentListener() {
+				@Override
+				public void removeUpdate(DocumentEvent e) {
+					changed(e);
+				}
+				
+				@Override
+				public void insertUpdate(DocumentEvent e) {
+					changed(e);
+				}
+				
+				@Override
+				public void changedUpdate(DocumentEvent e) {
+					changed(e);
+				}
+				
+				private void changed(DocumentEvent e) {
                     SwingUtilities.invokeLater(new Runnable() {
                         @Override
                         public void run() {
                             setValue(component.getText());
                         }
                     });
-
-                }
-            });
+				}
+			});
         }
 
         /**

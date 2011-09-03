@@ -27,6 +27,8 @@ import java.io.File;
 import com.rapidminer.gui.wizards.ConfigurationListener;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.nio.AbstractDataImportWizard;
+import com.rapidminer.operator.nio.MetaDataDeclarationWizardStep;
+import com.rapidminer.operator.nio.StoreDataWizardStep;
 import com.rapidminer.operator.nio.model.AbstractDataResultSetReader;
 import com.rapidminer.operator.nio.model.DataResultSetFactory;
 import com.rapidminer.repository.RepositoryLocation;
@@ -58,7 +60,10 @@ public class XMLImportWizard extends AbstractDataImportWizard {
         // ExcelSheetSelectionWizardStep wizardStep = new ExcelSheetSelectionWizardStep(excelConfig);
         // wizardStep.performEnteringAction(WizardStepDirection.FORWARD);
         // addStep(wizardStep);
-        addCommonSteps();
+        addStep(new MetaDataDeclarationWizardStep(getState()));
+		if (getReader() == null) {
+			addStep(new StoreDataWizardStep(this, getState(), (preselectedLocation != null) ? preselectedLocation.getAbsoluteLocation() : null));
+		}
 
         layoutDefault(HUGE);
     }
@@ -67,11 +72,15 @@ public class XMLImportWizard extends AbstractDataImportWizard {
         super(source, preselectedLocation, "data_import_wizard");
 
         // adding steps
-        // addStep(new ExcelFileSelectionWizardStep(this, (ExcelResultSetConfiguration) getState().getDataResultSetFactory()));
-        // addStep(new ExcelSheetSelectionWizardStep((ExcelResultSetConfiguration) getState().getDataResultSetFactory()));
         addStep(new XMLFileSelectionWizardStep(this, (XMLResultSetConfiguration) getState().getDataResultSetFactory()));
+        addStep(new XMLNamespaceMapWizardStep(this, (XMLResultSetConfiguration) getState().getDataResultSetFactory()));
         addStep(new XMLExampleExpressionWizardStep(this, (XMLResultSetConfiguration) getState().getDataResultSetFactory()));
-        addCommonSteps();
+        addStep(new XMLAttributeExpressionWizardStep(this, (XMLResultSetConfiguration) getState().getDataResultSetFactory())); 
+
+        addStep(new MetaDataDeclarationWizardStep(getState()));
+		if (getReader() == null) {
+			addStep(new StoreDataWizardStep(this, getState(), (preselectedLocation != null) ? preselectedLocation.getAbsoluteLocation() : null));
+		}
 
         layoutDefault(HUGE);
     }
