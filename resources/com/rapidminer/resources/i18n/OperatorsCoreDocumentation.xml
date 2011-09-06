@@ -2511,7 +2511,7 @@
     <operator>
         <name>Read CSV</name>
         <synopsis>This operator can read csv files.</synopsis>
-        <help>&lt;p&gt;This operator can read csv files, where all values of an example are writen into one line and separated by an constant separator.
+        <help>&lt;p&gt;This operator can read csv files, where all values of an example are written into one line and separated by an constant separator.
          The separator might be specified in the &lt;b&gt;column separators&lt;/b&gt; parameter. The default will split the line on each comma, semicolon and blank. Arbitrary regular expressions are usable as separator.
          Empty values and the question mark will be read as missing values. You can quote the values (including
          the column separators) with a double quote (&quot;). You can
@@ -2522,6 +2522,15 @@
          real numbers occur, it will be of type real. Columns containing values which can't be interpreted as numbers will be nominal, as long as they don't match the date and time pattern of the &lt;b&gt;date format&lt;/b&gt; parameter. If they do, this column of the csv file will be automatically parsed as date and the according attribute will be of type date.
          &lt;/p&gt;</help>
     <key>read_csv</key>
+  </operator>
+  <operator>
+        <name>Read XML</name>
+        <synopsis>This operator can read xml files.</synopsis>
+        <help>&lt;p&gt;This operator can read xml files, where examples are represented by elements which match a given XPath and features are attributes and text-content of each element and its sub-elements.&lt;p&gt;
+         &lt;p&gt;This operator tries to determine an appropriate type of the attributes by reading the first few elements and checking the occuring values. If all values are integers, the attribute will become integer, if 
+         real numbers occur, it will be of type real. Columns containing values which can't be interpreted as numbers will be nominal, as long as they don't match the date and time pattern of the &lt;b&gt;date format&lt;/b&gt; parameter. If they do, this attribute will be automatically parsed as date and the according feature will be of type date.
+         &lt;/p&gt;</help>
+       <key>read_xml</key>
   </operator>
       <operator>
         <name>Stream Database</name>

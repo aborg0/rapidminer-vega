@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.AbstractListModel;
+import javax.swing.SwingUtilities;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -78,21 +79,13 @@ public class XPathMatchesListModel extends AbstractListModel {
         XPathExpression exampleExpression = null;
         try {
             exampleExpression = xpath.compile(expression);
-
         } catch (XPathExpressionException e1) {
         	fireStateChange(I18N.getGUILabel("xml_reader.wizard.illegal_xpath", e1), true);
         }
         if (exampleExpression != null) {
             try {
-                int oldSize = getSize();
-                exampleNodes = (NodeList) exampleExpression.evaluate(document, XPathConstants.NODESET);
-                fireContentsChanged(this, 0, Math.min(oldSize, exampleNodes.getLength()));
-                if (oldSize > exampleNodes.getLength()) {
-                    fireIntervalRemoved(this, exampleNodes.getLength(), oldSize - 1);
-                } else if (oldSize < exampleNodes.getLength()) {
-                    fireIntervalAdded(this, oldSize, exampleNodes.getLength() - 1);
-                }
-                
+                final int oldSize = getSize();
+                exampleNodes = (NodeList) exampleExpression.evaluate(document, XPathConstants.NODESET);                
                 // check that only elements, no attributes are contained in the xpath results:
                 List<String> illegalElements = new LinkedList<String>();
                 for (int i = 0; i < exampleNodes.getLength(); ++i) {
@@ -105,11 +98,26 @@ public class XPathMatchesListModel extends AbstractListModel {
                     exampleNodes = null;
                     return;
                 }
-                
-                fireStateChange(I18N.getGUILabel("xml_reader.wizard.xpath_result", exampleNodes.getLength()), exampleNodes.getLength() == 0);
-            } catch (XPathExpressionException e) {
-            	fireStateChange(I18N.getGUILabel("xml_reader.wizard.illegal_xpath", e.getMessage()), true);
+
+                SwingUtilities.invokeLater(new Runnable() {
+                	public void run() {
+                		fireContentsChanged(this, 0, Math.min(oldSize, exampleNodes.getLength()));
+                		if (oldSize > exampleNodes.getLength()) {
+                			fireIntervalRemoved(this, exampleNodes.getLength(), oldSize - 1);
+                		} else if (oldSize < exampleNodes.getLength()) {
+                			fireIntervalAdded(this, oldSize, exampleNodes.getLength() - 1);
+                		}
+
+                		fireStateChange(I18N.getGUILabel("xml_reader.wizard.xpath_result", exampleNodes.getLength()), exampleNodes.getLength() == 0);
+                	}
+                });
+            } catch (final XPathExpressionException e) {
                 exampleNodes = null;
+            	SwingUtilities.invokeLater(new Runnable() {
+                	public void run() {
+                		fireStateChange(I18N.getGUILabel("xml_reader.wizard.illegal_xpath", e.getMessage()), true);
+                	}
+            	});
             }
         } else {
             exampleNodes = null;

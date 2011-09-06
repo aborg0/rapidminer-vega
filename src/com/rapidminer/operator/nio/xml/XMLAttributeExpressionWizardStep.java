@@ -43,7 +43,6 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
@@ -272,13 +271,15 @@ public class XMLAttributeExpressionWizardStep extends WizardStep {
 		 */
 		public void setXPaths(List<String> attributeXPaths) {
 			xPaths.clear();
-			for (String xPath : attributeXPaths) {
-				Vector<String> row = new Vector<String>(COLUMN_COUNT);
-				row.add(XPATH_COLUMN, xPath);
-				row.add(VALUE_COLUMN, null);
-				xPaths.add(row);
+			if (attributeXPaths != null) {
+				for (String xPath : attributeXPaths) {
+					Vector<String> row = new Vector<String>(COLUMN_COUNT);
+					row.add(XPATH_COLUMN, xPath);
+					row.add(VALUE_COLUMN, null);
+					xPaths.add(row);
+				}
+				updateValuesFromXPaths();
 			}
-			updateValuesFromXPaths();
 			fireTableDataChanged();
 		}
 		
@@ -459,7 +460,7 @@ public class XMLAttributeExpressionWizardStep extends WizardStep {
      * Holds the attributes of the currently selected element.
      */
     private AttributeTableModel attributeTableModel = new AttributeTableModel();
-    private JTable attributeTable = new JTable(attributeTableModel);
+    private ExtendedJTable attributeTable = new ExtendedJTable(attributeTableModel, true);
 	
     private JPanel component = new JPanel(new GridBagLayout());
     
@@ -491,6 +492,11 @@ public class XMLAttributeExpressionWizardStep extends WizardStep {
 		super("importwizard.xml.attribute_expression");
 
         this.configuration = configuration;
+        
+        // only select entire rows
+        attributeTable.setCellSelectionEnabled(false);
+        attributeTable.setRowSelectionAllowed(true);
+        
 
         // adding components
 
@@ -724,7 +730,14 @@ public class XMLAttributeExpressionWizardStep extends WizardStep {
 				private static final long serialVersionUID = 1L;
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					attributeXPathModel.removeRows(xPathTable.getSelectedRows());
+					int[] selectedRows = xPathTable.getSelectedRows();
+					
+					// convert to model coordinates
+					for (int i = 0; i < selectedRows.length; ++i) {
+						selectedRows[i] = xPathTable.getModelIndex(selectedRows[i]);
+					}
+					
+					attributeXPathModel.removeRows(selectedRows);
 				}
 			});
         	deleteFromXPathTableButton.setEnabled(false);
@@ -748,7 +761,10 @@ public class XMLAttributeExpressionWizardStep extends WizardStep {
         	xPathTable = new ExtendedJTableWithErrorIndicator();
         	xPathTable.setModel(attributeXPathModel);
         	rightBarPanel.add(new ExtendedJScrollPane(xPathTable), rightBarConstraints);
-        	
+
+        	// only select whole rows
+            xPathTable.setCellSelectionEnabled(false);
+            xPathTable.setRowSelectionAllowed(true);
         	
         	
         	xPathTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
@@ -772,7 +788,14 @@ public class XMLAttributeExpressionWizardStep extends WizardStep {
 				@Override
 				public void keyPressed(KeyEvent e) {
 					if (e.getKeyCode() == KeyEvent.VK_DELETE) {
-						attributeXPathModel.removeRows(xPathTable.getSelectedRows());
+						int[] selectedRows = xPathTable.getSelectedRows();
+						
+						// convert to model coordinates
+						for (int i = 0; i < selectedRows.length; ++i) {
+							selectedRows[i] = xPathTable.getModelIndex(selectedRows[i]);
+						}
+						
+						attributeXPathModel.removeRows(selectedRows);
 						e.consume();
 					}
 				}
@@ -926,7 +949,8 @@ public class XMLAttributeExpressionWizardStep extends WizardStep {
 		int[] selectedRows = attributeTable.getSelectedRows();
 		List<String> selectedAttributes = new LinkedList<String>();
 		for (int i = 0; i < selectedRows.length; ++i) {
-			String attribute = (String)attributeTableModel.getValueAt(selectedRows[i], AttributeTableModel.ATTRIBUTE_COLUMN);
+			int modelRow = attributeTable.getModelIndex(selectedRows[i]);
+			String attribute = (String)attributeTableModel.getValueAt(modelRow, AttributeTableModel.ATTRIBUTE_COLUMN);
 			selectedAttributes.add(attribute);
 		}
 		for (String attribute : selectedAttributes) {

@@ -365,10 +365,28 @@ public class SwingTools {
     }
 
     /** This method transforms the given tool tip text into HTML. Lines are splitted at linebreaks
-     *  and additional line breaks are added after ca. lineLength characters.
-     *  TODO: Use <div style="width:XXXpx"> */
+     *  and additional line breaks are added after ca. {@link #TOOL_TIP_LINE_LENGTH} characters.
+     *  @param escapeSlashes Inidicates if forward slashes ("/") are escaped by the html code "&#47;"
+     */
+    public static String transformToolTipText(String description, boolean escapeSlashes) {
+        return transformToolTipText(description, true, TOOL_TIP_LINE_LENGTH, escapeSlashes);
+    }
+
+    
     public static String transformToolTipText(String description, boolean addHTMLTags, int lineLength) {
+    	return transformToolTipText(description, addHTMLTags, lineLength, false);
+    }
+    
+    
+    /** This method transforms the given tool tip text into HTML. Lines are splitted at linebreaks
+     *  and additional line breaks are added after ca. lineLength characters.
+     *  @param escapeSlashes Inidicates if forward slashes ("/") are escaped by the html code "&#47;"
+     *  TODO: Use <div style="width:XXXpx"> */
+    public static String transformToolTipText(String description, boolean addHTMLTags, int lineLength, boolean escapeSlashes) {
         String completeText = Tools.escapeHTML(description.trim());
+        if (escapeSlashes) {
+        	completeText = completeText.replaceAll("/", "&#47;");
+        }
         StringBuffer result = new StringBuffer();
         if (addHTMLTags)
             result.append("<html>");

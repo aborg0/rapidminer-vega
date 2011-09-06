@@ -129,6 +129,7 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UnknownParameterInformation;
 import com.rapidminer.operator.nio.CSVImportWizard;
 import com.rapidminer.operator.nio.ExcelImportWizard;
+import com.rapidminer.operator.nio.xml.XMLImportWizard;
 import com.rapidminer.operator.ports.metadata.CompatibilityLevel;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
@@ -319,6 +320,22 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             }
         }
     };
+
+    public final transient Action IMPORT_XML_FILE_ACTION = new ResourceAction("import_xml_file") {
+		private static final long serialVersionUID = 1L;
+		@Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+                XMLImportWizard wizard = new XMLImportWizard();
+                wizard.setVisible(true);
+            } catch (OperatorException e1) {
+                // should not happen if operator == null
+                throw new RuntimeException("Failed to create wizard.", e1);
+            }
+        }
+    };
+
+    
     public final transient Action IMPORT_ACCESS_FILE_ACTION = new ResourceAction("import_access_table") {
         private static final long serialVersionUID = 3725652002686421768L;
 
@@ -590,6 +607,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         ResourceMenu importMenu = new ResourceMenu("file.import");
         importMenu.add(IMPORT_CSV_FILE_ACTION);
         importMenu.add(IMPORT_EXCEL_FILE_ACTION);
+        importMenu.add(IMPORT_XML_FILE_ACTION);
         importMenu.add(IMPORT_ACCESS_FILE_ACTION);
         importMenu.add(IMPORT_DATABASE_TABLE_ACTION);
         importMenu.add(BlobImportWizard.IMPORT_BLOB_ACTION);

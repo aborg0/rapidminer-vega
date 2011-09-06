@@ -535,10 +535,11 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
                 }
             }
         }
-        if (text != null && !text.equals(""))
-            return SwingTools.transformToolTipText(text);
-        else
+        if (text != null && !text.equals("")) {
+            return SwingTools.transformToolTipText(text, true);
+        } else {
             return super.getToolTipText();
+        }
     }
 
     /**
@@ -614,8 +615,17 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
     @Override
     public boolean isFirstColumnHeader() { return false; }
 
+    /**
+     * Converts the index of the row in the view to the corresponding row in the original model.
+     * They might difer if the table is sorted.
+     * @param rowIndex The index of the row in the view.
+     * @return The index of the row in the original model.
+     */
     public int getModelIndex(int rowIndex) {
-        return tableSorter.modelIndex(rowIndex);
+    	if (tableSorter != null) {
+    		return tableSorter.modelIndex(rowIndex);
+    	}
+    	return rowIndex;
     }
 
     public void setExtendedScrollPane(ExtendedJScrollPane scrollPane) {

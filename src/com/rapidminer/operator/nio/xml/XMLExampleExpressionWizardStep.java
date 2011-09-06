@@ -29,6 +29,8 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
@@ -46,7 +48,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.ListCellRenderer;
 import javax.swing.border.EmptyBorder;
@@ -61,9 +62,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
+import com.rapidminer.gui.tools.ExtendedJTable;
 import com.rapidminer.gui.tools.ExtendedJTextField;
 import com.rapidminer.gui.tools.ExtendedJTextField.TextChangeListener;
 import com.rapidminer.gui.tools.ResourceAction;
+import com.rapidminer.gui.tools.UpdateQueue;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
@@ -159,7 +162,7 @@ public class XMLExampleExpressionWizardStep extends WizardStep {
     private XMLTreeModel xmlTreeModel;
     private XMLTreeView xmlTreeView = new XMLTreeView(new HashMap<String,String>());
     private AttributeTableModel attributeTableModel = new AttributeTableModel();
-    private JTable attributeTable = new JTable(attributeTableModel);
+    private ExtendedJTable attributeTable = new ExtendedJTable();
     private JList matchesList = new JList();
     /**
      * A label which displays the status of the current XPath entered/selected by the user.
@@ -187,6 +190,11 @@ public class XMLExampleExpressionWizardStep extends WizardStep {
     public XMLExampleExpressionWizardStep(AbstractWizard parent, final XMLResultSetConfiguration configuration) throws OperatorException {
         super("importwizard.xml.example_expression");
         this.configuration = configuration;
+        
+        attributeTable.setModel(attributeTableModel);
+        // only select entire rows
+        attributeTable.setCellSelectionEnabled(false);
+        attributeTable.setRowSelectionAllowed(true);
 
         // adding components
 
@@ -252,13 +260,28 @@ public class XMLExampleExpressionWizardStep extends WizardStep {
         component.add(expressionField, c);
 
         // listener
+        final UpdateQueue xpathUpdateQueue = new UpdateQueue("xpath_updater");
+    	parent.addComponentListener(new ComponentAdapter() {			
+			@Override
+			public void componentHidden(ComponentEvent e) {
+				System.out.println("HIDDEN");
+				xpathUpdateQueue.shutdown();
+			}
+		});
+    	xpathUpdateQueue.start();
         expressionField.getModel().addTextChangeListener(new TextChangeListener() {
             @Override
-            public void informTextChanged(String newValue) {
-                if (matchesListModel != null) {
-                    matchesListModel.setXPathExpression(newValue);
+            public void informTextChanged(final String newValue) {
+            	errorLabel.setForeground(Color.GRAY);
+            	errorLabel.setText(I18N.getGUILabel("xml_reader.wizard.evaluating"));
+                if (matchesListModel != null) {                	
+                	xpathUpdateQueue.execute(new Runnable() {
+                		public void run() {
+                			matchesListModel.setXPathExpression(newValue);                			
+                            fireStateChanged();
+                		}
+                	});
                 }
-                fireStateChanged();
             }
         });
 
@@ -335,9 +358,11 @@ public class XMLExampleExpressionWizardStep extends WizardStep {
     	// map element names to attribute value xpaths
     	Map<String,String> elementToAttributeValues = new HashMap<String, String>();
     	for (int rowIndex : selectedAttributeRows) {
-    		String elementName = (String)attributeTableModel.getValueAt(rowIndex, AttributeTableModel.ELEMENT_COLUMN);
-    		String attributeName = (String)attributeTableModel.getValueAt(rowIndex, AttributeTableModel.ATTRIBUTE_COLUMN);
-    		String attributeValue = (String)attributeTableModel.getValueAt(rowIndex, AttributeTableModel.VALUE_COLUMN);
+    		int modelIndex = attributeTable.getModelIndex(rowIndex);
+    		
+    		String elementName = (String)attributeTableModel.getValueAt(modelIndex, AttributeTableModel.ELEMENT_COLUMN);
+    		String attributeName = (String)attributeTableModel.getValueAt(modelIndex, AttributeTableModel.ATTRIBUTE_COLUMN);
+    		String attributeValue = (String)attributeTableModel.getValueAt(modelIndex, AttributeTableModel.VALUE_COLUMN);
     		StringBuilder builder = new StringBuilder();
     		String currentXPath = elementToAttributeValues.get(elementName);
     		if (currentXPath != null) {

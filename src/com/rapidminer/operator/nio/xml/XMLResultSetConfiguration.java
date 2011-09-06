@@ -273,4 +273,8 @@ public class XMLResultSetConfiguration implements DataResultSetFactory {
 	public void setNamespacesMap(Map<String, String> idNamespaceMap) {
 		this.namespaceMap = idNamespaceMap;
 	}
+
+	public void setNamespaceAware(boolean b) {
+		this.isNamespaceAware = b;
+	}
 }

@@ -94,6 +94,7 @@ public class XMLNamespaceMapWizardStep extends WizardStep {
 	@Override
 	protected boolean performEnteringAction(WizardStepDirection direction) {
 		if (direction != WizardStepDirection.BACKWARD) {
+			configuration.setNamespaceAware(true);
 			// get all namespaces
 			Element rootElement = null;
 			try {
