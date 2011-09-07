@@ -65,7 +65,7 @@ public class ImprovedNeuralNetModel extends PredictionModel {
 		this.attributeNames = com.rapidminer.example.Tools.getRegularAttributeNames(trainingExampleSet);
 	}
 
-	public void train(ExampleSet exampleSet, List<String[]> hiddenLayers, int maxCycles, double maxError, double learningRate, double momentum, boolean decay, boolean shuffle, boolean normalize, RandomGenerator randomGenerator) {
+	public void train(ExampleSet exampleSet, List<String[]> hiddenLayers, int maxCycles, double maxError, double learningRate, double momentum, boolean decay, boolean shuffle, boolean normalize, RandomGenerator randomGenerator) throws OperatorException {
 		Attribute label = exampleSet.getAttributes().getLabel();
 
 		int numberOfClasses = getNumberOfClasses(label);
@@ -148,8 +148,9 @@ public class ImprovedNeuralNetModel extends PredictionModel {
 			}
 
 			if (Double.isInfinite(error) || Double.isNaN(error)) {
-				if (Tools.isLessEqual(learningRate, 0.0d)) // should hardly happen
-					throw new RuntimeException("Cannot reset network to a smaller learning rate.");
+				if (learningRate <= Double.MIN_VALUE)
+				//if (Tools.isLessEqual(learningRate, 0.0d)) // should hardly happen. Unfortunately wrong. See Bug 527 and its duplicates
+					throw new OperatorException("Cannot reset network to a smaller learning rate.");
 				learningRate /= 2;
 				train(exampleSet, hiddenLayers, maxCycles, maxError, learningRate, momentum, decay, shuffle, normalize, randomGenerator);
 			}
@@ -323,7 +324,7 @@ public class ImprovedNeuralNetModel extends PredictionModel {
 			}
 		} else {
 			// create at least one hidden layer if no other layers were created
-			log("No hidden layers defined. Using default hidden layer.");
+			//log("No hidden layers defined. Using default hidden layer.");			
 			layerNames = new String[] { "Hidden" };
 			layerSizes = new int[] { getDefaultLayerSize(exampleSet, label) };
 		}

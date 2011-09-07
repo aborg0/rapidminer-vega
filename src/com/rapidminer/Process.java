@@ -895,8 +895,6 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
         else
             getLogger().info("Process starts");
         getLogger().fine("Process:" + Tools.getLineSeparator() + getRootOperator().createProcessTree(3));
-
-        rootOperator.processStarts();
         
         // load data as specified in process context
         int firstInput = 0;
@@ -912,6 +910,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
                 getMacroHandler().addMacro(entry.getKey(), entry.getValue());
             }
         }
+        rootOperator.processStarts();
         
         try {
             UsageStatistics.getInstance().count(this, OperatorStatisticsValue.EXECUTION);

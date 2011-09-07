@@ -60,7 +60,7 @@ public class UnfoldOperator extends Operator {
 	
 	@Override
 	public void doWork() throws OperatorException {
-		IOObjectCollection<IOObject> collection = collectionInput.getData();
+		IOObjectCollection<?> collection = collectionInput.getData(IOObjectCollection.class);
 		flatOutput.deliver(new IOObjectCollection<IOObject>(collection.getObjectsRecursive()));
 	}
 

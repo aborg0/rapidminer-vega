@@ -121,19 +121,18 @@ public class ImprovedNeuralNetLearner extends AbstractLearner {
 	 * Returns true for all types of attributes and numerical and binominal labels.
 	 */
 	public boolean supportsCapability(OperatorCapability lc) {
-		if (lc == OperatorCapability.NUMERICAL_ATTRIBUTES)
-			return true;
-		if (lc == OperatorCapability.POLYNOMINAL_LABEL)
-			return true;
-		if (lc == OperatorCapability.BINOMINAL_LABEL)
-			return true;
-		if (lc == OperatorCapability.NUMERICAL_LABEL)
-			return true;
-		if (lc == OperatorCapability.WEIGHTED_EXAMPLES)
-			return true;
-		return false;
+		switch (lc) {
+		case NUMERICAL_ATTRIBUTES:
+		case POLYNOMINAL_LABEL:
+		case BINOMINAL_LABEL:
+		case NUMERICAL_LABEL:
+		case WEIGHTED_EXAMPLES:
+			return true;			
+		default:
+			return false;
+		}
 	}
-
+	
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
