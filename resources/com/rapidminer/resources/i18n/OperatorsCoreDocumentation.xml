@@ -1477,6 +1477,25 @@
             &amp;quot;?&amp;quot;.&lt;/p&gt;</help>
     <key>read_excel</key>
   </operator>
+  
+  <operator>
+        <name>Read Excel with Format</name>
+        <synopsis>This operator reads an example set from Excel spreadsheet
+            file together with the format information about the cells.</synopsis>
+        <help>&lt;p&gt;This operator can be used to load data from Microsoft
+            Excel spreadsheets. This operator is able to reads data from Excel
+            95, 97, 2000, XP, and 2003. The user has to define which of the
+            spreadsheets in the workbook should be used as data table. The table
+            must have a format so that each line is an example and each column
+            represents an attribute. In contrast to the normal operator for
+            reading Excel files, this operator creates a second attribute for 
+            each original data column storing the formatting information from 
+            the Excel sheet. Missing data values are
+            indicated by empty cells or by cells containing only
+            &amp;quot;?&amp;quot;.&lt;/p&gt;</help>
+    <key>read_excel_format</key>
+  </operator>
+  
     <operator>
         <name>Local Polynomial Regression</name>
         <synopsis>Generates word vectors from a single text.</synopsis>

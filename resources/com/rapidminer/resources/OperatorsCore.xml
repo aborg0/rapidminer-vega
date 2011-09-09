@@ -707,6 +707,10 @@
                <replaces>ExcelExampleSource</replaces>
             </operator>
             <operator>
+               <key>read_excel_format</key>
+               <class>com.rapidminer.operator.nio.ExcelFormatExampleSource</class>
+            </operator>
+            <operator>
                <key>read_xml</key>
                <class>com.rapidminer.operator.nio.xml.XMLExampleSource</class>
             </operator>
