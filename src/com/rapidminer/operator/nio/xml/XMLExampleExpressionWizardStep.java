@@ -29,8 +29,8 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
@@ -259,11 +259,11 @@ public class XMLExampleExpressionWizardStep extends WizardStep {
         component.add(errorLabel, c);
         component.add(expressionField, c);
 
-        // listener
+        // listeners
         final UpdateQueue xpathUpdateQueue = new UpdateQueue("xpath_updater");
-    	parent.addComponentListener(new ComponentAdapter() {			
+        parent.addWindowListener(new WindowAdapter() {
 			@Override
-			public void componentHidden(ComponentEvent e) {
+			public void windowClosed(WindowEvent e) {
 				System.out.println("HIDDEN");
 				xpathUpdateQueue.shutdown();
 			}

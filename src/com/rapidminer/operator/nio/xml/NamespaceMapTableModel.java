@@ -1,7 +1,6 @@
 package com.rapidminer.operator.nio.xml;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Vector;
@@ -34,29 +33,30 @@ public class NamespaceMapTableModel extends AbstractTableModel {
 	 * rows with empty id column for all namespaces in namespaces for which no entry
 	 * exists in idNamespaceMap.
 	 */
-	public NamespaceMapTableModel(Map<String,String> idNamespaceMap, String[] namespaces) {
-		if (idNamespaceMap != null && namespaces != null) {
-			initializeData(idNamespaceMap, namespaces);
+	public NamespaceMapTableModel(Map<String,String> idNamespaceMap) {
+		if (idNamespaceMap != null) {
+			initializeData(idNamespaceMap);
 		} else {
 			tableData = new Vector<Vector<String>>();
 		}
 	}
 
 
-	public void initializeData(Map<String, String> idNamespaceMap, String[] namespaces) {
+	public void initializeData(Map<String, String> namespaceUriToIdMap) {
 		// init table
-		this.tableData = new Vector<Vector<String>>(namespaces.length);
-		
-		// invert namespaceMap
-		Map<String,String> namespaceIdMap = new HashMap<String, String>();
-		for (Map.Entry<String, String> entry : idNamespaceMap.entrySet()) {
-			namespaceIdMap.put(entry.getValue(), entry.getKey());
-		}
+		this.tableData = new Vector<Vector<String>>(namespaceUriToIdMap.size());
 		
 		// add all namespaces with their id to table model, in alphabetical order.
-		Arrays.sort(namespaces);
-		for (String namespace : namespaces) {
-			addRow(namespaceIdMap.get(namespace), namespace);
+		String[] namespaceUris = new String[0];
+		namespaceUris = namespaceUriToIdMap.keySet().toArray(namespaceUris);
+		Arrays.sort(namespaceUris);
+		for (String namespaceUri : namespaceUris) {
+			String id = namespaceUriToIdMap.get(namespaceUri);
+			if (id == null) {
+				id = "default";
+				namespaceUriToIdMap.put(namespaceUri, id);
+			}
+			addRow(id, namespaceUri);
 		}
 		fireTableDataChanged();
 	}
@@ -107,7 +107,12 @@ public class NamespaceMapTableModel extends AbstractTableModel {
 
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
-		return tableData.get(rowIndex).get(columnIndex);
+		Object data = tableData.get(rowIndex).get(columnIndex);
+		if (data == null) {
+			return "default";
+		} else {
+			return data;
+		}
 	}
 	
 	@Override
