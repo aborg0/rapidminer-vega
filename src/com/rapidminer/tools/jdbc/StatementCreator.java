@@ -221,7 +221,11 @@ public class StatementCreator {
 	 * statement where the i-th parameter is mapped to the i-th attribute in the example set.
 	 */
 	public String makeInsertStatement(TableName tableName, ExampleSet exampleSet) throws SQLException {
-		StringBuffer b = new StringBuffer("INSERT INTO ");
+		return makeInsertStatement(tableName, exampleSet, 1);
+	}
+	
+	public String makeInsertStatement(TableName tableName, ExampleSet exampleSet, int batchSize) throws SQLException {
+		StringBuilder b = new StringBuilder("INSERT INTO ");
 		b.append(makeIdentifier(tableName));
 		b.append(" (");
 		Iterator<Attribute> a = exampleSet.getAttributes().allAttributes();
@@ -234,14 +238,20 @@ public class StatementCreator {
 			first = false;
 		}
 		b.append(")");
-		b.append(" VALUES (");
+		b.append(" VALUES ");
 		int size = exampleSet.getAttributes().allSize();
-		for (int i = 0; i < size; i++) {
-			if (i != 0)
-				b.append(", ");
-			b.append("?");
+		for (int r = 0; r < batchSize; ++r) {
+			if (r != 0) {
+				b.append(",");
+			}
+			b.append("(");
+			for (int i = 0; i < size; i++) {
+				if (i != 0)
+					b.append(", ");
+				b.append("?");
+			}
+			b.append(")");
 		}
-		b.append(")");
 		return b.toString();
 	}
 

@@ -90,6 +90,8 @@ public class DatabaseExampleSetWriter extends AbstractExampleSetWriter implement
 	 */
 	public static final String PARAMETER_GENERATED_KEYS_ATTRIBUTE_NAME = "db_key_attribute_name";
 
+	public static final String PARAMETER_BATCH_SIZE = "batch_size";
+
 	public DatabaseExampleSetWriter(OperatorDescription description) {
 		super(description);
 	}
@@ -106,7 +108,8 @@ public class DatabaseExampleSetWriter extends AbstractExampleSetWriter implement
 					getParameterAsInt(PARAMETER_OVERWRITE_MODE), getApplyCount() == 1,
 					getParameterAsBoolean(PARAMETER_SET_DEFAULT_VARCHAR_LENGTH) ? getParameterAsInt(PARAMETER_DEFAULT_VARCHAR_LENGTH) : -1,
 					getParameterAsBoolean(PARAMETER_GET_GENERATED_PRIMARY_KEYS),
-					getParameterAsString(PARAMETER_GENERATED_KEYS_ATTRIBUTE_NAME));
+					getParameterAsString(PARAMETER_GENERATED_KEYS_ATTRIBUTE_NAME),
+					getParameterAsInt(PARAMETER_BATCH_SIZE));
 			databaseHandler.disconnect();
 		} catch (SQLException e) {
 			throw new UserError(this, e, 304, e.getMessage());
@@ -138,6 +141,11 @@ public class DatabaseExampleSetWriter extends AbstractExampleSetWriter implement
 		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_GET_GENERATED_PRIMARY_KEYS, true, true ));
 		types.add(type);
 
+		
+		type = new ParameterTypeInt(PARAMETER_BATCH_SIZE, "The number of examples which are written at once with one single query to the database. Larger values can greatly improve the speed.",
+				1, Integer.MAX_VALUE, 1, true);
+		type.setExpert(true);
+		types.add(type);
 		return types;
 	}
 
