@@ -142,7 +142,7 @@ public class DatabaseExampleSetWriter extends AbstractExampleSetWriter implement
 		types.add(type);
 
 		
-		type = new ParameterTypeInt(PARAMETER_BATCH_SIZE, "The number of examples which are written at once with one single query to the database. Larger values can greatly improve the speed.",
+		type = new ParameterTypeInt(PARAMETER_BATCH_SIZE, "The number of examples which are written at once with one single query to the database. Larger values can greatly improve the speed - too large values however can drastically <i>decrease</i> the performance. Additionally, some databases have restrictions on the maximum number of values written at once.",
 				1, Integer.MAX_VALUE, 1, true);
 		type.setExpert(true);
 		types.add(type);

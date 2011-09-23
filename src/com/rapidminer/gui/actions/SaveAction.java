@@ -64,9 +64,13 @@ public class SaveAction extends ResourceAction {
 				}
 			} else {
 				SaveAsAction.saveAs(process);
-			}			
-			RapidMinerGUI.useProcessFile(process);
-			RapidMinerGUI.getMainFrame().processHasBeenSaved();
+			}
+			
+			// check if process has really been saved or user has pressed cancel in saveAs dialog
+			if (process.hasSaveDestination()) {
+				RapidMinerGUI.useProcessFile(process);
+				RapidMinerGUI.getMainFrame().processHasBeenSaved();
+			}
 		} catch (IOException ex) {
 			SwingTools.showSimpleErrorMessage("cannot_save_process", ex, process.getProcessLocation(), ex.getMessage());
 		}

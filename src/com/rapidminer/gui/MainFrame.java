@@ -1186,7 +1186,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             if (loc != null) {
                 setTitle(loc.getShortName() + (changed ? "*" : "") + " \u2013 " + TITLE + hostname);
             } else {
-                setTitle(TITLE + hostname);
+                setTitle("<new process"    + (changed ? "*" : "") + "> \u2013 " + TITLE + hostname);
             }
         } else {
             setTitle(TITLE + hostname);
@@ -1207,7 +1207,11 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             switch (SwingTools.showConfirmDialog("save", ConfirmDialog.YES_NO_CANCEL_OPTION, locName)) {
             case ConfirmDialog.YES_OPTION:
                 SaveAction.save(getProcess());
-                return true;
+                
+                // it may happen that save() does not actually save the process, because the user hits cancel in the
+                // saveAs dialog or an error occurs. In this case the process won't be marked as unchanged. Thus,
+                // we return the process changed status.
+                return !isChanged();
             case ConfirmDialog.NO_OPTION:
                 if (getProcessState() != Process.PROCESS_STATE_STOPPED) {
                     synchronized (processThread) {
@@ -1317,7 +1321,9 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             menuItem.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    OpenAction.open(recentLocation, true);
+    				if (RapidMinerGUI.getMainFrame().close()){
+    					OpenAction.open(recentLocation, true);
+    				}
                 }
             });
             recentFilesMenu.add(menuItem);

@@ -47,6 +47,7 @@ import com.rapidminer.io.Base64;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.XMLException;
 import com.rapidminer.tools.cipher.CipherException;
 import com.rapidminer.tools.cipher.CipherTools;
@@ -89,9 +90,11 @@ public class DatabaseConnectionService {
             connectionsFile.delete();
         } else {
         	try {
-        		Document document = XMLTools.parse(xmlConnectionsFile);
-        		Element jdbcElement = document.getDocumentElement();
-        		connections = new LinkedList<FieldConnectionEntry>(parseEntries(jdbcElement));
+        		if (!"".equals(Tools.readTextFile(xmlConnectionsFile))) {
+        			Document document = XMLTools.parse(xmlConnectionsFile);
+        			Element jdbcElement = document.getDocumentElement();
+        			connections = new LinkedList<FieldConnectionEntry>(parseEntries(jdbcElement));
+        		}
         	} catch (Exception e) {
         		LogService.getRoot().log(Level.WARNING, "Failed to read database connections file: "+e, e);
         	}

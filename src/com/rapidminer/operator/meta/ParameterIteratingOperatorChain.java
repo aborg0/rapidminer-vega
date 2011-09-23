@@ -248,8 +248,13 @@ public abstract class ParameterIteratingOperatorChain extends OperatorChain {
             } else {
                 return getPerformanceInnerSink().getDataOrNull();
             }
-        } catch (OperatorException e) {
-            getLogger().severe("Cannot evaluate performance for current parameter combination: " + e.getMessage());
+        } catch (OperatorException e) {        	
+        	StringBuilder builder = new StringBuilder();
+        	builder.append(this.getName());
+        	builder.append(": Cannot evaluate performance for current parameter combination because of an error in one of the inner operators: ");
+        	builder.append(e.getMessage());
+        	getLogger().severe(builder.toString());
+//            getLogger().severe("Cannot evaluate performance for current parameter combination: " + e.getMessage());
             if (Boolean.parseBoolean(ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_DEBUGMODE)))
                 e.printStackTrace();
             return null;

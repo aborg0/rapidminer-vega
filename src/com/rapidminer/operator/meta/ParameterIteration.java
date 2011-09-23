@@ -164,6 +164,7 @@ public class ParameterIteration extends ParameterIteratingOperatorChain {
 			index++;
 		}
 		
+		// iterate parameter combinations
 		this.iteration = 0;
 		while (true) {
 			checkForStop();

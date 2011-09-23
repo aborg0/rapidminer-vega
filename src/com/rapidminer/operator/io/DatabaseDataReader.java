@@ -106,7 +106,7 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
 
     protected ResultSet getResultSet() throws OperatorException {
         try {
-            DatabaseHandler databaseHandler = DatabaseHandler.getConnectedDatabaseHandler(this);
+            databaseHandler = DatabaseHandler.getConnectedDatabaseHandler(this);
             String query = getQuery(databaseHandler.getStatementCreator());
             if (query == null) {
                 throw new UserError(this, 202, new Object[] { "query", "query_file", "table_name" });
@@ -140,7 +140,7 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
     public MetaData getGeneratedMetaData() throws OperatorException {
         ExampleSetMetaData metaData = new ExampleSetMetaData();
         try {
-            DatabaseHandler databaseHandler = DatabaseHandler.getConnectedDatabaseHandler(this);
+            databaseHandler = DatabaseHandler.getConnectedDatabaseHandler(this);
             switch (getParameterAsInt(DatabaseHandler.PARAMETER_DEFINE_QUERY)) {
             case DatabaseHandler.QUERY_TABLE:
                 List<ColumnIdentifier> columns = databaseHandler.getAllColumnNames(DatabaseHandler.getSelectedTableName(this), databaseHandler.getConnection().getMetaData());
