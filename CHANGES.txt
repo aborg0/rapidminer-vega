@@ -4,11 +4,14 @@ History of changes of the RapidMiner versions
 Changes from RapidMiner 5.1 to 5.2
 ----------------------------------
 
+* Database connections can define driver properties 
+* XML import
+* Join operator can operate on multiple columns
 * Easier bug reporting: Direct connection to Bugzilla
 * Added new Operators:
   - Denormalization Operator
   - Remove Unused Values Operator
-* Aggregation Operator now supports default Aggregation for a set of attributes
+* Aggregation Operator now supports default Aggregation for a set of attributes and is implemented more efficiently
 
 Changes from RapidMiner 5.0 to 5.1
 ----------------------------------

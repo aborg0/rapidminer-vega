@@ -226,7 +226,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
         initContext();
         Reader in = null;
         try {
-            in = new InputStreamReader(new FileInputStream(file), getEncoding(null));
+            in = new InputStreamReader(new FileInputStream(file), "UTF-8");
             readProcess(in, progressListener);
         } catch (IOException e) {
             throw e;

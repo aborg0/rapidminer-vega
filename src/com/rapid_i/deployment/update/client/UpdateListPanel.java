@@ -383,8 +383,10 @@ public class UpdateListPanel extends JPanel {
 					UpdateService updateService = UpdateManager.getService();
 					String latestRMVersion = updateService.getLatestVersion(bookmarkedId, rmPlatform);
 					desc = updateService.getPackageInfo(bookmarkedId, latestRMVersion, rmPlatform);
-					packDescById.put(desc.getPackageId(), desc);
-					listModel.add(desc);
+					if (desc != null) {
+						packDescById.put(desc.getPackageId(), desc);
+						listModel.add(desc);
+					}
 				} catch (Exception e) {
 					SwingTools.showSimpleErrorMessage("error_during_update", e);
 					return;
