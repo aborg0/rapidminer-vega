@@ -57,7 +57,6 @@ import com.rapidminer.tools.container.Pair;
 import com.rapidminer.tools.math.container.Range;
 
 
-// TODO: improve operator help/comment 
 /**
  * This operator maps all non numeric attributes to real valued attributes.
  * Nothing is done for numeric attributes, binary attributes are mapped to 0 and
@@ -114,13 +113,20 @@ public class NominalToNumeric extends PreprocessingOperator {
 	public static final String PARAMETER_USE_UNDERSCORE_IN_NAME = "use_underscore_in_name";
 	public static final String PARAMETER_COMPARISON_GROUPS = "comparison_groups";
 	public static final String PARAMETER_ATTRIBUTE_FOR_COMPARISON_GROUP = "comparison_group_attribute";
+	public static final String PARAMETER_UNEXPECTED_VALUE_HANDLING = "unexpected_value_handling";
 
+	// values for coding type combo box 
 	public static final int DUMMY_CODING = 0;
 	public static final int EFFECT_CODING = 1;
-	public static final int INTEGERS_CODING = 2;
-	
+	public static final int INTEGERS_CODING = 2;	
 	public static final String[] ENCODING_TYPES = new String[] {"dummy coding", "effect coding", "unique integers"};		
-	
+
+	// values for combobox which defines how additional values in the apply example set are handled which are not in the training set.
+	public static final int ALL_ZEROES_AND_NO_WARNING = 0;
+	public static final int ALL_ZEROES_AND_WARNING = 1;
+	public static final String[] UNEXPECTED_VALUE_HANDLING = new String[]  {"all 0", "all 0 and warning"};
+
+	// values for the naming scheme chooser
 	public static final int UNDERSCORE_NAMING_SCHEME = 0;
 	public static final int EQUAL_SIGN_NAMING_SCHEME = 1;
 
@@ -185,7 +191,7 @@ public class NominalToNumeric extends PreprocessingOperator {
 
 	
 	/**
-	 * Creates the a map from target attribute names to the value (internal string mapping), for
+	 * Creates a map from target attribute names to the value (internal string mapping), for
 	 * which the attribute becomes 1. Use this function (only) for dummy coding.   
 	 */
 	private Map<String,Double> getAttributeTo1ValueMap(ExampleSet exampleSet) throws OperatorException {
@@ -251,6 +257,10 @@ public class NominalToNumeric extends PreprocessingOperator {
 					attributeToComparisonGroupValueMap.put( 
 							getTargetAttributeName(nominalAttribute.getName(), nominalAttribute.getMapping().mapIndex(currentValue), useUnderscore), 
 							new Pair<Double,Double>((double)currentValue, comparisonGroup) );
+				} else {
+					attributeToComparisonGroupValueMap.put( 
+							getTargetAttributeName(nominalAttribute.getName(), nominalAttribute.getMapping().mapIndex(currentValue), useUnderscore), 
+							new Pair<Double,Double>(comparisonGroup, (double)currentValue) );
 				}
 			}
 		}
@@ -321,7 +331,8 @@ public class NominalToNumeric extends PreprocessingOperator {
 					sourceAttributeToComparisonGroupMap, 
 					attributeTo1ValueMap,
 					null,
-					getParameterAsBoolean(PARAMETER_USE_COMPARISON_GROUPS));
+					getParameterAsBoolean(PARAMETER_USE_COMPARISON_GROUPS),
+					getParameterAsInt(PARAMETER_UNEXPECTED_VALUE_HANDLING));
 		} else if ( codingType == EFFECT_CODING ) {
 			Map<String,Double> sourceAttributeToComparisonGroupMap = getSourceAttributeToComparisonGroupMap(exampleSet);
 			Map<String,Pair<Double,Double>> attributeToValuesMap = getAttributeToValuesMap(exampleSet);			
@@ -332,7 +343,8 @@ public class NominalToNumeric extends PreprocessingOperator {
 					sourceAttributeToComparisonGroupMap, 
 					null, 
 					attributeToValuesMap,
-					getParameterAsBoolean(PARAMETER_USE_COMPARISON_GROUPS));
+					true,
+					getParameterAsInt(PARAMETER_UNEXPECTED_VALUE_HANDLING));
 		} else {
 			assert(false); // unsupported coding
 			return null;
@@ -381,6 +393,10 @@ public class NominalToNumeric extends PreprocessingOperator {
 				true,
 				new BooleanParameterCondition(this, PARAMETER_USE_COMPARISON_GROUPS, true, true),
 				new EqualTypeCondition(this, PARAMETER_CODING_TYPE, ENCODING_TYPES, true, EFFECT_CODING)));
+		types.add(type);
+		
+		type = new ParameterTypeCategory(PARAMETER_UNEXPECTED_VALUE_HANDLING, "Indicates how values are handled, which occur in the example set to which the preprocessing model is applied, but not in the training set. By default all attributes are set to 0 and a warning is logged. However, by the additional checks for the warning some overhead is generated, so you can turn off the logging and just set all attributes to 0.", UNEXPECTED_VALUE_HANDLING, ALL_ZEROES_AND_WARNING, true);
+		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_CODING_TYPE, ENCODING_TYPES, false, EFFECT_CODING, DUMMY_CODING));
 		types.add(type);
 		
 		

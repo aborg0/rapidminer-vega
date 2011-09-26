@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator.preprocessing.filter;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -64,11 +65,23 @@ class NominalToNumericModel extends PreprocessingModel {
 		 */
 		private Map<String,Pair<Double,Double>> attributeToValuesMap = null;
 		
+		/**
+		 * maps an original attribute name to the list of all its values which occurred in the training data.
+		 * Used for dummy and effect coding. 
+		 */
+		private Map<String,List<String>> attributeToAllNominalValues = null;
+		
 		
 		/**
 		 * maps source attributes to their comparison group.
 		 */
 		private Map<String,Double> sourceAttributeToComparisonGroupMap = null;
+		
+		
+		/**
+		 * maps target attributes in the output set to their respective source attributes in the training set.
+		 */
+		private Map<String,String> targetAttributeToSourceAttributeMap = null;
 		
 		/**
 		 * maps source attributes to the comparison group string.
@@ -90,6 +103,9 @@ class NominalToNumericModel extends PreprocessingModel {
 		
 		private boolean useComparisonGroups = false;
 		
+		// how unexpected values are handled. One of ALL_ZEROES_AND_WARNING or ERROR_AND_ABORT.
+		private int unexpectedValueHandling = NominalToNumeric.ALL_ZEROES_AND_WARNING;
+		
 		/**
 		 * Constructs a new model. Use this ctor to create a model for value encoding.
 		 * @param exampleSet
@@ -108,6 +124,8 @@ class NominalToNumericModel extends PreprocessingModel {
 		 * @param sourceAttributeToComparisonGroupMap @see NominalToNumericModel#sourceAttributeToComparisonGroupMap  @see NominalToNumeric#getSourceAttributeToComparisonGroupMap
 		 * @param attributeTo1ValueMap @see NominalToNumericModel#attributeTo1ValueMap. Must be non-null for dummy coding, should be null for effect coding. @see NominalToNumeric#getAttributeTo1ValueMap
 		 * @param attributeToValuesMap @see NominalToNumericModel#attributeToValuesMap. Must be non-null for effect coding, should be null for dummy coding. @see NominalToNumeric#getAttributeToValuesMap
+		 * @param useComparisonGroup Indicates if comparison groups for dummy coding should be used. Is ignored if codingType == EFFECT_CODING.
+		 * @param unexpectedValueHandling Defines how unexpected values are handled. @see NominalToNumericModel#unexpectedValueHandling.
 		 */
 		protected NominalToNumericModel(
 				ExampleSet exampleSet, 
@@ -115,18 +133,19 @@ class NominalToNumericModel extends PreprocessingModel {
 				boolean useUnderscoreInName, 
 				Map<String,Double> sourceAttributeToComparisonGroupMap, 
 				Map<String,Double> attributeTo1ValueMap, 
-				Map<String, 
-				Pair<Double,Double>> attributeToValuesMap,
-				boolean useComparisonGroups) {
+				Map<String, Pair<Double,Double>> attributeToValuesMap,
+				boolean useComparisonGroups,
+				int unexpectedValueHandling) {
 			this(exampleSet, codingType);
 			this.useUnderscoreInName = useUnderscoreInName;
 			this.sourceAttributeToComparisonGroupMap = sourceAttributeToComparisonGroupMap;
 			this.attributeTo1ValueMap = attributeTo1ValueMap;
 			this.attributeToValuesMap = attributeToValuesMap;
-			this.useComparisonGroups = useComparisonGroups;
+			this.useComparisonGroups = useComparisonGroups || (codingType == NominalToNumeric.EFFECT_CODING);
+			this.unexpectedValueHandling = unexpectedValueHandling;
 			
 			
-			if ((codingType == NominalToNumeric.DUMMY_CODING && useComparisonGroups)|| codingType == NominalToNumeric.EFFECT_CODING) {
+			if (useComparisonGroups) {
 				// store comparison group strings for display
 				assert(sourceAttributeToComparisonGroupMap != null); // must not be null for dummy/effect coding
 				
@@ -137,6 +156,33 @@ class NominalToNumericModel extends PreprocessingModel {
 					Attribute attribute = exampleSet.getAttributes().get(attributeName);
 					String comparisonGroupString = attribute.getMapping().mapIndex((int)comparisonGroup);
 					sourceAttributeToComparisonGroupStringsMap.put(attributeName, comparisonGroupString);
+				}
+			}
+			
+			
+			if (codingType == NominalToNumeric.DUMMY_CODING || codingType == NominalToNumeric.EFFECT_CODING) {
+				// remember all nominal values from training data
+				attributeToAllNominalValues = new HashMap<String, List<String>>();
+				for (Attribute attribute : exampleSet.getAttributes()) {
+					if (!attribute.isNumerical()) {
+						String attributeName = attribute.getName();
+						List<String> values = new LinkedList<String>();
+						for (String value : attribute.getMapping().getValues()) {
+							values.add(value);
+						}
+						attributeToAllNominalValues.put(attributeName, values);
+					}
+				}
+				
+				// remember source attributes for each target attribute
+				targetAttributeToSourceAttributeMap = new HashMap<String, String>();
+				for (Attribute sourceAttribute : exampleSet.getAttributes()) {
+					if (!sourceAttribute.isNumerical()) {
+						String sourceAttributeName = sourceAttribute.getName();
+						for (String targetAttribute : getTargetAttributesFromSourceAttribute(sourceAttribute)) {
+							targetAttributeToSourceAttributeMap.put(targetAttribute, sourceAttributeName);
+						}
+					}
 				}
 			}
 		}
@@ -163,13 +209,18 @@ class NominalToNumericModel extends PreprocessingModel {
 		private List<String> getTargetAttributesFromSourceAttribute(Attribute sourceAttribute) {
 			List<String> targetNames = new LinkedList<String>();
 			double comparisonGroup = -1;
-			if ( (codingType == NominalToNumeric.DUMMY_CODING && useComparisonGroups) || (codingType == NominalToNumeric.EFFECT_CODING) ) {
+			if ( useComparisonGroups ) {
 				comparisonGroup = sourceAttributeToComparisonGroupMap.get( sourceAttribute.getName() );
 			}			
 			
-			for ( int currentValue = 0; currentValue < sourceAttribute.getMapping().size(); ++currentValue ) {
-				if ( (codingType == NominalToNumeric.DUMMY_CODING && !useComparisonGroups) || (currentValue != comparisonGroup) ) {
-					targetNames.add( NominalToNumeric.getTargetAttributeName(sourceAttribute.getName(), sourceAttribute.getMapping().mapIndex(currentValue), useUnderscoreInName) );
+			List<String> originalAttributeValues = attributeToAllNominalValues.get(sourceAttribute.getName());
+			String comparisonGroupValue = null;
+			if (comparisonGroup != -1) {
+				comparisonGroupValue = originalAttributeValues.get((int)comparisonGroup);
+			}
+			for ( String currentValue : originalAttributeValues ) {
+				if ( (!useComparisonGroups) || (!currentValue.equals(comparisonGroupValue)) ) {
+					targetNames.add( NominalToNumeric.getTargetAttributeName(sourceAttribute.getName(), currentValue, useUnderscoreInName) );
 				}
 			}
 			return targetNames;
@@ -267,16 +318,24 @@ class NominalToNumericModel extends PreprocessingModel {
 			for (Attribute attribute : parentSet.getAttributes()) {
 				if (!attribute.isNumerical()) {
 					if ( codingType == NominalToNumeric.EFFECT_CODING || codingType == NominalToNumeric.DUMMY_CODING ) {
-						double comparisonGroup = sourceAttributeToComparisonGroupMap.get(attribute.getName());
-						for ( int currentValue = 0; currentValue < attribute.getMapping().size(); ++currentValue ) {
-							if ( currentValue != comparisonGroup ) {
-								ViewAttribute viewAttribute = new ViewAttribute(
-										this, 
-										attribute, 
-										NominalToNumeric.getTargetAttributeName(attribute.getName(), attribute.getMapping().mapIndex(currentValue), useUnderscoreInName), 
-										Ontology.INTEGER, 
-										null);
-								attributes.addRegular(viewAttribute);
+						double comparisonGroup = -1;
+						if (useComparisonGroups) {
+							comparisonGroup = sourceAttributeToComparisonGroupMap.get(attribute.getName());
+						}
+						List<String> valueList = attributeToAllNominalValues.get(attribute.getName());
+						if (valueList != null) {
+							int currentValue = 0;
+							for (String attributeValue : valueList) {
+								if ( currentValue != comparisonGroup ) {
+									ViewAttribute viewAttribute = new ViewAttribute(
+											this, 
+											attribute, 
+											NominalToNumeric.getTargetAttributeName(attribute.getName(), attributeValue, useUnderscoreInName), 
+											Ontology.INTEGER, 
+											null);
+									attributes.addRegular(viewAttribute);
+								}
+								++currentValue;
 							}
 						}
 					} else if ( codingType == NominalToNumeric.INTEGERS_CODING ) {
@@ -295,9 +354,15 @@ class NominalToNumericModel extends PreprocessingModel {
 		public double getValue(Attribute targetAttribute, double value) {
 			if ( codingType == NominalToNumeric.DUMMY_CODING ) {
 				String targetName = targetAttribute.getName();
-				if ( attributeTo1ValueMap.get(targetName) == value ) {
+				Double oneValue = attributeTo1ValueMap.get(targetName);
+				if ( oneValue != null && oneValue == value ) {
 					return 1;
 				} else {
+					// check if the value has been present in the training set
+					if (unexpectedValueHandling != NominalToNumeric.ALL_ZEROES_AND_NO_WARNING && !isValueInTrainingSet(targetAttribute, value)) {
+						handleUnexpectedValue(targetName);
+					}
+					
 					return 0;
 				}
 			} else if ( codingType == NominalToNumeric.EFFECT_CODING ) {
@@ -308,6 +373,10 @@ class NominalToNumericModel extends PreprocessingModel {
 				} else if ( storedValue.getSecond() == value ) {
 					return -1;
 				} else {
+					// check if the value has been present in the training set
+					if (unexpectedValueHandling != NominalToNumeric.ALL_ZEROES_AND_NO_WARNING && !isValueInTrainingSet(targetAttribute, value)) {
+						handleUnexpectedValue(targetName);
+					}
 					return 0;
 				}
 			} else if ( codingType == NominalToNumeric.INTEGERS_CODING ) {
@@ -318,6 +387,35 @@ class NominalToNumericModel extends PreprocessingModel {
 			}						
 		}
 
+		private int handleUnexpectedValue(String targetName) {
+			switch(unexpectedValueHandling) {
+			case NominalToNumeric.ALL_ZEROES_AND_WARNING:
+				getLog().logWarning("unexpected value during application of Nominal to Numerical Model for attribute '" + targetName + "'. Setting to 0.");	// TODO i18n
+				return 0;
+			case NominalToNumeric.ALL_ZEROES_AND_NO_WARNING:
+				return 0;
+			default:
+				assert(false);	// should be one of the above values
+				return 0;					
+			}
+		}
+
+		private boolean isValueInTrainingSet(Attribute targetAttribute,	double value) {
+			String sourceAttribute = targetAttributeToSourceAttributeMap.get(targetAttribute.getName());
+			if (sourceAttribute != null) {
+				List<String> trainingValues = attributeToAllNominalValues.get(sourceAttribute);
+				if (trainingValues != null) {
+					int valueCount = trainingValues.size();
+					if (value >= valueCount) {
+						return false;
+					}
+				} else {
+					return false;
+				}
+			}
+			return true;
+		}
+
 		@Override
 		public String getName() {
 			return "Nominal2Numerical Model";
@@ -325,8 +423,6 @@ class NominalToNumericModel extends PreprocessingModel {
 
 	    @Override
 	    public String toResultString() {
-	    	// TODO codingType, Integer-Mapping, Comparison Groups, useUnderscores
-	    	
 	        StringBuilder builder = new StringBuilder();
 	        Attributes trainAttributes = getTrainingHeader().getAttributes();
 	        builder.append(getName()+ Tools.getLineSeparators(2));

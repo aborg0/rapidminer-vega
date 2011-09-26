@@ -44,6 +44,14 @@ public class ProgressReportingInputStream extends InputStream {
 	private long readBytes = 0;
 	private int lastReportedValue = Integer.MIN_VALUE;
 
+	/**
+	 * @deprecated Use {@link #ProgressReportingInputStream(InputStream, ProgressListener, int, int, long)} instead 
+	 */
+	@Deprecated
+	public ProgressReportingInputStream(InputStream in,	ProgressListener listener, int minProgress, int maxProgress, int streamLength) {
+		this(in, listener, minProgress, maxProgress, (long)streamLength);
+	}
+	
 	public ProgressReportingInputStream(InputStream in,	ProgressListener listener, int minProgress, int maxProgress, long streamLength) {
 		this.parent = in;
 		this.listener = listener;

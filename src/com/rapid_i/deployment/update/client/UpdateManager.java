@@ -161,7 +161,7 @@ public class UpdateManager {
             return urlIn;
         } else {
             try {
-                int length = Integer.parseInt(lengthStr);
+                long length = Long.parseLong(lengthStr);
                 return new ProgressReportingInputStream(urlIn, listener, minProgress, maxProgress, length);
             } catch (NumberFormatException e) {
                 LogService.getRoot().log(Level.WARNING, "Server sent illegal content length: "+lengthStr, e);
