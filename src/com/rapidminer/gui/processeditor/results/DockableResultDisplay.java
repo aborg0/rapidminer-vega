@@ -277,8 +277,12 @@ public class DockableResultDisplay extends JPanel implements ResultDisplay {
 	}
 
 	private void clear() {
+		clear(true);
+	}
+	
+	private void clear(boolean alsoClearLogs) {
 		if (SwingUtilities.isEventDispatchThread()) {
-			clearNow();
+			clearNow(alsoClearLogs);
 		} else {
 			try {			
 				SwingUtilities.invokeAndWait(new Runnable() {
@@ -293,12 +297,16 @@ public class DockableResultDisplay extends JPanel implements ResultDisplay {
 			}
 		}
 	}
-
+	
 	private void clearNow() {
+		clearNow(true);
+	}
+
+	private void clearNow(boolean alsoClearLogs) {
 		List<Dockable> toClose = new LinkedList<Dockable>();
 		for (DockableState state : RapidMinerGUI.getMainFrame().getDockingDesktop().getContext().getDockables()) {
 			if (state.getDockable().getDockKey().getKey().startsWith(ResultTab.DOCKKEY_PREFIX+"process_") ||
-					state.getDockable().getDockKey().getKey().startsWith(ProcessLogTab.DOCKKEY_PREFIX)) {
+					(alsoClearLogs && state.getDockable().getDockKey().getKey().startsWith(ProcessLogTab.DOCKKEY_PREFIX))) {
 				toClose.add(state.getDockable());
 			}										
 		}
@@ -360,7 +368,7 @@ public class DockableResultDisplay extends JPanel implements ResultDisplay {
 	private final BreakpointListener breakpointListener = new BreakpointListener() {
 		@Override
 		public void resume() {
-			clear();
+			clear(false);
 		}		
 		@Override
 		public void breakpointReached(Process process, Operator op, IOContainer iocontainer, int location) {

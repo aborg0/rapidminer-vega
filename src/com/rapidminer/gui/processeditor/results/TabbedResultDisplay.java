@@ -59,7 +59,7 @@ import com.vlsolutions.swing.docking.DockKey;
 
 /**
  * The result display is the view of the RapidMiner GUI which refers to (intermediate)
- * results. It can display all IOObjects which are deliverd, each in a tab which
+ * results. It can display all IOObjects which are delivered, each in a tab which
  * is displayed at the top together with its icon. If the process produces some statistics,
  * e.g. performance against generation, these are plotted online.
  * 

@@ -531,7 +531,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             }
         }
 
-        /** Since the mainframe toggles the resume itself this method does nothing. */
+        /** Since the mainframe triggers the resume itself this method does nothing. */
         @Override
         public void resume() {
             RUN_ACTION.setState(process.getProcessState());

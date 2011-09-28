@@ -58,11 +58,10 @@ public abstract class RMAbstractClusterer extends AbstractClusterer {
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
 
-		ParameterType type = new ParameterTypeBoolean(PARAMETER_ADD_CLUSTER_ATTRIBUTE, "Indicates if a cluster id is generated as new special attribute.", true, false);
-		//type.registerDependencyCondition(new BooleanParameterCondition(this, "keep_example_set", false, true));
+		ParameterType type = new ParameterTypeBoolean(PARAMETER_ADD_CLUSTER_ATTRIBUTE, "If enabled, a cluster id is generated as new special attribute directly in this operator, otherwise this operator does not add an id attribute. In the latter case you have to use the Apply Model operator to generate the cluster attribute.", true, false);
 		types.add(type);
 
-		type = new ParameterTypeBoolean(PARAMETER_ADD_AS_LABEL, "Should the cluster values be added as label.", false);
+		type = new ParameterTypeBoolean(PARAMETER_ADD_AS_LABEL, "If true, the cluster id is stored in an attribute with the special role 'label' instead of 'cluster'.", false);
 		type.setExpert(false);
 		types.add(type);
 

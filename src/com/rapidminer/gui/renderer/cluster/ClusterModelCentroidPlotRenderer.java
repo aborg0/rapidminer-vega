@@ -63,6 +63,7 @@ public class ClusterModelCentroidPlotRenderer extends AbstractRenderer {
 		Plotter plotter = settings.getPlotter();
 		settings.setParameterAsString(ParallelPlotter2.PARAMETER_PLOT_COLUMN, columnNames[columnNames.length - 1]);
 		settings.setParameterAsBoolean(ParallelPlotter2.PARAMETER_LOCAL_NORMALIZATION, false);
+		settings.setParameterAsBoolean(ParallelPlotter2.PARAMETER_ROTATE_LABELS, true);
 		plotter.getPlotter().setSize(width, height);
 		return plotter;
 	}

@@ -55,7 +55,7 @@ public class ExceptionHandling extends SimpleOperatorChain {
 	
 	public ExceptionHandling(OperatorDescription description) {
 		super(description);
-		addValue(new Value("success", "Indicates whether the executionwas successful") {
+		addValue(new Value("success", "Indicates whether the execution was successful") {
 			@Override
 			public Object getValue() {
 				return withoutError;
