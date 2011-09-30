@@ -72,6 +72,7 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.tools.GroupTree;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.ParameterService;
+import com.rapidminer.tools.parameter.ParameterChangeListener;
 import com.rapidminer.tools.usagestats.OperatorStatisticsValue;
 import com.rapidminer.tools.usagestats.OperatorUsageStatistics;
 import com.rapidminer.tools.usagestats.UsageStatistics;
@@ -83,6 +84,46 @@ import com.rapidminer.tools.usagestats.UsageStatistics.StatisticsScope;
  * @author Ingo Mierswa, Tobias Malbrecht, Sebastian Land
  */
 public class NewOperatorGroupTree extends JPanel implements FilterListener, SelectionNavigationListener {
+	
+	/**
+	 * A checkbox menu item which always resembles the current state of a boolean parameter from ParameterService.
+	 * 
+	 * @author Marius Helf
+	 *
+	 */
+	private static class CheckBoxMenuItemParameterServiceListener extends JCheckBoxMenuItem implements ParameterChangeListener {
+		private static final long serialVersionUID = 1L;
+
+		private String parameterKey;
+
+		/**
+		 * Instantiates a new CheckBoxMenuItemParameterServiceListener.
+		 * @param parameterKey The key of the parameter whose state this checkbox should resemble.
+		 */
+		public CheckBoxMenuItemParameterServiceListener(String parameterKey, ResourceAction resourceAction) {
+			super(resourceAction);
+			this.parameterKey = parameterKey;
+
+			setSelected("true".equals(ParameterService.getParameterValue(parameterKey)));
+
+			
+			ParameterService.registerParameterChangeListener(this);
+		}
+
+		@Override
+		public void informParameterChanged(String key, String value) {
+			if (key != null && key.equals(parameterKey)) {
+				setSelected("true".equals(value));
+			}
+		}
+
+		@Override
+		public void informParameterSaved() {
+			// Do nothing
+		}
+		
+	}
+	
 
     private static final long serialVersionUID = 133086849304885475L;
 
@@ -145,7 +186,7 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
         }
     };
 
-    private final JCheckBoxMenuItem autoWireInputsItem = new JCheckBoxMenuItem(new ResourceAction("auto_wire_inputs_on_add") {
+    private final JCheckBoxMenuItem autoWireInputsItem = new CheckBoxMenuItemParameterServiceListener(RapidMinerGUI.PROPERTY_AUTOWIRE_INPUT, new ResourceAction("auto_wire_inputs_on_add") {
         private static final long serialVersionUID = 1L;
 
         @Override
@@ -155,7 +196,7 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
         }
     });
 
-    private final JCheckBoxMenuItem autoWireOutputsItem = new JCheckBoxMenuItem(new ResourceAction("auto_wire_outputs_on_add") {
+    private final JCheckBoxMenuItem autoWireOutputsItem = new CheckBoxMenuItemParameterServiceListener(RapidMinerGUI.PROPERTY_AUTOWIRE_OUTPUT, new ResourceAction("auto_wire_outputs_on_add") {
         private static final long serialVersionUID = 1L;
 
         @Override
@@ -170,10 +211,6 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
     public NewOperatorGroupTree(NewOperatorEditor editor) {
         this.editor = editor;
         setLayout(new BorderLayout());
-
-        // TODO: Select checkboxes if system property changes (e.g. in preferences dialog)
-        autoWireInputsItem.setSelected("true".equals(ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_AUTOWIRE_INPUT)));
-        autoWireOutputsItem.setSelected("true".equals(ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_AUTOWIRE_OUTPUT)));
 
         // operatorGroupTree.setRootVisible(true);
         operatorGroupTree.setShowsRootHandles(true);
@@ -396,11 +433,11 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
     }
 
     public boolean shouldAutoConnectNewOperatorsInputs() {
-        return autoWireInputsItem.isSelected();
+    	return "true".equals(ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_AUTOWIRE_INPUT));
     }
 
     public boolean shouldAutoConnectNewOperatorsOutputs() {
-        return autoWireOutputsItem.isSelected();
+    	return "true".equals(ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_AUTOWIRE_OUTPUT));
     }
 
     public JTree getTree() {
