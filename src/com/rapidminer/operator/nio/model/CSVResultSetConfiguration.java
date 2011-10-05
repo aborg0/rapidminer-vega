@@ -69,8 +69,11 @@ public class CSVResultSetConfiguration implements DataResultSetFactory {
      * This constructor reads all settings from the parameters of the given operator.
      */
     public CSVResultSetConfiguration(CSVExampleSource csvExampleSource) throws OperatorException {
-        if (csvExampleSource.isParameterSet(CSVExampleSource.PARAMETER_CSV_FILE)) {
-            setCsvFile(csvExampleSource.getParameterAsString(CSVExampleSource.PARAMETER_CSV_FILE));
+//        if (csvExampleSource.isParameterSet(CSVExampleSource.PARAMETER_CSV_FILE)) {
+//        	setCsvFile(csvExampleSource.getParameterAsString(CSVExampleSource.PARAMETER_CSV_FILE));
+//        }
+    	if (csvExampleSource.isFileSpecified()) {
+        	setCsvFile(csvExampleSource.getSelectedFile().getAbsolutePath());
         }
         setSkipComments(csvExampleSource.getParameterAsBoolean(CSVExampleSource.PARAMETER_SKIP_COMMENTS));
         setUseQuotes(csvExampleSource.getParameterAsBoolean(CSVExampleSource.PARAMETER_USE_QUOTES));

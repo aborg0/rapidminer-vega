@@ -35,7 +35,6 @@ import com.rapidminer.operator.nio.model.DataResultSetFactory;
 import com.rapidminer.operator.nio.model.ExcelResultSetConfiguration;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeConfiguration;
-import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.ParameterTypeString;
 
@@ -102,14 +101,24 @@ public class ExcelExampleSource extends AbstractDataResultSetReader {
 	protected NumberFormat getNumberFormat() throws OperatorException {
 		return null;
 	}
-	
+
+	@Override
+	protected String getFileParameterName() {
+		return PARAMETER_EXCEL_FILE;
+	}
+
+	@Override
+	protected String getFileExtension() {
+		return "xls";
+	}
+
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = new LinkedList<ParameterType>();
 		ParameterType type = new ParameterTypeConfiguration(ExcelExampleSourceConfigurationWizardCreator.class, this);
 		type.setExpert(false);
 		types.add(type);
-		types.add(new ParameterTypeFile(PARAMETER_EXCEL_FILE, "Name of the excel file to read the data from.", "xls", false));
+		//types.add(new ParameterTypeFile(PARAMETER_EXCEL_FILE, "Name of the excel file to read the data from.", "xls", false));
 		types.add(new ParameterTypeInt(PARAMETER_SHEET_NUMBER, "The number of the sheet which should be imported.", 1, Integer.MAX_VALUE, 1, false));
 		types.add(new ParameterTypeString(PARAMETER_IMPORTED_CELL_RANGE, "Cells to import, in Excel notation, e.g. B2:D25 or B2 for an open interval.", false));
 		

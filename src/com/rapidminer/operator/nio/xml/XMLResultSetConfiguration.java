@@ -98,8 +98,10 @@ public class XMLResultSetConfiguration implements DataResultSetFactory {
     public XMLResultSetConfiguration(XMLExampleSource operator) throws OperatorException {
         this();
 
-        if (operator.isParameterSet(PARAMETER_FILE))
-            fileName = operator.getParameterAsString(PARAMETER_FILE);
+//        if (operator.isParameterSet(PARAMETER_FILE))
+//            fileName = operator.getParameterAsString(PARAMETER_FILE);
+        if (operator.isFileSpecified())
+            fileName = operator.getSelectedFile().getAbsolutePath();
 
         if (operator.isParameterSet(PARAMETER_XPATH_FOR_EXAMPLES))
             exampleXPath = operator.getParameterAsString(PARAMETER_XPATH_FOR_EXAMPLES);

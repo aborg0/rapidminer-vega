@@ -98,7 +98,7 @@ public class NominalStatistics implements Statistics {
             if (parameter != null) {
                 return getValueCount(attribute, parameter);
             } else {
-                LogService.getGlobal().log("Cannot calculate statistics COUNT, no value given...", LogService.WARNING);
+                LogService.getGlobal().log("Cannot calculate statistics COUNT for attribute "+attribute.getName()+": no value given...", LogService.WARNING);
                 return Double.NaN;
             }
         } if (LEAST.equals(name)) {

@@ -337,9 +337,21 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
                 switch (e.getKeyCode()) {
                 case KeyEvent.VK_ENTER:
                 case KeyEvent.VK_SPACE:
-                    insertSelected();
-                    e.consume();
-                    return;
+                	if (getSelectedOperator() != null) {
+	                    insertSelected();
+	                    e.consume();
+	                    return;
+                	} else {
+                		// folder or nothing selected
+                		TreePath path = operatorGroupTree.getSelectionPath();
+                		if (path != null) {
+                			if (operatorGroupTree.isExpanded(path)) {
+                				operatorGroupTree.collapsePath(path);
+                			} else {
+                				operatorGroupTree.expandPath(path);
+                			}
+                		}
+                	}
                 }
             }
 

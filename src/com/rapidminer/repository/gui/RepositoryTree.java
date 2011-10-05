@@ -28,6 +28,8 @@ import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -223,7 +225,6 @@ public class RepositoryTree extends JTree {
 				}
 			}			
 		});			
-
 		addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -235,6 +236,46 @@ public class RepositoryTree extends JTree {
 					fireLocationSelected((Entry) path.getLastPathComponent());
 				}
 			}			
+		});
+		
+		addKeyListener(new KeyListener() {
+			
+			@Override
+			public void keyTyped(KeyEvent e) {
+			}
+			
+			/**
+			 * Opens entries on enter pressed; collapses/expands folders
+			 */
+			@Override
+			public void keyReleased(KeyEvent e) {
+				if (e.getModifiers() == 0) {
+					switch (e.getKeyCode()) {
+					case KeyEvent.VK_ENTER:
+					case KeyEvent.VK_SPACE:
+						TreePath path = getSelectionPath();
+						if (path == null) {
+							return;
+						}
+						Entry entry = (Entry)path.getLastPathComponent();
+						if (entry instanceof Folder) {
+							if (isExpanded(path)) {
+								collapsePath(path);
+							} else {
+								expandPath(path);
+							}
+						} else {
+							fireLocationSelected((Entry) path.getLastPathComponent());
+						}
+						e.consume();
+						break;
+					}
+				}
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent e) {
+			}
 		});
 		
 		setDragEnabled(true);

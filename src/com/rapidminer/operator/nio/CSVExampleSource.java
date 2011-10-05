@@ -36,7 +36,6 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeChar;
 import com.rapidminer.parameter.ParameterTypeConfiguration;
-import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.tools.DateParser;
@@ -94,6 +93,16 @@ public class CSVExampleSource extends AbstractDataResultSetReader {
         return true;
     }
 
+	@Override
+	protected String getFileParameterName() {
+		return PARAMETER_CSV_FILE;
+	}
+
+	@Override
+	protected String getFileExtension() {
+		return "csv";
+	}
+
     @Override
     public List<ParameterType> getParameterTypes() {
         LinkedList<ParameterType> types = new LinkedList<ParameterType>();
@@ -101,7 +110,7 @@ public class CSVExampleSource extends AbstractDataResultSetReader {
         ParameterType type = new ParameterTypeConfiguration(CSVExampleSourceConfigurationWizardCreator.class, this);
         type.setExpert(false);
         types.add(type);
-        types.add(new ParameterTypeFile(PARAMETER_CSV_FILE, "Name of the file to read the data from.", "csv", false));
+        //types.add(new ParameterTypeFile(PARAMETER_CSV_FILE, "Name of the file to read the data from.", "csv", false));
 
         //types.addAll(Encoding.getParameterTypes(this));
 

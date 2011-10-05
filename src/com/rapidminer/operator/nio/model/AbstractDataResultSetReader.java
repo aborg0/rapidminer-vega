@@ -22,6 +22,10 @@
  */
 package com.rapidminer.operator.nio.model;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -36,19 +40,25 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.io.AbstractDataReader.AttributeColumn;
 import com.rapidminer.operator.io.AbstractExampleSource;
 import com.rapidminer.operator.io.ExampleSource;
+import com.rapidminer.operator.nio.file.FileObject;
+import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
+import com.rapidminer.operator.ports.metadata.SimplePrecondition;
 import com.rapidminer.operator.preprocessing.filter.AbstractDateDataProcessing;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeDateFormat;
+import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.ParameterTypeStringCategory;
 import com.rapidminer.parameter.ParameterTypeTupel;
+import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
+import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.Tools;
 
@@ -92,8 +102,26 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 
     public static final String PARAMETER_ERROR_TOLERANT = "read_not_matching_values_as_missings";
 
+
+    public static final String PARAMETER_SOURCE_TYPE = "source_type";
+    public static final String[] SOURCE_TYPES = {"file", "port"};
+	public static final int SOURCE_TYPE_FILE = 0;
+	public static final int SOURCE_TYPE_PORT = 1;
+	
+	private InputPort fileInputPort = getInputPorts().createPort("file");
+
     public AbstractDataResultSetReader(OperatorDescription description) {
         super(description);
+        fileInputPort.addPrecondition(new SimplePrecondition(fileInputPort, new MetaData(FileObject.class)) {
+        	@Override
+        	protected boolean isMandatory() {
+        		try {
+					return getParameterAsInt(PARAMETER_SOURCE_TYPE) == SOURCE_TYPE_PORT;
+				} catch (UndefinedParameterError e) {
+					return false;
+				}
+        	}
+        });
     }
 
     @Override
@@ -152,10 +180,79 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
         return true;
     }
 
+    /** Returns either the selected file referenced by the value of the parameter with the name
+     *  {@link #getFileParameterName()} or the file delivered at {@link #fileInputPort}.
+     *  Which of these options is chosen is determined by the parameter {@link #PARAMETER_SOURCE_TYPE}. 
+     *  */
+    public File getSelectedFile() throws OperatorException {
+    	switch (getParameterAsInt(PARAMETER_SOURCE_TYPE)) {
+    	case SOURCE_TYPE_FILE:
+    		return getParameterAsFile(getFileParameterName());
+    	case SOURCE_TYPE_PORT:
+    		return fileInputPort.getData(FileObject.class).getFile();
+    	default:
+    		// cannot happen
+    		throw new OperatorException("Illegal source type: "+getParameterAsString(PARAMETER_SOURCE_TYPE));
+    	}
+    }
+
+
+    /** Same as {@link #getSelectedFile()}, but opens the stream. 
+     *  */
+    public InputStream openSelectedFile() throws OperatorException, IOException {
+    	switch (getParameterAsInt(PARAMETER_SOURCE_TYPE)) {
+    	case SOURCE_TYPE_FILE:
+    		return new FileInputStream(getParameterAsFile(getFileParameterName()));
+    	case SOURCE_TYPE_PORT:
+    		return fileInputPort.getData(FileObject.class).openStream();
+    	default:
+    		// cannot happen
+    		throw new OperatorException("Illegal source type: "+getParameterAsString(PARAMETER_SOURCE_TYPE));
+    	}
+    }
+
+    /** Same as {@link #getSelectedFile()}, but returns true if file is specified (in the respective way). 
+     *  */
+    public boolean isFileSpecified() {
+    	try {
+			switch (getParameterAsInt(PARAMETER_SOURCE_TYPE)) {
+			case SOURCE_TYPE_FILE:
+				return isParameterSet(getFileParameterName());
+			case SOURCE_TYPE_PORT:
+				try {
+					return (fileInputPort.getData() instanceof FileObject);
+				} catch (OperatorException e) {
+					return false;
+				}
+			default:
+				// cannot happen
+				throw new RuntimeException("Illegal source type: "+getParameterAsString(PARAMETER_SOURCE_TYPE));
+			}
+		} catch (UndefinedParameterError e) {
+			return false;
+		} 	
+    }
+
+    
+    /** Returns the name of the {@link ParameterTypeFile} to be added through which the user
+     *  can specify the file name. */
+    protected abstract String getFileParameterName();
+    
+    /** Returns the allowed file extension. */
+    protected abstract String getFileExtension();
+    
     @Override
     public List<ParameterType> getParameterTypes() {
         List<ParameterType> types = new LinkedList<ParameterType>();
 
+        final ParameterTypeCategory sourceTypeParam = new ParameterTypeCategory(PARAMETER_SOURCE_TYPE, "Selects whether to read from a file or a file object passed to the input port", SOURCE_TYPES, SOURCE_TYPE_FILE);
+        sourceTypeParam.setExpert(false);
+		types.add(sourceTypeParam);
+		
+		final ParameterTypeFile fileParam = new ParameterTypeFile(getFileParameterName(), "Name of the file to read the data from.", getFileExtension(), true);
+		fileParam.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_SOURCE_TYPE, SOURCE_TYPES, true, SOURCE_TYPE_FILE));
+		types.add(fileParam);
+        
         if (isSupportingFirstRowAsNames())
             types.add(new ParameterTypeBoolean(PARAMETER_FIRST_ROW_AS_NAMES, "Indicates if the first row should be used for the attribute names. If activated no annotations can be used.", true, false));
 

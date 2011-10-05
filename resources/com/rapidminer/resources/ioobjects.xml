@@ -742,6 +742,15 @@
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
+
+    <ioobject 
+        name="File"
+        class="com.rapidminer.operator.nio.file.FileObject"
+        reportable="true" 
+        icon="floppy_disk.png">
+        <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
+    </ioobject>
    
      
     <!-- Dummy Entry -->

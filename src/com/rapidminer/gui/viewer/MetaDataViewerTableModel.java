@@ -337,7 +337,15 @@ public class MetaDataViewerTableModel extends AbstractTableModel {
                         public int compareTo(ValueAndCount o) {
                             int result = -1 * Double.compare(this.count, o.count);
                             if (result == 0) {
-                                return this.value.compareTo(o.value);
+                            	if (this.value == null) {
+                            		if (o.value == null) {
+                            			return 0;
+                            		} else {
+                            			return -1;
+                            		}
+                            	} else {
+                            		return this.value.compareTo(o.value);
+                            	}
                             } else {
                                 return result;
                             }

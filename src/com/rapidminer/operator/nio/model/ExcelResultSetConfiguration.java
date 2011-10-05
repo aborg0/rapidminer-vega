@@ -22,7 +22,6 @@
  */
 package com.rapidminer.operator.nio.model;
 
-import static com.rapidminer.operator.nio.ExcelExampleSource.PARAMETER_EXCEL_FILE;
 import static com.rapidminer.operator.nio.ExcelExampleSource.PARAMETER_SHEET_NUMBER;
 
 import java.io.File;
@@ -77,9 +76,12 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 		if (excelExampleSource.isParameterSet(PARAMETER_SHEET_NUMBER)) {
 			this.sheet = excelExampleSource.getParameterAsInt(PARAMETER_SHEET_NUMBER) - 1;
 		}
-		if (excelExampleSource.isParameterSet(PARAMETER_EXCEL_FILE)) {
-			this.workbookFile = excelExampleSource.getParameterAsFile(PARAMETER_EXCEL_FILE);
-		}
+    	if (excelExampleSource.isFileSpecified()) {
+    		this.workbookFile = excelExampleSource.getSelectedFile();
+        }
+//		if (excelExampleSource.isParameterSet(PARAMETER_EXCEL_FILE)) {
+//			this.workbookFile = excelExampleSource.getParameterAsFile(PARAMETER_EXCEL_FILE);
+//		}
 
 		isEmulatingOldNames = excelExampleSource.getCompatibilityLevel().isAtMost(ExcelExampleSource.CHANGE_5_0_11_NAME_SCHEMA);
 	}

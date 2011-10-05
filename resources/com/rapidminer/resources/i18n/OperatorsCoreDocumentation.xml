@@ -8297,5 +8297,12 @@ Thomas Breuel, Faisal Shafait. The Learning Workshop, Cliff Lodge, Snowbird, Uta
       </help>
       <key>select_recall</key>
    </operator>
+
+   <operator>
+      <name>Open File</name>
+      <synopsis>Opens a file for processing by parsing operators.</synopsis>
+      <help>Opens a file for processing by parsing operators.</help>
+      <key>open_file</key>
+   </operator>
      
 </operatorHelp>

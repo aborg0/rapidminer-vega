@@ -554,6 +554,11 @@
          <group key="files">
             <icon>floppy_disk.png</icon>
             <operator>
+               <key>open_file</key>
+               <class>com.rapidminer.operator.nio.file.LoadFileOperator</class>
+            </operator>
+            
+            <operator>
                <key>write_message</key>
                <class>com.rapidminer.operator.FileEchoOperator</class>
                <replaces>FileEcho</replaces>
