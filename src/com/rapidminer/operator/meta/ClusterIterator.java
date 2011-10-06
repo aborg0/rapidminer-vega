@@ -93,6 +93,7 @@ public class ClusterIterator extends OperatorChain {
 		for (int i = 0; i < numberOfClusters; i++) {
 			splitted.selectSingleSubset(i);
 
+			clearAllInnerSinks();
 			subsetInnerSource.deliver(splitted);
 			inputExtender.passCloneThrough();
 			super.doWork();

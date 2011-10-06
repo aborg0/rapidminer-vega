@@ -31,6 +31,7 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.SimpleProcessSetupError;
 import com.rapidminer.operator.ProcessSetupError.Severity;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
@@ -129,11 +130,20 @@ public class PartitionOperator extends Operator {
 	@Override
 	public void doWork() throws OperatorException {
 		String[] ratioList = ParameterTypeEnumeration.transformString2Enumeration(getParameterAsString(PARAMETER_PARTITIONS));
+		
+		if (ratioList.length == 0) {
+			throw new UserError(this, 217, PARAMETER_PARTITIONS, getName(), "");
+		}
+		
 		double[] ratios = new double[ratioList.length];
 		int i = 0;
 		double sum = 0;
 		for (String entry : ratioList) {
-			ratios[i] = Double.valueOf(entry);
+			try {
+				ratios[i] = Double.valueOf(entry);
+			} catch(NumberFormatException e) {
+				throw new UserError(this, 211, PARAMETER_PARTITIONS, entry);
+			}
 			sum += ratios[i];
 			i++;
 		}

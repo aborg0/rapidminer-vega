@@ -40,7 +40,7 @@ import com.rapidminer.tools.I18N;
 public class OperatorException extends Exception {
 	private static final long serialVersionUID = 3626738574540303240L;
 
-	private static ResourceBundle messages = I18N.getErrorBundle();
+	private static ResourceBundle messages = I18N.getUserErrorMessagesBundle(); //ErrorBundle();
 	private static final MessageFormat formatter = new MessageFormat("");
 	
 	public OperatorException(String message) {

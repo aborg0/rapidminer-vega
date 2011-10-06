@@ -55,9 +55,12 @@ import com.rapidminer.operator.UnknownParameterInformation;
 import com.rapidminer.operator.io.AbstractReader;
 import com.rapidminer.operator.io.RepositorySource;
 import com.rapidminer.operator.meta.ProcessEmbeddingOperator;
+import com.rapidminer.operator.nio.file.LoadFileOperator;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.OutputPorts;
+import com.rapidminer.repository.BlobEntry;
+import com.rapidminer.repository.DataEntry;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.RepositoryLocation;
@@ -67,7 +70,7 @@ import com.rapidminer.tools.OperatorService;
 /** Transfer handler that supports dragging and dropping operators.
  *  TODO: Implement RepositoryLocation so this handles creation of the operator, rather than, e.g. the 
  *    NewOperatorTree, which cannot resolve relative locations.
- * @author Simon Fischer
+ * @author Simon Fischer, Marius Helf
  *
  */
 public abstract class ReceivingOperatorTransferHandler extends OperatorTransferHandler {
@@ -213,34 +216,37 @@ public abstract class ReceivingOperatorTransferHandler extends OperatorTransferH
 		} else if (acceptedFlavor.equals(TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR)) {
 			if (transferData instanceof RepositoryLocation) {
 				RepositoryLocation repositoryLocation = (RepositoryLocation)transferData;
-				// true if ioobject is selected, false if process entry
-				boolean createSource;
+				Entry entry;
+				
 				try {
-					Entry entry = repositoryLocation.locateEntry();
-					if (entry instanceof ProcessEntry) {
-						createSource = false;
-					} else {
-						createSource = true;
-					}
+					entry = repositoryLocation.locateEntry();
 				} catch (Exception e) {
-					createSource = true;
+					// no valid entry
+					return false;
 				}
+				
 				String resolvedLocation;					
 				if (getProcess().getRepositoryLocation() != null) {
 					resolvedLocation = repositoryLocation.makeRelative(getProcess().getRepositoryLocation().parent());
 				} else {
 					resolvedLocation = repositoryLocation.getAbsoluteLocation();
 				}
-				if (createSource) {					
-					try {						
-						RepositorySource source = OperatorService.createOperator(RepositorySource.class);						
-						source.setParameter(RepositorySource.PARAMETER_REPOSITORY_ENTRY, resolvedLocation);
+				if (!(entry instanceof DataEntry)) {
+					// can't handle non-data entries (like folders)
+					return false;
+				} else if (entry instanceof BlobEntry) {
+					// create Retrieve Blob operator
+					try {				
+						LoadFileOperator source = OperatorService.createOperator(LoadFileOperator.class);						
+						source.setParameter(LoadFileOperator.PARAMETER_REPOSITORY_LOCATION, resolvedLocation);
+						source.setParameter(LoadFileOperator.PARAMETER_SOURCE_TYPE, String.valueOf(LoadFileOperator.SOURCE_TYPE_REPOSITORY));
 						newOperators = Collections.<Operator>singletonList(source);
 					} catch (OperatorCreationException e1) {
 						LogService.getRoot().log(Level.WARNING, "Cannot create RepositorySource: "+e1, e1);
 						return false;
 					}					
-				} else {
+				} else if (entry instanceof ProcessEntry) {
+					// create Execute Process operator
 					try {
 						ProcessEmbeddingOperator embedder = OperatorService.createOperator(ProcessEmbeddingOperator.class);
 						embedder.setParameter(ProcessEmbeddingOperator.PARAMETER_PROCESS_FILE, resolvedLocation);
@@ -249,6 +255,16 @@ public abstract class ReceivingOperatorTransferHandler extends OperatorTransferH
 						LogService.getRoot().log(Level.WARNING, "Cannot create RepositorySource: "+e1, e1);
 						return false;
 					}
+				} else {
+					// create Retrieve operator
+					try {						
+						RepositorySource source = OperatorService.createOperator(RepositorySource.class);						
+						source.setParameter(RepositorySource.PARAMETER_REPOSITORY_ENTRY, resolvedLocation);
+						newOperators = Collections.<Operator>singletonList(source);
+					} catch (OperatorCreationException e1) {
+						LogService.getRoot().log(Level.WARNING, "Cannot create RepositorySource: "+e1, e1);
+						return false;
+					}					
 				}
 			} else {
 				LogService.getRoot().warning("Expected RepositoryLocation for data flavor "+acceptedFlavor);

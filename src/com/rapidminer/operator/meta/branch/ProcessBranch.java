@@ -180,6 +180,7 @@ public class ProcessBranch extends OperatorChain {
 			throw new UserError(this, e, 904, new Object[] { selectedConditionName, e });
 		}
 
+		clearAllInnerSinks();
 		if (condition != null) {
 			// checking condition
 			String conditionValue = null;

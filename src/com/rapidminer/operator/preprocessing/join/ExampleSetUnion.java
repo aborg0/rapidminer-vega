@@ -64,6 +64,7 @@ public class ExampleSetUnion extends Operator {
 		ExampleSet exampleSet2 = exampleSet2Input.getData();
 		try {
 			ExampleSetSuperset supersetOperator = OperatorService.createOperator(ExampleSetSuperset.class);
+			supersetOperator.setParameter(ExampleSetSuperset.PARAMETER_INCLUDE_SPECIAL_ATTRIBUTES, "true");
 			ExampleSetMerge mergeOperator = OperatorService.createOperator(ExampleSetMerge.class);
 			
 			supersetOperator.superset(exampleSet1, exampleSet2);

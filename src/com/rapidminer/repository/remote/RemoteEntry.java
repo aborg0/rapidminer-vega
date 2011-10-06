@@ -71,14 +71,14 @@ public abstract class RemoteEntry implements Entry {
 		this.owner = response.getUser();
 		this.containingFolder = container;
 		this.repository = repository;
+		if (location == null) {
+			throw new NullPointerException("Location cannot be null");
+		}
 		int lastSlash = location.lastIndexOf('/');
 		if (lastSlash == -1) {
 			name = location;
 		} else {
 			name = location.substring(lastSlash+1);
-		}
-		if (location == null) {
-			throw new NullPointerException("Location cannot be null");
 		}
 		if (repository != null) {
 			repository.register(this);

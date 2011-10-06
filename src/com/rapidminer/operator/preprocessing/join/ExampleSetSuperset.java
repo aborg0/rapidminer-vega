@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator.preprocessing.join;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -32,6 +33,7 @@ import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
@@ -39,6 +41,8 @@ import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetUnionRule;
 import com.rapidminer.operator.ports.metadata.SetRelation;
+import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
@@ -48,10 +52,12 @@ import com.rapidminer.tools.OperatorResourceConsumptionHandler;
  * to missing. This operator only works on the regular attributes and will not change, add,
  * or otherwise modify the existing special attributes.
  * 
- * @author Ingo Mierswa
+ * @author Ingo Mierswa, Marius Helf
  */
 public class ExampleSetSuperset extends Operator {
 
+	public static final String PARAMETER_INCLUDE_SPECIAL_ATTRIBUTES = "include_special_attributes";
+	
 	private InputPort exampleSet1Input = getInputPorts().createPort("example set 1", ExampleSet.class);
 	private InputPort exampleSet2Input = getInputPorts().createPort("example set 2", ExampleSet.class);
 	private OutputPort supersetOutput1 = getOutputPorts().createPort("superset 1");
@@ -75,49 +81,65 @@ public class ExampleSetSuperset extends Operator {
 		});
 	}
 
-	public void superset(ExampleSet exampleSet1, ExampleSet exampleSet2) {		
+	public void superset(ExampleSet exampleSet1, ExampleSet exampleSet2) throws OperatorException {
+		boolean includeSpecials = getParameterAsBoolean(PARAMETER_INCLUDE_SPECIAL_ATTRIBUTES);
+		
 		// determine attributes missing in ES 1
-		List<Attribute> newAttributesForES1 = new LinkedList<Attribute>();
-		for (Attribute attribute : exampleSet2.getAttributes()) {
-			if (exampleSet1.getAttributes().get(attribute.getName()) == null) {
-				newAttributesForES1.add(AttributeFactory.createAttribute(attribute.getName(), attribute.getValueType()));
-			}
-		}
+		List<Attribute> newAttributesForES1 = findMissingAttributes(exampleSet1, exampleSet2, includeSpecials);
 
 		// determine attributes missing in ES 2
-		List<Attribute> newAttributesForES2 = new LinkedList<Attribute>();
-		for (Attribute attribute : exampleSet1.getAttributes()) {
-			if (exampleSet2.getAttributes().get(attribute.getName()) == null) {
-				newAttributesForES2.add(AttributeFactory.createAttribute(attribute.getName(), attribute.getValueType()));
-			}
-		}		
+		List<Attribute> newAttributesForES2 = findMissingAttributes(exampleSet2, exampleSet1, includeSpecials);
 
 		// add new attributes to ES 1
+		addNewAttributes(exampleSet1, exampleSet2, includeSpecials, newAttributesForES1);
+
+		// add new attributes to ES 2
+		addNewAttributes(exampleSet2, exampleSet1, includeSpecials, newAttributesForES2);
+	}
+
+	private void addNewAttributes(ExampleSet exampleSet1, ExampleSet exampleSet2, boolean includeSpecials, List<Attribute> newAttributesForES1) {
 		for (Attribute attribute : newAttributesForES1) {
 			exampleSet1.getExampleTable().addAttribute(attribute);
 			exampleSet1.getAttributes().addRegular(attribute);
+			if (includeSpecials) {
+				// set correct role
+				exampleSet1.getAttributes().setSpecialAttribute(attribute, exampleSet2.getAttributes().getRole(attribute.getName()).getSpecialName());
+			}
 		}
-
-		// add new attributes to ES 2
-		for (Attribute attribute : newAttributesForES2) {
-			exampleSet2.getExampleTable().addAttribute(attribute);
-			exampleSet2.getAttributes().addRegular(attribute);
-		}
-
-
+		
 		// set all values to missing for ES 1
 		for (Example example : exampleSet1) {
 			for (Attribute attribute : newAttributesForES1) {
 				example.setValue(attribute, Double.NaN);
 			}
 		}
+	}
 
-		// set all values to missing for ES 2
-		for (Example example : exampleSet2) {
-			for (Attribute attribute : newAttributesForES2) {
-				example.setValue(attribute, Double.NaN);
+	private List<Attribute> findMissingAttributes(ExampleSet exampleSet1, ExampleSet exampleSet2, boolean includeSpecials) throws UserError {
+		List<Attribute> newAttributesForES1 = new LinkedList<Attribute>();
+		Iterator<Attribute> iterator;
+		if (includeSpecials) {
+			iterator = exampleSet2.getAttributes().allAttributes();
+		} else {
+			iterator = exampleSet2.getAttributes().iterator();
+		}
+		while (iterator.hasNext()) {
+			Attribute attribute = iterator.next();
+			Attribute correspondingAttribute = exampleSet1.getAttributes().get(attribute.getName());
+			if (correspondingAttribute == null) {
+				newAttributesForES1.add(AttributeFactory.createAttribute(attribute.getName(), attribute.getValueType()));
+			} else {
+				// Attribute already present in both sets. Check if roles are the same: 
+				if (includeSpecials) {
+					String thisRole =  exampleSet2.getAttributes().getRole(attribute).getSpecialName();
+					String otherRole = exampleSet1.getAttributes().getRole(correspondingAttribute).getSpecialName();
+					if ( !(thisRole == null ? otherRole == null : thisRole.equals(otherRole)) ) {
+						throw new UserError(this, "superset.incompatible_roles", correspondingAttribute.getName(), thisRole != null ? thisRole : "regular", otherRole != null ? otherRole : "regular");
+					}
+				}
 			}
 		}
+		return newAttributesForES1;
 	}
 
 	@Override
@@ -132,5 +154,15 @@ public class ExampleSetSuperset extends Operator {
 	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPorts().getPortByIndex(0), ExampleSetSuperset.class, null);
+	}
+	
+	@Override
+	public List<ParameterType> getParameterTypes() {
+		List<ParameterType> types = super.getParameterTypes();
+		
+		ParameterType type = new ParameterTypeBoolean(PARAMETER_INCLUDE_SPECIAL_ATTRIBUTES, "Indicates if special attributes are to be considered. Note that an error will be thrown if two differently named or typed attributes with the same role exist.", false);
+		types.add(type);
+		
+		return types;
 	}
 }

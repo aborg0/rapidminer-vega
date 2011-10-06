@@ -56,6 +56,7 @@ public class SimpleOperatorChain extends OperatorChain {
 	
 	@Override
 	public void doWork() throws OperatorException {
+		clearAllInnerSinks();
 		inputExtender.passDataThrough();
 		super.doWork();
 		outputExtender.passDataThrough();

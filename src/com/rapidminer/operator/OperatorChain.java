@@ -362,10 +362,20 @@ public abstract class OperatorChain extends Operator {
 
 	// -------------------- implemented abstract methods
 
+
+	/**
+	 * Clears all sinks of all inner processes
+	 */
+	protected void clearAllInnerSinks() {
+		for (ExecutionUnit subprocess : subprocesses) {
+			subprocess.getInnerSinks().clear(Port.CLEAR_DATA);
+		}
+	}
+	
+	
 	@Override
 	public void doWork() throws OperatorException {		
 		for (ExecutionUnit subprocess : subprocesses) {
-			subprocess.getInnerSinks().clear(Port.CLEAR_DATA);
 			subprocess.execute();
 		}
 	}

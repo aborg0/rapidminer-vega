@@ -82,9 +82,14 @@ public class ExcelResultSet implements DataResultSet {
 		currentRow = configuration.getRowOffset() - 1;
 		
 		// check range
-		if (columnOffset > configuration.getColumnLast() || rowOffset > configuration.getRowLast())
+		if (columnOffset > configuration.getColumnLast() || rowOffset > configuration.getRowLast() || columnOffset < 0 || rowOffset < 0)
 			throw new UserError(callingOperator, 223, Tools.getExcelColumnName(columnOffset) + rowOffset + ":" + Tools.getExcelColumnName(configuration.getColumnLast()) + configuration.getRowLast());
 		
+		// check file presence
+		if (configuration.getFile() == null) {
+			throw new UserError(callingOperator, "file_consumer.no_file_defined");
+		}
+
 		// load the excelWorkbook if it is not set
 		try {
 			workbook = configuration.getWorkbook();

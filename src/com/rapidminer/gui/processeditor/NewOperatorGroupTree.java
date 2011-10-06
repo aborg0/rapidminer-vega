@@ -339,12 +339,13 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
                 case KeyEvent.VK_SPACE:
                 	if (getSelectedOperator() != null) {
 	                    insertSelected();
-	                    e.consume();
-	                    return;
                 	} else {
                 		// folder or nothing selected
+                		
                 		TreePath path = operatorGroupTree.getSelectionPath();
                 		if (path != null) {
+                			// folder selected
+                		
                 			if (operatorGroupTree.isExpanded(path)) {
                 				operatorGroupTree.collapsePath(path);
                 			} else {
@@ -352,6 +353,8 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
                 			}
                 		}
                 	}
+                	e.consume();
+                	return;
                 }
             }
 

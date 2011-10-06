@@ -25,11 +25,17 @@ package com.rapidminer.operator.meta;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.rapidminer.operator.ExecutionUnit;
+import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
-import com.rapidminer.operator.SimpleOperatorChain;
 import com.rapidminer.operator.Value;
-import com.rapidminer.operator.ports.OutputPort;
+import com.rapidminer.operator.ports.InputPorts;
+import com.rapidminer.operator.ports.MultiInputPortPairExtender;
+import com.rapidminer.operator.ports.MultiOutputPortPairExtender;
+import com.rapidminer.operator.ports.OutputPorts;
+import com.rapidminer.operator.ports.Port;
+import com.rapidminer.operator.ports.metadata.SubprocessTransformRule;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeString;
 
@@ -44,17 +50,37 @@ import com.rapidminer.parameter.ParameterTypeString;
  * it can be used to handle exceptions in the analysis process (i.e. expected errors).
  * </p>
  *   
- * @author Ingo Mierswa
+ * @author Ingo Mierswa, Marius Helf
  */
-public class ExceptionHandling extends SimpleOperatorChain {
+public class ExceptionHandling extends OperatorChain {
 	
 	public static final String PARAMETER_EXCEPTION_MACRO = "exception_macro";
 
 	private boolean withoutError = true;
 	private Exception exception;
 	
+	private static final int TRY_SUBPROCESS = 0;
+	private static final int CATCH_SUBPROCESS = 1;
+
+	private final MultiOutputPortPairExtender inputExtender = new MultiOutputPortPairExtender("input", 
+			getInputPorts(), 
+			new OutputPorts[] { getSubprocess(0).getInnerSources(), getSubprocess(1).getInnerSources() });
+	private final MultiInputPortPairExtender outputExtender = new MultiInputPortPairExtender("input",
+			getOutputPorts(),
+			new InputPorts[] { getSubprocess(0).getInnerSinks(), getSubprocess(1).getInnerSinks() });
+
+	
 	public ExceptionHandling(OperatorDescription description) {
-		super(description);
+		super(description, "Try", "Catch");
+		
+		inputExtender.start();
+		getTransformer().addRule(inputExtender.makePassThroughRule());
+		getTransformer().addRule(new SubprocessTransformRule(getSubprocess(0)));
+		getTransformer().addRule(new SubprocessTransformRule(getSubprocess(1)));
+		getTransformer().addRule(outputExtender.makePassThroughRule());
+		outputExtender.start();
+
+		
 		addValue(new Value("success", "Indicates whether the execution was successful") {
 			@Override
 			public Object getValue() {
@@ -83,8 +109,16 @@ public class ExceptionHandling extends SimpleOperatorChain {
 	public void doWork() throws OperatorException {
 		withoutError = true;
 		exception = null;
+
+		ExecutionUnit tryProcess = getSubprocess(TRY_SUBPROCESS);
+		ExecutionUnit catchProcess = getSubprocess(CATCH_SUBPROCESS);
+		tryProcess.getInnerSinks().clear(Port.CLEAR_DATA);
+		catchProcess.getInnerSinks().clear(Port.CLEAR_DATA);
+		
+		inputExtender.passDataThrough();
 		try {			
-			super.doWork();
+			tryProcess.execute();
+			outputExtender.passDataThrough(TRY_SUBPROCESS);
 		} catch (Exception e) {
 			logWarning("Error occurred and will be neglected by " + getName() + ": " + e.getMessage());
 			if (isParameterSet(PARAMETER_EXCEPTION_MACRO)) {
@@ -92,9 +126,9 @@ public class ExceptionHandling extends SimpleOperatorChain {
 			}
 			withoutError = false;
 			this.exception = e;
-			for (OutputPort port : getOutputPorts().getAllPorts()) {
-				port.deliver(null);
-			}
+			
+			catchProcess.execute();
+			outputExtender.passDataThrough(CATCH_SUBPROCESS);
 		}
 	}
 	

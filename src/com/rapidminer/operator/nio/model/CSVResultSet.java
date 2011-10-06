@@ -121,7 +121,12 @@ public class CSVResultSet implements DataResultSet {
         } catch (MalformedURLException e) {
             // URL did not work? Try as file...
             try {
-                return new FileInputStream(configuration.getCsvFile());
+            	String csvFile = configuration.getCsvFile();
+            	if (csvFile == null) {
+            		throw new UserError(this.operator, "file_consumer.no_file_defined");
+            	}
+            	
+                return new FileInputStream(csvFile);
             } catch (FileNotFoundException e1) {
                 throw new UserError(operator, 301, e1, configuration.getCsvFile());
             }

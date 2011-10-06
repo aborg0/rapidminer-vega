@@ -38,6 +38,7 @@ import org.w3c.dom.NodeList;
 
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.nio.model.DataResultSet;
 import com.rapidminer.operator.nio.model.ParseException;
 import com.rapidminer.operator.nio.model.ParsingError;
@@ -74,10 +75,13 @@ public class XMLResultSet implements DataResultSet {
         // generating Example's expression
         XPathExpression exampleExpression = null;
         try {
-            exampleExpression = xpath.compile(configuration.getExampleXPath());
+        	String exampleXPath = configuration.getExampleXPath();
+        	if (exampleXPath == null) {
+        		throw new UserError(callingOperator, 217, XMLExampleSource.PARAMETER_XPATH_FOR_EXAMPLES, callingOperator.getName(), "");
+        	}
+            exampleExpression = xpath.compile(exampleXPath);
         } catch (XPathExpressionException e1) {
-            e1.printStackTrace();
-            // TODO
+        	throw new UserError(null, 214, configuration.getExampleXPath());
         }
 
         // generating Attribute's expressions

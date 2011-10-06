@@ -69,10 +69,12 @@ import com.rapidminer.operator.ProcessRootOperator;
 import com.rapidminer.operator.ProcessStoppedException;
 import com.rapidminer.operator.UnknownParameterInformation;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.nio.file.RepositoryBlobObject;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.Port;
 import com.rapidminer.report.ReportStream;
+import com.rapidminer.repository.BlobEntry;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.MalformedRepositoryLocationException;
@@ -723,6 +725,9 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
                         if (entry instanceof IOObjectEntry) {
                             getLogger().info("Assigning " + loc + " to input port " + port.getSpec() + ".");
                             port.deliver(((IOObjectEntry) entry).retrieveData(null));
+                        } else if (entry instanceof BlobEntry) {
+                            getLogger().info("Assigning " + loc + " to input port " + port.getSpec() + ".");
+                            port.deliver(new RepositoryBlobObject(loc));
                         } else {
                             getLogger().info("Cannot assigning " + loc + " to input port " + port.getSpec() + ": Repository location does not reference an IOObject entry.");
                             throw new UserError(rootOperator, 312, loc, "Not an IOObject entry.");

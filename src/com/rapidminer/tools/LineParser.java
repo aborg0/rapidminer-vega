@@ -549,7 +549,7 @@ public class LineParser {
 			} else {
 				errorLastFewReadChars = tempString.substring(tempString.length()-10).toString();
 			}
-			throw new IllegalArgumentException(errorMessage + " at position " + errorColumnIndex + ". Last characters read: " + errorLastFewReadChars);
+			throw new CSVParseException(errorMessage + " at position " + errorColumnIndex + ". Last characters read: " + errorLastFewReadChars);
 		} else {
 			// add the last string to the list
 			if (tempString.length() > 0) {

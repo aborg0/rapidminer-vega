@@ -4604,10 +4604,23 @@
             delivers their paths and names as macro to the inner operators.
         </synopsis>
         <help>This operator iterates over the files in the specified directory
-            (and subdirectories if the corresponding parameter is set to true).
+            (and subdirectories if the corresponding parameter is set to true).<br/>
+            Each file is delivered as FileObject to the
+        	subprocess at the respective inner port.
         </help>
-    <key>loop_files</key>
-  </operator>
+        <key>loop_files</key>
+    </operator>
+    <operator>
+        <name>Loop Zip-File Entries</name>
+        <synopsis>This operator loops over the entries of a zip file.
+        </synopsis>
+        <help>This operator loops over the entries of a zip file. Depending on the parameters
+        loops only file and/or directory entries and filters the files by name.<br/>
+        Each entry is delivered as FileObject to the
+        subprocess at the respective inner port.
+        </help>
+        <key>loop_zipfile_entries</key>
+    </operator>
     <operator>
         <name>Loop Parameters</name>
         <synopsis>This operator just iterates through all defined parameter

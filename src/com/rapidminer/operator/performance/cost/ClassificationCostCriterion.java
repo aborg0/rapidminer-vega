@@ -46,6 +46,44 @@ public class ClassificationCostCriterion extends MeasuredPerformance {
     Attribute label;
     Attribute predictedLabel;
     private Map<String, Integer> classOrderMap = null;
+    
+    /**
+     * Clone constructor
+     * @param other the object to be cloned from
+     */
+    public ClassificationCostCriterion(ClassificationCostCriterion other ) {
+    	this.exampleCount = other.exampleCount;
+    	this.costs = other.costs;
+    	if (other.label != null) {
+    		this.label = (Attribute)other.label.clone();
+    	} else {
+    		this.label = null;
+    	}
+
+    	if (other.predictedLabel != null) {
+    		this.predictedLabel = (Attribute)other.predictedLabel.clone();
+    	} else {
+    		this.predictedLabel = null;
+    	}
+    	
+    	this.classOrderMap.putAll(other.classOrderMap);
+    	
+    	if (other.costMatrix != null) {
+    		this.costMatrix = new double[other.costMatrix.length][];
+    		for (int i = 0; i < other.costMatrix.length; ++i) {
+    			if (other.costMatrix[i] != null) {
+    				this.costMatrix[i] = new double[other.costMatrix[i].length];
+    				for (int j = 0; j < other.costMatrix[i].length; ++j) {
+    					this.costMatrix[i][j] = other.costMatrix[i][j];
+    				}
+    			} else {
+    				this.costMatrix[i] = null;
+    			}
+    		}
+    	} else {
+    		this.costMatrix = null;
+    	}
+    }
 
     /**
      * This constructor is for counting with the order respective to the internal nominal mapping.

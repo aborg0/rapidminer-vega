@@ -32,6 +32,7 @@ import com.rapidminer.ProcessContext;
 import com.rapidminer.ProcessListener;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.operator.ProcessSetupError.Severity;
+import com.rapidminer.operator.nio.file.FileObject;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.OutputPortExtender;
@@ -47,6 +48,7 @@ import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.parameter.conditions.NonEqualTypeCondition;
+import com.rapidminer.repository.BlobEntry;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.RepositoryException;
@@ -144,6 +146,8 @@ public final class ProcessRootOperator extends OperatorChain {
                                     addError(new SimpleProcessSetupError(Severity.WARNING, getPortOwner(), "repository_location_does_not_exist", location));
                                 } else if (entry instanceof IOObjectEntry) {
                                     port.deliverMD(((IOObjectEntry)entry).retrieveMetaData());
+                                } else if (entry instanceof BlobEntry) {
+                                	port.deliverMD(new MetaData(FileObject.class));
                                 } else {
                                     addError(new SimpleProcessSetupError(Severity.WARNING, getPortOwner(), "repository_location_wrong_type", location, entry.getType(), "IOObject"));
                                 }

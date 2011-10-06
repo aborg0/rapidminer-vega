@@ -249,6 +249,10 @@ public class XMLResultSetConfiguration implements DataResultSetFactory {
             domFactory.setNamespaceAware(isNamespaceAware());
             try {
                 DocumentBuilder builder = domFactory.newDocumentBuilder();
+                String resourceIdentifier = getResourceIdentifier();
+                if (resourceIdentifier == null) {
+                	throw new UserError(null, "file_consumer.no_file_defined");
+                }
                 this.prefetchedDocument = builder.parse(getResourceIdentifier());
                 return prefetchedDocument;
             } catch (ParserConfigurationException e) {
