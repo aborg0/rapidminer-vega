@@ -396,7 +396,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	 * @param preAuthHeader If set, the Authorization: header will be set to basic auth. Otherwise, the {@link GlobalAuthenticator} mechanism
 	 *  will be used. 
 	 *  @param type can be null*/
-	public HttpURLConnection getHTTPConnection(String location, EntryStreamType type, boolean preAuthHeader) throws IOException {
+	public HttpURLConnection getResourceHTTPConnection(String location, EntryStreamType type, boolean preAuthHeader) throws IOException {
 		String split[] = location.split("/");
 		StringBuilder encoded = new StringBuilder();
 		encoded.append("RAWS/resources");
@@ -409,14 +409,16 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		if (type == EntryStreamType.METADATA) {
 			encoded.append("?format=binmeta");
 		}
-		final HttpURLConnection conn = (HttpURLConnection) new URL(getBaseUrl(), encoded.toString()).openConnection();
+		return getHTTPConnection(encoded.toString(), preAuthHeader);
+	}
 
+	public HttpURLConnection getHTTPConnection(String pathInfo, boolean preAuthHeader) throws IOException {
+		final HttpURLConnection conn = (HttpURLConnection) new URL(getBaseUrl(), pathInfo).openConnection();
 		if (preAuthHeader) {
 			String userpass = username + ":" + new String(password);
 			String basicAuth = "Basic " + new String(Base64.encodeBytes(userpass.getBytes()));
 			conn.setRequestProperty ("Authorization", basicAuth);
-		}
-		
+		}		
 		return conn;
 	}
 

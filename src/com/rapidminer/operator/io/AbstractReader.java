@@ -128,9 +128,14 @@ public abstract class AbstractReader<T extends IOObject> extends Operator {
 	protected void addAnnotations(T result) {
 		for (ReaderDescription rd : READER_DESCRIPTIONS.values()) {
 			if (rd.readerClass.equals(this.getClass())) {
-				try {
-					result.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, getParameter(rd.fileParameterKey));
-				} catch (UndefinedParameterError e) { }
+				if (result.getAnnotations().getAnnotation(Annotations.KEY_SOURCE) == null) {
+					try {					 
+						String source = getParameter(rd.fileParameterKey);
+						if (source != null) {
+							result.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, source);
+						}
+					} catch (UndefinedParameterError e) { }
+				}
 				return;
 			}
 		}

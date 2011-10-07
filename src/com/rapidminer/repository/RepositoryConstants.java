@@ -73,5 +73,7 @@ public interface RepositoryConstants {
 	public static final int VERSION_OUT_OF_DATE = -20;
 	
 	public static final int NO_SUCH_USER = -21;
+	
+	public static final int PROCESS_FAILED = -22;
 
 }

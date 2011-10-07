@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.csv.LineReader;
 import com.rapidminer.operator.Operator;
@@ -146,7 +147,14 @@ public class CSVResultSet implements DataResultSet {
                     break;
                 }
             } catch (CSVParseException e) {
-                getErrors().add(new ParsingError(currentRow, -1, ErrorCode.FILE_SYNTAX_ERROR, line, e));
+            	ParsingError parsingError = new ParsingError(currentRow, -1, ErrorCode.FILE_SYNTAX_ERROR, line, e);
+                getErrors().add(parsingError);
+                String warning = "Could not parse line " + currentRow + " in input: " + e.toString();
+                if (operator != null) {
+                	operator.logWarning(warning);
+                } else {
+                	Logger.getLogger(getClass().getName()).warning(warning);
+                }
                 next = new String[] { line };
             }
         } while (true);

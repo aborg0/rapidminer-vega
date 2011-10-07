@@ -61,7 +61,7 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 			l.setTotal(100);
 		}
 		try {
-			HttpURLConnection connection = getRepository().getHTTPConnection(getLocation().getPath(), EntryStreamType.IOOBJECT, false);
+			HttpURLConnection connection = getRepository().getResourceHTTPConnection(getLocation().getPath(), EntryStreamType.IOOBJECT, false);
 			connection.setDoInput(true);
 			connection.setDoOutput(false);
 			connection.setRequestMethod("GET");
@@ -97,7 +97,7 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 			}
 			// otherwise metaData == null OR get() == null
 			try {
-				HttpURLConnection connection = getRepository().getHTTPConnection(getLocation().getPath(), EntryStreamType.METADATA, false);
+				HttpURLConnection connection = getRepository().getResourceHTTPConnection(getLocation().getPath(), EntryStreamType.METADATA, false);
 				connection.setRequestMethod("GET");
 				InputStream in;
 				try {
@@ -131,7 +131,7 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 
 		HttpURLConnection conn;
 		try {
-			conn = repository.getHTTPConnection(location, EntryStreamType.IOOBJECT, false);
+			conn = repository.getResourceHTTPConnection(location, EntryStreamType.IOOBJECT, false);
 		} catch (IOException e1) {
 			throw new RepositoryException("Cannot store object at " + location + ": " + e1, e1);
 		}

@@ -58,7 +58,7 @@ public class RemoteBlobEntry extends RemoteDataEntry implements BlobEntry {
 	@Override
 	public InputStream openInputStream() throws RepositoryException {
 		try {
-			HttpURLConnection conn = getRepository().getHTTPConnection(getLocation().getPath(), EntryStreamType.BLOB, false);
+			HttpURLConnection conn = getRepository().getResourceHTTPConnection(getLocation().getPath(), EntryStreamType.BLOB, false);
 			conn.setDoOutput(false);
 			conn.setDoInput(true);
 			try {
@@ -76,7 +76,7 @@ public class RemoteBlobEntry extends RemoteDataEntry implements BlobEntry {
 	public OutputStream openOutputStream(String mimeType) throws RepositoryException {
 		this.mimeType = mimeType;
 		try {
-			final HttpURLConnection conn = getRepository().getHTTPConnection(getLocation().getPath(), EntryStreamType.BLOB, false);
+			final HttpURLConnection conn = getRepository().getResourceHTTPConnection(getLocation().getPath(), EntryStreamType.BLOB, false);
 			conn.setDoOutput(true);
 			conn.setDoInput(true);
 			conn.setRequestProperty("Content-Type", mimeType);

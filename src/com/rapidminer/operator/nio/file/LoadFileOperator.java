@@ -51,10 +51,10 @@ public class LoadFileOperator extends Operator {
 
 	public static final String PARAMETER_FILENAME = "filename";
 	public static final String PARAMETER_URL = "url";
-	public static final String PARAMETER_REPOSITORY_LOCATION = "repository location";
+	public static final String PARAMETER_REPOSITORY_LOCATION = "repository blob entry location";
 
 	public static final String[] SOURCE_TYPES = new String[] { "file", "URL",
-			"repository entry" };
+			"repository blob entry" };
 	public static final String PARAMETER_SOURCE_TYPE = "source_type";
 	public static final int SOURCE_TYPE_FILE = 0;
 	public static final int SOURCE_TYPE_URL = 1;
@@ -135,7 +135,7 @@ public class LoadFileOperator extends Operator {
 
 		parameterTypes.add(new ParameterTypeCategory(PARAMETER_SOURCE_TYPE,
 				"Choose wether to open a file, a URL or a repository entry.",
-				SOURCE_TYPES, SOURCE_TYPE_FILE, false));
+				SOURCE_TYPES, SOURCE_TYPE_FILE, true));
 
 		ParameterTypeFile parameterTypeFile = new ParameterTypeFile(
 				PARAMETER_FILENAME, "File to open", null, true, false);

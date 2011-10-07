@@ -37,9 +37,15 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.nio.file.FileObject;
 import com.rapidminer.operator.nio.file.ZipEntryObject;
+import com.rapidminer.operator.ports.InputPort;
+import com.rapidminer.operator.ports.Port;
+import com.rapidminer.operator.ports.metadata.MetaData;
+import com.rapidminer.operator.ports.metadata.SimplePrecondition;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypeString;
+import com.rapidminer.parameter.PortProvider;
+import com.rapidminer.parameter.conditions.InputPortNotConnectedCondition;
 
 /**
  * This operator loops over the entries of a zip file.
@@ -51,8 +57,18 @@ public class ZippedFileIterator extends AbstractFileIterator {
 	public static final String PARAMETER_ZIPFILE = "filename";
 	public static final String PARAMETER_INTERNAL_DIRECTORY = "internal_directory";
 	
+	private InputPort fileInputPort = getInputPorts().createPort("file");
+
+	
 	public ZippedFileIterator(OperatorDescription description) {
 		super(description);
+
+		fileInputPort.addPrecondition(new SimplePrecondition(fileInputPort, new MetaData(FileObject.class)) {
+        	@Override
+        	protected boolean isMandatory() {
+        		return false;
+        	}
+        });
 	}
 	
 	@Override
@@ -62,14 +78,25 @@ public class ZippedFileIterator extends AbstractFileIterator {
 
 	@Override
 	protected void iterate(Object currentParent, Pattern filter, boolean iterateSubDirs, boolean iterateFiles, boolean recursive) throws OperatorException {
-		File zipFileParameter = getParameterAsFile(PARAMETER_ZIPFILE);
+		
 		ZipFile zipFile = null;
+		File physicalZipFile = null;
+		if (fileInputPort.isConnected()) {
+			FileObject zipFileObject = fileInputPort.getDataOrNull();
+			if (zipFileObject == null) {
+				throw new UserError(this, 122, FileObject.class.getName());
+			}
+			physicalZipFile = zipFileObject.getFile();
+		} else {
+			physicalZipFile = getParameterAsFile(PARAMETER_ZIPFILE);
+		}
+		
 		try {
-			zipFile = new ZipFile(zipFileParameter);
+			zipFile = new ZipFile(physicalZipFile);
 		} catch (ZipException e) {
-			throw new UserError(this, 403, zipFileParameter.getAbsolutePath() + " (" + e.getMessage() + ").");
+			throw new UserError(this, 403, physicalZipFile.getAbsolutePath() + " (" + e.getMessage() + ").");
 		} catch (IOException e) {
-			throw new UserError(this, 301, zipFileParameter.getAbsolutePath());
+			throw new UserError(this, 301, physicalZipFile.getAbsolutePath());
 		}
 		
 		String rootDirectory = getParameterAsString(PARAMETER_INTERNAL_DIRECTORY);
@@ -106,8 +133,15 @@ public class ZippedFileIterator extends AbstractFileIterator {
         List<ParameterType> types = new LinkedList<ParameterType>();
 		
 		ParameterType type;
-		
-		type = new ParameterTypeFile(PARAMETER_ZIPFILE, "The zipfile over whose entries this operator iterates.", ".zip", false, false);
+
+		type = new ParameterTypeFile(PARAMETER_ZIPFILE, "The zipfile over whose entries this operator iterates.", ".zip", true, false);
+		type.registerDependencyCondition(new InputPortNotConnectedCondition(this, new PortProvider() {
+			@Override
+			public Port getPort() {
+				return fileInputPort;
+			}
+		}, true));
+
 		types.add(type);
 		
 		type = new ParameterTypeString(PARAMETER_INTERNAL_DIRECTORY, "The directory inside the zipfile from which the entries should be taken.", "");
