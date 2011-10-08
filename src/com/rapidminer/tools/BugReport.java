@@ -172,6 +172,9 @@ public class BugReport {
 		StringBuffer buffer = new StringBuffer(completeDescription);
 		buffer.append(Tools.getLineSeparator());
         buffer.append(Tools.getLineSeparator());
+        buffer.append(getStackTrace(exception));
+        buffer.append(Tools.getLineSeparator());
+        buffer.append(Tools.getLineSeparator());
         buffer.append("RapidMiner: ");
         buffer.append(RapidMiner.getVersion());
         buffer.append(Tools.getLineSeparator());
@@ -182,11 +185,6 @@ public class BugReport {
         	buffer.append(Tools.getLineSeparator());
         }
         completeDescription = buffer.toString();
-
-        // create the exception file
-		File stackTraceFile = File.createTempFile("_exception", ".txt");
-		stackTraceFile.deleteOnExit();
-		writeFile(stackTraceFile, getStackTrace(exception));
 
         // call BugZilla via xml-rpc
         XmlRpcClient rpcClient = client;
@@ -241,28 +239,13 @@ public class BugReport {
         	attachmentMap.clear();
         }
         
-        // add error file attachment
-        attachmentMap.put("ids", new String[]{ id });
-        // BugZilla API states Base64 encoded string is needed, but it does not work
-//    	attachmentMap.put("data", Base64.encodeFromFile(stackTraceFile.getPath()));
-        FileInputStream fileInputStream = new FileInputStream(stackTraceFile);
-    	byte[] data = new byte[(int)stackTraceFile.length()];
-        fileInputStream.read(data);
-    	attachmentMap.put("data", data);
-    	attachmentMap.put("file_name", "stack-trace.txt");
-    	attachmentMap.put("summary", "stack-trace.txt");
-    	attachmentMap.put("content_type", "text/plain");
-    	
-    	createResult = (Map)rpcClient.execute("Bug.add_attachment", new Object[]{ attachmentMap });
-    	attachmentMap.clear();
-        
         // add attachments by user
         for (File file : attachments) {
         	attachmentMap.put("ids", new String[]{ id });
         	// BugZilla API states Base64 encoded string is needed, but it does not work
 //        	attachmentMap.put("data", Base64.encodeFromFile(file.getPath()));
-        	fileInputStream = new FileInputStream(file);
-        	data = new byte[(int)file.length()];
+        	FileInputStream fileInputStream = new FileInputStream(file);
+        	byte[] data = new byte[(int)file.length()];
             fileInputStream.read(data);
         	attachmentMap.put("data", data);
         	attachmentMap.put("file_name", file.getName());
