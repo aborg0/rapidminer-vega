@@ -8314,8 +8314,18 @@ Thomas Breuel, Faisal Shafait. The Learning Workshop, Cliff Lodge, Snowbird, Uta
    <operator>
       <name>Open File</name>
       <synopsis>Opens a file for processing by parsing operators.</synopsis>
-      <help>Opens a file for processing by parsing operators.</help>
+      <help>Opens a file for processing by parsing operators. Even if this file points to a data file, like Excel or CSV, this
+      operator returns an uninterpreted blob. You still need an operator for parsing the file like Read CSV or Read Excel.
+      In most cases, you don't need an OpenFile operator to open such a file, you can simply use the corresponging read operator.
+      The main use is in combination with some loop or with in a RapidAnalytics service reacting to a POST request.</help>
       <key>open_file</key>
+   </operator>
+
+   <operator>
+      <name>Write File</name>
+      <synopsis>Writes a file object to a file or to the repository as a blob.</synopsis>
+      <help>This operator writes a file object to a file or to the repository as a blob. Note that you cannot use this to save an example set, model, or other object. This is used only for uninterpreted data delivered by Open File, etc.</help>
+      <key>write_file</key>
    </operator>
      
 </operatorHelp>

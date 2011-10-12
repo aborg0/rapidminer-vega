@@ -184,7 +184,7 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 
     /** Returns either the selected file referenced by the value of the parameter with the name
      *  {@link #getFileParameterName()} or the file delivered at {@link #fileInputPort}.
-     *  Which of these options is chosen is determined by the parameter {@link #PARAMETER_SOURCE_TYPE}. 
+     *  Which of these options is chosen is determined by the parameter {@link #PARAMETER_DESTINATION_TYPE}. 
      *  */
     public File getSelectedFile() throws OperatorException {
     	if(!fileInputPort.isConnected()){

@@ -51,7 +51,7 @@ public class LoadFileOperator extends Operator {
 
 	public static final String PARAMETER_FILENAME = "filename";
 	public static final String PARAMETER_URL = "url";
-	public static final String PARAMETER_REPOSITORY_LOCATION = "repository blob entry location";
+	public static final String PARAMETER_REPOSITORY_LOCATION = "repository_entry";
 
 	public static final String[] SOURCE_TYPES = new String[] { "file", "URL",
 			"repository blob entry" };

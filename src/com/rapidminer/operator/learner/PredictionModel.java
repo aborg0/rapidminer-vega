@@ -252,12 +252,14 @@ public abstract class PredictionModel extends AbstractModel {
                 while (i.hasNext()) {
                     String value = (String) i.next();
                     Attribute currentConfidenceAttribute = source.getAttributes().getSpecial(Attributes.CONFIDENCE_NAME + "_" + value);
+                    Attribute copyOfCurrentConfidenceAttribute = AttributeFactory.createAttribute(currentConfidenceAttribute);
                     if (currentConfidenceAttribute != null) {
-                        destination.getAttributes().setSpecialAttribute(currentConfidenceAttribute, Attributes.CONFIDENCE_NAME + "_" + value);
+                        destination.getAttributes().setSpecialAttribute(copyOfCurrentConfidenceAttribute, Attributes.CONFIDENCE_NAME + "_" + value);
                     }
                 }
             }
-            destination.getAttributes().setPredictedLabel(predictedLabel);
+            Attribute copyOfPredictedLabel = AttributeFactory.createAttribute(predictedLabel);
+            destination.getAttributes().setPredictedLabel(copyOfPredictedLabel);
         }
         
         Attribute costs = source.getAttributes().getCost();

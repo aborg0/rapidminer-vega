@@ -561,6 +561,10 @@
                <key>open_file</key>
                <class>com.rapidminer.operator.nio.file.LoadFileOperator</class>
             </operator>
+            <operator>
+               <key>write_file</key>
+               <class>com.rapidminer.operator.nio.file.WriteFileOperator</class>
+            </operator>
             
             <operator>
                <key>write_message</key>
