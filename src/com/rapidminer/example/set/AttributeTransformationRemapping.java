@@ -61,12 +61,13 @@ public class AttributeTransformationRemapping implements AttributeTransformation
         		String nominalValue = attribute.getMapping().mapIndex((int)value);
         		int index = overlayedMapping.getIndex(nominalValue);
         		if (index < 0) {
-        			return value;
+        			return Double.NaN;
+        			//return value;
         		} else {
-        			return index;
+        			return index;        			
         		}
         	} catch (AttributeTypeException e) {
-        		return value;
+        		return Double.NaN;
         		//throw new AttributeTypeException("Attribute '" + attribute.getName() + "': " + e.getMessage());
         	}
         } else {

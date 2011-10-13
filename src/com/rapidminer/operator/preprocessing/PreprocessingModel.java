@@ -43,9 +43,9 @@ import com.rapidminer.tools.container.Pair;
 /**
  * Returns a more appropriate result icon. This model allows preprocessing
  * Operators to be applied through a view without changing the underlying data.
- * Since ModelApplier dont know the models, because they are wrapped within a
- * container model, its necessary to ask for the parameter PARAMETER_CREATE_VIEW.
- * This must be setted by the modelapplier, and should be the default behavior.
+ * Since Apply Model does not know the models, because they are wrapped within a
+ * container model, it is necessary to ask for the parameter PARAMETER_CREATE_VIEW.
+ * This must be set by Apply Model, and should be the default behavior.
  * 
  * @author Ingo Mierswa, Sebastian Land
  */
