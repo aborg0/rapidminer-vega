@@ -62,10 +62,10 @@ public class ExceptionHandling extends OperatorChain {
 	private static final int TRY_SUBPROCESS = 0;
 	private static final int CATCH_SUBPROCESS = 1;
 
-	private final MultiOutputPortPairExtender inputExtender = new MultiOutputPortPairExtender("input", 
+	private final MultiOutputPortPairExtender inputExtender = new MultiOutputPortPairExtender("in", 
 			getInputPorts(), 
 			new OutputPorts[] { getSubprocess(0).getInnerSources(), getSubprocess(1).getInnerSources() });
-	private final MultiInputPortPairExtender outputExtender = new MultiInputPortPairExtender("input",
+	private final MultiInputPortPairExtender outputExtender = new MultiInputPortPairExtender("out",
 			getOutputPorts(),
 			new InputPorts[] { getSubprocess(0).getInnerSinks(), getSubprocess(1).getInnerSinks() });
 

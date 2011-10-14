@@ -67,6 +67,7 @@ public class ExampleSetToDictionary extends PreprocessingOperator {
 	private static final String PARAMETER_TO_LOWERCASE = "convert_to_lowercase";
 	private static final String PARAMETER_FROM_ATTRIBUTE = "from_attribute";
 	private static final String PARAMETER_TO_ATTRIBUTE = "to_attribute";
+	private static final String PARAMETER_FIRST_MATCH_ONLY = "first_match_only";
 
 
 	private final InputPort dictionaryInput = getInputPorts().createPort("dictionary");
@@ -133,7 +134,12 @@ public class ExampleSetToDictionary extends PreprocessingOperator {
 				replacements.add(new String[] { example.getValueAsString(from), example.getValueAsString(to) });
 			}
 		}
-		return new Dictionary(exampleSet, subsetSelector.getAttributeSubset(exampleSet, false), replacements, getParameterAsBoolean(PARAMETER_REGEXP), toLowerCase);		
+		return new Dictionary(exampleSet, 
+				subsetSelector.getAttributeSubset(exampleSet, false), 
+				replacements, 
+				getParameterAsBoolean(PARAMETER_REGEXP), 
+				toLowerCase,
+				getParameterAsBoolean(PARAMETER_FIRST_MATCH_ONLY));		
 	}
 
 	@Override
@@ -148,6 +154,7 @@ public class ExampleSetToDictionary extends PreprocessingOperator {
 		types.add(new ParameterTypeAttribute(PARAMETER_TO_ATTRIBUTE, "Name of the attribute that specifies replacements.", dictionaryInput, false, Ontology.NOMINAL));
 		types.add(new ParameterTypeBoolean(PARAMETER_REGEXP, "Choose whether the replacements are treated as regular expressions.", false));
 		types.add(new ParameterTypeBoolean(PARAMETER_TO_LOWERCASE, "Choose whether the strings are converted to lower case.", false));
+		types.add(new ParameterTypeBoolean(PARAMETER_FIRST_MATCH_ONLY, "If checked, only the first match in the dictionary will be considered. Otherwise, subsequent matches will be applied iteratively.", false));
 		return types;
 	}
 

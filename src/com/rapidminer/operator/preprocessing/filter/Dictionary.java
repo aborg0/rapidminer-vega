@@ -47,8 +47,16 @@ public class Dictionary extends PreprocessingModel {
 	private boolean regexp = false;
 	private boolean toLowerCase = false;
 
-	public Dictionary(ExampleSet exampleSet, Set<Attribute> attributesAffected, List<String[]> replacements, boolean regexp, boolean toLowerCase) {
+	private boolean stopAfterFirstMatch = false;
+	
+	public Dictionary(ExampleSet exampleSet, 
+			Set<Attribute> attributesAffected, 
+			List<String[]> replacements, 
+			boolean regexp, 
+			boolean toLowerCase,
+			boolean stopAfterFistMatch) {
 		super(exampleSet);
+		this.stopAfterFirstMatch = stopAfterFistMatch;
 		this.regexp = regexp;
 		this.replacements = replacements;
 		this.toLowerCase = toLowerCase;
@@ -79,8 +87,16 @@ public class Dictionary extends PreprocessingModel {
 		}
 		for (String[] replacement : replacements) {		
 			if (regexp) {
-				string = string.replaceAll(replacement[0], replacement[1]);
+				if (stopAfterFirstMatch) {
+					if (string.matches(replacement[0])) {
+						String newString = string.replaceAll(replacement[0], replacement[1]);
+						return newString;
+					}
+				} else {
+					string = string.replaceAll(replacement[0], replacement[1]);
+				}
 			} else {								
+				boolean foundMatch = false;
 				StringBuilder soFar = new StringBuilder("");
 				String remainder = string;
 				while (true) {
@@ -88,12 +104,16 @@ public class Dictionary extends PreprocessingModel {
 					if (pos == -1) {
 						break;
 					}
+					foundMatch = true;
 					soFar.append(remainder.substring(0, pos));
 					soFar.append(replacement[1]);
-					remainder = remainder.substring(pos + replacement[0].length());										
+					remainder = remainder.substring(pos + replacement[0].length());					
 				}
 				soFar.append(remainder);
 				string = soFar.toString();
+				if (foundMatch && stopAfterFirstMatch) {
+					return string;
+				}
 			}
 		}
 		return string;
