@@ -219,7 +219,6 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 		}
 			
     }
-
     
     /** Returns the name of the {@link ParameterTypeFile} to be added through which the user
      *  can specify the file name. */
@@ -228,18 +227,23 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
     /** Returns the allowed file extension. */
     protected abstract String getFileExtension();
     
-    @Override
-    public List<ParameterType> getParameterTypes() {
-        List<ParameterType> types = new LinkedList<ParameterType>();
-		
-		final ParameterTypeFile fileParam = new ParameterTypeFile(getFileParameterName(), "Name of the file to read the data from.", getFileExtension(), true);		
+    /** Creates (but does not add) the file parameter named by {@link #getFileParameterName()} 
+     *  that depends on whether or not {@link #fileInputPort} is connected. */
+    protected ParameterType makeFileParameterType() {
+    	final ParameterTypeFile fileParam = new ParameterTypeFile(getFileParameterName(), "Name of the file to read the data from.", getFileExtension(), true);
+    	fileParam.setExpert(false);
 		fileParam.registerDependencyCondition(new InputPortNotConnectedCondition(this, new PortProvider() {
 			@Override
 			public Port getPort() {
 				return fileInputPort;
 			}
 		}, true));
-		types.add(fileParam);
+		return fileParam;
+    }
+    
+    @Override
+    public List<ParameterType> getParameterTypes() {
+        List<ParameterType> types = new LinkedList<ParameterType>();	
         
         if (isSupportingFirstRowAsNames())
             types.add(new ParameterTypeBoolean(PARAMETER_FIRST_ROW_AS_NAMES, "Indicates if the first row should be used for the attribute names. If activated no annotations can be used.", true, false));

@@ -111,7 +111,8 @@ public class CSVExampleSource extends AbstractDataResultSetReader {
         type.setExpert(false);
         types.add(type);
         //types.add(new ParameterTypeFile(PARAMETER_CSV_FILE, "Name of the file to read the data from.", "csv", false));
-
+        types.add(makeFileParameterType());
+        
         //types.addAll(Encoding.getParameterTypes(this));
 
         // Separator

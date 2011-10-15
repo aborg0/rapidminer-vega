@@ -102,8 +102,9 @@ public class XMLExampleSource extends AbstractDataResultSetReader {
         type.setExpert(false);
         types.add(type);
 
-
+        types.add(makeFileParameterType());
         //types.add(new ParameterTypeFile(PARAMETER_FILE, "This specifies the xml file to load. This can either be a file in the local file system or an accessible URL.", ".xml", false, false));
+        
         types.add(new ParameterTypeString(PARAMETER_XPATH_FOR_EXAMPLES, "The matches of this XPath Expression will form the examples. Each match becomes one example whose attribute values are extracted from the matching part of the xml file.", false));
 
         types.add(new ParameterTypeEnumeration(PARAMETER_XPATHS_FOR_ATTRIBUTES, "This XPaths expressions will be evaluated for each match to the XPath expression for examples to derive values for attributes. Each expression forms one attribute in the resulting ExampleSet.",
