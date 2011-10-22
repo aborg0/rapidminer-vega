@@ -154,6 +154,7 @@ public class CrossDistancesOperator extends Operator {
                     distances.add(new Tupel<Double, Double>(measure.calculateSimilarity(request, document) * searchModeFactor, document.getValue(oldDocumentId)));
                 else
                     distances.add(new Tupel<Double, Double>(measure.calculateDistance(request, document) * searchModeFactor, document.getValue(oldDocumentId)));
+                checkForStop();
             }
 
             // writing into table
@@ -171,6 +172,7 @@ public class CrossDistancesOperator extends Operator {
                 row.set(requestId, requestIdValue);
                 row.set(documentId, documentIdValue);
                 table.addDataRow(row);
+                checkForStop();
             }
         }
 

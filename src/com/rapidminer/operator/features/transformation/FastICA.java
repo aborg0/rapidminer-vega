@@ -543,7 +543,7 @@ public class FastICA extends Operator {
 		type.setExpert(false);
 		types.add(type);
 
-		type = new ParameterTypeInt(PARAMETER_NUMBER_OF_COMPONENTS, "Keep this number of components.", 1, Integer.MAX_VALUE);
+		type = new ParameterTypeInt(PARAMETER_NUMBER_OF_COMPONENTS, "Keep this number of components.", 1, Integer.MAX_VALUE, true);
 		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_REDUCTION_TYPE, REDUCTION_METHODS, true, REDUCTION_FIXED));
 		type.setExpert(false);
 		types.add(type);
