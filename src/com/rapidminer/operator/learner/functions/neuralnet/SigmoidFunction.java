@@ -25,7 +25,7 @@ package com.rapidminer.operator.learner.functions.neuralnet;
 import com.rapidminer.example.Example;
 
 /**
- * This function represents a sigmoid activation function by  calculating 
+ * This function represents a sigmoid activation function by  calculating
  * 1 / (1 + exp(- weighted sum). The sigmoid function is usually used for
  * the input and hidden layers and for the output layer for classification
  * problems.
@@ -33,43 +33,43 @@ import com.rapidminer.example.Example;
  * @author Ingo Mierswa
  */
 public class SigmoidFunction extends ActivationFunction {
-	
-	private static final long serialVersionUID = 1L;
 
-	@Override
-	public String getTypeName() {
-		return "Sigmoid";
-	}
-	
-	@Override
-	public double calculateValue(InnerNode node, Example example) {
-		Node[] inputs = node.getInputNodes();
-		double[] weights = node.getWeights();
-		double weightedSum = weights[0]; // threshold
-		for (int i = 0; i < inputs.length; i++) {
-			weightedSum += inputs[i].calculateValue(true, example) * weights[i + 1];
-		}
+    private static final long serialVersionUID = 1L;
 
-		double result = 0.0d;
-		if (weightedSum < -45.0d) {
-			result = 0;
-		} else if (weightedSum > 45.0d) {
-			result = 1;
-		} else {
-			result = 1 / (1 + Math.exp((-1) * weightedSum));
-		}
-		return result;
-	}
+    @Override
+    public String getTypeName() {
+        return "Sigmoid";
+    }
 
-	@Override
-	public double calculateError(InnerNode node, Example example) {
-		Node[] outputs = node.getOutputNodes();
-		int[] numberOfOutputs = node.getOutputNodeInputIndices();
-		double errorSum = 0;
-		for (int i = 0; i < outputs.length; i++) {
-			errorSum += outputs[i].calculateError(true, example) * outputs[i].getWeight(numberOfOutputs[i]);
-		}
-		double value = node.calculateValue(false, example);
-		return errorSum * value * (1 - value);
-	}
+    @Override
+    public double calculateValue(InnerNode node, Example example) {
+        Node[] inputs = node.getInputNodes();
+        double[] weights = node.getWeights();
+        double weightedSum = weights[0]; // bias
+        for (int i = 0; i < inputs.length; i++) {
+            weightedSum += inputs[i].calculateValue(true, example) * weights[i + 1];
+        }
+
+        double result = 0.0d;
+        if (weightedSum < -45.0d) {
+            result = 0;
+        } else if (weightedSum > 45.0d) {
+            result = 1;
+        } else {
+            result = 1 / (1 + Math.exp(-1 * weightedSum));
+        }
+        return result;
+    }
+
+    @Override
+    public double calculateError(InnerNode node, Example example) {
+        Node[] outputs = node.getOutputNodes();
+        int[] numberOfOutputs = node.getOutputNodeInputIndices();
+        double errorSum = 0;
+        for (int i = 0; i < outputs.length; i++) {
+            errorSum += outputs[i].calculateError(true, example) * outputs[i].getWeight(numberOfOutputs[i]);
+        }
+        double value = node.calculateValue(false, example);
+        return errorSum * value * (1 - value);
+    }
 }
