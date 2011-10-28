@@ -30,6 +30,7 @@ import static com.rapidminer.operator.nio.xml.XMLExampleSource.PARAMETER_USE_NAM
 import static com.rapidminer.operator.nio.xml.XMLExampleSource.PARAMETER_XPATHS_FOR_ATTRIBUTES;
 import static com.rapidminer.operator.nio.xml.XMLExampleSource.PARAMETER_XPATH_FOR_EXAMPLES;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,6 +38,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 
 import javax.swing.table.TableModel;
 import javax.xml.parsers.DocumentBuilder;
@@ -57,6 +59,7 @@ import com.rapidminer.operator.nio.model.ParseException;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.parameter.ParameterTypeEnumeration;
 import com.rapidminer.parameter.ParameterTypeList;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ProgressListener;
 
 /**
@@ -243,27 +246,36 @@ public class XMLResultSetConfiguration implements DataResultSetFactory {
      * already loaded one. This avoids multiple loaded instances of the same xml file.
      */
     public Document getDocumentObjectModel() throws OperatorException {
-        if (prefetchedDocument == null) {
+        if (prefetchedDocument == null) {        	
             // load document: After expressions to fail fast in case expressions are syntactically wrong
             DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+            domFactory.setValidating(false);
+
             domFactory.setNamespaceAware(isNamespaceAware());
             try {
+                domFactory.setFeature("http://xml.org/sax/features/namespaces", false);
+                domFactory.setFeature("http://xml.org/sax/features/validation", false);
+                domFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
+                domFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+
                 DocumentBuilder builder = domFactory.newDocumentBuilder();
                 String resourceIdentifier = getResourceIdentifier();
                 if (resourceIdentifier == null) {
                 	throw new UserError(null, "file_consumer.no_file_defined");
                 }
-                this.prefetchedDocument = builder.parse(getResourceIdentifier());
+                this.prefetchedDocument = builder.parse(new File(resourceIdentifier));
                 return prefetchedDocument;
             } catch (ParserConfigurationException e) {
-                // TODO
-                e.printStackTrace();
+            	LogService.getRoot().log(Level.WARNING, "Failed to configure XML parser: "+e, e);
+            	throw new OperatorException("Failed to configure XML parser: "+e, e);
             } catch (SAXException e) {
-                e.printStackTrace();
+            	LogService.getRoot().log(Level.WARNING, "Failed to parse XML document: "+e, e);
+            	throw new OperatorException("Failed to parse XML document: "+e, e);
             } catch (IOException e) {
-                e.printStackTrace();
+            	LogService.getRoot().log(Level.WARNING, "Failed to parse XML document: "+e, e);
+            	throw new OperatorException("Failed to parse XML document: "+e, e);
             }
-            throw new UserError(null, 100);
+            //throw new UserError(null, 100);
         } else {
             return prefetchedDocument;
         }

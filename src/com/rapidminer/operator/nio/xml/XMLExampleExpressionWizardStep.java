@@ -264,7 +264,6 @@ public class XMLExampleExpressionWizardStep extends WizardStep {
         parent.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosed(WindowEvent e) {
-				System.out.println("HIDDEN");
 				xpathUpdateQueue.shutdown();
 			}
 		});
