@@ -71,9 +71,10 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	public ExcelResultSetConfiguration(ExcelExampleSource excelExampleSource) throws OperatorException {
 		if (excelExampleSource.isParameterSet(ExcelExampleSource.PARAMETER_IMPORTED_CELL_RANGE)) {
 			parseExcelRange(excelExampleSource.getParameterAsString(ExcelExampleSource.PARAMETER_IMPORTED_CELL_RANGE));
-		} else {
-			throw new UserError(null, 205, ExcelExampleSource.PARAMETER_IMPORTED_CELL_RANGE, excelExampleSource.getName());
 		}
+//		else {
+//			throw new UserError(null, 205, ExcelExampleSource.PARAMETER_IMPORTED_CELL_RANGE, excelExampleSource.getName());
+//		}
 		
 		if (excelExampleSource.isParameterSet(PARAMETER_SHEET_NUMBER)) {
 			this.sheet = excelExampleSource.getParameterAsInt(PARAMETER_SHEET_NUMBER) - 1;

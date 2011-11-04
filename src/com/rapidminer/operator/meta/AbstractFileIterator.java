@@ -80,6 +80,7 @@ public abstract class AbstractFileIterator extends OperatorChain {
         super(description, "Nested Process");
         inputExtender.start();
         outputExtender.start();
+        getTransformer().addGenerationRule(innerFileSource, FileObject.class);
         getTransformer().addRule(inputExtender.makePassThroughRule());
         getTransformer().addRule(new SubprocessTransformRule(getSubprocess(0)));
         getTransformer().addRule(outputExtender.makePassThroughRule());

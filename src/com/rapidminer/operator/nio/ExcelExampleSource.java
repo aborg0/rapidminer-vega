@@ -123,7 +123,7 @@ public class ExcelExampleSource extends AbstractDataResultSetReader {
 		types.add(makeFileParameterType());
 		
 		types.add(new ParameterTypeInt(PARAMETER_SHEET_NUMBER, "The number of the sheet which should be imported.", 1, Integer.MAX_VALUE, 1, false));
-		types.add(new ParameterTypeString(PARAMETER_IMPORTED_CELL_RANGE, "Cells to import, in Excel notation, e.g. B2:D25 or B2 for an open interval.", false));
+		types.add(new ParameterTypeString(PARAMETER_IMPORTED_CELL_RANGE, "Cells to import, in Excel notation, e.g. B2:D25 or B2 for an open interval.", "A1"));
 		
 		types.addAll(super.getParameterTypes());
 		return types;
