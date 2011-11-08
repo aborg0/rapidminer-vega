@@ -498,7 +498,7 @@ public class StyleCheck {
 	/** Checks all Java files for a version tag. */
 	private static class LicenseChecker extends JavaFileChecker {
 
-		private static String LICENSE_LINE = "Copyright (C) 2001-2010";
+		private static String LICENSE_LINE = "Copyright (C) 2001-2011";
 
 		@Override
 		public void performCheck(File file) throws Exception {
