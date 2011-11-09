@@ -1268,7 +1268,7 @@
     <operator>
         <name>Single Rule Induction</name>
         <synopsis>Returns a best conjunctive rule with respect to the WRAcc
-            metric for boolean prediction problems and polynomial attributes.
+            metric for boolean prediction problems and polynominal attributes.
         </synopsis>
         <help>This operator returns the best rule regarding WRAcc using
             exhaustive search. Features like the incorporation of other metrics
@@ -4882,7 +4882,7 @@
     <shortName>Discretize</shortName>
   </operator>
     <operator>
-        <name>Polynomial by Binomial Classification</name>
+        <name>Polynominal by Binomial Classification</name>
         <synopsis>Builds a classification model for multiple classes based on
             a binary learner.</synopsis>
         <help>A metaclassifier for handling multi-class datasets with 2-class
