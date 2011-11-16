@@ -252,9 +252,11 @@ public abstract class PredictionModel extends AbstractModel {
                 while (i.hasNext()) {
                     String value = (String) i.next();
                     Attribute currentConfidenceAttribute = source.getAttributes().getSpecial(Attributes.CONFIDENCE_NAME + "_" + value);
-                    Attribute copyOfCurrentConfidenceAttribute = AttributeFactory.createAttribute(currentConfidenceAttribute);
+                    
+                    // it's possible that the model does not create confidences for all label values, so check for null (e.g. OneClass-SVM)
                     if (currentConfidenceAttribute != null) {
-                        destination.getAttributes().setSpecialAttribute(copyOfCurrentConfidenceAttribute, Attributes.CONFIDENCE_NAME + "_" + value);
+	                    Attribute copyOfCurrentConfidenceAttribute = AttributeFactory.createAttribute(currentConfidenceAttribute);
+	                    destination.getAttributes().setSpecialAttribute(copyOfCurrentConfidenceAttribute, Attributes.CONFIDENCE_NAME + "_" + value);
                     }
                 }
             }
