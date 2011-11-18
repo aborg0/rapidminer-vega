@@ -48,8 +48,11 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+import com.rapidminer.RapidMiner;
+import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.nio.model.AbstractDataResultSetReader;
 import com.rapidminer.operator.nio.model.DataResultSet;
@@ -82,6 +85,7 @@ public class XMLResultSetConfiguration implements DataResultSetFactory {
     private String defaultNamespaceURI;
 
 	private Document prefetchedDocument;
+	private OperatorVersion xmlExampleSourceCompatibilityVersion;
 
     /**
      * This creates a completely empty configuration
@@ -100,6 +104,15 @@ public class XMLResultSetConfiguration implements DataResultSetFactory {
      */
     public XMLResultSetConfiguration(XMLExampleSource operator) throws OperatorException {
         this();
+        
+    	VersionNumber rmVersion = RapidMiner.getVersion();
+    	if (operator instanceof XMLExampleSource) {
+    		XMLExampleSource xmlExampleSource = (XMLExampleSource)operator; 
+    		xmlExampleSourceCompatibilityVersion = xmlExampleSource.getCompatibilityLevel();
+    	} else {
+    		xmlExampleSourceCompatibilityVersion = new OperatorVersion(rmVersion.getMajorNumber(), rmVersion.getMinorNumber(), rmVersion.getPatchLevel());
+    	}
+
 
 //        if (operator.isParameterSet(PARAMETER_FILE))
 //            fileName = operator.getParameterAsString(PARAMETER_FILE);
@@ -132,7 +145,7 @@ public class XMLResultSetConfiguration implements DataResultSetFactory {
 
     @Override
     public DataResultSet makeDataResultSet(Operator operator) throws OperatorException {
-        return new XMLResultSet(operator, this);
+        return new XMLResultSet(operator, this, xmlExampleSourceCompatibilityVersion);
     }
 
     @Override
@@ -253,7 +266,7 @@ public class XMLResultSetConfiguration implements DataResultSetFactory {
 
             domFactory.setNamespaceAware(isNamespaceAware());
             try {
-                domFactory.setFeature("http://xml.org/sax/features/namespaces", false);
+                domFactory.setFeature("http://xml.org/sax/features/namespaces", isNamespaceAware());
                 domFactory.setFeature("http://xml.org/sax/features/validation", false);
                 domFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
                 domFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
@@ -295,4 +308,10 @@ public class XMLResultSetConfiguration implements DataResultSetFactory {
 	public void setNamespaceAware(boolean b) {
 		this.isNamespaceAware = b;
 	}
+
+	public OperatorVersion getXmlExampleSourceCompatibilityVersion() {
+		return xmlExampleSourceCompatibilityVersion;
+	}
+	
+	
 }

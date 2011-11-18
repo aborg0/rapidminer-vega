@@ -28,6 +28,7 @@ import java.util.List;
 
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.nio.model.AbstractDataResultSetReader;
 import com.rapidminer.operator.nio.model.DataResultSetFactory;
 import com.rapidminer.parameter.ParameterType;
@@ -65,6 +66,13 @@ public class XMLExampleSource extends AbstractDataResultSetReader {
     public static final String PARAMETER_NAMESPACE = "namespace";
     public static final String PARAMETER_NAMESPACE_ID = "id";
 
+	/**
+	 * After this version the whole element including xml tags is inserted into the exmample set, if an
+	 * XPath for an attribute matches a whole element instead of the text() tag. Also if multiple elements are
+	 * matched, all of them are added to the output example set.
+	 */
+	public static final OperatorVersion CHANGE_5_1_013_NODE_OUTPUT = new OperatorVersion(5, 1, 13);
+    
     public XMLExampleSource(OperatorDescription description) {
         super(description);
     }
@@ -130,5 +138,9 @@ public class XMLExampleSource extends AbstractDataResultSetReader {
         types.addAll(super.getParameterTypes());
         return types;
     }
-
+    
+    @Override
+    public OperatorVersion[] getIncompatibleVersionChanges() {
+    	return new OperatorVersion[] {CHANGE_5_1_013_NODE_OUTPUT};
+    }
 }

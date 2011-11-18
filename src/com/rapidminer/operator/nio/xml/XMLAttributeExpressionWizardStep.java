@@ -53,6 +53,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.TreeSelectionModel;
+import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -294,8 +295,19 @@ public class XMLAttributeExpressionWizardStep extends WizardStep {
 			try {
 				XPathExpression xPathExpression = xPath.compile(xPathString);
 				NodeList matchedNodes = (NodeList)xPathExpression.evaluate(currentElement, XPathConstants.NODESET);
-				for (int i = 0; i < matchedNodes.getLength(); ++i) {
-					resultList.add(matchedNodes.item(i).getTextContent());
+				if (configuration.getXmlExampleSourceCompatibilityVersion().compareTo(XMLExampleSource.CHANGE_5_1_013_NODE_OUTPUT) > 0) {
+					try {
+						String resultString;
+						resultString = XMLDomHelper.nodeListToString(matchedNodes);
+						resultList.add(resultString);
+					} catch (TransformerException e) {
+						resultList.add("");
+					}
+				}else {
+					for (int i = 0; i < matchedNodes.getLength(); ++i) {
+						// TODO operator Version beachten
+						resultList.add(matchedNodes.item(i).getTextContent());
+					} 
 				}
 			} catch (XPathExpressionException e) {
 				return new LinkedList<String>();

@@ -24,6 +24,7 @@
 
 package com.rapidminer.operator.nio.xml;
 
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -34,10 +35,18 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.rapidminer.tools.container.Pair;
 
@@ -370,5 +379,16 @@ public class XMLDomHelper {
     	}
     	return index;
 	}
-    
+
+
+	public static String nodeListToString(NodeList nodeList) throws TransformerException {
+		StringWriter stringWriter = new StringWriter();
+		for (int i = 0; i < nodeList.getLength(); ++i) {
+			Node node = nodeList.item(i);
+			Transformer transformer = TransformerFactory.newInstance().newTransformer();
+			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+			transformer.transform(new DOMSource(node), new StreamResult(stringWriter));
+		}
+		return stringWriter.toString();
+	}
 }

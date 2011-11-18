@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -38,6 +39,7 @@ import org.w3c.dom.NodeList;
 
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.nio.model.DataResultSet;
 import com.rapidminer.operator.nio.model.ParseException;
@@ -59,15 +61,17 @@ public class XMLResultSet implements DataResultSet {
 
     private int currentExampleIndex = -1;
     private String[] currentExampleValues = null;
+	private OperatorVersion operatorVersion;
 
     /**
      * The constructor to build an ExcelResultSet from the given configuration. The calling operator might be null. It
      * is only needed for error handling.
      */
-    public XMLResultSet(Operator callingOperator, XMLResultSetConfiguration configuration) throws OperatorException {
+    public XMLResultSet(Operator callingOperator, XMLResultSetConfiguration configuration, OperatorVersion operatorVersion) throws OperatorException {
         // creating XPath environment
         XPathFactory factory = XPathFactory.newInstance();
         XPath xpath = factory.newXPath();
+        this.operatorVersion = operatorVersion;
 
         final Map<String, String> namespacesMap = configuration.getNamespacesMap();
         xpath.setNamespaceContext(new MapBasedNamespaceContext(namespacesMap, configuration.getDefaultNamespaceURI()));
@@ -125,10 +129,17 @@ public class XMLResultSet implements DataResultSet {
 
         for (int i = 0; i < attributeExpressions.length; i++) {
             try {
-                currentExampleValues[i] = (String) attributeExpressions[i].evaluate(exampleNodes.item(currentExampleIndex), XPathConstants.STRING);
+            	if (operatorVersion.compareTo(XMLExampleSource.CHANGE_5_1_013_NODE_OUTPUT) > 0) {
+	                NodeList nodeList = (NodeList)attributeExpressions[i].evaluate(exampleNodes.item(currentExampleIndex), XPathConstants.NODESET);
+					currentExampleValues[i] = XMLDomHelper.nodeListToString(nodeList);
+            	} else {
+					currentExampleValues[i] = (String)attributeExpressions[i].evaluate(exampleNodes.item(currentExampleIndex), XPathConstants.STRING);
+            	}
             } catch (XPathExpressionException e) {
                 currentExampleValues[i] = null;
-            }
+            } catch (TransformerException e) {
+                currentExampleValues[i] = null;
+			}
         }
     }
 
