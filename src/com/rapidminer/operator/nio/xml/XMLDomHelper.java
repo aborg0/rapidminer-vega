@@ -385,9 +385,13 @@ public class XMLDomHelper {
 		StringWriter stringWriter = new StringWriter();
 		for (int i = 0; i < nodeList.getLength(); ++i) {
 			Node node = nodeList.item(i);
-			Transformer transformer = TransformerFactory.newInstance().newTransformer();
-			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-			transformer.transform(new DOMSource(node), new StreamResult(stringWriter));
+			if (node instanceof Element) {
+				Transformer transformer = TransformerFactory.newInstance().newTransformer();
+				transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+				transformer.transform(new DOMSource(node), new StreamResult(stringWriter));
+			} else {
+				stringWriter.append(node.getTextContent());
+			}
 		}
 		return stringWriter.toString();
 	}

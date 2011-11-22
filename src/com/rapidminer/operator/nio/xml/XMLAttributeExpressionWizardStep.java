@@ -36,6 +36,7 @@ import java.awt.event.MouseListener;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
@@ -62,6 +63,7 @@ import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
 
 import com.rapidminer.gui.tools.ColoredTableCellRenderer;
@@ -423,10 +425,11 @@ public class XMLAttributeExpressionWizardStep extends WizardStep {
 				return;
 			}
 			
-			for (int i = 0; i < element.getAttributes().getLength(); ++i) {
-				Attr attribute = (Attr)element.getAttributes().item(i);
+			NamedNodeMap attributes = element.getAttributes();
+			for (int i = 0; i < attributes.getLength(); ++i) {
+				Attr attribute = (Attr)attributes.item(i);
 				String namespace = attribute.getNamespaceURI();
-				String name = element.getAttributes().item(i).getLocalName();
+				String name = attributes.item(i).getLocalName();
 				name = (namespace!=null)?configuration.getNamespaceId(namespace)+":"+name:name;
 				if (!attributeXPathModel.containsXPath(getXPathForAttribute(name))) {
 					String value = attribute.getNodeValue();
@@ -436,11 +439,26 @@ public class XMLAttributeExpressionWizardStep extends WizardStep {
 					addRow(row);
 				}
 			}
-			if (!attributeXPathModel.containsXPath(getXPathForAttribute(TEXT_NODE_TEXT))) {
-				Vector<String> row = new Vector<String>();
-				row.add(ATTRIBUTE_COLUMN, TEXT_NODE_TEXT);
-				row.add(VALUE_COLUMN, element.getTextContent());
-				addRow(row);
+			
+			// add text() element
+			String xPathForAttribute = getXPathForAttribute(TEXT_NODE_TEXT);
+			if (!attributeXPathModel.containsXPath(xPathForAttribute)) {
+				try {
+					XPathFactory factory = XPathFactory.newInstance();
+					XPath xpath = factory.newXPath();
+					final Map<String, String> namespacesMap = configuration.getNamespacesMap();
+					xpath.setNamespaceContext(new MapBasedNamespaceContext(namespacesMap, configuration.getDefaultNamespaceURI()));
+					XPathExpression expression;
+					expression = xpath.compile("text()");
+					String result = (String)expression.evaluate(element, XPathConstants.STRING);
+					Vector<String> row = new Vector<String>();
+					row.add(ATTRIBUTE_COLUMN, TEXT_NODE_TEXT);
+					row.add(VALUE_COLUMN, result);
+					addRow(row);
+				} catch (XPathExpressionException e) {
+					// do nothing (simply don't add text() element)
+				}
+
 			}
 			fireTableDataChanged();
         }
