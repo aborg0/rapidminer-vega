@@ -98,8 +98,7 @@ public class XMLResultSet implements DataResultSet {
             try {
                 attributeExpressions[i] = xpath.compile(expressionString);
             } catch (XPathExpressionException e) {
-                e.printStackTrace();
-                // TODO
+            	throw new UserError(null, 214, expressionString);
             }
             i++;
         }
@@ -110,8 +109,7 @@ public class XMLResultSet implements DataResultSet {
         try {
             exampleNodes = (NodeList) exampleExpression.evaluate(configuration.getDocumentObjectModel(), XPathConstants.NODESET);
         } catch (XPathExpressionException e) {
-            // TODO
-            e.printStackTrace();
+        	throw new UserError(null, 214, configuration.getExampleXPath());
         }
     }
 

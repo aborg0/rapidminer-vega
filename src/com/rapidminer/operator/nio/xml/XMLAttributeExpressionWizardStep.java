@@ -303,7 +303,7 @@ public class XMLAttributeExpressionWizardStep extends WizardStep {
 						resultString = XMLDomHelper.nodeListToString(matchedNodes);
 						resultList.add(resultString);
 					} catch (TransformerException e) {
-						resultList.add("");
+						resultList.add(null);
 					}
 				}else {
 					for (int i = 0; i < matchedNodes.getLength(); ++i) {
@@ -343,6 +343,9 @@ public class XMLAttributeExpressionWizardStep extends WizardStep {
 		 */
 		@Override
 		public boolean hasError(int rowIndex, int columnIndex) {
+			if (getValueAt(rowIndex, VALUE_COLUMN) == null) {
+				return true;
+			}
 			return !isValidXPath(xPaths.get(rowIndex).get(XPATH_COLUMN));
 		}
 		
@@ -854,7 +857,7 @@ public class XMLAttributeExpressionWizardStep extends WizardStep {
 		}
 		XPath xPath = XPathFactory.newInstance().newXPath();
 		try {
-			xPath.compile(xPathString);
+			XPathExpression expression = xPath.compile(xPathString);
 		} catch (XPathExpressionException e) {
 			return false;
 		}
