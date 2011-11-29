@@ -174,9 +174,13 @@ public class RepositoryTree extends JTree {
 	public RepositoryTree() {
 		this(null);
 	}
-	
+
 	public RepositoryTree(Dialog owner) {
-		super(new RepositoryTreeModel(RepositoryManager.getInstance(null)));
+		this(owner, false);
+	}
+	
+	public RepositoryTree(Dialog owner, boolean onlyFolders) {
+		super(new RepositoryTreeModel(RepositoryManager.getInstance(null), onlyFolders));
 		
 		// these actions are a) needed for the action map or b) needed by other classes for toolbars etc
 		listToEnable.add(DELETE_ACTION);

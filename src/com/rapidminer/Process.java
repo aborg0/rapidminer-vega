@@ -923,7 +923,6 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
                 rootOperator.deliverInput(Arrays.asList(input.getIOObjects()));
             }
             rootOperator.execute();
-
             if (storeOutput) {
             	saveResults();
             }

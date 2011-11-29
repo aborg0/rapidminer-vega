@@ -94,17 +94,17 @@ public class RepositoryLocationChooser extends JPanel {
 
 		private RepositoryLocationChooser chooser = null;
 		private String userSelection = null;
-		
-		public RepositoryLocationChooserDialog(RepositoryLocation resolveRelativeTo, String initialValue, final boolean selectEntries, final boolean selectFolder) {
+				
+		public RepositoryLocationChooserDialog(RepositoryLocation resolveRelativeTo, String initialValue, final boolean allowEntries, final boolean allowFolders) {
 			super("repository_chooser", true);
 			final JButton okButton = makeOkButton();
-			chooser = new RepositoryLocationChooser(this, resolveRelativeTo, initialValue);
+			chooser = new RepositoryLocationChooser(this, resolveRelativeTo, initialValue, allowEntries, allowFolders);
 			chooser.tree.addRepositorySelectionListener(new RepositorySelectionListener() {
 				@Override
 				public void repositoryLocationSelected(RepositorySelectionEvent e) {
 					// called on double click
 					Entry entry = e.getEntry();
-					if (selectEntries && entry instanceof DataEntry) {
+					if (allowEntries && entry instanceof DataEntry) {
 						userSelection = entry.getLocation().toString();
 						dispose();
 					}
@@ -113,10 +113,10 @@ public class RepositoryLocationChooser extends JPanel {
 			chooser.addChangeListener(new ChangeListener() {
 				@Override
 				public void stateChanged(ChangeEvent e) {
-					okButton.setEnabled(chooser.hasSelection() && (selectFolder || !chooser.folderSelected));
+					okButton.setEnabled(chooser.hasSelection(allowFolders) && (allowFolders || !chooser.folderSelected));
 				}
 			});
-			okButton.setEnabled(chooser.hasSelection() && (selectFolder || !chooser.folderSelected));
+			okButton.setEnabled(chooser.hasSelection(allowFolders) && (allowFolders || !chooser.folderSelected));
 			layoutDefault(chooser, NORMAL, okButton, makeCancelButton());
 		}
 
@@ -137,6 +137,10 @@ public class RepositoryLocationChooser extends JPanel {
 //	}
 
 	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue) {
+		this(owner, resolveRelativeTo, initialValue, true, false);
+	}
+
+	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue, final boolean allowEntries, final boolean allowFolders) {
 		if (initialValue != null) {
 			try {
 				RepositoryLocation repositoryLocation = new RepositoryLocation(resolveRelativeTo, initialValue);
@@ -146,7 +150,7 @@ public class RepositoryLocationChooser extends JPanel {
 			}
 		}
 		this.resolveRelativeTo = resolveRelativeTo;
-		tree = new RepositoryTree(owner);
+		tree = new RepositoryTree(owner, !allowEntries);
 
 		if (initialValue != null) {
 			if (tree.expandIfExists(resolveRelativeTo, initialValue)) {
@@ -159,7 +163,11 @@ public class RepositoryLocationChooser extends JPanel {
 			public void valueChanged(TreeSelectionEvent e) {
 				if (e.getPath() != null) {
 					currentEntry = (Entry) e.getPath().getLastPathComponent();
-					if (!(currentEntry instanceof Folder)) {
+					if (currentEntry instanceof Folder) { //  && allowFolders)) {
+						locationField.setText("");
+					} else if ((!(currentEntry instanceof Folder)) && allowEntries) {
+//					if (true) {
+//							//!(currentEntry instanceof Folder)) {
 						locationField.setText(currentEntry.getLocation().getName());
 					}
 					updateResult();
@@ -256,9 +264,14 @@ public class RepositoryLocationChooser extends JPanel {
 		}
 	}
 
-	/** Returns true iff the user entered a valid, non-empty repository location. */
+	/** Same as {@link #hasSelection(boolean)} with parameter false. */
 	public boolean hasSelection() {
-		if (locationField.getText().isEmpty()) {
+		return hasSelection(false);
+	}
+	
+	/** Returns true iff the user entered a valid, non-empty repository location. */
+	public boolean hasSelection(boolean allowFolders) {
+		if (!allowFolders && locationField.getText().isEmpty()) {
 			return false;
 		} else {
 			try {

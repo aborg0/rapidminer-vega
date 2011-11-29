@@ -98,9 +98,16 @@ public class RepositoryTreeModel implements TreeModel {
 			}				
 		}
 	};
-	
+
+	private boolean onlyFolders = false;
+
 	public RepositoryTreeModel(final RepositoryManager root) {
+		this(root, false);
+	}
+	
+	public RepositoryTreeModel(final RepositoryManager root, final boolean onlyFolders) {
 		this.root = root;
+		this.onlyFolders = onlyFolders;
 		for (Repository repository : root.getRepositories()) {
 			repository.addRepositoryListener(repositoryListener);
 		}
@@ -144,7 +151,7 @@ public class RepositoryTreeModel implements TreeModel {
 	public Object getChild(Object parent, int index) {
 		if (parent instanceof RepositoryManager) {
 			return ((RepositoryManager)parent).getRepositories().get(index);
-		} else if (parent instanceof Folder) {			
+		} else if (parent instanceof Folder) {
 			Folder folder = (Folder)parent;
 			if (folder.willBlock()) {
 				unblock(folder);
@@ -154,6 +161,8 @@ public class RepositoryTreeModel implements TreeModel {
 					int numFolders = folder.getSubfolders().size();
 					if (index < numFolders) {
 						return folder.getSubfolders().get(index);
+					} else if (onlyFolders) {
+						return null;
 					} else {
 						return folder.getDataEntries().get(index - numFolders);
 					}
@@ -223,7 +232,11 @@ public class RepositoryTreeModel implements TreeModel {
 				return 1; // "Pending...."
 			} else {				
 				try {
-					return folder.getSubfolders().size() + folder.getDataEntries().size();
+					if (onlyFolders) {
+						return folder.getSubfolders().size();
+					} else {
+						return folder.getSubfolders().size() + folder.getDataEntries().size();
+					}
 				} catch (RepositoryException e) {
 					LogService.getRoot().log(Level.WARNING, "Cannot get child count for "+folder.getName()+": "+e, e);
 					return 0;
@@ -243,7 +256,7 @@ public class RepositoryTreeModel implements TreeModel {
 			try {
 				if (child instanceof Folder) {
 					return folder.getSubfolders().indexOf(child);
-				} else if (child instanceof Entry) {
+				} else if ((child instanceof Entry) && !onlyFolders) {
 					return folder.getDataEntries().indexOf(child) + folder.getSubfolders().size();
 				} else {
 					return -1;

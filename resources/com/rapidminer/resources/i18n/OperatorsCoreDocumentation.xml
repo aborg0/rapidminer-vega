@@ -4608,7 +4608,19 @@
             Each file is delivered as FileObject to the
         	subprocess at the respective inner port.
         </help>
-        <key>loop_files</key>
+    <key>loop_files</key>
+  </operator>
+    <operator>
+        <name>Loop Repository</name>
+        <synopsis>This operator iterates over all IO Objects or Blob files in a repository and
+            delivers their paths and names as macro to the inner operators.
+        </synopsis>
+        <help>This operator iterates over the IO Objects or Blob files in the specified reporitory
+            (and subdirectories if the corresponding parameter is set to true).<br/>
+            Each Object is delivered as IO Object or FileObject to the
+        	subprocess at the respective inner port.
+        </help>
+        <key>loop_repository</key>
     </operator>
     <operator>
         <name>Loop Zip-File Entries</name>
@@ -4882,7 +4894,7 @@
     <shortName>Discretize</shortName>
   </operator>
     <operator>
-        <name>Polynominal by Binomial Classification</name>
+        <name>Polynominal by Binominal Classification</name>
         <synopsis>Builds a classification model for multiple classes based on
             a binary learner.</synopsis>
         <help>A metaclassifier for handling multi-class datasets with 2-class
@@ -8310,7 +8322,7 @@ Thomas Breuel, Faisal Shafait. The Learning Workshop, Cliff Lodge, Snowbird, Uta
       </help>
       <key>select_recall</key>
    </operator>
-
+     
    <operator>
       <name>Open File</name>
       <synopsis>Opens a file for processing by parsing operators.</synopsis>

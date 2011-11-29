@@ -30,10 +30,37 @@ public class ParameterTypeRepositoryLocation extends ParameterTypeString {
 
 	private static final long serialVersionUID = 1L;
 
+	private boolean allowFolders, allowEntries;
+	
 	/** Creates a new parameter type for files with the given extension. If the extension is null
 	 *  no file filters will be used. */
 	public ParameterTypeRepositoryLocation(String key, String description, boolean optional) {
+		this(key, description, true, false, optional);
+	}	
+
+	/** Creates a new parameter type for files with the given extension. If the extension is null
+	 *  no file filters will be used. */
+	public ParameterTypeRepositoryLocation(String key, String description, boolean allowEntries, boolean allowDirectories, boolean optional) {
 		super(key, description, null);
-		setOptional(optional);		
+		
+		setOptional(optional);	
+		setAllowEntries(allowEntries);
+		setAllowFolders(allowDirectories);
+	}
+
+	public boolean isAllowFolders() {
+		return allowFolders;
+	}
+
+	public void setAllowFolders(boolean allowFolders) {
+		this.allowFolders = allowFolders;
+	}
+
+	public boolean isAllowEntries() {
+		return allowEntries;
+	}
+
+	public void setAllowEntries(boolean allowEntries) {
+		this.allowEntries = allowEntries;
 	}	
 }

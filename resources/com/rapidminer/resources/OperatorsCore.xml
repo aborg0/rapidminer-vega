@@ -410,6 +410,10 @@
                <replaces>FileIterator</replaces>
             </operator>
             <operator>
+               <key>loop_repository</key>
+               <class>com.rapidminer.operator.meta.RepositoryIterator</class>
+            </operator>
+            <operator>
                <key>loop_zipfile_entries</key>
                <class>com.rapidminer.operator.meta.ZippedFileIterator</class>
             </operator>

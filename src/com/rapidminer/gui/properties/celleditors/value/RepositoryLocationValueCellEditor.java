@@ -58,7 +58,7 @@ public class RepositoryLocationValueCellEditor extends AbstractCellEditor implem
 
 	private Operator operator;
 
-	public RepositoryLocationValueCellEditor(ParameterTypeRepositoryLocation type) {
+	public RepositoryLocationValueCellEditor(final ParameterTypeRepositoryLocation type) {
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		panel.setLayout(gridBagLayout);
 		panel.setToolTipText(type.getDescription());
@@ -96,7 +96,9 @@ public class RepositoryLocationValueCellEditor extends AbstractCellEditor implem
 			    
 			    
 			    
-				String locationName = RepositoryLocationChooser.selectLocation(processLocation, textField.getText(), panel, true, false);
+				String locationName = RepositoryLocationChooser.selectLocation(processLocation, textField.getText(), panel, 
+						type.isAllowEntries(), 
+						type.isAllowFolders());
 //				if (locationName != null) {
 //					if ((operator != null) && (operator.getProcess() != null)) {
 //						try {
