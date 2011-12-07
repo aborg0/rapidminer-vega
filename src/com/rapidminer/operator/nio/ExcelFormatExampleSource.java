@@ -23,7 +23,11 @@
 package com.rapidminer.operator.nio;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -34,6 +38,7 @@ import jxl.DateCell;
 import jxl.NumberCell;
 import jxl.Sheet;
 import jxl.Workbook;
+import jxl.WorkbookSettings;
 import jxl.biff.EmptyCell;
 import jxl.format.CellFormat;
 import jxl.read.biff.BiffException;
@@ -43,15 +48,25 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.example.table.DoubleArrayDataRow;
 import com.rapidminer.example.table.MemoryExampleTable;
+import com.rapidminer.operator.Annotations;
+import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.io.AbstractExampleSource;
+import com.rapidminer.operator.nio.file.FileObject;
+import com.rapidminer.operator.ports.InputPort;
+import com.rapidminer.operator.ports.Port;
+import com.rapidminer.operator.ports.metadata.MetaData;
+import com.rapidminer.operator.ports.metadata.SimplePrecondition;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypeInt;
+import com.rapidminer.parameter.PortProvider;
+import com.rapidminer.parameter.conditions.InputPortNotConnectedCondition;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.io.Encoding;
 
 /**
  * 
@@ -81,24 +96,55 @@ public class ExcelFormatExampleSource extends AbstractExampleSource {
 	 */
 	public static final String PARAMETER_SHEET_NUMBER = "sheet_number";
 	
+	private InputPort fileInputPort = getInputPorts().createPort("file");
 	
 	public ExcelFormatExampleSource(OperatorDescription description) {
 		super(description);
+		
+        fileInputPort.addPrecondition(new SimplePrecondition(fileInputPort, new MetaData(FileObject.class)) {
+        	@Override
+        	protected boolean isMandatory() {
+        		return false;
+        	}
+        });
 	}
 
 	@Override
 	public ExampleSet createExampleSet() throws OperatorException {
 		// reading configuration
-		File file = getParameterAsFile(PARAMETER_EXCEL_FILE);
-		Workbook workbook = null;
+
+		String sourceAnnotation = null;        
+		InputStream inputStream = null;
+    	if(!fileInputPort.isConnected()){
+    		File inputFile = getParameterAsFile(PARAMETER_EXCEL_FILE);
+    		try {
+    			inputStream = new FileInputStream(inputFile);
+    		} catch (FileNotFoundException e) {
+    			throw new UserError(this, 302, inputFile.getPath(), e.getMessage());
+    		}
+    		sourceAnnotation = inputFile.getPath();
+    	} else {
+        	IOObject fileObject = fileInputPort.getDataOrNull();
+        	if (fileObject != null) {
+        		inputStream = fileInputPort.getData(FileObject.class).openStream();
+        		sourceAnnotation = fileObject.getAnnotations().getAnnotation(Annotations.KEY_SOURCE);
+        	} else {
+        		throw new UserError(this, 302, "no data specified at input port");
+        	}
+    	}
+		
 		
 		// load the excelWorkbook if it is not set
-		try {
-			workbook = Workbook.getWorkbook(file);
+		Workbook workbook = null;
+    	try {
+    	    Charset encoding = Encoding.getEncoding(this);
+    		WorkbookSettings workbookSettings = new WorkbookSettings();
+    		workbookSettings.setEncoding(encoding.name());
+			workbook = Workbook.getWorkbook(inputStream, workbookSettings);
 		} catch (IOException e) {
-			throw new UserError(this, 302, file.getPath(), e.getMessage());
+			throw new UserError(this, 302, sourceAnnotation, e.getMessage());
 		} catch (BiffException e) {
-			throw new UserError(this, 302, file.getPath(), e.getMessage());
+			throw new UserError(this, 302, sourceAnnotation, e.getMessage());
 		}
 		
 		int sheetNumber = getParameterAsInt(PARAMETER_SHEET_NUMBER) - 1;
@@ -137,7 +183,7 @@ public class ExcelFormatExampleSource extends AbstractExampleSource {
 			}
 		}
 		if (!foundAny) {
-			throw new UserError(this, 302, file.getPath(), "spreadsheet seems to be empty");
+			throw new UserError(this, 302, sourceAnnotation, "spreadsheet seems to be empty");
 		}
 
 		// retrieve attribute names: first count columns
@@ -214,14 +260,28 @@ public class ExcelFormatExampleSource extends AbstractExampleSource {
 			table.addDataRow(new DoubleArrayDataRow(data));
 		}
 
-		return table.createExampleSet();
+		ExampleSet exampleSet = table.createExampleSet();
+		if (sourceAnnotation != null) {
+			exampleSet.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, sourceAnnotation);
+		}
+        return exampleSet;
 	}
 		
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
-		types.add(new ParameterTypeFile(PARAMETER_EXCEL_FILE, "Name of the excel file to read the data from.", "xls", false));
+		ParameterType fileParam = new ParameterTypeFile(PARAMETER_EXCEL_FILE, "Name of the excel file to read the data from.", "xls", false);
+		fileParam.registerDependencyCondition(new InputPortNotConnectedCondition(this, new PortProvider() {
+			@Override
+			public Port getPort() {
+				return fileInputPort;
+			}
+		}, true));
+		types.add(fileParam);
 		types.add(new ParameterTypeInt(PARAMETER_SHEET_NUMBER, "The number of the sheet which should be imported.", 1, Integer.MAX_VALUE, 1, false));
+		
+		types.addAll(Encoding.getParameterTypes(this));
+		
 		return types;
 	}
 }
