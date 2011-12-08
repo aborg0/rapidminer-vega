@@ -28,10 +28,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 
 import javax.swing.table.TableModel;
 
 import jxl.Workbook;
+import jxl.WorkbookSettings;
 import jxl.read.biff.BiffException;
 
 import com.rapid_i.deployment.update.client.ProgressReportingInputStream;
@@ -43,6 +45,7 @@ import com.rapidminer.operator.nio.ExcelSheetTableModel;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.io.Encoding;
 
 /**
  * A class holding information about configuration of the Excel Result Set
@@ -58,6 +61,7 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	/** Numbering starts at 0. */
 	private int sheet = -1;
 
+	private Charset encoding;
 	private Workbook preOpenedWorkbook;
 	private File workbookFile;
 
@@ -86,6 +90,8 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 //			this.workbookFile = excelExampleSource.getParameterAsFile(PARAMETER_EXCEL_FILE);
 //		}
 
+	    encoding = Encoding.getEncoding(excelExampleSource);
+	    
 		isEmulatingOldNames = excelExampleSource.getCompatibilityLevel().isAtMost(ExcelExampleSource.CHANGE_5_0_11_NAME_SCHEMA);
 	}
 
@@ -125,15 +131,23 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 			File file = getFile();
 			InputStream in = new ProgressReportingInputStream(new FileInputStream(file), listener, 10, 90, file.length());
 			//preOpenedWorkbook = Workbook.getWorkbook(file);
-			preOpenedWorkbook = Workbook.getWorkbook(in);
+			WorkbookSettings workbookSettings = new WorkbookSettings();
+			if (encoding != null) {
+				workbookSettings.setEncoding(encoding.name());
+			}
+			preOpenedWorkbook = Workbook.getWorkbook(in, workbookSettings);
 		}
 		return preOpenedWorkbook;
 	}
 
 	public Workbook getWorkbook() throws BiffException, IOException {
 		if (preOpenedWorkbook == null) {
-			File file = getFile();			
-			preOpenedWorkbook = Workbook.getWorkbook(file);			
+			File file = getFile();
+			WorkbookSettings workbookSettings = new WorkbookSettings();
+			if (encoding != null) {
+				workbookSettings.setEncoding(encoding.name());
+			}
+			preOpenedWorkbook = Workbook.getWorkbook(file, workbookSettings);			
 		}
 		return preOpenedWorkbook;
 	}
