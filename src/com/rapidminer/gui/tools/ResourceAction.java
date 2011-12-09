@@ -52,6 +52,8 @@ public abstract class ResourceAction extends ConditionalAction {
 	private static final long serialVersionUID = -3699425760142415331L;
 
 	private final String key;
+
+	private final String iconName;
 	
 	public ResourceAction(String i18nKey, Object ... i18nArgs) {
 		this(false, i18nKey, i18nArgs);
@@ -84,10 +86,10 @@ public abstract class ResourceAction extends ConditionalAction {
 							tip :
 							MessageFormat.format(tip, i18nArgs));
 		}
-		String icon = getMessageOrNull(i18nKey + ".icon");
-		if (icon != null) {
-			ImageIcon small = SwingTools.createIcon("16/"+icon);
-			ImageIcon large = SwingTools.createIcon("24/"+icon);
+		this.iconName = getMessageOrNull(i18nKey + ".icon");
+		if (getIconName() != null) {
+			ImageIcon small = SwingTools.createIcon("16/"+getIconName());
+			ImageIcon large = SwingTools.createIcon("24/"+getIconName());
 			putValue(LARGE_ICON_KEY, smallIcon ? (small != null ? small : large) : large);
 			putValue(SMALL_ICON, small != null ? small : large);
 		}
@@ -125,5 +127,9 @@ public abstract class ResourceAction extends ConditionalAction {
 	 */
 	public String getKey() {
 		return key;
+	}
+
+	public String getIconName() {
+		return iconName;
 	}
 }

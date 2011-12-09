@@ -148,9 +148,11 @@ public class DBOutlierOperator extends AbstractOutlierDetection {
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
 		ParameterType type = new ParameterTypeDouble(PARAMETER_DISTANCE, "The distance for objects.", 0, Double.POSITIVE_INFINITY);
+		type.setOptional(false);
 		type.setExpert(false);
 		types.add(type);
 		type = new ParameterTypeDouble(PARAMETER_PROPORTION, "The proportion of objects related to D.", 0, 1);
+		type.setOptional(false);
 		type.setExpert(false);
 		types.add(type);
 		types.add(new ParameterTypeCategory(PARAMETER_DISTANCE_FUNCTION, "Indicates which distance function will be used for calculating the distance between two objects", distanceFunctionList, 0, false));

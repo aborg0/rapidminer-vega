@@ -302,9 +302,9 @@ public class BugReport {
             buffer.append(Tools.getLineSeparator());
             buffer.append(Tools.getLineSeparator());
             String xmlProcess;
-            if (RapidMinerGUI.getMainFrame().getProcess().getProcessLocation() != null) {
+            if (RapidMinerGUI.getMainFrame().getProcess()!= null) {
                 try {
-                    xmlProcess = RapidMinerGUI.getMainFrame().getProcess().getProcessLocation().getRawXML();
+                    xmlProcess = RapidMinerGUI.getMainFrame().getProcess().getRootOperator().getXML(false);
                 } catch (Throwable t) {
                     xmlProcess = "could not read: " + t;
                 }

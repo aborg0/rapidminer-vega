@@ -284,8 +284,10 @@ public class MissingValueImputation extends OperatorChain {
             }
         }
 
-        exampleSet.getAttributes().addRegular(label);
-        exampleSet.getAttributes().setLabel(label);
+        if (label != null) {
+	        exampleSet.getAttributes().addRegular(label);
+	        exampleSet.getAttributes().setLabel(label);
+        }
 
         exampleSetOutput.deliver(exampleSet);
     }

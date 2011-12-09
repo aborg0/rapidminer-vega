@@ -42,7 +42,7 @@ public class RenameAction extends AbstractRepositoryAction<Entry> {
 	@Override
 	public void actionPerformed(Entry entry) {
 		String name = SwingTools.showInputDialog("file_chooser.rename", entry.getName(), entry.getName());
-		if (name != null) {
+		if ((name != null) && !name.equals(entry.getName())) {
 			boolean success = false;
 			try {
 				success = entry.rename(name);

@@ -57,6 +57,7 @@ import com.rapidminer.operator.ports.metadata.Precondition;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
@@ -238,7 +239,12 @@ public class ExampleSetMerge extends Operator {
 			Attribute firstAttribute = firstIterator.next();
 			Attribute secondAttribute = second.getAttributes().get(firstAttribute.getName());
 			if (secondAttribute == null)
-				throw new UserError(this, 925, "attribute with name '" + firstAttribute.getName() + "' is not part of second example set.");
+				throw new UserError(this, 925, "Attribute with name '" + firstAttribute.getName() + "' is not part of second example set.");
+			if (firstAttribute.getValueType() != secondAttribute.getValueType()) {
+				throw new UserError(this, 925, "Attribute '" + firstAttribute.getName() + "' has incompatible types ("+
+						Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(firstAttribute.getValueType())+" and "+
+						Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(secondAttribute.getValueType())+") in two input sets.");
+			}
 		}
 	}
 
