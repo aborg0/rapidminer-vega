@@ -422,7 +422,7 @@ public class TransitionGraphCreator extends GraphCreatorAdaptor {
         }
         
         for (Entry<String, Double> entry : strengthMap.entrySet()) {
-            edgeStrengthMap.put(entry.getKey(), (strengthMap.get(entry.getValue()) - minStrength) / (maxStrength - minStrength));
+            edgeStrengthMap.put(entry.getKey(), (strengthMap.get(entry.getKey()) - minStrength) / (maxStrength - minStrength));
         }
     }
 
