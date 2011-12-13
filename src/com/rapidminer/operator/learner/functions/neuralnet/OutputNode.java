@@ -94,4 +94,21 @@ public class OutputNode extends Node {
 		}
 		return currentError;
 	}
+
+	public Attribute getLabel() {
+		return label;
+	}
+
+	public double getLabelRange() {
+		return labelRange;
+	}
+
+	public double getLabelBase() {
+		return labelBase;
+	}
+	
+	public double getCurrentValue()
+	{
+		return currentValue;
+	}
 }

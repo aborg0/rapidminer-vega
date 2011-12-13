@@ -86,4 +86,25 @@ public class InputNode extends Node {
 		}
 		return currentError;
 	}
+
+	public Attribute getAttribute() {
+		return attribute;
+	}
+
+	public double getAttributeRange() {
+		return attributeRange;
+	}
+
+	public double getAttributeBase() {
+		return attributeBase;
+	}
+
+	public boolean isNormalize() {
+		return normalize;
+	}
+
+	public double getCurrentValue()
+	{
+		return currentValue;
+	}
 }
