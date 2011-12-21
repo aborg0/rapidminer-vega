@@ -25,6 +25,7 @@ package com.rapidminer.operator.io;
 import java.util.List;
 import java.util.logging.Level;
 
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
@@ -101,7 +102,9 @@ public class RepositorySource extends AbstractReader<IOObject> {
 	@Override
 	public IOObject read() throws OperatorException {	
 		try {
-			return getRepositoryEntry().retrieveData(null);
+			final IOObject data = getRepositoryEntry().retrieveData(null);
+			data.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, getRepositoryEntry().getLocation().toString());
+			return data;
 		} catch (RepositoryException e) {
 			throw new UserError(this, e, 312, getParameterAsString(PARAMETER_REPOSITORY_ENTRY), e.getMessage());
 		}		

@@ -144,8 +144,8 @@ public class ExampleSetSuperset extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet1 = exampleSet1Input.getData();
-		ExampleSet exampleSet2 = exampleSet2Input.getData();
+		ExampleSet exampleSet1 = (ExampleSet) exampleSet1Input.getData(ExampleSet.class).clone();
+		ExampleSet exampleSet2 = (ExampleSet) exampleSet2Input.getData(ExampleSet.class).clone();
 		superset(exampleSet1, exampleSet2);
 		supersetOutput1.deliver(exampleSet1);
 		supersetOutput2.deliver(exampleSet2);

@@ -2,9 +2,11 @@ package com.rapidminer.test;
 
 import junit.framework.TestCase;
 
+import com.rapidminer.BreakpointListener;
 import com.rapidminer.Process;
 import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.IOObject;
+import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.test.utils.RapidAssert;
@@ -60,6 +62,13 @@ public class ProcessTest extends TestCase {
 	 * @throws RepositoryException
 	 */
 	public void testProcess() throws OperatorException, RepositoryException {
+		for (Operator op : process.getRootOperator().getAllInnerOperators()) {
+			op.setBreakpoint(BreakpointListener.BREAKPOINT_AFTER, false);
+			op.setBreakpoint(BreakpointListener.BREAKPOINT_BEFORE, false);
+		}
+		process.getRootOperator().setBreakpoint(BreakpointListener.BREAKPOINT_AFTER, false);
+		process.getRootOperator().setBreakpoint(BreakpointListener.BREAKPOINT_BEFORE, false);
+
 		IOContainer results = process.run();
 		RapidAssert.assertEquals(Util.getExpectedResult(process), results.asList());
 	}

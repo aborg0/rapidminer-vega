@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import com.rapidminer.operator.Annotations;
+import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.nio.file.RepositoryBlobObject;
@@ -41,7 +42,7 @@ import com.rapidminer.repository.RepositoryLocation;
 
 public class RepositoryIterator extends AbstractRepositoryIterator {
 
-	public static final String PARAMETER_DIRECTORY = "directory";
+	public static final String PARAMETER_DIRECTORY = "repository_folder";
 
 	private RepositoryLocation repositoryLocation;
 
@@ -83,8 +84,11 @@ public class RepositoryIterator extends AbstractRepositoryIterator {
 				String parentPath = entry.getContainingFolder().getName();
 				if (matchesFilter(filter, fileName, fullPath, parentPath)) {
 					
+					IOObject data = ((IOObjectEntry)entry).retrieveData(null);					
+					data.setSource(getName());
+					data.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, entry.getLocation().toString());
 					doWorkForSingleIterationStep(fileName, fullPath,
-							parentPath, ((IOObjectEntry)entry).retrieveData(null));
+							parentPath, data);
 				}
 			}
 			if (entryType.equals(BlobEntry.TYPE_NAME)
@@ -98,6 +102,8 @@ public class RepositoryIterator extends AbstractRepositoryIterator {
 					RepositoryBlobObject result2 = new RepositoryBlobObject(location);
 					result2.getAnnotations().setAnnotation(Annotations.KEY_SOURCE,
 							source);
+					result2.setSource(getName());
+					result2.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, location.toString());
 					doWorkForSingleIterationStep(fileName, fullPath,
 							parentPath, result2);
 				}
@@ -119,7 +125,7 @@ public class RepositoryIterator extends AbstractRepositoryIterator {
 		List<ParameterType> types = new LinkedList<ParameterType>();
 
 		ParameterTypeRepositoryLocation folder = new ParameterTypeRepositoryLocation(
-				PARAMETER_DIRECTORY, "repository location", false, true, false);
+				PARAMETER_DIRECTORY, "Folder in the repository to iterate over", false, true, false);
 		folder.setExpert(false);
 		types.add(folder);
 

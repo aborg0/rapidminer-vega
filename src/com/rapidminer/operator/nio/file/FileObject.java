@@ -32,7 +32,7 @@ import com.rapidminer.operator.ResultObjectAdapter;
  * 
  * This class represents buffers, files or streams that can be parsed by Operators.
  * 
- * @author Nils-Christian Wöhler
+ * @author Nils-Christian Woehler
  *
  * 
  *

@@ -36,7 +36,7 @@ public class WriteFileOperator extends Operator {
 	public static final String PARAMETER_REPOSITORY_LOCATION = "repository_entry";
 
 	public static final String[] DESTINATION_TYPES = new String[] { "file", "repository blob entry" };
-	public static final String PARAMETER_DESTINATION_TYPE = "source_type";
+	public static final String PARAMETER_DESTINATION_TYPE = "resource_type";
 	public static final int DESTINATION_TYPE_FILE = 0;
 	public static final int DESTINATION_TYPE_REPOSITORY = 1;
 	public static final String PARAMETER_MIME_TYPE = "mime_type";

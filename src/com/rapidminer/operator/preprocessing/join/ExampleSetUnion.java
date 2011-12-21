@@ -60,8 +60,8 @@ public class ExampleSetUnion extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet1 = exampleSet1Input.getData();
-		ExampleSet exampleSet2 = exampleSet2Input.getData();
+		ExampleSet exampleSet1 = (ExampleSet) exampleSet1Input.getData(ExampleSet.class).clone();
+		ExampleSet exampleSet2 = (ExampleSet) exampleSet2Input.getData(ExampleSet.class).clone();
 		try {
 			ExampleSetSuperset supersetOperator = OperatorService.createOperator(ExampleSetSuperset.class);
 			supersetOperator.setParameter(ExampleSetSuperset.PARAMETER_INCLUDE_SPECIAL_ATTRIBUTES, "true");

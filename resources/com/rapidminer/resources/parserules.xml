@@ -821,6 +821,21 @@
          </condition>
       </setParameter>
    </obfuscate>
+   
+   
+   <open_file>
+      <replaceParameter appliesSince="5.1.000" appliesBefore="5.1.015">
+       	<oldparameter>source_type</oldparameter>
+       	<newparameter>resource_type</newparameter>
+      </replaceParameter>
+   </open_file>
+   <write_file>
+      <replaceParameter appliesSince="5.1.000" appliesBefore="5.1.015">
+         <oldparameter>source_type</oldparameter>
+         <newparameter>resource_type</newparameter>
+      </replaceParameter>
+   </write_file>
+
    <optimize_by_generation_aga>
       <setParameter>
          <attribute>use_local_random_seed</attribute>
@@ -1728,150 +1743,9 @@
       </setParameter>
    </stream_database>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
    <!-- Operators: T -->
 
-
-
-
    <!-- Operators: U -->
-
 
    <!-- Operators: V -->
    <vote>

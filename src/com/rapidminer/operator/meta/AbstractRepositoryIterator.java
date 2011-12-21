@@ -54,6 +54,7 @@ import com.rapidminer.parameter.UndefinedParameterError;
  * @author Vaclav Uher
  */
 public abstract class AbstractRepositoryIterator extends OperatorChain {
+	
 	private static final OperatorVersion OPERATOR_VERSION_OUT_PORTS = new OperatorVersion(
 			5, 1, 1);
 
@@ -68,9 +69,9 @@ public abstract class AbstractRepositoryIterator extends OperatorChain {
     public static final String PARAMETER_ENTRY_TYPE = "entry_type";
     public static final String PARAMETER_FILTER = "filter";
 
-    public static final String PARAMETER_FILE_NAME_MACRO = "file_name_macro";
-    public static final String PARAMETER_FILE_PATH_MACRO = "file_path_macro";
-    public static final String PARAMETER_PARENT_FOLDER = "parent_name_macro";
+    public static final String PARAMETER_ENTRY_NAME_MACRO = "entry_name_macro";
+    public static final String PARAMETER_REPOSITORY_PATH_MACRO = "repository_path_macro";
+    public static final String PARAMETER_PARENT_FOLDER_MACRO = "parent_folder_macro";
 
     public static final String PARAMETER_RECURSIVE = "recursive";
 
@@ -122,9 +123,9 @@ public abstract class AbstractRepositoryIterator extends OperatorChain {
             String filterString = getParameterAsString(PARAMETER_FILTER);
             filter = Pattern.compile(filterString);
         }
-        fileNameMacro = getParameterAsString(PARAMETER_FILE_NAME_MACRO);
-        pathNameMacro = getParameterAsString(PARAMETER_FILE_PATH_MACRO);
-        parentFolderMacro = getParameterAsString(PARAMETER_PARENT_FOLDER);
+        fileNameMacro = getParameterAsString(PARAMETER_ENTRY_NAME_MACRO);
+        pathNameMacro = getParameterAsString(PARAMETER_REPOSITORY_PATH_MACRO);
+        parentFolderMacro = getParameterAsString(PARAMETER_PARENT_FOLDER_MACRO);
 
         boolean recursive = getParameterAsBoolean(PARAMETER_RECURSIVE);
 
@@ -198,7 +199,7 @@ public abstract class AbstractRepositoryIterator extends OperatorChain {
         List<ParameterType> types = super.getParameterTypes();
         
         ParameterType type = new ParameterTypeCategory(PARAMETER_ENTRY_TYPE, "Type of object in repository to loop.", PARAMETERS_ENTRY_TYPE, BLOB, false);
-		type .setExpert(false);
+		type.setExpert(false);
         types.add(type);
 
         types.add(new ParameterTypeRegexp(PARAMETER_FILTER, "Specifies a regular expression which is used as filter for the file and directory names, e.g. 'a.*b' for all files starting with 'a' and ending with 'b'. Ignored if empty.", true, false));
@@ -206,9 +207,9 @@ public abstract class AbstractRepositoryIterator extends OperatorChain {
         ParameterType typeCategory = new ParameterTypeCategory(PARAMETER_FILTERED_STRING, "Indicates which part of the file name is matched against the filter expression.", FILTERED_STRINGS, FILTERED_STRING_FILE_NAME, true);
         types.add(typeCategory);
 
-        types.add(new ParameterTypeString(PARAMETER_FILE_NAME_MACRO, "Specifies the name of the macro, which delievers the current file name without path. Use %{macro_name} to use the file name in suboperators.", "file_name", false));
-        types.add(new ParameterTypeString(PARAMETER_FILE_PATH_MACRO, "Specifies the name of the macro containing the absolute path and file name of the current file. Use %{macro_name} to address the file in suboperators.", "file_path", false));
-        types.add(new ParameterTypeString(PARAMETER_PARENT_FOLDER, "Specifies the name of the macro containing the parent folder name of the current file's directory. Use %{macro_name} to address the file in suboperators.", "parent_folder", false));
+        types.add(new ParameterTypeString(PARAMETER_ENTRY_NAME_MACRO, "Specifies the name of the macro, which delievers the current file name without path. Use %{macro_name} to use the file name in suboperators.", "entry_name", false));
+        types.add(new ParameterTypeString(PARAMETER_REPOSITORY_PATH_MACRO, "Specifies the name of the macro containing the absolute path and file name of the current file. Use %{macro_name} to address the file in suboperators.", "repository_path", false));
+        types.add(new ParameterTypeString(PARAMETER_PARENT_FOLDER_MACRO, "Specifies the name of the macro containing the parent folder name of the current file's directory. Use %{macro_name} to address the file in suboperators.", "parent_folder", false));
 
         types.add(new ParameterTypeBoolean(PARAMETER_RECURSIVE, "Indicates if the operator will also deliver the files / directories of subdirectories (resursively).", true, false));
 
