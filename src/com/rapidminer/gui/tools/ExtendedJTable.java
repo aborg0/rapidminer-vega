@@ -484,7 +484,7 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
             if (color != null)
                 renderer.setColor(color);
 
-            renderer.setDateFormat(getDateFormat(row, col));
+            renderer.setDateFormat(getDateFormat(row, convertColumnIndexToModel(col)));
 
             if (col < maximalTextLengths.length) {
                 renderer.setMaximalTextLength(maximalTextLengths[col]);
@@ -622,10 +622,10 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
      * @return The index of the row in the original model.
      */
     public int getModelIndex(int rowIndex) {
-    	if (tableSorter != null) {
-    		return tableSorter.modelIndex(rowIndex);
-    	}
-    	return rowIndex;
+        if (tableSorter != null) {
+            return tableSorter.modelIndex(rowIndex);
+        }
+        return rowIndex;
     }
 
     public void setExtendedScrollPane(ExtendedJScrollPane scrollPane) {
