@@ -352,16 +352,12 @@ Name "${extension.name.long}"
 
     <target name="update.publish" depends="createJar" description="This will generate a new update and upload files for all platforms (currently only platform independent). The update number will ne increased automatically.">
         <echo message="Publishing update ${extension.longversion} using ${server.update.user}..." />
-        <echo message="...Platform Independent" />
-        <put targetUrl="${server.update.url}/${extension.updateServerId}/${extension.longversion}/ANY?force=true" uploadFile="${release.targetDir}/${release.name}" username="${server.update.user}" password="${server.update.password}" />
+        <echo message="...Platform Independent on update server" />
+        <put targetUrl="${server.update.url}/${extension.updateServerId}/${extension.longversion}/ANY" uploadFile="${release.targetDir}/${release.name}" username="${server.update.user}" password="${server.update.password}" />
+       	<echo message="...Platform Independent on marketplace" />
+        <put targetUrl="${server.marketplace.url}/${extension.updateServerId}/${extension.longversion}/ANY" uploadFile="${release.targetDir}/${release.name}" username="${server.marketplace.user}" password="${server.marketplace.password}" />
     </target>
 
-	<target name="temp"  depends="init" description="This will generate a new update and upload files for all platforms (currently only platform independent). The update number will ne increased automatically.">
-	        <echo message="Publishing update ${extension.longversion} using ${server.update.user}..." />
-	        <echo message="...Platform Independent" />
-	        <put targetUrl="${server.update.url}/rmx_paren/5.1.1/ANY?force=true" uploadFile="C:\Users\sland\rmx_paren-5.1.1.jar" username="${server.update.user}" password="${server.update.password}" />
-	    </target>
-	
     <target name="update" description="This target will perform a full update including file generation and uploading them to the update server.">
 		<input message="Do you really want to create a new Update with the version (${extension.version}.${extension.revision}.${extension.update}), generate all update files and upload to the server?" validargs="yes,no" addproperty="update.input">
         </input>

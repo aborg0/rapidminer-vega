@@ -120,6 +120,14 @@ public class DataResultSetTranslator {
             attributes[i] = AttributeFactory.createAttribute(configuration.getColumnMetaData(attributeColumns[i]).getOriginalAttributeName(), attributeValueType);
         }
 
+        // check whether all columns are accessible
+        int numberOfAvailableColumns = dataResultSet.getNumberOfColumns();
+        for (int attributeColumn : attributeColumns) {
+            if(attributeColumn >= numberOfAvailableColumns) {
+                throw new UserError(null, "data_import.specified_more_columns_than_exist", configuration.getColumnMetaData(attributeColumn).getUserDefinedAttributeName(), attributeColumn);
+            }
+        }
+
         // building example table
         MemoryExampleTable exampleTable = new MemoryExampleTable(attributes);
 
@@ -215,7 +223,7 @@ public class DataResultSetTranslator {
                 continue;
             }
             String userDefinedName = cmd.getUserDefinedAttributeName();
-            if ((userDefinedName != null) && !userDefinedName.isEmpty())
+            if (userDefinedName != null && !userDefinedName.isEmpty())
                 attribute.setName(userDefinedName);
             String roleId = cmd.getRole();
             if (!Attributes.ATTRIBUTE_NAME.equals(roleId))

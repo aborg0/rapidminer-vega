@@ -538,7 +538,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
         return allNames;
     }
 
-    /** Returns the operator that is currently being executed. */
+    /** Sets the operator that is currently being executed. */
     public void setCurrentOperator(Operator operator) {
         this.currentOperator = operator;
     }
@@ -701,7 +701,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
         if (context.getInputRepositoryLocations().isEmpty()) {
             return;
         }
-        getLogger().info("Loading initial data" + (firstPort>0?(" (starting at port " + (firstPort+1) + ")"):"") +".");
+        getLogger().info("Loading initial data" + (firstPort>0?" (starting at port " + (firstPort+1) + ")":"") +".");
         for (int i = firstPort; i < context.getInputRepositoryLocations().size(); i++) {
             String location = context.getInputRepositoryLocations().get(i);
             if (location == null || location.length() == 0) {
@@ -843,9 +843,9 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
         return run(input, logVerbosity, macroMap);
 
     }
-    
+
     public final IOContainer run(IOContainer input, int logVerbosity, Map<String, String> macroMap) throws OperatorException {
-    	return run(input, logVerbosity, macroMap, true);
+        return run(input, logVerbosity, macroMap, true);
     }
 
 
@@ -900,13 +900,13 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
         else
             getLogger().info("Process starts");
         getLogger().fine("Process:" + Tools.getLineSeparator() + getRootOperator().createProcessTree(3));
-        
+
         // load data as specified in process context
         int firstInput = 0;
         if (input != null) {
-        	firstInput = input.getIOObjects().length;
+            firstInput = input.getIOObjects().length;
         }
-    	loadInitialData(firstInput);
+        loadInitialData(firstInput);
 
         // macros
         applyContextMacros();
@@ -916,7 +916,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
             }
         }
         rootOperator.processStarts();
-        
+
         try {
             UsageStatistics.getInstance().count(this, OperatorStatisticsValue.EXECUTION);
             if (input != null) {
@@ -924,7 +924,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
             }
             rootOperator.execute();
             if (storeOutput) {
-            	saveResults();
+                saveResults();
             }
             IOContainer result = rootOperator.getResults();
             long end = System.currentTimeMillis();
