@@ -1622,7 +1622,11 @@ public class ProcessRenderer extends JPanel {
             if (connectingPortSource != null) {
                 repaint();
             }
-            hoveringProcessIndex = getProcessIndexUnder(e.getPoint());
+            updateHoveringState(e);
+        }
+
+		private void updateHoveringState(MouseEvent e) {
+			hoveringProcessIndex = getProcessIndexUnder(e.getPoint());
             if (hoveringProcessIndex != -1) {
                 mousePositionRelativeToProcess = toProcessSpace(e.getPoint(), hoveringProcessIndex);
                 int relativeX = (int) mousePositionRelativeToProcess.getX();
@@ -1679,7 +1683,7 @@ public class ProcessRenderer extends JPanel {
                 repaint();
             }
             clearStatus();
-        }
+		}
 
         @Override
         public void mousePressed(MouseEvent e) {
@@ -1733,28 +1737,7 @@ public class ProcessRenderer extends JPanel {
                         }
                     } else if (hoveringPort instanceof InputPort) {
                         if (connectingPortSource != null) {
-                            try {
-                                Operator destOp = hoveringPort.getPorts().getOwner().getOperator();
-                                boolean hasConnections = hasConnections(destOp);
-                                connect(connectingPortSource, (InputPort) hoveringPort);
-                                // move directly after source if first connection
-                                if (!hasConnections) {
-                                    Operator sourceOp = connectingPortSource.getPorts().getOwner().getOperator();
-                                    if (destOp != displayedChain && sourceOp != displayedChain) {
-                                        destOp.getExecutionUnit().moveToIndex(destOp, destOp.getExecutionUnit().getOperators().indexOf(sourceOp) + 1);
-                                    }
-                                }
-                            } catch (PortException e1) {
-                                if (e1.hasRepairOptions()) {
-                                    e1.showRepairDialog(ProcessRenderer.this);
-                                } else {
-                                    JOptionPane.showMessageDialog(null, e1.getMessage(), "Cannot connect", JOptionPane.ERROR_MESSAGE);
-                                }
-                                repaint();
-                            } finally {
-                                repaint();
-                                connectingPortSource = null;
-                            }
+                            connectConnectingPortSourceWithHoveringPort();
                         }
                     }
                 }
@@ -1793,10 +1776,36 @@ public class ProcessRenderer extends JPanel {
                 nameRolloutInterpolationMap.clear();
             } else if (hoveringPort != null) {
                 draggedPort = hoveringPort;
-            } else {
+            } else if (e.getButton() == MouseEvent.BUTTON1) {
+            	// start selection
                 selectionRectangle = getSelectionRectangle(mousePositionAtDragStart, e.getPoint());
             }
         }
+
+		private void connectConnectingPortSourceWithHoveringPort() {
+			try {
+			    Operator destOp = hoveringPort.getPorts().getOwner().getOperator();
+			    boolean hasConnections = hasConnections(destOp);
+			    connect(connectingPortSource, (InputPort) hoveringPort);
+			    // move directly after source if first connection
+			    if (!hasConnections) {
+			        Operator sourceOp = connectingPortSource.getPorts().getOwner().getOperator();
+			        if (destOp != displayedChain && sourceOp != displayedChain) {
+			            destOp.getExecutionUnit().moveToIndex(destOp, destOp.getExecutionUnit().getOperators().indexOf(sourceOp) + 1);
+			        }
+			    }
+			} catch (PortException e1) {
+			    if (e1.hasRepairOptions()) {
+			        e1.showRepairDialog(ProcessRenderer.this);
+			    } else {
+			        JOptionPane.showMessageDialog(null, e1.getMessage(), "Cannot connect", JOptionPane.ERROR_MESSAGE);
+			    }
+			    repaint();
+			} finally {
+			    repaint();
+			    connectingPortSource = null;
+			}
+		}
 
         @Override
         public void mouseReleased(MouseEvent e) {
@@ -1814,6 +1823,15 @@ public class ProcessRenderer extends JPanel {
                 if (showPopupMenu(e)) {
                     return;
                 }
+            }
+            
+            if (connectingPortSource != null) {
+            	if (e.getButton() == MouseEvent.BUTTON3) {
+            		cancelConnectionDragging();
+            		return;
+            	} else if (e.getButton() == MouseEvent.BUTTON1 && hoveringPort != null && hoveringPort instanceof InputPort && !e.isAltDown()) {
+            		connectConnectingPortSourceWithHoveringPort();
+            	}
             }
 
             try {
@@ -1996,6 +2014,8 @@ public class ProcessRenderer extends JPanel {
             } else if (selectionRectangle != null) {
                 selectionRectangle = getSelectionRectangle(mousePositionAtDragStart, e.getPoint());
                 repaint();
+            } else if (connectingPortSource != null) {
+            	updateHoveringState(e);
             }
         }
 
@@ -2039,12 +2059,19 @@ public class ProcessRenderer extends JPanel {
                 repaint();
                 break;
             case MouseEvent.BUTTON3:
-                connectingPortSource = null;
-                repaint();
-                break;
+            	if (connectingPortSource != null) {
+            		cancelConnectionDragging();
+            		break;
+            	}
             }
             repaint();
+
         }
+
+		private void cancelConnectionDragging() {
+			connectingPortSource = null;
+			repaint();
+		}
 
         @Override
         public void mouseExited(MouseEvent e) {
