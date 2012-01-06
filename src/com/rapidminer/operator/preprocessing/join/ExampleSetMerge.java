@@ -63,16 +63,16 @@ import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
  * <p>
- * This operator merges two or more given example sets by adding all examples in one example table containing all data
- * rows. Please note that the new example table is built in memory and this operator might therefore not be applicable
- * for merging huge data set tables from a database. In that case other preprocessing tools should be used which
- * aggregates, joins, and merges tables into one table which is then used by RapidMiner.
+ * This operator merges two or more given example sets by adding all examples in one example table containing all data rows. Please note
+ * that the new example table is built in memory and this operator might therefore not be applicable for merging huge data set tables from a
+ * database. In that case other preprocessing tools should be used which aggregates, joins, and merges tables into one table which is then
+ * used by RapidMiner.
  * </p>
  * 
  * <p>
- * All input example sets must provide the same attribute signature. That means that all examples sets must have the
- * same number of (special) attributes and attribute names. If this is true this operator simply merges all example sets
- * by adding all examples of all table into a new set which is then returned.
+ * All input example sets must provide the same attribute signature. That means that all examples sets must have the same number of
+ * (special) attributes and attribute names. If this is true this operator simply merges all example sets by adding all examples of all
+ * table into a new set which is then returned.
  * </p>
  * 
  * @author Ingo Mierswa
@@ -86,11 +86,12 @@ public class ExampleSetMerge extends Operator {
                 {
                     setOptional(true);
                 }
+
                 @Override
                 public void makeAdditionalChecks(ExampleSetMetaData emd) throws UndefinedParameterError {
-                    for (MetaData metaData: inputExtender.getMetaData(true)) {
+                    for (MetaData metaData : inputExtender.getMetaData(true)) {
                         if (metaData instanceof ExampleSetMetaData) {
-                            MetaDataInfo result = emd.equalHeader((ExampleSetMetaData)metaData);
+                            MetaDataInfo result = emd.equalHeader((ExampleSetMetaData) metaData);
                             if (result == MetaDataInfo.NO) {
                                 addError(new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), "exampleset.sets_incompatible"));
                                 break;
@@ -121,7 +122,7 @@ public class ExampleSetMerge extends Operator {
             public void transformMD() {
                 List<MetaData> metaDatas = inputExtender.getMetaData(true);
                 List<ExampleSetMetaData> emds = new ArrayList<ExampleSetMetaData>(metaDatas.size());
-                for (MetaData metaData: metaDatas) {
+                for (MetaData metaData : metaDatas) {
                     if (metaData instanceof ExampleSetMetaData) {
                         emds.add((ExampleSetMetaData) metaData);
                     }
@@ -142,7 +143,7 @@ public class ExampleSetMerge extends Operator {
                                 // values
                                 if (amd.isNominal()) {
                                     amd.getValueSet().addAll(mergingAMD.getValueSet());
-                                }else {
+                                } else {
                                     amd.getValueRange().union(mergingAMD.getValueRange());
                                 }
                                 amd.getValueSetRelation().merge(mergingAMD.getValueSetRelation());
@@ -156,6 +157,7 @@ public class ExampleSetMerge extends Operator {
             }
         });
     }
+
     @Override
     public void doWork() throws OperatorException {
         List<ExampleSet> allExampleSets = inputExtender.getData(true);
@@ -191,18 +193,22 @@ public class ExampleSetMerge extends Operator {
         // now fill table with rows, copied from source example sets
         DataRowFactory factory = new DataRowFactory(getParameterAsInt(PARAMETER_DATAMANAGEMENT), '.');
         int numberOfAttributes = newAttributeList.size();
-        for (ExampleSet exampleSet: allExampleSets) {
-            for (Example example: exampleSet) {
+        for (ExampleSet exampleSet : allExampleSets) {
+            for (Example example : exampleSet) {
                 DataRow dataRow = factory.create(numberOfAttributes);
                 Iterator<Attribute> iterator = exampleSet.getAttributes().allAttributes();
                 while (iterator.hasNext()) {
                     Attribute oldAttribute = iterator.next();
                     Attribute newAttribute = newAttributeNameMap.get(oldAttribute.getName());
                     double oldValue = example.getValue(oldAttribute);
-                    if (oldAttribute.isNominal()) {
-                        dataRow.set(newAttribute, newAttribute.getMapping().mapString(oldAttribute.getMapping().mapIndex((int) oldValue)));
-                    } else {
+                    if (Double.isNaN(oldValue))
                         dataRow.set(newAttribute, oldValue);
+                    else {
+                        if (oldAttribute.isNominal()) {
+                            dataRow.set(newAttribute, newAttribute.getMapping().mapString(oldAttribute.getMapping().mapIndex((int) oldValue)));
+                        } else {
+                            dataRow.set(newAttribute, oldValue);
+                        }
                     }
                 }
                 // adding new row to table
@@ -235,9 +241,9 @@ public class ExampleSetMerge extends Operator {
             if (secondAttribute == null)
                 throw new UserError(this, 925, "Attribute with name '" + firstAttribute.getName() + "' is not part of second example set.");
             if (firstAttribute.getValueType() != secondAttribute.getValueType()) {
-                throw new UserError(this, 925, "Attribute '" + firstAttribute.getName() + "' has incompatible types ("+
-                        Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(firstAttribute.getValueType())+" and "+
-                        Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(secondAttribute.getValueType())+") in two input sets.");
+                throw new UserError(this, 925, "Attribute '" + firstAttribute.getName() + "' has incompatible types (" +
+                        Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(firstAttribute.getValueType()) + " and " +
+                        Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(secondAttribute.getValueType()) + ") in two input sets.");
             }
         }
     }
