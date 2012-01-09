@@ -49,8 +49,8 @@ public class NumericalSplitter {
     
     public double getBestSplit(ExampleSet inputSet, Attribute attribute) throws OperatorException {
         SortedExampleSet exampleSet = new SortedExampleSet((ExampleSet)inputSet.clone(), attribute, SortedExampleSet.INCREASING);
-        Attribute labelAttribute = exampleSet.getAttributes().getLabel();
-        double oldLabel = Double.NaN;
+        // Attribute labelAttribute = exampleSet.getAttributes().getLabel(); // see bug report 952
+        //double oldLabel = Double.NaN; // see bug report 952
         double bestSplit = Double.NaN;
         double lastValue = Double.NaN;
         double bestSplitBenefit = Double.NEGATIVE_INFINITY;
@@ -63,26 +63,28 @@ public class NumericalSplitter {
         Iterator<Example> exampleIterator = exampleSet.iterator();
         while(exampleIterator.hasNext()) {
         	Example e = exampleIterator.next();
-        	boolean isLast = !(exampleIterator.hasNext());
+        	//boolean isLast = !(exampleIterator.hasNext()); // see bug report 952
         	double currentValue = e.getValue(attribute);
         	
-        	double label = e.getValue(labelAttribute);   
+        	// double label = e.getValue(labelAttribute);  // see bug report 952
     		if (this.criterion.supportsIncrementalCalculation()) {
     			if (lastExample != null) 
     				this.criterion.swapExample(lastExample);
     			lastExample = e;
-    			if ((Double.isNaN(oldLabel)) || (oldLabel != label) || isLast) {
-    				if (!Tools.isEqual(currentValue, lastValue) || isLast) {
-    					double benefit = this.criterion.getIncrementalBenefit();
+    			//if ((Double.isNaN(oldLabel)) || (oldLabel != label) || isLast) {  // see bug report 952
+    			//if ((Double.isNaN(oldLabel)) || (oldLabel != label)) {  // see bug report 952
+    			if (!Tools.isEqual(currentValue, lastValue)) {
+    				double benefit = this.criterion.getIncrementalBenefit();
 
-    					if (benefit > bestSplitBenefit) {
-    						bestSplitBenefit = benefit;
-    						bestSplit = (lastValue + currentValue) / 2.0d;
-    					}
-    					oldLabel = label;
+    				if (benefit > bestSplitBenefit) {
+    					bestSplitBenefit = benefit;
+    					bestSplit = (lastValue + currentValue) / 2.0d;
     				}
-        		}
-        	} else if ((Double.isNaN(oldLabel)) || (oldLabel != label)) {
+    				// oldLabel = label; // see bug report 952
+    			}
+        		//} // see bug report 952
+        	//} else if ((Double.isNaN(oldLabel)) || (oldLabel != label)) {  // see bug report 952
+    		} else {  
         		if (!Tools.isEqual(currentValue, lastValue)) {
         			double splitValue = (lastValue + currentValue) / 2.0d;
         			double benefit = this.criterion.getNumericalBenefit(exampleSet, attribute, splitValue);
@@ -90,7 +92,7 @@ public class NumericalSplitter {
         				bestSplitBenefit = benefit;
         				bestSplit = splitValue;
         			}
-        			oldLabel = label;
+        			// oldLabel = label; // see bug report 952
         		}
         	}
     		

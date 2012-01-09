@@ -26,7 +26,9 @@ import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * This adaptor is needed for dynamical loading of JDBC drivers. It is not possible to use an
@@ -103,4 +105,11 @@ public class DriverAdapter implements Driver {
 	public int hashCode() {
 		return this.driver.hashCode();
 	}
+
+	/*
+	@Override
+	public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+		return driver.getParentLogger();
+	}
+	*/
 }
