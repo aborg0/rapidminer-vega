@@ -36,9 +36,10 @@ class ProgressDisplay {
 	private String label;
 	private String message;
 
-	private ProgressListener progressListener = new ProgressListener() {
+	private final ProgressListener progressListener = new ProgressListener() {
 		@Override
-		public void setCompleted(int completed) {			
+		public void setCompleted(int completed) {
+			checkCancelled();
 			ProgressDisplay.this.completed = completed;
 			if (ApplicationFrame.getApplicationFrame() != null) {
 				ApplicationFrame.getApplicationFrame().getStatusBar().setProgress(label, ProgressDisplay.this.completed, total);
@@ -46,29 +47,36 @@ class ProgressDisplay {
 			ProgressThreadDialog.getInstance().refreshDialog();
 		}
 
-		@Override
-		public void setTotal(int total) {
+		@Override		
+		public void setTotal(int total) {		
 			ProgressDisplay.this.total = total;
 			setCompleted(completed);
 			ProgressThreadDialog.getInstance().refreshDialog();
 		}
 
 		@Override
-		public void complete() {
+		public void complete() {			
 			setCompleted(total);
 			ProgressThreadDialog.getInstance().refreshDialog();
 		}
 
 		@Override
 		public void setMessage(String message) {
+			checkCancelled();
 			ProgressDisplay.this.message = message;			
 		}
 		
 	};
+	private ProgressThread progressThread;
 
 	public ProgressDisplay(String label) {
+		this(label, null);
+	}
+	
+	public ProgressDisplay(String label, ProgressThread progressThread) {
 		super();
 		this.label = label;
+		this.progressThread = progressThread;
 	}
 
 	public ProgressListener getListener() {
@@ -84,5 +92,11 @@ class ProgressDisplay {
 	
 	public String getMessage() {
 		return message;
+	}
+	
+	private void checkCancelled() {
+		if (progressThread != null) {
+			progressThread.checkCancelled();
+		}
 	}
 }

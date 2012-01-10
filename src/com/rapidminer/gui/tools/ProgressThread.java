@@ -107,7 +107,7 @@ public abstract class ProgressThread implements Runnable {
 
 	public ProgressThread(String i18nKey, boolean runInForeground) {
 		this.name = I18N.getMessage(I18N.getGUIBundle(), "gui.progress."+i18nKey+".label");
-		this.display = new ProgressDisplay(name);
+		this.display = new ProgressDisplay(name, this);
 		this.runInForeground = runInForeground;
 	}
 
@@ -120,6 +120,7 @@ public abstract class ProgressThread implements Runnable {
 	}
 
 	public ProgressListener getProgressListener() {
+		checkCancelled();
 		return display.getListener();
 	}
 
@@ -180,7 +181,9 @@ public abstract class ProgressThread implements Runnable {
 					LogService.getRoot().log(Level.WARNING, "Error executing background job '"+name+"': "+e, e);
 					SwingTools.showSimpleErrorMessage("error_executing_background_job", e, name, e);
 				} finally {
-					ProgressThread.this.getProgressListener().complete();
+					if (!ProgressThread.this.isCancelled()) {
+						ProgressThread.this.getProgressListener().complete();
+					}
 					QUEUE_MODEL.remove(ProgressThread.this);
 					current = null;
 				}
