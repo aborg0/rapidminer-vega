@@ -240,7 +240,9 @@ public class ExampleSetMerge extends Operator {
             Attribute secondAttribute = second.getAttributes().get(firstAttribute.getName());
             if (secondAttribute == null)
                 throw new UserError(this, 925, "Attribute with name '" + firstAttribute.getName() + "' is not part of second example set.");
-            if (firstAttribute.getValueType() != secondAttribute.getValueType()) {
+            //if (firstAttribute.getValueType() != secondAttribute.getValueType()) { // ATTENTION: Breaks compatibility for previously running processes
+            // maybe even better: check for subtypes in both directions and use super-type above
+            if (!Ontology.ATTRIBUTE_VALUE_TYPE.isA(secondAttribute.getValueType(), firstAttribute.getValueType())) {
                 throw new UserError(this, 925, "Attribute '" + firstAttribute.getName() + "' has incompatible types (" +
                         Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(firstAttribute.getValueType()) + " and " +
                         Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(secondAttribute.getValueType()) + ") in two input sets.");
