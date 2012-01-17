@@ -27,52 +27,68 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.rapidminer.gui.tools.SwingTools;
 
 /**
- * Class providing new protocolls special for RapidMiner.
- * Currently it supports the icon:// protocoll, that will use the given
- * path to load the icon using new URL on {@link SwingTools#getIconPath(String)}.
+ * Class providing new protocolls special for RapidMiner. Currently it supports
+ * the icon:// protocoll, that will use the given path to load the icon using
+ * new URL on {@link SwingTools#getIconPath(String)}.
  * 
  * @author Sebastian Land
- *
+ * 
  */
 public class NetTools {
 	protected static final String ICON_PROTOCOLL = "icon";
 	protected static final String RESOURCE_PROTOCOLL = "resource";
-	
+
 	private static boolean initialized = false;
-	
+	public static final URLStreamHandlerFactory fac = new URLStreamHandlerFactory() {
+		@Override
+		public URLStreamHandler createURLStreamHandler(final String protocol) {
+			if (ICON_PROTOCOLL.equals(protocol)) {
+				return new URLStreamHandler() {
+					@Override
+					protected URLConnection openConnection(final URL u)
+							throws IOException {
+						final URL resource = Tools.getResource("icons"
+								+ u.getPath());
+						if (resource != null) {
+							return resource.openConnection();
+						}
+						throw new IOException("Icon not found.");
+					}
+				};
+			} else if (RESOURCE_PROTOCOLL.equals(protocol)) {
+				return new URLStreamHandler() {
+					@Override
+					protected URLConnection openConnection(final URL u)
+							throws IOException {
+						final URL resource = Tools.getResource(u.getPath()
+								.substring(1, u.getPath().length()));
+						if (resource != null) {
+							return resource.openConnection();
+						}
+						throw new IOException("Resource not found.");
+					}
+				};
+			}
+			return null;
+		}
+	};
+
 	public static void init() {
 		if (!initialized) {
-			URL.setURLStreamHandlerFactory(new URLStreamHandlerFactory() {
-				@Override
-				public URLStreamHandler createURLStreamHandler(String protocol) {
-					if (ICON_PROTOCOLL.equals(protocol)) {
-						return new URLStreamHandler() {
-							@Override
-							protected URLConnection openConnection(URL u) throws IOException {
-								URL resource = Tools.getResource("icons" + u.getPath());
-								if (resource != null)
-									return resource.openConnection();
-								throw new IOException("Icon not found.");
-							}
-						};
-					} else if (RESOURCE_PROTOCOLL.equals(protocol)) {
-						return new URLStreamHandler() {
-							@Override
-							protected URLConnection openConnection(URL u) throws IOException {
-								URL resource = Tools.getResource(u.getPath().substring(1, u.getPath().length()));
-								if (resource != null)
-									return resource.openConnection();
-								throw new IOException("Resource not found.");
-							}
-						};
-					}
-					return null;
-				}
-			});
+			try {
+				URL.setURLStreamHandlerFactory(fac);
+			} catch (final Throwable e) {
+				Logger.getAnonymousLogger()
+						.log(Level.WARNING,
+								"Failed to set the stream handler factory. Maybe because of the OSGi preset.",
+								e);
+			}
 			initialized = true;
 		}
 	}
