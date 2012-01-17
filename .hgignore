@@ -1,0 +1,13 @@
+
+syntax: regexp
+^lib/launcher\.jar$
+syntax: regexp
+^lib/rapidminer\.jar$
+syntax: regexp
+^lib/plugins$
+syntax: regexp
+^junit-reports$
+syntax: regexp
+build
+syntax: regexp
+^installation/version\.nsi$

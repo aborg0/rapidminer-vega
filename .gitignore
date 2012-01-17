@@ -1,0 +1,7 @@
+.hg
+junit-reports
+lib/launcher.jar
+lib/rapidminer.jar
+lib/plugins
+build
+installation/version.nsi
