@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -162,7 +162,7 @@ public class OperatorTreeTransferHandler extends ReceivingOperatorTransferHandle
 				}
 			}
 			for (Operator operator : operators) {
-				if (RapidMinerGUI.getMainFrame().VALIDATE_AUTOMATICALLY_ACTION.isSelected()) {
+				if (RapidMinerGUI.getMainFrame().getValidateAutomaticallyAction().isSelected()) {
 					operator.getExecutionUnit().autoWireSingle(operator, CompatibilityLevel.VERSION_5,
 							RapidMinerGUI.getMainFrame().getNewOperatorEditor().shouldAutoConnectNewOperatorsInputs(),
 							RapidMinerGUI.getMainFrame().getNewOperatorEditor().shouldAutoConnectNewOperatorsOutputs());

@@ -11,3 +11,7 @@ syntax: regexp
 build
 syntax: regexp
 ^installation/version\.nsi$
+syntax: regexp
+^\.git$
+syntax: regexp
+\.svn

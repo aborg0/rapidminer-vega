@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -424,7 +424,7 @@ public class AggregationOperator extends AbstractDataProcessing {
         table.addDataRow(row);
     }
 
-    private void parseTree(AggregationTreeNode node, Attribute[] groupAttributes, double[] dataOfUpperLevels, int groupLevel, MemoryExampleTable table, DataRowFactory factory, Attribute[] newAttributes, boolean isCountingAllCombinations, List<AggregationFunction> aggregationFunctions) {
+    private void parseTree(AggregationTreeNode node, Attribute[] groupAttributes, double[] dataOfUpperLevels, int groupLevel, MemoryExampleTable table, DataRowFactory factory, Attribute[] newAttributes, boolean isCountingAllCombinations, List<AggregationFunction> aggregationFunctions) throws UserError {
         Attribute currentAttribute = groupAttributes[groupLevel];
         if (currentAttribute.isNominal()) {
             Collection<? extends Object> nominalValues = null;
@@ -444,7 +444,7 @@ public class AggregationOperator extends AbstractDataProcessing {
                 }
 
             }
-        } else if (currentAttribute.isNumerical()) {
+        } else if (currentAttribute.isNumerical() || Ontology.ATTRIBUTE_VALUE_TYPE.isA(currentAttribute.getValueType(), Ontology.DATE_TIME)) {
             for (Object numericalValue : node.getValues()) {
                 dataOfUpperLevels[groupLevel] = (Double) numericalValue;
                 if (groupLevel + 1 < groupAttributes.length) {
@@ -454,6 +454,8 @@ public class AggregationOperator extends AbstractDataProcessing {
                     parseLeaf(node.getLeaf(numericalValue), dataOfUpperLevels, table, factory, newAttributes, aggregationFunctions);
                 }
             }
+        } else {
+        	throw new UserError(this, "aggregation_operator.unsupported_value_type", currentAttribute.getName(), Ontology.ATTRIBUTE_VALUE_TYPE.getNames()[currentAttribute.getValueType()]);
         }
     }
 

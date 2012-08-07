@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -50,7 +50,8 @@ import javax.swing.event.ChangeListener;
 
 import com.rapidminer.BreakpointListener;
 import com.rapidminer.Process;
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.AbstractUIState;
+import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.actions.ToggleAction.ToggleActionListener;
 import com.rapidminer.gui.processeditor.ProcessEditor;
 import com.rapidminer.gui.properties.celleditors.value.PropertyValueCellEditor;
@@ -154,7 +155,7 @@ public class OperatorPropertyPanel extends PropertyPanel implements Dockable, Pr
 
 	private final BreakpointButton breakpointButton;
 	
-	private final MainFrame mainFrame;
+	private final MainUIState mainFrame;
 	
 	private static final Icon WARNING_ICON = SwingTools.createIcon("16/sign_warning.png");
 	
@@ -191,7 +192,7 @@ public class OperatorPropertyPanel extends PropertyPanel implements Dockable, Pr
 	private ResourceLabel compatibilityLabel = new ResourceLabel("compatibility_level");
 	private JPanel compatibilityPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));;
 
-	public OperatorPropertyPanel(final MainFrame mainFrame) {
+	public OperatorPropertyPanel(final MainUIState mainFrame) {
 		super();
 		this.mainFrame = mainFrame;
 		breakpointButton = new BreakpointButton();
@@ -200,7 +201,7 @@ public class OperatorPropertyPanel extends PropertyPanel implements Dockable, Pr
 		expertModeHintLabel.setIcon(WARNING_ICON);
 		expertModeHintLabel.addMouseListener(new MouseListener() {
 			public void mouseReleased(MouseEvent e) {
-				mainFrame.TOGGLE_EXPERT_MODE_ACTION.actionPerformed(null);
+				mainFrame.getToggleExpertModeAction().actionPerformed(null);
 			}
 			public void mouseClicked(MouseEvent e) {}
 			public void mouseEntered(MouseEvent e) {}
@@ -355,7 +356,7 @@ public class OperatorPropertyPanel extends PropertyPanel implements Dockable, Pr
 
 			JPanel toolBarPanel = new JPanel(new BorderLayout());
 			ViewToolBar toolBar = new ViewToolBar();
-			JToggleButton toggleExpertModeButton = mainFrame.TOGGLE_EXPERT_MODE_ACTION.createToggleButton();
+			JToggleButton toggleExpertModeButton = mainFrame.getToggleExpertModeAction().createToggleButton();
 			toggleExpertModeButton.setText(null);
 			toolBar.add(toggleExpertModeButton);
 			toolBar.add(mainFrame.getActions().INFO_OPERATOR_ACTION);
@@ -396,7 +397,7 @@ public class OperatorPropertyPanel extends PropertyPanel implements Dockable, Pr
 	public static final String PROPERTY_EDITOR_DOCK_KEY = "property_editor";
 	private final DockKey DOCK_KEY = new ResourceDockKey(PROPERTY_EDITOR_DOCK_KEY);
 	{
-		DOCK_KEY.setDockGroup(MainFrame.DOCK_GROUP_ROOT);
+		DOCK_KEY.setDockGroup(AbstractUIState.DOCK_GROUP_ROOT);
 	}
 	private JPanel dockableComponent;
 
@@ -406,7 +407,7 @@ public class OperatorPropertyPanel extends PropertyPanel implements Dockable, Pr
 	}
 
 	public boolean isExpertMode() {
-		return mainFrame.TOGGLE_EXPERT_MODE_ACTION.isSelected();
+		return mainFrame.getToggleExpertModeAction().isSelected();
 	}
 
 	@Override

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -31,7 +31,7 @@ import java.util.logging.Level;
 import javax.swing.Action;
 import javax.swing.event.HyperlinkListener;
 
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.actions.SettingsAction;
 import com.rapidminer.gui.tools.SwingTools;
@@ -76,7 +76,7 @@ public class RMUrlHandler {
 			}
 			if (suffix.startsWith("operator/")) {
 				String opName = suffix.substring("operator/".length());
-				MainFrame mainFrame = RapidMinerGUI.getMainFrame();
+				MainUIState mainFrame = RapidMinerGUI.getMainFrame();
 				mainFrame.selectOperator(mainFrame.getProcess().getOperator(opName));
 				return true;			
 			}

@@ -426,7 +426,7 @@ Name "${extension.name.long}"
         </java>
     </target>
     <target name="check.authorTags" depends="check.build" description="Prints all classes with a missing '@author' tag.">
-        <java classname="StyleCheck" classpath="${check.build}">
+        <java classname="StyleCheck" classpath="${check.build}" failonerror="true">
             <arg value="author_check" />
             <arg value="${check.sources}" />
         </java>
@@ -447,8 +447,9 @@ Name "${extension.name.long}"
     </target>
     <target name="check.license" depends="check.build" description="Prints all classes with a missing license.">
         <echo message="${check.build}"/>
-        <java classname="StyleCheck" classpath="${check.build}">
+        <java classname="StyleCheck" classpath="${check.build}" failonerror="true">
             <arg value="license_check" />
+			<arg value="${license}" />
             <arg value="${check.sources}" />
         </java>
     </target>

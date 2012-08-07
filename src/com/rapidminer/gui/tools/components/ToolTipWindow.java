@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -378,7 +378,7 @@ public class ToolTipWindow {
     }
 
     private void makeDialog(boolean undecorated, Point point) {
-        currentDialog = new JDialog(owner != null ? owner : RapidMinerGUI.getMainFrame());
+        currentDialog = new JDialog(owner != null ? owner : RapidMinerGUI.getMainFrame().getWindow());
         if (undecorated) {
             //currentDialog.setModal(true);
             currentDialog.setUndecorated(true);

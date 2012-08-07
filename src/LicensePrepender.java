@@ -26,6 +26,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.regex.Pattern;
 
 import com.rapidminer.tools.Tools;
@@ -41,14 +43,15 @@ public class LicensePrepender {
 
 	private char[] license;
 	private Pattern pattern;
-
+	
+	/** Reads the given file starting from the first line starting with the value of from. */
 	private char[] readFile(File file, String from) throws IOException {
 		StringBuffer contents = new StringBuffer((int) file.length());
 
 		BufferedReader in = new BufferedReader(new FileReader(file));
 		try {
 			String line = null;
-			while (((line = in.readLine()) != null) && (!line.startsWith("package")));
+			while (((line = in.readLine()) != null) && (!line.startsWith(from)));
 			if (line == null) {
 				System.err.println("'package' not found in file '" + file + "'.");
 				return null;
@@ -66,7 +69,10 @@ public class LicensePrepender {
 		return contents.toString().toCharArray();
 	}
 
-	private void readLicense(File file) throws IOException {
+	/** Reads the license text from the given file and replaces the string
+	 *  ${CURRENT_YEAR} by the current year.
+	 *  */
+	public static String readLicense(File file) throws IOException {
 		BufferedReader in = new BufferedReader(new FileReader(file));
 		String line = null;
 		StringBuffer licenseText = new StringBuffer(); 
@@ -74,7 +80,8 @@ public class LicensePrepender {
 			licenseText.append(line + Tools.getLineSeparator());
 		}
 		in.close();
-		this.license = licenseText.toString().toCharArray();
+		String currentYear = String.valueOf(new GregorianCalendar().get(Calendar.YEAR));
+		return licenseText.toString().replace("${CURRENT_YEAR}", currentYear);
 	}
 
 	private void prependLicense(File file) throws IOException {
@@ -121,7 +128,7 @@ public class LicensePrepender {
 			System.exit(1);
 		}
 		
-		lp.readLicense(new File(argv[0]));
+		lp.license = LicensePrepender.readLicense(new File(argv[0])).toCharArray();
 		System.out.println("Prepending license:");
 		System.out.print(lp.license);
 

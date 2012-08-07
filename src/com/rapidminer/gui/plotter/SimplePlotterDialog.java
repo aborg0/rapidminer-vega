@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -70,7 +70,7 @@ public class SimplePlotterDialog extends JDialog implements MouseMotionListener,
 	}
 
 	public SimplePlotterDialog(DataTable dataTable, boolean modal) {
-		this(RapidMinerGUI.getMainFrame(), dataTable, -1, -1, false, modal);
+		this(RapidMinerGUI.getMainFrame().getWindow(), dataTable, -1, -1, false, modal);
 	}
 
 	public SimplePlotterDialog(Frame owner, final DataTable dataTable, int width, int height, boolean createPlotterPanelButton, boolean modal) {

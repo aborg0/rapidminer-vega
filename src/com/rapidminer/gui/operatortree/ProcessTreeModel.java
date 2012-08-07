@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -182,7 +182,7 @@ public class ProcessTreeModel implements TreeModel {
 			String desiredName = ((String)newValue).trim();
 			if (desiredName.length() > 0) {
 				if (desiredName.indexOf('.') >= 0) {
-					JOptionPane.showMessageDialog(RapidMinerGUI.getMainFrame(), "Renaming not possible: operator names are now allowed to contain the character '.'", "Renaming failed", JOptionPane.WARNING_MESSAGE);				
+					JOptionPane.showMessageDialog(RapidMinerGUI.getMainFrame().getWindow(), "Renaming not possible: operator names are now allowed to contain the character '.'", "Renaming failed", JOptionPane.WARNING_MESSAGE);				
 				} else {			
 					op.rename(desiredName);					
 				}

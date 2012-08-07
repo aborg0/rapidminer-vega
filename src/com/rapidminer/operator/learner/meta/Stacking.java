@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -61,31 +61,35 @@ public class Stacking extends AbstractStacking {
 		super(description, "Base Learner", "Stacking Model Learner");		
 		getTransformer().addRule(new MDTransformationRule() {
 			public void transformMD() {
-				MetaData unmodifiedMetaData = exampleSetInput.getMetaData().clone();
-				if (unmodifiedMetaData instanceof ExampleSetMetaData) {
-					ExampleSetMetaData emd = (ExampleSetMetaData) unmodifiedMetaData;
-					if (!keepOldAttributes()) {
-						emd.clearRegular();
-					}
-					// constructing new meta attributes
-					List<MetaData> metaDatas = baseModelExtender.getMetaData(true);
-					int numberOfModels = 0;
-					for (MetaData md: metaDatas) {
-						if (PredictionModel.class.isAssignableFrom(md.getObjectClass())) {
-							numberOfModels++;
+				MetaData metaData = exampleSetInput.getMetaData();
+				if (metaData != null) {
+
+					MetaData unmodifiedMetaData = metaData.clone();
+					if (unmodifiedMetaData instanceof ExampleSetMetaData) {
+						ExampleSetMetaData emd = (ExampleSetMetaData) unmodifiedMetaData;
+						if (!keepOldAttributes()) {
+							emd.clearRegular();
 						}
+						// constructing new meta attributes
+						List<MetaData> metaDatas = baseModelExtender.getMetaData(true);
+						int numberOfModels = 0;
+						for (MetaData md : metaDatas) {
+							if (PredictionModel.class.isAssignableFrom(md.getObjectClass())) {
+								numberOfModels++;
+							}
+						}
+						// adding stacking attributes
+						AttributeMetaData label = emd.getLabelMetaData();
+						for (int i = 0; i < numberOfModels; i++) {
+							AttributeMetaData newRegular = label.copy();
+							newRegular.setName("base_prediction" + i);
+							newRegular.setRole(Attributes.ATTRIBUTE_NAME);
+							emd.addAttribute(newRegular);
+						}
+						stackingExamplesInnerSource.deliverMD(emd);
 					}
-					// adding stacking attributes
-					AttributeMetaData label = emd.getLabelMetaData();
-					for (int i = 0; i < numberOfModels; i++) {
-						AttributeMetaData newRegular = label.copy();
-						newRegular.setName("base_prediction" + i);
-						newRegular.setRole(Attributes.ATTRIBUTE_NAME);
-						emd.addAttribute(newRegular);
-					}
-					stackingExamplesInnerSource.deliverMD(emd);
+					stackingExamplesInnerSource.deliverMD(unmodifiedMetaData);
 				}
-				stackingExamplesInnerSource.deliverMD(unmodifiedMetaData);	
 			}
 		});
 		getTransformer().addRule(new SubprocessTransformRule(getSubprocess(1)));

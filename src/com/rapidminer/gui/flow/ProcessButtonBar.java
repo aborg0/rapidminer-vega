@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -26,7 +26,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import com.rapidminer.Process;
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.tools.ParentButtonPanel;
 import com.rapidminer.operator.Operator;
 
@@ -39,7 +39,7 @@ public class ProcessButtonBar extends ParentButtonPanel<Operator> {
 
 	private ProcessParentButtonModel model = new ProcessParentButtonModel(null); 
 	
-	public ProcessButtonBar(final MainFrame mainFrame) {		
+	public ProcessButtonBar(final MainUIState mainFrame) {		
 		setModel(model);		
 		addActionListener(new ActionListener() {
 			@Override

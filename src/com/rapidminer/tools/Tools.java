@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -63,7 +63,7 @@ import java.util.zip.ZipFile;
 import org.apache.commons.lang.StringEscapeUtils;
 
 import com.rapidminer.RapidMiner;
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.ProcessState;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
@@ -532,7 +532,7 @@ public class Tools {
         Charset result = null;
 
         if (RapidMiner.getExecutionMode().hasMainFrame()) {
-            MainFrame mainFrame = RapidMinerGUI.getMainFrame();
+            ProcessState mainFrame = RapidMinerGUI.getMainFrame();
             if (mainFrame != null) {
                 com.rapidminer.Process process = mainFrame.getProcess();
                 if (process != null) {

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2010 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -22,7 +22,7 @@
  */
 package com.rapidminer.operator.performance.test;
 
-import static com.rapidminer.test.utils.RapidAssert.assertEqualsNaN;
+import static com.rapidminer.test_utils.RapidAssert.assertEqualsNaN;
 import static junit.framework.Assert.assertEquals;
 
 import com.rapidminer.operator.performance.PerformanceCriterion;

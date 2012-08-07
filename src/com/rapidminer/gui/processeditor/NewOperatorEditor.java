@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -33,7 +33,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.AbstractUIState;
 import com.rapidminer.gui.tools.ResourceDockKey;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.tools.GroupTree;
@@ -101,7 +101,7 @@ public class NewOperatorEditor extends JPanel implements TreeSelectionListener, 
 		return DOCK_KEY;
 	}
 	{
-		DOCK_KEY.setDockGroup(MainFrame.DOCK_GROUP_ROOT);
+		DOCK_KEY.setDockGroup(AbstractUIState.DOCK_GROUP_ROOT);
 	}
 	public boolean shouldAutoConnectNewOperatorsInputs() {
     	return newOperatorGroupTree.shouldAutoConnectNewOperatorsInputs();

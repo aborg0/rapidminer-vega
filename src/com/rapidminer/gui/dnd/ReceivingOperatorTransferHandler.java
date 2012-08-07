@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -162,7 +162,7 @@ public abstract class ReceivingOperatorTransferHandler extends OperatorTransferH
 					return false;
 				}
 				if (newOperators == null) {							
-					JOptionPane.showMessageDialog(RapidMinerGUI.getMainFrame(), "No reader operator available for file "+file.getName());
+					JOptionPane.showMessageDialog(RapidMinerGUI.getMainFrame().getWindow(), "No reader operator available for file "+file.getName());
 					dropEnds();
 					return false;
 				}

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -81,7 +81,7 @@ public class IndividualSelector extends JDialog implements ListSelectionListener
 	}
 
 	public IndividualSelector(ExampleSet exampleSet, Population population, boolean modal) {
-		this(RapidMinerGUI.getMainFrame(), exampleSet, population, -1, -1, modal);
+		this(RapidMinerGUI.getMainFrame().getWindow(), exampleSet, population, -1, -1, modal);
 	}
 
 	public IndividualSelector(Frame owner, ExampleSet exampleSet, Population population, int width, int height, boolean modal) {

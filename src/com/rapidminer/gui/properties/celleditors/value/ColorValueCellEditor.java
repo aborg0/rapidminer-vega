@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -59,7 +59,7 @@ public class ColorValueCellEditor extends AbstractCellEditor implements Property
         button.setIconTextGap(6);
         button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Color newColor = JColorChooser.showDialog(RapidMinerGUI.getMainFrame(),
+				Color newColor = JColorChooser.showDialog(RapidMinerGUI.getMainFrame().getWindow(),
 	                                                      "Choose Color for " + type.getKey(),
 	                                                      ((ColorIcon)button.getIcon()).getColor());
                 if (newColor != null)

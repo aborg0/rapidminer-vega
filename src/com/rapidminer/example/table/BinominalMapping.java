@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -112,7 +112,7 @@ public class BinominalMapping implements NominalMapping {
 				secondValue = new String(str);  // we copy the string if the underlying char array value is larger than needed
 				return SECOND_VALUE_INDEX;
 			} else {
-				throw new AttributeTypeException("Cannot map another string for binary attribute: already mapped two strings ("+firstValue+", "+secondValue+"). The third string that was tried to add: <tt>"+str+"</tt>");
+				throw new AttributeTypeException("Cannot map another string for binary attribute: already mapped two strings ("+firstValue+", "+secondValue+"). The third string that was tried to add: '"+str+"'");
 			}
 		} else {
 			return index;

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -27,7 +27,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.tools.SwingTools;
 
 /**
@@ -47,9 +47,9 @@ public class WelcomeNewAction extends AbstractAction {
 		icon = SwingTools.createIcon("48/" + ICON_NAME);
 	}
 		
-	private MainFrame mainFrame;
+	private MainUIState mainFrame;
 	
-	public WelcomeNewAction(MainFrame mainFrame) {
+	public WelcomeNewAction(MainUIState mainFrame) {
 		super("New", icon);
 		putValue(SHORT_DESCRIPTION, "Start with a new process definition");
 		this.mainFrame = mainFrame;

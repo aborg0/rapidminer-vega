@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -243,7 +243,9 @@ public class RepositoryTree extends JTree {
 		});
 		
 		addKeyListener(new KeyListener() {
-			
+			// status variable to fix bug 987
+			private int lastPressedKey;
+
 			@Override
 			public void keyTyped(KeyEvent e) {
 			}
@@ -253,6 +255,12 @@ public class RepositoryTree extends JTree {
 			 */
 			@Override
 			public void keyReleased(KeyEvent e) {
+				if (lastPressedKey != e.getKeyCode()) {
+					e.consume();
+					return;
+				}
+				lastPressedKey = 0;
+				
 				if (e.getModifiers() == 0) {
 					switch (e.getKeyCode()) {
 					case KeyEvent.VK_ENTER:
@@ -279,6 +287,7 @@ public class RepositoryTree extends JTree {
 			
 			@Override
 			public void keyPressed(KeyEvent e) {
+				lastPressedKey = e.getKeyCode();
 			}
 		});
 		

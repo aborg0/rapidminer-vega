@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -29,7 +29,7 @@ import java.util.List;
 import javax.swing.JPanel;
 
 import com.rapidminer.Process;
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.AbstractUIState;
 import com.rapidminer.gui.tools.ResourceDockKey;
 import com.rapidminer.gui.tools.ViewToolBar;
 import com.rapidminer.operator.Operator;
@@ -70,7 +70,7 @@ public class ProcessContextProcessEditor extends JPanel implements ProcessEditor
 	private final DockKey DOCK_KEY = new ResourceDockKey("process_context");
 	private Component dockComponent;
 	{
-		DOCK_KEY.setDockGroup(MainFrame.DOCK_GROUP_ROOT);
+		DOCK_KEY.setDockGroup(AbstractUIState.DOCK_GROUP_ROOT);
 	}
 
 	@Override

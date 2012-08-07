@@ -650,6 +650,10 @@
 			<arg value="author_check" />
 			<arg value="${src}" />
 		</java>
+		<java classname="StyleCheck" classpath="${build}" failonerror="true">
+			<arg value="author_check" />
+			<arg value="${src_test}" />
+		</java>
 	</target>
 	<target name="check.listAuthorLines" depends="build" description="Prints all authors and the number of classes and lines they wrote.">
 		<java classname="StyleCheck" classpath="${build}">
@@ -668,7 +672,13 @@
 	<target name="check.license" depends="build" description="Prints all classes with a missing license.">
 		<java classname="StyleCheck" classpath="${build}">
 			<arg value="license_check" />
+			<arg value="${license}" />
 			<arg value="${src}" />
+		</java>
+		<java classname="StyleCheck" classpath="${build}" failonerror="true">
+			<arg value="license_check" />
+			<arg value="${license}" />
+			<arg value="${src_test}" />
 		</java>
 	</target>
 	<target name="check.listOperators" depends="build" description="Prints all operator names of the core in a grouped list.">
@@ -681,6 +691,10 @@
 		<java classname="LicensePrepender" classpath="${build}">
 			<arg value="${license}" />
 			<arg value="${src}" />
+		</java>
+		<java classname="LicensePrepender" classpath="${build}">
+			<arg value="${license}" />
+			<arg value="${src_test}" />
 		</java>
 	</target>
 	<target name="check.removeVersionTags" depends="build" description="Remove the version tags from the class files">

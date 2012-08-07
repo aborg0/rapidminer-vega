@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -58,7 +58,7 @@ public class AddCompatibleOperatorQuickFix extends AbstractQuickFix {
 				} else {
 					unit.addOperator(newOperator, unit.getIndexOfOperator(oldOperator));
 				}
-				if (RapidMinerGUI.getMainFrame().VALIDATE_AUTOMATICALLY_ACTION.isSelected()) {
+				if (RapidMinerGUI.getMainFrame().getValidateAutomaticallyAction().isSelected()) {
 					unit.autoWireSingle(newOperator, CompatibilityLevel.VERSION_5, true, true);
 				}
 			}

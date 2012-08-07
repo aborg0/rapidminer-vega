@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -42,7 +42,9 @@ import com.rapidminer.LoggingListener;
 import com.rapidminer.Process;
 import com.rapidminer.ProcessListener;
 import com.rapidminer.datatable.DataTable;
+import com.rapidminer.gui.AbstractUIState;
 import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.processeditor.ProcessLogTab;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
@@ -88,7 +90,7 @@ public class DockableResultDisplay extends JPanel implements ResultDisplay {
 	private final ResultOverview overview = new ResultOverview();
 	
 	public DockableResultDisplay() {
-		this.dockKey.setDockGroup(MainFrame.DOCK_GROUP_RESULTS);
+		this.dockKey.setDockGroup(AbstractUIState.DOCK_GROUP_RESULTS);
 		setLayout(new BorderLayout());
 		ExtendedJScrollPane overviewScrollpane = new ExtendedJScrollPane(overview);
 		overviewScrollpane.setBorder(null);
@@ -98,7 +100,7 @@ public class DockableResultDisplay extends JPanel implements ResultDisplay {
 		tableUpdateQueue.start();
 	}
 	
-	public void init(MainFrame mf) {
+	public void init(MainUIState mf) {
 		DockingDesktop desktop = mf.getDockingDesktop();
 		desktop.addDockingActionListener(new DockingActionListener() {			
 			@Override public void dockingActionPerformed(DockingActionEvent arg0) { }			

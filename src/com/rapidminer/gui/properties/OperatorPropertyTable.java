@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -96,7 +96,7 @@ public class OperatorPropertyTable extends DefaultPropertyTable implements Docka
 		this.propertyMessageLabel.setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 5));
 		this.propertyMessageLabel.addMouseListener(new MouseListener() {
 			public void mouseReleased(MouseEvent e) {
-				mainFrame.TOGGLE_EXPERT_MODE_ACTION.actionPerformed(null);
+				mainFrame.getToggleExpertModeAction().actionPerformed(null);
 			}
 			public void mouseClicked(MouseEvent e) {}
 			public void mouseEntered(MouseEvent e) {}

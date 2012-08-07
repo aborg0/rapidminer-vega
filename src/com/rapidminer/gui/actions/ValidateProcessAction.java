@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -24,7 +24,7 @@ package com.rapidminer.gui.actions;
 
 import java.awt.event.ActionEvent;
 
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.ProcessState;
 import com.rapidminer.gui.tools.ResourceAction;
 
 /**
@@ -36,9 +36,9 @@ public class ValidateProcessAction extends ResourceAction {
 
 	private static final long serialVersionUID = -420838202882684287L;
 
-	private final MainFrame mainFrame;
+	private final ProcessState mainFrame;
 	
-	public ValidateProcessAction(MainFrame mainFrame) {
+	public ValidateProcessAction(ProcessState mainFrame) {
 		super("validate");
 		setCondition(PROCESS_RUNNING, DISALLOWED);
 		setCondition(EDIT_IN_PROGRESS, DISALLOWED);

@@ -1,3 +1,25 @@
+/*
+ *  RapidMiner
+ *
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *
+ *  Complete list of developers available at our web site:
+ *
+ *       http://rapid-i.com
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program.  If not, see http://www.gnu.org/licenses/.
+ */
 package com.rapidminer.test;
 
 import java.io.File;
@@ -26,6 +48,7 @@ import com.rapidminer.tools.LogService;
  *      <li>rapidminer.test.repository.location</li>
  *  	<li>rapidminer.test.repository.user</li>
  *  	<li>rapidminer.test.repository.password</li>
+ *  	<li>rapidminer.test.repository.exclude</li>
  *  <ul>
  *  </p>
  *  
@@ -38,6 +61,7 @@ import com.rapidminer.tools.LogService;
  *
  */
 public class TestContext {
+
 
 	/**
 	 * Singleton instance
@@ -70,9 +94,18 @@ public class TestContext {
     public static String PROPERTY_TEST_REPOSITORY_PASSWORD = 	"rapidminer.test.repository.password";
     
     /**
+     * A regular expression. It is matched against the process location (including the process name) relative 
+     * to {@value #PROPERTY_TEST_REPOSITORY_LOCATION}.
+     * If it matches, the process is NOT tested. Please note that the entire string must be matched.
+     * That means if you wanted to exclude any processes which contain the substring "ignore" the expression
+     * must be something like ".*ignore.*" .
+     */
+    private static final String PROPERTY_TEST_REPOSITORY_EXCLUDE = "rapidminer.test.repository.exclude";    
+    
+    /**
      * Displayed repostiory alias.
      */
-    public static String REPOSITORY_ALIAS = 					"junit";
+    public static String REPOSITORY_ALIAS = "junit";
 	
 	private boolean initialized = false;
 	
@@ -81,6 +114,8 @@ public class TestContext {
 	private Repository repository;
 	
 	private RepositoryLocation repositoryLocation;
+
+	private String processExclusionPattern = null;
 	
 	/**
 	 * Does not allow external instantiation
@@ -143,6 +178,8 @@ public class TestContext {
 	            String repositoryLocation = properties.getProperty(PROPERTY_TEST_REPOSITORY_LOCATION);
 	            String repositoryUser= properties.getProperty(PROPERTY_TEST_REPOSITORY_USER);
 	            String repositoryPassword = properties.getProperty(PROPERTY_TEST_REPOSITORY_PASSWORD);
+	            
+	            this.processExclusionPattern = properties.getProperty(PROPERTY_TEST_REPOSITORY_EXCLUDE);
 	            
 
 	            RapidMiner.setExecutionMode(ExecutionMode.TEST);
@@ -228,7 +265,8 @@ public class TestContext {
 	public boolean isRepositoryPresent() {
 		return repositoryPresent;
 	}
-	
-	
 
+	public String getProcessExclusionPattern() {
+		return processExclusionPattern;
+	}
 }

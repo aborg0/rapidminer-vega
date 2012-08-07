@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -25,7 +25,7 @@ package com.rapidminer.gui.actions;
 import java.awt.event.ActionEvent;
 
 import com.rapidminer.gui.ApplicationPerspectives;
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.InputDialog;
@@ -66,9 +66,9 @@ public class NewPerspectiveAction extends ResourceAction {
 		}
 	}
 
-	private final MainFrame mainFrame;
+	private final MainUIState mainFrame;
 	
-	public NewPerspectiveAction(MainFrame mainFrame) {
+	public NewPerspectiveAction(MainUIState mainFrame) {
 		super("new_perspective");
 		this.mainFrame = mainFrame;
 		setCondition(EDIT_IN_PROGRESS, DONT_CARE);

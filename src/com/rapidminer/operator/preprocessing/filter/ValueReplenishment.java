@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -108,11 +108,16 @@ public abstract class ValueReplenishment extends PreprocessingOperator {
 				}
 			}
 
+			final double replenishmentValue = getReplenishmentValue(function, exampleSet, attribute);
 			if (attribute.isNominal()) {
-				nominalReplacementMap.put(attributeName, attribute.getMapping().mapIndex((int) getReplenishmentValue(function, exampleSet, attribute)));
+				if ((replenishmentValue == -1) || Double.isNaN(replenishmentValue)) {
+					nominalReplacementMap.put(attributeName, null);
+				} else {
+					nominalReplacementMap.put(attributeName, attribute.getMapping().mapIndex((int) replenishmentValue));
+				}
 			}
 			if (attribute.isNumerical()) {
-				numericalReplacementMap.put(attributeName, getReplenishmentValue(function, exampleSet, attribute));
+				numericalReplacementMap.put(attributeName, replenishmentValue);
 			}
 		}
 

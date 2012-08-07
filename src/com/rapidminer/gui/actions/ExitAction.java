@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -24,7 +24,7 @@ package com.rapidminer.gui.actions;
 
 import java.awt.event.ActionEvent;
 
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.tools.ResourceAction;
 
 
@@ -37,9 +37,9 @@ public class ExitAction extends ResourceAction {
 
 	private static final long serialVersionUID = -6213819388535936519L;
 
-	private MainFrame mainFrame;
+	private MainUIState mainFrame;
 	
-	public ExitAction(MainFrame mainFrame) {
+	public ExitAction(MainUIState mainFrame) {
 		super("exit");
 		this.mainFrame = mainFrame;
 		setCondition(EDIT_IN_PROGRESS, DONT_CARE);

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -116,7 +116,7 @@ public abstract class FileValueCellEditor extends AbstractCellEditor implements 
 	private void buttonPressed() {
 		String value = (String) getCellEditorValue();
 		File file = (value == null || value.length() == 0) ? null : RapidMinerGUI.getMainFrame().getProcess().resolveFileName(value);
-		File selectedFile = SwingTools.chooseFile(RapidMinerGUI.getMainFrame(), file, true, type instanceof ParameterTypeDirectory, type.getExtension(), type.getKey());
+		File selectedFile = SwingTools.chooseFile(RapidMinerGUI.getMainFrame().getWindow(), file, true, type instanceof ParameterTypeDirectory, type.getExtension(), type.getKey());
 		if ((selectedFile != null)) {
 			setText(selectedFile);
 			fireEditingStopped();

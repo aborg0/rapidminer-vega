@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -63,7 +63,7 @@ public class ProcessThread extends Thread {// implements ProcessListener {
             IOContainer results = process.run();
             beep("success");
             process.getRootOperator().sendEmail(results, null);
-            RapidMinerGUI.getMainFrame().processEnded(process, results);
+            ((ProcessEndHandler)RapidMinerGUI.getMainFrame()).processEnded(process, results);
         } catch (ProcessStoppedException ex) {
             // beep("error");
             process.getLogger().info(ex.getMessage());
@@ -123,7 +123,7 @@ public class ProcessThread extends Thread {// implements ProcessListener {
                     }
                 }
             }
-            RapidMinerGUI.getMainFrame().processEnded(this.process, null);
+            ((ProcessEndHandler)RapidMinerGUI.getMainFrame()).processEnded(this.process, null);
         } finally {
             // this.process.getRootOperator().removeProcessListener(this);
             if (process.getProcessState() != Process.PROCESS_STATE_STOPPED) {

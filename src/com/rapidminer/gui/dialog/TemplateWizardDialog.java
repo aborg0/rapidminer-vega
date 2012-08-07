@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -59,7 +59,7 @@ public class TemplateWizardDialog extends AbstractWizard {
     private Collection<OperatorParameterPair> parameters = null; 
 	
 	public TemplateWizardDialog() {
-		super(RapidMinerGUI.getMainFrame(), "open_template", true);
+		super(RapidMinerGUI.getMainFrame().getWindow(), "open_template", true);
 		addStep(new WizardStep("open_template.choose_template") {
 
 			private TemplatesDialog dialog = new TemplatesDialog(Template.ALL);

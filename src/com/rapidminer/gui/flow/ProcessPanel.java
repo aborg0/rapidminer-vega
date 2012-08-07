@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -32,7 +32,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import com.rapidminer.Process;
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.AbstractUIState;
+import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.actions.AutoWireAction;
 import com.rapidminer.gui.processeditor.ProcessEditor;
 import com.rapidminer.gui.tools.PrintingTools;
@@ -63,7 +64,7 @@ public class ProcessPanel extends JPanel implements Dockable, ProcessEditor {
 
 	private OperatorChain operatorChain;
 	
-	public ProcessPanel(final MainFrame mainFrame) {
+	public ProcessPanel(final MainUIState mainFrame) {
 		processButtonBar = new ProcessButtonBar(mainFrame);
 		renderer = new ProcessRenderer(this, mainFrame);
 		renderer.setBackground(SwingTools.LIGHTEST_BLUE);
@@ -171,7 +172,7 @@ public class ProcessPanel extends JPanel implements Dockable, ProcessEditor {
 	public static final String PROCESS_PANEL_DOCK_KEY = "process_panel";
 	private final DockKey DOCK_KEY = new ResourceDockKey(PROCESS_PANEL_DOCK_KEY);
 	{
-		DOCK_KEY.setDockGroup(MainFrame.DOCK_GROUP_ROOT);
+		DOCK_KEY.setDockGroup(AbstractUIState.DOCK_GROUP_ROOT);
 	}
 
 	@Override

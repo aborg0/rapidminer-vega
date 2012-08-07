@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -67,6 +67,7 @@ import com.rapid_i.deployment.update.client.ManagedExtension;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.RapidMiner.ExecutionMode;
 import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.flow.ProcessRenderer;
 import com.rapidminer.gui.renderer.RendererService;
 import com.rapidminer.gui.templates.BuildingBlock;
@@ -96,7 +97,7 @@ import com.rapidminer.tools.Tools;
  * them with &quot;#&quot;.
  * </p>
  * 
- * @author Simon Fischer, Ingo Mierswa
+ * @author Simon Fischer, Ingo Mierswa, Nils Woehler
  */
 public class Plugin {
 
@@ -186,7 +187,7 @@ public class Plugin {
         Tools.addResourceSource(new ResourceSource(this.classLoader));
         fetchMetaData();
 
-        if (!RapidMiner.getExecutionMode().isHeadless()) {
+        if (!RapidMiner.getExecutionMode().isHeadless() && RapidMiner.getSplashScreen() != null) {
             RapidMiner.getSplashScreen().addExtension(this);
         }
     }
@@ -750,7 +751,7 @@ public class Plugin {
     /**
      * This method will try to invoke the method void initGui(MainFrame) of PluginInit class of every plugin.
      */
-    public static void initPluginGuis(MainFrame mainframe) {
+    public static void initPluginGuis(MainUIState mainframe) {
         callPluginInitMethods("initGui", new Class[] { MainFrame.class }, new Object[] { mainframe }, false);
     }
 
@@ -760,6 +761,7 @@ public class Plugin {
      */
     public static void initPlugins() {
         callPluginInitMethods("initPlugin", new Class[] {}, new Object[] {}, false);
+        initPluginTests();
     }
 
     public static void initPluginUpdateManager() {
@@ -769,8 +771,12 @@ public class Plugin {
     public static void initFinalChecks() {
         callPluginInitMethods("initFinalChecks", new Class[] {}, new Object[] {}, false);
     }
+    
+    private static void initPluginTests() {
+    	callPluginInitMethods("initPluginTests",new Class[] {}, new Object[] {}, false);
+    }
 
-    private static void callPluginInitMethods(String methodName, Class[] arguments, Object[] argumentValues, boolean useOriginalJarClassLoader) {
+	private static void callPluginInitMethods(String methodName, Class[] arguments, Object[] argumentValues, boolean useOriginalJarClassLoader) {
         List<Plugin> plugins = getAllPlugins();
         for (Plugin plugin : plugins) {
             plugin.callInitMethod(methodName, arguments, argumentValues, useOriginalJarClassLoader);

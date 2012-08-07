@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -49,7 +49,7 @@ import javax.swing.event.ListSelectionListener;
 import org.apache.xmlrpc.client.XmlRpcClient;
 
 import com.rapidminer.NoBugError;
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.dialog.BugZillaAssistant;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
@@ -127,7 +127,7 @@ public class ExtendedErrorDialog extends ButtonDialog {
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    MainFrame mainFrame = RapidMinerGUI.getMainFrame();
+                    MainUIState mainFrame = RapidMinerGUI.getMainFrame();
                     mainFrame.selectOperator(mainFrame.getProcess().getOperator(opName));
                 }
             }), BorderLayout.NORTH);

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -24,7 +24,7 @@ package com.rapidminer.gui.tools;
 
 import javax.swing.Icon;
 
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.AbstractUIState;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.vlsolutions.swing.docking.DockKey;
@@ -62,7 +62,7 @@ public class ResourceDockKey extends DockKey {
 		setAutoHideEnabled(true);
 		
 		// setting default dock group to root: Must be overriden if should be result
-		setDockGroup(MainFrame.DOCK_GROUP_ROOT);
+		setDockGroup(AbstractUIState.DOCK_GROUP_ROOT);
 	}
 		
 	private static String getMessage(String key) {

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -25,6 +25,7 @@ package com.rapidminer.operator.validation.significance;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.ValueDouble;
 import com.rapidminer.operator.performance.PerformanceCriterion;
 import com.rapidminer.operator.performance.PerformanceVector;
 import com.rapidminer.tools.math.AnovaCalculator;
@@ -39,12 +40,20 @@ import com.rapidminer.tools.math.SignificanceTestResult;
  * wrong.
  * 
  * @author Ingo Mierswa
- *          ingomierswa Exp $
  */
 public class AnovaSignificanceTestOperator extends SignificanceTestOperator {
 
+	private double probability;
+	
 	public AnovaSignificanceTestOperator(OperatorDescription description) {
 		super(description);
+		
+        addValue(new ValueDouble("probability", "The probability for not differ significantly of the last test.") {
+            @Override
+            public double getDoubleValue() {
+                return probability;
+            }
+        });
 	}
 
 	@Override
@@ -58,7 +67,9 @@ public class AnovaSignificanceTestOperator extends SignificanceTestOperator {
 		}
 
 		try {
-			return calculator.performSignificanceTest();
+			SignificanceTestResult testResult = calculator.performSignificanceTest();
+			this.probability = testResult.getProbability();
+			return testResult;
 		} catch (SignificanceCalculationException e) {
 			throw new UserError(this, 920, e.getMessage());
 		}

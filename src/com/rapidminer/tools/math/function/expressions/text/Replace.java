@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -30,7 +30,7 @@ import org.nfunk.jep.function.PostfixMathCommand;
 import com.rapidminer.tools.math.function.UnknownValue;
 
 /**
- * Replaces substrings by matching targetSequence to given string.
+ * Replaces substrings by matching targetSequence to given string, without regexp-evaluation.
  * 
  * @author Sebastian Land
  */

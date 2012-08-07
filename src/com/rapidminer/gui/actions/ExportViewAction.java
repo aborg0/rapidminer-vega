@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -51,6 +51,6 @@ public class ExportViewAction extends ResourceAction {
 
 	public void actionPerformed(ActionEvent e) {
 		ExportDialog exportDialog = new ExportDialog("RapidMiner");	
-		exportDialog.showExportDialog(RapidMinerGUI.getMainFrame(), "Export", component, componentName);
+		exportDialog.showExportDialog(RapidMinerGUI.getMainFrame().getWindow(), "Export", component, componentName);
 	}
 }

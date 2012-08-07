@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -113,7 +113,7 @@ public class RapidMiner {
         /** RM is running within Java Web Start. */
         WEBSTART(false, true, true, true),
         /** We are executing unit tests. */
-        TEST(true, true, false, true);
+        TEST(true, false, false, true);
 
         private final boolean isHeadless;
         private final boolean canAccessFilesystem;

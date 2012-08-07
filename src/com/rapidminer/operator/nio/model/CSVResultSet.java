@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -67,7 +67,7 @@ public class CSVResultSet implements DataResultSet {
     public CSVResultSet(CSVResultSetConfiguration configuration, Operator operator) throws OperatorException {
         this.configuration = configuration;
         this.operator = operator;
-        open();
+       	open();
     }
 
     private void open() throws OperatorException {
@@ -84,6 +84,9 @@ public class CSVResultSet implements DataResultSet {
                     in = openStream();
                 }
             } catch (IOException e) {
+            	try {
+					in.close();
+				} catch (IOException e1) { }
                 throw new UserError(operator, e, 321, configuration.getCsvFile(), e.toString());
             }
         }
@@ -93,6 +96,9 @@ public class CSVResultSet implements DataResultSet {
         try {
             readNext();
         } catch (IOException e) {
+        	try {
+				in.close();
+			} catch (IOException e1) { }
             throw new UserError(operator, e, 321, configuration.getCsvFile(), e.toString());
         }
         if (next == null) {

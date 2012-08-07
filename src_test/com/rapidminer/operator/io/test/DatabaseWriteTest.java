@@ -1,15 +1,40 @@
+/*
+ *  RapidMiner
+ *
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *
+ *  Complete list of developers available at our web site:
+ *
+ *       http://rapid-i.com
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program.  If not, see http://www.gnu.org/licenses/.
+ */
 package com.rapidminer.operator.io.test;
 
 import static junit.framework.Assert.assertEquals;
 
 import java.sql.SQLException;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
@@ -24,7 +49,7 @@ import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.test.TestContext;
-import com.rapidminer.test.utils.RapidAssert;
+import com.rapidminer.test_utils.RapidAssert;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
@@ -80,6 +105,7 @@ public class DatabaseWriteTest {
 	private static final DatabaseRef DB_SQL_SERVER = new DatabaseRef("jdbc:jtds:sqlserver://"+TEST_DB_SERVER+":1433/junit", "junit", "junit", null);// "net.sourceforge.jtds.jdbc.Driver");
 	private static final DatabaseRef DB_MY_SQL = new DatabaseRef("jdbc:mysql://"+TEST_DB_SERVER+":3306/junit", "junit", "junit", null); // "com.mysql.jdbc.Driver");
 	private static final DatabaseRef DB_ORACLE = new DatabaseRef("jdbc:oracle:thin:@"+TEST_DB_SERVER+":1521: ", "junit", "junit", "oracle.jdbc.driver.OracleDriver");
+//	private static final DatabaseRef DB_ORACLE = new DatabaseRef("jdbc:oracle:thin:@"+TEST_DB_SERVER+":1521: ", "junit", "junit", null);
 	private static final DatabaseRef DB_INGRES = new DatabaseRef("jdbc:ingres://192.168.1.7:28047/demodb", "ingres", "vw2010", null);
 	
 	@Before
@@ -87,6 +113,12 @@ public class DatabaseWriteTest {
 		TestContext.get().initRapidMiner(); // for read database operator
 		final Entry entry = new RepositoryLocation(TEST_DATA_LOCATION).locateEntry();
 		this.laborNegotiationsExampleSet = (ExampleSet) ((IOObjectEntry)entry).retrieveData(null);
+		// Make all non-special: Will be dropped by DB anyway
+		final Iterator<AttributeRole> allAttributeRoles = laborNegotiationsExampleSet.getAttributes().allAttributeRoles();
+		while (allAttributeRoles.hasNext()) {
+			allAttributeRoles.next().setSpecial(null);
+		}
+
 		
 		Attribute pos = AttributeFactory.createAttribute("pos", Ontology.NUMERICAL);
 		Attribute neg = AttributeFactory.createAttribute("neg", Ontology.NUMERICAL);
@@ -97,7 +129,7 @@ public class DatabaseWriteTest {
 		infinityExampleSet = table.createExampleSet();
 	}
 	
-	@Test//@Ignore
+	@Test
 	public void testCreateTableMicrosoftSQLServer() throws SQLException, OperatorException, ClassNotFoundException, OperatorCreationException {
 		testCreateTable(DB_SQL_SERVER);
 	}
@@ -207,7 +239,7 @@ public class DatabaseWriteTest {
 		ExampleSet exampleSet = reader.read();
 		assertEquals(40, exampleSet.size());
 		assertEquals(17, exampleSet.getAttributes().size());
-		RapidAssert.assertEquals("labor negotiations", exampleSet, laborNegotiationsExampleSet, -1);
+		RapidAssert.assertEquals("labor negotiations", exampleSet, laborNegotiationsExampleSet);
 	}
 
 	private void testCreateTable(DatabaseRef connection) throws SQLException, OperatorException, ClassNotFoundException, OperatorCreationException {
@@ -238,6 +270,39 @@ public class DatabaseWriteTest {
 		readOp.setParameter(DatabaseHandler.PARAMETER_TABLE_NAME, tableName);
 		ExampleSet result = readOp.read();
 		
-		RapidAssert.assertEquals(testSetName, testSet, result, -1);
+		testSet = (ExampleSet)testSet.clone();
+		adaptTestSet(connection, testSet);
+		
+		RapidAssert.assertEquals(testSetName, testSet, result);
+	}
+
+	/**
+	 * <p>Modifies the test set to match the particularities of the connection.</p>
+	 * 
+	 * <p>For example the oracle database doesn't know the INTEGER or REAL data types, and thus
+	 * the testset is modified before comparing to contain only NUMERICALs instead of subtypes of NUMERICAL.
+	 * 
+	 * @param connection
+	 * @param testSet
+	 */
+	private void adaptTestSet(DatabaseRef connection, ExampleSet testSet) {
+		if (connection.getUrl().contains("oracle")) {
+			List<Attribute> removableAttributes = new LinkedList<Attribute>();
+			List<Attribute> newAttributes = new LinkedList<Attribute>();
+			for (Attribute oldAttribute : testSet.getAttributes()) {
+				if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(oldAttribute.getValueType(), Ontology.NUMERICAL)) {
+					Attribute newAttribute = AttributeFactory.changeValueType(oldAttribute, Ontology.NUMERICAL);
+					removableAttributes.add(oldAttribute);
+					newAttributes.add(newAttribute);
+				}
+			}
+			Iterator<Attribute> oldIt = removableAttributes.iterator();
+			Iterator<Attribute> newIt = newAttributes.iterator();
+			while (oldIt.hasNext()) {
+				testSet.getAttributes().replace(oldIt.next(), newIt.next());
+			}
+		} else {
+			// do nothing
+		}
 	}	
 }

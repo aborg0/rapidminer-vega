@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -62,7 +62,7 @@ public class SaveAsAction extends ResourceAction {
 		if (process.getRepositoryLocation() != null) {
 			initial = process.getRepositoryLocation().toString();
 		}
-		String loc = RepositoryLocationChooser.selectLocation(null, initial, RapidMinerGUI.getMainFrame(), true, false);
+		String loc = RepositoryLocationChooser.selectLocation(null, initial, RapidMinerGUI.getMainFrame().getWindow(), true, false);
 		if (loc != null) {
 			try {
 				RepositoryLocation location = new RepositoryLocation(loc);

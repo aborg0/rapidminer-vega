@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -60,288 +60,326 @@ import com.rapidminer.tools.Tools;
  */
 public class RendererService {
 
-    private static final Icon ICON_DEFAULT = SwingTools.createIcon("16/data.png");
+	private static final Icon ICON_DEFAULT = SwingTools.createIcon("16/data.png");
 
-    private static Set<String> objectNames = new TreeSet<String>();
+	private static Set<String> objectNames = new TreeSet<String>();
 
-    /**
-     * Maps names of IOObjects to lists of renderers that can render this object. These instances are shared!
-     */
-    private static Map<String, List<Renderer>> objectRenderers = new HashMap<String, List<Renderer>>();
+	/**
+	 * Maps names of IOObjects to lists of renderers that can render this object. These instances are shared!
+	 */
+	private static Map<String, List<Renderer>> objectRenderers = new HashMap<String, List<Renderer>>();
 
-    /** Maps names of IOObjects to lists of renderer classes that can render this object. */
-    private static Map<String, Map<String, Class<? extends Renderer>>> rendererNameToRendererClasses =
-        new HashMap<String, Map<String, Class<? extends Renderer>>>();
+	/** Maps names of IOObjects to lists of renderer classes that can render this object. */
+	private static Map<String, Map<String, Class<? extends Renderer>>> rendererNameToRendererClasses = new HashMap<String, Map<String, Class<? extends Renderer>>>();
 
-    private static Map<String, Class<? extends IOObject>> objectClasses = new HashMap<String, Class<? extends IOObject>>();
+	private static Map<String, Class<? extends IOObject>> objectClasses = new HashMap<String, Class<? extends IOObject>>();
 
-    /** Set of names of reportable objects. */
-    private static Set<String> reportableMap = new HashSet<String>();
+	/** Set of names of reportable objects. */
+	private static Set<String> reportableMap = new HashSet<String>();
 
-    private static Map<Class<?>, String> class2NameMap = new HashMap<Class<?>, String>();
+	private static Map<Class<?>, String> class2NameMap = new HashMap<Class<?>, String>();
 
-    private static Map<Class<? extends IOObject>, Icon> class2IconMap = new HashMap<Class<? extends IOObject>, Icon>();
+	private static Map<Class<? extends IOObject>, Icon> class2IconMap = new HashMap<Class<? extends IOObject>, Icon>();
 
-    private static boolean isInitialized = false;
+	private static boolean isInitialized = false;
 
-    public static void init() {
-        URL url = Tools.getResource("ioobjects.xml");
-        init(url);
-        init("ioobjects.xml", url, RendererService.class.getClassLoader());
-    }
+	public static void init() {
+		URL url = Tools.getResource("ioobjects.xml");
+		init(url);
+		init("ioobjects.xml", url, RendererService.class.getClassLoader());
+	}
 
-    public static void init(URL ioObjectsURL) {
-        init(ioObjectsURL.getFile(), ioObjectsURL, RendererService.class.getClassLoader());
-    }
+	public static void init(URL ioObjectsURL) {
+		init(ioObjectsURL.getFile(), ioObjectsURL, RendererService.class.getClassLoader());
+	}
 
-    public static void init(String name, InputStream in) {
-        init(name, in, RendererService.class.getClassLoader());
-    }
+	public static void init(String name, InputStream in) {
+		init(name, in, RendererService.class.getClassLoader());
+	}
 
-    public static void init(String name, URL ioObjectsURL, ClassLoader classLoader) {
-        InputStream in = null;
-        try {
-            if (ioObjectsURL != null) {
-                in = ioObjectsURL.openStream();
-                init(name, in, classLoader);
-            }
-        } catch (IOException e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description of plugin" + name + ": " + "Cannot parse document: " + e, e);
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    // do nothing
-                }
-            }
-        }
-    }
+	public static void init(String name, URL ioObjectsURL, ClassLoader classLoader) {
+		InputStream in = null;
+		try {
+			if (ioObjectsURL != null) {
+				in = ioObjectsURL.openStream();
+				init(name, in, classLoader);
+			}
+		} catch (IOException e) {
+			LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description of plugin" + name + ": " + "Cannot parse document: " + e, e);
+		} finally {
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException e) {
+					// do nothing
+				}
+			}
+		}
+	}
 
-    public static void init(String rendererFileName, InputStream in, ClassLoader classLoader) {
-        LogService.getRoot().config("Loading renderers from '" + rendererFileName + "'.");
-        try {
-            Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
-            Element ioObjectsElement = document.getDocumentElement();
-            if (ioObjectsElement.getTagName().equals("ioobjects")) {
-                NodeList ioObjectNodes = ioObjectsElement.getElementsByTagName("ioobject");
-                for (int i = 0; i < ioObjectNodes.getLength(); i++) {
-                    Node ioObjectNode = ioObjectNodes.item(i);
-                    if (ioObjectNode instanceof Element) {
-                        Element ioObjectElement = (Element) ioObjectNode;
+	public static void init(String rendererFileName, InputStream in, ClassLoader classLoader) {
+		LogService.getRoot().config("Loading renderers from '" + rendererFileName + "'.");
+		try {
+			Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
+			Element ioObjectsElement = document.getDocumentElement();
+			if (ioObjectsElement.getTagName().equals("ioobjects")) {
+				NodeList ioObjectNodes = ioObjectsElement.getElementsByTagName("ioobject");
+				for (int i = 0; i < ioObjectNodes.getLength(); i++) {
+					Node ioObjectNode = ioObjectNodes.item(i);
+					if (ioObjectNode instanceof Element) {
+						Element ioObjectElement = (Element) ioObjectNode;
 
-                        String name = ioObjectElement.getAttribute("name");
-                        String className = ioObjectElement.getAttribute("class");
-                        String reportableString = "true";
-                        if (ioObjectElement.hasAttribute("reportable")) {
-                            reportableString = ioObjectElement.getAttribute("reportable");
-                        }
-                        boolean reportable = Tools.booleanValue(reportableString, true);
+						String name = ioObjectElement.getAttribute("name");
+						String className = ioObjectElement.getAttribute("class");
+						String reportableString = "true";
+						if (ioObjectElement.hasAttribute("reportable")) {
+							reportableString = ioObjectElement.getAttribute("reportable");
+						}
+						boolean reportable = Tools.booleanValue(reportableString, true);
 
-                        String icon = null;
-                        if (ioObjectElement.hasAttribute("icon")) {
-                            icon = ioObjectElement.getAttribute("icon");
-                        }
+						String icon = null;
+						if (ioObjectElement.hasAttribute("icon")) {
+							icon = ioObjectElement.getAttribute("icon");
+						}
 
-                        NodeList rendererNodes = ioObjectElement.getElementsByTagName("renderer");
-                        List<String> renderers = new LinkedList<String>();
-                        for (int k = 0; k < rendererNodes.getLength(); k++) {
-                            Node rendererNode = rendererNodes.item(k);
-                            if (rendererNode instanceof Element) {
-                                Element rendererElement = (Element) rendererNode;
-                                String rendererName = rendererElement.getTextContent();
-                                renderers.add(rendererName);
-                            }
-                        }
+						NodeList rendererNodes = ioObjectElement.getElementsByTagName("renderer");
+						List<String> renderers = new LinkedList<String>();
+						for (int k = 0; k < rendererNodes.getLength(); k++) {
+							Node rendererNode = rendererNodes.item(k);
+							if (rendererNode instanceof Element) {
+								Element rendererElement = (Element) rendererNode;
+								String rendererName = rendererElement.getTextContent();
+								renderers.add(rendererName);
+							}
+						}
 
-                        registerRenderers(name, className, reportable, icon, renderers, classLoader);
-                    }
-                }
-                isInitialized = true;
-            } else {
-                LogService.getRoot().warning("Cannot initialize io object description: Outermost tag of a ioobjects.xml definition must be <ioobjects>!");
-            }
-        } catch (IOException e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description: Cannot parse document: " + e, e);
-        } catch (javax.xml.parsers.ParserConfigurationException e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description: " + e, e);
-        } catch (SAXException e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description: Cannot parse document: " + e, e);
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    // do nothing
-                }
-            }
-        }
+						registerRenderers(name, className, reportable, icon, renderers, classLoader);
+					}
+				}
+				isInitialized = true;
+			} else {
+				LogService.getRoot().warning("Cannot initialize io object description: Outermost tag of a ioobjects.xml definition must be <ioobjects>!");
+			}
+		} catch (IOException e) {
+			LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description: Cannot parse document: " + e, e);
+		} catch (javax.xml.parsers.ParserConfigurationException e) {
+			LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description: " + e, e);
+		} catch (SAXException e) {
+			LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description: Cannot parse document: " + e, e);
+		} finally {
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException e) {
+					// do nothing
+				}
+			}
+		}
 
-    }
+	}
 
-    /**
-     * This method remains for compatibility reasons. But one should use
-     * {@link #registerRenderers(String, String, boolean, String, List, ClassLoader)} in order to assign an icon to the
-     * ioobject class.
-     */
-    @Deprecated
-    public static void registerRenderers(String reportableNames, String className, boolean reportable, List<String> rendererClassNames, ClassLoader classLoader) {
-        registerRenderers(reportableNames, className, reportable, null, rendererClassNames, classLoader);
-    }
+	/**
+	 * This method remains for compatibility reasons. But one should use
+	 * {@link #registerRenderers(String, String, boolean, String, List, ClassLoader)} in order to assign an icon to the
+	 * ioobject class.
+	 */
+	@Deprecated
+	public static void registerRenderers(String reportableNames, String className, boolean reportable, List<String> rendererClassNames, ClassLoader classLoader) {
+		registerRenderers(reportableNames, className, reportable, null, rendererClassNames, classLoader);
+	}
 
-    @SuppressWarnings("unchecked")
-    public static void registerRenderers(String reportableName, String className, boolean reportable, String iconName, List<String> rendererClassNames, ClassLoader classLoader) {
-        objectNames.add(reportableName);
+	@SuppressWarnings("unchecked")
+	public static void registerRenderers(String reportableName, String className, boolean reportable, String iconName, List<String> rendererClassNames, ClassLoader classLoader) {
+		objectNames.add(reportableName);
 
-        try {
+		try {
 
-            Class<? extends IOObject> clazz = (Class<? extends IOObject>) Class.forName(className, true, classLoader);
+			Class<? extends IOObject> clazz = (Class<? extends IOObject>) Class.forName(className, true, classLoader);
 
-            List<Renderer> renderers = new LinkedList<Renderer>();
-            Map<String, Class<? extends Renderer>> rendererClassMap = new HashMap<String, Class<? extends Renderer>>();
-            for (String rendererClassName : rendererClassNames) {
-                Class<? extends Renderer> rendererClass;
-                try {
-                    rendererClass = (Class<? extends Renderer>) Class.forName(rendererClassName, true, classLoader);
-                } catch (Exception e) { // should be unnecessary in most cases, because plugin loader contains core
-                    // classes
-                    rendererClass = (Class<? extends Renderer>) Class.forName(rendererClassName);
-                }
-                Renderer renderer = rendererClass.newInstance();
-                renderers.add(renderer);
-                rendererClassMap.put(renderer.getName(), rendererClass);
-            }
+			List<Renderer> renderers = new LinkedList<Renderer>();
+			Map<String, Class<? extends Renderer>> rendererClassMap = new HashMap<String, Class<? extends Renderer>>();
+			for (String rendererClassName : rendererClassNames) {
+				Class<? extends Renderer> rendererClass;
+				try {
+					rendererClass = (Class<? extends Renderer>) Class.forName(rendererClassName, true, classLoader);
+				} catch (Exception e) { // should be unnecessary in most cases, because plugin loader contains core
+					// classes
+					rendererClass = (Class<? extends Renderer>) Class.forName(rendererClassName);
+				}
+				Renderer renderer = rendererClass.newInstance();
+				renderers.add(renderer);
+				rendererClassMap.put(renderer.getName(), rendererClass);
+			}
 
-            rendererNameToRendererClasses.put(reportableName, rendererClassMap);
-            objectRenderers.put(reportableName, renderers);
-            objectClasses.put(reportableName, clazz);
-            class2NameMap.put(clazz, reportableName);
-            if (reportable) {
-                reportableMap.add(reportableName);
-            }
+			rendererNameToRendererClasses.put(reportableName, rendererClassMap);
+			objectRenderers.put(reportableName, renderers);
+			objectClasses.put(reportableName, clazz);
+			class2NameMap.put(clazz, reportableName);
+			if (reportable) {
+				reportableMap.add(reportableName);
+			}
 
-            // try to create icon
-            if (iconName != null && !iconName.isEmpty()) {
-                ImageIcon icon = SwingTools.createIcon("16/" + iconName);
-                if (icon != null)
-                    class2IconMap.put(clazz, icon);
-            }
+			// try to create icon
+			if (iconName != null && !iconName.isEmpty()) {
+				ImageIcon icon = SwingTools.createIcon("16/" + iconName);
+				if (icon != null)
+					class2IconMap.put(clazz, icon);
+			}
 
-        } catch (Throwable e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot register renderer: " + e, e);
-        }
-    }
+		} catch (Throwable e) {
+			LogService.getRoot().log(Level.WARNING, "Cannot register renderer: " + e, e);
+		}
+	}
 
-    public static Set<String> getAllRenderableObjectNames() {
-        return objectNames;
-    }
+	public static Set<String> getAllRenderableObjectNames() {
+		return objectNames;
+	}
 
-    public static Set<String> getAllReportableObjectNames() {
-        Set<String> result = new TreeSet<String>();
-        for (String name : objectNames) {
-            if (reportableMap.contains(name)) {
-                result.add(name);
-            }
-        }
-        return result;
-    }
+	public static Set<String> getAllReportableObjectNames() {
+		Set<String> result = new TreeSet<String>();
+		for (String name : objectNames) {
+			if (reportableMap.contains(name)) {
+				result.add(name);
+			}
+		}
+		return result;
+	}
 
-    /**
-     * Returns the Reportable name for objects of the given class.
-     * 
-     */
-    public static String getName(Class<?> clazz) {
-        String result = class2NameMap.get(clazz);
-        if (result == null) {
-            for (Class<?> renderable : class2NameMap.keySet()) {
-                if (renderable.isAssignableFrom(clazz))
-                    return class2NameMap.get(renderable);
-            }
-        }
-        return result;
-    }
+	/**
+	 * Returns the Reportable name for objects of the given class.
+	 * 
+	 */
+	public static String getName(Class<?> clazz) {
+		String result = class2NameMap.get(clazz);
+		if (result == null) {
 
-    /**
-     * This returns the highest super class of the report type with the given name.
-     */
-    public static Class<? extends IOObject> getClass(String name) {
-        return objectClasses.get(name);
-    }
+			List<Class<?>> candidateList = new LinkedList<Class<?>>();
 
-    /**
-     * Returns a list of renderers defined for this IOObject name (as returned by {@link #getName(Class)} for the
-     * respective object). It is recommended to use {@link #getRenderers(IOObject)} instead.
-     * */
-    public static List<Renderer> getRenderers(String reportableName) {
-        List<Renderer> renderers = objectRenderers.get(reportableName);
-        if (renderers != null)
-            return renderers;
-        return new LinkedList<Renderer>();
-    }
+			//fetch candidates
+			for (Class<?> renderable : class2NameMap.keySet()) {
+				if (renderable.isAssignableFrom(clazz)) {
+					candidateList.add(renderable);
+				}
+			}
 
-    /** Returns a list of shared (i.e. not thread-safe!) renderers defined for this IOObject. */
-    public static List<Renderer> getRenderers(IOObject ioo) {
-        String reportableName = RendererService.getName(ioo.getClass());
-        return getRenderers(reportableName);
-    }
+			//iterate over candidates and extract candidates for renderables
+			boolean dominatedClassesFound = true;
+			while (dominatedClassesFound) {
+				dominatedClassesFound = false;
+				List<Class<?>> dominatedList = new LinkedList<Class<?>>();
 
-    public static Renderer getRenderer(String reportableName, String rendererName) {
-        List<Renderer> renderers = getRenderers(reportableName);
-        for (Renderer renderer : renderers) {
-            if (renderer.getName().equals(rendererName)) {
-                return renderer;
-            }
-        }
-        return null;
-    }
+				//iterate over all candidate pairs and add all candidates that are dominated by other candidates into a list
+				for (Class<?> candidate : candidateList) {
+					for (Class<?> comperable : candidateList) {
+						if (candidate != comperable) {
+							if (!candidate.isAssignableFrom(comperable)) {
+								dominatedList.add(candidate);
+								dominatedClassesFound = true;
+							}
+						}
+					}
+				}
 
-    /**
-     * This returns the icon registered for the given class or a default icon, if nothing has been registered.
-     */
-    public static Icon getIcon(Class<? extends IOObject> objectClass) {
-        if (objectClass == null)
-            return ICON_DEFAULT;
-        Icon icon = class2IconMap.get(objectClass);
-        if (icon == null) {
-            for (Entry<Class<? extends IOObject>, Icon> renderableClassEntry : class2IconMap.entrySet()) {
-                if (renderableClassEntry.getKey().isAssignableFrom(objectClass)) {
-                    class2IconMap.put(objectClass, renderableClassEntry.getValue());
-                    return renderableClassEntry.getValue();
-                }
-            }
-            return ICON_DEFAULT;
-        }
-        return icon;
-    }
+				//if dominates classes have been found set them as new candidates for the next iteration
+				if (dominatedClassesFound) {
+					candidateList.clear();
+					candidateList.addAll(dominatedList);
+				}
+			}
+			//this loop should break with only one candidate left, BUT: theoretically there can be more than one
 
-    /**
-     * Creates a new renderer for the given object.
-     * 
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     */
-    public static Renderer createRenderer(IOObject ioobject, String rendererName) {
-        String reportableName = getName(ioobject.getClass());
-        Map<String, Class<? extends Renderer>> rendererClassMap = rendererNameToRendererClasses.get(reportableName);
-        if (rendererClassMap == null) {
-            throw new IllegalArgumentException("Illegal reportable name: " + rendererName);
-        }
-        Class<? extends Renderer> rendererClass = rendererClassMap.get(rendererName);
-        if (rendererClass == null) {
-            throw new IllegalArgumentException("Illegal renderer name: " + rendererName);
-        }
-        try {
-            return rendererClass.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create renderer: " + e, e);
-        }
-    }
+			//if this is the case, log an error...
+			if (candidateList.size() > 1) {
+				LogService.getGlobal().log("There is more than one renderable candidate for the result of " + clazz.getName(), LogService.ERROR);
+			}
+			
+			//and show the first candidate found
+			return class2NameMap.get(candidateList.get(0));
+		}
+		return result;
+	}
 
-    /**
-     * This returns whether the {@link RendererService} has already been initialized at least once.
-     * This holds true even if only the core objects have been registered.
-     */
-    public static boolean isInitialized() {
-        return isInitialized;
-    }
+	/**
+	 * This returns the highest super class of the report type with the given name.
+	 */
+	public static Class<? extends IOObject> getClass(String name) {
+		return objectClasses.get(name);
+	}
+
+	/**
+	 * Returns a list of renderers defined for this IOObject name (as returned by {@link #getName(Class)} for the
+	 * respective object). It is recommended to use {@link #getRenderers(IOObject)} instead.
+	 * */
+	public static List<Renderer> getRenderers(String reportableName) {
+		List<Renderer> renderers = objectRenderers.get(reportableName);
+		if (renderers != null)
+			return renderers;
+		return new LinkedList<Renderer>();
+	}
+
+	/** Returns a list of shared (i.e. not thread-safe!) renderers defined for this IOObject. */
+	public static List<Renderer> getRenderers(IOObject ioo) {
+		String reportableName = RendererService.getName(ioo.getClass());
+		return getRenderers(reportableName);
+	}
+
+	public static Renderer getRenderer(String reportableName, String rendererName) {
+		List<Renderer> renderers = getRenderers(reportableName);
+		for (Renderer renderer : renderers) {
+			if (renderer.getName().equals(rendererName)) {
+				return renderer;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * This returns the icon registered for the given class or a default icon, if nothing has been registered.
+	 */
+	public static Icon getIcon(Class<? extends IOObject> objectClass) {
+		if (objectClass == null)
+			return ICON_DEFAULT;
+		Icon icon = class2IconMap.get(objectClass);
+		if (icon == null) {
+			for (Entry<Class<? extends IOObject>, Icon> renderableClassEntry : class2IconMap.entrySet()) {
+				if (renderableClassEntry.getKey().isAssignableFrom(objectClass)) {
+					class2IconMap.put(objectClass, renderableClassEntry.getValue());
+					return renderableClassEntry.getValue();
+				}
+			}
+			return ICON_DEFAULT;
+		}
+		return icon;
+	}
+
+	/**
+	 * Creates a new renderer for the given object.
+	 * 
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 */
+	public static Renderer createRenderer(IOObject ioobject, String rendererName) {
+		String reportableName = getName(ioobject.getClass());
+		Map<String, Class<? extends Renderer>> rendererClassMap = rendererNameToRendererClasses.get(reportableName);
+		if (rendererClassMap == null) {
+			throw new IllegalArgumentException("Illegal reportable name: " + rendererName);
+		}
+		Class<? extends Renderer> rendererClass = rendererClassMap.get(rendererName);
+		if (rendererClass == null) {
+			throw new IllegalArgumentException("Illegal renderer name: " + rendererName);
+		}
+		try {
+			return rendererClass.newInstance();
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to create renderer: " + e, e);
+		}
+	}
+
+	/**
+	 * This returns whether the {@link RendererService} has already been initialized at least once.
+	 * This holds true even if only the core objects have been registered.
+	 */
+	public static boolean isInitialized() {
+		return isInitialized;
+	}
 }

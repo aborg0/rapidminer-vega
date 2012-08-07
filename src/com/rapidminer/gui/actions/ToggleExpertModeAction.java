@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -24,7 +24,7 @@ package com.rapidminer.gui.actions;
 
 import java.awt.event.ActionEvent;
 
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.MainUIState;
 
 
 /**
@@ -36,9 +36,9 @@ public class ToggleExpertModeAction extends ToggleAction {
 
 	private static final long serialVersionUID = 5545547954042596599L;
 	
-	private final MainFrame mainFrame;
+	private final MainUIState mainFrame;
 	
-	public ToggleExpertModeAction(final MainFrame mainFrame) {
+	public ToggleExpertModeAction(final MainUIState mainFrame) {
 		super(true, "expert");
 		this.mainFrame = mainFrame;
 	}

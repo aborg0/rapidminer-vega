@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -52,7 +52,7 @@ public class SimplePlotterPanelDialog extends JDialog {
 	}
 
 	public SimplePlotterPanelDialog(DataTable dataTable, boolean modal) {
-		this(RapidMinerGUI.getMainFrame(), dataTable, -1, -1, modal);
+		this(RapidMinerGUI.getMainFrame().getWindow(), dataTable, -1, -1, modal);
 	}
 
 	public SimplePlotterPanelDialog(Frame owner, final DataTable dataTable, int width, int height, boolean modal) {

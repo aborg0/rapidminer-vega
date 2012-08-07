@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -30,7 +30,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.tools.ResourceAction;
 
 
@@ -45,7 +45,7 @@ public class ManageBuildingBlocksDialog extends BuildingBlockDialog {
 
 	private static final long serialVersionUID = -2146505003821251075L;
 
-	public ManageBuildingBlocksDialog(MainFrame mainFrame) {
+	public ManageBuildingBlocksDialog(MainUIState mainFrame) {
 		super("manage_building_blocks", BuildingBlock.USER_DEFINED);
 		
 		JPanel panel = new JPanel(new GridBagLayout());

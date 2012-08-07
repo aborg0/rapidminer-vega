@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -74,7 +74,7 @@ public class ColorSelectionButton extends JButton {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Color newColor = showDialog(RapidMinerGUI.getMainFrame(), I18N.getGUILabel(i18nKey), color);
+				Color newColor = showDialog(RapidMinerGUI.getMainFrame().getWindow(), I18N.getGUILabel(i18nKey), color);
 				if (newColor != null) {
 					color = newColor;
 					setIcon(new ColorIcon(color));

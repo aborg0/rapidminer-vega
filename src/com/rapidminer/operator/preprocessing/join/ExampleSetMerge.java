@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -24,10 +24,12 @@ package com.rapidminer.operator.preprocessing.join;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.AttributeRole;
@@ -181,7 +183,73 @@ public class ExampleSetMerge extends Operator {
         while (a.hasNext()) {
             AttributeRole role = a.next();
             Attribute oldAttribute = role.getAttribute();
-            Attribute newAttribute = AttributeFactory.createAttribute(oldAttribute.getName(), oldAttribute.getValueType(), oldAttribute.getBlockType());
+            
+            int newType;
+            if (oldAttribute.isNominal()) {
+            	// collect values to see if we have at least two
+            	Set<String> values = new HashSet<String>();
+            	values.addAll(oldAttribute.getMapping().getValues());
+            	boolean hasNominal = false;
+            	boolean hasPolynominal = false;
+            	for (ExampleSet otherExampleSet : allExampleSets) {
+                    Attribute otherAttribute = otherExampleSet.getAttributes().get(oldAttribute.getName());
+                    // At least one non-nominal -> throw
+                    if (!otherAttribute.isNominal()) {
+                    	throwIncompatible(oldAttribute, otherAttribute);
+                    }
+                    values.addAll(otherAttribute.getMapping().getValues());
+                    hasNominal |= (otherAttribute.getValueType() == Ontology.NOMINAL);
+                    hasPolynominal |= Ontology.ATTRIBUTE_VALUE_TYPE.isA(otherAttribute.getValueType(), Ontology.POLYNOMINAL);
+                }
+                if (hasNominal) {
+                	newType = Ontology.NOMINAL;
+                } else if (hasPolynominal || values.size() > 2) {
+                	newType = Ontology.POLYNOMINAL;
+                } else {
+                	newType = oldAttribute.getValueType();
+                }
+            } else if (oldAttribute.isNumerical()) {
+            	boolean hasReal = false;
+            	boolean hasNumerical = false;
+            	for (ExampleSet otherExampleSet : allExampleSets) {
+                    Attribute otherAttribute = otherExampleSet.getAttributes().get(oldAttribute.getName());
+                    // At least one non-numerical -> throw
+                    if (!otherAttribute.isNumerical()) {
+                    	throwIncompatible(oldAttribute, otherAttribute);
+                    }
+                    hasNumerical |= (otherAttribute.getValueType() == Ontology.NUMERICAL);
+                    hasReal |= Ontology.ATTRIBUTE_VALUE_TYPE.isA(otherAttribute.getValueType(), Ontology.REAL);
+                }
+                if (hasNumerical) {
+                	newType = Ontology.NUMERICAL;
+                } else if (hasReal) {
+                	newType = Ontology.REAL;
+                } else {
+                	newType = oldAttribute.getValueType();
+                }
+            } else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(oldAttribute.getValueType(), Ontology.DATE)) {
+            	newType = oldAttribute.getValueType();
+            	for (ExampleSet otherExampleSet : allExampleSets) {
+                    Attribute otherAttribute = otherExampleSet.getAttributes().get(oldAttribute.getName());
+                    if (otherAttribute.getValueType() != newType) {
+                    	newType = Ontology.DATE;
+                    }
+            	}
+            } else {
+            	for (ExampleSet otherExampleSet : allExampleSets) {
+                    Attribute otherAttribute = otherExampleSet.getAttributes().get(oldAttribute.getName());
+                    // At least one non-numerical -> throw
+                    if (otherAttribute.getValueType() != oldAttribute.getValueType()) {
+                    	throwIncompatible(oldAttribute, otherAttribute);
+                    }
+                }
+                newType = oldAttribute.getValueType();
+            }           
+            
+            Attribute newAttribute = AttributeFactory.createAttribute(
+            		oldAttribute.getName(), 
+            		newType, //oldAttribute.getValueType(), 
+            		oldAttribute.getBlockType());
             newAttributeNameMap.put(newAttribute.getName(), newAttribute);
             newAttributeList.add(newAttribute);
             if (role.isSpecial()) {
@@ -221,6 +289,16 @@ public class ExampleSetMerge extends Operator {
         return resultSet;
     }
 
+	private void throwIncompatible(Attribute oldAttribute, Attribute otherAttribute) throws UserError {
+		throw new UserError(this, 925, "Attribute '" + oldAttribute.getName() + "' has incompatible types (" +
+		      Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(oldAttribute.getValueType()) + " and " +
+		      Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(otherAttribute.getValueType()) + ") in two input sets.");
+	}
+
+	/** Checks whether all attributes in set 1 occur in the others as well. Types are (deliberately) not checked.
+	 *  Type check happens in {@link #merge(List)} itself. 
+	 *  @throws on failed check
+	 */
     private void checkForCompatibility(List<ExampleSet> allExampleSets) throws OperatorException {
         ExampleSet first = allExampleSets.get(0);
         Iterator<ExampleSet> i = allExampleSets.iterator();
@@ -240,13 +318,14 @@ public class ExampleSetMerge extends Operator {
             Attribute secondAttribute = second.getAttributes().get(firstAttribute.getName());
             if (secondAttribute == null)
                 throw new UserError(this, 925, "Attribute with name '" + firstAttribute.getName() + "' is not part of second example set.");
-            //if (firstAttribute.getValueType() != secondAttribute.getValueType()) { // ATTENTION: Breaks compatibility for previously running processes
-            // maybe even better: check for subtypes in both directions and use super-type above
-            if (!Ontology.ATTRIBUTE_VALUE_TYPE.isA(secondAttribute.getValueType(), firstAttribute.getValueType())) {
-                throw new UserError(this, 925, "Attribute '" + firstAttribute.getName() + "' has incompatible types (" +
-                        Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(firstAttribute.getValueType()) + " and " +
-                        Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(secondAttribute.getValueType()) + ") in two input sets.");
-            }
+            // No type check necessary. Type check is done in mrege() itself.
+//            //if (firstAttribute.getValueType() != secondAttribute.getValueType()) { // ATTENTION: Breaks compatibility for previously running processes
+//            // maybe even better: check for subtypes in both directions and use super-type above
+//            if (!Ontology.ATTRIBUTE_VALUE_TYPE.isA(secondAttribute.getValueType(), firstAttribute.getValueType())) {
+//                throw new UserError(this, 925, "Attribute '" + firstAttribute.getName() + "' has incompatible types (" +
+//                        Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(firstAttribute.getValueType()) + " and " +
+//                        Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(secondAttribute.getValueType()) + ") in two input sets.");
+//            }
         }
     }
 

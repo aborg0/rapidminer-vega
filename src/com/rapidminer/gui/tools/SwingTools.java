@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -56,7 +56,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileSystemView;
 
 import com.rapidminer.RapidMiner;
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.look.fc.Bookmark;
 import com.rapidminer.gui.look.fc.BookmarkIO;
@@ -762,7 +762,7 @@ public class SwingTools {
      */
     private static File chooseFile(Component parent, String i18nKey, File file, boolean open, boolean onlyDirs, FileFilter[] fileFilters, boolean acceptAllFiles) {
         if (parent == null)
-            parent = RapidMinerGUI.getMainFrame();
+            parent = RapidMinerGUI.getMainFrame().getWindow();
         String key = "file_chooser." + (i18nKey != null ? i18nKey : open ? (onlyDirs ? "open_directory" : "open") : "save");
         JFileChooser fileChooser = createFileChooser(key, file, onlyDirs, fileFilters);
         fileChooser.setAcceptAllFileFilterUsed(acceptAllFiles);
@@ -1054,7 +1054,7 @@ public class SwingTools {
     }
 
     public static void setProcessEditorsEnabled(boolean enabled) {
-        MainFrame mainFrame = RapidMinerGUI.getMainFrame();
+        MainUIState mainFrame = RapidMinerGUI.getMainFrame();
         setEnabledRecursive(mainFrame.getProcessPanel().getComponent(), enabled);
         setEnabledRecursive(mainFrame.getPropertyPanel().getComponent(), enabled);
         setEnabledRecursive(mainFrame.getOperatorTree(), enabled);

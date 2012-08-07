@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -30,6 +30,7 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.learner.FormulaProvider;
+import com.rapidminer.operator.learner.functions.kernel.jmysvm.examples.SVMExample;
 import com.rapidminer.operator.learner.functions.kernel.jmysvm.examples.SVMExamples.MeanVariance;
 import com.rapidminer.operator.learner.functions.kernel.jmysvm.kernel.Kernel;
 import com.rapidminer.operator.learner.functions.kernel.jmysvm.kernel.KernelDot;
@@ -150,7 +151,11 @@ public abstract class AbstractMySVMModel extends KernelModel implements FormulaP
 	public double getFunctionValue(int index) {
 		SVMInterface svm = createSVM();
 		svm.init(kernel, model);
-		return svm.predict(model.get_example(index));
+		// need to clone the support vector, since internally there is only one instance of an SVMExample
+		// in the data, where only its data pointers are exchanged. This instance is also changed in svm.predict(),
+		// so we need to clone.
+		SVMExample sv = new SVMExample(model.get_example(index));
+		return svm.predict(sv);
 	}
 	
 	/** Gets the kernel. */

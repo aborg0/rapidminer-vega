@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -26,6 +26,7 @@ import java.util.List;
 
 import com.rapidminer.Process;
 import com.rapidminer.ProcessListener;
+import com.rapidminer.RapidMiner;
 import com.rapidminer.gui.processeditor.ProcessEditor;
 import com.rapidminer.operator.Operator;
 
@@ -39,31 +40,34 @@ import com.rapidminer.operator.Operator;
 public abstract class GeneralProcessListener implements ProcessListener {
 
 	private Process process;
-	
+
 	public GeneralProcessListener() {
 		register();
 	}
 
 	private void register() {
-		RapidMinerGUI.getMainFrame().addProcessEditor(new ProcessEditor() {
-			@Override
-			public void processChanged(Process process) {
-				if (GeneralProcessListener.this.process != null) {
-					GeneralProcessListener.this.process.getRootOperator().removeProcessListener(GeneralProcessListener.this);
+		if (!RapidMiner.getExecutionMode().isHeadless()) {
+			final ProcessEditor processEditor = new ProcessEditor() {
+				@Override
+				public void processChanged(Process process) {
+					if (GeneralProcessListener.this.process != null) {
+						GeneralProcessListener.this.process.getRootOperator().removeProcessListener(GeneralProcessListener.this);
+					}
+					GeneralProcessListener.this.process = process;
+					if (GeneralProcessListener.this.process != null) {
+						GeneralProcessListener.this.process.getRootOperator().addProcessListener(GeneralProcessListener.this);
+					}				
 				}
-				GeneralProcessListener.this.process = process;
-				if (GeneralProcessListener.this.process != null) {
-					GeneralProcessListener.this.process.getRootOperator().addProcessListener(GeneralProcessListener.this);
-				}				
-			}
 
-			@Override
-			public void processUpdated(Process process) { }
+				@Override
+				public void processUpdated(Process process) { }
 
-			@Override
-			public void setSelection(List<Operator> selection) { }
-			
-		});
+				@Override
+				public void setSelection(List<Operator> selection) { }
+
+			};
+			RapidMinerGUI.getMainFrame().addProcessEditor(processEditor);
+		}
 	}
-	
+
 }

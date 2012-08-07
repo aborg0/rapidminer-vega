@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -24,7 +24,7 @@ package com.rapidminer.gui.actions;
 
 import java.awt.event.ActionEvent;
 
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.ProcessState;
 import com.rapidminer.gui.tools.ResourceAction;
 
 
@@ -37,9 +37,9 @@ public class RedoAction extends ResourceAction {
 
 	private static final long serialVersionUID = -3106523347321697652L;
 	
-	private MainFrame mainFrame;
+	private ProcessState mainFrame;
 	
-	public RedoAction(MainFrame mainFrame) {
+	public RedoAction(ProcessState mainFrame) {
 		super("redo");		
 		this.mainFrame = mainFrame;
 	}

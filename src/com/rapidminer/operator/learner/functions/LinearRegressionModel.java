@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -125,6 +125,7 @@ public class LinearRegressionModel extends PredictionModel {
 		for (int i = 0; i < selectedAttributes.length; i++) {
 			if (selectedAttributes[i]) {
 				result.append(getCoefficientString(coefficients[index], first) + " * " + attributeConstructions[i] + Tools.getLineSeparator());
+//				result.append(getCoefficientString(coefficients[index], first) + " * " + attributeNames[i] + Tools.getLineSeparator());
 				index++;
 				first = false;
 			}
@@ -164,7 +165,8 @@ public class LinearRegressionModel extends PredictionModel {
 		int index = 0;
 		for (int i = 0; i < selectedAttributes.length; i++) {
 			if (selectedAttributes[i]) {
-				attributeNames[index] = attributeConstructions[i];
+				attributeNames[index] = this.attributeConstructions[i];
+//				attributeNames[index] = this.attributeNames[i];
 				index++;
 			}
 		}

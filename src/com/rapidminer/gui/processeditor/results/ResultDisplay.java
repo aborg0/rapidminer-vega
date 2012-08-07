@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -23,7 +23,7 @@
 package com.rapidminer.gui.processeditor.results;
 
 import com.rapidminer.datatable.DataTable;
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.processeditor.ProcessEditor;
 import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.ResultObject;
@@ -39,7 +39,7 @@ public interface ResultDisplay extends Dockable, ProcessEditor {
 	public static final String RESULT_DOCK_KEY = "result";
 	
 	/** Initializer called after the main frame is set up. */
-	public void init(MainFrame mainFrame);
+	public void init(MainUIState mainFrame);
 
 	public void showResult(ResultObject result);
 	

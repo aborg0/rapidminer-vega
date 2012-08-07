@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -108,7 +108,7 @@ public abstract class AbstractConfigurationWizard extends JDialog {
         
     /** Creates a new wizard. */
     public AbstractConfigurationWizard(String name, ConfigurationListener listener) {
-        super(RapidMinerGUI.getMainFrame(), name, true);
+        super(RapidMinerGUI.getMainFrame().getWindow(), name, true);
 
         this.listener = listener;
         

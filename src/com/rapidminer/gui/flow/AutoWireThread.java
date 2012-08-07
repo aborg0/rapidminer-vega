@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -64,7 +64,7 @@ public class AutoWireThread extends EditBlockingProgressThread {
 			newOperators = new LinkedList<Operator>(newOperators);
 			newOperators.remove(0);
 		}
-		if (RapidMinerGUI.getMainFrame().VALIDATE_AUTOMATICALLY_ACTION.isSelected()) {
+		if (RapidMinerGUI.getMainFrame().getValidateAutomaticallyAction().isSelected()) {
 			new AutoWireThread(newOperators).start();
 		}
 	}
